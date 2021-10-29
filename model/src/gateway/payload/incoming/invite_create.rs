@@ -1,6 +1,7 @@
 //! Gateway event payload when an invite is created.
 
 use crate::{
+    datetime::Timestamp,
     id::{ChannelId, GuildId, UserId},
     invite::TargetType,
     user::{self, DiscriminatorDisplay, User},
@@ -17,9 +18,7 @@ pub struct InviteCreate {
     /// Unique code.
     pub code: String,
     /// When the invite was created.
-    ///
-    /// This is in an ISO 8601 timestamp format.
-    pub created_at: String,
+    pub created_at: Timestamp,
     /// ID of the guild being invited to.
     pub guild_id: GuildId,
     /// Information about the user who created the invite.
@@ -83,7 +82,10 @@ impl PartialUser {
 #[cfg(test)]
 mod tests {
     use super::{InviteCreate, PartialUser};
-    use crate::id::{ChannelId, GuildId, UserId};
+    use crate::{
+        datetime::Timestamp,
+        id::{ChannelId, GuildId, UserId},
+    };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -128,10 +130,12 @@ mod tests {
 
     #[test]
     fn test_invite_create() {
+        let created_at = Timestamp::from_secs(1_609_459_200).expect("non zero");
+
         let value = InviteCreate {
             channel_id: ChannelId::new(1).expect("non zero"),
             code: "a".repeat(7),
-            created_at: "2021-01-01T00:00:00+00:00".to_owned(),
+            created_at,
             guild_id: GuildId::new(2).expect("non zero"),
             inviter: None,
             max_age: 3600,
@@ -155,7 +159,7 @@ mod tests {
                 Token::Str("code"),
                 Token::Str("aaaaaaa"),
                 Token::Str("created_at"),
-                Token::Str("2021-01-01T00:00:00+00:00"),
+                Token::Str("2021-01-01T00:00:00.000000+00:00"),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("2"),

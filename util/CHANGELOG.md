@@ -2,6 +2,18 @@
 
 Changelog for `twilight-util`.
 
+## [0.7.0] - 2021-10-21
+
+### Changes
+
+`PermissionCalculator::owner_id` is now an `Option<UserId>` ([#1039] -
+[@vilgotf]).
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+[#1039]: https://github.com/twilight-rs/twilight/pull/1039
+[#1161]: https://github.com/twilight-rs/twilight/pull/1161
+
 ## [0.6.2] - 2021-10-07
 
 Adds the `builder` module, which is currently populated with the
@@ -109,11 +121,13 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 
 Initial release.
 
+[@7596ff]: https://github.com/7596ff
 [@baptiste0928]: https://github.com/baptiste0928
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.7.0
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.1
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.0

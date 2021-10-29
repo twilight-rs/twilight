@@ -1,4 +1,5 @@
 use crate::{
+    datetime::Timestamp,
     guild::member::{Member, OptionalMemberDeserializer},
     id::{ChannelId, GuildId, UserId},
 };
@@ -28,7 +29,13 @@ pub struct VoiceState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
     pub user_id: UserId,
-    pub request_to_speak_timestamp: Option<String>,
+    /// When the user requested to speak.
+    ///
+    /// # serde
+    ///
+    /// This is serialized as an ISO 8601 timestamp in the format of
+    /// "2021-01-01T01-01-01.010000+00:00".
+    pub request_to_speak_timestamp: Option<Timestamp>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -266,8 +273,12 @@ impl<'de> Deserialize<'de> for VoiceState {
 #[cfg(test)]
 mod tests {
     use super::{ChannelId, GuildId, Member, UserId, VoiceState};
-    use crate::{id::RoleId, user::User};
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        user::User,
+    };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     fn test_voice_state() {
@@ -328,7 +339,11 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_voice_state_complete() {
+    fn test_voice_state_complete() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
+        let request_to_speak_timestamp = Timestamp::from_str("2021-04-21T22:16:50.000000+00:00")?;
+
         let value = VoiceState {
             channel_id: Some(ChannelId::new(1).expect("non zero")),
             deaf: false,
@@ -336,12 +351,11 @@ mod tests {
             member: Some(Member {
                 deaf: false,
                 guild_id: GuildId::new(2).expect("non zero"),
-                hoisted_role: Some(RoleId::new(2).expect("non zero")),
-                joined_at: Some("timestamp".to_owned()),
+                joined_at: Some(joined_at),
                 mute: true,
                 nick: Some("twilight".to_owned()),
                 pending: false,
-                premium_since: Some("timestamp".to_owned()),
+                premium_since: Some(premium_since),
                 roles: Vec::new(),
                 user: User {
                     accent_color: None,
@@ -369,7 +383,7 @@ mod tests {
             suppress: true,
             token: Some("abc".to_owned()),
             user_id: UserId::new(3).expect("non zero"),
-            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
+            request_to_speak_timestamp: Some(request_to_speak_timestamp),
         };
 
         serde_test::assert_tokens(
@@ -393,20 +407,16 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 10,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("2"),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("2"),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
                 Token::Str("nick"),
@@ -416,7 +426,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("premium_since"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2021-03-16T14:29:19.046000+00:00"),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -462,9 +472,11 @@ mod tests {
                 Token::Str("3"),
                 Token::Str("request_to_speak_timestamp"),
                 Token::Some,
-                Token::Str("2021-04-21T22:16:50+0000"),
+                Token::Str("2021-04-21T22:16:50.000000+00:00"),
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

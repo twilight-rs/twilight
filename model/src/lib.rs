@@ -59,6 +59,7 @@
 
 pub mod application;
 pub mod channel;
+pub mod datetime;
 pub mod gateway;
 pub mod guild;
 pub mod id;

@@ -73,7 +73,7 @@ pub enum RoleFieldsErrorType {
 pub struct RoleFieldsBuilder(RoleFields);
 
 impl RoleFieldsBuilder {
-    /// The maximumn accepted color value.
+    /// The maximum accepted color value.
     ///
     /// This is used by [`color`].
     ///
@@ -732,6 +732,8 @@ mod tests {
         RoleFieldsBuilder, RoleFieldsErrorType, TextFieldsBuilder, TextFieldsErrorType,
         VoiceFieldsBuilder, VoiceFieldsErrorType,
     };
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
     use twilight_model::{
         channel::{
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
@@ -740,6 +742,27 @@ mod tests {
         guild::Permissions,
         id::{ChannelId, RoleId},
     };
+
+    assert_impl_all!(RoleFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(TextFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(VoiceFieldsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(
+        CategoryFieldsBuilder: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
+    assert_impl_all!(
+        GuildChannelFieldsBuilder: Clone,
+        Debug,
+        Default,
+        Eq,
+        PartialEq,
+        Send,
+        Sync
+    );
 
     fn perms() -> Permissions {
         Permissions::CONNECT | Permissions::SPEAK | Permissions::SEND_TTS_MESSAGES

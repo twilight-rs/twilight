@@ -4,16 +4,14 @@ pub use self::builder::ClientBuilder;
 
 use crate::{
     error::{Error, ErrorType},
-    ratelimiting::Ratelimiter,
     request::{
         application::{
             command::{
-                create_global_command::CreateGlobalChatInputCommand,
-                create_guild_command::CreateGuildChatInputCommand, CreateGlobalCommand,
-                CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand, GetCommandPermissions,
-                GetGlobalCommand, GetGlobalCommands, GetGuildCommand, GetGuildCommandPermissions,
-                GetGuildCommands, SetCommandPermissions, SetGlobalCommands, SetGuildCommands,
-                UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
+                CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+                GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
+                GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions,
+                SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand,
+                UpdateGuildCommand,
             },
             interaction::{
                 CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse,
@@ -54,7 +52,7 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::TryFrom,
+    convert::{AsRef, TryFrom},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
@@ -62,6 +60,7 @@ use std::{
     time::Duration,
 };
 use tokio::time;
+use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     application::{
         callback::InteractionResponse,
@@ -157,7 +156,7 @@ pub struct Client {
     default_headers: Option<HeaderMap>,
     http: HyperClient<HttpsConnector<HttpConnector>, Body>,
     proxy: Option<Box<str>>,
-    ratelimiter: Option<Ratelimiter>,
+    ratelimiter: Option<Box<dyn Ratelimiter>>,
     /// Whether to short-circuit when a 401 has been encountered with the client
     /// authorization.
     ///
@@ -228,8 +227,8 @@ impl Client {
     ///
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
-    pub fn ratelimiter(&self) -> Option<Ratelimiter> {
-        self.ratelimiter.clone()
+    pub fn ratelimiter(&self) -> Option<&dyn Ratelimiter> {
+        self.ratelimiter.as_ref().map(AsRef::as_ref)
     }
 
     /// Get the audit log for a guild.
@@ -1265,7 +1264,7 @@ impl Client {
     /// Get a list of users that reacted to a message with an `emoji`.
     ///
     /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
-    /// requests must be chained until all reactions are retireved.
+    /// requests must be chained until all reactions are retrieved.
     pub const fn reactions<'a>(
         &'a self,
         channel_id: ChannelId,
@@ -2039,40 +2038,6 @@ impl Client {
         ))
     }
 
-    /// Create a new chat input command in a guild.
-    ///
-    /// The name must be between 1 and 32 characters in length. Creating a
-    /// guild command with the same name as an already-existing guild command in
-    /// the same guild will overwrite the old command. See [the discord docs]
-    /// for more information.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 1 and 32 characters.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    #[deprecated(
-        note = "use `new_create_guild_command`, which does not require a description",
-        since = "0.6.4"
-    )]
-    pub fn create_guild_command<'a>(
-        &'a self,
-        guild_id: GuildId,
-        name: &'a str,
-        description: &'a str,
-    ) -> Result<CreateGuildChatInputCommand<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        CreateGuildCommand::new(self, application_id, guild_id, name)?.chat_input(description)
-    }
-
     /// Create a new command in a guild.
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
@@ -2090,7 +2055,7 @@ impl Client {
     /// error type if the command name is not between 1 and 32 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub fn new_create_guild_command<'a>(
+    pub fn create_guild_command<'a>(
         &'a self,
         guild_id: GuildId,
         name: &'a str,
@@ -2230,43 +2195,6 @@ impl Client {
         ))
     }
 
-    /// Create a new chat input global command.
-    ///
-    /// The name must be between 1 and 32 characters in length. The description
-    /// must be between 1 and 100 characters in length. Creating a command with
-    /// the same name as an already-existing global command will overwrite the
-    /// old command. See [the discord docs] for more information.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 1 and 32 characters.
-    ///
-    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
-    /// error type if the command description is not between 1 and 100
-    /// characters.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    #[deprecated(
-        note = "use `new_create_global_command`, which does not require a description",
-        since = "0.6.4"
-    )]
-    pub fn create_global_command<'a>(
-        &'a self,
-        name: &'a str,
-        description: &'a str,
-    ) -> Result<CreateGlobalChatInputCommand<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        CreateGlobalCommand::new(self, application_id, name)?.chat_input(description)
-    }
-
     /// Create a new global command.
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
@@ -2283,7 +2211,7 @@ impl Client {
     /// error type if the command name is not between 1 and 32 characters.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub fn new_create_global_command<'a>(
+    pub fn create_global_command<'a>(
         &'a self,
         name: &'a str,
     ) -> Result<CreateGlobalCommand<'a>, InteractionError> {
@@ -2715,7 +2643,7 @@ impl Client {
     /// # Errors
     ///
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
-    /// token has become invalid due to expiration, revokation, etc.
+    /// token has become invalid due to expiration, revocation, etc.
     ///
     /// [`Response`]: super::response::Response
     pub fn request<T>(&self, request: Request) -> ResponseFuture<T> {
@@ -2752,7 +2680,7 @@ impl Client {
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder()
-            .method(method.into_hyper())
+            .method(method.into_http())
             .uri(&url);
 
         if use_authorization_token {
@@ -2861,12 +2789,12 @@ impl Client {
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
         if let Some(ratelimiter) = self.ratelimiter.as_ref() {
-            let rx = ratelimiter.ticket(ratelimit_path);
+            let tx_future = ratelimiter.wait_for_ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
                 None,
                 invalid_token,
-                rx,
+                tx_future,
                 self.timeout,
                 inner,
             ))

@@ -71,6 +71,7 @@ mod tests {
             },
             Message,
         },
+        datetime::Timestamp,
         guild::{PartialMember, Permissions, Role},
         id::{
             ApplicationId, ChannelId, CommandId, GuildId, InteractionId, MessageId, RoleId, UserId,
@@ -80,6 +81,8 @@ mod tests {
 
     #[test]
     fn test_interaction_create() {
+        let timestamp = Timestamp::from_secs(1_632_072_645).expect("non zero");
+
         let cache = InMemoryCache::new();
         cache.update(&InteractionCreate(Interaction::ApplicationCommand(
             Box::new(ApplicationCommand {
@@ -94,7 +97,7 @@ mod tests {
                         members: Vec::from([InteractionMember {
                             hoisted_role: None,
                             id: UserId::new(7).expect("non zero"),
-                            joined_at: Some("joined at date".into()),
+                            joined_at: Some(timestamp),
                             nick: None,
                             premium_since: None,
                             roles: vec![RoleId::new(8).expect("non zero")],
@@ -133,7 +136,7 @@ mod tests {
                             kind: MessageType::Regular,
                             member: Some(PartialMember {
                                 deaf: false,
-                                joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
+                                joined_at: Some(timestamp),
                                 mute: false,
                                 nick: Some("member nick".to_owned()),
                                 permissions: None,
@@ -155,13 +158,14 @@ mod tests {
                             }],
                             referenced_message: None,
                             thread: None,
-                            timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+                            timestamp,
                             tts: false,
                             webhook_id: None,
                         }]),
                         roles: Vec::from([Role {
                             color: 0u32,
                             hoist: false,
+                            icon: None,
                             id: RoleId::new(8).expect("non zero"),
                             managed: false,
                             mentionable: true,
@@ -169,6 +173,7 @@ mod tests {
                             permissions: Permissions::empty(),
                             position: 2i64,
                             tags: None,
+                            unicode_emoji: None,
                         }]),
                         users: Vec::from([User {
                             accent_color: None,
@@ -194,7 +199,7 @@ mod tests {
                 kind: InteractionType::ApplicationCommand,
                 member: Some(PartialMember {
                     deaf: false,
-                    joined_at: Some("joined at".into()),
+                    joined_at: Some(timestamp),
                     mute: false,
                     nick: None,
                     permissions: Some(Permissions::empty()),

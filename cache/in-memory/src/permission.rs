@@ -499,12 +499,13 @@ mod tests {
     };
     use crate::{test, InMemoryCache};
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{error::Error, fmt::Debug};
+    use std::{error::Error, fmt::Debug, str::FromStr};
     use twilight_model::{
         channel::{
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             Channel, ChannelType, GuildChannel, TextChannel,
         },
+        datetime::Timestamp,
         gateway::payload::incoming::{
             ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate,
         },
@@ -687,6 +688,8 @@ mod tests {
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
     fn test_root() -> Result<(), Box<dyn Error>> {
+        let joined_at = Timestamp::from_str("2021-09-19T14:17:32.000000+00:00")?;
+
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
 
@@ -695,7 +698,7 @@ mod tests {
         cache.update(&MemberUpdate {
             guild_id: guild_id(),
             deaf: None,
-            joined_at: "foo".to_owned(),
+            joined_at,
             mute: None,
             nick: None,
             pending: false,

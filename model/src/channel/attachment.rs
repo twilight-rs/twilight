@@ -1,4 +1,4 @@
-use crate::id::AttachmentId;
+use crate::{id::AttachmentId, util::is_false};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -7,6 +7,13 @@ pub struct Attachment {
     ///
     /// [media type]: https://en.wikipedia.org/wiki/Media_type
     pub content_type: Option<String>,
+    /// Whether this attachment is ephemeral.
+    ///
+    /// Ephemeral attachments will automatically be removed after a set period
+    /// of time. Ephemeral attachments on messages are guaranteed to be
+    /// available as long as the message itself exists.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub ephemeral: bool,
     pub filename: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
@@ -22,12 +29,38 @@ pub struct Attachment {
 mod tests {
     use super::Attachment;
     use crate::id::AttachmentId;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_fields!(
+        Attachment: content_type,
+        ephemeral,
+        filename,
+        height,
+        id,
+        proxy_url,
+        size,
+        url,
+        width
+    );
+
+    assert_impl_all!(
+        Attachment: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize
+    );
 
     #[test]
     fn test_attachment() {
         let value = Attachment {
             content_type: Some("image/png".to_owned()),
+            ephemeral: false,
             filename: "a.png".to_owned(),
             height: Some(184),
             id: AttachmentId::new(700_000_000_000_000_000).expect("non zero"),

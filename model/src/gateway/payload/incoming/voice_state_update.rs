@@ -8,11 +8,13 @@ pub struct VoiceStateUpdate(pub VoiceState);
 mod tests {
     use super::{VoiceState, VoiceStateUpdate};
     use crate::{
+        datetime::{Timestamp, TimestampParseError},
         guild::Member,
         id::{GuildId, RoleId, UserId},
         user::User,
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     #[allow(clippy::too_many_lines)]
@@ -24,7 +26,6 @@ mod tests {
             member: Some(Member {
                 deaf: false,
                 guild_id: GuildId::new(1).expect("non zero"),
-                hoisted_role: Some(RoleId::new(4).expect("non zero")),
                 joined_at: None,
                 mute: false,
                 nick: None,
@@ -82,17 +83,13 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 8,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("4"),
                 Token::Str("joined_at"),
                 Token::None,
                 Token::Str("mute"),
@@ -152,7 +149,10 @@ mod tests {
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn voice_state_update_deser_tokens() {
+    fn voice_state_update_deser_tokens() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2016-12-08T18:41:21.954000+00:00")?;
+        let request_to_speak_timestamp = Timestamp::from_str("2021-03-31T18:45:31.297561+00:00")?;
+
         let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
@@ -160,8 +160,7 @@ mod tests {
             member: Some(Member {
                 deaf: false,
                 guild_id: GuildId::new(999_999).expect("non zero"),
-                hoisted_role: Some(RoleId::new(123).expect("non zero")),
-                joined_at: Some("2016-12-08T18:41:21.954000+00:00".to_string()),
+                joined_at: Some(joined_at),
                 mute: false,
                 nick: Some("Twilight".to_string()),
                 pending: false,
@@ -196,10 +195,10 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId::new(123_213).expect("non zero"),
-            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
+            request_to_speak_timestamp: Some(request_to_speak_timestamp),
         });
 
-        // Token stream here's `Member` has no `guild_id`, which deserialiser
+        // Token stream here's `Member` has no `guild_id`, which deserializer
         // must add.
         // Lack of "guild_id" in real "member" means that de+ser does not
         // reproduce original input (assert only `de`).
@@ -225,14 +224,10 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 8,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("123"),
                 Token::Str("joined_at"),
                 Token::Some,
                 Token::Str("2016-12-08T18:41:21.954000+00:00"),
@@ -290,9 +285,11 @@ mod tests {
                 Token::Str("123213"),
                 Token::Str("request_to_speak_timestamp"),
                 Token::Some,
-                Token::Str("2021-04-21T22:16:50+0000"),
+                Token::Str("2021-03-31T18:45:31.297561+00:00"),
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

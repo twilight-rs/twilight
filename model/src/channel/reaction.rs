@@ -163,15 +163,19 @@ impl<'de> Deserialize<'de> for Reaction {
 mod tests {
     use super::super::{Reaction, ReactionType};
     use crate::{
+        datetime::{Timestamp, TimestampParseError},
         guild::Member,
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::User,
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_reaction_with_member() {
+    fn test_reaction_with_member() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+
         let value = Reaction {
             channel_id: ChannelId::new(2).expect("non zero"),
             emoji: ReactionType::Unicode {
@@ -181,8 +185,7 @@ mod tests {
             member: Some(Member {
                 deaf: false,
                 guild_id: GuildId::new(1).expect("non zero"),
-                hoisted_role: Some(RoleId::new(5).expect("non zero")),
-                joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
+                joined_at: Some(joined_at),
                 mute: false,
                 nick: Some("typing".to_owned()),
                 pending: false,
@@ -236,17 +239,13 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 8,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("5"),
                 Token::Str("joined_at"),
                 Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
@@ -294,6 +293,8 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 
     #[test]

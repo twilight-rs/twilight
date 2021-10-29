@@ -92,9 +92,14 @@ impl UpdateCache for VoiceStateUpdate {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
     use crate::test;
-    use twilight_model::id::{ChannelId, GuildId, UserId};
+    use twilight_model::{
+        datetime::Timestamp,
+        id::{ChannelId, GuildId, UserId},
+    };
 
     #[test]
     fn test_voice_state_inserts_and_removes() {
@@ -308,7 +313,9 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId::new(1).expect("non zero"),
-            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
+            request_to_speak_timestamp: Some(
+                Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
+            ),
         }));
     }
 
@@ -325,7 +332,6 @@ mod tests {
             member: Some(Member {
                 deaf: false,
                 guild_id: GuildId::new(2).expect("non zero"),
-                hoisted_role: None,
                 joined_at: None,
                 mute: false,
                 nick: None,
@@ -358,7 +364,9 @@ mod tests {
             suppress: false,
             token: None,
             user_id: UserId::new(3).expect("non zero"),
-            request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
+            request_to_speak_timestamp: Some(
+                Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
+            ),
         });
 
         cache.update(&mutation);

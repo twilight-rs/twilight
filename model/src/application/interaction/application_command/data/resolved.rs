@@ -1,5 +1,6 @@
 use crate::{
     channel::{thread::ThreadMetadata, ChannelType, Message},
+    datetime::Timestamp,
     guild::{Permissions, Role},
     id::{ChannelId, MessageId, RoleId, UserId},
     user::User,
@@ -230,11 +231,11 @@ pub struct InteractionMember {
     #[serde(skip_serializing)]
     pub id: UserId,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_at: Option<String>,
+    pub joined_at: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nick: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_since: Option<String>,
+    pub premium_since: Option<Timestamp>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub roles: Vec<RoleId>,
 }
@@ -242,9 +243,9 @@ pub struct InteractionMember {
 #[derive(Deserialize)]
 struct InteractionMemberEnvelope {
     pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<String>,
+    pub joined_at: Option<Timestamp>,
     pub nick: Option<String>,
-    pub premium_since: Option<String>,
+    pub premium_since: Option<Timestamp>,
     #[serde(default)]
     pub roles: Vec<RoleId>,
 }
@@ -260,15 +261,20 @@ mod tests {
             },
             ChannelType, Message,
         },
+        datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions, Role},
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::{PremiumType, User, UserFlags},
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_data_resolved() {
+    fn test_data_resolved() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2021-08-10T12:18:37.000000+00:00")?;
+        let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
+
         let value = CommandInteractionDataResolved {
             channels: Vec::from([InteractionChannel {
                 id: ChannelId::new(100).expect("non zero"),
@@ -281,7 +287,7 @@ mod tests {
             members: Vec::from([InteractionMember {
                 hoisted_role: None,
                 id: UserId::new(300).expect("non zero"),
-                joined_at: Some("joined at".into()),
+                joined_at: Some(joined_at),
                 nick: None,
                 premium_since: None,
                 roles: Vec::new(),
@@ -320,7 +326,7 @@ mod tests {
                 kind: MessageType::Regular,
                 member: Some(PartialMember {
                     deaf: false,
-                    joined_at: Some("2020-01-01T00:00:00.000000+00:00".to_owned()),
+                    joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("member nick".to_owned()),
                     permissions: None,
@@ -342,13 +348,14 @@ mod tests {
                 }],
                 referenced_message: None,
                 thread: None,
-                timestamp: "2020-02-02T02:02:02.020000+00:00".to_owned(),
+                timestamp,
                 tts: false,
                 webhook_id: None,
             }]),
             roles: Vec::from([Role {
                 color: 0,
                 hoist: true,
+                icon: None,
                 id: RoleId::new(400).expect("non zero"),
                 managed: false,
                 mentionable: true,
@@ -356,6 +363,7 @@ mod tests {
                 permissions: Permissions::ADMINISTRATOR,
                 position: 12,
                 tags: None,
+                unicode_emoji: None,
             }]),
             users: Vec::from([User {
                 accent_color: None,
@@ -412,7 +420,7 @@ mod tests {
                 },
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("joined at"),
+                Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::StructEnd,
                 Token::MapEnd,
                 Token::Str("messages"),
@@ -480,7 +488,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("2020-01-01T00:00:00.000000+00:00"),
+                Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),
                 Token::Str("nick"),
@@ -602,5 +610,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

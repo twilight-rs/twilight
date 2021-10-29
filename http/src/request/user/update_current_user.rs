@@ -79,7 +79,7 @@ struct UpdateCurrentUserFields<'a> {
 /// Update the current user.
 ///
 /// All parameters are optional. If the username is changed, it may cause the discriminator to be
-/// rnadomized.
+/// randomized.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUser<'a> {
     fields: UpdateCurrentUserFields<'a>,

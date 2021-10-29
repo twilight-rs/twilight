@@ -2,6 +2,70 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.7.1] - 2021-10-29
+
+### Additions
+
+Now supports role icons ([#1212] - [@7596ff]).
+
+### Changes
+
+Since sticker descriptions can be null, and to prevent a breaking change
+from that, this state is represented as an empty `String` ([#1200] -
+[@7596ff]). The `PartialEq` implementation has also been updated to
+equate `CachedSticker`s with `description: ""` to `Stickers` with
+`description: None`.
+
+[#1200]: https://github.com/twilight-rs/twilight/pull/1200
+[#1212]: https://github.com/twilight-rs/twilight/pull/1212
+
+## [0.7.0] - 2021-10-21
+
+### Additions
+
+Add an interface to create iterators over various resource types stored
+by the cache ([#1154] - [@zeylahellyer]). To access these iterators,
+call `InMemoryCache::iter`. Emojis, groups, guilds, guild channels,
+integrations, members, messages, presences, private channels, roles,
+stage instances, stickers, users, and voice states may be iterated over.
+
+### Changes
+
+`Cached` variants of models now have accessor methods for held data
+([#1064] - [@zeylahellyer]). The fields themselves have been made
+private. This will make it easier to add fields to cached models without
+causing a breaking change.
+
+`InMemoryCache` no longer implements `Clone`, because it is no longer
+internally wrapped in an `Arc` ([#1067] - [@zeylahellyer]). To retain
+this functionality, you can wrap it in an `Arc` or a `Rc` manually.
+
+`InMemoryCacheBuilder` no longer implements `Clone`, `Eq`, or
+`PartialEq` ([#1147] - [@vilgotf]).
+
+Accessor methods no longer return owned copies of cached data ([#1153] -
+[@zeylahellyer]). They now return a `Reference<'_, K, V>`, which is a
+wrapping type over a DashMap `Ref`. `Reference` has the methods `key`
+and `value`. Cached items that are associated with a guild, such as an
+emoji, are returned with a type such as `Reference<'_, EmojiId,
+GuildResource<CachedEmoji>>`. `GuildResource<T>` has the methods
+`guild_id` and `resource`. In the case of guild members, however, the
+return type is `Reference<'_, (GuildId, UserId), CachedMember>`. All
+accessor methods still return an `Option`.
+
+Care must be taken to ensure the cache does not become blocked. Cache
+references should be held for as short as possible. If the cache needs
+to mutate the underlying item, it may block until it can lock the item.
+See the PR and the documentation on `InMemoryCache` for more details.
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+[#1067]: https://github.com/twilight-rs/twilight/pull/1067
+[#1147]: https://github.com/twilight-rs/twilight/pull/1147
+[#1153]: https://github.com/twilight-rs/twilight/pull/1153
+[#1154]: https://github.com/twilight-rs/twilight/pull/1154
+[#1161]: https://github.com/twilight-rs/twilight/pull/1161
+
 ## [0.6.4] - 2021-10-07
 
 ### Additions
@@ -441,6 +505,8 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.1
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.0
 [0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.4
 [0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.3
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.2

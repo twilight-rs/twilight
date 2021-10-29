@@ -21,7 +21,7 @@ use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use serde_value::Value;
+use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
 
 /// Payload received when a user executes an interaction.
@@ -232,7 +232,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
-                    .map_err(|_| DeError::custom("expected CommandData struct"))?;
+                    .map_err(DeserializerError::into_error)?;
 
                 let guild_id = guild_id.unwrap_or_default();
                 let member = member.unwrap_or_default();
@@ -286,34 +286,49 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 #[cfg(test)]
 mod test {
     use crate::{
-        application::interaction::{
-            application_command::{
-                ApplicationCommand, CommandData, CommandDataOption, CommandInteractionDataResolved,
+        application::{
+            command::CommandOptionType,
+            interaction::{
+                application_command::{
+                    ApplicationCommand, CommandData, CommandDataOption,
+                    CommandInteractionDataResolved, CommandOptionValue, InteractionMember,
+                },
+                Interaction, InteractionType,
             },
-            Interaction, InteractionType,
         },
+        datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
         id::{ApplicationId, ChannelId, CommandId, GuildId, InteractionId, UserId},
         user::User,
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_interaction_full() {
+    fn test_interaction_full() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+
         let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
             application_id: ApplicationId::new(100).expect("non zero"),
             channel_id: ChannelId::new(200).expect("non zero"),
             data: CommandData {
                 id: CommandId::new(300).expect("non zero"),
                 name: "command name".into(),
-                options: vec![CommandDataOption::String {
+                options: vec![CommandDataOption {
                     name: "member".into(),
-                    value: "600".into(),
+                    value: CommandOptionValue::User(UserId::new(600).expect("non zero")),
                 }],
                 resolved: Some(CommandInteractionDataResolved {
                     channels: Vec::new(),
-                    members: Vec::new(),
+                    members: vec![InteractionMember {
+                        hoisted_role: None,
+                        id: UserId::new(600).expect("non zero"),
+                        joined_at: Some(joined_at),
+                        nick: Some("nickname".into()),
+                        premium_since: None,
+                        roles: Vec::new(),
+                    }],
                     messages: Vec::new(),
                     roles: Vec::new(),
                     users: vec![User {
@@ -340,7 +355,7 @@ mod test {
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 deaf: false,
-                joined_at: Some("joined at".into()),
+                joined_at: Some(joined_at),
                 mute: false,
                 nick: Some("nickname".into()),
                 permissions: Some(Permissions::empty()),
@@ -396,12 +411,15 @@ mod test {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandDataOption",
-                    len: 2,
+                    name: "CommandDataOptionRaw",
+                    len: 3,
                 },
                 Token::Str("name"),
                 Token::Str("member"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::User as u8),
                 Token::Str("value"),
+                Token::Some,
                 Token::Str("600"),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -409,8 +427,24 @@ mod test {
                 Token::Some,
                 Token::Struct {
                     name: "CommandInteractionDataResolved",
-                    len: 1,
+                    len: 2,
                 },
+                Token::Str("members"),
+                Token::Map { len: Some(1) },
+                Token::NewtypeStruct { name: "UserId" },
+                Token::Str("600"),
+                Token::Struct {
+                    name: "InteractionMemberEnvelope",
+                    len: 2,
+                },
+                Token::Str("joined_at"),
+                Token::Some,
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("nickname"),
+                Token::StructEnd,
+                Token::MapEnd,
                 Token::Str("users"),
                 Token::Map { len: Some(1) },
                 Token::NewtypeStruct { name: "UserId" },
@@ -460,7 +494,7 @@ mod test {
                 Token::Bool(false),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("joined at"),
+                Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),
                 Token::Str("nick"),
@@ -501,5 +535,7 @@ mod test {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

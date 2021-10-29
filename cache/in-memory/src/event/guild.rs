@@ -211,12 +211,15 @@ impl UpdateCache for GuildUpdate {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
     use twilight_model::{
         channel::{
             thread::{AutoArchiveDuration, PublicThread, ThreadMember, ThreadMetadata},
             ChannelType, GuildChannel, TextChannel,
         },
+        datetime::{Timestamp, TimestampParseError},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
@@ -225,7 +228,11 @@ mod tests {
     };
 
     #[test]
-    fn test_guild_create_channels_have_guild_ids() {
+    fn test_guild_create_channels_have_guild_ids() -> Result<(), TimestampParseError> {
+        const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
+
+        let timestamp = Timestamp::from_str(DATETIME)?;
+
         let channels = Vec::from([GuildChannel::Text(TextChannel {
             id: ChannelId::new(111).expect("non zero"),
             guild_id: None,
@@ -256,14 +263,14 @@ mod tests {
             thread_metadata: ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Hour,
-                archive_timestamp: "".to_string(),
+                archive_timestamp: timestamp,
                 invitable: None,
                 locked: false,
             },
             member: Some(ThreadMember {
                 flags: 0,
                 id: Some(ChannelId::new(1).expect("non zero")),
-                join_timestamp: "".to_string(),
+                join_timestamp: timestamp,
                 member: None,
                 presence: None,
                 user_id: Some(UserId::new(2).expect("non zero")),
@@ -284,7 +291,7 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::AllMembers,
             features: vec![],
             icon: None,
-            joined_at: Some("".to_owned()),
+            joined_at: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
             large: false,
             max_members: Some(50),
             max_presences: Some(100),
@@ -347,6 +354,8 @@ mod tests {
             }
             _ => panic!("{:?}", channel),
         }
+
+        Ok(())
     }
 
     #[test]

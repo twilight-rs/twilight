@@ -4,6 +4,7 @@ use twilight_model::{
         message::{Message, MessageFlags, MessageType},
         ChannelType, GuildChannel, Reaction, ReactionType, TextChannel,
     },
+    datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
     guild::{Emoji, Member, PartialMember, Permissions, Role},
     id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
@@ -66,7 +67,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         sticker_items: Vec::new(),
         thread: None,
         referenced_message: None,
-        timestamp: String::new(),
+        timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
         tts: false,
         webhook_id: None,
     };
@@ -82,7 +83,6 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         member: Some(Member {
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
-            hoisted_role: None,
             joined_at: None,
             mute: false,
             nick: Some("member nick".to_owned()),
@@ -116,7 +116,6 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
     reaction.member.replace(Member {
         deaf: false,
         guild_id: GuildId::new(1).expect("non zero"),
-        hoisted_role: None,
         joined_at: None,
         mute: false,
         nick: None,
@@ -211,7 +210,6 @@ pub fn member(id: UserId, guild_id: GuildId) -> Member {
     Member {
         deaf: false,
         guild_id,
-        hoisted_role: None,
         joined_at: None,
         mute: false,
         nick: None,
@@ -226,6 +224,7 @@ pub fn role(id: RoleId) -> Role {
     Role {
         color: 0,
         hoist: false,
+        icon: None,
         id,
         managed: false,
         mentionable: false,
@@ -233,6 +232,7 @@ pub fn role(id: RoleId) -> Role {
         permissions: Permissions::empty(),
         position: 0,
         tags: None,
+        unicode_emoji: None,
     }
 }
 
@@ -254,7 +254,7 @@ pub fn voice_state(
         suppress: false,
         token: None,
         user_id,
-        request_to_speak_timestamp: Some("2021-04-21T22:16:50+0000".to_owned()),
+        request_to_speak_timestamp: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
     }
 }
 

@@ -38,7 +38,9 @@ jobs:
           - package: http
             features: simd-json
             additional: --features rustls
-            rustflags: "-C target-cpu=native"
+            # Use `haswell` instead of `native` due to some GitHub
+            # Actions runners not supporting some `avx512` instructions.
+            rustflags: "-C target-cpu=haswell"
           - package: gateway
             features: rustls
             additional: --features zlib-stock
@@ -92,6 +94,11 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
-      - run: cargo check --examples --tests --all-features
+      - name: Output processor info
+        run: cat /proc/cpuinfo
+
+      - run: cargo check --workspace --benches --examples --tests --all-features
         env:
-          RUSTFLAGS: "-C target-cpu=native"
+          # Use `haswell` instead of `native` due to some GitHub Actions
+          # runners not supporting some `avx512` instructions.
+          RUSTFLAGS: "-C target-cpu=haswell"

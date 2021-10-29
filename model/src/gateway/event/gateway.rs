@@ -55,7 +55,7 @@ struct Hello {
 }
 
 /// A deserializer that deserializes into a `GatewayEvent` by cloning some bits
-/// of scanned information before the actual deserialisation.
+/// of scanned information before the actual deserialization.
 ///
 /// This is the owned version of [`GatewayEventDeserializer`].
 ///
@@ -121,7 +121,7 @@ impl GatewayEventDeserializerOwned {
 }
 
 /// A deserializer that deserializes into a `GatewayEvent` by borrowing some bits
-/// of scanned information before the actual deserialisation.
+/// of scanned information before the actual deserialization.
 ///
 /// This is the borrowed version of [`GatewayEventDeserializerOwned`].
 ///
@@ -149,7 +149,7 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 
     /// Create a gateway event deserializer with some information found by
-    /// scanning the JSON payload to deserialise.
+    /// scanning the JSON payload to deserialize.
     ///
     /// This will scan the payload for the opcode and, optionally, event type if
     /// provided. The opcode key ("op"), must be in the payload while the event

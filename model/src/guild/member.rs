@@ -1,4 +1,5 @@
 use crate::{
+    datetime::Timestamp,
     id::{GuildId, RoleId},
     user::User,
 };
@@ -16,15 +17,14 @@ use std::fmt::{Formatter, Result as FmtResult};
 pub struct Member {
     pub deaf: bool,
     pub guild_id: GuildId,
-    pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<String>,
+    pub joined_at: Option<Timestamp>,
     pub mute: bool,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
     /// requirements.
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_since: Option<String>,
+    pub premium_since: Option<Timestamp>,
     pub roles: Vec<RoleId>,
     pub user: User,
 }
@@ -38,14 +38,13 @@ pub struct Member {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberIntermediary {
     pub deaf: bool,
-    pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<String>,
+    pub joined_at: Option<Timestamp>,
     pub mute: bool,
     pub nick: Option<String>,
     #[serde(default)]
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_since: Option<String>,
+    pub premium_since: Option<Timestamp>,
     pub roles: Vec<RoleId>,
     pub user: User,
 }
@@ -90,7 +89,6 @@ impl<'de> Visitor<'de> for MemberVisitor {
         Ok(Member {
             deaf: member.deaf,
             guild_id: self.0,
-            hoisted_role: member.hoisted_role,
             joined_at: member.joined_at,
             mute: member.mute,
             nick: member.nick,
@@ -182,22 +180,26 @@ impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
 mod tests {
     use super::Member;
     use crate::{
-        id::{GuildId, RoleId, UserId},
+        datetime::{Timestamp, TimestampParseError},
+        id::{GuildId, UserId},
         user::User,
     };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
-    fn test_member_deserializer() {
+    fn test_member_deserializer() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
+
         let value = Member {
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
-            hoisted_role: Some(RoleId::new(2).expect("non zero")),
-            joined_at: Some("timestamp".to_owned()),
+            joined_at: Some(joined_at),
             mute: true,
             nick: Some("twilight".to_owned()),
             pending: false,
-            premium_since: Some("timestamp".to_owned()),
+            premium_since: Some(premium_since),
             roles: Vec::new(),
             user: User {
                 accent_color: None,
@@ -223,20 +225,16 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 10,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("2"),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
                 Token::Str("nick"),
@@ -246,7 +244,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("premium_since"),
                 Token::Some,
-                Token::Str("timestamp"),
+                Token::Str("2021-03-16T14:29:19.046000+00:00"),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -274,5 +272,7 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
     }
 }

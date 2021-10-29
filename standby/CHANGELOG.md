@@ -2,6 +2,33 @@
 
 Changelog for `twilight-standby`.
 
+## [0.7.1] - 2021-10-29
+
+### Additions
+
+Add `Standby::wait_for_component` and `wait_for_component_stream`, which
+filter events based on a matching `MessageComponentInteraction` ([#1189]
+- [@PyroTechniac]).
+
+[#1189]: https://github.com/twilight-rs/twilight/pull/1189
+
+## [0.7.0] - 2021-10-21
+
+### Changes
+
+`Standby` no longer implements `Clone`, because it is no longer
+internally wrapped in an `Arc` ([#1067] - [@zeylahellyer]). To retain
+this functionality, you can wrap them it an `Arc` or a `Rc` manually.
+
+Refactor and fully document internals ([#1159] - [@zeylahellyer]).
+Internal logic and functionality is largely untouched.
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+[#1067]: https://github.com/twilight-rs/twilight/pull/1067
+[#1159]: https://github.com/twilight-rs/twilight/pull/1159
+[#1161]: https://github.com/twilight-rs/twilight/pull/1161
+
 ## [0.6.2] - 2021-09-17
 
 ### Thread Support
@@ -116,12 +143,18 @@ Initial release.
 [@chamburr]: https://github.com/chamburr
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
+[@PyroTechniac]: https://github.com/PyroTechniac
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.7.1
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.7.0
+[0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.6.2
+[0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.6.1
+[0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.6.0
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.5.0
 [0.4.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.4.1

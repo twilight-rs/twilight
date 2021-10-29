@@ -139,6 +139,7 @@ mod tests {
             embed::Embed,
             message::{AllowedMentions, MessageFlags},
         },
+        datetime::Timestamp,
     };
 
     assert_impl_all!(CallbackDataBuilder: Clone, Debug, Default, Send, Sync);
@@ -166,7 +167,7 @@ mod tests {
             kind: "rich".to_owned(),
             provider: None,
             thumbnail: None,
-            timestamp: Some("a timestamp".to_owned()),
+            timestamp: Some(Timestamp::from_secs(1_580_608_922).unwrap()),
             title: Some("a title".to_owned()),
             url: Some("https://example.com".to_owned()),
             video: None,
