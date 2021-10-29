@@ -130,9 +130,9 @@ struct CommandDataOptionEnvelope {
     name: String,
     #[serde(rename = "type")]
     kind: CommandOptionType,
-    value: Option<CommandOptionValueEnvelope>,
     #[serde(default)]
     options: Vec<CommandDataOption>,
+    value: Option<CommandOptionValueEnvelope>,
 }
 
 #[derive(Debug, Deserialize)]
