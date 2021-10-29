@@ -4,30 +4,10 @@ Changelog for `twilight-gateway`.
 
 ## [0.7.1] - 2021-10-29
 
-### Additions
-
-`CreateRole` and `UpdateRole` now support setting either the `icon`
-(image data) or the `unicode_emoji` fields ([#1212] - [@7596ff]).
-
-Add new API error codes: `MaximumGuildWidgets`, `ServerNeedsBoosts`, and
-`CannotReplyWithoutMessageHistory` ([#1215] - [@7596ff]).
-
 ### Changes
 
 Fixes some spelling errors in documentation ([#1223] - [@7596ff]).
 
-### Fixes
-
-Add a missing `?` to `GetPublicArchivedThreads` ([#1214] -
-[@cherryblossom000]).
-
-Actually serialize the JSON body on `UpdateThread` ([#1218] -
-[@7596ff]).
-
-[#1212]: https://github.com/twilight-rs/twilight/pull/1212
-[#1214]: https://github.com/twilight-rs/twilight/pull/1214
-[#1215]: https://github.com/twilight-rs/twilight/pull/1215
-[#1218]: https://github.com/twilight-rs/twilight/pull/1218
 [#1223]: https://github.com/twilight-rs/twilight/pull/1223
 
 ## [0.7.0] - 2021-10-21
@@ -630,7 +610,6 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@chamburr]: https://github.com/chamburr
-[@cherryblossom000]: https://github.com/cherryblossom000
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt

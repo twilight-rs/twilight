@@ -2,6 +2,34 @@
 
 Changelog for `twilight-http`.
 
+## [0.7.1] - 2021-10-29
+
+### Additions
+
+`CreateRole` and `UpdateRole` now support setting either the `icon`
+(image data) or the `unicode_emoji` fields ([#1212] - [@7596ff]).
+
+Add new API error codes: `MaximumGuildWidgets`, `ServerNeedsBoosts`, and
+`CannotReplyWithoutMessageHistory` ([#1215] - [@7596ff]).
+
+### Changes
+
+Fixes some spelling errors in documentation ([#1223] - [@7596ff]).
+
+### Fixes
+
+Add a missing `?` to `GetPublicArchivedThreads` ([#1214] -
+[@cherryblossom000]).
+
+Actually serialize the JSON body on `UpdateThread` ([#1218] -
+[@7596ff]).
+
+[#1212]: https://github.com/twilight-rs/twilight/pull/1212
+[#1214]: https://github.com/twilight-rs/twilight/pull/1214
+[#1215]: https://github.com/twilight-rs/twilight/pull/1215
+[#1218]: https://github.com/twilight-rs/twilight/pull/1218
+[#1223]: https://github.com/twilight-rs/twilight/pull/1223
+
 ## [0.7.0] - 2021-10-21
 
 ### Changes
@@ -1267,6 +1295,7 @@ Initial release.
 [@AsianIntel]: https://github.com/AsianIntel
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
+[@cherryblossom000]: https://github.com/cherryblossom000
 [@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
@@ -1320,6 +1349,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.0
 [0.6.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.6
 [0.6.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.5
