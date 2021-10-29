@@ -17,7 +17,6 @@ use std::fmt::{Formatter, Result as FmtResult};
 pub struct Member {
     pub deaf: bool,
     pub guild_id: GuildId,
-    pub hoisted_role: Option<RoleId>,
     pub joined_at: Option<Timestamp>,
     pub mute: bool,
     pub nick: Option<String>,
@@ -39,7 +38,6 @@ pub struct Member {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberIntermediary {
     pub deaf: bool,
-    pub hoisted_role: Option<RoleId>,
     pub joined_at: Option<Timestamp>,
     pub mute: bool,
     pub nick: Option<String>,
@@ -91,7 +89,6 @@ impl<'de> Visitor<'de> for MemberVisitor {
         Ok(Member {
             deaf: member.deaf,
             guild_id: self.0,
-            hoisted_role: member.hoisted_role,
             joined_at: member.joined_at,
             mute: member.mute,
             nick: member.nick,
@@ -184,7 +181,7 @@ mod tests {
     use super::Member;
     use crate::{
         datetime::{Timestamp, TimestampParseError},
-        id::{GuildId, RoleId, UserId},
+        id::{GuildId, UserId},
         user::User,
     };
     use serde_test::Token;
@@ -198,7 +195,6 @@ mod tests {
         let value = Member {
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
-            hoisted_role: Some(RoleId::new(2).expect("non zero")),
             joined_at: Some(joined_at),
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -229,17 +225,13 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 10,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("2"),
                 Token::Str("joined_at"),
                 Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),

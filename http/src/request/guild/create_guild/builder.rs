@@ -73,7 +73,7 @@ pub enum RoleFieldsErrorType {
 pub struct RoleFieldsBuilder(RoleFields);
 
 impl RoleFieldsBuilder {
-    /// The maximumn accepted color value.
+    /// The maximum accepted color value.
     ///
     /// This is used by [`color`].
     ///

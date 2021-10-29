@@ -438,7 +438,7 @@ impl ShardProcessor {
                     });
                 };
 
-            // We can do a few little optimisation tricks here. For the
+            // We can do a few little optimization tricks here. For the
             // "heartbeat ack" and "reconnect" opcodes we can construct
             // the gateway events without needing to go through a serde
             // context.

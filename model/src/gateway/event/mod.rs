@@ -43,7 +43,7 @@ pub enum Event {
     GatewayHello(u64),
     /// A shard's session was invalidated.
     ///
-    /// `true` if resumeable. If not, then the shard must do a full reconnect.
+    /// `true` if resumable. If not, then the shard must do a full reconnect.
     GatewayInvalidateSession(bool),
     /// The gateway is indicating to perform a reconnect.
     GatewayReconnect,

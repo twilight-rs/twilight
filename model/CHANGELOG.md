@@ -2,6 +2,32 @@
 
 Changelog for `twilight-model`.
 
+## [0.7.1] - 2021-10-29
+
+### Additions
+
+Add `AuditLogChangeKey::UnicodeEmoji`, `Role::icon`, and
+`Role::unicode_emoji` ([#1212] - [@7596ff]).
+
+Add `Attachment::ephemeral` ([#1213] - [@7596ff]).
+
+### Changes
+
+Remove `Member::hoisted_role` ([#1221] - [@vilgotf]).
+
+Fixes some spelling errors in documentation ([#1223] - [@7596ff]).
+
+### Fixes
+
+Fix subcommands without options throwing an error on deserialization
+([#1216] - [@vilgotf]).
+
+[#1212]: https://github.com/twilight-rs/twilight/pull/1212
+[#1213]: https://github.com/twilight-rs/twilight/pull/1213
+[#1216]: https://github.com/twilight-rs/twilight/pull/1216
+[#1221]: https://github.com/twilight-rs/twilight/pull/1221
+[#1223]: https://github.com/twilight-rs/twilight/pull/1223
+
 ## [0.7.0] - 2021-10-21
 
 ### Enhancements
@@ -969,6 +995,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.0
 [0.6.5]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.5
 [0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.4
