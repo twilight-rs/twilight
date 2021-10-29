@@ -20,6 +20,7 @@ mod tests {
             role: Role {
                 color: 0,
                 hoist: true,
+                icon: None,
                 id: RoleId::new(1).expect("non zero"),
                 managed: false,
                 mentionable: false,
@@ -27,6 +28,7 @@ mod tests {
                 permissions: Permissions::SEND_MESSAGES,
                 position: 12,
                 tags: None,
+                unicode_emoji: None,
             },
         };
 

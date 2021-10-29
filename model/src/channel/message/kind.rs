@@ -27,7 +27,8 @@ pub enum MessageType {
     ThreadCreated = 18,
     /// Message is an inline reply.
     Reply = 19,
-    ApplicationCommand = 20,
+    /// Message is a chat input command.
+    ChatInputCommand = 20,
     ThreadStarterMessage = 21,
     GuildInviteReminder = 22,
     ContextMenuCommand = 23,
@@ -57,7 +58,7 @@ impl TryFrom<u8> for MessageType {
             17 => MessageType::GuildDiscoveryGracePeriodFinalWarning,
             18 => MessageType::ThreadCreated,
             19 => MessageType::Reply,
-            20 => MessageType::ApplicationCommand,
+            20 => MessageType::ChatInputCommand,
             21 => MessageType::ThreadStarterMessage,
             22 => MessageType::GuildInviteReminder,
             23 => MessageType::ContextMenuCommand,
@@ -101,7 +102,7 @@ mod tests {
         );
         serde_test::assert_tokens(&MessageType::ThreadCreated, &[Token::U8(18)]);
         serde_test::assert_tokens(&MessageType::Reply, &[Token::U8(19)]);
-        serde_test::assert_tokens(&MessageType::ApplicationCommand, &[Token::U8(20)]);
+        serde_test::assert_tokens(&MessageType::ChatInputCommand, &[Token::U8(20)]);
         serde_test::assert_tokens(&MessageType::ThreadStarterMessage, &[Token::U8(21)]);
         serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
         serde_test::assert_tokens(&MessageType::ContextMenuCommand, &[Token::U8(23)]);
@@ -175,7 +176,7 @@ mod tests {
         assert_eq!(MessageType::try_from(19).unwrap(), MessageType::Reply);
         assert_eq!(
             MessageType::try_from(20).unwrap(),
-            MessageType::ApplicationCommand
+            MessageType::ChatInputCommand
         );
         assert_eq!(
             MessageType::try_from(21).unwrap(),

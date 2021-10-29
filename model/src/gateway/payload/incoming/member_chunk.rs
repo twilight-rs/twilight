@@ -104,9 +104,9 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("members"));
                     }
 
-                    // Since the guild ID may not be deserialised yet we'll use
+                    // Since the guild ID may not be deserialized yet we'll use
                     // a temporary placeholder value and update it with the real
-                    // guild ID after all the fields have been deserialised.
+                    // guild ID after all the fields have been deserialized.
                     let deserializer =
                         MemberListDeserializer::new(GuildId::new(1).expect("non zero"));
 
@@ -313,7 +313,6 @@ mod tests {
                 Member {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
-                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
                     joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -344,7 +343,6 @@ mod tests {
                 Member {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
-                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
                     joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -372,7 +370,6 @@ mod tests {
                 Member {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
-                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
                     joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),
@@ -400,7 +397,6 @@ mod tests {
                 Member {
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
-                    hoisted_role: Some(RoleId::new(6).expect("non zero")),
                     joined_at: Some(joined_at),
                     mute: false,
                     nick: Some("chunk".to_owned()),

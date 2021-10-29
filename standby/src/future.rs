@@ -14,9 +14,12 @@ use tokio::sync::{
     mpsc::UnboundedReceiver as MpscReceiver,
     oneshot::{error::RecvError, Receiver},
 };
-use twilight_model::gateway::{
-    event::Event,
-    payload::incoming::{MessageCreate, ReactionAdd},
+use twilight_model::{
+    application::interaction::MessageComponentInteraction,
+    gateway::{
+        event::Event,
+        payload::incoming::{MessageCreate, ReactionAdd},
+    },
 };
 
 /// Future canceled due to Standby being dropped.
@@ -185,6 +188,42 @@ pub struct WaitForReactionStream {
 
 impl Stream for WaitForReactionStream {
     type Item = ReactionAdd;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        self.rx.poll_recv(cx)
+    }
+}
+
+/// The future returned from [`Standby::wait_for_component`].
+///
+/// [`Standby::wait_for_component`]: crate::Standby::wait_for_component
+#[derive(Debug)]
+#[must_use = "futures do nothing unless you `.await` or poll them"]
+pub struct WaitForComponentFuture {
+    /// Receiver half of the oneshot channel.
+    pub(crate) rx: Receiver<MessageComponentInteraction>,
+}
+
+impl Future for WaitForComponentFuture {
+    type Output = Result<MessageComponentInteraction, Canceled>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        self.rx.poll_unpin(cx).map_err(Canceled)
+    }
+}
+
+/// The stream returned from [`Standby::wait_for_component_stream`].
+///
+/// [`Standby::wait_for_component_stream`]: crate::Standby::wait_for_component_stream
+#[derive(Debug)]
+#[must_use]
+pub struct WaitForComponentStream {
+    /// Receiver half of the MPSC channel.
+    pub(crate) rx: MpscReceiver<MessageComponentInteraction>,
+}
+
+impl Stream for WaitForComponentStream {
+    type Item = MessageComponentInteraction;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         self.rx.poll_recv(cx)

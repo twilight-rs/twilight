@@ -127,6 +127,8 @@ pub enum AuditLogChangeKey {
     Topic,
     /// Type of a created entity.
     Type,
+    /// Role unicode emoji.
+    UnicodeEmoji,
     /// Maximum number of users in a voice channel.
     UserLimit,
     /// Number of uses of an invite.
@@ -217,6 +219,7 @@ impl AuditLogChangeKey {
             Self::Temporary => "temporary",
             Self::Topic => "topic",
             Self::Type => "type",
+            Self::UnicodeEmoji => "unicode_emoji",
             Self::UserLimit => "user_limit",
             Self::Uses => "uses",
             Self::VanityUrlCode => "vanity_url_code",

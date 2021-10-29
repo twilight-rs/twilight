@@ -1,6 +1,6 @@
 /// Contains all of the input validation functions for requests.
 ///
-/// This is in a centralised place so that the validation parameters can be kept
+/// This is in a centralized place so that the validation parameters can be kept
 /// up-to-date more easily and because some of the checks are re-used across
 /// different modules.
 use super::{application::InteractionError, guild::sticker::StickerValidationError};
