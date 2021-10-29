@@ -48,7 +48,8 @@ bitflags! {
         const CREATE_PRIVATE_THREADS = 1 << 36;
         /// Allows for sending messages in threads.
         const SEND_MESSAGES_IN_THREADS = 1 << 38;
-        /// Allows for launching activities (applications with the `EMBEDDED` flag) in a voice channel.
+        /// Allows for launching activities (applications with the `EMBEDDED`
+        /// flag) in a voice channel.
         const START_EMBEDDED_ACTIVITIES = 1 << 39;
     }
 }
