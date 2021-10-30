@@ -411,7 +411,7 @@ mod test {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandDataOptionRaw",
+                    name: "CommandDataOptionEnvelope",
                     len: 3,
                 },
                 Token::Str("name"),
@@ -419,7 +419,7 @@ mod test {
                 Token::Str("type"),
                 Token::U8(CommandOptionType::User as u8),
                 Token::Str("value"),
-                Token::Some,
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("600"),
                 Token::StructEnd,
                 Token::SeqEnd,
