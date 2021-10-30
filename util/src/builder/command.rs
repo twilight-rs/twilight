@@ -32,7 +32,7 @@ use twilight_model::{
         CommandOption, CommandOptionChoice, CommandType, Number, OptionsCommandOptionData,
     },
     channel::ChannelType,
-    id::GuildId,
+    id::{CommandVersionId, GuildId},
 };
 
 /// Builder to create a [`Command`].
@@ -44,7 +44,7 @@ pub struct CommandBuilder(Command);
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String, kind: CommandType) -> Self {
+    pub fn new(name: String, description: String, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
             default_permission: None,
@@ -54,6 +54,7 @@ impl CommandBuilder {
             kind,
             name,
             options: Vec::new(),
+            version: CommandVersionId::new(1).expect("non zero"),
         })
     }
 
@@ -639,15 +640,15 @@ mod tests {
             default_permission: None,
             description: String::from("Get or edit permissions for a user or a role"),
             id: None,
-            options: vec![
+            options: Vec::from([
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description: String::from("Get or edit permissions for a user"),
                     name: String::from("user"),
-                    options: vec![
+                    options: Vec::from([
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Get permissions for a user"),
                             name: String::from("get"),
-                            options: vec![
+                            options: Vec::from([
                                 CommandOption::User(BaseCommandOptionData {
                                     description: String::from("The user to get"),
                                     name: String::from("user"),
@@ -662,12 +663,12 @@ mod tests {
                                     name: String::from("channel"),
                                     required: false,
                                 }),
-                            ],
+                            ]),
                         }),
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Edit permissions for a user"),
                             name: String::from("edit"),
-                            options: vec![
+                            options: Vec::from([
                                 CommandOption::User(BaseCommandOptionData {
                                     description: String::from("The user to edit"),
                                     name: String::from("user"),
@@ -682,18 +683,18 @@ mod tests {
                                     name: String::from("channel"),
                                     required: false,
                                 }),
-                            ],
+                            ]),
                         }),
-                    ],
+                    ]),
                 }),
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description: String::from("Get or edit permissions for a role"),
                     name: String::from("role"),
-                    options: vec![
+                    options: Vec::from([
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Get permissions for a role"),
                             name: String::from("get"),
-                            options: vec![
+                            options: Vec::from([
                                 CommandOption::Role(BaseCommandOptionData {
                                     description: String::from("The role to get"),
                                     name: String::from("role"),
@@ -708,12 +709,12 @@ mod tests {
                                     name: String::from("channel"),
                                     required: false,
                                 }),
-                            ],
+                            ]),
                         }),
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Edit permissions for a role"),
                             name: String::from("edit"),
-                            options: vec![
+                            options: Vec::from([
                                 CommandOption::Role(BaseCommandOptionData {
                                     description: String::from("The role to edit"),
                                     name: String::from("role"),
@@ -734,11 +735,12 @@ mod tests {
                                     name: String::from("position"),
                                     required: false,
                                 }),
-                            ],
+                            ]),
                         }),
-                    ],
+                    ]),
                 }),
-            ],
+            ]),
+            version: CommandVersionId::new(1).expect("non zero"),
         };
 
         assert_eq!(command, command_manual);

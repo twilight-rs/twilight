@@ -1195,7 +1195,7 @@ impl<'a> Route<'a> {
     ///
     /// [`Ratelimiter`]: twilight_http_ratelimiting::Ratelimiter
     #[allow(clippy::too_many_lines)]
-    pub const fn path(&self) -> Path {
+    pub fn path(&self) -> Path {
         match self {
             Self::AddGuildMember { guild_id, .. }
             | Self::GetMember { guild_id, .. }
@@ -1223,8 +1223,10 @@ impl<'a> Route<'a> {
             | Self::SetGlobalCommands { application_id } => {
                 Path::ApplicationCommand(*application_id)
             }
-            Self::CreateGuild | Self::CreateGuildFromTemplate { .. } | Self::GetTemplate { .. } => {
-                Path::Guilds
+            Self::CreateGuild => Path::Guilds,
+            Self::CreateGuildFromTemplate { template_code, .. }
+            | Self::GetTemplate { template_code, .. } => {
+                Path::GuildsTemplatesCode((*template_code).to_string().into_boxed_str())
             }
             Self::CreateGuildCommand { application_id, .. }
             | Self::DeleteGuildCommand { application_id, .. }
@@ -1315,9 +1317,24 @@ impl<'a> Route<'a> {
             Self::DeleteRole { guild_id, .. }
             | Self::UpdateRole { guild_id, .. }
             | Self::UpdateRolePositions { guild_id } => Path::GuildsIdRolesId(*guild_id),
-            Self::DeleteTemplate { guild_id, .. }
-            | Self::SyncTemplate { guild_id, .. }
-            | Self::UpdateTemplate { guild_id, .. } => (Path::GuildsIdTemplatesCode(*guild_id)),
+            Self::DeleteTemplate {
+                guild_id,
+                template_code,
+                ..
+            }
+            | Self::SyncTemplate {
+                guild_id,
+                template_code,
+                ..
+            }
+            | Self::UpdateTemplate {
+                guild_id,
+                template_code,
+                ..
+            } => Path::GuildsIdTemplatesCode(
+                *guild_id,
+                (*template_code).to_string().into_boxed_str(),
+            ),
             Self::DeleteWebhookMessage { webhook_id, .. }
             | Self::GetWebhookMessage { webhook_id, .. }
             | Self::UpdateWebhookMessage { webhook_id, .. } => {

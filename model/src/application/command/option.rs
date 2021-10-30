@@ -485,7 +485,7 @@ mod tests {
     };
     use crate::{
         channel::ChannelType,
-        id::{ApplicationId, CommandId, GuildId},
+        id::{ApplicationId, CommandId, CommandVersionId, GuildId},
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -539,12 +539,12 @@ mod tests {
     fn test_command_option_full() {
         let value = Command {
             application_id: Some(ApplicationId::new(100).expect("non zero")),
-            guild_id: Some(GuildId::new(300).expect("non zero")),
-            kind: CommandType::ChatInput,
-            name: "test command".into(),
             default_permission: Some(true),
             description: "this command is a test".into(),
+            guild_id: Some(GuildId::new(300).expect("non zero")),
             id: Some(CommandId::new(200).expect("non zero")),
+            kind: CommandType::ChatInput,
+            name: "test command".into(),
             options: vec![CommandOption::SubCommandGroup(OptionsCommandOptionData {
                 description: "sub group desc".into(),
                 name: "sub group name".into(),
@@ -614,6 +614,7 @@ mod tests {
                     ],
                 })],
             })],
+            version: CommandVersionId::new(1).expect("non zero"),
         };
 
         serde_test::assert_tokens(
@@ -621,7 +622,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Command",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("application_id"),
                 Token::Some,
@@ -629,23 +630,23 @@ mod tests {
                     name: "ApplicationId",
                 },
                 Token::Str("100"),
-                Token::Str("guild_id"),
-                Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
-                Token::Str("300"),
-                Token::Str("name"),
-                Token::Str("test command"),
                 Token::Str("default_permission"),
                 Token::Some,
                 Token::Bool(true),
                 Token::Str("description"),
                 Token::Str("this command is a test"),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "GuildId" },
+                Token::Str("300"),
                 Token::Str("id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "CommandId" },
                 Token::Str("200"),
                 Token::Str("type"),
                 Token::U8(1),
+                Token::Str("name"),
+                Token::Str("test command"),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -827,6 +828,11 @@ mod tests {
                 Token::U8(2),
                 Token::StructEnd,
                 Token::SeqEnd,
+                Token::Str("version"),
+                Token::NewtypeStruct {
+                    name: "CommandVersionId",
+                },
+                Token::Str("1"),
                 Token::StructEnd,
             ],
         );
