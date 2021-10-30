@@ -217,8 +217,10 @@ pub enum Path {
     GuildsIdStickers(u64),
     /// Operating on one of the user's guilds' templates.
     GuildsIdTemplates(u64),
+    /// Operating on a guild template.
+    GuildsTemplatesCode(Box<str>),
     /// Operating on a template from one of the user's guilds.
-    GuildsIdTemplatesCode(u64),
+    GuildsIdTemplatesCode(u64, Box<str>),
     /// Operating on one of the user's guilds' threads.
     GuildsIdThreads(u64),
     /// Operating on one of the user's guilds' vanity URL.
@@ -351,6 +353,9 @@ impl FromStr for Path {
             ["gateway"] => Gateway,
             ["gateway", "bot"] => GatewayBot,
             ["guilds"] => Guilds,
+            ["guilds", "templates", code] => {
+                GuildsTemplatesCode((*code).to_string().into_boxed_str())
+            }
             ["guilds", id] => GuildsId(parse_id(id)?),
             ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(parse_id(id)?),
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
@@ -377,7 +382,9 @@ impl FromStr for Path {
                 GuildsIdStickers(parse_id(id)?)
             }
             ["guilds", id, "templates"] => GuildsIdTemplates(parse_id(id)?),
-            ["guilds", id, "templates", _] => GuildsIdTemplatesCode(parse_id(id)?),
+            ["guilds", id, "templates", code] => {
+                GuildsIdTemplatesCode(parse_id(id)?, (*code).to_string().into_boxed_str())
+            }
             ["guilds", id, "threads", _] => GuildsIdThreads(parse_id(id)?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(parse_id(id)?),
             ["guilds", id, "voice-states", _] => GuildsIdVoiceStates(parse_id(id)?),
