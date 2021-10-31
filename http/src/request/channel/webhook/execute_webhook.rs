@@ -11,6 +11,7 @@ use crate::{
 };
 use serde::Serialize;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -145,9 +146,8 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhook<'a> {
+    attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: ExecuteWebhookFields<'a>,
-    files: &'a [(&'a str, &'a [u8])],
-    attachments: &'a [AttachmentFile<'a>],
     pub(super) http: &'a Client,
     token: &'a str,
     webhook_id: WebhookId,
@@ -168,8 +168,7 @@ impl<'a> ExecuteWebhook<'a> {
                 username: None,
                 allowed_mentions: None,
             },
-            files: &[],
-            attachments: &[],
+            attachments: Cow::Borrowed(&[]),
             http,
             token,
             webhook_id,
@@ -241,8 +240,9 @@ impl<'a> ExecuteWebhook<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    pub const fn attach(mut self, files: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachments = files;
+    #[allow(clippy::missing_const_for_fn)] // False positive
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = Cow::Borrowed(attachments);
 
         self
     }
@@ -250,14 +250,9 @@ impl<'a> ExecuteWebhook<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    ///
-    /// If there have been any calls to [`attach`] that will be used
-    /// instead.
-    ///
-    /// [`attach`]: Self::attach
     #[deprecated(since = "0.7.1", note = "Use attach instead")]
-    pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.files = files;
+    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
+        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -368,7 +363,7 @@ impl<'a> ExecuteWebhook<'a> {
         // webhook token.
         request = request.use_authorization_token(false);
 
-        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
             if !self.attachments.is_empty() {
@@ -381,19 +376,7 @@ impl<'a> ExecuteWebhook<'a> {
                     self.fields.attachments.push(PartialAttachment {
                         id: index as u64,
                         filename: attachment.filename,
-                        description: attachment.description.as_deref(),
-                    })
-                }
-            } else if !self.files.is_empty() {
-                // Only add "files" if attachment is empty.  This is
-                // only to keep compatibility, and should be removed
-                // in next breaking release.
-                for (index, (name, file)) in self.files.iter().enumerate() {
-                    form.attach(index as u64, name.as_bytes(), file);
-                    self.fields.attachments.push(PartialAttachment {
-                        id: index as u64,
-                        filename: name,
-                        description: None,
+                        description: attachment.description,
                     })
                 }
             }

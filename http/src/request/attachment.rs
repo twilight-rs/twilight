@@ -23,4 +23,8 @@ impl<'a> AttachmentFile<'a> {
 
         self
     }
+
+    pub(super) fn from_pairs(pairs: &'a [(&'a str, &'a [u8])]) -> Vec<Self> {
+        pairs.iter().map(|(n, f)| Self::from_bytes(n, f)).collect()
+    }
 }

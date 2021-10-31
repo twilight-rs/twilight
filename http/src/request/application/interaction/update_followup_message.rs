@@ -13,6 +13,7 @@ use crate::{
 };
 use serde::Serialize;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -172,13 +173,12 @@ struct UpdateFollowupMessageFields<'a> {
 /// [`DeleteFollowupMessage`]: super::DeleteFollowupMessage
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateFollowupMessage<'a> {
+    application_id: ApplicationId,
+    attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateFollowupMessageFields<'a>,
-    files: &'a [(&'a str, &'a [u8])],
-    attachments: &'a [AttachmentFile<'a>],
     http: &'a Client,
     message_id: MessageId,
     token: &'a str,
-    application_id: ApplicationId,
 }
 
 impl<'a> UpdateFollowupMessage<'a> {
@@ -200,8 +200,7 @@ impl<'a> UpdateFollowupMessage<'a> {
                 embeds: None,
                 payload_json: None,
             },
-            files: &[],
-            attachments: &[],
+            attachments: Cow::Borrowed(&[]),
             http,
             message_id,
             token,
@@ -375,8 +374,9 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    pub const fn attach(mut self, files: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachments = files;
+    #[allow(clippy::missing_const_for_fn)] // False positive
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = Cow::Borrowed(attachments);
 
         self
     }
@@ -384,14 +384,9 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    ///
-    /// If there have been any calls to [`attach`] that will be used
-    /// instead.
-    ///
-    /// [`attach`]: Self::attach
     #[deprecated(since = "0.7.1", note = "Use attach instead")]
-    pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.files = files;
+    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
+        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -420,7 +415,7 @@ impl<'a> UpdateFollowupMessage<'a> {
             webhook_id: self.application_id.get(),
         });
 
-        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
             if !self.attachments.is_empty() {
@@ -430,13 +425,6 @@ impl<'a> UpdateFollowupMessage<'a> {
                         attachment.filename.as_bytes(),
                         attachment.file,
                     );
-                }
-            } else if !self.files.is_empty() {
-                // Only add "files" if attachment is empty.  This is
-                // only to keep compatibility, and should be removed
-                // in next breaking release.
-                for (index, (name, file)) in self.files.iter().enumerate() {
-                    form.attach(index as u64, name.as_bytes(), file);
                 }
             }
 

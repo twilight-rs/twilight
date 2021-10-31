@@ -91,9 +91,9 @@ impl<T: Serialize> Serialize for NullableField<T> {
 
 #[derive(Serialize)]
 pub(crate) struct PartialAttachment<'a> {
-    pub id: u64,
-    pub filename: &'a str,
     pub description: Option<&'a str>,
+    pub filename: &'a str,
+    pub id: u64,
 }
 
 pub(crate) fn audit_header(
