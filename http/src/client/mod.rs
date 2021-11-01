@@ -1264,7 +1264,7 @@ impl Client {
     /// Get a list of users that reacted to a message with an `emoji`.
     ///
     /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
-    /// requests must be chained until all reactions are retireved.
+    /// requests must be chained until all reactions are retrieved.
     pub const fn reactions<'a>(
         &'a self,
         channel_id: ChannelId,
@@ -2643,7 +2643,7 @@ impl Client {
     /// # Errors
     ///
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
-    /// token has become invalid due to expiration, revokation, etc.
+    /// token has become invalid due to expiration, revocation, etc.
     ///
     /// [`Response`]: super::response::Response
     pub fn request<T>(&self, request: Request) -> ResponseFuture<T> {

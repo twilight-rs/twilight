@@ -332,7 +332,6 @@ mod tests {
             member: Some(Member {
                 deaf: false,
                 guild_id: GuildId::new(2).expect("non zero"),
-                hoisted_role: None,
                 joined_at: None,
                 mute: false,
                 nick: None,
