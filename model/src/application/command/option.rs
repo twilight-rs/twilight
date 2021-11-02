@@ -26,13 +26,13 @@ pub enum CommandOption {
     SubCommand(OptionsCommandOptionData),
     SubCommandGroup(OptionsCommandOptionData),
     String(ChoiceCommandOptionData),
-    Integer(ChoiceCommandOptionData),
+    Integer(NumberCommandOptionData),
     Boolean(BaseCommandOptionData),
     User(BaseCommandOptionData),
     Channel(ChannelCommandOptionData),
     Role(BaseCommandOptionData),
     Mentionable(BaseCommandOptionData),
-    Number(ChoiceCommandOptionData),
+    Number(NumberCommandOptionData),
 }
 
 impl CommandOption {
@@ -54,9 +54,8 @@ impl CommandOption {
     pub const fn is_required(&self) -> bool {
         match self {
             CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => false,
-            CommandOption::String(data)
-            | CommandOption::Integer(data)
-            | CommandOption::Number(data) => data.required,
+            CommandOption::String(data) => data.required,
+            CommandOption::Integer(data) | CommandOption::Number(data) => data.required,
             CommandOption::Channel(data) => data.required,
             CommandOption::Boolean(data)
             | CommandOption::User(data)
@@ -79,6 +78,10 @@ struct CommandOptionEnvelope<'ser> {
     #[serde(skip_serializing_if = "Option::is_none")]
     choices: Option<&'ser [CommandOptionChoice]>,
     description: &'ser str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    max_value: Option<CommandOptionValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    min_value: Option<CommandOptionValue>,
     name: &'ser str,
     #[serde(skip_serializing_if = "Option::is_none")]
     options: Option<&'ser [CommandOption]>,
@@ -95,26 +98,41 @@ impl Serialize for CommandOption {
                 channel_types: None,
                 choices: None,
                 description: data.description.as_ref(),
+                min_value: None,
+                max_value: None,
                 name: data.name.as_ref(),
                 options: Some(data.options.as_ref()),
                 required: false,
                 kind: self.kind(),
             },
-            Self::String(data) | Self::Integer(data) | Self::Number(data) => {
-                CommandOptionEnvelope {
-                    channel_types: None,
-                    choices: Some(data.choices.as_ref()),
-                    description: data.description.as_ref(),
-                    name: data.name.as_ref(),
-                    options: None,
-                    required: data.required,
-                    kind: self.kind(),
-                }
-            }
+            Self::String(data) => CommandOptionEnvelope {
+                channel_types: None,
+                choices: Some(data.choices.as_ref()),
+                description: data.description.as_ref(),
+                min_value: None,
+                max_value: None,
+                name: data.name.as_ref(),
+                options: None,
+                required: data.required,
+                kind: self.kind(),
+            },
+            Self::Integer(data) | Self::Number(data) => CommandOptionEnvelope {
+                channel_types: None,
+                choices: Some(data.choices.as_ref()),
+                description: data.description.as_ref(),
+                min_value: data.min_value,
+                max_value: data.min_value,
+                name: data.name.as_ref(),
+                options: None,
+                required: data.required,
+                kind: self.kind(),
+            },
             Self::Channel(data) => CommandOptionEnvelope {
                 channel_types: Some(data.channel_types.as_ref()),
                 choices: None,
                 description: data.description.as_ref(),
+                min_value: None,
+                max_value: None,
                 name: data.name.as_ref(),
                 options: None,
                 required: data.required,
@@ -125,6 +143,8 @@ impl Serialize for CommandOption {
                     channel_types: None,
                     choices: None,
                     description: data.description.as_ref(),
+                    min_value: None,
+                    max_value: None,
                     name: data.name.as_ref(),
                     options: None,
                     required: data.required,
@@ -143,6 +163,8 @@ enum OptionField {
     ChannelTypes,
     Choices,
     Description,
+    MaxValue,
+    MinValue,
     Name,
     Options,
     Required,
@@ -164,6 +186,8 @@ impl<'de> Visitor<'de> for OptionVisitor {
         let mut choices: Option<Option<Vec<CommandOptionChoice>>> = None;
         let mut description: Option<String> = None;
         let mut kind: Option<CommandOptionType> = None;
+        let mut max_value: Option<Option<CommandOptionValue>> = None;
+        let mut min_value: Option<Option<CommandOptionValue>> = None;
         let mut name: Option<String> = None;
         let mut options: Option<Option<Vec<CommandOption>>> = None;
         let mut required: Option<bool> = None;
@@ -212,6 +236,20 @@ impl<'de> Visitor<'de> for OptionVisitor {
                     }
 
                     description = Some(map.next_value()?);
+                }
+                OptionField::MaxValue => {
+                    if max_value.is_some() {
+                        return Err(DeError::duplicate_field("max_value"));
+                    }
+
+                    max_value = Some(map.next_value()?);
+                }
+                OptionField::MinValue => {
+                    if min_value.is_some() {
+                        return Err(DeError::duplicate_field("min_value"));
+                    }
+
+                    min_value = Some(map.next_value()?);
                 }
                 OptionField::Name => {
                     if name.is_some() {
@@ -282,10 +320,12 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 name,
                 required,
             }),
-            CommandOptionType::Integer => CommandOption::Integer(ChoiceCommandOptionData {
+            CommandOptionType::Integer => CommandOption::Integer(NumberCommandOptionData {
                 choices: choices.flatten().unwrap_or_default(),
                 description,
                 name,
+                max_value: max_value.flatten(),
+                min_value: min_value.flatten(),
                 required,
             }),
             CommandOptionType::Boolean => CommandOption::Boolean(BaseCommandOptionData {
@@ -314,9 +354,11 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 name,
                 required,
             }),
-            CommandOptionType::Number => CommandOption::Number(ChoiceCommandOptionData {
+            CommandOptionType::Number => CommandOption::Number(NumberCommandOptionData {
                 choices: choices.flatten().unwrap_or_default(),
                 description,
+                max_value: max_value.flatten(),
+                min_value: max_value.flatten(),
                 name,
                 required,
             }),
@@ -363,7 +405,7 @@ pub struct OptionsCommandOptionData {
     pub options: Vec<CommandOption>,
 }
 
-/// Data supplied to a [`CommandOption`] of type [`String`] or [`Integer`].
+/// Data supplied to a [`CommandOption`] of type [`String`].
 ///
 /// [`String`]: CommandOption::String
 /// [`Integer`]: CommandOption::Integer
@@ -405,6 +447,35 @@ pub struct ChannelCommandOptionData {
     pub required: bool,
 }
 
+/// Data supplied to a [`CommandOption`] of type [`Integer`] or [`Number`].
+///
+/// [`Integer`]: CommandOption::Integer
+/// [`Number`]: CommandOption::Number
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct NumberCommandOptionData {
+    /// Predetermined choices may be defined for a user to select.
+    ///
+    /// When completing this option, the user is prompted with a selector of all
+    /// available choices.
+    ///
+    /// If no choices are available, the user must input a value manually.
+    #[serde(default)]
+    pub choices: Vec<CommandOptionChoice>,
+    /// Description of the option. It must be 100 characters or less.
+    pub description: String,
+    /// Maximum value permitted.
+    #[serde(default)]
+    pub max_value: Option<CommandOptionValue>,
+    /// Minimum value permitted.
+    #[serde(default)]
+    pub min_value: Option<CommandOptionValue>,
+    /// Name of the option. It must be 32 characters or less.
+    pub name: String,
+    /// Whether or not the option is required to be completed by a user.
+    #[serde(default)]
+    pub required: bool,
+}
+
 /// Specifies an option that a user must choose from in a dropdown.
 ///
 /// Refer to [the discord docs] for more information.
@@ -416,6 +487,18 @@ pub enum CommandOptionChoice {
     String { name: String, value: String },
     Int { name: String, value: i64 },
     Number { name: String, value: Number },
+}
+
+/// Type used in `max_value` and `min_value` command option field.
+///
+/// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum CommandOptionValue {
+    Integer(i64),
+    Number(Number),
 }
 
 /// Type of a [`CommandOption`].
@@ -481,7 +564,8 @@ mod tests {
     use super::{
         super::{Command, CommandType},
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, CommandOption,
-        CommandOptionChoice, Number, OptionsCommandOptionData,
+        CommandOptionChoice, CommandOptionValue, Number, NumberCommandOptionData,
+        OptionsCommandOptionData,
     };
     use crate::{
         channel::ChannelType,
@@ -567,12 +651,14 @@ mod tests {
                             name: "string".into(),
                             required: false,
                         }),
-                        CommandOption::Integer(ChoiceCommandOptionData {
+                        CommandOption::Integer(NumberCommandOptionData {
                             choices: vec![CommandOptionChoice::Int {
                                 name: "choice2".into(),
                                 value: 2,
                             }],
                             description: "int desc".into(),
+                            max_value: Some(CommandOptionValue::Integer(20)),
+                            min_value: Some(CommandOptionValue::Integer(10)),
                             name: "int".into(),
                             required: false,
                         }),
@@ -602,12 +688,14 @@ mod tests {
                             name: "mentionable".into(),
                             required: false,
                         }),
-                        CommandOption::Number(ChoiceCommandOptionData {
+                        CommandOption::Number(NumberCommandOptionData {
                             choices: vec![CommandOptionChoice::Number {
                                 name: "choice3".into(),
                                 value: Number(2.0),
                             }],
                             description: "number desc".into(),
+                            max_value: Some(CommandOptionValue::Number(Number(5.5))),
+                            min_value: Some(CommandOptionValue::Number(Number(10.0))),
                             name: "number".into(),
                             required: false,
                         }),
