@@ -1,5 +1,7 @@
 mod resolved;
 
+use std::convert::TryInto;
+
 pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
 
 use crate::{
@@ -7,7 +9,9 @@ use crate::{
     id::{ChannelId, CommandId, GenericId, RoleId, UserId},
 };
 use serde::{
-    de::Error as DeError, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer,
+    de::{Error as DeError, IgnoredAny, Visitor},
+    ser::SerializeStruct,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 
 /// Data received when an [`ApplicationCommand`] interaction is executed.
@@ -40,54 +44,6 @@ pub struct CommandDataOption {
     pub value: CommandOptionValue,
 }
 
-impl<'de> Deserialize<'de> for CommandDataOption {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let raw = CommandDataOptionEnvelope::deserialize(deserializer)?;
-
-        let value = match (raw.kind, raw.value) {
-            (CommandOptionType::Boolean, Some(CommandOptionValueEnvelope::Boolean(b))) => {
-                CommandOptionValue::Boolean(b)
-            }
-            (CommandOptionType::Channel, Some(CommandOptionValueEnvelope::Id(i))) => {
-                CommandOptionValue::Channel(i.0.into())
-            }
-            (CommandOptionType::Integer, Some(CommandOptionValueEnvelope::Integer(i))) => {
-                CommandOptionValue::Integer(i)
-            }
-            (CommandOptionType::Mentionable, Some(CommandOptionValueEnvelope::Id(i))) => {
-                CommandOptionValue::Mentionable(i.0.into())
-            }
-            (CommandOptionType::Number, Some(CommandOptionValueEnvelope::Number(n))) => {
-                CommandOptionValue::Number(n)
-            }
-            (CommandOptionType::Role, Some(CommandOptionValueEnvelope::Id(i))) => {
-                CommandOptionValue::Role(i.0.into())
-            }
-            (CommandOptionType::String, Some(CommandOptionValueEnvelope::String(s))) => {
-                CommandOptionValue::String(s)
-            }
-            (CommandOptionType::SubCommand, _) => CommandOptionValue::SubCommand(raw.options),
-            (CommandOptionType::SubCommandGroup, _) => {
-                CommandOptionValue::SubCommandGroup(raw.options)
-            }
-            (CommandOptionType::User, Some(CommandOptionValueEnvelope::Id(i))) => {
-                CommandOptionValue::User(i.0.into())
-            }
-            (t, v) => {
-                return Err(DeError::custom(format!(
-                    "invalid value/type pair: value={:?} type={:?}",
-                    v, t
-                )));
-            }
-        };
-
-        Ok(CommandDataOption {
-            name: raw.name,
-            value,
-        })
-    }
-}
-
 impl Serialize for CommandDataOption {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let subcommand_is_empty = matches!(
@@ -99,7 +55,7 @@ impl Serialize for CommandDataOption {
 
         let len = 2 + !subcommand_is_empty as usize;
 
-        let mut state = serializer.serialize_struct("CommandDataOptionEnvelope", len)?;
+        let mut state = serializer.serialize_struct("CommandDataOption", len)?;
 
         state.serialize_field("name", &self.name)?;
 
@@ -125,24 +81,250 @@ impl Serialize for CommandDataOption {
     }
 }
 
-#[derive(Deserialize)]
-struct CommandDataOptionEnvelope {
-    name: String,
-    #[serde(rename = "type")]
-    kind: CommandOptionType,
-    #[serde(default)]
-    options: Vec<CommandDataOption>,
-    value: Option<CommandOptionValueEnvelope>,
-}
+impl<'de> Deserialize<'de> for CommandDataOption {
+    #[allow(clippy::too_many_lines)]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Debug, Deserialize)]
+        #[serde(field_identifier, rename_all = "snake_case")]
+        enum Fields {
+            Name,
+            Type,
+            Options,
+            Value,
+        }
 
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum CommandOptionValueEnvelope {
-    Boolean(bool),
-    Id(GenericId),
-    Integer(i64),
-    Number(Number),
-    String(String),
+        #[derive(Debug, Deserialize)]
+        #[serde(untagged)]
+        enum ValueEnvelope {
+            Boolean(bool),
+            Integer(i64),
+            Number(f64),
+            Id(GenericId),
+            String(String),
+        }
+
+        struct CommandDataOptionVisitor;
+
+        impl<'de> Visitor<'de> for CommandDataOptionVisitor {
+            type Value = CommandDataOption;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("CommandDataOption")
+            }
+
+            #[allow(clippy::too_many_lines)]
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut name_opt = None;
+                let mut kind_opt = None::<CommandOptionType>;
+                let mut options = Vec::<CommandDataOption>::new();
+                let mut value_opt = None::<ValueEnvelope>;
+
+                loop {
+                    let key = match map.next_key() {
+                        Ok(Some(key)) => key,
+                        Ok(None) => break,
+                        Err(why) => {
+                            map.next_value::<IgnoredAny>()?;
+
+                            tracing::trace!("ran into an unknown key: {:?}", why);
+
+                            continue;
+                        }
+                    };
+
+                    match key {
+                        Fields::Name => {
+                            if name_opt.is_some() {
+                                return Err(DeError::duplicate_field("name"));
+                            }
+
+                            name_opt = Some(map.next_value()?);
+                        }
+                        Fields::Type => {
+                            if kind_opt.is_some() {
+                                return Err(DeError::duplicate_field("type"));
+                            }
+
+                            kind_opt = Some(map.next_value()?);
+                        }
+                        Fields::Options => {
+                            if !options.is_empty() {
+                                return Err(DeError::duplicate_field("options"));
+                            }
+
+                            options = map.next_value()?;
+                        }
+                        Fields::Value => {
+                            if value_opt.is_some() {
+                                return Err(DeError::duplicate_field("value"));
+                            }
+
+                            value_opt = Some(map.next_value()?);
+                        }
+                    }
+                }
+
+                let name = name_opt.ok_or_else(|| DeError::missing_field("name"))?;
+                let kind = kind_opt.ok_or_else(|| DeError::missing_field("type"))?;
+
+                let value = match kind {
+                    CommandOptionType::Boolean => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        if let ValueEnvelope::Boolean(b) = val {
+                            CommandOptionValue::Boolean(b)
+                        } else {
+                            return Err(DeError::custom(&format!(
+                                "expected boolean got {:?}",
+                                val
+                            )));
+                        }
+                    }
+                    CommandOptionType::Channel => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        match val {
+                            ValueEnvelope::Integer(i) => {
+                                let id = ChannelId::new(i.try_into().map_err(|_| {
+                                    DeError::custom("could not convert signed integer to unsigned")
+                                })?)
+                                .ok_or_else(|| DeError::custom("channel id was zero"))?;
+
+                                CommandOptionValue::Channel(id)
+                            }
+                            ValueEnvelope::Id(id) => CommandOptionValue::Channel(ChannelId(id.0)),
+                            other => {
+                                return Err(DeError::custom(&format!(
+                                    "expected integer got {:?}",
+                                    other
+                                )));
+                            }
+                        }
+                    }
+                    CommandOptionType::Integer => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        if let ValueEnvelope::Integer(i) = val {
+                            CommandOptionValue::Integer(i)
+                        } else {
+                            return Err(DeError::custom(&format!(
+                                "expected integer got {:?}",
+                                val
+                            )));
+                        }
+                    }
+                    CommandOptionType::Mentionable => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        match val {
+                            ValueEnvelope::Integer(i) => {
+                                let id = GenericId::new(i.try_into().map_err(|_| {
+                                    DeError::custom("could not convert signed integer to unsigned")
+                                })?)
+                                .ok_or_else(|| DeError::custom("mentionable id was zero"))?;
+
+                                CommandOptionValue::Mentionable(id)
+                            }
+                            ValueEnvelope::Id(id) => CommandOptionValue::Mentionable(id),
+                            other => {
+                                return Err(DeError::custom(&format!(
+                                    "expected integer got {:?}",
+                                    other
+                                )));
+                            }
+                        }
+                    }
+                    CommandOptionType::Number => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        match val {
+                            ValueEnvelope::Integer(i) => {
+                                // As json may sometime send floating
+                                // points without the tailing decimals
+                                // it may be intepreted as a integer
+                                // but it is safe to cast as there can
+                                // not occour any loss.
+                                #[allow(clippy::cast_precision_loss)]
+                                CommandOptionValue::Number(Number(i as f64))
+                            }
+                            ValueEnvelope::Number(f) => CommandOptionValue::Number(Number(f)),
+                            _ => {
+                                return Err(DeError::custom(&format!(
+                                    "expected double got {:?}",
+                                    val
+                                )));
+                            }
+                        }
+                    }
+                    CommandOptionType::Role => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        match val {
+                            ValueEnvelope::Integer(i) => {
+                                let id = RoleId::new(i.try_into().map_err(|_| {
+                                    DeError::custom("could not convert signed integer to unsigned")
+                                })?)
+                                .ok_or_else(|| DeError::custom("role id was zero"))?;
+
+                                CommandOptionValue::Role(id)
+                            }
+                            ValueEnvelope::Id(id) => CommandOptionValue::Role(RoleId(id.0)),
+                            other => {
+                                return Err(DeError::custom(&format!(
+                                    "expected integer got {:?}",
+                                    other
+                                )));
+                            }
+                        }
+                    }
+                    CommandOptionType::String => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        if let ValueEnvelope::String(s) = val {
+                            CommandOptionValue::String(s)
+                        } else {
+                            return Err(DeError::custom(&format!("expected string got {:?}", val)));
+                        }
+                    }
+                    CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
+                    CommandOptionType::SubCommandGroup => {
+                        CommandOptionValue::SubCommandGroup(options)
+                    }
+                    CommandOptionType::User => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        match val {
+                            ValueEnvelope::Integer(i) => {
+                                let id = UserId::new(i.try_into().map_err(|_| {
+                                    DeError::custom("could not convert signed integer to unsigned")
+                                })?)
+                                .ok_or_else(|| DeError::custom("user id was zero"))?;
+
+                                CommandOptionValue::User(id)
+                            }
+                            ValueEnvelope::Id(id) => CommandOptionValue::User(UserId(id.0)),
+                            other => {
+                                return Err(DeError::custom(&format!(
+                                    "expected integer got {:?}",
+                                    other
+                                )));
+                            }
+                        }
+                    }
+                };
+
+                Ok(CommandDataOption { name, value })
+            }
+        }
+
+        deserializer.deserialize_any(CommandDataOptionVisitor)
+    }
 }
 
 /// Value of a [`CommandDataOption`].
@@ -182,7 +364,7 @@ mod tests {
     use super::CommandData;
     use crate::{
         application::{
-            command::CommandOptionType,
+            command::{CommandOptionType, Number},
             interaction::application_command::{CommandDataOption, CommandOptionValue},
         },
         id::CommandId,
@@ -216,7 +398,7 @@ mod tests {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandDataOptionEnvelope",
+                    name: "CommandDataOption",
                     len: 2,
                 },
                 Token::Str("name"),
@@ -227,6 +409,31 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("resolved"),
                 Token::None,
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn numbers() {
+        let value = CommandDataOption {
+            name: "opt".to_string(),
+            value: CommandOptionValue::Number(Number(5.0)),
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandDataOption",
+                    len: 3,
+                },
+                Token::Str("name"),
+                Token::Str("opt"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::Number as u8),
+                Token::Str("value"),
+                Token::I64(5),
                 Token::StructEnd,
             ],
         );

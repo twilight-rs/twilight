@@ -411,7 +411,7 @@ mod test {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandDataOptionEnvelope",
+                    name: "CommandDataOption",
                     len: 3,
                 },
                 Token::Str("name"),
