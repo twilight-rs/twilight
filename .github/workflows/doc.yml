@@ -32,7 +32,7 @@ jobs:
       
       - name: Remove examples
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | sed 's/-/_/g' | xargs -I '{}' | rm -rf ./target/doc/{})
+        run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | sed 's/-/_/g' | rm -rf ./target/doc/{})
 
       - name: List contents
         run: ls ./target/doc/
