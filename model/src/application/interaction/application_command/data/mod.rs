@@ -245,11 +245,11 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 
                         match val {
                             ValueEnvelope::Integer(i) => {
-                                // As json may sometime send floating
+                                // As json allows sending floating
                                 // points without the tailing decimals
-                                // it may be intepreted as a integer
+                                // it may be interpreted as a integer
                                 // but it is safe to cast as there can
-                                // not occour any loss.
+                                // not occur any loss.
                                 #[allow(clippy::cast_precision_loss)]
                                 CommandOptionValue::Number(Number(i as f64))
                             }
