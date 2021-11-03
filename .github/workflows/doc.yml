@@ -53,7 +53,7 @@ jobs:
           name: docs-artifact
 
       - name: Remove examples
-        run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | xargs -I '{}' | rm -rf ${{ steps.download.outputs.download-path }}/{})
+        run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | sed 's/-/_/g' | xargs -I '{}' | rm -rf ${{ steps.download.outputs.download-path }}/{})
 
       - name: Echo artifact contents
         run: ls ${{ steps.download.outputs.download-path }}
