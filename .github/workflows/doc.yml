@@ -35,10 +35,12 @@ jobs:
         run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | sed 's/-/_/g' | xargs -I '{}' rm -rf ./target/doc/{})
 
       - name: Prepare docs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           echo '<meta http-equiv="refresh" content="0;url=twilight/index.html">' > target/doc/index.html
 
       - name: Deploy docs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
