@@ -32,32 +32,20 @@ jobs:
       
       - name: Remove examples
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | sed 's/-/_/g' | rm -rf ./target/doc/{})
+        run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | sed 's/-/_/g' | xargs -I '{}' rm -rf ./target/doc/{})
 
-      - name: List contents
-        run: ls ./target/doc/
+      - name: Prepare docs
+        run: |
+          echo '<meta http-equiv="refresh" content="0;url=twilight/index.html">' > target/doc/index.html
 
-  # deploy-docs:
-  #   name: Deploy docs
-  #   runs-on: ubuntu-latest
-  #   needs: build-docs
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-  #   steps:
-  #     - name: Checkout sources
-  #       uses: actions/checkout@v2
-        
-  #     - name: Download docs artifact
-  #       uses: actions/download-artifact@v2
-  #       id: download
-  #       with:
-  #         name: docs-artifact
-
-  #     - name: Remove examples
-  #       run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | sed 's/-/_/g' | xargs -I '{}' | rm -rf ${{ steps.download.outputs.download-path }}/{})
-
-  #     - name: Echo artifact contents
-  #       run: ls ${{ steps.download.outputs.download-path }}
+      - name: Deploy docs
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          publish_branch: gh-pages
+          publish_dir: target/doc
+          allow_empty_commit: true
+          cname: api.twilight.rs
 
 
   sync-readme:
