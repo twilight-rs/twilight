@@ -246,7 +246,7 @@ impl IntegerBuilder {
     /// Set the maximum value permitted.
     ///
     /// Defaults to no limit.
-    pub fn max_value(mut self, value: i64) -> Self {
+    pub const fn max_value(mut self, value: i64) -> Self {
         self.0.max_value = Some(CommandOptionValue::Integer(value));
 
         self
@@ -255,7 +255,7 @@ impl IntegerBuilder {
     /// Set the minimum value permitted.
     ///
     /// Defaults to no limit.
-    pub fn min_value(mut self, value: i64) -> Self {
+    pub const fn min_value(mut self, value: i64) -> Self {
         self.0.min_value = Some(CommandOptionValue::Integer(value));
 
         self
@@ -360,7 +360,7 @@ impl NumberBuilder {
     /// Set the maximum value permitted.
     ///
     /// Defaults to no limit.
-    pub fn max_value(mut self, value: f64) -> Self {
+    pub const fn max_value(mut self, value: f64) -> Self {
         self.0.max_value = Some(CommandOptionValue::Number(Number(value)));
 
         self
@@ -369,7 +369,7 @@ impl NumberBuilder {
     /// Set the minimum value permitted.
     ///
     /// Defaults to no limit.
-    pub fn min_value(mut self, value: f64) -> Self {
+    pub const fn min_value(mut self, value: f64) -> Self {
         self.0.min_value = Some(CommandOptionValue::Number(Number(value)));
 
         self
