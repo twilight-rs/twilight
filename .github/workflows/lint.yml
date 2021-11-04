@@ -42,7 +42,6 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
-        # run: cargo fmt --all -- --check
 
   codespell:
     name: Spelling

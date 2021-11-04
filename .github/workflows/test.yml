@@ -20,7 +20,9 @@ jobs:
         uses: Swatinem/rust-cache@v1
 
       - name: Run cargo test
-        run: cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
 
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
@@ -74,11 +76,15 @@ jobs:
         uses: Swatinem/rust-cache@v1
 
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
-        working-directory: ${{ matrix.package }}
+        uses: actions-rs/cargo@v1
+        # working-directory: ${{ matrix.package }}
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
-        run: |
-          cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+        with:
+          command: test
+          args: --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }} --package ${{ matrix.package }}
+        # run: |
+        #   cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}\
 
   MSRV:
     runs-on: ubuntu-latest
@@ -102,7 +108,11 @@ jobs:
       - name: Output processor info
         run: cat /proc/cpuinfo
 
-      - run: cargo check --workspace --benches --examples --tests --all-features
+      # - run: cargo check --workspace --benches --examples --tests --all-features
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --workspace --benches --examples --tests --all-features
         env:
           # Use `haswell` instead of `native` due to some GitHub Actions
           # runners not supporting some `avx512` instructions.
