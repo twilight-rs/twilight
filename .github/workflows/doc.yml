@@ -1,5 +1,6 @@
 name: Check documentation
 
+# Only run push on pushes to main, to prevent actions from running twice on PRs
 on: 
   push:
     branches:

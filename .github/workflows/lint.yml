@@ -1,6 +1,11 @@
 name: Lint
 
-on: [push, pull_request]
+# Only run push on pushes to main, to prevent actions from running twice on PRs
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   clippy:
