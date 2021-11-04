@@ -65,7 +65,7 @@ jobs:
             features: full
 
         exclude:
-          - package: lavalink
+          - package: twilight-lavalink
             features: simd-json
 
     steps:
