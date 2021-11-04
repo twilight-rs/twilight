@@ -33,9 +33,9 @@ jobs:
       fail-fast: false
       matrix:
         package:
-          - http
-          - gateway
-          - lavalink
+          - twilight-http
+          - twilight-gateway
+          - twilight-lavalink
         features:
           - native
           - rustls
