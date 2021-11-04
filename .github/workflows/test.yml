@@ -42,26 +42,26 @@ jobs:
           - simd-json
 
         include:
-          - package: http
+          - package: twilight-http
             features: simd-json
             additional: --features rustls
             # Use `haswell` instead of `native` due to some GitHub
             # Actions runners not supporting some `avx512` instructions.
             rustflags: "-C target-cpu=haswell"
-          - package: gateway
+          - package: twilight-gateway
             features: rustls
             additional: --features zlib-stock
-          - package: gateway
+          - package: twilight-gateway
             features: native
             additional: --features zlib-stock
-          - package: gateway
+          - package: twilight-gateway
             features: simd-json
             additional: --features rustls,zlib-stock
             rustflags: "-C target-cpu=native"
-          - package: lavalink
+          - package: twilight-lavalink
             additional: --features http-support
 
-          - package: util
+          - package: twilight-util
             features: full
 
         exclude:
