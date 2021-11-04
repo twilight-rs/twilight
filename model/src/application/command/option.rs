@@ -408,7 +408,6 @@ pub struct OptionsCommandOptionData {
 /// Data supplied to a [`CommandOption`] of type [`String`].
 ///
 /// [`String`]: CommandOption::String
-/// [`Integer`]: CommandOption::Integer
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChoiceCommandOptionData {
     /// Predetermined choices may be defined for a user to select.
