@@ -24,6 +24,9 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs -D broken_intra_doc_links
