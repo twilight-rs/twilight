@@ -1,4 +1,4 @@
-name: Check documentation
+name: Check and build documentation
 
 # Only run push on pushes to main, to prevent actions from running twice on PRs
 on: 
