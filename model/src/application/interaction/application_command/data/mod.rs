@@ -122,10 +122,10 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             where
                 A: MapAccess<'de>,
             {
-                let mut name_opt: Option<String> = None;
-                let mut kind_opt: Option<CommandOptionType> = None;
-                let mut options: Vec<CommandDataOption> = Vec::new();
-                let mut value_opt: Option<ValueEnvelope> = None;
+                let mut name_opt = None;
+                let mut kind_opt = None;
+                let mut options = Vec::new();
+                let mut value_opt = None;
 
                 loop {
                     let key = match map.next_key() {
