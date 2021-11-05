@@ -1,11 +1,11 @@
 [package]
 authors = ["Twilight Contributors"]
 edition = "2018"
-name = "twilight-gateway-example-cluster"
+name = "twilight-examples-gateway-shard"
 version = "0.1.0"
 
 [dependencies]
-twilight-gateway = { path = "../.." }
+twilight-gateway = { path = "../../gateway" }
 futures = "0.3"
 tracing-subscriber = "0.2"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }

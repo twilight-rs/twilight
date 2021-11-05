@@ -1,13 +1,13 @@
 [package]
 authors = ["Twilight Contributors"]
 edition = "2018"
-name = "twilight-http-example-get-message"
+name = "twilight-http-example-proxy"
 publish = false
 version = "0.0.1"
 
 [dependencies]
-twilight-http = { path = "../.." }
-twilight-model = { path = "../../../model" }
+twilight-http = { path = "../../http" }
+twilight-model = { path = "../../model" }
 futures = "0.3"
 tracing-subscriber = "0.2"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }

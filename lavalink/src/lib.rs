@@ -89,6 +89,9 @@
 //! }
 //! ```
 //!
+//! There is also an example of a basic bot located in the [root of the
+//! `twilight` repository][github examples link].
+//!
 //! [Lavalink]: https://github.com/freyacodes/Lavalink
 //! [`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 //! [`http`]: https://crates.io/crates/http
@@ -97,6 +100,7 @@
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+//! [github examples link]: https://github.com/twilight-rs/twilight/examples
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md

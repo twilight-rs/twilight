@@ -19,6 +19,11 @@ The Cluster is an interface which manages the health of the shards it
 manages and proxies all of their events under one unified stream. This is
 useful to use if you have a large bot in over 1000 or 2000 guilds.
 
+## Examples
+
+There are a few usage examples located in the [root of the `twilight`
+repository][github examples link].
+
 ## Features
 
 ### Deserialization
@@ -113,6 +118,7 @@ This is disabled by default.
 [discord link]: https://discord.gg/7jj8n7D
 [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
+[github examples link]: https://github.com/twilight-rs/twilight/examples
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md

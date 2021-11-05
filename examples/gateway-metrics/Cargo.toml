@@ -1,7 +1,7 @@
 [package]
 authors = ["Twilight Contributors"]
 edition = "2018"
-name = "twilight-gateway-example-metrics"
+name = "twilight-examples-gateway-metrics"
 version = "0.1.0"
 
 [dependencies]
@@ -11,4 +11,4 @@ metrics-runtime = { default-features = false, features = ["metrics-exporter-log"
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing-log = { default-features = false, features = ["log-tracer", "std"], version = "0.1" }
 tracing-subscriber = { default-features = false, features = ["fmt"], version = "0.2" }
-twilight-gateway = { path = "../..", features = ["metrics"] }
+twilight-gateway = { path = "../../gateway", features = ["metrics"] }
