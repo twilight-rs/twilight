@@ -1,7 +1,7 @@
 [package]
 authors = ["Twilight Contributors"]
 edition = "2018"
-name = "twilight-examples-gateway-shard"
+name = "twilight-example-gateway-shard"
 version = "0.1.0"
 
 [dependencies]
