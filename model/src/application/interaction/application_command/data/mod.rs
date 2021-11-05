@@ -1,7 +1,5 @@
 mod resolved;
 
-use std::convert::TryInto;
-
 pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
 
 use crate::{
@@ -9,10 +7,11 @@ use crate::{
     id::{ChannelId, CommandId, GenericId, RoleId, UserId},
 };
 use serde::{
-    de::{Error as DeError, IgnoredAny, Visitor},
+    de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
+use std::fmt::{Formatter, Result as FmtResult};
 
 /// Data received when an [`ApplicationCommand`] interaction is executed.
 ///
@@ -96,6 +95,9 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             Value,
         }
 
+        // Id before string such that IDs will always be interpreted
+        // as such, this does mean that string inputs that looks like
+        // IDs will have to be caught if it is a string.
         #[derive(Debug, Deserialize)]
         #[serde(untagged)]
         enum ValueEnvelope {
@@ -111,19 +113,19 @@ impl<'de> Deserialize<'de> for CommandDataOption {
         impl<'de> Visitor<'de> for CommandDataOptionVisitor {
             type Value = CommandDataOption;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
                 formatter.write_str("CommandDataOption")
             }
 
             #[allow(clippy::too_many_lines)]
             fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
             where
-                A: serde::de::MapAccess<'de>,
+                A: MapAccess<'de>,
             {
-                let mut name_opt = None;
-                let mut kind_opt = None::<CommandOptionType>;
-                let mut options = Vec::<CommandDataOption>::new();
-                let mut value_opt = None::<ValueEnvelope>;
+                let mut name_opt: Option<String> = None;
+                let mut kind_opt: Option<CommandOptionType> = None;
+                let mut options: Vec<CommandDataOption> = Vec::new();
+                let mut value_opt: Option<ValueEnvelope> = None;
 
                 loop {
                     let key = match map.next_key() {
@@ -190,18 +192,10 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                         match val {
-                            ValueEnvelope::Integer(i) => {
-                                let id = ChannelId::new(i.try_into().map_err(|_| {
-                                    DeError::custom("could not convert signed integer to unsigned")
-                                })?)
-                                .ok_or_else(|| DeError::custom("channel id was zero"))?;
-
-                                CommandOptionValue::Channel(id)
-                            }
                             ValueEnvelope::Id(id) => CommandOptionValue::Channel(ChannelId(id.0)),
                             other => {
                                 return Err(DeError::custom(&format!(
-                                    "expected integer got {:?}",
+                                    "expected id got {:?}",
                                     other
                                 )));
                             }
@@ -223,18 +217,10 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                         match val {
-                            ValueEnvelope::Integer(i) => {
-                                let id = GenericId::new(i.try_into().map_err(|_| {
-                                    DeError::custom("could not convert signed integer to unsigned")
-                                })?)
-                                .ok_or_else(|| DeError::custom("mentionable id was zero"))?;
-
-                                CommandOptionValue::Mentionable(id)
-                            }
                             ValueEnvelope::Id(id) => CommandOptionValue::Mentionable(id),
                             other => {
                                 return Err(DeError::custom(&format!(
-                                    "expected integer got {:?}",
+                                    "expected id got {:?}",
                                     other
                                 )));
                             }
@@ -266,18 +252,10 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                         match val {
-                            ValueEnvelope::Integer(i) => {
-                                let id = RoleId::new(i.try_into().map_err(|_| {
-                                    DeError::custom("could not convert signed integer to unsigned")
-                                })?)
-                                .ok_or_else(|| DeError::custom("role id was zero"))?;
-
-                                CommandOptionValue::Role(id)
-                            }
                             ValueEnvelope::Id(id) => CommandOptionValue::Role(RoleId(id.0)),
                             other => {
                                 return Err(DeError::custom(&format!(
-                                    "expected integer got {:?}",
+                                    "expected id got {:?}",
                                     other
                                 )));
                             }
@@ -286,10 +264,17 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     CommandOptionType::String => {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                        if let ValueEnvelope::String(s) = val {
-                            CommandOptionValue::String(s)
-                        } else {
-                            return Err(DeError::custom(&format!("expected string got {:?}", val)));
+                        match val {
+                            ValueEnvelope::String(s) => CommandOptionValue::String(s),
+                            ValueEnvelope::Id(id) => {
+                                CommandOptionValue::String(id.get().to_string())
+                            }
+                            other => {
+                                return Err(DeError::custom(&format!(
+                                    "expected string got {:?}",
+                                    other
+                                )));
+                            }
                         }
                     }
                     CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
@@ -300,14 +285,6 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                         match val {
-                            ValueEnvelope::Integer(i) => {
-                                let id = UserId::new(i.try_into().map_err(|_| {
-                                    DeError::custom("could not convert signed integer to unsigned")
-                                })?)
-                                .ok_or_else(|| DeError::custom("user id was zero"))?;
-
-                                CommandOptionValue::User(id)
-                            }
                             ValueEnvelope::Id(id) => CommandOptionValue::User(UserId(id.0)),
                             other => {
                                 return Err(DeError::custom(&format!(
@@ -323,7 +300,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             }
         }
 
-        deserializer.deserialize_any(CommandDataOptionVisitor)
+        deserializer.deserialize_map(CommandDataOptionVisitor)
     }
 }
 
