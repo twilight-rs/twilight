@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - next
   pull_request:
     
 
@@ -24,9 +25,6 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
-
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs -D broken_intra_doc_links
@@ -34,38 +32,17 @@ jobs:
           cargo doc --workspace --no-deps --features=permission-calculator
           cargo doc -p twilight-util --no-deps --all-features
 
-      - name: Cache docs build
-        uses: actions/cache@v2
-        id: restore-docs
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-
-  deploy-docs:
-    name: Deploy docs
-    runs-on: ubuntu-latest
-    needs: build-docs
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Download cached docs
-        uses: actions/cache@v2
-        id: restore-docs
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-
       - name: Remove examples
-        run: $(grep -h '^name' **/examples/**/Cargo.toml | cut -d'"' -f2 | sed 's/-/_/g' | xargs -I '{}' rm -rf ./target/doc/{})
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: rm -r target/doc/*_examples_*
 
       - name: Prepare docs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           echo '<meta http-equiv="refresh" content="0;url=twilight/index.html">' > target/doc/index.html
 
       - name: Deploy docs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
