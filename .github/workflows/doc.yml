@@ -34,7 +34,7 @@ jobs:
 
       - name: Remove examples
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: rm -r target/doc/*_examples_*
+        run: rm -r target/doc/twilight_example_*
 
       - name: Prepare docs
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
