@@ -25,12 +25,10 @@ jobs:
           cargo doc --workspace --no-deps --features=permission-calculator
           cargo doc -p twilight-util --no-deps --all-features
 
-      - name: Remove examples
-        run: rm -r target/doc/twilight_example_*
-
       - name: Prepare docs
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+          rm -r target/doc/twilight_example_*
           echo '<meta http-equiv="refresh" content="0;url=twilight/index.html">' > target/doc/index.html
 
       - name: Deploy docs
