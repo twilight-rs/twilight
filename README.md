@@ -2,7 +2,7 @@
 
 # twilight
 
-[![codecov badge][]][codecov link] [[![discord badge][]][discord link] ![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+[![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
 ![project logo][logo]
 
