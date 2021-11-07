@@ -127,6 +127,8 @@ jobs:
         uses: actions-rs/tarpaulin@v0.1
         with:
           args: '--ignore-tests --workspace --all-features ${{ steps.excluded-examples.outputs.out }}'
+        env:
+          RUSTFLAGS: "-C target-cpu=haswell"
 
       - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v2
