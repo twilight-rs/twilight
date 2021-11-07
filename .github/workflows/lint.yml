@@ -32,8 +32,18 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+        # Use custom problem matchers for better GH annotations
+      - name: Remove old matchers
+        run: echo "::remove-matcher owner=rust::"
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/problemMatchers/rust.json"
+
       - name: Run cargo fmt
-        run: cargo fmt --all -- --check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
 
   codespell:
     name: Spelling

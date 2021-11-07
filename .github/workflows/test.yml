@@ -13,9 +13,18 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        
+        # Use custom problem matchers for better GH annotations
+      - name: Remove old matchers
+        run: echo "::remove-matcher owner=rust::"
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/problemMatchers/rust.json"
 
       - name: Run cargo test
-        run: cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
 
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
@@ -26,39 +35,39 @@ jobs:
       fail-fast: false
       matrix:
         package:
-          - http
-          - gateway
-          - lavalink
+          - twilight-http
+          - twilight-gateway
+          - twilight-lavalink
         features:
           - native
           - rustls
           - simd-json
 
         include:
-          - package: http
+          - package: twilight-http
             features: simd-json
             additional: --features rustls
             # Use `haswell` instead of `native` due to some GitHub
             # Actions runners not supporting some `avx512` instructions.
             rustflags: "-C target-cpu=haswell"
-          - package: gateway
+          - package: twilight-gateway
             features: rustls
             additional: --features zlib-stock
-          - package: gateway
+          - package: twilight-gateway
             features: native
             additional: --features zlib-stock
-          - package: gateway
+          - package: twilight-gateway
             features: simd-json
             additional: --features rustls,zlib-stock
             rustflags: "-C target-cpu=native"
-          - package: lavalink
+          - package: twilight-lavalink
             additional: --features http-support
 
-          - package: util
+          - package: twilight-util
             features: full
 
         exclude:
-          - package: lavalink
+          - package: twilight-lavalink
             features: simd-json
 
     steps:
@@ -68,12 +77,20 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
+        # Use custom problem matchers for better GH annotations
+      - name: Remove old matchers
+        run: echo "::remove-matcher owner=rust::"
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/problemMatchers/rust.json"
+
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
-        working-directory: ${{ matrix.package }}
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }} --package ${{ matrix.package }}
         env:
           RUSTFLAGS: ${{ matrix.rustflags }}
-        run: |
-          cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
 
   MSRV:
     runs-on: ubuntu-latest
@@ -97,7 +114,10 @@ jobs:
       - name: Output processor info
         run: cat /proc/cpuinfo
 
-      - run: cargo check --workspace --benches --examples --tests --all-features
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --workspace --benches --examples --tests --all-features
         env:
           # Use `haswell` instead of `native` due to some GitHub Actions
           # runners not supporting some `avx512` instructions.
