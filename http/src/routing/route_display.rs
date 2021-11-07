@@ -1063,6 +1063,12 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("sync")
             }
+            Route::UpdateCurrentMember { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/members/@me")
+            }
             Route::UpdateCurrentUserVoiceState { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;

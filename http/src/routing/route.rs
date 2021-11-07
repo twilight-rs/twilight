@@ -809,6 +809,11 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to update the current member.
+    UpdateCurrentMember {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to update the current user.
     UpdateCurrentUser,
     /// Route information to update the current user's voice state.
@@ -1101,6 +1106,7 @@ impl<'a> Route<'a> {
             | Self::GetWebhookMessage { .. }
             | Self::SearchGuildMembers { .. } => Method::Get,
             Self::UpdateChannel { .. }
+            | Self::UpdateCurrentMember { .. }
             | Self::UpdateCurrentUser
             | Self::UpdateCurrentUserVoiceState { .. }
             | Self::UpdateEmoji { .. }
@@ -1361,7 +1367,9 @@ impl<'a> Route<'a> {
             }
             Self::GetGuildIntegrations { guild_id } => Path::GuildsIdIntegrations(*guild_id),
             Self::GetGuildInvites { guild_id } => Path::GuildsIdInvites(*guild_id),
-            Self::GetGuildMembers { guild_id, .. } => Path::GuildsIdMembers(*guild_id),
+            Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
+                Path::GuildsIdMembers(*guild_id)
+            }
             Self::GetGuildPreview { guild_id } => Path::GuildsIdPreview(*guild_id),
             Self::GetGuildVanityUrl { guild_id } => Path::GuildsIdVanityUrl(*guild_id),
             Self::GetGuildVoiceRegions { guild_id } => Path::GuildsIdRegions(*guild_id),
