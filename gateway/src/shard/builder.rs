@@ -266,7 +266,7 @@ impl ShardBuilder {
 
     /// Set the maximum number of members in a guild to load the member list.
     ///
-    /// Default value is `250`. The minimum value is `50` and the maximum is
+    /// Default value is `50`. The minimum value is `50` and the maximum is
     /// `250`.
     ///
     /// # Examples
