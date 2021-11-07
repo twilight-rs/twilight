@@ -354,6 +354,7 @@ mod test {
             id: InteractionId::new(500).expect("non zero"),
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
+                avatar: None,
                 deaf: false,
                 joined_at: Some(joined_at),
                 mute: false,
