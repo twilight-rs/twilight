@@ -68,7 +68,6 @@ use twilight_model::{
     },
     channel::{
         message::{allowed_mentions::AllowedMentions, sticker::StickerId},
-        thread::AutoArchiveDuration,
         ChannelType,
     },
     guild::Permissions,
@@ -1557,10 +1556,9 @@ impl Client {
         &'a self,
         channel_id: ChannelId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
         kind: ChannelType,
     ) -> Result<CreateThread<'_>, ThreadValidationError> {
-        CreateThread::new(self, channel_id, name, auto_archive_duration, kind)
+        CreateThread::new(self, channel_id, name, kind)
     }
 
     /// Create a new thread from an existing message.
@@ -1589,9 +1587,8 @@ impl Client {
         channel_id: ChannelId,
         message_id: MessageId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
     ) -> Result<CreateThreadFromMessage<'_>, ThreadValidationError> {
-        CreateThreadFromMessage::new(self, channel_id, message_id, name, auto_archive_duration)
+        CreateThreadFromMessage::new(self, channel_id, message_id, name)
     }
 
     /// Add the current user to a thread.

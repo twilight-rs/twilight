@@ -14,7 +14,8 @@ use twilight_model::{
 
 #[derive(Serialize)]
 struct CreateThreadFromMessageFields<'a> {
-    auto_archive_duration: AutoArchiveDuration,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    auto_archive_duration: Option<AutoArchiveDuration>,
     name: &'a str,
 }
 
@@ -51,7 +52,6 @@ impl<'a> CreateThreadFromMessage<'a> {
         channel_id: ChannelId,
         message_id: MessageId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
     ) -> Result<Self, ThreadValidationError> {
         if !validate_inner::channel_name(name) {
             return Err(ThreadValidationError {
@@ -62,12 +62,29 @@ impl<'a> CreateThreadFromMessage<'a> {
         Ok(Self {
             channel_id,
             fields: CreateThreadFromMessageFields {
-                auto_archive_duration,
+                auto_archive_duration: None,
                 name,
             },
             http,
             message_id,
         })
+    }
+
+    /// Set the thread's auto archive duration.
+    ///
+    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
+    /// The guild's features will indicate if a guild is able to use these
+    /// settings.
+    ///
+    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
+    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
+    pub const fn auto_archive_duration(
+        mut self,
+        auto_archive_duration: AutoArchiveDuration,
+    ) -> Self {
+        self.fields.auto_archive_duration = Some(auto_archive_duration);
+
+        self
     }
 
     fn request(&self) -> Result<Request, HttpError> {
