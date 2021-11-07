@@ -106,7 +106,7 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    # Don't wanna collect coverage if tests failed
+    # Don't collect coverage if tests failed
     needs: test
 
     steps:
