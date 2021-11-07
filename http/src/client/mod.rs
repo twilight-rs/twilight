@@ -27,8 +27,8 @@ use crate::{
             thread::{
                 AddThreadMember, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
-                GetPublicArchivedThreads, GetThreadMembers, JoinThread, LeaveThread,
-                RemoveThreadMember, ThreadValidationError, UpdateThread,
+                GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
+                LeaveThread, RemoveThreadMember, ThreadValidationError, UpdateThread,
             },
         },
         guild::{
@@ -1669,6 +1669,17 @@ impl Client {
         user_id: UserId,
     ) -> RemoveThreadMember<'_> {
         RemoveThreadMember::new(self, channel_id, user_id)
+    }
+
+    /// Returns a [`ThreadMember`] in a thread.
+    ///
+    /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
+    pub const fn thread_member(
+        &self,
+        channel_id: ChannelId,
+        user_id: UserId,
+    ) -> GetThreadMember<'_> {
+        GetThreadMember::new(self, channel_id, user_id)
     }
 
     /// Returns the [`ThreadMember`]s of the thread.
