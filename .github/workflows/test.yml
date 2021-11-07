@@ -114,16 +114,15 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set excluded examples
-        run: |
-          exclude_examples=($(grep -h '^name' examples/**/Cargo.toml | cut -d'"' -f2 | xargs -I '{}' echo '--exclude {}'))
-
-      - name: Echo excluded examples (THIS IS A TEST)
-        run: echo "${exclude_examples[@]}"
+        id: excluded-examples
+        run: echo "::set-output name=out::$(grep -h '^name' examples/**/Cargo.toml | cut -d'"' -f2 | xargs -I '{}' echo '--exclude {}')"
+        # run: |
+        #   exclude_examples=($(grep -h '^name' examples/**/Cargo.toml | cut -d'"' -f2 | xargs -I '{}' echo '--exclude {}'))
 
       - name: Collect coverage
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: '--workspace --all-features "${exclude_examples[@]}"'
+          args: '--ignore-tests --workspace --all-features ${{ steps.excluded-examples.out }}'
 
       - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v2
