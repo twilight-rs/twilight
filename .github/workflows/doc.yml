@@ -39,7 +39,7 @@ jobs:
           crate: cargo-sync-readme
 
       - name: Run in cache-inmemory
-        run: cd cache-inmemory && cargo sync-readme --check
+        run: cd cache/in-memory && cargo sync-readme --check
       - name: Run in command-parser
         run: cd command-parser && cargo sync-readme --check
       - name: Run in embed-builder
