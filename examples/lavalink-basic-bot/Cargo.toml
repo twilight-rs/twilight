@@ -1,5 +1,5 @@
 [package]
-name = "twilight-lavalink-basic-lavalink-bot"
+name = "twilight-example-lavalink-basic-bot"
 version = "0.1.0"
 authors = ["Twilight Contributors"]
 edition = "2018"
@@ -11,8 +11,8 @@ tracing = "0.1"
 tracing-subscriber = "0.2"
 serde_json = { version = "1" }
 tokio = { features = ["macros", "rt-multi-thread"], version = "1.0" }
-twilight-gateway = { path = "../../../gateway" }
-twilight-http = { path = "../../../http" }
-twilight-lavalink = { path = "../.." }
-twilight-model = { path = "../../../model" }
-twilight-standby = { path = "../../../standby" }
+twilight-gateway = { path = "../../gateway" }
+twilight-http = { path = "../../http" }
+twilight-lavalink = { path = "../../lavalink" }
+twilight-model = { path = "../../model" }
+twilight-standby = { path = "../../standby" }
