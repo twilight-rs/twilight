@@ -122,7 +122,7 @@ jobs:
       - name: Collect coverage
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: '--ignore-tests --workspace --all-features ${{ steps.excluded-examples.out }}'
+          args: '--ignore-tests --workspace ${{ steps.excluded-examples.out }}'
 
       - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v2
