@@ -1090,7 +1090,7 @@ impl Client {
     }
 
     /// Get information about an invite by its code.
-    //
+    ///
     /// If [`with_counts`] is called, the returned invite will contain
     /// approximate member counts.  If [`with_expiration`] is called, it will
     /// contain the expiration date.
