@@ -1,6 +1,6 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -75,6 +75,7 @@ pub struct UpdateCurrentMember<'a> {
     fields: UpdateCurrentMemberFields<'a>,
     guild_id: GuildId,
     http: &'a Client,
+    reason: Option<&'a str>,
 }
 
 impl<'a> UpdateCurrentMember<'a> {
@@ -83,6 +84,7 @@ impl<'a> UpdateCurrentMember<'a> {
             fields: UpdateCurrentMemberFields { nick: None },
             guild_id,
             http,
+            reason: None,
         }
     }
 
@@ -123,6 +125,23 @@ impl<'a> UpdateCurrentMember<'a> {
             Err(source) => return ResponseFuture::error(source),
         };
 
+        if let Some(reason) = &self.reason {
+            let header = match request::audit_header(reason) {
+                Ok(header) => header,
+                Err(source) => return ResponseFuture::error(source),
+            };
+
+            request = request.headers(header);
+        }
+
         self.http.request(request.build())
+    }
+}
+
+impl<'a> AuditLogReason<'a> for UpdateCurrentMember<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
+
+        Ok(self)
     }
 }
