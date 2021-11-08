@@ -105,6 +105,16 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             String(String),
         }
 
+        fn make_unexpected(unexpected: &ValueEnvelope) -> Unexpected<'_> {
+            match unexpected {
+                ValueEnvelope::Boolean(b) => Unexpected::Bool(*b),
+                ValueEnvelope::Integer(i) => Unexpected::Signed(*i),
+                ValueEnvelope::Number(f) => Unexpected::Float(*f),
+                ValueEnvelope::Id(_id) => Unexpected::Other("ID"),
+                ValueEnvelope::String(s) => Unexpected::Str(&s),
+            }
+        }
+
         struct CommandDataOptionVisitor;
 
         impl<'de> Visitor<'de> for CommandDataOptionVisitor {
@@ -176,10 +186,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         if let ValueEnvelope::Boolean(b) = val {
                             CommandOptionValue::Boolean(b)
                         } else {
-                            return Err(DeError::invalid_type(
-                                Unexpected::Other(&format!("{:?}", val)),
-                                &"boolean",
-                            ));
+                            return Err(DeError::invalid_type(make_unexpected(&val), &"boolean"));
                         }
                     }
                     CommandOptionType::Channel => {
@@ -189,7 +196,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             CommandOptionValue::Channel(ChannelId(id.0))
                         } else {
                             return Err(DeError::invalid_type(
-                                Unexpected::Other(&format!("{:?}", val)),
+                                make_unexpected(&val),
                                 &"channel id",
                             ));
                         }
@@ -200,10 +207,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         if let ValueEnvelope::Integer(i) = val {
                             CommandOptionValue::Integer(i)
                         } else {
-                            return Err(DeError::invalid_type(
-                                Unexpected::Other(&format!("{:?}", val)),
-                                &"integer",
-                            ));
+                            return Err(DeError::invalid_type(make_unexpected(&val), &"integer"));
                         }
                     }
                     CommandOptionType::Mentionable => {
@@ -213,7 +217,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             CommandOptionValue::Mentionable(id)
                         } else {
                             return Err(DeError::invalid_type(
-                                Unexpected::Other(&format!("{:?}", val)),
+                                make_unexpected(&val),
                                 &"mentionable id",
                             ));
                         }
@@ -234,7 +238,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             ValueEnvelope::Number(f) => CommandOptionValue::Number(Number(f)),
                             other => {
                                 return Err(DeError::invalid_type(
-                                    Unexpected::Other(&format!("{:?}", other)),
+                                    make_unexpected(&other),
                                     &"number",
                                 ));
                             }
@@ -246,10 +250,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         if let ValueEnvelope::Id(id) = val {
                             CommandOptionValue::Role(RoleId(id.0))
                         } else {
-                            return Err(DeError::invalid_type(
-                                Unexpected::Other(&format!("{:?}", val)),
-                                &"role id",
-                            ));
+                            return Err(DeError::invalid_type(make_unexpected(&val), &"role id"));
                         }
                     }
 
@@ -263,7 +264,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             }
                             other => {
                                 return Err(DeError::invalid_type(
-                                    Unexpected::Other(&format!("{:?}", other)),
+                                    make_unexpected(&other),
                                     &"string",
                                 ));
                             }
@@ -279,10 +280,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         if let ValueEnvelope::Id(id) = val {
                             CommandOptionValue::User(UserId(id.0))
                         } else {
-                            return Err(DeError::invalid_type(
-                                Unexpected::Other(&format!("{:?}", val)),
-                                &"user id",
-                            ));
+                            return Err(DeError::invalid_type(make_unexpected(&val), &"user id"));
                         }
                     }
                 };
