@@ -80,14 +80,14 @@ pub enum WebhookParseErrorType {
 /// Parse a webhook URL with a token:
 ///
 /// ```
-/// use twilight_model::id::WebhookId;
+/// use twilight_model::id::Id;
 /// use twilight_util::link::webhook;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let url = "https://canary.discord.com/api/webhooks/794590023369752587/tjxHaPHLKp9aEdSwJuLeHhHHGEqIxt1aay4I67FOP9uzsYEWmj0eJmDn-2ZvCYLyOb_K";
 ///
 /// let (id, token) = webhook::parse(url)?;
-/// assert_eq!(WebhookId::new(794590023369752587).expect("non zero"), id);
+/// assert_eq!(Id::new(794590023369752587).expect("non zero"), id);
 /// assert_eq!(
 ///     Some("tjxHaPHLKp9aEdSwJuLeHhHHGEqIxt1aay4I67FOP9uzsYEWmj0eJmDn-2ZvCYLyOb_K"),
 ///     token,
@@ -98,14 +98,14 @@ pub enum WebhookParseErrorType {
 /// Parse a webhook URL without a token:
 ///
 /// ```
-/// use twilight_model::id::WebhookId;
+/// use twilight_model::id::Id;
 /// use twilight_util::link::webhook;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let url = "https://canary.discord.com/api/webhooks/794590023369752587";
 ///
 /// let (id, token) = webhook::parse(url)?;
-/// assert_eq!(WebhookId::new(794590023369752587).expect("non zero"), id);
+/// assert_eq!(Id::new(794590023369752587).expect("non zero"), id);
 /// assert!(token.is_none());
 /// # Ok(()) }
 /// ```

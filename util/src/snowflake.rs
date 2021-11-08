@@ -26,9 +26,9 @@ pub trait Snowflake {
     /// ```
     /// use chrono::{Utc, TimeZone};
     /// use twilight_util::snowflake::Snowflake;
-    /// use twilight_model::id::UserId;
+    /// use twilight_model::id::{marker::UserMarker, Id};
     ///
-    /// let id = UserId::new(105484726235607040).expect("non zero");
+    /// let id = Id::<UserMarker>::new(105484726235607040).expect("non zero");
     ///
     /// assert_eq!(
     ///     "2015-10-19T01:58:38.546+00:00",
@@ -41,10 +41,10 @@ pub trait Snowflake {
     /// ```
     /// use time::{Duration, format_description::well_known::Rfc3339, OffsetDateTime};
     /// use twilight_util::snowflake::Snowflake;
-    /// use twilight_model::id::UserId;
+    /// use twilight_model::id::{marker::UserMarker, Id};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let id = UserId::new(105484726235607040).expect("non zero");
+    /// let id = Id::<UserMarker>::new(105484726235607040).expect("non zero");
     /// // Convert milliseconds to seconds or nanoseconds.
     /// let dur = Duration::milliseconds(id.timestamp());
     ///
