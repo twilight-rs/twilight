@@ -311,6 +311,7 @@ mod tests {
             guild_id: GuildId::new(1).expect("non zero"),
             members: Vec::from([
                 Member {
+                    avatar: None,
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     joined_at: Some(joined_at),
@@ -341,6 +342,7 @@ mod tests {
                     },
                 },
                 Member {
+                    avatar: None,
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     joined_at: Some(joined_at),
@@ -368,6 +370,7 @@ mod tests {
                     },
                 },
                 Member {
+                    avatar: None,
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     joined_at: Some(joined_at),
@@ -395,6 +398,7 @@ mod tests {
                     },
                 },
                 Member {
+                    avatar: None,
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     joined_at: Some(joined_at),

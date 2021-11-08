@@ -135,6 +135,7 @@ mod tests {
                             interaction: None,
                             kind: MessageType::Regular,
                             member: Some(PartialMember {
+                                avatar: None,
                                 deaf: false,
                                 joined_at: Some(timestamp),
                                 mute: false,
@@ -198,6 +199,7 @@ mod tests {
                 id: InteractionId::new(4).expect("non zero"),
                 kind: InteractionType::ApplicationCommand,
                 member: Some(PartialMember {
+                    avatar: None,
                     deaf: false,
                     joined_at: Some(timestamp),
                     mute: false,
