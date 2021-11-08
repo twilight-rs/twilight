@@ -23,9 +23,10 @@ pub struct CommandData {
     /// Name of the command.
     pub name: String,
     /// List of parsed options specified by the user.
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub options: Vec<CommandDataOption>,
     /// Data sent if any of the options are discord types.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<CommandInteractionDataResolved>,
 }
 
@@ -190,6 +191,31 @@ mod tests {
     use serde_test::Token;
 
     #[test]
+    fn no_options() {
+        let value = CommandData {
+            id: CommandId::new(1).expect("non zero"),
+            name: "permissions".to_owned(),
+            options: Vec::new(),
+            resolved: None,
+        };
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandData",
+                    len: 2,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "CommandId" },
+                Token::Str("1"),
+                Token::Str("name"),
+                Token::Str("permissions"),
+                Token::StructEnd,
+            ],
+        )
+    }
+
+    #[test]
     fn subcommand_without_option() {
         let value = CommandData {
             id: CommandId::new(1).expect("non zero"),
@@ -206,7 +232,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandData",
-                    len: 4,
+                    len: 3,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "CommandId" },
@@ -225,8 +251,6 @@ mod tests {
                 Token::U8(CommandOptionType::SubCommand as u8),
                 Token::StructEnd,
                 Token::SeqEnd,
-                Token::Str("resolved"),
-                Token::None,
                 Token::StructEnd,
             ],
         );
