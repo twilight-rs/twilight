@@ -82,10 +82,7 @@ impl Serialize for CommandDataOption {
 
 impl<'de> Deserialize<'de> for CommandDataOption {
     #[allow(clippy::too_many_lines)]
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Debug, Deserialize)]
         #[serde(field_identifier, rename_all = "snake_case")]
         enum Fields {
@@ -118,10 +115,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             }
 
             #[allow(clippy::too_many_lines)]
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: MapAccess<'de>,
-            {
+            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
                 let mut name_opt = None;
                 let mut kind_opt = None;
                 let mut options = Vec::new();
