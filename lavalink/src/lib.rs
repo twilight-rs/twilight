@@ -126,7 +126,7 @@ pub mod model;
 pub mod node;
 pub mod player;
 
-#[cfg(feature = "http")]
+#[cfg(feature = "http-support")]
 pub mod http;
 
 pub use self::{client::Lavalink, node::Node, player::PlayerManager};

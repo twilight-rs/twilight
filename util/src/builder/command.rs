@@ -29,7 +29,8 @@
 use twilight_model::{
     application::command::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, Command,
-        CommandOption, CommandOptionChoice, CommandType, Number, OptionsCommandOptionData,
+        CommandOption, CommandOptionChoice, CommandOptionValue, CommandType, Number,
+        NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
     id::{ApplicationId, CommandId, CommandVersionId, GuildId},
@@ -205,15 +206,17 @@ impl From<ChannelBuilder> for CommandOption {
 /// Create a integer option with a builder.
 #[derive(Clone, Debug)]
 #[must_use = "should be used in a command builder"]
-pub struct IntegerBuilder(ChoiceCommandOptionData);
+pub struct IntegerBuilder(NumberCommandOptionData);
 
 impl IntegerBuilder {
     /// Create a new default [`IntegerBuilder`].
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
-        Self(ChoiceCommandOptionData {
+        Self(NumberCommandOptionData {
             choices: Vec::new(),
             description,
+            max_value: None,
+            min_value: None,
             name,
             required: false,
         })
@@ -229,13 +232,31 @@ impl IntegerBuilder {
     /// Set the list of choices for an option.
     ///
     /// Accepts tuples of `(String, i64)` corresponding to the name and value.
-
+    ///
     /// Defaults to no choices.
     pub fn choices(mut self, choices: impl IntoIterator<Item = (String, i64)>) -> Self {
         self.0.choices = choices
             .into_iter()
             .map(|(name, value)| CommandOptionChoice::Int { name, value })
             .collect();
+
+        self
+    }
+
+    /// Set the maximum value permitted.
+    ///
+    /// Defaults to no limit.
+    pub const fn max_value(mut self, value: i64) -> Self {
+        self.0.max_value = Some(CommandOptionValue::Integer(value));
+
+        self
+    }
+
+    /// Set the minimum value permitted.
+    ///
+    /// Defaults to no limit.
+    pub const fn min_value(mut self, value: i64) -> Self {
+        self.0.min_value = Some(CommandOptionValue::Integer(value));
 
         self
     }
@@ -298,15 +319,17 @@ impl From<MentionableBuilder> for CommandOption {
 /// Create a [`Number`] option with a builder.
 #[derive(Clone, Debug)]
 #[must_use = "should be used in a command builder"]
-pub struct NumberBuilder(ChoiceCommandOptionData);
+pub struct NumberBuilder(NumberCommandOptionData);
 
 impl NumberBuilder {
     /// Create a new default [`NumberBuilder`].
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
-        Self(ChoiceCommandOptionData {
+        Self(NumberCommandOptionData {
             choices: Vec::new(),
             description,
+            max_value: None,
+            min_value: None,
             name,
             required: false,
         })
@@ -330,6 +353,24 @@ impl NumberBuilder {
             .into_iter()
             .map(|(name, value)| CommandOptionChoice::Number { name, value })
             .collect();
+
+        self
+    }
+
+    /// Set the maximum value permitted.
+    ///
+    /// Defaults to no limit.
+    pub const fn max_value(mut self, value: f64) -> Self {
+        self.0.max_value = Some(CommandOptionValue::Number(Number(value)));
+
+        self
+    }
+
+    /// Set the minimum value permitted.
+    ///
+    /// Defaults to no limit.
+    pub const fn min_value(mut self, value: f64) -> Self {
+        self.0.min_value = Some(CommandOptionValue::Number(Number(value)));
 
         self
     }
@@ -751,9 +792,11 @@ mod tests {
                                     name: String::from("channel"),
                                     required: false,
                                 }),
-                                CommandOption::Number(ChoiceCommandOptionData {
+                                CommandOption::Number(NumberCommandOptionData {
                                     choices: Vec::new(),
                                     description: String::from("The position of the new role"),
+                                    max_value: None,
+                                    min_value: None,
                                     name: String::from("position"),
                                     required: false,
                                 }),
