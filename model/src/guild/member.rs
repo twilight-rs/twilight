@@ -15,6 +15,9 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Member {
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
     pub deaf: bool,
     pub guild_id: GuildId,
     pub joined_at: Option<Timestamp>,
@@ -37,6 +40,9 @@ pub struct Member {
 // Used in the guild deserializer.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberIntermediary {
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
     pub deaf: bool,
     pub joined_at: Option<Timestamp>,
     pub mute: bool,
@@ -87,6 +93,7 @@ impl<'de> Visitor<'de> for MemberVisitor {
         let member = MemberIntermediary::deserialize(deser)?;
 
         Ok(Member {
+            avatar: member.avatar,
             deaf: member.deaf,
             guild_id: self.0,
             joined_at: member.joined_at,
@@ -193,6 +200,7 @@ mod tests {
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
 
         let value = Member {
+            avatar: Some("guild avatar".to_owned()),
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             joined_at: Some(joined_at),
@@ -225,8 +233,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 10,
                 },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str("guild avatar"),
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),

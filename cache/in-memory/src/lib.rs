@@ -915,6 +915,7 @@ mod tests {
         cache.cache_member(
             guild_id,
             Member {
+                avatar: None,
                 deaf: false,
                 guild_id,
                 joined_at: None,
