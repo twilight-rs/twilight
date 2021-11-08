@@ -1,6 +1,6 @@
 //! # twilight-embed-builder
 //!
-//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! `twilight-embed-builder` is a set of builder for the [`twilight-rs`]
 //! ecosystem to create a message embed, useful when creating or updating
@@ -37,6 +37,8 @@
 //! ```
 //!
 //! [`twilight-rs`]: https://github.com/twilight-rs/twilight
+//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
+//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
