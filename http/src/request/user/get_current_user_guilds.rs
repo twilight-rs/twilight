@@ -8,7 +8,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{id::GuildId, user::CurrentUserGuild};
+use twilight_model::{
+    id::{marker::GuildMarker, Id},
+    user::CurrentUserGuild,
+};
 
 /// The error created when the current guilds can not be retrieved as configured.
 #[derive(Debug)]
@@ -61,8 +64,8 @@ pub enum GetCurrentUserGuildsErrorType {
 }
 
 struct GetCurrentUserGuildsFields {
-    after: Option<GuildId>,
-    before: Option<GuildId>,
+    after: Option<Id<GuildMarker>>,
+    before: Option<Id<GuildMarker>>,
     limit: Option<u64>,
 }
 
@@ -75,14 +78,14 @@ struct GetCurrentUserGuildsFields {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let after = GuildId::new(300).expect("non zero");
-/// let before = GuildId::new(400).expect("non zero");
+/// let after = Id::new(300).expect("non zero");
+/// let before = Id::new(400).expect("non zero");
 /// let guilds = client.current_user_guilds()
 ///     .after(after)
 ///     .before(before)
@@ -110,14 +113,14 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 
     /// Get guilds after this guild id.
-    pub const fn after(mut self, guild_id: GuildId) -> Self {
+    pub const fn after(mut self, guild_id: Id<GuildMarker>) -> Self {
         self.fields.after = Some(guild_id);
 
         self
     }
 
     /// Get guilds before this guild id.
-    pub const fn before(mut self, guild_id: GuildId) -> Self {
+    pub const fn before(mut self, guild_id: Id<GuildMarker>) -> Self {
         self.fields.before = Some(guild_id);
 
         self
@@ -150,8 +153,8 @@ impl<'a> GetCurrentUserGuilds<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<CurrentUserGuild>> {
         let request = Request::from_route(&Route::GetGuilds {
-            after: self.fields.after.map(GuildId::get),
-            before: self.fields.before.map(GuildId::get),
+            after: self.fields.after.map(Id::get),
+            before: self.fields.before.map(Id::get),
             limit: self.fields.limit,
         });
 

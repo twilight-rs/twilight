@@ -7,7 +7,10 @@ use crate::{
 };
 use twilight_model::{
     application::command::Command,
-    id::{ApplicationId, GuildId},
+    id::{
+        marker::{ApplicationMarker, GuildMarker},
+        Id,
+    },
 };
 
 /// Set a guild's commands.
@@ -23,16 +26,16 @@ use twilight_model::{
 #[must_use = "requests must be configured and executed"]
 pub struct SetGuildCommands<'a> {
     commands: &'a [Command],
-    application_id: ApplicationId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> SetGuildCommands<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
         commands: &'a [Command],
     ) -> Self {
         Self {

@@ -8,7 +8,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::{GuildId, UserId};
+use twilight_model::id::{
+    marker::{GuildMarker, UserMarker},
+    Id,
+};
 
 /// The error created when the ban can not be created as configured.
 #[derive(Debug)]
@@ -72,14 +75,14 @@ struct CreateBanFields<'a> {
 ///
 /// ```rust,no_run
 /// use twilight_http::{request::AuditLogReason, Client};
-/// use twilight_model::id::{GuildId, UserId};
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(100).expect("non zero");
-/// let user_id = UserId::new(200).expect("non zero");
+/// let guild_id = Id::new(100).expect("non zero");
+/// let user_id = Id::new(200).expect("non zero");
 /// client.create_ban(guild_id, user_id)
 ///     .delete_message_days(1)?
 ///     .reason("memes")?
@@ -90,13 +93,17 @@ struct CreateBanFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateBan<'a> {
     fields: CreateBanFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    user_id: UserId,
+    user_id: Id<UserMarker>,
 }
 
 impl<'a> CreateBan<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, user_id: UserId) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+    ) -> Self {
         Self {
             fields: CreateBanFields {
                 delete_message_days: None,

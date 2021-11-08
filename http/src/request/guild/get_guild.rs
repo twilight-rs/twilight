@@ -1,5 +1,8 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
-use twilight_model::{guild::Guild, id::GuildId};
+use twilight_model::{
+    guild::Guild,
+    id::{marker::GuildMarker, Id},
+};
 
 struct GetGuildFields {
     with_counts: bool,
@@ -9,12 +12,12 @@ struct GetGuildFields {
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuild<'a> {
     fields: GetGuildFields,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuild<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: GetGuildFields { with_counts: false },
             guild_id,

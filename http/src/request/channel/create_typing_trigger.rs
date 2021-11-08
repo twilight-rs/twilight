@@ -4,17 +4,17 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::ChannelId;
+use twilight_model::id::{marker::ChannelMarker, Id};
 
 /// Fire a Typing Start event in the channel.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTypingTrigger<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
 }
 
 impl<'a> CreateTypingTrigger<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self { channel_id, http }
     }
 

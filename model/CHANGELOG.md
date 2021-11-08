@@ -101,7 +101,7 @@ Adds the following models: `GuildStickersUpdate`,
 `StickerBannerAssetId`, `StickerPackSkuId`, `StickerPack`, and
 `StickerType` ([#1157] - [@7596ff]).
 
-Adds `AuditLogChange::{Asset, Available, FormatType, GuildId, Tags}`
+Adds `AuditLogChange::{Asset, Available, FormatType, Id<GuildMarker>, Tags}`
 ([#1157] - [@7596ff]).
 
 Adds `Guild::stickers` ([#1157] - [@7596ff]).
@@ -445,7 +445,7 @@ instead. `invite::Invite::target_user_type` has been renamed to `target_type`.
 
 Add the `DISCORD_CERTIFIED_MODERATOR` user flag ([#820] - [@7596ff]).
 
-Add `channel::StageInstance` and `id::StageId` in relation to stage channel
+Add `channel::StageInstance` and `id::Id<StageMarker>` in relation to stage channel
 support ([#812] - [@7596ff]).
 
 Add the `invite::Invite::expires_at` field and
@@ -471,7 +471,7 @@ The following functions are now `const`:
 - `gateway::event::gateway::payload::identify::Identify::new`
 - `gateway::event::gateway::payload::request_guild_members::RequestGuildMembersBuilder::new`
 - `gateway::event::gateway::payload::request_guild_members::RequestGuildMembers::builder`
-- `gateway::event::gateway::payload::request_guild_members::UserIdsError::kind`
+- `gateway::event::gateway::payload::request_guild_members::Id<UserMarker>sError::kind`
 - `gateway::event::gateway::payload::update_status::UpdateStatusInfo::new`
 - `gateway::event::gateway::payload::UpdateVoiceState::new`
 - `gateway::event::gateway::presence::PresenceDeserializer::new`
@@ -711,7 +711,7 @@ The following fields are now Vecs instead of HashMaps:
 - `ExpireBehavior`
 - `ExpireGracePeriod`
 - `RateLimitPerUser`
-- `SystemChannelId`
+- `SystemId<ChannelMarker>`
 
 ([#663] - [@jazevedo620]).
 
@@ -867,8 +867,8 @@ Similarly, the following permissions fields now (de)serialize to/from
 Make `user::CurrentUser::verified` optional to support OAuth 2.0 Bearer requests
 without the `email` scope ([#564] - [@DusterTheFirst]).
 
-Correct `oauth::CurrentApplicationInfo::id`'s type from a `UserId` to an
-`ApplicationId` ([#569] - [@DusterTheFirst]).
+Correct `oauth::CurrentApplicationInfo::id`'s type from a `Id<UserMarker>` to an
+`Id<ApplicationMarker>` ([#569] - [@DusterTheFirst]).
 
 ## [0.2.0-beta.2] - 2020-10-22
 

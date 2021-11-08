@@ -6,22 +6,25 @@ use crate::{
 };
 use twilight_model::{
     application::command::Command,
-    id::{ApplicationId, GuildId},
+    id::{
+        marker::{ApplicationMarker, GuildMarker},
+        Id,
+    },
 };
 
 /// Fetch all commands for a guild, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildCommands<'a> {
-    application_id: ApplicationId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildCommands<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
     ) -> Self {
         Self {
             application_id,

@@ -10,7 +10,7 @@ pub struct Ban {
 #[cfg(test)]
 mod tests {
     use super::{Ban, User};
-    use crate::id::UserId;
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -25,7 +25,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(100_000_000_000_000_000).expect("non zero"),
+                id: Id::new(100_000_000_000_000_000).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -61,7 +61,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100000000000000000"),
                 Token::Str("public_flags"),
                 Token::None,

@@ -8,7 +8,10 @@ use std::{
     time::Duration,
 };
 use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
-use twilight_model::{channel::message::allowed_mentions::AllowedMentions, id::ApplicationId};
+use twilight_model::{
+    channel::message::allowed_mentions::AllowedMentions,
+    id::{marker::ApplicationMarker, Id},
+};
 
 #[derive(Debug)]
 /// A builder for [`Client`].
@@ -60,8 +63,8 @@ impl ClientBuilder {
         }
     }
 
-    /// Set the [`ApplicationId`] used by interaction methods.
-    pub fn application_id(self, application_id: ApplicationId) -> Self {
+    /// Set the [`Id<ApplicationMarker>`] used by interaction methods.
+    pub fn application_id(self, application_id: Id<ApplicationMarker>) -> Self {
         self.application_id
             .store(application_id.get(), Ordering::Relaxed);
 

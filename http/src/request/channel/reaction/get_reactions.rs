@@ -10,7 +10,10 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{ChannelId, MessageId, UserId},
+    id::{
+        marker::{ChannelMarker, MessageMarker, UserMarker},
+        Id,
+    },
     user::User,
 };
 
@@ -63,7 +66,7 @@ pub enum GetReactionsErrorType {
 }
 
 struct GetReactionsFields {
-    after: Option<UserId>,
+    after: Option<Id<UserMarker>>,
     limit: Option<u64>,
 }
 
@@ -73,18 +76,18 @@ struct GetReactionsFields {
 /// requests must be chained until all reactions are retrieved.
 #[must_use = "requests must be configured and executed"]
 pub struct GetReactions<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     emoji: &'a RequestReactionType<'a>,
     fields: GetReactionsFields,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
 }
 
 impl<'a> GetReactions<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
         emoji: &'a RequestReactionType<'a>,
     ) -> Self {
         Self {
@@ -100,7 +103,7 @@ impl<'a> GetReactions<'a> {
     }
 
     /// Get users after this id.
-    pub const fn after(mut self, after: UserId) -> Self {
+    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
         self.fields.after = Some(after);
 
         self
@@ -132,7 +135,7 @@ impl<'a> GetReactions<'a> {
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<User>> {
         let request = Request::from_route(&Route::GetReactionUsers {
-            after: self.fields.after.map(UserId::get),
+            after: self.fields.after.map(Id::get),
             channel_id: self.channel_id.get(),
             emoji: self.emoji,
             limit: self.fields.limit,

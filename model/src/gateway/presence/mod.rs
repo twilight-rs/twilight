@@ -21,7 +21,10 @@ pub use self::{
 };
 
 use crate::{
-    id::{GuildId, UserId},
+    id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    },
     user::User,
 };
 use serde::{
@@ -37,7 +40,7 @@ pub struct Presence {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
-    pub guild_id: GuildId,
+    pub guild_id: Id<GuildMarker>,
     pub status: Status,
     pub user: UserOrId,
 }
@@ -46,12 +49,12 @@ pub struct Presence {
 #[serde(untagged)]
 pub enum UserOrId {
     User(User),
-    UserId { id: UserId },
+    UserId { id: Id<UserMarker> },
 }
 
 impl UserOrId {
     /// ID of the inner object.
-    pub const fn id(&self) -> UserId {
+    pub const fn id(&self) -> Id<UserMarker> {
         match self {
             UserOrId::User(u) => u.id,
             UserOrId::UserId { id } => *id,
@@ -64,13 +67,13 @@ pub struct PresenceIntermediary {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     pub nick: Option<String>,
     pub status: Status,
     pub user: UserOrId,
 }
 
-struct PresenceVisitor(GuildId);
+struct PresenceVisitor(Id<GuildMarker>);
 
 impl<'de> Visitor<'de> for PresenceVisitor {
     type Value = Presence;
@@ -94,12 +97,12 @@ impl<'de> Visitor<'de> for PresenceVisitor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PresenceDeserializer(GuildId);
+pub struct PresenceDeserializer(Id<GuildMarker>);
 
 impl PresenceDeserializer {
     /// Create a new deserializer for a presence when you know the guild ID but
     /// the payload probably doesn't contain it.
-    pub const fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
         Self(guild_id)
     }
 }
@@ -113,17 +116,17 @@ impl<'de> DeserializeSeed<'de> for PresenceDeserializer {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PresenceListDeserializer(GuildId);
+pub struct PresenceListDeserializer(Id<GuildMarker>);
 
 impl PresenceListDeserializer {
     /// Create a new deserializer for a map of presences when you know the
     /// Guild ID but the payload probably doesn't contain it.
-    pub const fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
         Self(guild_id)
     }
 }
 
-struct PresenceListDeserializerVisitor(GuildId);
+struct PresenceListDeserializerVisitor(Id<GuildMarker>);
 
 impl<'de> Visitor<'de> for PresenceListDeserializerVisitor {
     type Value = Vec<Presence>;
@@ -157,7 +160,7 @@ mod tests {
         Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, PresenceListDeserializer,
         Status, UserOrId,
     };
-    use crate::id::{GuildId, UserId};
+    use crate::id::Id;
     use serde::de::DeserializeSeed;
     use serde_json::Deserializer;
     use serde_test::Token;
@@ -194,10 +197,10 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: GuildId::new(2).expect("non zero"),
+            guild_id: Id::new(2).expect("non zero"),
             status: Status::Online,
             user: UserOrId::UserId {
-                id: UserId::new(1).expect("non zero"),
+                id: Id::new(1).expect("non zero"),
             },
         };
 
@@ -217,7 +220,7 @@ mod tests {
                 Token::Str("1"),
                 Token::StructEnd,
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("status"),
                 Token::Enum { name: "Status" },
@@ -298,15 +301,15 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: GuildId::new(2).expect("non zero"),
+            guild_id: Id::new(2).expect("non zero"),
             status: Status::Online,
             user: UserOrId::UserId {
-                id: UserId::new(1).expect("non zero"),
+                id: Id::new(1).expect("non zero"),
             },
         }]);
 
         let mut json_deserializer = Deserializer::from_str(input);
-        let deserializer = PresenceListDeserializer::new(GuildId::new(2).expect("non zero"));
+        let deserializer = PresenceListDeserializer::new(Id::new(2).expect("non zero"));
         let actual = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert_eq!(actual, expected);

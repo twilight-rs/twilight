@@ -7,7 +7,10 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     guild::Emoji,
-    id::{GuildId, RoleId},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
@@ -15,7 +18,7 @@ struct CreateEmojiFields<'a> {
     image: &'a str,
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
-    roles: Option<&'a [RoleId]>,
+    roles: Option<&'a [Id<RoleMarker>]>,
 }
 
 /// Create an emoji in a guild.
@@ -28,7 +31,7 @@ struct CreateEmojiFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateEmoji<'a> {
     fields: CreateEmojiFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
@@ -36,7 +39,7 @@ pub struct CreateEmoji<'a> {
 impl<'a> CreateEmoji<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
         image: &'a str,
     ) -> Self {
@@ -57,7 +60,7 @@ impl<'a> CreateEmoji<'a> {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/emoji
-    pub const fn roles(mut self, roles: &'a [RoleId]) -> Self {
+    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields.roles = Some(roles);
 
         self

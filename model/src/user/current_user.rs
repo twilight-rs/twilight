@@ -1,5 +1,5 @@
 use super::{DiscriminatorDisplay, PremiumType, UserFlags};
-use crate::id::UserId;
+use crate::id::{marker::UserMarker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -41,7 +41,7 @@ pub struct CurrentUser {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
     /// User's id.
-    pub id: UserId,
+    pub id: Id<UserMarker>,
     /// User's chosen language option.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
@@ -77,7 +77,8 @@ impl CurrentUser {
 
 #[cfg(test)]
 mod tests {
-    use super::{CurrentUser, PremiumType, UserFlags, UserId};
+    use super::{CurrentUser, PremiumType, UserFlags};
+    use crate::id::Id;
     use serde_test::Token;
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
@@ -99,7 +100,7 @@ mod tests {
             Token::Str("discriminator"),
             discriminator_token,
             Token::Str("id"),
-            Token::NewtypeStruct { name: "UserId" },
+            Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
@@ -146,7 +147,7 @@ mod tests {
             Token::Some,
             Token::U64(1),
             Token::Str("id"),
-            Token::NewtypeStruct { name: "UserId" },
+            Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
@@ -177,7 +178,7 @@ mod tests {
             bot: true,
             discriminator: 9999,
             email: None,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             mfa_enabled: true,
             name: "test name".to_owned(),
             verified: Some(true),
@@ -206,7 +207,7 @@ mod tests {
             bot: true,
             discriminator: 9999,
             email: Some("test@example.com".to_owned()),
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             mfa_enabled: true,
             name: "test name".to_owned(),
             verified: Some(true),

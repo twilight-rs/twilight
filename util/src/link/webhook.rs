@@ -6,8 +6,9 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    num::NonZeroU64,
 };
-use twilight_model::id::WebhookId;
+use twilight_model::id::{marker::WebhookMarker, Id};
 
 /// Error when [parsing] a webhook URL.
 ///
@@ -117,7 +118,7 @@ pub enum WebhookParseErrorType {
 /// Returns [`WebhookParseErrorType::SegmentMissing`] error type if one of the
 /// required segments is missing. This can be the "api" or "webhooks" standard
 /// segment of the URL or the segment containing the webhook ID.
-pub fn parse(url: &str) -> Result<(WebhookId, Option<&str>), WebhookParseError> {
+pub fn parse(url: &str) -> Result<(Id<WebhookMarker>, Option<&str>), WebhookParseError> {
     let mut segments = {
         let mut start = url.split("discord.com/api/webhooks/");
         let path = start.nth(1).ok_or(WebhookParseError {
@@ -141,10 +142,12 @@ pub fn parse(url: &str) -> Result<(WebhookId, Option<&str>), WebhookParseError> 
         });
     }
 
-    let id = id_segment.parse().map_err(|source| WebhookParseError {
-        kind: WebhookParseErrorType::IdInvalid,
-        source: Some(Box::new(source)),
-    })?;
+    let id = id_segment
+        .parse::<NonZeroU64>()
+        .map_err(|source| WebhookParseError {
+            kind: WebhookParseErrorType::IdInvalid,
+            source: Some(Box::new(source)),
+        })?;
     let mut token = segments.next();
 
     // Don't return an empty token if the segment is empty.
@@ -152,14 +155,15 @@ pub fn parse(url: &str) -> Result<(WebhookId, Option<&str>), WebhookParseError> 
         token = None;
     }
 
-    Ok((WebhookId(id), token))
+    Ok((Id::from(id), token))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{WebhookId, WebhookParseError, WebhookParseErrorType};
+    use super::{WebhookParseError, WebhookParseErrorType};
     use static_assertions::assert_impl_all;
     use std::{error::Error, fmt::Debug};
+    use twilight_model::id::Id;
 
     assert_impl_all!(WebhookParseErrorType: Debug, Send, Sync);
     assert_impl_all!(WebhookParseError: Debug, Error, Send, Sync);
@@ -167,13 +171,13 @@ mod tests {
     #[test]
     fn test_parse_no_token() {
         assert_eq!(
-            (WebhookId::new(123).expect("non zero"), None),
+            (Id::new(123).expect("non zero"), None),
             super::parse("https://discord.com/api/webhooks/123").unwrap(),
         );
         // There's a / after the ID signifying another segment, but the token
         // ends up being None.
         assert_eq!(
-            (WebhookId::new(123).expect("non zero"), None),
+            (Id::new(123).expect("non zero"), None),
             super::parse("https://discord.com/api/webhooks/123").unwrap(),
         );
         assert!(super::parse("https://discord.com/api/webhooks/123/")
@@ -186,24 +190,24 @@ mod tests {
     fn test_parse_with_token() {
         assert_eq!(
             super::parse("https://discord.com/api/webhooks/456/token").unwrap(),
-            (WebhookId::new(456).expect("non zero"), Some("token")),
+            (Id::new(456).expect("non zero"), Some("token")),
         );
         // The value of the segment(s) after the token are ignored.
         assert_eq!(
             super::parse("https://discord.com/api/webhooks/456/token/github").unwrap(),
-            (WebhookId::new(456).expect("non zero"), Some("token")),
+            (Id::new(456).expect("non zero"), Some("token")),
         );
         assert_eq!(
             super::parse("https://discord.com/api/webhooks/456/token/slack").unwrap(),
-            (WebhookId::new(456).expect("non zero"), Some("token")),
+            (Id::new(456).expect("non zero"), Some("token")),
         );
         assert_eq!(
             super::parse("https://discord.com/api/webhooks/456/token/randomsegment").unwrap(),
-            (WebhookId::new(456).expect("non zero"), Some("token")),
+            (Id::new(456).expect("non zero"), Some("token")),
         );
         assert_eq!(
             super::parse("https://discord.com/api/webhooks/456/token/one/two/three").unwrap(),
-            (WebhookId::new(456).expect("non zero"), Some("token")),
+            (Id::new(456).expect("non zero"), Some("token")),
         );
     }
 

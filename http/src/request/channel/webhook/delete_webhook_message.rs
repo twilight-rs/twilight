@@ -5,7 +5,10 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{MessageId, WebhookId};
+use twilight_model::id::{
+    marker::{MessageMarker, WebhookMarker},
+    Id,
+};
 
 /// Delete a message created by a webhook.
 ///
@@ -14,13 +17,13 @@ use twilight_model::id::{MessageId, WebhookId};
 /// ```no_run
 /// # use twilight_http::Client;
 /// use twilight_http::request::AuditLogReason;
-/// use twilight_model::id::{MessageId, WebhookId};
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
 /// client
-///     .delete_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
+///     .delete_webhook_message(Id::new(1).expect("non zero"), "token here", Id::new(2).expect("non zero"))
 ///     .reason("reason here")?
 ///     .exec()
 ///     .await?;
@@ -29,18 +32,18 @@ use twilight_model::id::{MessageId, WebhookId};
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteWebhookMessage<'a> {
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     reason: Option<&'a str>,
     token: &'a str,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> DeleteWebhookMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: WebhookId,
+        webhook_id: Id<WebhookMarker>,
         token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             http,
@@ -91,16 +94,16 @@ impl<'a> AuditLogReason<'a> for DeleteWebhookMessage<'a> {
 mod tests {
     use super::DeleteWebhookMessage;
     use crate::{client::Client, request::Request, routing::Route};
-    use twilight_model::id::{MessageId, WebhookId};
+    use twilight_model::id::Id;
 
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
         let builder = DeleteWebhookMessage::new(
             &client,
-            WebhookId::new(1).expect("non zero"),
+            Id::new(1).expect("non zero"),
             "token",
-            MessageId::new(2).expect("non zero"),
+            Id::new(2).expect("non zero"),
         );
         let actual = builder.request().expect("failed to create request");
 

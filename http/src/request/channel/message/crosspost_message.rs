@@ -1,22 +1,25 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use twilight_model::{
     channel::Message,
-    id::{ChannelId, MessageId},
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
 };
 
-/// Crosspost a message by [`ChannelId`] and [`MessageId`].
+/// Crosspost a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
 #[must_use = "requests must be configured and executed"]
 pub struct CrosspostMessage<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
 }
 
 impl<'a> CrosspostMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             channel_id,

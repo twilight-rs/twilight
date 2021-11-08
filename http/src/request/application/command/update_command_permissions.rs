@@ -11,7 +11,10 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     application::command::permissions::CommandPermissions,
-    id::{ApplicationId, CommandId, GuildId},
+    id::{
+        marker::{ApplicationMarker, CommandMarker, GuildMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
@@ -27,9 +30,9 @@ struct UpdateCommandPermissionsFields<'a> {
 /// have to be sent every time.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCommandPermissions<'a> {
-    application_id: ApplicationId,
-    command_id: CommandId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+    guild_id: Id<GuildMarker>,
     fields: UpdateCommandPermissionsFields<'a>,
     http: &'a Client,
 }
@@ -37,9 +40,9 @@ pub struct UpdateCommandPermissions<'a> {
 impl<'a> UpdateCommandPermissions<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
-        command_id: CommandId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
+        command_id: Id<CommandMarker>,
         permissions: &'a [CommandPermissions],
     ) -> Result<Self, InteractionError> {
         if !validate_inner::command_permissions(permissions.len()) {

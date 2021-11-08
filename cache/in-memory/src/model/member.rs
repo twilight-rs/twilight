@@ -3,7 +3,10 @@ use twilight_model::{
     application::interaction::application_command::InteractionMember,
     datetime::Timestamp,
     guild::{Member, PartialMember},
-    id::{GuildId, RoleId, UserId},
+    id::{
+        marker::{GuildMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
 
 /// Represents a cached [`Member`].
@@ -12,14 +15,14 @@ use twilight_model::{
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
     pub(crate) deaf: Option<bool>,
-    pub(crate) guild_id: GuildId,
+    pub(crate) guild_id: Id<GuildMarker>,
     pub(crate) joined_at: Option<Timestamp>,
     pub(crate) mute: Option<bool>,
     pub(crate) nick: Option<String>,
     pub(crate) pending: bool,
     pub(crate) premium_since: Option<Timestamp>,
-    pub(crate) roles: Vec<RoleId>,
-    pub(crate) user_id: UserId,
+    pub(crate) roles: Vec<Id<RoleMarker>>,
+    pub(crate) user_id: Id<UserMarker>,
 }
 
 impl CachedMember {
@@ -29,7 +32,7 @@ impl CachedMember {
     }
 
     /// ID of the guild this member is a part of.
-    pub const fn guild_id(&self) -> GuildId {
+    pub const fn guild_id(&self) -> Id<GuildMarker> {
         self.guild_id
     }
 
@@ -60,12 +63,12 @@ impl CachedMember {
     }
 
     /// List of role IDs this member has.
-    pub fn roles(&self) -> &[RoleId] {
+    pub fn roles(&self) -> &[Id<RoleMarker>] {
         &self.roles
     }
 
     /// ID of the user relating to the member.
-    pub const fn user_id(&self) -> UserId {
+    pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
     }
 }
@@ -136,7 +139,7 @@ mod tests {
     use static_assertions::assert_fields;
     use twilight_model::{
         guild::{Member, PartialMember},
-        id::{GuildId, UserId},
+        id::Id,
         user::User,
     };
 
@@ -155,7 +158,7 @@ mod tests {
     fn cached_member() -> CachedMember {
         CachedMember {
             deaf: Some(false),
-            guild_id: GuildId::new(3).expect("non zero"),
+            guild_id: Id::new(3).expect("non zero"),
             joined_at: None,
             mute: Some(true),
             nick: Some("member nick".to_owned()),
@@ -175,7 +178,7 @@ mod tests {
             discriminator: 1,
             email: None,
             flags: None,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             locale: None,
             mfa_enabled: None,
             name: "bar".to_owned(),
@@ -190,7 +193,7 @@ mod tests {
     fn test_eq_member() {
         let member = Member {
             deaf: false,
-            guild_id: GuildId::new(3).expect("non zero"),
+            guild_id: Id::new(3).expect("non zero"),
             joined_at: None,
             mute: true,
             nick: Some("member nick".to_owned()),

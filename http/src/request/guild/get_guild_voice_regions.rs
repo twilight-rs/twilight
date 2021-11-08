@@ -4,19 +4,22 @@ use crate::{
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{id::GuildId, voice::VoiceRegion};
+use twilight_model::{
+    id::{marker::GuildMarker, Id},
+    voice::VoiceRegion,
+};
 
 /// Get voice region data for the guild.
 ///
 /// Can return VIP servers if the guild is VIP-enabled.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildVoiceRegions<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildVoiceRegions<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self { guild_id, http }
     }
 

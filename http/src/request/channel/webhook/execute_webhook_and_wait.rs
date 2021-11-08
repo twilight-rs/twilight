@@ -9,12 +9,12 @@ use twilight_model::channel::Message;
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::WebhookId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let id = WebhookId::new(432).expect("non zero");
+/// let id = Id::new(432).expect("non zero");
 ///
 /// let message = client
 ///     .execute_webhook(id, "webhook token")

@@ -9,7 +9,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{id::GuildId, template::Template};
+use twilight_model::{
+    id::{marker::GuildMarker, Id},
+    template::Template,
+};
 
 /// Error returned when the template can not be created as configured.
 #[derive(Debug)]
@@ -86,14 +89,14 @@ struct CreateTemplateFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
     fields: CreateTemplateFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> CreateTemplate<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
     ) -> Result<Self, CreateTemplateError> {
         if !validate_inner::template_name(&name) {

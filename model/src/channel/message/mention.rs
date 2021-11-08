@@ -1,6 +1,6 @@
 use crate::{
     guild::PartialMember,
-    id::UserId,
+    id::{marker::UserMarker, Id},
     user::{self, DiscriminatorDisplay, UserFlags},
 };
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ pub struct Mention {
     #[serde(with = "user::discriminator")]
     pub discriminator: u16,
     /// Unique ID of the user.
-    pub id: UserId,
+    pub id: Id<UserMarker>,
     /// Member object for the user in the guild, if available.
     pub member: Option<PartialMember>,
     #[serde(rename = "username")]
@@ -44,7 +44,8 @@ impl Mention {
 
 #[cfg(test)]
 mod tests {
-    use super::{Mention, PartialMember, UserFlags, UserId};
+    use super::{Mention, PartialMember, UserFlags};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -53,7 +54,7 @@ mod tests {
             avatar: None,
             bot: false,
             discriminator: 1,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             member: None,
             name: "foo".to_owned(),
             public_flags: UserFlags::empty(),
@@ -73,7 +74,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("member"),
                 Token::None,
@@ -92,7 +93,7 @@ mod tests {
             avatar: None,
             bot: false,
             discriminator: 1,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             member: Some(PartialMember {
                 deaf: false,
                 joined_at: None,
@@ -121,7 +122,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("member"),
                 Token::Some,

@@ -4,7 +4,10 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::{channel::message::Sticker, id::GuildId};
+use twilight_model::{
+    channel::message::Sticker,
+    id::{marker::GuildMarker, Id},
+};
 
 use super::{StickerValidationError, StickerValidationErrorType};
 
@@ -21,16 +24,13 @@ struct CreateGuildStickerFields<'a> {
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::{
-///     channel::message::sticker::StickerId,
-///     id::GuildId,
-/// };
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(1).expect("non zero");
+/// let guild_id = Id::new(1).expect("non zero");
 /// let sticker = client
 ///     .create_guild_sticker(
 ///         guild_id,
@@ -49,7 +49,7 @@ struct CreateGuildStickerFields<'a> {
 /// ```
 pub struct CreateGuildSticker<'a> {
     fields: CreateGuildStickerFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
@@ -57,7 +57,7 @@ pub struct CreateGuildSticker<'a> {
 impl<'a> CreateGuildSticker<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
         description: &'a str,
         tags: &'a str,

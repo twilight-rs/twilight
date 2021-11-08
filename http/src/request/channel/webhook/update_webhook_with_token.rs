@@ -5,7 +5,10 @@ use crate::{
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::{channel::Webhook, id::WebhookId};
+use twilight_model::{
+    channel::Webhook,
+    id::{marker::WebhookMarker, Id},
+};
 
 #[derive(Serialize)]
 struct UpdateWebhookWithTokenFields<'a> {
@@ -21,11 +24,15 @@ pub struct UpdateWebhookWithToken<'a> {
     fields: UpdateWebhookWithTokenFields<'a>,
     http: &'a Client,
     token: &'a str,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> UpdateWebhookWithToken<'a> {
-    pub(crate) const fn new(http: &'a Client, webhook_id: WebhookId, token: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        webhook_id: Id<WebhookMarker>,
+        token: &'a str,
+    ) -> Self {
         Self {
             fields: UpdateWebhookWithTokenFields {
                 avatar: None,

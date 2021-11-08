@@ -1,10 +1,13 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use serde::Serialize;
-use twilight_model::{channel::PrivateChannel, id::UserId};
+use twilight_model::{
+    channel::PrivateChannel,
+    id::{marker::UserMarker, Id},
+};
 
 #[derive(Serialize)]
 struct CreatePrivateChannelFields {
-    recipient_id: UserId,
+    recipient_id: Id<UserMarker>,
 }
 
 /// Create a group DM.
@@ -17,7 +20,7 @@ pub struct CreatePrivateChannel<'a> {
 }
 
 impl<'a> CreatePrivateChannel<'a> {
-    pub(crate) const fn new(http: &'a Client, recipient_id: UserId) -> Self {
+    pub(crate) const fn new(http: &'a Client, recipient_id: Id<UserMarker>) -> Self {
         Self {
             fields: CreatePrivateChannelFields { recipient_id },
             http,

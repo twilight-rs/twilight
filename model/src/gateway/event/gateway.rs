@@ -519,10 +519,7 @@ impl Serialize for GatewayEvent {
 #[cfg(test)]
 mod tests {
     use super::{DispatchEvent, GatewayEvent, GatewayEventDeserializer, OpCode};
-    use crate::{
-        gateway::payload::incoming::RoleDelete,
-        id::{GuildId, RoleId},
-    };
+    use crate::{gateway::payload::incoming::RoleDelete, id::Id};
     use serde::de::DeserializeSeed;
     use serde_json::de::Deserializer;
     use serde_test::Token;
@@ -830,8 +827,8 @@ mod tests {
     #[test]
     fn test_serialize_dispatch() {
         let role_delete = RoleDelete {
-            guild_id: GuildId::new(1).expect("non zero"),
-            role_id: RoleId::new(2).expect("non zero"),
+            guild_id: Id::new(1).expect("non zero"),
+            role_id: Id::new(2).expect("non zero"),
         };
         let dispatch = Box::new(DispatchEvent::RoleDelete(role_delete));
         let value = GatewayEvent::Dispatch(2_048, dispatch);
@@ -858,10 +855,10 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("role_id"),
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::StructEnd,
                 Token::StructEnd,

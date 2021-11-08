@@ -1,16 +1,19 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use serde::Serialize;
-use twilight_model::{channel::FollowedChannel, id::ChannelId};
+use twilight_model::{
+    channel::FollowedChannel,
+    id::{marker::ChannelMarker, Id},
+};
 
 #[derive(Serialize)]
 struct FollowNewsChannelFields {
-    webhook_channel_id: ChannelId,
+    webhook_channel_id: Id<ChannelMarker>,
 }
 
-/// Follow a news channel by [`ChannelId`]s.
+/// Follow a news channel by [`Id<ChannelMarker>`]s.
 #[must_use = "requests must be configured and executed"]
 pub struct FollowNewsChannel<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: FollowNewsChannelFields,
     http: &'a Client,
 }
@@ -18,8 +21,8 @@ pub struct FollowNewsChannel<'a> {
 impl<'a> FollowNewsChannel<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        webhook_channel_id: ChannelId,
+        channel_id: Id<ChannelMarker>,
+        webhook_channel_id: Id<ChannelMarker>,
     ) -> Self {
         Self {
             channel_id,

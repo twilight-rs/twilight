@@ -7,7 +7,10 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     channel::Webhook,
-    id::{ChannelId, WebhookId},
+    id::{
+        marker::{ChannelMarker, WebhookMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
@@ -15,7 +18,7 @@ struct UpdateWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<ChannelId>,
+    channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<NullableField<&'a str>>,
 }
@@ -25,13 +28,13 @@ struct UpdateWebhookFields<'a> {
 pub struct UpdateWebhook<'a> {
     fields: UpdateWebhookFields<'a>,
     http: &'a Client,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
     reason: Option<&'a str>,
 }
 
 /// Update a webhook by its ID.
 impl<'a> UpdateWebhook<'a> {
-    pub(crate) const fn new(http: &'a Client, webhook_id: WebhookId) -> Self {
+    pub(crate) const fn new(http: &'a Client, webhook_id: Id<WebhookMarker>) -> Self {
         Self {
             fields: UpdateWebhookFields {
                 avatar: None,
@@ -58,7 +61,7 @@ impl<'a> UpdateWebhook<'a> {
     }
 
     /// Move this webhook to a new channel.
-    pub const fn channel_id(mut self, channel_id: ChannelId) -> Self {
+    pub const fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
         self.fields.channel_id = Some(channel_id);
 
         self

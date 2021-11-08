@@ -5,22 +5,25 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ChannelId, MessageId};
+use twilight_model::id::{
+    marker::{ChannelMarker, MessageMarker},
+    Id,
+};
 
 /// Remove all reactions of a specified emoji from a message.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteAllReaction<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     emoji: &'a RequestReactionType<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
 }
 
 impl<'a> DeleteAllReaction<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
         emoji: &'a RequestReactionType<'a>,
     ) -> Self {
         Self {

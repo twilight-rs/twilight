@@ -10,7 +10,10 @@ use std::{
 };
 use twilight_model::{
     guild::audit_log::{AuditLog, AuditLogEventType},
-    id::{GuildId, UserId},
+    id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    },
 };
 
 /// The error returned when the audit log can not be requested as configured.
@@ -62,7 +65,7 @@ struct GetAuditLogFields {
     action_type: Option<AuditLogEventType>,
     before: Option<u64>,
     limit: Option<u64>,
-    user_id: Option<UserId>,
+    user_id: Option<Id<UserMarker>>,
 }
 
 /// Get the audit log for a guild.
@@ -71,13 +74,13 @@ struct GetAuditLogFields {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("token".to_owned());
 ///
-/// let guild_id = GuildId::new(101).expect("non zero");
+/// let guild_id = Id::new(101).expect("non zero");
 /// let audit_log = client
 ///     .audit_log(guild_id)
 ///     .exec()
@@ -99,12 +102,12 @@ struct GetAuditLogFields {
 #[must_use = "requests must be configured and executed"]
 pub struct GetAuditLog<'a> {
     fields: GetAuditLogFields,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetAuditLog<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: GetAuditLogFields {
                 action_type: None,
@@ -154,7 +157,7 @@ impl<'a> GetAuditLog<'a> {
     /// Filter audit log for entries from a user.
     ///
     /// This is the user who did the auditable action, not the target of the auditable action.
-    pub const fn user_id(mut self, user_id: UserId) -> Self {
+    pub const fn user_id(mut self, user_id: Id<UserMarker>) -> Self {
         self.fields.user_id = Some(user_id);
 
         self
@@ -169,7 +172,7 @@ impl<'a> GetAuditLog<'a> {
             before: self.fields.before,
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,
-            user_id: self.fields.user_id.map(UserId::get),
+            user_id: self.fields.user_id.map(Id::get),
         });
 
         self.http.request(request)

@@ -33,7 +33,10 @@ use twilight_model::{
         NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
-    id::{ApplicationId, CommandId, CommandVersionId, GuildId},
+    id::{
+        marker::{ApplicationMarker, CommandMarker, GuildMarker},
+        Id,
+    },
 };
 
 /// Builder to create a [`Command`].
@@ -55,7 +58,7 @@ impl CommandBuilder {
             kind,
             name,
             options: Vec::new(),
-            version: CommandVersionId::new(1).expect("non zero"),
+            version: Id::new(1).expect("non zero"),
         })
     }
 
@@ -69,7 +72,7 @@ impl CommandBuilder {
     /// Set the application ID of the command.
     ///
     /// Defaults to [`None`].
-    pub const fn application_id(mut self, application_id: ApplicationId) -> Self {
+    pub const fn application_id(mut self, application_id: Id<ApplicationMarker>) -> Self {
         self.0.application_id = Some(application_id);
 
         self
@@ -78,7 +81,7 @@ impl CommandBuilder {
     /// Set the guild ID of the command.
     ///
     /// Defaults to [`None`].
-    pub const fn guild_id(mut self, guild_id: GuildId) -> Self {
+    pub const fn guild_id(mut self, guild_id: Id<GuildMarker>) -> Self {
         self.0.guild_id = Some(guild_id);
 
         self
@@ -96,7 +99,7 @@ impl CommandBuilder {
     /// Set the ID of the command.
     ///
     /// Defaults to [`None`].
-    pub const fn id(mut self, id: CommandId) -> Self {
+    pub const fn id(mut self, id: Id<CommandMarker>) -> Self {
         self.0.id = Some(id);
 
         self
@@ -805,7 +808,7 @@ mod tests {
                     ]),
                 }),
             ]),
-            version: CommandVersionId::new(1).expect("non zero"),
+            version: Id::new(1).expect("non zero"),
         };
 
         assert_eq!(command, command_manual);

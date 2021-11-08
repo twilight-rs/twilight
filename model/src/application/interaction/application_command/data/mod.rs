@@ -4,7 +4,10 @@ pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, Int
 
 use crate::{
     application::command::{CommandOptionType, Number},
-    id::{ChannelId, CommandId, GenericId, RoleId, UserId},
+    id::{
+        marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{
     de::Error as DeError, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer,
@@ -19,7 +22,7 @@ use serde::{
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the command.
-    pub id: CommandId,
+    pub id: Id<CommandMarker>,
     /// Name of the command.
     pub name: String,
     /// List of parsed options specified by the user.
@@ -49,19 +52,19 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 CommandOptionValue::Boolean(b)
             }
             (CommandOptionType::Channel, Some(CommandOptionValueEnvelope::Id(i))) => {
-                CommandOptionValue::Channel(i.0.into())
+                CommandOptionValue::Channel(i.cast())
             }
             (CommandOptionType::Integer, Some(CommandOptionValueEnvelope::Integer(i))) => {
                 CommandOptionValue::Integer(i)
             }
             (CommandOptionType::Mentionable, Some(CommandOptionValueEnvelope::Id(i))) => {
-                CommandOptionValue::Mentionable(i.0.into())
+                CommandOptionValue::Mentionable(i.cast())
             }
             (CommandOptionType::Number, Some(CommandOptionValueEnvelope::Number(n))) => {
                 CommandOptionValue::Number(n)
             }
             (CommandOptionType::Role, Some(CommandOptionValueEnvelope::Id(i))) => {
-                CommandOptionValue::Role(i.0.into())
+                CommandOptionValue::Role(i.cast())
             }
             (CommandOptionType::String, Some(CommandOptionValueEnvelope::String(s))) => {
                 CommandOptionValue::String(s)
@@ -71,7 +74,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 CommandOptionValue::SubCommandGroup(raw.options)
             }
             (CommandOptionType::User, Some(CommandOptionValueEnvelope::Id(i))) => {
-                CommandOptionValue::User(i.0.into())
+                CommandOptionValue::User(i.cast())
             }
             (t, v) => {
                 return Err(DeError::custom(format!(
@@ -139,7 +142,7 @@ struct CommandDataOptionEnvelope {
 #[serde(untagged)]
 enum CommandOptionValueEnvelope {
     Boolean(bool),
-    Id(GenericId),
+    Id(Id<GenericMarker>),
     Integer(i64),
     Number(Number),
     String(String),
@@ -149,15 +152,15 @@ enum CommandOptionValueEnvelope {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
     Boolean(bool),
-    Channel(ChannelId),
+    Channel(Id<ChannelMarker>),
     Integer(i64),
-    Mentionable(GenericId),
+    Mentionable(Id<GenericMarker>),
     Number(Number),
-    Role(RoleId),
+    Role(Id<RoleMarker>),
     String(String),
     SubCommand(Vec<CommandDataOption>),
     SubCommandGroup(Vec<CommandDataOption>),
-    User(UserId),
+    User(Id<UserMarker>),
 }
 
 impl CommandOptionValue {
@@ -185,14 +188,14 @@ mod tests {
             command::CommandOptionType,
             interaction::application_command::{CommandDataOption, CommandOptionValue},
         },
-        id::CommandId,
+        id::Id,
     };
     use serde_test::Token;
 
     #[test]
     fn subcommand_without_option() {
         let value = CommandData {
-            id: CommandId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             name: "photo".to_owned(),
             options: Vec::from([CommandDataOption {
                 name: "cat".to_owned(),
@@ -209,7 +212,7 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "CommandId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("photo"),

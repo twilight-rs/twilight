@@ -1,6 +1,9 @@
 use crate::{
     channel::message::allowed_mentions::{AllowedMentions, ParseTypes},
-    id::{RoleId, UserId},
+    id::{
+        marker::{RoleMarker, UserMarker},
+        Id,
+    },
 };
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -38,13 +41,13 @@ impl AllowedMentionsBuilder {
         self
     }
 
-    /// Allow parsing of specific [`RoleId`]s.
+    /// Allow parsing of specific [`Id<RoleMarker>`]s.
     ///
     /// [`roles`] and this method are mutually exclusive. The builder will favor
     /// specific role ids.
     ///
     /// [`roles`]: Self::roles
-    pub fn role_ids(mut self, role_ids: impl IntoIterator<Item = RoleId>) -> Self {
+    pub fn role_ids(mut self, role_ids: impl IntoIterator<Item = Id<RoleMarker>>) -> Self {
         self.0.roles.extend(role_ids);
 
         self
@@ -57,13 +60,13 @@ impl AllowedMentionsBuilder {
         self
     }
 
-    /// Allow parsing of  specific [`UserId`]s.
+    /// Allow parsing of  specific [`Id<UserMarker>`]s.
     ///
     /// [`users`] and this method are mutually exclusive. The builder will favor
     /// specific user ids.
     ///
     /// [`users`]: Self::users
-    pub fn user_ids(mut self, user_ids: impl IntoIterator<Item = UserId>) -> Self {
+    pub fn user_ids(mut self, user_ids: impl IntoIterator<Item = Id<UserMarker>>) -> Self {
         self.0.users.extend(user_ids);
 
         self
@@ -104,7 +107,7 @@ mod tests {
         super::{AllowedMentions, ParseTypes},
         AllowedMentionsBuilder,
     };
-    use crate::id::{RoleId, UserId};
+    use crate::id::Id;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
@@ -143,11 +146,11 @@ mod tests {
         let value = AllowedMentionsBuilder::new()
             .users()
             .user_ids(vec![
-                UserId::new(100).expect("non zero"),
-                UserId::new(200).expect("non zero"),
+                Id::new(100).expect("non zero"),
+                Id::new(200).expect("non zero"),
             ])
             .roles()
-            .role_ids(vec![RoleId::new(300).expect("non zero")])
+            .role_ids(vec![Id::new(300).expect("non zero")])
             .build();
 
         assert_eq!(
@@ -155,10 +158,10 @@ mod tests {
             AllowedMentions {
                 parse: vec![],
                 users: vec![
-                    UserId::new(100).expect("non zero"),
-                    UserId::new(200).expect("non zero")
+                    Id::new(100).expect("non zero"),
+                    Id::new(200).expect("non zero")
                 ],
-                roles: vec![RoleId::new(300).expect("non zero")],
+                roles: vec![Id::new(300).expect("non zero")],
                 replied_user: false,
             },
         );

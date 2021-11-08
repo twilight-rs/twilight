@@ -19,7 +19,10 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{MessageId, WebhookId},
+    id::{
+        marker::{MessageMarker, WebhookMarker},
+        Id,
+    },
 };
 
 /// A webhook's message can not be updated as configured.
@@ -150,13 +153,13 @@ struct UpdateWebhookMessageFields<'a> {
 /// # use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::{MessageId, WebhookId}
+///     id::Id,
 /// };
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
-/// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
+/// client.update_webhook_message(Id::new(1).expect("non zero"), "token here", Id::new(2).expect("non zero"))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -172,10 +175,10 @@ pub struct UpdateWebhookMessage<'a> {
     fields: UpdateWebhookMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     reason: Option<&'a str>,
     token: &'a str,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
@@ -184,9 +187,9 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: WebhookId,
+        webhook_id: Id<WebhookMarker>,
         token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             fields: UpdateWebhookMessageFields {
@@ -312,7 +315,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::{MessageId, WebhookId};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -322,7 +325,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token", MessageId::new(2).expect("non zero"))
+    /// client.update_webhook_message(Id::new(1).expect("non zero"), "token", Id::new(2).expect("non zero"))
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -461,16 +464,16 @@ mod tests {
         request::{AuditLogReason, NullableField, Request},
         routing::Route,
     };
-    use twilight_model::id::{MessageId, WebhookId};
+    use twilight_model::id::Id;
 
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
         let mut builder = UpdateWebhookMessage::new(
             &client,
-            WebhookId::new(1).expect("non zero"),
+            Id::new(1).expect("non zero"),
             "token",
-            MessageId::new(2).expect("non zero"),
+            Id::new(2).expect("non zero"),
         )
         .content(Some("test"))
         .expect("'test' content couldn't be set")

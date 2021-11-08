@@ -1,27 +1,27 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use twilight_model::{
     channel::Message,
-    id::{MessageId, WebhookId},
+    id::{
+        marker::{MessageMarker, WebhookMarker},
+        Id,
+    },
 };
 
-/// Get a webhook message by [`WebhookId`], token, and [`MessageId`].
-///
-/// [`WebhookId`]: twilight_model::id::WebhookId
-/// [`MessageId`]: twilight_model::id::MessageId
+/// Get a webhook message by webhook ID, token, and message ID.
 #[must_use = "requests must be configured and executed"]
 pub struct GetWebhookMessage<'a> {
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     token: &'a str,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> GetWebhookMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: WebhookId,
+        webhook_id: Id<WebhookMarker>,
         token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             http,

@@ -4,7 +4,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::ApplicationId;
+use twilight_model::id::{marker::ApplicationMarker, Id};
 
 /// Delete a original interaction response.
 ///
@@ -16,10 +16,10 @@ use twilight_model::id::ApplicationId;
 /// use std::env;
 /// use twilight_http::Client;
 /// use twilight_http::request::AuditLogReason;
-/// use twilight_model::id::ApplicationId;
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// client.set_application_id(Id::new(1).expect("non zero"));
 ///
 /// client
 ///     .delete_interaction_original("token here")?
@@ -29,7 +29,7 @@ use twilight_model::id::ApplicationId;
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteOriginalResponse<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
     token: &'a str,
 }
@@ -37,7 +37,7 @@ pub struct DeleteOriginalResponse<'a> {
 impl<'a> DeleteOriginalResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
     ) -> Self {
         Self {

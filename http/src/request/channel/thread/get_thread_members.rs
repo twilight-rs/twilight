@@ -4,19 +4,22 @@ use crate::{
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{channel::thread::ThreadMember, id::ChannelId};
+use twilight_model::{
+    channel::thread::ThreadMember,
+    id::{marker::ChannelMarker, Id},
+};
 
 /// Returns the [`ThreadMember`]s of the thread.
 ///
 /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
 #[must_use = "requests must be configured and executed"]
 pub struct GetThreadMembers<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetThreadMembers<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self { channel_id, http }
     }
 

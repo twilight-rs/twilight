@@ -4,21 +4,24 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ApplicationId, CommandId};
+use twilight_model::id::{
+    marker::{ApplicationMarker, CommandMarker},
+    Id,
+};
 
 /// Delete a global command, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGlobalCommand<'a> {
-    application_id: ApplicationId,
-    command_id: CommandId,
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
     http: &'a Client,
 }
 
 impl<'a> DeleteGlobalCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        command_id: CommandId,
+        application_id: Id<ApplicationMarker>,
+        command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
             application_id,

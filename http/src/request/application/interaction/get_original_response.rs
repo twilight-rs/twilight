@@ -1,5 +1,8 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
-use twilight_model::{channel::Message, id::ApplicationId};
+use twilight_model::{
+    channel::Message,
+    id::{marker::ApplicationMarker, Id},
+};
 
 /// Get the original message, by its token.
 ///
@@ -11,10 +14,10 @@ use twilight_model::{channel::Message, id::ApplicationId};
 /// use std::env;
 /// use twilight_http::Client;
 /// use twilight_http::request::AuditLogReason;
-/// use twilight_model::id::ApplicationId;
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// client.set_application_id(Id::new(1).expect("non zero"));
 ///
 /// let message = client
 ///     .get_interaction_original("token here")?
@@ -24,7 +27,7 @@ use twilight_model::{channel::Message, id::ApplicationId};
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetOriginalResponse<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
     token: &'a str,
 }
@@ -32,7 +35,7 @@ pub struct GetOriginalResponse<'a> {
 impl<'a> GetOriginalResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         interaction_token: &'a str,
     ) -> Self {
         Self {

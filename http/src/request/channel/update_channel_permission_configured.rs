@@ -9,7 +9,7 @@ use serde::Serialize;
 use twilight_model::{
     channel::permission_overwrite::{PermissionOverwriteTargetType, PermissionOverwriteType},
     guild::Permissions,
-    id::ChannelId,
+    id::{marker::ChannelMarker, Id},
 };
 
 #[derive(Serialize)]
@@ -23,7 +23,7 @@ struct UpdateChannelPermissionConfiguredFields {
 /// Created when either `member` or `role` is called on a `DeleteChannelPermission` struct.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannelPermissionConfigured<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateChannelPermissionConfiguredFields,
     http: &'a Client,
     target_id: u64,
@@ -33,7 +33,7 @@ pub struct UpdateChannelPermissionConfigured<'a> {
 impl<'a> UpdateChannelPermissionConfigured<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
+        channel_id: Id<ChannelMarker>,
         allow: Permissions,
         deny: Permissions,
         target: PermissionOverwriteType,
@@ -100,7 +100,7 @@ mod tests {
     use twilight_model::{
         channel::permission_overwrite::{PermissionOverwriteTargetType, PermissionOverwriteType},
         guild::Permissions,
-        id::{ChannelId, UserId},
+        id::Id,
     };
 
     #[test]
@@ -108,10 +108,10 @@ mod tests {
         let client = Client::new("foo".to_owned());
         let builder = UpdateChannelPermissionConfigured::new(
             &client,
-            ChannelId::new(1).expect("non zero"),
+            Id::new(1).expect("non zero"),
             Permissions::empty(),
             Permissions::SEND_MESSAGES,
-            PermissionOverwriteType::Member(UserId::new(2).expect("non zero")),
+            PermissionOverwriteType::Member(Id::new(2).expect("non zero")),
         );
         let actual = builder.request().expect("failed to create request");
 

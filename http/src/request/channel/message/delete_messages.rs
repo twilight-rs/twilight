@@ -5,14 +5,17 @@ use crate::{
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::id::{ChannelId, MessageId};
+use twilight_model::id::{
+    marker::{ChannelMarker, MessageMarker},
+    Id,
+};
 
 #[derive(Serialize)]
 struct DeleteMessagesFields<'a> {
-    messages: &'a [MessageId],
+    messages: &'a [Id<MessageMarker>],
 }
 
-/// Delete messages by [`ChannelId`] and a list of [`MessageId`]s.
+/// Delete messages by [`Id<ChannelMarker>`] and a list of [`Id<MessageMarker>`]s.
 ///
 /// The number of message IDs must be between 2 and 100. If the supplied message
 /// IDs are invalid, they still count towards the lower and upper limits. This
@@ -22,7 +25,7 @@ struct DeleteMessagesFields<'a> {
 /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteMessages<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: DeleteMessagesFields<'a>,
     http: &'a Client,
     reason: Option<&'a str>,
@@ -31,8 +34,8 @@ pub struct DeleteMessages<'a> {
 impl<'a> DeleteMessages<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        messages: &'a [MessageId],
+        channel_id: Id<ChannelMarker>,
+        messages: &'a [Id<MessageMarker>],
     ) -> Self {
         Self {
             channel_id,

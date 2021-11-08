@@ -11,7 +11,10 @@ use crate::{
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use twilight_model::{
     application::command::permissions::CommandPermissions,
-    id::{ApplicationId, CommandId, GuildId},
+    id::{
+        marker::{ApplicationMarker, CommandMarker, GuildMarker},
+        Id,
+    },
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -64,7 +67,7 @@ impl Serialize for OptionalCommandPermissions<'_> {
 struct SortedCommand<'a> {
     #[serde(skip_serializing)]
     count: u8,
-    id: CommandId,
+    id: Id<CommandMarker>,
     permissions: OptionalCommandPermissions<'a>,
 }
 
@@ -75,7 +78,7 @@ impl SortedCommand<'_> {
     fn new() -> Self {
         Self {
             count: 0,
-            id: CommandId::new(u64::MAX).expect("non zero"),
+            id: Id::new(u64::MAX).expect("non zero"),
             permissions: OptionalCommandPermissions::new(),
         }
     }
@@ -94,7 +97,7 @@ struct SortedCommands<'a> {
 
 impl<'a> SortedCommands<'a> {
     pub fn from_pairs(
-        pairs: &'a [(CommandId, CommandPermissions)],
+        pairs: &'a [(Id<CommandMarker>, CommandPermissions)],
     ) -> Result<Self, InteractionError> {
         let mut sorted = [SortedCommand::new(); InteractionError::GUILD_COMMAND_LIMIT];
         let mut outer_idx = 0;
@@ -166,8 +169,8 @@ impl Serialize for SortedCommands<'_> {
 #[derive(Debug)]
 #[must_use = "requests must be configured and executed"]
 pub struct SetCommandPermissions<'a> {
-    application_id: ApplicationId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     permissions: SortedCommands<'a>,
 }
@@ -175,9 +178,9 @@ pub struct SetCommandPermissions<'a> {
 impl<'a> SetCommandPermissions<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
-        permissions: &'a [(CommandId, CommandPermissions)],
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
+        permissions: &'a [(Id<CommandMarker>, CommandPermissions)],
     ) -> Result<Self, InteractionError> {
         let sorted_permissions = match SortedCommands::from_pairs(permissions) {
             Ok(sorted_permissions) => sorted_permissions,
@@ -223,28 +226,33 @@ mod tests {
     use std::{error::Error, iter};
     use twilight_model::{
         application::command::permissions::{CommandPermissions, CommandPermissionsType},
-        id::{ApplicationId, CommandId, GuildId, RoleId},
+        id::{
+            marker::{ApplicationMarker, CommandMarker, GuildMarker},
+            Id,
+        },
     };
 
-    fn application_id() -> ApplicationId {
-        ApplicationId::new(1).expect("non zero")
+    fn application_id() -> Id<ApplicationMarker> {
+        Id::new(1).expect("non zero")
     }
 
-    fn guild_id() -> GuildId {
-        GuildId::new(2).expect("non zero")
+    fn guild_id() -> Id<GuildMarker> {
+        Id::new(2).expect("non zero")
     }
 
     #[derive(Debug, Deserialize, Eq, PartialEq)]
     struct GuildCommandPermissionDeserializable {
-        id: CommandId,
+        id: Id<CommandMarker>,
         permissions: Vec<CommandPermissions>,
     }
 
-    fn command_permissions(id: CommandId) -> impl Iterator<Item = (CommandId, CommandPermissions)> {
+    fn command_permissions(
+        id: Id<CommandMarker>,
+    ) -> impl Iterator<Item = (Id<CommandMarker>, CommandPermissions)> {
         iter::repeat((
             id,
             CommandPermissions {
-                id: CommandPermissionsType::Role(RoleId::new(4).expect("non zero")),
+                id: CommandPermissionsType::Role(Id::new(4).expect("non zero")),
                 permission: true,
             },
         ))
@@ -256,23 +264,23 @@ mod tests {
         let http = Client::new("token".to_owned());
         let command_permissions = &[
             (
-                CommandId::new(1).expect("non zero"),
+                Id::new(1).expect("non zero"),
                 CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId::new(3).expect("non zero")),
+                    id: CommandPermissionsType::Role(Id::new(3).expect("non zero")),
                     permission: true,
                 },
             ),
             (
-                CommandId::new(1).expect("non zero"),
+                Id::new(1).expect("non zero"),
                 CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId::new(4).expect("non zero")),
+                    id: CommandPermissionsType::Role(Id::new(4).expect("non zero")),
                     permission: true,
                 },
             ),
             (
-                CommandId::new(2).expect("non zero"),
+                Id::new(2).expect("non zero"),
                 CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId::new(5).expect("non zero")),
+                    id: CommandPermissionsType::Role(Id::new(5).expect("non zero")),
                     permission: true,
                 },
             ),
@@ -287,22 +295,22 @@ mod tests {
 
         let expected = &[
             GuildCommandPermissionDeserializable {
-                id: CommandId::new(1).expect("non zero"),
+                id: Id::new(1).expect("non zero"),
                 permissions: Vec::from([
                     CommandPermissions {
-                        id: CommandPermissionsType::Role(RoleId::new(3).expect("non zero")),
+                        id: CommandPermissionsType::Role(Id::new(3).expect("non zero")),
                         permission: true,
                     },
                     CommandPermissions {
-                        id: CommandPermissionsType::Role(RoleId::new(4).expect("non zero")),
+                        id: CommandPermissionsType::Role(Id::new(4).expect("non zero")),
                         permission: true,
                     },
                 ]),
             },
             GuildCommandPermissionDeserializable {
-                id: CommandId::new(2).expect("non zero"),
+                id: Id::new(2).expect("non zero"),
                 permissions: Vec::from([CommandPermissions {
-                    id: CommandPermissionsType::Role(RoleId::new(5).expect("non zero")),
+                    id: CommandPermissionsType::Role(Id::new(5).expect("non zero")),
                     permission: true,
                 }]),
             },
@@ -316,7 +324,7 @@ mod tests {
     #[test]
     fn test_incorrect_validation() {
         let http = Client::new("token".to_owned());
-        let command_permissions = command_permissions(CommandId::new(2).expect("non zero"))
+        let command_permissions = command_permissions(Id::new(2).expect("non zero"))
             .take(InteractionError::GUILD_COMMAND_PERMISSION_LIMIT + 1)
             .collect::<Vec<_>>();
 
@@ -335,7 +343,7 @@ mod tests {
         let http = Client::new("token".to_owned());
         let command_permissions = (1..=SIZE)
             .flat_map(|id| {
-                command_permissions(CommandId::new(id as u64).expect("non zero"))
+                command_permissions(Id::new(id as u64).expect("non zero"))
                     .take(InteractionError::GUILD_COMMAND_PERMISSION_LIMIT)
             })
             .collect::<Vec<_>>();
@@ -355,9 +363,7 @@ mod tests {
 
         let http = Client::new("token".to_owned());
         let command_permissions = (1..=SIZE)
-            .flat_map(|id| {
-                command_permissions(CommandId::new(id as u64).expect("non zero")).take(3)
-            })
+            .flat_map(|id| command_permissions(Id::new(id as u64).expect("non zero")).take(3))
             .collect::<Vec<_>>();
 
         let request =

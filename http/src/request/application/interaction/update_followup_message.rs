@@ -19,7 +19,10 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{ApplicationId, MessageId},
+    id::{
+        marker::{ApplicationMarker, MessageMarker},
+        Id,
+    },
 };
 
 /// A followup message can not be updated as configured.
@@ -153,13 +156,13 @@ struct UpdateFollowupMessageFields<'a> {
 /// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::{MessageId, ApplicationId}
+///     id::Id,
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// client.set_application_id(Id::new(1).expect("non zero"));
 ///
-/// client.update_followup_message("token here", MessageId::new(2).expect("non zero"))?
+/// client.update_followup_message("token here", Id::new(2).expect("non zero"))?
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -175,9 +178,9 @@ pub struct UpdateFollowupMessage<'a> {
     fields: UpdateFollowupMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     token: &'a str,
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
 }
 
 impl<'a> UpdateFollowupMessage<'a> {
@@ -186,9 +189,9 @@ impl<'a> UpdateFollowupMessage<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             fields: UpdateFollowupMessageFields {
@@ -315,10 +318,10 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::{ApplicationId, MessageId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// client.set_application_id(Id::new(1).expect("non zero"));
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -326,7 +329,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_followup_message("token", MessageId::new(2).expect("non zero"))?
+    /// client.update_followup_message("token", Id::new(2).expect("non zero"))?
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;

@@ -5,7 +5,10 @@ use crate::{
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::{channel::Webhook, id::ChannelId};
+use twilight_model::{
+    channel::Webhook,
+    id::{marker::ChannelMarker, Id},
+};
 
 #[derive(Serialize)]
 struct CreateWebhookFields<'a> {
@@ -20,12 +23,12 @@ struct CreateWebhookFields<'a> {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::ChannelId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let channel_id = ChannelId::new(123).expect("non zero");
+/// let channel_id = Id::new(123).expect("non zero");
 ///
 /// let webhook = client
 ///     .create_webhook(channel_id, "Twily Bot")
@@ -35,14 +38,18 @@ struct CreateWebhookFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateWebhook<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: CreateWebhookFields<'a>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateWebhook<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId, name: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        channel_id: Id<ChannelMarker>,
+        name: &'a str,
+    ) -> Self {
         Self {
             channel_id,
             fields: CreateWebhookFields { avatar: None, name },

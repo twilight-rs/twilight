@@ -20,7 +20,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Message,
     },
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// A followup message can not be created as configured.
@@ -127,10 +127,10 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::id::ApplicationId;
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// client.set_application_id(Id::new(1).expect("non zero"));
 ///
 /// client
 ///     .create_followup_message("webhook token")?
@@ -149,13 +149,13 @@ pub struct CreateFollowupMessage<'a> {
     files: &'a [(&'a str, &'a [u8])],
     http: &'a Client,
     token: &'a str,
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
 }
 
 impl<'a> CreateFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
     ) -> Self {
         Self {
@@ -277,10 +277,10 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use std::env;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// client.set_application_id(Id::new(1).expect("non zero"));
     ///
     /// let message = client.create_followup_message("token here")?
     ///     .content("some content")
@@ -301,10 +301,10 @@ impl<'a> CreateFollowupMessage<'a> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// client.set_application_id(Id::new(1).expect("non zero"));
     ///
     /// let message = client.create_followup_message("token here")?
     ///     .content("some content")

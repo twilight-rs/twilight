@@ -10,7 +10,10 @@ use std::{
 };
 use twilight_model::{
     guild::GuildPrune,
-    id::{GuildId, RoleId},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
 };
 
 /// The error created when the guild prune count can not be requested as configured.
@@ -67,19 +70,19 @@ pub enum GetGuildPruneCountErrorType {
 
 struct GetGuildPruneCountFields<'a> {
     days: Option<u64>,
-    include_roles: &'a [RoleId],
+    include_roles: &'a [Id<RoleMarker>],
 }
 
 /// Get the counts of guild members to be pruned.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildPruneCount<'a> {
     fields: GetGuildPruneCountFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildPruneCount<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: GetGuildPruneCountFields {
                 days: None,
@@ -112,7 +115,7 @@ impl<'a> GetGuildPruneCount<'a> {
     }
 
     /// List of roles to include when calculating prune count
-    pub const fn include_roles(mut self, roles: &'a [RoleId]) -> Self {
+    pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields.include_roles = roles;
 
         self
@@ -136,13 +139,13 @@ impl<'a> GetGuildPruneCount<'a> {
 mod test {
     use super::GetGuildPruneCount;
     use crate::Client;
-    use twilight_model::id::GuildId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_days() {
         fn days_valid(days: u64) -> bool {
             let client = Client::new("".to_owned());
-            let count = GetGuildPruneCount::new(&client, GuildId::new(1).expect("non zero"));
+            let count = GetGuildPruneCount::new(&client, Id::new(1).expect("non zero"));
             let days_result = count.days(days);
             days_result.is_ok()
         }

@@ -3,16 +3,19 @@ use crate::{
         DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, MfaLevel, NSFWLevel,
         Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
     },
-    id::{ApplicationId, ChannelId, GuildId, UserId},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PartialGuild {
-    pub id: GuildId,
-    pub afk_channel_id: Option<ChannelId>,
+    pub id: Id<GuildMarker>,
+    pub afk_channel_id: Option<Id<ChannelMarker>>,
     pub afk_timeout: u64,
-    pub application_id: Option<ApplicationId>,
+    pub application_id: Option<Id<ApplicationMarker>>,
     pub banner: Option<String>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
@@ -30,7 +33,7 @@ pub struct PartialGuild {
     pub mfa_level: MfaLevel,
     pub name: String,
     pub nsfw_level: NSFWLevel,
-    pub owner_id: UserId,
+    pub owner_id: Id<UserMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,14 +43,14 @@ pub struct PartialGuild {
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
     pub roles: Vec<Role>,
-    pub rules_channel_id: Option<ChannelId>,
+    pub rules_channel_id: Option<Id<ChannelMarker>>,
     pub splash: Option<String>,
     pub system_channel_flags: SystemChannelFlags,
-    pub system_channel_id: Option<ChannelId>,
+    pub system_channel_id: Option<Id<ChannelMarker>>,
     pub verification_level: VerificationLevel,
     pub vanity_url_code: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub widget_channel_id: Option<ChannelId>,
+    pub widget_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_enabled: Option<bool>,
 }
@@ -55,20 +58,20 @@ pub struct PartialGuild {
 #[cfg(test)]
 mod tests {
     use super::{
-        ApplicationId, ChannelId, DefaultMessageNotificationLevel, ExplicitContentFilter, GuildId,
-        MfaLevel, NSFWLevel, PartialGuild, Permissions, PremiumTier, SystemChannelFlags, UserId,
-        VerificationLevel,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, PartialGuild,
+        Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     };
+    use crate::id::Id;
     use serde_test::Token;
 
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_partial_guild() {
         let value = PartialGuild {
-            id: GuildId::new(1).expect("non zero"),
-            afk_channel_id: Some(ChannelId::new(2).expect("non zero")),
+            id: Id::new(1).expect("non zero"),
+            afk_channel_id: Some(Id::new(2).expect("non zero")),
             afk_timeout: 900,
-            application_id: Some(ApplicationId::new(3).expect("non zero")),
+            application_id: Some(Id::new(3).expect("non zero")),
             banner: Some("banner hash".to_owned()),
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: Some("a description".to_owned()),
@@ -83,20 +86,20 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: UserId::new(5).expect("non zero"),
+            owner_id: Id::new(5).expect("non zero"),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-us".to_owned(),
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
             roles: Vec::new(),
-            rules_channel_id: Some(ChannelId::new(6).expect("non zero")),
+            rules_channel_id: Some(Id::new(6).expect("non zero")),
             splash: Some("splash hash".to_owned()),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
-            system_channel_id: Some(ChannelId::new(7).expect("non zero")),
+            system_channel_id: Some(Id::new(7).expect("non zero")),
             verification_level: VerificationLevel::Medium,
             vanity_url_code: Some("twilight".to_owned()),
-            widget_channel_id: Some(ChannelId::new(8).expect("non zero")),
+            widget_channel_id: Some(Id::new(8).expect("non zero")),
             widget_enabled: Some(true),
         };
 
@@ -108,19 +111,17 @@ mod tests {
                     len: 33,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("afk_channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("afk_timeout"),
                 Token::U64(900),
                 Token::Str("application_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("banner"),
                 Token::Some,
@@ -161,7 +162,7 @@ mod tests {
                 Token::Str("nsfw_level"),
                 Token::U8(0),
                 Token::Str("owner_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("5"),
                 Token::Str("owner"),
                 Token::Some,
@@ -181,7 +182,7 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("rules_channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("6"),
                 Token::Str("splash"),
                 Token::Some,
@@ -190,7 +191,7 @@ mod tests {
                 Token::U64(2),
                 Token::Str("system_channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("7"),
                 Token::Str("verification_level"),
                 Token::U8(2),
@@ -199,7 +200,7 @@ mod tests {
                 Token::Str("twilight"),
                 Token::Str("widget_channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("8"),
                 Token::Str("widget_enabled"),
                 Token::Some,
