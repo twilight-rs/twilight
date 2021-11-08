@@ -111,7 +111,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 ValueEnvelope::Integer(i) => Unexpected::Signed(*i),
                 ValueEnvelope::Number(f) => Unexpected::Float(*f),
                 ValueEnvelope::Id(_id) => Unexpected::Other("ID"),
-                ValueEnvelope::String(s) => Unexpected::Str(&s),
+                ValueEnvelope::String(s) => Unexpected::Str(s),
             }
         }
 
