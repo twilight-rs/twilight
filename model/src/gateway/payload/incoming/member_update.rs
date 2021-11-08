@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberUpdate {
+    /// Member's guild avatar.
+    pub avatar: Option<String>,
     pub guild_id: Id<GuildMarker>,
     pub deaf: Option<bool>,
     pub joined_at: Timestamp,
@@ -42,6 +44,16 @@ mod tests {
         let joined_at = Timestamp::from_micros(1_488_234_110_121_000).expect("non zero");
 
         let value = MemberUpdate {
+            avatar: None,
+            guild_id: Id::new(1_234).expect("non zero"),
+
+            deaf: Some(false),
+            joined_at,
+            mute: Some(false),
+            nick: Some("Twilight".to_string()),
+            pending: false,
+            premium_since: None,
+            roles: vec![],
             user: User {
                 accent_color: None,
                 banner: None,
@@ -59,14 +71,6 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            roles: vec![],
-            premium_since: None,
-            pending: false,
-            nick: Some("Twilight".to_string()),
-            joined_at,
-            guild_id: Id::new(1_234).expect("non zero"),
-            deaf: Some(false),
-            mute: Some(false),
         };
 
         serde_test::assert_tokens(
@@ -74,8 +78,10 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MemberUpdate",
-                    len: 9,
+                    len: 10,
                 },
+                Token::Str("avatar"),
+                Token::None,
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1234"),

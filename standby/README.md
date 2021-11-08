@@ -2,7 +2,7 @@
 
 # twilight-standby
 
-[![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+[![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
 Standby is a utility to wait for an event to happen based on a predicate
 check. For example, you may have a command that has a reaction menu of ✅
@@ -129,6 +129,8 @@ async fn react(
 For more examples, check out each of the methods on [`Standby`].
 
 [`tracing`]: https://crates.io/crates/tracing
+[codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
+[codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 [discord link]: https://discord.gg/7jj8n7D
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github

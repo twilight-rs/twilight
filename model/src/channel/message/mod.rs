@@ -149,6 +149,7 @@ mod tests {
             interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
+                avatar: None,
                 deaf: false,
                 joined_at: Some(joined_at),
                 mute: false,
@@ -340,6 +341,7 @@ mod tests {
             interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
+                avatar: None,
                 deaf: false,
                 joined_at: Some(joined_at),
                 mute: false,

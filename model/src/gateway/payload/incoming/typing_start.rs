@@ -171,6 +171,7 @@ mod tests {
             channel_id: Id::new(2).expect("non zero"),
             guild_id: Some(Id::new(1).expect("non zero")),
             member: Some(Member {
+                avatar: None,
                 deaf: false,
                 guild_id: Id::new(1).expect("non zero"),
                 joined_at: Some(joined_at),

@@ -1,6 +1,5 @@
 mod channel;
 mod guild;
-mod metadata;
 mod stage_instance;
 mod target_type;
 mod welcome_screen;
@@ -8,7 +7,6 @@ mod welcome_screen;
 pub use self::{
     channel::InviteChannel,
     guild::InviteGuild,
-    metadata::InviteMetadata,
     stage_instance::{InviteStageInstance, InviteStageInstanceMember},
     target_type::TargetType,
     welcome_screen::{WelcomeScreen, WelcomeScreenChannel},
@@ -27,17 +25,27 @@ pub struct Invite {
     pub channel: InviteChannel,
     pub code: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<Timestamp>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild: Option<InviteGuild>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inviter: Option<User>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_age: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_uses: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stage_instance: Option<InviteStageInstance>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_type: Option<TargetType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_user: Option<User>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub temporary: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uses: Option<u64>,
 }
 
 #[cfg(test)]
@@ -62,12 +70,17 @@ mod tests {
         approximate_presence_count,
         channel,
         code,
+        created_at,
         expires_at,
         guild,
         inviter,
+        max_age,
+        max_uses,
         stage_instance,
         target_type,
-        target_user
+        target_user,
+        temporary,
+        uses
     );
 
     assert_impl_all!(
@@ -92,12 +105,17 @@ mod tests {
                 name: None,
             },
             code: "uniquecode".to_owned(),
+            created_at: None,
             expires_at: None,
             guild: None,
             inviter: None,
+            max_age: None,
+            max_uses: None,
             stage_instance: None,
             target_type: Some(TargetType::Stream),
             target_user: None,
+            temporary: None,
+            uses: None,
         };
 
         serde_test::assert_tokens(
@@ -137,6 +155,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_invite_complete() -> Result<(), TimestampParseError> {
+        let created_at = Timestamp::from_str("2021-08-03T16:08:36.325000+00:00")?;
         let expires_at = Timestamp::from_str("2021-08-10T16:08:36.325000+00:00")?;
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
@@ -149,6 +168,8 @@ mod tests {
                 name: None,
             },
             code: "uniquecode".to_owned(),
+            created_at: Some(created_at),
+            expires_at: Some(expires_at),
             guild: Some(InviteGuild {
                 banner: Some("banner hash".to_owned()),
                 description: Some("a description".to_owned()),
@@ -177,7 +198,6 @@ mod tests {
                     ],
                 }),
             }),
-            expires_at: Some(expires_at),
             inviter: Some(User {
                 accent_color: None,
                 avatar: None,
@@ -195,6 +215,8 @@ mod tests {
                 system: None,
                 verified: None,
             }),
+            max_age: Some(86_400),
+            max_uses: Some(10),
             stage_instance: Some(InviteStageInstance {
                 members: Vec::from([InviteStageInstanceMember {
                     avatar: None,
@@ -243,6 +265,8 @@ mod tests {
                 system: None,
                 verified: None,
             }),
+            temporary: Some(false),
+            uses: Some(3),
         };
 
         serde_test::assert_tokens(
@@ -250,7 +274,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Invite",
-                    len: 10,
+                    len: 15,
                 },
                 Token::Str("approximate_member_count"),
                 Token::Some,
@@ -271,6 +295,9 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("code"),
                 Token::Str("uniquecode"),
+                Token::Str("created_at"),
+                Token::Some,
+                Token::Str("2021-08-03T16:08:36.325000+00:00"),
                 Token::Str("expires_at"),
                 Token::Some,
                 Token::Str("2021-08-10T16:08:36.325000+00:00"),
@@ -374,6 +401,12 @@ mod tests {
                 Token::Str("username"),
                 Token::Str("test"),
                 Token::StructEnd,
+                Token::Str("max_age"),
+                Token::Some,
+                Token::U64(86_400),
+                Token::Str("max_uses"),
+                Token::Some,
+                Token::U64(10),
                 Token::Str("stage_instance"),
                 Token::Some,
                 Token::Struct {
@@ -443,6 +476,12 @@ mod tests {
                 Token::Str("username"),
                 Token::Str("test"),
                 Token::StructEnd,
+                Token::Str("temporary"),
+                Token::Some,
+                Token::Bool(false),
+                Token::Str("uses"),
+                Token::Some,
+                Token::U64(3),
                 Token::StructEnd,
             ],
         );

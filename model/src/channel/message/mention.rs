@@ -95,6 +95,7 @@ mod tests {
             discriminator: 1,
             id: Id::new(1).expect("non zero"),
             member: Some(PartialMember {
+                avatar: None,
                 deaf: false,
                 joined_at: None,
                 mute: true,

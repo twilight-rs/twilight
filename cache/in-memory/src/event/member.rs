@@ -35,6 +35,7 @@ impl InMemoryCache {
 
         self.cache_user(Cow::Owned(member.user), Some(guild_id));
         let cached = CachedMember {
+            avatar: member.avatar,
             deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at,
@@ -72,6 +73,7 @@ impl InMemoryCache {
             .insert(user_id);
 
         let cached = CachedMember {
+            avatar: member.avatar.to_owned(),
             deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at.to_owned(),
@@ -92,10 +94,10 @@ impl InMemoryCache {
     ) {
         let id = (guild_id, member.id);
 
-        let (deaf, mute) = match self.members.get(&id) {
+        let (avatar, deaf, mute) = match self.members.get(&id) {
             Some(m) if *m == member => return,
-            Some(m) => (m.deaf(), m.mute()),
-            None => (None, None),
+            Some(m) => (m.avatar().map(ToString::to_string), m.deaf(), m.mute()),
+            None => (None, None, None),
         };
 
         self.guild_members
@@ -104,6 +106,7 @@ impl InMemoryCache {
             .insert(member.id);
 
         let cached = CachedMember {
+            avatar,
             deaf,
             guild_id,
             joined_at: member.joined_at.to_owned(),
@@ -190,6 +193,7 @@ impl UpdateCache for MemberUpdate {
             None => return,
         };
 
+        member.avatar = self.avatar.clone();
         member.deaf = self.deaf.or_else(|| member.deaf());
         member.mute = self.mute.or_else(|| member.mute());
         member.nick = self.nick.clone();

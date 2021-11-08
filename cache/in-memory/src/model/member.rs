@@ -14,6 +14,7 @@ use twilight_model::{
 /// [`Member`]: twilight_model::guild::Member
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
+    pub(crate) avatar: Option<String>,
     pub(crate) deaf: Option<bool>,
     pub(crate) guild_id: Id<GuildMarker>,
     pub(crate) joined_at: Option<Timestamp>,
@@ -26,6 +27,11 @@ pub struct CachedMember {
 }
 
 impl CachedMember {
+    /// Member's guild avatar.
+    pub fn avatar(&self) -> Option<&str> {
+        self.nick.as_deref()
+    }
+
     /// Whether the member is deafened in a voice channel.
     pub const fn deaf(&self) -> Option<bool> {
         self.deaf
@@ -76,6 +82,7 @@ impl CachedMember {
 impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
         (
+            &self.avatar,
             self.deaf,
             self.joined_at,
             self.mute,
@@ -85,6 +92,7 @@ impl PartialEq<Member> for CachedMember {
             &self.roles,
             self.user_id,
         ) == (
+            &other.avatar,
             Some(other.deaf),
             other.joined_at,
             Some(other.mute),
@@ -157,6 +165,7 @@ mod tests {
 
     fn cached_member() -> CachedMember {
         CachedMember {
+            avatar: None,
             deaf: Some(false),
             guild_id: Id::new(3).expect("non zero"),
             joined_at: None,
@@ -192,6 +201,7 @@ mod tests {
     #[test]
     fn test_eq_member() {
         let member = Member {
+            avatar: None,
             deaf: false,
             guild_id: Id::new(3).expect("non zero"),
             joined_at: None,
@@ -209,6 +219,7 @@ mod tests {
     #[test]
     fn test_eq_partial_member() {
         let member = PartialMember {
+            avatar: None,
             deaf: false,
             joined_at: None,
             mute: true,

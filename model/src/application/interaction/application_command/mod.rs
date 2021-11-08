@@ -30,6 +30,7 @@ pub struct ApplicationCommand {
     /// Data from the invoked command.
     pub data: CommandData,
     /// ID of the guild the interaction was triggered from.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,

@@ -154,6 +154,7 @@ mod tests {
             id: Id::new(4).expect("non zero"),
             kind: InteractionType::MessageComponent,
             member: Some(PartialMember {
+                avatar: None,
                 deaf: false,
                 joined_at: None,
                 mute: false,

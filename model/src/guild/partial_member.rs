@@ -8,6 +8,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialMember {
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
     pub deaf: bool,
     pub joined_at: Option<Timestamp>,
     pub mute: bool,
@@ -39,6 +42,7 @@ mod tests {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value = PartialMember {
+            avatar: None,
             deaf: false,
             joined_at: Some(joined_at),
             mute: true,

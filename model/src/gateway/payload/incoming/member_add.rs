@@ -28,6 +28,7 @@ mod tests {
     #[test]
     fn test_member_add() {
         let value = MemberAdd(Member {
+            avatar: None,
             deaf: false,
             guild_id: Id::new(1).expect("non zero"),
             joined_at: None,
