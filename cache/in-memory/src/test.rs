@@ -48,6 +48,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         interaction: None,
         kind: MessageType::Regular,
         member: Some(PartialMember {
+            avatar: None,
             deaf: false,
             joined_at: None,
             mute: false,
@@ -81,6 +82,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         },
         guild_id: Some(GuildId::new(1).expect("non zero")),
         member: Some(Member {
+            avatar: None,
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             joined_at: None,
@@ -114,6 +116,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
     cache.update(&reaction);
 
     reaction.member.replace(Member {
+        avatar: None,
         deaf: false,
         guild_id: GuildId::new(1).expect("non zero"),
         joined_at: None,
@@ -208,6 +211,7 @@ pub fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
 
 pub fn member(id: UserId, guild_id: GuildId) -> Member {
     Member {
+        avatar: None,
         deaf: false,
         guild_id,
         joined_at: None,
