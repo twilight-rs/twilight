@@ -102,10 +102,13 @@ mod tests {
 
     #[test]
     fn test_thread_members_update() {
+        const JOIN_TIMESTAMP: &str = "2015-04-26T06:26:56.936000+00:00";
+        const PREMIUM_SINCE: &str = "2021-03-16T14:29:19.046000+00:00";
+
         let joined_at =
-            Timestamp::from_str("2015-04-26T06:26:56.936000+00:00").expect("timestamp error");
+            Timestamp::from_str(&JOIN_TIMESTAMP).expect("timestamp error");
         let premium_since =
-            Timestamp::from_str("2021-03-16T14:29:19.046000+00:00").expect("timestamp error");
+            Timestamp::from_str(&PREMIUM_SINCE).expect("timestamp error");
 
         let member = Member {
             avatar: Some("guild avatar".to_owned()),
@@ -172,8 +175,6 @@ mod tests {
             },
         };
 
-        const JOIN_TIMESTAMP: &str = "2015-04-26T06:26:56.936000+00:00";
-
         let join_timestamp = Timestamp::from_str(JOIN_TIMESTAMP).expect("timestamp error");
 
         let value = ThreadMembersUpdate {
@@ -228,7 +229,7 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Some,
-                Token::Str("2015-04-26T06:26:56.936000+00:00"),
+                Token::Str(JOIN_TIMESTAMP),
                 Token::Str("mute"),
                 Token::Bool(true),
                 Token::Str("nick"),
@@ -238,7 +239,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("premium_since"),
                 Token::Some,
-                Token::Str("2021-03-16T14:29:19.046000+00:00"),
+                Token::Str(PREMIUM_SINCE),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
