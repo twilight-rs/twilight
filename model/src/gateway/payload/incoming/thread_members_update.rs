@@ -100,15 +100,16 @@ mod tests {
 
     use super::ThreadMembersUpdate;
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn test_thread_members_update() {
         const JOIN_TIMESTAMP: &str = "2015-04-26T06:26:56.936000+00:00";
         const PREMIUM_SINCE: &str = "2021-03-16T14:29:19.046000+00:00";
 
         let joined_at =
-            Timestamp::from_str(&JOIN_TIMESTAMP).expect("timestamp error");
+            Timestamp::from_str(JOIN_TIMESTAMP).expect("timestamp error");
         let premium_since =
-            Timestamp::from_str(&PREMIUM_SINCE).expect("timestamp error");
+            Timestamp::from_str(PREMIUM_SINCE).expect("timestamp error");
 
         let member = Member {
             avatar: Some("guild avatar".to_owned()),
