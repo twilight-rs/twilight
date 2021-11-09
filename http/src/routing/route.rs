@@ -1292,12 +1292,29 @@ impl<'a> Route<'a> {
             | Self::UpdateGuildIntegration { guild_id, .. } => {
                 Path::GuildsIdIntegrationsId(*guild_id)
             }
-            Self::DeleteInteractionOriginal { application_id, .. }
-            | Self::GetFollowupMessage { application_id, .. }
-            | Self::GetInteractionOriginal { application_id, .. }
-            | Self::UpdateInteractionOriginal { application_id, .. } => {
-                Path::WebhooksIdTokenMessagesId(*application_id)
+            Self::DeleteInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
             }
+            | Self::GetFollowupMessage {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::GetInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::UpdateInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            } => Path::WebhooksIdToken(
+                *application_id,
+                (*interaction_token).to_string().into_boxed_str(),
+            ),
             Self::DeleteInvite { .. }
             | Self::GetInvite { .. }
             | Self::GetInviteWithExpiration { .. } => Path::InvitesCode,
@@ -1335,13 +1352,35 @@ impl<'a> Route<'a> {
                 *guild_id,
                 (*template_code).to_string().into_boxed_str(),
             ),
-            Self::DeleteWebhookMessage { webhook_id, .. }
-            | Self::GetWebhookMessage { webhook_id, .. }
-            | Self::UpdateWebhookMessage { webhook_id, .. } => {
-                Path::WebhooksIdTokenMessagesId(*webhook_id)
+            Self::DeleteWebhookMessage {
+                webhook_id, token, ..
             }
+            | Self::GetWebhookMessage {
+                webhook_id, token, ..
+            }
+            | Self::UpdateWebhookMessage {
+                webhook_id, token, ..
+            } => {
+                Path::WebhooksIdTokenMessagesId(*webhook_id, (*token).to_string().into_boxed_str())
+            }
+            Self::DeleteWebhook {
+                webhook_id,
+                token: Some(token),
+                ..
+            }
+            | Self::ExecuteWebhook {
+                webhook_id, token, ..
+            }
+            | Self::GetWebhook {
+                webhook_id,
+                token: Some(token),
+                ..
+            }
+            | Self::UpdateWebhook {
+                webhook_id,
+                token: Some(token),
+            } => Path::WebhooksIdToken(*webhook_id, (*token).to_string().into_boxed_str()),
             Self::DeleteWebhook { webhook_id, .. }
-            | Self::ExecuteWebhook { webhook_id, .. }
             | Self::GetWebhook { webhook_id, .. }
             | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(*webhook_id)),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(*channel_id),

@@ -255,10 +255,12 @@ pub enum Path {
     UsersIdGuildsId,
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
-    /// Operating on a message created by a webhook.
-    WebhooksIdTokenMessagesId(u64),
-    /// Operating on a webhook.
+    /// Operating on a webhook as a bot.
     WebhooksId(u64),
+    /// Operating on a webhook as a webhook.
+    WebhooksIdToken(u64, Box<str>),
+    /// Operating on a message created by a webhook.
+    WebhooksIdTokenMessagesId(u64, Box<str>),
 }
 
 impl FromStr for Path {
@@ -402,8 +404,13 @@ impl FromStr for Path {
             ["users", _, "guilds"] => UsersIdGuilds,
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
-            ["webhooks", id] | ["webhooks", id, _] => WebhooksId(parse_id(id)?),
-            ["webhooks", id, _, "messages", _] => WebhooksIdTokenMessagesId(parse_id(id)?),
+            ["webhooks", id] => WebhooksId(parse_id(id)?),
+            ["webhooks", id, token] => {
+                WebhooksIdToken(parse_id(id)?, (*token).to_string().into_boxed_str())
+            }
+            ["webhooks", id, token, "messages", _] => {
+                WebhooksIdTokenMessagesId(parse_id(id)?, (*token).to_string().into_boxed_str())
+            }
             _ => {
                 return Err(PathParseError {
                     kind: PathParseErrorType::NoMatch,
