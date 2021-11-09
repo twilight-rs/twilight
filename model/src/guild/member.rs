@@ -56,7 +56,8 @@ pub struct MemberIntermediary {
 }
 
 impl MemberIntermediary {
-    /// Inject a guild ID into a MemberIntermediary.
+    /// Inject a guild ID to create a [`Member`].
+    #[allow(clippy::missing_const_for_fn)] // false positive
     pub fn into_member(self, guild_id: GuildId) -> Member {
         Member {
             avatar: self.avatar,
