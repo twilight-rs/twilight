@@ -84,17 +84,28 @@ impl<'de> Visitor<'de> for ThreadMembersUpdateVisitor {
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-    
+
     use serde_test::Token;
 
-    use crate::{channel::thread::ThreadMember, datetime::Timestamp, gateway::presence::{Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId}, guild::Member, id::{ChannelId, GuildId, UserId}, user::User};
+    use crate::{
+        channel::thread::ThreadMember,
+        datetime::Timestamp,
+        gateway::presence::{
+            Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId,
+        },
+        guild::Member,
+        id::{ChannelId, GuildId, UserId},
+        user::User,
+    };
 
     use super::ThreadMembersUpdate;
 
     #[test]
     fn test_thread_members_update() {
-        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00").expect("timestamp error");
-        let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00").expect("timestamp error");
+        let joined_at =
+            Timestamp::from_str("2015-04-26T06:26:56.936000+00:00").expect("timestamp error");
+        let premium_since =
+            Timestamp::from_str("2021-03-16T14:29:19.046000+00:00").expect("timestamp error");
 
         let member = Member {
             avatar: Some("guild avatar".to_owned()),
@@ -162,9 +173,9 @@ mod tests {
         };
 
         const JOIN_TIMESTAMP: &str = "2015-04-26T06:26:56.936000+00:00";
-        
+
         let join_timestamp = Timestamp::from_str(JOIN_TIMESTAMP).expect("timestamp error");
-        
+
         let value = ThreadMembersUpdate {
             added_members: vec![ThreadMember {
                 flags: 1,
@@ -172,7 +183,7 @@ mod tests {
                 join_timestamp,
                 member: Some(member),
                 presence: Some(presence),
-                user_id: Some(UserId::new(3).expect("non zero"))
+                user_id: Some(UserId::new(3).expect("non zero")),
             }],
             guild_id: GuildId::new(2).expect("non zero"),
             id: ChannelId::new(4).expect("non zero"),
@@ -189,7 +200,10 @@ mod tests {
                 },
                 Token::Str("added_members"),
                 Token::Seq { len: Some(1) },
-                Token::Struct { name: "ThreadMemberIntermediary", len: 6 },
+                Token::Struct {
+                    name: "ThreadMemberIntermediary",
+                    len: 6,
+                },
                 Token::Str("flags"),
                 Token::U64(1),
                 Token::Str("id"),
@@ -330,6 +344,7 @@ mod tests {
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
                 Token::StructEnd,
-            ]);
+            ],
+        );
     }
 }

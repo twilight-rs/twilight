@@ -1,4 +1,9 @@
-use crate::{datetime::Timestamp, gateway::presence::{Presence, PresenceIntermediary}, guild::{member::MemberIntermediary, Member}, id::{ChannelId, GuildId, UserId}};
+use crate::{
+    datetime::Timestamp,
+    gateway::presence::{Presence, PresenceIntermediary},
+    guild::{member::MemberIntermediary, Member},
+    id::{ChannelId, GuildId, UserId},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
