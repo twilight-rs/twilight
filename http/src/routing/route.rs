@@ -1311,7 +1311,7 @@ impl<'a> Route<'a> {
                 application_id,
                 interaction_token,
                 ..
-            } => Path::WebhooksIdToken(
+            } => Path::WebhooksIdTokenMessagesId(
                 *application_id,
                 (*interaction_token).to_string().into_boxed_str(),
             ),
