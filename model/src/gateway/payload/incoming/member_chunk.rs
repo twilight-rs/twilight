@@ -394,7 +394,7 @@ mod tests {
                         flags: None,
                         premium_type: None,
                         system: None,
-                        public_flags: Some(UserFlags::VERIFIED_BOT_DEVELOPER),
+                        public_flags: Some(UserFlags::VERIFIED_DEVELOPER),
                     },
                 },
                 Member {
