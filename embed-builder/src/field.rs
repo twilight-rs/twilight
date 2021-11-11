@@ -18,10 +18,10 @@ impl EmbedFieldBuilder {
     /// Create a new default embed field builder.
     ///
     /// Refer to [`EmbedBuilder::FIELD_NAME_LENGTH_LIMIT`] for the maximum
-    /// number of UTF-16 code poitns that can be in a field name.
+    /// number of UTF-16 code points that can be in a field name.
     ///
     /// Refer to [`EmbedBuilder::FIELD_VALUE_LENGTH_LIMIT`] for the maximum
-    /// number of UTF-16 code poitns that can be in a field value.
+    /// number of UTF-16 code points that can be in a field value.
     ///
     /// [`EmbedBuilder::FIELD_NAME_LENGTH_LIMIT`]: crate::EmbedBuilder::FIELD_NAME_LENGTH_LIMIT
     /// [`EmbedBuilder::FIELD_VALUE_LENGTH_LIMIT`]: crate::EmbedBuilder::FIELD_VALUE_LENGTH_LIMIT

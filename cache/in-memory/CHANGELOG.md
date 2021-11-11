@@ -2,6 +2,23 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.7.1] - 2021-10-29
+
+### Additions
+
+Now supports role icons ([#1212] - [@7596ff]).
+
+### Changes
+
+Since sticker descriptions can be null, and to prevent a breaking change
+from that, this state is represented as an empty `String` ([#1200] -
+[@7596ff]). The `PartialEq` implementation has also been updated to
+equate `CachedSticker`s with `description: ""` to `Stickers` with
+`description: None`.
+
+[#1200]: https://github.com/twilight-rs/twilight/pull/1200
+[#1212]: https://github.com/twilight-rs/twilight/pull/1212
+
 ## [0.7.0] - 2021-10-21
 
 ### Additions
@@ -488,6 +505,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.0
 [0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.4
 [0.6.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.3

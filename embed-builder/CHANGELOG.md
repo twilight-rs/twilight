@@ -2,6 +2,14 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.7.1] - 2021-10-29
+
+### Changes
+
+Fixes some spelling errors in documentation ([#1223] - [@7596ff]).
+
+[#1223]: https://github.com/twilight-rs/twilight/pull/1223
+
 ## [0.7.0] - 2021-10-21
 
 ### Changes
@@ -136,6 +144,7 @@ Initial release.
 [@7596ff]: https://github.com/7596ff
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.7.0
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.6.0
 [0.5.2]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.5.2

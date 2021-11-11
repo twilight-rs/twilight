@@ -1,6 +1,6 @@
 //! # twilight-cache-inmemory
 //!
-//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! `twilight-cache-inmemory` is an in-process-memory cache for the
 //! [`twilight-rs`] ecosystem. It's responsible for processing events and
@@ -50,6 +50,8 @@
 //! All first-party crates are licensed under [ISC][LICENSE.md]
 //!
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
+//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
@@ -915,9 +917,9 @@ mod tests {
         cache.cache_member(
             guild_id,
             Member {
+                avatar: None,
                 deaf: false,
                 guild_id,
-                hoisted_role: None,
                 joined_at: None,
                 mute: false,
                 nick: None,
