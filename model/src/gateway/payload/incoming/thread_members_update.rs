@@ -83,10 +83,7 @@ impl<'de> Visitor<'de> for ThreadMembersUpdateVisitor {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
-    use serde_test::Token;
-
+    use super::ThreadMembersUpdate;
     use crate::{
         channel::thread::ThreadMember,
         datetime::Timestamp,
@@ -97,8 +94,8 @@ mod tests {
         id::{ChannelId, GuildId, UserId},
         user::User,
     };
-
-    use super::ThreadMembersUpdate;
+    use serde_test::Token;
+    use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
