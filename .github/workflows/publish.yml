@@ -2,12 +2,9 @@ name: Deploy documentation
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
-      - next
+    types: [opened, reopened, synchronize]
 
 jobs:
   deploy-docs:
@@ -50,7 +47,7 @@ jobs:
           user_email: github-actions[bot]@users.noreply.github.com
 
       - name: Deploy dev docs
-        if: ${{ github.event_name = "pull_request" }}
+        if: ${{ github.event_name = 'pull_request' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
