@@ -183,7 +183,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             options = map.next_value()?;
                         }
                         Fields::Focused => {
-                            if !focused.is_none() {
+                            if focused.is_some() {
                                 return Err(DeError::duplicate_field("focused"));
                             }
 
