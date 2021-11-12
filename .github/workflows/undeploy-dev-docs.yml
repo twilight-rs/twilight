@@ -22,5 +22,5 @@ jobs:
           /usr/bin/git config user.name github-actions[bot]
           /usr/bin/git config user.email github-action[bot]@users.noreply.github.com
           /usr/bin/git rm -r pull/${{ github.event.pull_request.number }}
-          /usr/bin/git commit --allow-empty -m "deploy pr: ${{ github.event.pull_request.number }} (${{ github.event.pull_request.GITHUB_SHA }})"
+          /usr/bin/git commit --allow-empty -m "undeploy pr: ${{ github.event.pull_request.number }}"
           /usr/bin/git push origin gh-pages

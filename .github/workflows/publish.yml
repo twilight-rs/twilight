@@ -50,7 +50,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
-          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: target/doc
           allow_empty_commit: true
@@ -59,6 +59,7 @@ jobs:
           user_email: github-actions[bot]@users.noreply.github.com
           # PR-specific configuration option
           destination_dir: pull/${{ github.event.pull_request.number }}
+          full_commit_message: "deploy pr: ${{ github.event.pull_request.number }} (${{ github.event.pull_request.GITHUB_SHA }})"
 
       - name: Comment link to dev docs deployment
         if: ${{ github.event_name == 'pull_request' }}
