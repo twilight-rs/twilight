@@ -261,7 +261,9 @@ impl FromStr for Path {
             ["channels", id, "recipients"] | ["channels", id, "recipients", _] => {
                 ChannelsIdRecipients(parse_id(id)?)
             }
-            ["channels", id, "thread-members"] => ChannelsIdThreadMembers(parse_id(id)?),
+            ["channels", id, "thread-members"] | ["channels", id, "thread-members", _] => {
+                ChannelsIdThreadMembers(parse_id(id)?)
+            }
             ["channels", id, "threads"] => ChannelsIdThreads(parse_id(id)?),
             ["channels", id, "typing"] => ChannelsIdTyping(parse_id(id)?),
             ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
