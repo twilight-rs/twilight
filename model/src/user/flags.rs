@@ -55,7 +55,7 @@ bitflags! {
         const TEAM_USER = 1 << 10;
         #[deprecated(note = "the name has changed to `VERIFIED_DEVELOPER`", since = "0.7.2")]
         const VERIFIED_BOT_DEVELOPER = 1 << 17;
-        #[deprecated(note = "the name has changed to `CERTIFIED_MONITOR`", since = "0.7.2")]
+        #[deprecated(note = "the name has changed to `CERTIFIED_MODERATOR`", since = "0.7.2")]
         const DISCORD_CERTIFIED_MODERATOR = 1 << 18;
     }
 }
