@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
 
 jobs:
   deploy-docs:
@@ -34,6 +35,7 @@ jobs:
           echo '<meta http-equiv="refresh" content="0;url=twilight/index.html">' > target/doc/index.html
 
       - name: Deploy docs
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
@@ -41,3 +43,30 @@ jobs:
           publish_dir: target/doc
           allow_empty_commit: true
           cname: api.twilight.rs
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+
+      - name: Deploy dev docs
+        if: ${{ github.event_name = "pull_request" }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          publish_branch: gh-pages
+          publish_dir: target/doc
+          allow_empty_commit: true
+          cname: api.twilight.rs
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          # PR-specific configuration option
+          destination_dir: pull/${{ github.event.pull_request.number }}
+
+      - name: Comment link to dev docs deployment
+        if: ${{ github.event_name = "pull_request" }}
+        uses: peter-evans/create-or-update-comment@v1.4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            The documentation has been [built and deployed] to this repository's
+            `gh-pages` branch while this pull request remains open. 
+
+            [built and deployed]: https://api.twilight.rs/pull/${{ github.event.pull_request.number }}/twilight/index.html
