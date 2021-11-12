@@ -22,8 +22,6 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// [the discord docs]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum InteractionResponse {
-    /// Autocomplete results.
-    Autocomplete(Autocomplete),
     /// Used when responding to an interaction of type Ping.
     Pong,
     /// Responds to an interaction with a message.
@@ -36,6 +34,8 @@ pub enum InteractionResponse {
     DeferredUpdateMessage,
     /// Edit the message a component is attached to.
     UpdateMessage(CallbackData),
+    /// Autocomplete results.
+    Autocomplete(Autocomplete),
 }
 
 impl InteractionResponse {

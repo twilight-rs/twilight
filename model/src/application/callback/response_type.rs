@@ -15,6 +15,7 @@ pub enum ResponseType {
     DeferredUpdateMessage = 6,
     /// Edit the message a component is attached to.
     UpdateMessage = 7,
+    /// Respond to an autocomplete interaction with suggested choices.
     ApplicationCommandAutocompleteResult = 8,
 }
 
