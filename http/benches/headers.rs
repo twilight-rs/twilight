@@ -5,7 +5,7 @@ use twilight_http::ratelimiting::headers::RatelimitHeaders;
 fn global_header_iter(map: &HeaderMap) {
     let iter = map.iter().map(|(k, v)| (k.as_str(), v.as_bytes()));
 
-    RatelimitHeaders::from_iter(iter).unwrap();
+    RatelimitHeaders::from_pairs(iter).unwrap();
 }
 
 fn criterion_benchmark(c: &mut Criterion) {

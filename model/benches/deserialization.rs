@@ -6,7 +6,7 @@ use twilight_model::{
     channel::Reaction,
     gateway::{
         event::GatewayEventDeserializer,
-        payload::{MemberChunk, TypingStart},
+        payload::incoming::{MemberChunk, TypingStart},
     },
 };
 

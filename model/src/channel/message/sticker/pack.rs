@@ -66,7 +66,7 @@ mod tests {
             sku_id: StickerPackSkuId::new(847_199_849_233_514_547).expect("non zero"),
             stickers: Vec::from([Sticker {
                 available: true,
-                description: "Wumpus waves hello".into(),
+                description: Some("Wumpus waves hello".into()),
                 format_type: StickerFormatType::Lottie,
                 guild_id: None,
                 id: StickerId::new(749_054_660_769_218_631).expect("non zero"),
@@ -118,6 +118,7 @@ mod tests {
                 Token::Str("available"),
                 Token::Bool(true),
                 Token::Str("description"),
+                Token::Some,
                 Token::Str("Wumpus waves hello"),
                 Token::Str("format_type"),
                 Token::U8(3),

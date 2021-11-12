@@ -2,6 +2,20 @@
 
 Changelog for `twilight`.
 
+## [0.7.1] - 2021-10-29
+
+### Changes
+
+The readme now links to `docs.rs` instead of specific versions of
+crates ([#1224] - [@zeylahellyer]).
+
+[#1224]: https://github.com/twilight-rs/twilight/pull/1224
+
+## [0.7.0] - 2021-10-21
+
+The advertisement crate has been updated to bump development
+dependencies.
+
 ## [0.6.0] - 2021-07-31
 
 The advertisement crate has been updated to bump development
@@ -48,11 +62,15 @@ The advertisement crate is being bumped to update development dependencies.
 Initial release.
 
 [@vivian]: https://github.com/vivian
+[@zeylahellyer]: https://github.com/zeylahellyer
 
 [#610]: https://github.com/twilight-rs/twilight/pull/610
 [#588]: https://github.com/twilight-rs/twilight/pull/588
 [#498]: https://github.com/twilight-rs/twilight/pull/498
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/twilight-0.7.1
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/twilight-0.7.0
+[0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/twilight-0.6.0
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/twilight-0.5.0
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/twilight-0.4.0
 [0.3.0]: https://github.com/twilight-rs/twilight/releases/tag/twilight-v0.3.0

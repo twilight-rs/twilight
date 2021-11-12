@@ -31,9 +31,9 @@ mod tests {
     #[test]
     fn test_member_add() {
         let value = MemberAdd(Member {
+            avatar: None,
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
-            hoisted_role: None,
             joined_at: None,
             mute: false,
             nick: None,
@@ -65,15 +65,13 @@ mod tests {
                 Token::NewtypeStruct { name: "MemberAdd" },
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 8,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
-                Token::Str("hoisted_role"),
-                Token::None,
                 Token::Str("joined_at"),
                 Token::None,
                 Token::Str("mute"),

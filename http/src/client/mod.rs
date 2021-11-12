@@ -22,27 +22,67 @@ use crate::{
             InteractionError, InteractionErrorType,
         },
         channel::{
-            reaction::delete_reaction::TargetUser,
-            stage::create_stage_instance::CreateStageInstanceError,
+            invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
+            message::{
+                CreateMessage, CrosspostMessage, DeleteMessage, DeleteMessages, GetChannelMessages,
+                GetMessage, UpdateMessage,
+            },
+            reaction::{
+                delete_reaction::TargetUser, CreateReaction, DeleteAllReaction, DeleteAllReactions,
+                DeleteReaction, GetReactions, RequestReactionType,
+            },
+            stage::{
+                create_stage_instance::CreateStageInstanceError, CreateStageInstance,
+                DeleteStageInstance, GetStageInstance, UpdateStageInstance,
+            },
             thread::{
                 AddThreadMember, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
                 GetPublicArchivedThreads, GetThreadMembers, JoinThread, LeaveThread,
                 RemoveThreadMember, ThreadValidationError, UpdateThread,
             },
+            webhook::{
+                CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
+                GetChannelWebhooks, GetWebhook, GetWebhookMessage, UpdateWebhook,
+                UpdateWebhookMessage, UpdateWebhookWithToken,
+            },
+            CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
+            FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            ban::{CreateBan, DeleteBan, GetBan, GetBans},
             create_guild::CreateGuildError,
             create_guild_channel::CreateGuildChannelError,
+            emoji::{CreateEmoji, DeleteEmoji, GetEmoji, GetEmojis, UpdateEmoji},
+            integration::{DeleteGuildIntegration, GetGuildIntegrations},
+            member::{
+                AddGuildMember, AddRoleToMember, GetGuildMembers, GetMember, RemoveMember,
+                RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
+            },
+            role::{CreateRole, DeleteRole, GetGuildRoles, UpdateRole, UpdateRolePositions},
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 StickerValidationError, UpdateGuildSticker,
             },
             update_guild_channel_positions::Position,
+            user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
+            CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
+            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
+            GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
+            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentUserNick, UpdateGuild,
+            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
-        prelude::*,
         sticker::{GetNitroStickerPacks, GetSticker},
-        GetUserApplicationInfo, Method, Request,
+        template::{
+            create_guild_from_template::CreateGuildFromTemplateError,
+            create_template::CreateTemplateError, CreateGuildFromTemplate, CreateTemplate,
+            DeleteTemplate, GetTemplate, GetTemplates, SyncTemplate, UpdateTemplate,
+        },
+        user::{
+            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
+            GetUser, LeaveGuild, UpdateCurrentUser,
+        },
+        GetGateway, GetUserApplicationInfo, GetVoiceRegions, Method, Request,
     },
     response::{future::InvalidToken, ResponseFuture},
     API_VERSION,
@@ -1264,7 +1304,7 @@ impl Client {
     /// Get a list of users that reacted to a message with an `emoji`.
     ///
     /// This endpoint is limited to 100 users maximum, so if a message has more than 100 reactions,
-    /// requests must be chained until all reactions are retireved.
+    /// requests must be chained until all reactions are retrieved.
     pub const fn reactions<'a>(
         &'a self,
         channel_id: ChannelId,
@@ -2643,7 +2683,7 @@ impl Client {
     /// # Errors
     ///
     /// Returns an [`ErrorType::Unauthorized`] error type if the configured
-    /// token has become invalid due to expiration, revokation, etc.
+    /// token has become invalid due to expiration, revocation, etc.
     ///
     /// [`Response`]: super::response::Response
     pub fn request<T>(&self, request: Request) -> ResponseFuture<T> {

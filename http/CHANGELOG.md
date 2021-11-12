@@ -2,6 +2,66 @@
 
 Changelog for `twilight-http`.
 
+## [0.7.1] - 2021-10-29
+
+### Additions
+
+`CreateRole` and `UpdateRole` now support setting either the `icon`
+(image data) or the `unicode_emoji` fields ([#1212] - [@7596ff]).
+
+Add new API error codes: `MaximumGuildWidgets`, `ServerNeedsBoosts`, and
+`CannotReplyWithoutMessageHistory` ([#1215] - [@7596ff]).
+
+### Changes
+
+Fixes some spelling errors in documentation ([#1223] - [@7596ff]).
+
+### Fixes
+
+Add a missing `?` to `GetPublicArchivedThreads` ([#1214] -
+[@cherryblossom000]).
+
+Actually serialize the JSON body on `UpdateThread` ([#1218] -
+[@7596ff]).
+
+[#1212]: https://github.com/twilight-rs/twilight/pull/1212
+[#1214]: https://github.com/twilight-rs/twilight/pull/1214
+[#1215]: https://github.com/twilight-rs/twilight/pull/1215
+[#1218]: https://github.com/twilight-rs/twilight/pull/1218
+[#1223]: https://github.com/twilight-rs/twilight/pull/1223
+
+## [0.7.0] - 2021-10-21
+
+### Changes
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+Rework the header API ([#1066] - [@zeylahellyer]) by taking an iterator
+of key-value header pairs instead of an `http` crate `HeaderMap`,
+removing the ratelimit error types in favor of header parsing error
+types, and providing additional information about how parsing failed.
+See the PR for more details.
+
+`Client` no longer implements `Clone`, because it is no longer
+internally wrapped in an `Arc` ([#1067] - [@zeylahellyer]). To retain
+this functionality, you can wrap them it an `Arc` or a `Rc` manually.
+
+`Client::{new_create_global_command, new_create_guild_command}` have
+been renamed to `create_global_command` and `create_guild_command`
+respectively, and their previous implementations have been removed.
+
+Deprecated re-exports of application request builders have been removed
+([#1193] - [@7596ff]).
+
+`Ratelimiter::get` has been removed in favor of `ticket` ([#1195] -
+[@7596ff]).
+
+[#1066]: https://github.com/twilight-rs/twilight/pull/1066
+[#1067]: https://github.com/twilight-rs/twilight/pull/1067
+[#1161]: https://github.com/twilight-rs/twilight/pull/1161
+[#1193]: https://github.com/twilight-rs/twilight/pull/1193
+[#1195]: https://github.com/twilight-rs/twilight/pull/1195
+
 ## [0.6.6] - 2021-10-07
 
 ### Additions
@@ -199,7 +259,7 @@ is now written like this:
 
 ```rust
 client.create_message(ChannelId(1))
-    .content(&"some conntent")?
+    .content(&"some content")?
     .embeds(&[&Embed {}])?
     .exec()
     .await?
@@ -727,7 +787,7 @@ if the referenced message does not exist ([#708] - [@7596ff]).
 
 ### Enhancements
 
-Update `simd-json` to 0.4 ([#786] - [@Gekbpunkt]).
+Update `simd-json` to 0.4 ([#786] - [@Gelbpunkt]).
 
 The `futures-channel` dependency has been removed ([#785] - [@Gelbpunkt]).
 
@@ -940,7 +1000,7 @@ a proxy, which can be configured with a manual `hyper` client.
 
 `error::UrlError`'s `UrlParsing` variant has been removed as it can no longer
 occur. `error::Error`'s `BuildingClient` has been removed as building clients
-can no longer fail. All Weqwest errors are now `hyper` errors.
+can no longer fail. All Reqwest errors are now `hyper` errors.
 
 A couple of re-exports have been removed. Use
 `twilight_model::user::CurrentUserGuild` instead of
@@ -1235,6 +1295,7 @@ Initial release.
 [@AsianIntel]: https://github.com/AsianIntel
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
+[@cherryblossom000]: https://github.com/cherryblossom000
 [@coadler]: https://github.com/coadler
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
@@ -1288,6 +1349,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.0
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.0
 [0.6.6]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.6
 [0.6.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.5
 [0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.6.4

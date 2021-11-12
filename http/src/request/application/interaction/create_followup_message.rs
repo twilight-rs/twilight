@@ -232,7 +232,7 @@ impl<'a> CreateFollowupMessage<'a> {
         Ok(self)
     }
 
-    /// The content of the webook's message.
+    /// The content of the webhook's message.
     ///
     /// Up to 2000 UTF-16 codepoints.
     pub const fn content(mut self, content: &'a str) -> Self {

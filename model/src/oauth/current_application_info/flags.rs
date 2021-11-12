@@ -12,6 +12,8 @@ bitflags! {
         const GATEWAY_GUILD_MEMBERS_LIMITED = 1 << 15;
         const VERIFICATION_PENDING_GUILD_LIMIT = 1 << 16;
         const EMBEDDED = 1 << 17;
+        const GATEWAY_MESSAGE_CONTENT = 1 << 18;
+        const GATEWAY_MESSAGE_CONTENT_LIMITED = 1 << 19;
     }
 }
 

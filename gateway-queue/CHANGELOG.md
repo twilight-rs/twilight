@@ -2,6 +2,14 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.7.0] - 2021-10-21
+
+### Changes
+
+The MSRV has been updated to 1.53 ([#1161] - [@7596ff]).
+
+[#1161]: https://github.com/twilight-rs/twilight/pull/1147
+
 ## [0.6.0] - 2021-07-31
 
 This major version bump of the Gateway Queue is done to match all of the other
@@ -69,12 +77,15 @@ changes.
 
 Initial release.
 
+[@7596ff]: https://github.com/7596ff
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.7.0
+[0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.6.0
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.5.1
 [0.5.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.5.0
 [0.4.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.4.0

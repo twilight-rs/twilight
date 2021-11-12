@@ -275,7 +275,6 @@ mod tests {
     use super::{ChannelId, GuildId, Member, UserId, VoiceState};
     use crate::{
         datetime::{Timestamp, TimestampParseError},
-        id::RoleId,
         user::User,
     };
     use serde_test::Token;
@@ -350,9 +349,9 @@ mod tests {
             deaf: false,
             guild_id: Some(GuildId::new(2).expect("non zero")),
             member: Some(Member {
+                avatar: None,
                 deaf: false,
                 guild_id: GuildId::new(2).expect("non zero"),
-                hoisted_role: Some(RoleId::new(2).expect("non zero")),
                 joined_at: Some(joined_at),
                 mute: true,
                 nick: Some("twilight".to_owned()),
@@ -409,16 +408,12 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 10,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
-                Token::Str("2"),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
                 Token::Str("2"),
                 Token::Str("joined_at"),
                 Token::Some,

@@ -140,7 +140,7 @@ pub enum ErrorCode {
     MaximumServerCategoriesReached,
     /// Guild already has a template
     GuildTemplateAlreadyExist,
-    /// Max number of thread participants has been reached
+    /// Max number of thread participants has been reached (1000)
     ThreadMaxParticipants,
     /// Maximum number of bans for non-guild members have been exceeded
     MaximumNonGuildBansReached,
@@ -150,6 +150,8 @@ pub enum ErrorCode {
     MaximumStickersReached,
     /// Maximum number of prune requests has been reached. Try again later
     MaximumPruneRequestsReached,
+    /// Maximum number of guild widget settings updates has been reached. Try again later
+    MaximumGuildWidgets,
     /// Unauthorized. Provide a valid token and try again
     Unauthorized,
     /// You need to verify your account in order to perform this action
@@ -246,6 +248,8 @@ pub enum ErrorCode {
     ServerNotAvailableLocation,
     /// This server needs monetization enabled in order to perform this action
     ServerNeedsMonetiazation,
+    /// This server needs more boosts to perform this action
+    ServerNeedsBoosts,
     /// Two factor is required for this operation.
     TwoFactorRequired,
     /// No users with DiscordTag exist
@@ -256,6 +260,8 @@ pub enum ErrorCode {
     ApiResourceOverloaded,
     /// The Stage is already open
     StageAlreadyOpen,
+    /// Cannot reply without permission to read message history
+    CannotReplyWithoutMessageHistory,
     /// A thread has already been created for this message
     ThreadAlreadyCreated,
     /// Thread is locked
@@ -345,6 +351,7 @@ impl ErrorCode {
             Self::MaximumGuildBansFetchesReached => 30037,
             Self::MaximumStickersReached => 30039,
             Self::MaximumPruneRequestsReached => 30040,
+            Self::MaximumGuildWidgets => 30042,
             Self::Unauthorized => 40001,
             Self::AccountNeedsVerification => 40002,
             Self::OpeningDirectMessageRateLimitReached => 40003,
@@ -392,11 +399,13 @@ impl ErrorCode {
             Self::ThreadInvalidBeforeValue => 50085,
             Self::ServerNotAvailableLocation => 50095,
             Self::ServerNeedsMonetiazation => 50097,
+            Self::ServerNeedsBoosts => 50101,
             Self::TwoFactorRequired => 60003,
             Self::NoSuchUser => 80004,
             Self::ReactionBlocked => 90001,
             Self::ApiResourceOverloaded => 130_000,
             Self::StageAlreadyOpen => 150_006,
+            Self::CannotReplyWithoutMessageHistory => 160_002,
             Self::ThreadAlreadyCreated => 160_004,
             Self::ThreadLocked => 160_005,
             Self::MaxActiveThreads => 160_006,
@@ -481,6 +490,7 @@ impl From<u64> for ErrorCode {
             30037 => Self::MaximumGuildBansFetchesReached,
             30039 => Self::MaximumStickersReached,
             30040 => Self::MaximumPruneRequestsReached,
+            30042 => Self::MaximumGuildWidgets,
             40001 => Self::Unauthorized,
             40002 => Self::AccountNeedsVerification,
             40003 => Self::OpeningDirectMessageRateLimitReached,
@@ -528,11 +538,13 @@ impl From<u64> for ErrorCode {
             50085 => Self::ThreadInvalidBeforeValue,
             50095 => Self::ServerNotAvailableLocation,
             50097 => Self::ServerNeedsMonetiazation,
+            50101 => Self::ServerNeedsBoosts,
             60003 => Self::TwoFactorRequired,
             80004 => Self::NoSuchUser,
             90001 => Self::ReactionBlocked,
             130_000 => Self::ApiResourceOverloaded,
             150_006 => Self::StageAlreadyOpen,
+            160_002 => Self::CannotReplyWithoutMessageHistory,
             160_004 => Self::ThreadAlreadyCreated,
             160_005 => Self::ThreadLocked,
             160_006 => Self::MaxActiveThreads,
@@ -612,11 +624,12 @@ impl Display for ErrorCode {
             Self::MaximumGuildMembersReached => f.write_str("Maximum number of server members reached"),
             Self::MaximumServerCategoriesReached => f.write_str("Maximum number of server categories has been reached"),
             Self::GuildTemplateAlreadyExist => f.write_str("Guild already has a template"),
-            Self::ThreadMaxParticipants => f.write_str("Max number of thread participants has been reached"),
+            Self::ThreadMaxParticipants => f.write_str("Max number of thread participants has been reached (1000)"),
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),
             Self::MaximumStickersReached => f.write_str("Maximum number of stickers reached"),
             Self::MaximumPruneRequestsReached => f.write_str("Maximum number of prune requests has been reached. Try again later"),
+            Self::MaximumGuildWidgets => f.write_str("Maximum number of guild widget settings updates has been reached. Try again later"),
             Self::Unauthorized => f.write_str("Unauthorized. Provide a valid token and try again"),
             Self::AccountNeedsVerification => f.write_str("You need to verify your account in order to perform this action"),
             Self::OpeningDirectMessageRateLimitReached => f.write_str("You are opening direct messages too fast"),
@@ -664,11 +677,13 @@ impl Display for ErrorCode {
             Self::ThreadInvalidBeforeValue => f.write_str("`before` value is earlier than the thread creation date"),
             Self::ServerNotAvailableLocation => f.write_str("This server is not available in your location"),
             Self::ServerNeedsMonetiazation => f.write_str("This server needs monetization enabled in order to perform this action"),
+            Self::ServerNeedsBoosts => f.write_str("This server needs more boosts to perform this action"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
             Self::NoSuchUser => f.write_str("No users with DiscordTag exist"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
             Self::ApiResourceOverloaded => f.write_str("API resource is currently overloaded. Try again a little later"),
             Self::StageAlreadyOpen => f.write_str("The Stage is already open"),
+            Self::CannotReplyWithoutMessageHistory => f.write_str("Cannot reply without permission to read message history"),
             Self::ThreadAlreadyCreated => f.write_str("A thread has already been created for this message"),
             Self::ThreadLocked => f.write_str("Thread is locked"),
             Self::MaxActiveThreads => f.write_str("Maximum number of active threads reached"),
