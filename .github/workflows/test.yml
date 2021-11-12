@@ -2,6 +2,11 @@ name: Test
 
 on: [push, pull_request]
 
+env:
+  # Use `haswell` instead of `native` due to some GitHub
+  # Actions runners not supporting some `avx512` instructions.
+  RUSTFLAGS: -C target-cpu=haswell
+
 jobs:
   test:
     name: Test
@@ -38,9 +43,6 @@ jobs:
           - package: http
             features: simd-json
             additional: --features rustls
-            # Use `haswell` instead of `native` due to some GitHub
-            # Actions runners not supporting some `avx512` instructions.
-            rustflags: "-C target-cpu=haswell"
           - package: gateway
             features: rustls
             additional: --features zlib-stock
@@ -50,7 +52,6 @@ jobs:
           - package: gateway
             features: simd-json
             additional: --features rustls,zlib-stock
-            rustflags: "-C target-cpu=native"
           - package: lavalink
             additional: --features http-support
 
@@ -70,8 +71,6 @@ jobs:
 
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
-        env:
-          RUSTFLAGS: ${{ matrix.rustflags }}
         run: |
           cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
 
@@ -98,7 +97,31 @@ jobs:
         run: cat /proc/cpuinfo
 
       - run: cargo check --workspace --benches --examples --tests --all-features
-        env:
-          # Use `haswell` instead of `native` due to some GitHub Actions
-          # runners not supporting some `avx512` instructions.
-          RUSTFLAGS: "-C target-cpu=haswell"
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    # Don't collect coverage if tests failed
+    needs: test
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Set excluded examples
+        id: excluded-examples
+        run: echo "::set-output name=out::$(grep -h '^name' examples/*/Cargo.toml | cut -d \" -f2 | xargs -I '{}' printf '--exclude {} ')"
+
+      - name: Collect coverage
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: "--ignore-tests --workspace --all-features ${{ steps.excluded-examples.outputs.out }}"
+
+      - name: Upload coverage to codecov.io
+        uses: codecov/codecov-action@v2
+
+      - name: Upload coverage to GitHub
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: cobertura.xml
