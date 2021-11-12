@@ -1,0 +1,3 @@
+[build]
+publish = "target/doc/"
+command = "./netlify.sh"
