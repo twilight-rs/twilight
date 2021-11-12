@@ -35,6 +35,28 @@ bitflags! {
         /// Bot uses only HTTP interactions and is shown in the online member
         /// list.
         const BOT_HTTP_INTERACTIONS = 1 << 19;
+        #[deprecated(note = "the name has changed to `STAFF`", since = "0.7.2")]
+        const DISCORD_EMPLOYEE = 1;
+        #[deprecated(note = "the name has changed to `PARTNER`", since = "0.7.2")]
+        const DISCORD_PARTNER = 1 << 1;
+        #[deprecated(note = "the name has changed to `HYPESQUAD`", since = "0.7.2")]
+        const HYPESQUAD_EVENTS = 1 << 2;
+        #[deprecated(note = "the name has changed to `BUG_HUNTER_LEVEL_1`", since = "0.7.2")]
+        const BUG_HUNTER = 1 << 3;
+        #[deprecated(note = "the name has changed to `HYPESQUAD_ONLINE_HOUSE_1`", since = "0.7.2")]
+        const HOUSE_BRAVERY = 1 << 6;
+        #[deprecated(note = "the name has changed to `HYPESQUAD_ONLINE_HOUSE_2`", since = "0.7.2")]
+        const HOUSE_BRILLIANCE = 1 << 7;
+        #[deprecated(note = "the name has changed to `HYPESQUAD_ONLINE_HOUSE_3`", since = "0.7.2")]
+        const HOUSE_BALANCE = 1 << 8;
+        #[deprecated(note = "the name has changed to `PREMIUM_EARLY_SUPPORTER`", since = "0.7.2")]
+        const EARLY_SUPPORTER = 1 << 9;
+        #[deprecated(note = "the name has changed to `TEAM_PSEUDO_USER`", since = "0.7.2")]
+        const TEAM_USER = 1 << 10;
+        #[deprecated(note = "the name has changed to `VERIFIED_DEVELOPER`", since = "0.7.2")]
+        const VERIFIED_BOT_DEVELOPER = 1 << 17;
+        #[deprecated(note = "the name has changed to `CERTIFIED_MONITOR`", since = "0.7.2")]
+        const DISCORD_CERTIFIED_MODERATOR = 1 << 18;
     }
 }
 
