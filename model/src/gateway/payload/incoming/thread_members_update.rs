@@ -1,5 +1,3 @@
-use std::fmt::{Formatter, Result as FmtResult};
-
 use crate::{
     channel::thread::{ThreadMember, ThreadMemberIntermediary},
     id::{ChannelId, GuildId, UserId},
@@ -8,6 +6,7 @@ use serde::{
     de::{value::MapAccessDeserializer, MapAccess, Visitor},
     Deserialize, Deserializer, Serialize,
 };
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadMembersUpdate {
