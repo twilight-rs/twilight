@@ -5,12 +5,6 @@ pub mod sticker;
 pub mod template;
 pub mod user;
 
-#[deprecated(
-    note = "this will be removed in a future major version",
-    since = "0.7.2"
-)]
-pub mod prelude;
-
 mod audit_reason;
 mod base;
 mod get_gateway;
