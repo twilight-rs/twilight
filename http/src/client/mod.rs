@@ -2,6 +2,7 @@ mod builder;
 
 pub use self::builder::ClientBuilder;
 
+#[allow(deprecated)]
 use crate::{
     error::{Error, ErrorType},
     ratelimiting::Ratelimiter,
@@ -597,6 +598,7 @@ impl Client {
     }
 
     /// Changes the user's nickname in a guild.
+    #[allow(deprecated)]
     #[deprecated(note = "use update_current_member instead", since = "0.7.2")]
     pub const fn update_current_user_nick<'a>(
         &'a self,

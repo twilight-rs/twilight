@@ -11,7 +11,7 @@ use std::{
 };
 use twilight_model::id::GuildId;
 
-/// The error created when the member can not be updated as configured.
+/// Error emitted when the member can not be updated as configured.
 #[derive(Debug)]
 pub struct UpdateCurrentMemberError {
     kind: UpdateCurrentMemberErrorType,
@@ -47,7 +47,7 @@ impl Display for UpdateCurrentMemberError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             UpdateCurrentMemberErrorType::NicknameInvalid => {
-                f.write_str("the nickname length is invalid")
+                f.write_str("nickname length is invalid")
             }
         }
     }
@@ -59,7 +59,7 @@ impl Error for UpdateCurrentMemberError {}
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum UpdateCurrentMemberErrorType {
-    /// The nickname is either empty or the length is more than 32 UTF-16 characters.
+    /// Nickname is either empty or the length is more than 32 UTF-16 characters.
     NicknameInvalid,
 }
 

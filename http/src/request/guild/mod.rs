@@ -43,4 +43,4 @@ pub use self::{
 };
 
 #[deprecated(note = "use UpdateCurrentMember instead", since = "0.7.2")]
-pub use self::update_current_user_nick::UpdateCurrentUserNick;
+pub type UpdateCurrentUserNick<'a> = self::update_current_user_nick::UpdateCurrentUserNick<'a>;

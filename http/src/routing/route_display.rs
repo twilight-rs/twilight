@@ -1139,4 +1139,11 @@ mod tests {
             route.display().to_string()
         );
     }
+
+    #[test]
+    fn test_update_current_member() {
+        let route = Route::UpdateCurrentMember { guild_id: 1 };
+
+        assert_eq!("guilds/1/members/@me", route.display().to_string());
+    }
 }
