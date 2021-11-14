@@ -8,6 +8,20 @@
 [`twilight-rs`] ecosystem. It's responsible for processing events and
 caching things like guilds, channels, users, and voice states.
 
+## Features
+
+By default no feature is enabled.
+
+### `permission-calculator`
+
+The `permission-calculator` feature flag will bring in support for the
+`PermissionCalculator`; an API for calculating permissions through it is
+exposed via `InMemoryCache::permissions`. Support for calculating the
+permissions of a member on a root guild-level and in a guild channel is
+included.
+
+Refer to the `permission` module for more documentation.
+
 ## Examples
 
 Update a cache with events that come in through the gateway:
