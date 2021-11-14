@@ -661,6 +661,13 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a member of a thread.
+    GetThreadMember {
+        /// ID of the thread.
+        channel_id: u64,
+        /// ID of the member.
+        user_id: u64,
+    },
     /// Route information to get members of a thread.
     GetThreadMembers {
         /// ID of the thread.
@@ -1092,6 +1099,7 @@ impl<'a> Route<'a> {
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
             | Self::GetTemplates { .. }
+            | Self::GetThreadMember { .. }
             | Self::GetThreadMembers { .. }
             | Self::GetUserConnections
             | Self::GetUserPrivateChannels
@@ -1205,6 +1213,7 @@ impl<'a> Route<'a> {
                 Path::GuildsIdMembersIdRolesId(*guild_id)
             }
             Self::AddThreadMember { channel_id, .. }
+            | Self::GetThreadMember { channel_id, .. }
             | Self::GetThreadMembers { channel_id, .. }
             | Self::JoinThread { channel_id, .. }
             | Self::LeaveThread { channel_id, .. }

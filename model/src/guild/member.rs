@@ -20,7 +20,7 @@ pub struct Member {
     pub avatar: Option<String>,
     pub deaf: bool,
     pub guild_id: GuildId,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
@@ -44,7 +44,7 @@ pub struct MemberIntermediary {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     pub deaf: bool,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     #[serde(default)]
@@ -203,7 +203,7 @@ mod tests {
             avatar: Some("guild avatar".to_owned()),
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
-            joined_at: Some(joined_at),
+            joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
             pending: false,
@@ -244,7 +244,6 @@ mod tests {
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
