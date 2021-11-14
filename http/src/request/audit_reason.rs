@@ -71,7 +71,7 @@ mod private {
     impl<'a> Sealed for UpdateThread<'a> {}
     impl Sealed for UpdateWebhookMessage<'_> {}
     impl<'a> Sealed for UpdateCurrentUser<'a> {}
-    impl<'a> Sealed for UpdateCurrentMember<'a> {}
+    impl Sealed for UpdateCurrentMember<'_> {}
 }
 
 impl AuditLogReasonError {
