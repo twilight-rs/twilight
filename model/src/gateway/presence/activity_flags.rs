@@ -12,6 +12,9 @@ bitflags! {
         const JOIN_REQUEST = 1 << 3;
         const SYNC = 1 << 4;
         const PLAY = 1 << 5;
+        const PARTY_PRIVACY_FRIENDS = 1 << 6;
+        const PARTY_PRIVACY_VOICE_CHANNEL = 1 << 7;
+        const EMBEDDED = 1 << 8;
     }
 }
 
