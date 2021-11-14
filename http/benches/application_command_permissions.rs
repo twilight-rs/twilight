@@ -24,7 +24,7 @@ fn commands(commands: usize, permissions: usize) -> Vec<(CommandId, CommandPermi
 
 fn criterion_benchmark(c: &mut Criterion) {
     let client = Client::new(String::new());
-    client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    let application_id = ApplicationId::new(1).expect("non zero");
 
     let command_counts = [5usize, 10, 50, 100];
     let permission_counts = [2usize, 5, 10];
@@ -38,6 +38,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 
                 b.iter(|| {
                     assert!(client
+                        .interaction(application_id)
                         .set_command_permissions(GuildId::new(2).expect("non zero"), &list)
                         .is_ok());
                 });
