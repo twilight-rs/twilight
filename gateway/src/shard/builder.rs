@@ -182,7 +182,7 @@ impl ShardBuilder {
             http_client: Arc::new(HttpClient::new(token.clone())),
             identify_properties: None,
             intents,
-            large_threshold: 250,
+            large_threshold: 50,
             presence: None,
             queue: Arc::new(LocalQueue::new()),
             shard: [0, 1],
