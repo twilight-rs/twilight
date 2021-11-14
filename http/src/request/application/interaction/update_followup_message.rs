@@ -157,9 +157,11 @@ struct UpdateFollowupMessageFields<'a> {
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = ApplicationId::new(1).expect("non zero");
 ///
-/// client.update_followup_message("token here", MessageId::new(2).expect("non zero"))?
+/// client
+///     .interaction(application_id)
+///     .update_followup_message("token here", MessageId::new(2).expect("non zero"))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -318,7 +320,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// use twilight_model::id::{ApplicationId, MessageId};
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// let application_id = ApplicationId::new(1).expect("non zero");
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -326,7 +328,9 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_followup_message("token", MessageId::new(2).expect("non zero"))?
+    /// client
+    ///     .interaction(application_id)
+    ///     .update_followup_message("token", MessageId::new(2).expect("non zero"))
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;

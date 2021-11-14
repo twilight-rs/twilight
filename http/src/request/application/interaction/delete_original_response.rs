@@ -19,10 +19,11 @@ use twilight_model::id::ApplicationId;
 /// use twilight_model::id::ApplicationId;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = ApplicationId::new(1).expect("non zero");
 ///
 /// client
-///     .delete_interaction_original("token here")?
+///     .interaction(application_id)
+///     .delete_interaction_original("token here")
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }

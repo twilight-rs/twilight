@@ -1,25 +1,11 @@
 mod builder;
+mod interaction;
 
-pub use self::builder::ClientBuilder;
+pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 use crate::{
     error::{Error, ErrorType},
     request::{
-        application::{
-            command::{
-                CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
-                GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
-                GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions,
-                SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand,
-                UpdateGuildCommand,
-            },
-            interaction::{
-                CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse,
-                GetFollowupMessage, GetOriginalResponse, InteractionCallback,
-                UpdateFollowupMessage, UpdateOriginalResponse,
-            },
-            InteractionError, InteractionErrorType,
-        },
         channel::{
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
             message::{
@@ -94,7 +80,7 @@ use hyper::{
 use std::{
     convert::{AsRef, TryFrom},
     sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
+        atomic::{AtomicBool, Ordering},
         Arc,
     },
     time::Duration,
@@ -102,10 +88,6 @@ use std::{
 use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
-    application::{
-        callback::InteractionResponse,
-        command::{permissions::CommandPermissions, Command},
-    },
     channel::{
         message::{allowed_mentions::AllowedMentions, sticker::StickerId},
         thread::AutoArchiveDuration,
@@ -113,8 +95,8 @@ use twilight_model::{
     },
     guild::Permissions,
     id::{
-        ApplicationId, ChannelId, CommandId, EmojiId, GuildId, IntegrationId, InteractionId,
-        MessageId, RoleId, UserId, WebhookId,
+        ApplicationId, ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId,
+        WebhookId,
     },
 };
 
@@ -191,7 +173,6 @@ type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 /// [here]: https://discord.com/developers/applications
 #[derive(Debug)]
 pub struct Client {
-    pub(crate) application_id: AtomicU64,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
     http: HyperClient<HttpsConnector<HttpConnector>, Body>,
@@ -232,30 +213,47 @@ impl Client {
         self.token.as_deref()
     }
 
-    /// Retrieve the [`ApplicationId`] used by interaction methods.
-    pub fn application_id(&self) -> Option<ApplicationId> {
-        let id = self.application_id.load(Ordering::Relaxed);
-
-        if id != 0 {
-            return Some(ApplicationId::new(id).expect("non zero"));
-        }
-
-        None
-    }
-
-    /// Set a new [`ApplicationId`] after building the client.
+    /// Create an interface for using interactions.
     ///
-    /// Returns the previous ID, if there was one.
-    pub fn set_application_id(&self, application_id: ApplicationId) -> Option<ApplicationId> {
-        let prev = self
-            .application_id
-            .swap(application_id.get(), Ordering::Relaxed);
-
-        if prev != 0 {
-            return Some(ApplicationId::new(prev).expect("non zero"));
-        }
-
-        None
+    /// An application ID is required to be passed in to use interactions. The
+    /// ID may be retrieved via [`current_user_application`] and cached for use
+    /// with this method.
+    ///
+    /// # Examples
+    ///
+    /// Retrieve the application ID and then use an interaction request:
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<std::error::Error>> {
+    /// use std::env;
+    /// use twilight_http::Client;
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    ///
+    /// // Cache the application ID for repeated use later in the process.
+    /// let application_id = {
+    ///     let response = client.current_user_application().exec().await?;
+    ///
+    ///     response.model().await?.id
+    /// };
+    ///
+    /// // Later in the process...
+    /// let commands = client
+    ///     .interaction(application_id)
+    ///     .get_global_commands()
+    ///     .exec()
+    ///     .await?
+    ///     .models()
+    ///     .await?;
+    ///
+    /// println!("there are {} global commands", commands.len());
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`current_user_application`]: Self::current_user_application
+    pub const fn interaction(&self, application_id: ApplicationId) -> InteractionClient<'_> {
+        InteractionClient::new(self, application_id)
     }
 
     /// Get the default [`AllowedMentions`] for sent messages.
@@ -1899,565 +1897,6 @@ impl Client {
         message_id: MessageId,
     ) -> DeleteWebhookMessage<'a> {
         DeleteWebhookMessage::new(self, webhook_id, token, message_id)
-    }
-
-    /// Respond to an interaction, by ID and token.
-    ///
-    /// For variants of [`InteractionResponse`] that contain a [`CallbackData`],
-    /// there is an [associated builder] in the [`twilight-util`] crate.
-    ///
-    /// [`CallbackData`]: twilight_model::application::callback::CallbackData
-    /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/struct.CallbackDataBuilder.html
-    pub const fn interaction_callback<'a>(
-        &'a self,
-        interaction_id: InteractionId,
-        interaction_token: &'a str,
-        response: &'a InteractionResponse,
-    ) -> InteractionCallback<'a> {
-        InteractionCallback::new(self, interaction_id, interaction_token, response)
-    }
-
-    /// Get the original message, by its token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn get_interaction_original<'a>(
-        &'a self,
-        interaction_token: &'a str,
-    ) -> Result<GetOriginalResponse<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(GetOriginalResponse::new(
-            self,
-            application_id,
-            interaction_token,
-        ))
-    }
-
-    /// Edit the original message, by its token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn update_interaction_original<'a>(
-        &'a self,
-        interaction_token: &'a str,
-    ) -> Result<UpdateOriginalResponse<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(UpdateOriginalResponse::new(
-            self,
-            application_id,
-            interaction_token,
-        ))
-    }
-
-    /// Get a followup message of an interaction.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn followup_message<'a>(
-        &'a self,
-        interaction_token: &'a str,
-        message_id: MessageId,
-    ) -> Result<GetFollowupMessage<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(GetFollowupMessage::new(
-            self,
-            application_id,
-            interaction_token,
-            message_id,
-        ))
-    }
-
-    /// Delete the original message, by its token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn delete_interaction_original<'a>(
-        &'a self,
-        interaction_token: &'a str,
-    ) -> Result<DeleteOriginalResponse<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(DeleteOriginalResponse::new(
-            self,
-            application_id,
-            interaction_token,
-        ))
-    }
-
-    /// Create a followup message, by an interaction token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn create_followup_message<'a>(
-        &'a self,
-        interaction_token: &'a str,
-    ) -> Result<CreateFollowupMessage<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(CreateFollowupMessage::new(
-            self,
-            application_id,
-            interaction_token,
-        ))
-    }
-
-    /// Edit a followup message, by an interaction token.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn update_followup_message<'a>(
-        &'a self,
-        interaction_token: &'a str,
-        message_id: MessageId,
-    ) -> Result<UpdateFollowupMessage<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(UpdateFollowupMessage::new(
-            self,
-            application_id,
-            interaction_token,
-            message_id,
-        ))
-    }
-
-    /// Delete a followup message by interaction token and the message's ID.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn delete_followup_message<'a>(
-        &'a self,
-        interaction_token: &'a str,
-        message_id: MessageId,
-    ) -> Result<DeleteFollowupMessage<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(DeleteFollowupMessage::new(
-            self,
-            application_id,
-            interaction_token,
-            message_id,
-        ))
-    }
-
-    /// Create a new command in a guild.
-    ///
-    /// The name must be between 1 and 32 characters in length. Creating a
-    /// guild command with the same name as an already-existing guild command in
-    /// the same guild will overwrite the old command. See [the discord docs]
-    /// for more information.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 1 and 32 characters.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub fn create_guild_command<'a>(
-        &'a self,
-        guild_id: GuildId,
-        name: &'a str,
-    ) -> Result<CreateGuildCommand<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        CreateGuildCommand::new(self, application_id, guild_id, name)
-    }
-
-    /// Fetch a guild command for your application.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn get_guild_command(
-        &self,
-        guild_id: GuildId,
-        command_id: CommandId,
-    ) -> Result<GetGuildCommand<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(GetGuildCommand::new(
-            self,
-            application_id,
-            guild_id,
-            command_id,
-        ))
-    }
-
-    /// Fetch all commands for a guild, by ID.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn get_guild_commands(
-        &self,
-        guild_id: GuildId,
-    ) -> Result<GetGuildCommands<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(GetGuildCommands::new(self, application_id, guild_id))
-    }
-
-    /// Edit a command in a guild, by ID.
-    ///
-    /// You must specify a name and description. See [the discord docs] for more
-    /// information.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
-    pub fn update_guild_command(
-        &self,
-        guild_id: GuildId,
-        command_id: CommandId,
-    ) -> Result<UpdateGuildCommand<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(UpdateGuildCommand::new(
-            self,
-            application_id,
-            guild_id,
-            command_id,
-        ))
-    }
-
-    /// Delete a command in a guild, by ID.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn delete_guild_command(
-        &self,
-        guild_id: GuildId,
-        command_id: CommandId,
-    ) -> Result<DeleteGuildCommand<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(DeleteGuildCommand::new(
-            self,
-            application_id,
-            guild_id,
-            command_id,
-        ))
-    }
-
-    /// Set a guild's commands.
-    ///
-    /// This method is idempotent: it can be used on every start, without being
-    /// ratelimited if there aren't changes to the commands.
-    ///
-    /// The [`Command`] struct has an [associated builder] in the
-    /// [`twilight-util`] crate.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// [`twilight-util`]: https://docs.rs/twilight_util/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
-    pub fn set_guild_commands<'a>(
-        &'a self,
-        guild_id: GuildId,
-        commands: &'a [Command],
-    ) -> Result<SetGuildCommands<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(SetGuildCommands::new(
-            self,
-            application_id,
-            guild_id,
-            commands,
-        ))
-    }
-
-    /// Create a new global command.
-    ///
-    /// The name must be between 1 and 32 characters in length. Creating a
-    /// command with the same name as an already-existing global command will
-    /// overwrite the old command. See [the discord docs] for more information.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 1 and 32 characters.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub fn create_global_command<'a>(
-        &'a self,
-        name: &'a str,
-    ) -> Result<CreateGlobalCommand<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        CreateGlobalCommand::new(self, application_id, name)
-    }
-
-    /// Fetch a global command for your application.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn get_global_command(
-        &self,
-        command_id: CommandId,
-    ) -> Result<GetGlobalCommand<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(GetGlobalCommand::new(self, application_id, command_id))
-    }
-
-    /// Fetch all global commands for your application.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn get_global_commands(&self) -> Result<GetGlobalCommands<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(GetGlobalCommands::new(self, application_id))
-    }
-
-    /// Edit a global command, by ID.
-    ///
-    /// You must specify a name and description. See [the discord docs] for more
-    /// information.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
-    pub fn update_global_command(
-        &self,
-        command_id: CommandId,
-    ) -> Result<UpdateGlobalCommand<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(UpdateGlobalCommand::new(self, application_id, command_id))
-    }
-
-    /// Delete a global command, by ID.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn delete_global_command(
-        &self,
-        command_id: CommandId,
-    ) -> Result<DeleteGlobalCommand<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(DeleteGlobalCommand::new(self, application_id, command_id))
-    }
-
-    /// Set global commands.
-    ///
-    /// This method is idempotent: it can be used on every start, without being
-    /// ratelimited if there aren't changes to the commands.
-    ///
-    /// The [`Command`] struct has an [associated builder] in the
-    /// [`twilight-util`] crate.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
-    pub fn set_global_commands<'a>(
-        &'a self,
-        commands: &'a [Command],
-    ) -> Result<SetGlobalCommands<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(SetGlobalCommands::new(self, application_id, commands))
-    }
-
-    /// Fetch command permissions for a command from the current application
-    /// in a guild.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn get_command_permissions(
-        &self,
-        guild_id: GuildId,
-        command_id: CommandId,
-    ) -> Result<GetCommandPermissions<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(GetCommandPermissions::new(
-            self,
-            application_id,
-            guild_id,
-            command_id,
-        ))
-    }
-
-    /// Fetch command permissions for all commands from the current
-    /// application in a guild.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn get_guild_command_permissions(
-        &self,
-        guild_id: GuildId,
-    ) -> Result<GetGuildCommandPermissions<'_>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        Ok(GetGuildCommandPermissions::new(
-            self,
-            application_id,
-            guild_id,
-        ))
-    }
-
-    /// Update command permissions for a single command in a guild.
-    ///
-    /// This overwrites the command permissions so the full set of permissions
-    /// have to be sent every time.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    pub fn update_command_permissions<'a>(
-        &'a self,
-        guild_id: GuildId,
-        command_id: CommandId,
-        permissions: &'a [CommandPermissions],
-    ) -> Result<UpdateCommandPermissions<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        UpdateCommandPermissions::new(self, application_id, guild_id, command_id, permissions)
-    }
-
-    /// Update command permissions for all commands in a guild.
-    ///
-    /// This overwrites the command permissions so the full set of permissions
-    /// have to be sent every time.
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`InteractionErrorType::ApplicationIdNotPresent`]
-    /// error type if an application ID has not been configured via
-    /// [`Client::set_application_id`].
-    ///
-    /// Returns an [`InteractionErrorType::TooManyCommands`] error type if too
-    /// many commands have been provided. The maximum amount is defined by
-    /// [`InteractionError::GUILD_COMMAND_LIMIT`].
-    pub fn set_command_permissions<'a>(
-        &'a self,
-        guild_id: GuildId,
-        permissions: &'a [(CommandId, CommandPermissions)],
-    ) -> Result<SetCommandPermissions<'a>, InteractionError> {
-        let application_id = self.application_id().ok_or(InteractionError {
-            kind: InteractionErrorType::ApplicationIdNotPresent,
-        })?;
-
-        SetCommandPermissions::new(self, application_id, guild_id, permissions)
     }
 
     /// Returns a single sticker by its ID.

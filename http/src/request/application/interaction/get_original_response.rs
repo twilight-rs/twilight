@@ -14,10 +14,11 @@ use twilight_model::{channel::Message, id::ApplicationId};
 /// use twilight_model::id::ApplicationId;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = ApplicationId::new(1).expect("non zero");
 ///
-/// let message = client
-///     .get_interaction_original("token here")?
+/// client
+///     .interaction(application_id)
+///     .get_interaction_original("token here")
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
