@@ -88,7 +88,6 @@ impl ClientBuilder {
     /// ```rust
     /// use twilight_http::Client;
     ///
-    /// # #[cfg(not(miri))]
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::builder()
     ///     .proxy("twilight_http_proxy.internal".to_owned(), true)
