@@ -73,7 +73,7 @@ impl InMemoryCache {
             avatar: member.avatar.to_owned(),
             deaf: Some(member.deaf),
             guild_id,
-            joined_at: member.joined_at.to_owned(),
+            joined_at: member.joined_at,
             mute: Some(member.mute),
             nick: member.nick.to_owned(),
             pending: false,
@@ -107,7 +107,7 @@ impl InMemoryCache {
             avatar,
             deaf,
             guild_id,
-            joined_at: member.joined_at.to_owned(),
+            joined_at: member.joined_at,
             mute,
             nick: member.nick.to_owned(),
             pending: false,
@@ -196,7 +196,7 @@ impl UpdateCache for MemberUpdate {
         member.mute = self.mute.or_else(|| member.mute());
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
-        member.joined_at.replace(self.joined_at);
+        member.joined_at = self.joined_at;
         member.pending = self.pending;
     }
 }

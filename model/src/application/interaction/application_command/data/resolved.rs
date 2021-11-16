@@ -37,9 +37,7 @@ pub struct InteractionChannel {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionMember {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub nick: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
@@ -88,8 +86,7 @@ mod tests {
             members: IntoIterator::into_iter([(
                 UserId::new(300).expect("non zero"),
                 InteractionMember {
-                    hoisted_role: None,
-                    joined_at: Some(joined_at),
+                    joined_at,
                     nick: None,
                     premium_since: None,
                     roles: Vec::new(),
@@ -133,7 +130,7 @@ mod tests {
                     member: Some(PartialMember {
                         avatar: None,
                         deaf: false,
-                        joined_at: Some(joined_at),
+                        joined_at,
                         mute: false,
                         nick: Some("member nick".to_owned()),
                         permissions: None,
@@ -187,14 +184,14 @@ mod tests {
                     bot: false,
                     discriminator: 1,
                     email: Some("address@example.com".to_owned()),
-                    flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+                    flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
                     id: UserId::new(300).expect("non zero"),
                     locale: Some("en-us".to_owned()),
                     mfa_enabled: Some(true),
                     name: "test".to_owned(),
                     premium_type: Some(PremiumType::Nitro),
                     public_flags: Some(
-                        UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER,
+                        UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
                     ),
                     system: None,
                     verified: Some(true),
@@ -238,7 +235,6 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("nick"),
                 Token::None,
@@ -311,7 +307,6 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

@@ -103,8 +103,7 @@ mod tests {
                         members: IntoIterator::into_iter([(
                             UserId::new(7).expect("non zero"),
                             InteractionMember {
-                                hoisted_role: None,
-                                joined_at: Some(timestamp),
+                                joined_at: timestamp,
                                 nick: None,
                                 premium_since: None,
                                 roles: vec![RoleId::new(8).expect("non zero")],
@@ -148,7 +147,7 @@ mod tests {
                                 member: Some(PartialMember {
                                     avatar: None,
                                     deaf: false,
-                                    joined_at: Some(timestamp),
+                                    joined_at: timestamp,
                                     mute: false,
                                     nick: Some("member nick".to_owned()),
                                     permissions: None,
@@ -222,7 +221,7 @@ mod tests {
                 member: Some(PartialMember {
                     avatar: None,
                     deaf: false,
-                    joined_at: Some(timestamp),
+                    joined_at: timestamp,
                     mute: false,
                     nick: None,
                     permissions: Some(Permissions::empty()),
