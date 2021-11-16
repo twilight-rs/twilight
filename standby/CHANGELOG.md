@@ -2,6 +2,16 @@
 
 Changelog for `twilight-standby`.
 
+## [0.7.1] - 2021-10-29
+
+### Additions
+
+Add `Standby::wait_for_component` and `wait_for_component_stream`, which
+filter events based on a matching `MessageComponentInteraction` ([#1189]
+- [@PyroTechniac]).
+
+[#1189]: https://github.com/twilight-rs/twilight/pull/1189
+
 ## [0.7.0] - 2021-10-21
 
 ### Changes
@@ -133,12 +143,14 @@ Initial release.
 [@chamburr]: https://github.com/chamburr
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
+[@PyroTechniac]: https://github.com/PyroTechniac
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.7.0
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.6.1

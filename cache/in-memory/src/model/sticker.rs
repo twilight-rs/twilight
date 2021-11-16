@@ -96,7 +96,7 @@ impl CachedSticker {
 impl PartialEq<Sticker> for CachedSticker {
     fn eq(&self, other: &Sticker) -> bool {
         self.available == other.available
-            && self.description == other.description
+            && self.description.as_str() == other.description.as_ref().map_or("", String::as_str)
             && self.format_type == other.format_type
             && self.guild_id == other.guild_id
             && self.id == other.id
@@ -142,7 +142,7 @@ mod tests {
     fn test_eq_sticker() {
         let sticker = Sticker {
             available: true,
-            description: "sticker".into(),
+            description: Some("sticker".into()),
             format_type: StickerFormatType::Png,
             guild_id: Some(GuildId::new(1).expect("non zero")),
             id: StickerId::new(2).expect("non zero"),
@@ -158,13 +158,15 @@ mod tests {
                 bot: false,
                 discriminator: 1,
                 email: Some("address@example.com".to_owned()),
-                flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+                flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
                 id: UserId::new(1).expect("non zero"),
                 locale: Some("en-us".to_owned()),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
                 premium_type: Some(PremiumType::Nitro),
-                public_flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+                public_flags: Some(
+                    UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
+                ),
                 system: Some(true),
                 verified: Some(true),
             }),

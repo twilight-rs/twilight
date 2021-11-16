@@ -1,6 +1,6 @@
 //! # twilight-cache-inmemory
 //!
-//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! `twilight-cache-inmemory` is an in-process-memory cache for the
 //! [`twilight-rs`] ecosystem. It's responsible for processing events and
@@ -50,6 +50,8 @@
 //! All first-party crates are licensed under [ISC][LICENSE.md]
 //!
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
+//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
@@ -874,6 +876,7 @@ impl UpdateCache for Event {
 mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
+        datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::{EmojiId, GuildId, RoleId, UserId},
@@ -909,16 +912,17 @@ mod tests {
 
     #[test]
     fn test_highest_role() {
+        let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
         let guild_id = GuildId::new(1).expect("non zero");
         let user = test::user(UserId::new(1).expect("non zero"));
         cache.cache_member(
             guild_id,
             Member {
+                avatar: None,
                 deaf: false,
                 guild_id,
-                hoisted_role: None,
-                joined_at: None,
+                joined_at,
                 mute: false,
                 nick: None,
                 pending: false,
@@ -937,6 +941,7 @@ mod tests {
                 Role {
                     color: 0,
                     hoist: false,
+                    icon: None,
                     id: RoleId::new(1).expect("non zero"),
                     managed: false,
                     mentionable: false,
@@ -944,10 +949,12 @@ mod tests {
                     permissions: Permissions::empty(),
                     position: 0,
                     tags: None,
+                    unicode_emoji: None,
                 },
                 Role {
                     color: 0,
                     hoist: false,
+                    icon: None,
                     id: RoleId::new(2).expect("non zero"),
                     managed: false,
                     mentionable: false,
@@ -955,6 +962,7 @@ mod tests {
                     permissions: Permissions::empty(),
                     position: 1,
                     tags: None,
+                    unicode_emoji: None,
                 },
             ],
         );

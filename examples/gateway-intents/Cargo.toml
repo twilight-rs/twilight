@@ -1,11 +1,11 @@
 [package]
 authors = ["Twilight Contributors"]
 edition = "2018"
-name = "twilight-gateway-example-intents"
+name = "twilight-example-gateway-intents"
 version = "0.1.0"
 
 [dependencies]
-twilight-gateway = { path = "../.." }
+twilight-gateway = { path = "../../gateway" }
 futures = "0.3"
 tracing-subscriber = "0.2"
 tokio = "1.0"

@@ -9,11 +9,12 @@ pub use self::{
     command_type::CommandType,
     option::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, CommandOption,
-        CommandOptionChoice, CommandOptionType, Number, OptionsCommandOptionData,
+        CommandOptionChoice, CommandOptionType, CommandOptionValue, Number,
+        NumberCommandOptionData, OptionsCommandOptionData,
     },
 };
 
-use crate::id::{ApplicationId, CommandId, GuildId};
+use crate::id::{ApplicationId, CommandId, CommandVersionId, GuildId};
 use serde::{Deserialize, Serialize};
 
 /// Data sent to discord to create a command.
@@ -31,10 +32,6 @@ use serde::{Deserialize, Serialize};
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<ApplicationId>,
-    /// Guild ID of the command, if not global.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
-    pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_permission: Option<bool>,
     /// Description of the command.
@@ -44,10 +41,16 @@ pub struct Command {
     /// [`User`]: CommandType::User
     /// [`Message`]: CommandType::Message
     pub description: String,
+    /// Guild ID of the command, if not global.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_id: Option<GuildId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<CommandId>,
     #[serde(rename = "type")]
     pub kind: CommandType,
+    pub name: String,
     #[serde(default)]
     pub options: Vec<CommandOption>,
+    /// Autoincrementing version identifier.
+    pub version: CommandVersionId,
 }

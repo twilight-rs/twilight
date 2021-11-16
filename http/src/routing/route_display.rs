@@ -73,6 +73,10 @@ impl Display for RouteDisplay<'_> {
                 channel_id,
                 user_id,
             }
+            | Route::GetThreadMember {
+                channel_id,
+                user_id,
+            }
             | Route::RemoveThreadMember {
                 channel_id,
                 user_id,
@@ -940,7 +944,7 @@ impl Display for RouteDisplay<'_> {
             } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
-                f.write_str("/threads/archived/public")?;
+                f.write_str("/threads/archived/public?")?;
 
                 if let Some(before) = before {
                     f.write_str("before=")?;
@@ -1118,5 +1122,19 @@ mod tests {
         };
 
         assert_eq!("applications/1/commands/2", route.display().to_string());
+    }
+
+    #[test]
+    fn test_get_public_archived_threads() {
+        let route = Route::GetPublicArchivedThreads {
+            channel_id: 1,
+            before: Some("2021-01-01T00:00:00Z"),
+            limit: None,
+        };
+
+        assert_eq!(
+            "channels/1/threads/archived/public?before=2021-01-01T00:00:00Z",
+            route.display().to_string()
+        );
     }
 }

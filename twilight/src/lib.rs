@@ -1,6 +1,6 @@
 //! # twilight
 //!
-//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! ![project logo][logo]
 //!
@@ -18,15 +18,12 @@
 //!
 //! Twilight supports a MSRV of Rust 1.53+.
 //!
-//! We recommend that most users start out with these crates added to your
-//! `Cargo.toml`'s `[dependencies]` section:
+//! We recommend that most users start out with these crates:
 //!
-//! ```toml
-//! twilight-cache-inmemory = "0.7"
-//! twilight-gateway = "0.7"
-//! twilight-http = "0.7"
-//! twilight-model = "0.7"
-//! ```
+//! - [`twilight-cache-inmemory`][crates:cache-inmemory]
+//! - [`twilight-gateway`][crates:gateway]
+//! - [`twilight-http`][crates:http]
+//! - [`twilight-model`][crates:model]
 //!
 //! If you need any other functionality that Twilight provides, you can just add
 //! that dependency in.
@@ -127,7 +124,9 @@
 //! Twilight's HTTP and gateway clients with its in-memory cache. In order to
 //! run this, replace the contents of a new project's `main.rs` file with the
 //! following. Be sure to set the `DISCORD_TOKEN` environment variable to your
-//! bot's token.
+//! bot's token. You must also depend on `futures`, `tokio`,
+//! `twilight-cache-inmemory`, `twilight-gateway`, `twilight-http`, and
+//! `twilight-model` in your `Cargo.toml`.
 //!
 //! ```rust,no_run
 //! use std::{env, error::Error, sync::Arc};
@@ -234,6 +233,12 @@
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [Lavalink]: https://github.com/freyacodes/Lavalink
 //! [`http`]: https://crates.io/crates/http
+//! [crates:cache-inmemory]: https://crates.io/crates/twilight-cache-inmemory
+//! [crates:gateway]: https://crates.io/crates/twilight-gateway
+//! [crates:http]: https://crates.io/crates/twilight-http
+//! [crates:model]: https://crates.io/crates/twilight-model
+//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
+//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding

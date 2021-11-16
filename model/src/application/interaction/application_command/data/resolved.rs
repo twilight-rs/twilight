@@ -230,8 +230,7 @@ pub struct InteractionMember {
     pub hoisted_role: Option<RoleId>,
     #[serde(skip_serializing)]
     pub id: UserId,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nick: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -243,7 +242,7 @@ pub struct InteractionMember {
 #[derive(Deserialize)]
 struct InteractionMemberEnvelope {
     pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub nick: Option<String>,
     pub premium_since: Option<Timestamp>,
     #[serde(default)]
@@ -287,7 +286,7 @@ mod tests {
             members: Vec::from([InteractionMember {
                 hoisted_role: None,
                 id: UserId::new(300).expect("non zero"),
-                joined_at: Some(joined_at),
+                joined_at,
                 nick: None,
                 premium_since: None,
                 roles: Vec::new(),
@@ -325,8 +324,9 @@ mod tests {
                 interaction: None,
                 kind: MessageType::Regular,
                 member: Some(PartialMember {
+                    avatar: None,
                     deaf: false,
-                    joined_at: Some(joined_at),
+                    joined_at,
                     mute: false,
                     nick: Some("member nick".to_owned()),
                     permissions: None,
@@ -355,6 +355,7 @@ mod tests {
             roles: Vec::from([Role {
                 color: 0,
                 hoist: true,
+                icon: None,
                 id: RoleId::new(400).expect("non zero"),
                 managed: false,
                 mentionable: true,
@@ -362,6 +363,7 @@ mod tests {
                 permissions: Permissions::ADMINISTRATOR,
                 position: 12,
                 tags: None,
+                unicode_emoji: None,
             }]),
             users: Vec::from([User {
                 accent_color: None,
@@ -370,13 +372,15 @@ mod tests {
                 bot: false,
                 discriminator: 1,
                 email: Some("address@example.com".to_owned()),
-                flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+                flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
                 id: UserId::new(300).expect("non zero"),
                 locale: Some("en-us".to_owned()),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
                 premium_type: Some(PremiumType::Nitro),
-                public_flags: Some(UserFlags::EARLY_SUPPORTER | UserFlags::VERIFIED_BOT_DEVELOPER),
+                public_flags: Some(
+                    UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
+                ),
                 system: None,
                 verified: Some(true),
             }]),
@@ -417,7 +421,6 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::StructEnd,
                 Token::MapEnd,
@@ -485,7 +488,6 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

@@ -15,10 +15,12 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Member {
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
     pub deaf: bool,
     pub guild_id: GuildId,
-    pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's [Membership Screening]
@@ -38,9 +40,11 @@ pub struct Member {
 // Used in the guild deserializer.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberIntermediary {
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
     pub deaf: bool,
-    pub hoisted_role: Option<RoleId>,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     #[serde(default)]
@@ -89,9 +93,9 @@ impl<'de> Visitor<'de> for MemberVisitor {
         let member = MemberIntermediary::deserialize(deser)?;
 
         Ok(Member {
+            avatar: member.avatar,
             deaf: member.deaf,
             guild_id: self.0,
-            hoisted_role: member.hoisted_role,
             joined_at: member.joined_at,
             mute: member.mute,
             nick: member.nick,
@@ -184,7 +188,7 @@ mod tests {
     use super::Member;
     use crate::{
         datetime::{Timestamp, TimestampParseError},
-        id::{GuildId, RoleId, UserId},
+        id::{GuildId, UserId},
         user::User,
     };
     use serde_test::Token;
@@ -196,10 +200,10 @@ mod tests {
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
 
         let value = Member {
+            avatar: Some("guild avatar".to_owned()),
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
-            hoisted_role: Some(RoleId::new(2).expect("non zero")),
-            joined_at: Some(joined_at),
+            joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
             pending: false,
@@ -231,17 +235,15 @@ mod tests {
                     name: "Member",
                     len: 10,
                 },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str("guild avatar"),
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
-                Token::Str("hoisted_role"),
-                Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
-                Token::Str("2"),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),

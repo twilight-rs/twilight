@@ -96,7 +96,7 @@ impl Ratelimiter {
         path: Path,
         tx: Sender<Sender<Option<RatelimitHeaders>>>,
     ) -> (Arc<Bucket>, bool) {
-        // nb: not realisically point of contention
+        // nb: not realistically point of contention
         let mut buckets = self.buckets.lock().expect("ratelimit buckets poisoned");
 
         match buckets.entry(path.clone()) {

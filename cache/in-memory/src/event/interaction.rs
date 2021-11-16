@@ -97,7 +97,7 @@ mod tests {
                         members: Vec::from([InteractionMember {
                             hoisted_role: None,
                             id: UserId::new(7).expect("non zero"),
-                            joined_at: Some(timestamp),
+                            joined_at: timestamp,
                             nick: None,
                             premium_since: None,
                             roles: vec![RoleId::new(8).expect("non zero")],
@@ -135,8 +135,9 @@ mod tests {
                             interaction: None,
                             kind: MessageType::Regular,
                             member: Some(PartialMember {
+                                avatar: None,
                                 deaf: false,
-                                joined_at: Some(timestamp),
+                                joined_at: timestamp,
                                 mute: false,
                                 nick: Some("member nick".to_owned()),
                                 permissions: None,
@@ -165,6 +166,7 @@ mod tests {
                         roles: Vec::from([Role {
                             color: 0u32,
                             hoist: false,
+                            icon: None,
                             id: RoleId::new(8).expect("non zero"),
                             managed: false,
                             mentionable: true,
@@ -172,6 +174,7 @@ mod tests {
                             permissions: Permissions::empty(),
                             position: 2i64,
                             tags: None,
+                            unicode_emoji: None,
                         }]),
                         users: Vec::from([User {
                             accent_color: None,
@@ -196,8 +199,9 @@ mod tests {
                 id: InteractionId::new(4).expect("non zero"),
                 kind: InteractionType::ApplicationCommand,
                 member: Some(PartialMember {
+                    avatar: None,
                     deaf: false,
-                    joined_at: Some(timestamp),
+                    joined_at: timestamp,
                     mute: false,
                     nick: None,
                     permissions: Some(Permissions::empty()),

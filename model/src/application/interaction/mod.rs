@@ -21,7 +21,7 @@ use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     Deserialize, Serialize,
 };
-use serde_value::Value;
+use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
 
 /// Payload received when a user executes an interaction.
@@ -232,7 +232,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
-                    .map_err(|_| DeError::custom("expected CommandData struct"))?;
+                    .map_err(DeserializerError::into_error)?;
 
                 let guild_id = guild_id.unwrap_or_default();
                 let member = member.unwrap_or_default();
@@ -324,7 +324,7 @@ mod test {
                     members: vec![InteractionMember {
                         hoisted_role: None,
                         id: UserId::new(600).expect("non zero"),
-                        joined_at: Some(joined_at),
+                        joined_at,
                         nick: Some("nickname".into()),
                         premium_since: None,
                         roles: Vec::new(),
@@ -354,8 +354,9 @@ mod test {
             id: InteractionId::new(500).expect("non zero"),
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
+                avatar: None,
                 deaf: false,
-                joined_at: Some(joined_at),
+                joined_at,
                 mute: false,
                 nick: Some("nickname".into()),
                 permissions: Some(Permissions::empty()),
@@ -411,7 +412,7 @@ mod test {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandDataOptionRaw",
+                    name: "CommandDataOption",
                     len: 3,
                 },
                 Token::Str("name"),
@@ -419,7 +420,7 @@ mod test {
                 Token::Str("type"),
                 Token::U8(CommandOptionType::User as u8),
                 Token::Str("value"),
-                Token::Some,
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("600"),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -438,7 +439,6 @@ mod test {
                     len: 2,
                 },
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
                 Token::Some,
@@ -493,7 +493,6 @@ mod test {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

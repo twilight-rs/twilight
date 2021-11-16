@@ -16,9 +16,13 @@ jobs:
 
       - name: Run clippy
         uses: actions-rs/clippy-check@v1
+        env:
+          # Use `haswell` instead of `native` due to some GitHub Actions
+          # runners not supporting some `avx512` instructions.
+          RUSTFLAGS: "-C target-cpu=haswell"
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --tests
+          args: --workspace --benches --examples --tests --all-features
 
   rustfmt:
     name: Format

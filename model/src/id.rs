@@ -309,6 +309,56 @@ impl From<NonZeroU64> for CommandId {
     }
 }
 
+/// Unique version ID of a command.
+#[allow(clippy::unsafe_derive_deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct CommandVersionId(#[serde(with = "string")] pub NonZeroU64);
+
+impl CommandVersionId {
+    /// Create a non-zero command version ID without checking the value.
+    ///
+    /// Equivalent to [`NonZeroU64::new_unchecked`].
+    ///
+    /// # Safety
+    ///
+    /// The value must not be zero.
+    #[allow(unsafe_code)]
+    pub const unsafe fn new_unchecked(n: u64) -> Self {
+        Self(NonZeroU64::new_unchecked(n))
+    }
+
+    /// Create a non-zero command version ID if the given value is not zero.
+    ///
+    /// Equivalent to [`NonZeroU64::new`].
+    pub const fn new(n: u64) -> Option<Self> {
+        #[allow(clippy::option_if_let_else)]
+        if let Some(n) = NonZeroU64::new(n) {
+            Some(Self(n))
+        } else {
+            None
+        }
+    }
+
+    /// Return the inner primitive value.
+    ///
+    /// Equivalent to [`NonZeroU64::get`].
+    pub const fn get(self) -> u64 {
+        self.0.get()
+    }
+}
+
+impl Display for CommandVersionId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl From<NonZeroU64> for CommandVersionId {
+    fn from(id: NonZeroU64) -> Self {
+        CommandVersionId(id)
+    }
+}
+
 /// Unique ID of an emoji.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -812,8 +862,9 @@ impl From<NonZeroU64> for WebhookId {
 #[cfg(test)]
 mod tests {
     use super::{
-        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, EmojiId, GenericId,
-        GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId, WebhookId,
+        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId,
+        EmojiId, GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId,
+        UserId, WebhookId,
     };
     use serde_test::Token;
 
@@ -899,6 +950,24 @@ mod tests {
             &CommandId::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "CommandId" },
+                Token::U64(114_941_315_417_899_012),
+            ],
+        );
+        serde_test::assert_tokens(
+            &CommandVersionId::new(114_941_315_417_899_012).expect("non zero"),
+            &[
+                Token::NewtypeStruct {
+                    name: "CommandVersionId",
+                },
+                Token::Str("114941315417899012"),
+            ],
+        );
+        serde_test::assert_de_tokens(
+            &CommandVersionId::new(114_941_315_417_899_012).expect("non zero"),
+            &[
+                Token::NewtypeStruct {
+                    name: "CommandVersionId",
+                },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
