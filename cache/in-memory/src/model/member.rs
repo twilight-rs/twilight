@@ -124,13 +124,17 @@ impl PartialEq<&PartialMember> for CachedMember {
 
 impl PartialEq<&InteractionMember> for CachedMember {
     fn eq(&self, other: &&InteractionMember) -> bool {
-        (self.joined_at, &self.nick, self.premium_since, &self.roles)
-            == (
-                other.joined_at,
-                &other.nick,
-                other.premium_since,
-                &other.roles,
-            )
+        (
+            self.joined_at,
+            self.nick.as_deref(),
+            self.premium_since,
+            &self.roles,
+        ) == (
+            other.joined_at,
+            other.nick.as_deref(),
+            other.premium_since,
+            &other.roles,
+        )
     }
 }
 
