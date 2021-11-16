@@ -164,6 +164,6 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: miri
-          args: test --all-features ${{ steps.values.outputs.excluded-examples }}
+          args: test --all-features ${{ steps.values.outputs.excluded-examples }} --tests
         env:
           MIRIFLAGS: "-Zmiri-disable-isolation"
