@@ -884,6 +884,7 @@ mod tests {
 
     #[cfg(feature = "decompression")]
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_decompression() -> Result<(), Box<dyn Error + Send + Sync>> {
         use super::decompress;
         use hyper::Body;

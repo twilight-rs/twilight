@@ -133,14 +133,16 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Set correct nightly version
-        id: nightly-version
-        run: echo "::set-output name=miri-version::nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)"
+      - name: Set dynamic values
+        id: values
+        run: |
+          echo "::set-output name=miri-version::nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)"
+          echo "::set-output name=excluded-examples::$(grep -h '^name' examples/*/Cargo.toml | cut -d \" -f2 | xargs -I '{}' printf '--exclude {} ')"
 
-      - name: Install ${{ steps.nightly-version.outputs.miri-version }} toolchain
+      - name: Install ${{ steps.values.outputs.miri-version }} toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ steps.nightly-version.outputs.miri-version }}
+          toolchain: ${{ steps.values.outputs.miri-version }}
           override: true
           components: miri, rust-src
 
@@ -162,6 +164,6 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: miri
-          args: test --all-features
+          args: test --all-features ${{ steps.values.outputs.excluded-examples }}
         env:
           MIRIFLAGS: "-Zmiri-disable-isolation"

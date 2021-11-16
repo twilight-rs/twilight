@@ -218,6 +218,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id())
@@ -245,6 +246,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_nick_set_null() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(None)?;
@@ -269,6 +271,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_nick_set_value() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(Some("foo"))?;

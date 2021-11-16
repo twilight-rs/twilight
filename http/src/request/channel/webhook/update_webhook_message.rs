@@ -464,6 +464,7 @@ mod tests {
     use twilight_model::id::{MessageId, WebhookId};
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_request() {
         let client = Client::new("token".to_owned());
         let mut builder = UpdateWebhookMessage::new(

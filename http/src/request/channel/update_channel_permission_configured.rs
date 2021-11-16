@@ -104,6 +104,7 @@ mod tests {
     };
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_request() {
         let client = Client::new("foo".to_owned());
         let builder = UpdateChannelPermissionConfigured::new(

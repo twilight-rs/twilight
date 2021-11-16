@@ -139,6 +139,7 @@ mod test {
     use twilight_model::id::GuildId;
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_days() {
         fn days_valid(days: u64) -> bool {
             let client = Client::new("".to_owned());

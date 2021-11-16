@@ -195,6 +195,7 @@ mod tests {
     use twilight_model::id::ChannelId;
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_string());
         let channel_id = ChannelId::new(123).expect("non zero");

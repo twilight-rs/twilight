@@ -69,6 +69,7 @@ mod tests {
     use twilight_model::id::{ApplicationId, MessageId};
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_request() {
         let client = Client::new("token".to_owned());
 

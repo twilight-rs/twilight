@@ -84,6 +84,7 @@ mod tests {
     use twilight_model::id::{ChannelId, MessageId};
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_request() {
         let client = Client::new("foo".to_owned());
 

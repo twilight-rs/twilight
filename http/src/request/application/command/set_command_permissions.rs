@@ -212,7 +212,7 @@ impl<'a> SetCommandPermissions<'a> {
     }
 }
 
-#[cfg(all(test, not(miri)))]
+#[cfg(test)]
 mod tests {
     use super::{
         super::super::{InteractionError, InteractionErrorType},
@@ -252,6 +252,7 @@ mod tests {
 
     #[allow(unused)]
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_correct_validation() -> Result<(), Box<dyn Error>> {
         let http = Client::new("token".to_owned());
         let command_permissions = &[
@@ -314,6 +315,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_incorrect_validation() {
         let http = Client::new("token".to_owned());
         let command_permissions = command_permissions(CommandId::new(2).expect("non zero"))
@@ -329,6 +331,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_limits() {
         const SIZE: usize = InteractionError::GUILD_COMMAND_LIMIT;
 
@@ -350,6 +353,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_command_count_over_limit() {
         const SIZE: usize = 101;
 
@@ -369,6 +373,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_no_permissions() {
         let http = Client::new("token".to_owned());
 

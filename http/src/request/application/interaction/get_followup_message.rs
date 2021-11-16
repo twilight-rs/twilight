@@ -75,6 +75,7 @@ mod tests {
     assert_impl_all!(GetFollowupMessage<'_>: Send, Sync);
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_request() -> Result<(), Box<dyn Error>> {
         const TOKEN: &str = "token";
 

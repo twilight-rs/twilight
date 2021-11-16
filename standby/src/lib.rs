@@ -1198,6 +1198,7 @@ mod tests {
 
     /// Test basic functionality of the [`Standby::wait_for`] method.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for() {
         let standby = Standby::new();
         let wait = standby.wait_for(
@@ -1221,6 +1222,7 @@ mod tests {
 
     /// Test basic functionality of the [`Standby::wait_for_stream`] method.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_stream() {
         let standby = Standby::new();
         let mut stream = standby.wait_for_stream(
@@ -1261,6 +1263,7 @@ mod tests {
 
     /// Test basic functionality of the [`Standby::wait_for_event`] method.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_event() {
         let ready = Ready {
             application: PartialApplication {
@@ -1305,6 +1308,7 @@ mod tests {
     /// Test basic functionality of the [`Standby::wait_for_event_stream`]
     /// method.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_event_stream() {
         let standby = Standby::new();
         let mut stream =
@@ -1319,6 +1323,7 @@ mod tests {
 
     /// Test basic functionality of the [`Standby::wait_for_message`] method.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_message() {
         let message = message();
         let event = Event::MessageCreate(Box::new(MessageCreate(message)));
@@ -1337,6 +1342,7 @@ mod tests {
     /// Test basic functionality of the [`Standby::wait_for_message_stream`]
     /// method.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_message_stream() {
         let standby = Standby::new();
         let mut stream = standby
@@ -1356,6 +1362,7 @@ mod tests {
 
     /// Test basic functionality of the [`Standby::wait_for_reaction`] method.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_reaction() {
         let event = Event::ReactionAdd(Box::new(ReactionAdd(reaction())));
 
@@ -1377,6 +1384,7 @@ mod tests {
     /// Test basic functionality of the [`Standby::wait_for_reaction_stream`]
     /// method.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_reaction_stream() {
         let standby = Standby::new();
         let mut stream = standby
@@ -1395,6 +1403,7 @@ mod tests {
     /// Assert that Standby processing some non-matching events will not affect
     /// the matching of a later event.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_component() {
         let event = Event::InteractionCreate(Box::new(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
@@ -1418,6 +1427,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_wait_for_component_stream() {
         let standby = Standby::new();
         let mut stream = standby.wait_for_component_stream(
@@ -1442,6 +1452,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_handles_wrong_events() {
         let standby = Standby::new();
         let wait = standby.wait_for_event(|event: &Event| event.kind() == EventType::Resumed);
@@ -1458,6 +1469,7 @@ mod tests {
     /// and guild events. Similarly, guild handlers should be able to process
     /// specific handler events as well.
     #[tokio::test]
+    #[cfg_attr(miri, ignore)]
     async fn test_process_nonspecific_handling() {
         let standby = Standby::new();
 

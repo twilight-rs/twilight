@@ -296,6 +296,7 @@ mod tests {
     use twilight_model::id::ChannelId;
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let mut builder =
@@ -309,6 +310,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let mut builder =
