@@ -125,3 +125,43 @@ jobs:
         with:
           name: code-coverage-report
           path: cobertura.xml
+
+  miri:
+    name: Miri
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Set correct nightly version
+        id: nightly-version
+        run: echo "::set-output name=miri-version::nightly-$(curl -s https://rust-lang.github.io/rustup-components-history/x86_64-unknown-linux-gnu/miri)"
+
+      - name: Install ${{ steps.nightly-version.outputs.miri-version }} toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ steps.nightly-version.outputs.miri-version }}
+          override: true
+          components: miri, rust-src
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Install xargo
+        uses: actions-rs/install@v0.1
+        with:
+          crate: xargo
+          use-tool-cache: true
+
+      - name: Run cargo clean
+        uses: actions-rs/cargo@v1
+        with:
+          command: clean
+
+      - name: Run Miri UB check
+        uses: actions-rs/cargo@v1
+        with:
+          command: miri
+          args: test --all-features
+        env:
+          MIRIFLAGS: "-Zmiri-disable-isolation"
