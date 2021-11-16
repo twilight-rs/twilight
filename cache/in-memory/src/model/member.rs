@@ -102,8 +102,8 @@ impl PartialEq<Member> for CachedMember {
     }
 }
 
-impl PartialEq<PartialMember> for CachedMember {
-    fn eq(&self, other: &PartialMember) -> bool {
+impl PartialEq<&PartialMember> for CachedMember {
+    fn eq(&self, other: &&PartialMember) -> bool {
         (
             self.deaf,
             self.joined_at,
@@ -122,8 +122,8 @@ impl PartialEq<PartialMember> for CachedMember {
     }
 }
 
-impl PartialEq<InteractionMember> for CachedMember {
-    fn eq(&self, other: &InteractionMember) -> bool {
+impl PartialEq<&InteractionMember> for CachedMember {
+    fn eq(&self, other: &&InteractionMember) -> bool {
         (self.joined_at, &self.nick, self.premium_since, &self.roles)
             == (
                 other.joined_at,
@@ -230,6 +230,6 @@ mod tests {
             user: None,
         };
 
-        assert_eq!(cached_member(), member);
+        assert_eq!(cached_member(), &member);
     }
 }
