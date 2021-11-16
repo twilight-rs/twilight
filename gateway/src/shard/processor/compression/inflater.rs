@@ -209,6 +209,7 @@ mod tests {
     const SHARD: [u64; 2] = [2, 5];
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_inflater() -> Result<(), Box<dyn Error>> {
         let mut inflater = Inflater::new(SHARD);
         inflater.extend(&MESSAGE[0..MESSAGE.len() - 2]);
