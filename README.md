@@ -204,18 +204,6 @@ async fn handle_event(
 }
 ```
 
-and in your `Cargo.toml`, include the following dependencies:
-
-```toml
-[dependencies]
-futures = "0.3"
-tokio = { version = "1.5", features = ["macros, rt-multi-thread"] }
-twilight-cache-inmemory = "0.7"
-twilight-gateway = "0.7"
-twilight-http = "0.7"
-twilight-model = "0.7"
-```
-
 ## Note about tracing
 
 When using the `tracing` crate you won't, by default, see logs from any
