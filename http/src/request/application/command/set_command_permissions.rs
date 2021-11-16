@@ -212,7 +212,7 @@ impl<'a> SetCommandPermissions<'a> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(miri)))]
 mod tests {
     use super::{
         super::super::{InteractionError, InteractionErrorType},
