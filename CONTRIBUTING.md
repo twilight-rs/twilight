@@ -28,6 +28,7 @@ use std::{
 };
 
 /// Error created when something happens.
+#[derive(Debug)]
 pub struct TwilightError {
     kind: TwilightErrorType,
     source: Option<Box<dyn Error + Send + Sync>>,
