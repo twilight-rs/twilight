@@ -42,7 +42,7 @@ impl TwilightError {
 
     /// Consume the error, returning the source error if there is any.
     #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {}
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
         self.source
     }
 
