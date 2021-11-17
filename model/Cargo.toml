@@ -16,9 +16,9 @@ version = "0.7.1"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
-serde = { default-features = false, features = ["derive", "std"], version = "1.0.4" }
+serde = { default-features = false, features = ["derive", "std"], version = "1.0.103" }
 serde-value = { default-features = false, version = "0.7" }
-serde_repr = { default-features = false, version = "0.1" }
+serde_repr = { default-features = false, version = "0.1.5" }
 tracing = { default-features = false, version = "0.1" }
 
 [dev-dependencies]
