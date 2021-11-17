@@ -37,7 +37,7 @@ pub struct TwilightError {
 impl TwilightError {
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> TwilightErrorType {
+    pub const fn kind(&self) -> &TwilightErrorType {
         &self.kind
     }
 
@@ -60,7 +60,7 @@ impl Display for TwilightError {
             TwilightErrorType::AnError => f.write_str("something went wrong"),
             TwilightErrorType::AnotherError { mistake_count } => {
                 f.write_str("something else went wrong, ")?;
-                Display::fmt(mistake_count, f)?;
+                Display::fmt(&mistake_count, f)?;
 
                 f.write_str(" mistakes")
             }
