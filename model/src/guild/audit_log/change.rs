@@ -737,6 +737,7 @@ mod tests {
                 Token::String("new_value"),
                 Token::Str("18432"),
                 Token::String("old_value"),
+                Token::Some,
                 Token::Str("2048"),
                 Token::StructEnd,
             ],
