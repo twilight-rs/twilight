@@ -20,7 +20,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Message,
     },
-    id::ApplicationId,
+    id::{ApplicationId, ChannelId},
 };
 
 /// A followup message can not be created as configured.
@@ -148,6 +148,7 @@ pub struct CreateFollowupMessage<'a> {
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     files: &'a [(&'a str, &'a [u8])],
     http: &'a Client,
+    thread_id: Option<ChannelId>,
     token: &'a str,
     application_id: ApplicationId,
 }
@@ -172,6 +173,7 @@ impl<'a> CreateFollowupMessage<'a> {
             },
             files: &[],
             http,
+            thread_id: None,
             token,
             application_id,
         }
@@ -326,6 +328,14 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
+    /// Get a message in a thread belonging to the channel instead of the
+    /// channel itself.
+    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+        self.thread_id.replace(thread_id);
+
+        self
+    }
+
     /// Specify true if the message is TTS.
     pub const fn tts(mut self, tts: bool) -> Self {
         self.fields.tts = Some(tts);
@@ -344,6 +354,7 @@ impl<'a> CreateFollowupMessage<'a> {
     // being consumed in request construction.
     fn request(&self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
+            thread_id: self.thread_id.map(ChannelId::get),
             token: self.token,
             wait: None,
             webhook_id: self.application_id.get(),

@@ -146,6 +146,7 @@ pub struct ExecuteWebhook<'a> {
     pub(crate) fields: ExecuteWebhookFields<'a>,
     files: &'a [(&'a str, &'a [u8])],
     pub(super) http: &'a Client,
+    thread_id: Option<ChannelId>,
     token: &'a str,
     webhook_id: WebhookId,
 }
@@ -166,6 +167,7 @@ impl<'a> ExecuteWebhook<'a> {
             },
             files: &[],
             http,
+            thread_id: None,
             token,
             webhook_id,
         }
@@ -302,7 +304,7 @@ impl<'a> ExecuteWebhook<'a> {
 
     /// Execute in a thread belonging to the channel instead of the channel itself.
     pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
-        self.fields.thread_id.replace(thread_id);
+        self.thread_id.replace(thread_id);
 
         self
     }
@@ -336,6 +338,7 @@ impl<'a> ExecuteWebhook<'a> {
     // being consumed in request construction.
     pub(super) fn request(&self, wait: bool) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
+            thread_id: self.thread_id.map(ChannelId::get),
             token: self.token,
             wait: Some(wait),
             webhook_id: self.webhook_id.get(),

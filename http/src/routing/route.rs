@@ -296,6 +296,8 @@ pub enum Route<'a> {
     /// Route information to delete a message created by a webhook.
     DeleteWebhookMessage {
         message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         token: &'a str,
         webhook_id: u64,
     },
@@ -308,6 +310,8 @@ pub enum Route<'a> {
     },
     /// Route information to execute a webhook by ID and token.
     ExecuteWebhook {
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         /// The token of the webhook.
         token: &'a str,
         /// Whether to wait for a message response.
@@ -401,6 +405,8 @@ pub enum Route<'a> {
         application_id: u64,
         /// Token of the interaction.
         interaction_token: &'a str,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         /// ID of the followup message.
         message_id: u64,
     },
@@ -696,6 +702,8 @@ pub enum Route<'a> {
     GetWebhookMessage {
         /// ID of the message.
         message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         /// Token of the webhook.
         token: &'a str,
         /// ID of the webhook.
@@ -948,6 +956,8 @@ pub enum Route<'a> {
     /// Route information to update a message created by a webhook.
     UpdateWebhookMessage {
         message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         token: &'a str,
         webhook_id: u64,
     },
