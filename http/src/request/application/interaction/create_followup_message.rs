@@ -99,8 +99,6 @@ pub enum CreateFollowupMessageErrorType {
 #[derive(Serialize)]
 pub(crate) struct CreateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar_url: Option<&'a str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     components: Option<&'a [Component]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<&'a str>,
@@ -110,8 +108,6 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    username: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
     allowed_mentions: Option<&'a AllowedMentions>,
@@ -160,13 +156,11 @@ impl<'a> CreateFollowupMessage<'a> {
     ) -> Self {
         Self {
             fields: CreateFollowupMessageFields {
-                avatar_url: None,
                 components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
                 tts: None,
-                username: None,
                 flags: None,
                 allowed_mentions: None,
             },
@@ -180,13 +174,6 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Specify the [`AllowedMentions`] for the webhook message.
     pub const fn allowed_mentions(mut self, allowed_mentions: &'a AllowedMentions) -> Self {
         self.fields.allowed_mentions = Some(allowed_mentions);
-
-        self
-    }
-
-    /// The URL of the avatar of the webhook.
-    pub const fn avatar_url(mut self, avatar_url: &'a str) -> Self {
-        self.fields.avatar_url = Some(avatar_url);
 
         self
     }
@@ -329,13 +316,6 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Specify true if the message is TTS.
     pub const fn tts(mut self, tts: bool) -> Self {
         self.fields.tts = Some(tts);
-
-        self
-    }
-
-    /// Specify the username of the webhook's message.
-    pub const fn username(mut self, username: &'a str) -> Self {
-        self.fields.username = Some(username);
 
         self
     }
