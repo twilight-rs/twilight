@@ -3,39 +3,12 @@ name: Library
 
 on:
   push:
-    paths:
-      - ".github/**"
-      - "cache/**"
-      - "command-parser/**"
-      - "embed-builder/**"
-      - "examples/**"
-      - "gateway/**"
-      - "gateway-queue/**"
-      - "http/**"
-      - "lavalink/**"
-      - "mention/**"
-      - "model/**"
-      - "standby/**"
-      - "twilight/**"
-      - "util/**"
-      - "Cargo.toml"
+    # Since we don't have any other action schemas, ignore the `target`
+    # directory for now. This replicates the current behavior which is to always
+    # run actions.
+    paths-ignore: ["target"]
   pull_request:
-    paths:
-      - ".github/**"
-      - "cache/**"
-      - "command-parser/**"
-      - "embed-builder/**"
-      - "examples/**"
-      - "gateway/**"
-      - "gateway-queue/**"
-      - "http/**"
-      - "lavalink/**"
-      - "mention/**"
-      - "model/**"
-      - "standby/**"
-      - "twilight/**"
-      - "util/**"
-      - "Cargo.toml"
+    paths-ignore: ["target"]
 
 env:
   # Use `haswell` instead of `native` due to some GitHub Actions runners not
