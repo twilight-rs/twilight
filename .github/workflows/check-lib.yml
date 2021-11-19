@@ -1,14 +1,7 @@
 # Checks performed on our common library crates.
 name: Library
 
-on:
-  push:
-    # Since we don't have any other action schemas, ignore the `target`
-    # directory for now. This replicates the current behavior which is to always
-    # run actions.
-    paths-ignore: ["target"]
-  pull_request:
-    paths-ignore: ["target"]
+on: [push, pull_request]
 
 env:
   # Use `haswell` instead of `native` due to some GitHub Actions runners not
