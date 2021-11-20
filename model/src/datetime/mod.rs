@@ -140,7 +140,7 @@ impl Timestamp {
     ///
     /// [`TimestampParseErrorType::Format`]: error::TimestampParseErrorType::Format
     /// [`TimestampParseErrorType::Range`]: error::TimestampParseErrorType::Range
-    pub const fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
+    pub fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
         let micros = match parse_iso8601(datetime) {
             Ok(micros) => micros,
             Err(source) => return Err(source),
@@ -375,12 +375,6 @@ const fn parse_iso8601(input: &str) -> Result<u64, TimestampParseError> {
     // computationally working off of a 0-indexed day.
     running_year_days += day as u16 - 1;
 
-    // `const`: we can't implement `Ord` on `Month` and do an ordered check
-    // because it isn't const.
-    if is_leap_year && month.legible() > Month::February.legible() {
-        running_year_days += 1;
-    }
-
     let days = (year - EPOCH_UNIX) * DAYS_PER_YEAR + leap_years + running_year_days;
 
     // Active multiplier for the current byte.
@@ -510,6 +504,28 @@ mod tests {
 
         test("2021-12-31T23:59:59.999999+00:00")?;
         test("2021-01-01T00:00:00.000000+00:00")?;
+
+        Ok(())
+    }
+
+    /// Test that 2016-03-01T07:33:19.000000+00:00 (1456817599) will parse and
+    /// format back out the same value.
+    ///
+    /// The issue arose because in [`super::parse_iso8601`] we had a check for
+    /// whether the year was a leap year and if the month was after February; if
+    /// this was true then we added a day to the result. However, we already
+    /// calculate the additional day in another part of the parsing function.
+    #[test]
+    fn test_march_1st_leap_year() -> Result<(), TimestampParseError> {
+        const INPUT: &str = "2016-03-01T07:33:19.000000+00:00";
+        const SECONDS: u64 = 1_456_817_599;
+
+        let timestamp = Timestamp::from_str(INPUT)?;
+        assert_eq!(SECONDS, timestamp.as_secs());
+        let formatted = timestamp.iso_8601().to_string();
+
+        assert_eq!(INPUT, formatted);
+        assert_eq!(SECONDS, Timestamp::from_str(&formatted)?.as_secs());
 
         Ok(())
     }
