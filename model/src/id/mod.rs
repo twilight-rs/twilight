@@ -49,6 +49,7 @@ use serde::{
 };
 use std::{
     any,
+    cmp::Ordering,
     convert::TryFrom,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     hash::{Hash, Hasher},
@@ -254,7 +255,7 @@ impl<T> Hash for Id<T> {
 }
 
 impl<T> Ord for Id<T> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         self.value.cmp(&other.value)
     }
 }
@@ -294,7 +295,7 @@ impl<T> PartialEq<Id<T>> for u64 {
 }
 
 impl<T> PartialOrd for Id<T> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.value.partial_cmp(&other.value)
     }
 }
@@ -357,15 +358,13 @@ impl<T> Serialize for IdStringDisplay<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::id::IdStringDisplay;
-
     use super::{
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
             CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
             InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
         },
-        Id,
+        Id, IdStringDisplay,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
