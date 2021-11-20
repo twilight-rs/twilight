@@ -182,7 +182,7 @@ impl ShardBuilder {
             http_client: Arc::new(HttpClient::new(token.clone())),
             identify_properties: None,
             intents,
-            large_threshold: 250,
+            large_threshold: 50,
             presence: None,
             queue: Arc::new(LocalQueue::new()),
             shard: [0, 1],
@@ -266,7 +266,7 @@ impl ShardBuilder {
 
     /// Set the maximum number of members in a guild to load the member list.
     ///
-    /// Default value is `250`. The minimum value is `50` and the maximum is
+    /// Default value is `50`. The minimum value is `50` and the maximum is
     /// `250`.
     ///
     /// # Examples
