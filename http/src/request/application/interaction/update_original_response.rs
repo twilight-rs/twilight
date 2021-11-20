@@ -6,13 +6,14 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, NullableField, Request,
+        AttachmentFile, Form, NullableField, Request,
     },
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -173,8 +174,8 @@ struct UpdateOriginalResponseFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateOriginalResponse<'a> {
     application_id: ApplicationId,
+    attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateOriginalResponseFields<'a>,
-    files: &'a [(&'a str, &'a [u8])],
     http: &'a Client,
     token: &'a str,
 }
@@ -198,7 +199,7 @@ impl<'a> UpdateOriginalResponse<'a> {
                 embeds: None,
                 payload_json: None,
             },
-            files: &[],
+            attachments: Cow::Borrowed(&[]),
             http,
             token: interaction_token,
         }
@@ -371,9 +372,22 @@ impl<'a> UpdateOriginalResponse<'a> {
         Ok(self)
     }
 
-    /// Attach multiple files to the original response.
-    pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.files = files;
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[allow(clippy::missing_const_for_fn)] // False positive
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = Cow::Borrowed(attachments);
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[deprecated(since = "0.7.1", note = "Use attach instead")]
+    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
+        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -381,10 +395,10 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`files`]. See [Discord Docs/Create Message] and
+    /// [`attach`]. See [Discord Docs/Create Message] and
     /// [`CreateFollowupMessage::payload_json`].
     ///
-    /// [`files`]: Self::files
+    /// [`attach`]: Self::attach
     /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
@@ -401,11 +415,17 @@ impl<'a> UpdateOriginalResponse<'a> {
             interaction_token: self.token,
         });
 
-        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
-            for (index, (name, file)) in self.files.iter().enumerate() {
-                form.file(index.to_be_bytes().as_ref(), name.as_bytes(), file);
+            if !self.attachments.is_empty() {
+                for (index, attachment) in self.attachments.iter().enumerate() {
+                    form.attach(
+                        index as u64,
+                        attachment.filename.as_bytes(),
+                        attachment.file,
+                    );
+                }
             }
 
             if let Some(payload_json) = &self.fields.payload_json {
