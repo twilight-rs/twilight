@@ -184,6 +184,7 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
+    #[deprecated(since = "0.7.2", note = "does not actually do anything")]
     /// The URL of the avatar of the webhook.
     pub const fn avatar_url(mut self, avatar_url: &'a str) -> Self {
         self.fields.avatar_url = Some(avatar_url);
@@ -333,6 +334,7 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
+    #[deprecated(since = "0.7.2", note = "does not actually do anything")]
     /// Specify the username of the webhook's message.
     pub const fn username(mut self, username: &'a str) -> Self {
         self.fields.username = Some(username);
