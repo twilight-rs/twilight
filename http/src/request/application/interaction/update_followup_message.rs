@@ -384,7 +384,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    #[deprecated(since = "0.7.1", note = "Use attach instead")]
+    #[deprecated(since = "0.7.2", note = "Use attach instead")]
     pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
         self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
