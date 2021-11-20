@@ -1,4 +1,3 @@
-
 //! Markers for various resource types, such as channels or users.
 //!
 //! Markers themselves perform no logical action, and are only used to
