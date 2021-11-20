@@ -45,7 +45,7 @@ impl<'a> ExecuteWebhookAndWait<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Message> {
+    pub fn exec(mut self) -> ResponseFuture<Message> {
         match self.inner.request(false) {
             Ok(request) => self.inner.http.request(request),
             Err(source) => ResponseFuture::error(source),
