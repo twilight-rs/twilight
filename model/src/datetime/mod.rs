@@ -140,7 +140,7 @@ impl Timestamp {
     ///
     /// [`TimestampParseErrorType::Format`]: error::TimestampParseErrorType::Format
     /// [`TimestampParseErrorType::Range`]: error::TimestampParseErrorType::Range
-    pub fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
+    pub const fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
         let micros = match parse_iso8601(datetime) {
             Ok(micros) => micros,
             Err(source) => return Err(source),
