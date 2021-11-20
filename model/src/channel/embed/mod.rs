@@ -143,7 +143,7 @@ mod tests {
             thumbnail: Some(EmbedThumbnail {
                 height: Some(1440),
                 proxy_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
-                url: Some("https://example.com/1.png".to_owned()),
+                url: "https://example.com/1.png".to_owned(),
                 width: Some(2560),
             }),
             timestamp: Some(timestamp),
