@@ -47,6 +47,7 @@ impl EmbedAuthorBuilder {
         self._name(name.into())
     }
 
+    #[allow(clippy::missing_const_for_fn)]
     fn _name(mut self, name: String) -> Self {
         self.0.name = name;
 
