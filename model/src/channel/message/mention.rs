@@ -45,8 +45,12 @@ impl Mention {
 #[cfg(test)]
 mod tests {
     use super::{Mention, PartialMember, UserFlags};
-    use crate::id::Id;
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::Id,
+    };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     fn test_mention_without_member() {
@@ -88,7 +92,9 @@ mod tests {
     }
 
     #[test]
-    fn test_mention_with_member() {
+    fn test_mention_with_member() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+
         let value = Mention {
             avatar: None,
             bot: false,
@@ -97,7 +103,7 @@ mod tests {
             member: Some(PartialMember {
                 avatar: None,
                 deaf: false,
-                joined_at: None,
+                joined_at,
                 mute: true,
                 nick: Some("bar".to_owned()),
                 permissions: None,
@@ -134,7 +140,7 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::None,
+                Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),
                 Token::Str("nick"),
@@ -155,5 +161,6 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+        Ok(())
     }
 }

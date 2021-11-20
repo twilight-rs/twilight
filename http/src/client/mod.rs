@@ -37,8 +37,8 @@ use crate::{
             thread::{
                 AddThreadMember, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
-                GetPublicArchivedThreads, GetThreadMembers, JoinThread, LeaveThread,
-                RemoveThreadMember, ThreadValidationError, UpdateThread,
+                GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
+                LeaveThread, RemoveThreadMember, ThreadValidationError, UpdateThread,
             },
             webhook::{
                 CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
@@ -106,9 +106,7 @@ use twilight_model::{
         callback::InteractionResponse,
         command::{permissions::CommandPermissions, Command},
     },
-    channel::{
-        message::allowed_mentions::AllowedMentions, thread::AutoArchiveDuration, ChannelType,
-    },
+    channel::{message::allowed_mentions::AllowedMentions, ChannelType},
     guild::Permissions,
     id::{
         marker::{
@@ -1661,10 +1659,9 @@ impl Client {
         &'a self,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
         kind: ChannelType,
     ) -> Result<CreateThread<'_>, ThreadValidationError> {
-        CreateThread::new(self, channel_id, name, auto_archive_duration, kind)
+        CreateThread::new(self, channel_id, name, kind)
     }
 
     /// Create a new thread from an existing message.
@@ -1693,9 +1690,8 @@ impl Client {
         channel_id: Id<ChannelMarker>,
         message_id: Id<MessageMarker>,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
     ) -> Result<CreateThreadFromMessage<'_>, ThreadValidationError> {
-        CreateThreadFromMessage::new(self, channel_id, message_id, name, auto_archive_duration)
+        CreateThreadFromMessage::new(self, channel_id, message_id, name)
     }
 
     /// Add the current user to a thread.
@@ -1773,6 +1769,17 @@ impl Client {
         user_id: Id<UserMarker>,
     ) -> RemoveThreadMember<'_> {
         RemoveThreadMember::new(self, channel_id, user_id)
+    }
+
+    /// Returns a [`ThreadMember`] in a thread.
+    ///
+    /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
+    pub const fn thread_member(
+        &self,
+        channel_id: Id<ChannelMarker>,
+        user_id: Id<UserMarker>,
+    ) -> GetThreadMember<'_> {
+        GetThreadMember::new(self, channel_id, user_id)
     }
 
     /// Returns the [`ThreadMember`]s of the thread.

@@ -156,7 +156,7 @@ mod tests {
             member: Some(PartialMember {
                 avatar: None,
                 deaf: false,
-                joined_at: None,
+                joined_at: timestamp,
                 mute: false,
                 nick: None,
                 permissions: None,

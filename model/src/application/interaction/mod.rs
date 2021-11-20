@@ -327,7 +327,7 @@ mod test {
                     members: vec![InteractionMember {
                         hoisted_role: None,
                         id: Id::new(600).expect("non zero"),
-                        joined_at: Some(joined_at),
+                        joined_at,
                         nick: Some("nickname".into()),
                         premium_since: None,
                         roles: Vec::new(),
@@ -359,7 +359,7 @@ mod test {
             member: Some(PartialMember {
                 avatar: None,
                 deaf: false,
-                joined_at: Some(joined_at),
+                joined_at,
                 mute: false,
                 nick: Some("nickname".into()),
                 permissions: Some(Permissions::empty()),
@@ -440,7 +440,6 @@ mod test {
                     len: 2,
                 },
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
                 Token::Some,
@@ -493,7 +492,6 @@ mod test {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

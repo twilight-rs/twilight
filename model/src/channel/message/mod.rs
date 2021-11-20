@@ -151,7 +151,7 @@ mod tests {
             member: Some(PartialMember {
                 avatar: None,
                 deaf: false,
-                joined_at: Some(joined_at),
+                joined_at,
                 mute: false,
                 nick: Some("member nick".to_owned()),
                 permissions: None,
@@ -241,7 +241,6 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),
@@ -343,7 +342,7 @@ mod tests {
             member: Some(PartialMember {
                 avatar: None,
                 deaf: false,
-                joined_at: Some(joined_at),
+                joined_at,
                 mute: false,
                 nick: Some("member nick".to_owned()),
                 permissions: None,
@@ -483,7 +482,6 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

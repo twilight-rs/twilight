@@ -183,7 +183,7 @@ mod tests {
             name: "test name".to_owned(),
             verified: Some(true),
             premium_type: Some(PremiumType::NitroClassic),
-            public_flags: Some(UserFlags::DISCORD_EMPLOYEE),
+            public_flags: Some(UserFlags::STAFF),
             flags: None,
             locale: Some("test locale".to_owned()),
         };
@@ -212,8 +212,8 @@ mod tests {
             name: "test name".to_owned(),
             verified: Some(true),
             premium_type: Some(PremiumType::NitroClassic),
-            public_flags: Some(UserFlags::DISCORD_EMPLOYEE),
-            flags: Some(UserFlags::DISCORD_EMPLOYEE),
+            public_flags: Some(UserFlags::STAFF),
+            flags: Some(UserFlags::STAFF),
             locale: Some("test locale".to_owned()),
         };
 

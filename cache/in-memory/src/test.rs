@@ -16,6 +16,7 @@ use twilight_model::{
 };
 
 pub fn cache_with_message_and_reactions() -> InMemoryCache {
+    let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
     let cache = InMemoryCache::new();
 
     let msg = Message {
@@ -53,7 +54,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         member: Some(PartialMember {
             avatar: None,
             deaf: false,
-            joined_at: None,
+            joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
             permissions: None,
@@ -88,7 +89,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             avatar: None,
             deaf: false,
             guild_id: Id::new(1).expect("non zero"),
-            joined_at: None,
+            joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
             pending: false,
@@ -122,7 +123,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         avatar: None,
         deaf: false,
         guild_id: Id::new(1).expect("non zero"),
-        joined_at: None,
+        joined_at,
         mute: false,
         nick: None,
         pending: false,
@@ -213,11 +214,13 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, GuildChannel
 }
 
 pub fn member(id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> Member {
+    let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
+
     Member {
         avatar: None,
         deaf: false,
         guild_id,
-        joined_at: None,
+        joined_at,
         mute: false,
         nick: None,
         pending: false,

@@ -33,10 +33,7 @@ use twilight_model::{
         NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
-    id::{
-        marker::{ApplicationMarker, CommandMarker, GuildMarker},
-        Id,
-    },
+    id::{marker::GuildMarker, Id},
 };
 
 /// Builder to create a [`Command`].
@@ -69,15 +66,6 @@ impl CommandBuilder {
         self.0
     }
 
-    /// Set the application ID of the command.
-    ///
-    /// Defaults to [`None`].
-    pub const fn application_id(mut self, application_id: Id<ApplicationMarker>) -> Self {
-        self.0.application_id = Some(application_id);
-
-        self
-    }
-
     /// Set the guild ID of the command.
     ///
     /// Defaults to [`None`].
@@ -92,15 +80,6 @@ impl CommandBuilder {
     /// Defaults to [`None`].
     pub const fn default_permission(mut self, default_permission: bool) -> Self {
         self.0.default_permission = Some(default_permission);
-
-        self
-    }
-
-    /// Set the ID of the command.
-    ///
-    /// Defaults to [`None`].
-    pub const fn id(mut self, id: Id<CommandMarker>) -> Self {
-        self.0.id = Some(id);
 
         self
     }
@@ -554,11 +533,11 @@ impl SubCommandGroupBuilder {
         CommandOption::SubCommandGroup(self.0)
     }
 
-    /// Add a sub command option to the sub command group.
+    /// Set the list of sub commands to the group.
     ///
-    /// Defaults to an empty list.
-    pub fn option(mut self, option: SubCommandBuilder) -> Self {
-        self.0.options.push(option.into());
+    /// Defaults to no subcommands.
+    pub fn subcommands(mut self, subcommands: impl IntoIterator<Item = SubCommandBuilder>) -> Self {
+        self.0.options = subcommands.into_iter().map(Into::into).collect();
 
         self
     }
@@ -636,7 +615,7 @@ mod tests {
         )
         .option(
             SubCommandGroupBuilder::new("user".into(), "Get or edit permissions for a user".into())
-                .option(
+                .subcommands([
                     SubCommandBuilder::new("get".into(), "Get permissions for a user".into())
                         .option(
                             UserBuilder::new("user".into(), "The user to get".into())
@@ -648,8 +627,6 @@ mod tests {
                              will be returned"
                                 .into(),
                         )),
-                )
-                .option(
                     SubCommandBuilder::new("edit".into(), "Edit permissions for a user".into())
                         .option(
                             UserBuilder::new("user".into(), "The user to edit".into())
@@ -661,11 +638,11 @@ mod tests {
                              will be edited"
                                 .into(),
                         )),
-                ),
+                ]),
         )
         .option(
             SubCommandGroupBuilder::new("role".into(), "Get or edit permissions for a role".into())
-                .option(
+                .subcommands([
                     SubCommandBuilder::new("get".into(), "Get permissions for a role".into())
                         .option(
                             RoleBuilder::new("role".into(), "The role to get".into())
@@ -677,8 +654,6 @@ mod tests {
                              will be returned"
                                 .into(),
                         )),
-                )
-                .option(
                     SubCommandBuilder::new("edit".into(), "Edit permissions for a role".into())
                         .option(
                             RoleBuilder::new("role".into(), "The role to edit".into())
@@ -694,7 +669,7 @@ mod tests {
                             "position".into(),
                             "The position of the new role".into(),
                         )),
-                ),
+                ]),
         )
         .build();
 
