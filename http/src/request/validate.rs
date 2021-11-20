@@ -926,8 +926,7 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         });
     }
 
-    if let Some(author) = embed.author.as_ref()
-    {
+    if let Some(author) = embed.author.as_ref() {
         let chars = author.name.chars().count();
 
         if chars > EmbedValidationError::AUTHOR_NAME_LENGTH {

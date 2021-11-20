@@ -83,14 +83,7 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::channel::embed::EmbedAuthor;
 
-    assert_impl_all!(
-        EmbedAuthorBuilder: Clone,
-        Debug,
-        Eq,
-        PartialEq,
-        Send,
-        Sync
-    );
+    assert_impl_all!(EmbedAuthorBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);
 
     #[test]
