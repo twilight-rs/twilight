@@ -40,8 +40,8 @@ impl CachedMember {
     }
 
     /// [`Timestamp`] of this member's join date.
-    pub const fn joined_at(&self) -> Option<Timestamp> {
-        Some(self.joined_at)
+    pub const fn joined_at(&self) -> Timestamp {
+        self.joined_at
     }
 
     /// Whether the member is muted in a voice channel.
