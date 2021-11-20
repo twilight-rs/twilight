@@ -342,23 +342,20 @@ impl EmbedBuilder {
 
         let mut total = 0;
 
-        if let Some(mut author) = self.0.author.take() {
-            if let Some(name) = author.name.take() {
-                if name.is_empty() {
-                    return Err(EmbedError {
-                        kind: EmbedErrorType::AuthorNameEmpty { name },
-                    });
-                }
-
-                if name.chars().count() > Self::AUTHOR_NAME_LENGTH_LIMIT {
-                    return Err(EmbedError {
-                        kind: EmbedErrorType::AuthorNameTooLong { name },
-                    });
-                }
-
-                total += name.chars().count();
-                author.name.replace(name);
+        if let Some(author) = self.0.author.take() {
+            if author.name.is_empty() {
+                return Err(EmbedError {
+                    kind: EmbedErrorType::AuthorNameEmpty { name: author.name },
+                });
             }
+
+            if author.name.chars().count() > Self::AUTHOR_NAME_LENGTH_LIMIT {
+                return Err(EmbedError {
+                    kind: EmbedErrorType::AuthorNameTooLong { name: author.name },
+                });
+            }
+
+            total += author.name.chars().count();
 
             self.0.author.replace(author);
         }
@@ -483,8 +480,7 @@ impl EmbedBuilder {
     /// use twilight_embed_builder::{EmbedAuthorBuilder, EmbedBuilder};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let author = EmbedAuthorBuilder::new()
-    ///     .name("Twilight")
+    /// let author = EmbedAuthorBuilder::new("Twilight".into())
     ///     .url("https://github.com/twilight-rs/twilight")
     ///     .build();
     ///
@@ -624,7 +620,7 @@ impl EmbedBuilder {
         self.0.image.replace(EmbedImage {
             height: None,
             proxy_url: None,
-            url: Some(image_source.0),
+            url: image_source.0,
             width: None,
         });
 
@@ -652,7 +648,7 @@ impl EmbedBuilder {
         self.0.thumbnail.replace(EmbedThumbnail {
             height: None,
             proxy_url: None,
-            url: Some(image_source.0),
+            url: image_source.0,
             width: None,
         });
 

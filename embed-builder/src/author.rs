@@ -13,11 +13,11 @@ use twilight_model::channel::embed::EmbedAuthor;
 pub struct EmbedAuthorBuilder(EmbedAuthor);
 
 impl EmbedAuthorBuilder {
-    /// Create a new default embed author builder.
-    pub const fn new() -> Self {
+    /// Create a new embed author builder.
+    pub const fn new(name: String) -> Self {
         Self(EmbedAuthor {
             icon_url: None,
-            name: None,
+            name,
             proxy_icon_url: None,
             url: None,
         })
@@ -48,7 +48,7 @@ impl EmbedAuthorBuilder {
     }
 
     fn _name(mut self, name: String) -> Self {
-        self.0.name.replace(name);
+        self.0.name = name;
 
         self
     }
@@ -62,12 +62,6 @@ impl EmbedAuthorBuilder {
         self.0.url.replace(url);
 
         self
-    }
-}
-
-impl Default for EmbedAuthorBuilder {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -91,7 +85,6 @@ mod tests {
     assert_impl_all!(
         EmbedAuthorBuilder: Clone,
         Debug,
-        Default,
         Eq,
         PartialEq,
         Send,
@@ -100,21 +93,8 @@ mod tests {
     assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);
 
     #[test]
-    fn test_defaults() {
-        let expected = EmbedAuthor {
-            icon_url: None,
-            name: None,
-            proxy_icon_url: None,
-            url: None,
-        };
-
-        assert_eq!(expected, EmbedAuthorBuilder::new().0);
-        assert_eq!(EmbedAuthorBuilder::new().0, EmbedAuthorBuilder::default().0);
-    }
-
-    #[test]
     fn test_name_empty() {
-        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name(""));
+        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new("".to_owned()));
 
         assert!(matches!(
             builder.build().unwrap_err().kind(),
@@ -124,10 +104,10 @@ mod tests {
 
     #[test]
     fn test_name_too_long() {
-        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name("a".repeat(256)));
+        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new("a".repeat(256)));
         assert!(builder.build().is_ok());
 
-        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new().name("a".repeat(257)));
+        let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new("a".repeat(257)));
         assert!(matches!(
             builder.build().unwrap_err().kind(),
             EmbedErrorType::AuthorNameTooLong { .. }
@@ -138,15 +118,14 @@ mod tests {
     fn test_builder() {
         let expected = EmbedAuthor {
             icon_url: Some("https://example.com/1.png".to_owned()),
-            name: Some("an author".to_owned()),
+            name: "an author".to_owned(),
             proxy_icon_url: None,
             url: Some("https://example.com".to_owned()),
         };
 
         let source = ImageSource::url("https://example.com/1.png").unwrap();
-        let actual = EmbedAuthorBuilder::new()
+        let actual = EmbedAuthorBuilder::new("an author".to_owned())
             .icon_url(source)
-            .name("an author")
             .url("https://example.com")
             .build();
 
