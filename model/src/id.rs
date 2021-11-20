@@ -483,6 +483,34 @@ impl<T> PartialEq for Id<T> {
     }
 }
 
+impl<T> PartialEq<i64> for Id<T> {
+    fn eq(&self, other: &i64) -> bool {
+        u64::try_from(*other)
+            .map(|v| v == self.value.get())
+            .unwrap_or_default()
+    }
+}
+
+impl<T> PartialEq<Id<T>> for i64 {
+    fn eq(&self, other: &Id<T>) -> bool {
+        u64::try_from(*self)
+            .map(|v| v == other.value.get())
+            .unwrap_or_default()
+    }
+}
+
+impl<T> PartialEq<u64> for Id<T> {
+    fn eq(&self, other: &u64) -> bool {
+        self.value.get() == *other
+    }
+}
+
+impl<T> PartialEq<Id<T>> for u64 {
+    fn eq(&self, other: &Id<T>) -> bool {
+        other.value.get() == *self
+    }
+}
+
 impl<T> PartialOrd for Id<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.value.partial_cmp(&other.value)
@@ -521,6 +549,7 @@ impl<T> TryFrom<u64> for Id<T> {
 }
 
 /// Display implementation to format an ID as a string.
+#[derive(Debug)]
 struct IdStringDisplay<T> {
     inner: Id<T>,
 }
@@ -539,16 +568,15 @@ impl<T> Display for IdStringDisplay<T> {
 }
 
 impl<T> Serialize for IdStringDisplay<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.collect_str(self)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::id::IdStringDisplay;
+
     use super::{
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
@@ -557,11 +585,123 @@ mod tests {
         },
         Id,
     };
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{
+        collections::hash_map::DefaultHasher,
+        convert::TryFrom,
+        error::Error,
+        fmt::{Debug, Display},
+        hash::{Hash, Hasher},
+        num::NonZeroU64,
+        str::FromStr,
+    };
+
+    assert_impl_all!(ApplicationMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(AttachmentMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(AuditLogEntryMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(ChannelMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(CommandMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(CommandVersionMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(EmojiMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(GenericMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(GuildMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(IntegrationMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(InteractionMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(MessageMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(RoleMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(StageMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(UserMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(WebhookMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(Id<GenericMarker>:
+        Clone, Copy, Debug, Deserialize<'static>, Display, Eq, From<NonZeroU64>,
+        FromStr, Hash, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
+        TryFrom<i64>, TryFrom<u64>
+    );
+    assert_impl_all!(IdStringDisplay<GenericMarker>: Debug, Display, Send, Serialize, Sync);
+
+    /// Test that various methods of initializing IDs are correct, such as via
+    /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
+    #[test]
+    fn test_initializers() -> Result<(), Box<dyn Error>> {
+        // `Id::new`
+        assert!(Id::<GenericMarker>::new(0).is_none());
+        assert_eq!(Some(1), Id::<GenericMarker>::new(1).map(Id::get));
+
+        // `From`
+        assert_eq!(
+            123_u64,
+            Id::<GenericMarker>::from(NonZeroU64::new(123).expect("non zero"))
+        );
+
+        // `FromStr`
+        assert_eq!(123_u64, Id::<GenericMarker>::from_str("123")?);
+        assert!(Id::<GenericMarker>::from_str("0").is_err());
+        assert!(Id::<GenericMarker>::from_str("123a").is_err());
+
+        // `TryFrom`
+        assert!(Id::<GenericMarker>::try_from(-123_i64).is_err());
+        assert!(Id::<GenericMarker>::try_from(0_i64).is_err());
+        assert_eq!(123_u64, Id::<GenericMarker>::try_from(123_i64)?);
+        assert!(Id::<GenericMarker>::try_from(0_u64).is_err());
+        assert_eq!(123_u64, Id::<GenericMarker>::try_from(123_u64)?);
+
+        Ok(())
+    }
+
+    /// Test that casting IDs maintains the original value.
+    #[test]
+    fn test_cast() {
+        let id = Id::<GenericMarker>::new(123).expect("non zero");
+        assert_eq!(123_u64, id.cast::<RoleMarker>());
+    }
+
+    /// Test that debugging IDs formats the generic and value as a newtype.
+    #[test]
+    fn test_debug() {
+        let id = Id::<RoleMarker>::new(114_941_315_417_899_012).expect("non zero");
+
+        assert_eq!("Id<RoleMarker>(114941315417899012)", format!("{:?}", id));
+    }
+
+    /// Test that display formatting an ID formats the value.
+    #[test]
+    fn test_display() {
+        let id = Id::<GenericMarker>::new(114_941_315_417_899_012).expect("non zero");
+
+        assert_eq!("114941315417899012", id.to_string());
+    }
+
+    /// Test that hashing an ID is equivalent to hashing only its inner value.
+    #[test]
+    fn test_hash() {
+        let id = Id::<GenericMarker>::new(123).expect("non zero");
+
+        let mut id_hasher = DefaultHasher::new();
+        id.hash(&mut id_hasher);
+
+        let mut value_hasher = DefaultHasher::new();
+        123_u64.hash(&mut value_hasher);
+
+        assert_eq!(id_hasher.finish(), value_hasher.finish());
+    }
+
+    /// Test that IDs are ordered exactly like their inner values.
+    #[test]
+    fn test_ordering() {
+        let lesser = Id::<GenericMarker>::new(911_638_235_594_244_096).expect("non zero");
+        let center = Id::<GenericMarker>::new(911_638_263_322_800_208).expect("non zero");
+        let greater = Id::<GenericMarker>::new(911_638_287_939_166_208).expect("non zero");
+
+        assert!(center.cmp(&greater).is_lt());
+        assert!(center.cmp(&center).is_eq());
+        assert!(center.cmp(&lesser).is_gt());
+    }
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_id_deser() {
+    fn test_serde() {
         serde_test::assert_tokens(
             &Id::<ApplicationMarker>::new(114_941_315_417_899_012).expect("non zero"),
             &[
