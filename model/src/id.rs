@@ -266,6 +266,7 @@ use serde::{
     ser::{Serialize, Serializer},
 };
 use std::{
+    any,
     convert::TryFrom,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     hash::{Hash, Hasher},
@@ -370,7 +371,24 @@ impl<T> Id<T> {
 
 impl<T> Debug for Id<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Debug::fmt(&self.value, f)
+        f.write_str("Id")?;
+        let type_name = any::type_name::<T>();
+
+        // `any::type_name` will usually provide an FQN, so we'll do our best
+        // (and simplest) method here of removing it to only get the type name
+        // itself.
+        if let Some(position) = type_name.rfind("::") {
+            if let Some(slice) = type_name.get(position + 2..) {
+                f.write_str("<")?;
+                f.write_str(slice)?;
+                f.write_str(">")?;
+            }
+        }
+
+        f.write_str("(")?;
+        Debug::fmt(&self.value, f)?;
+
+        f.write_str(")")
     }
 }
 
@@ -441,9 +459,7 @@ impl<T> FromStr for Id<T> {
     type Err = ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let nonzero = NonZeroU64::from_str(s)?;
-
-        Ok(Self::from_nonzero(nonzero))
+        NonZeroU64::from_str(s).map(Self::from_nonzero)
     }
 }
 
