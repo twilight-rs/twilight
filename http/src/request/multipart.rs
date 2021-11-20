@@ -39,7 +39,7 @@ impl Form {
         content_type
     }
 
-    #[deprecated(since = "0.7.1", note = "use attach instead")]
+    #[deprecated(since = "0.7.2", note = "use attach instead")]
     pub fn file(&mut self, name: &[u8], filename: &[u8], data: &[u8]) -> &mut Self {
         self.start();
         self.name(name);
