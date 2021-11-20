@@ -33,7 +33,7 @@ jobs:
       - name: Output processor info
         run: cat /proc/cpuinfo
 
-      - run: cargo check --workspace --benches --examples --tests --all-features
+      - run: cargo check --workspace --all-features --all-targets
 
   # Check documentation
   build-docs:
@@ -115,7 +115,7 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --benches --examples --tests --all-features
+          args: --workspace --all-features --all-targets
 
   codespell:
     name: Spelling
