@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, IntoRequest, Request},
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -123,15 +123,15 @@ impl<'a> UpdateStageInstance<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for UpdateStageInstance<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateStageInstance<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateStageInstance {
             channel_id: self.channel_id.get(),
         });

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -51,7 +51,7 @@ impl<'a> DeleteBan<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -66,8 +66,8 @@ impl<'a> AuditLogReason<'a> for DeleteBan<'a> {
     }
 }
 
-impl IntoRequest for DeleteBan<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for DeleteBan<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteBan {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),

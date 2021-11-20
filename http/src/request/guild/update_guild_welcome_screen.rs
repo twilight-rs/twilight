@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, IntoRequest, Request},
+    request::{self, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -73,15 +73,15 @@ impl<'a> UpdateGuildWelcomeScreen<'a> {
     pub fn exec(self) -> ResponseFuture<WelcomeScreen> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for UpdateGuildWelcomeScreen<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for UpdateGuildWelcomeScreen<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateGuildWelcomeScreen {
             guild_id: self.guild_id.get(),
         });

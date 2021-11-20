@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -36,7 +36,7 @@ impl<'a> DeleteMessage<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -51,8 +51,8 @@ impl<'a> AuditLogReason<'a> for DeleteMessage<'a> {
     }
 }
 
-impl IntoRequest for DeleteMessage<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for DeleteMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),

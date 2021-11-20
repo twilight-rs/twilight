@@ -2,7 +2,7 @@ use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -62,15 +62,15 @@ impl<'a> CreateReaction<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for CreateReaction<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for CreateReaction<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::CreateReaction {
             channel_id: self.channel_id.get(),
             emoji: self.emoji,
@@ -85,7 +85,7 @@ mod tests {
 
     use super::CreateReaction;
     use crate::{
-        request::{channel::reaction::RequestReactionType, IntoRequest, Request},
+        request::{channel::reaction::RequestReactionType, Request, TryIntoRequest},
         routing::Route,
         Client,
     };
@@ -104,7 +104,7 @@ mod tests {
             MessageId::new(456).expect("non zero"),
             &emoji,
         );
-        let actual = builder.into_request()?;
+        let actual = builder.try_into_request()?;
 
         let expected = Request::from_route(&Route::CreateReaction {
             channel_id: 123,

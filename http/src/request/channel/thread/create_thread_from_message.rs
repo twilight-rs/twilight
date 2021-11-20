@@ -2,7 +2,7 @@ use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error,
-    request::{validate_inner, IntoRequest, Request, RequestBuilder},
+    request::{validate_inner, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -93,15 +93,15 @@ impl<'a> CreateThreadFromMessage<'a> {
     pub fn exec(self) -> ResponseFuture<Channel> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for CreateThreadFromMessage<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for CreateThreadFromMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateThreadFromMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),

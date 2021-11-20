@@ -2,7 +2,8 @@ use crate::{
     client::Client,
     error::Error,
     request::{
-        multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request,
+        multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, Request,
+        TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -103,7 +104,7 @@ impl<'a> CreateGuildSticker<'a> {
     pub fn exec(self) -> ResponseFuture<Sticker> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -118,8 +119,8 @@ impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
     }
 }
 
-impl IntoRequest for CreateGuildSticker<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for CreateGuildSticker<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateGuildSticker {
             guild_id: self.guild_id.get(),
         });

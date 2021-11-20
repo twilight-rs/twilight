@@ -2,8 +2,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField,
-        Request,
+        self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request,
+        TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -285,7 +285,7 @@ impl<'a> UpdateChannel<'a> {
     pub fn exec(self) -> ResponseFuture<Channel> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -300,8 +300,8 @@ impl<'a> AuditLogReason<'a> for UpdateChannel<'a> {
     }
 }
 
-impl IntoRequest for UpdateChannel<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateChannel<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
         })

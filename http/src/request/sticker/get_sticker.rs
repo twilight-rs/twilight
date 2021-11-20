@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -40,15 +40,15 @@ impl<'a> GetSticker<'a> {
     pub fn exec(self) -> ResponseFuture<Sticker> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetSticker<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for GetSticker<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetSticker {
             sticker_id: self.sticker_id.get(),
         }))

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -52,15 +52,15 @@ impl<'a> DeleteGuildSticker<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for DeleteGuildSticker<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for DeleteGuildSticker<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteGuildSticker {
             guild_id: self.guild_id.get(),
             sticker_id: self.sticker_id.get(),

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, IntoRequest, Request},
+    request::{validate_inner, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -167,15 +167,15 @@ impl<'a> GetAuditLog<'a> {
     pub fn exec(self) -> ResponseFuture<AuditLog> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetAuditLog<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for GetAuditLog<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| x as u64),
             before: self.fields.before,

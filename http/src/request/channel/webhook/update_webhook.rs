@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -78,7 +78,7 @@ impl<'a> UpdateWebhook<'a> {
     pub fn exec(self) -> ResponseFuture<Webhook> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -93,8 +93,8 @@ impl<'a> AuditLogReason<'a> for UpdateWebhook<'a> {
     }
 }
 
-impl IntoRequest for UpdateWebhook<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for UpdateWebhook<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: None,
             webhook_id: self.webhook_id.get(),

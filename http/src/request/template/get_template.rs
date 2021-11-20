@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -28,15 +28,15 @@ impl<'a> GetTemplate<'a> {
     pub fn exec(self) -> ResponseFuture<Template> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetTemplate<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for GetTemplate<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetTemplate {
             template_code: self.template_code,
         }))

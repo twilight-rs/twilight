@@ -6,7 +6,7 @@ use crate::{
         validate_inner::{
             self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
         },
-        IntoRequest, NullableField, Request,
+        NullableField, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -344,15 +344,15 @@ impl<'a> UpdateMessage<'a> {
     pub fn exec(self) -> ResponseFuture<Message> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for UpdateMessage<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateMessage<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),

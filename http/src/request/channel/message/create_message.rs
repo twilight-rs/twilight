@@ -7,7 +7,7 @@ use crate::{
         validate_inner::{
             self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
         },
-        IntoRequest, Request,
+        Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -358,15 +358,15 @@ impl<'a> CreateMessage<'a> {
     pub fn exec(self) -> ResponseFuture<Message> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for CreateMessage<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for CreateMessage<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.get(),
         });

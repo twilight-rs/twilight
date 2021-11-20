@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -43,15 +43,15 @@ impl<'a> SetGlobalCommands<'a> {
     pub fn exec(self) -> ResponseFuture<ListBody<Command>> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for SetGlobalCommands<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for SetGlobalCommands<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::SetGlobalCommands {
             application_id: self.application_id.get(),
         })

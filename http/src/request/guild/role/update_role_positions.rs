@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -39,15 +39,15 @@ impl<'a> UpdateRolePositions<'a> {
     pub fn exec(self) -> ResponseFuture<ListBody<Role>> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for UpdateRolePositions<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for UpdateRolePositions<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateRolePositions {
             guild_id: self.guild_id.get(),
         });

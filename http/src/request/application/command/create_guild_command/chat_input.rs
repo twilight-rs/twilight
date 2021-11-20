@@ -5,7 +5,7 @@ use super::super::{
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, IntoRequest, Request, RequestBuilder},
+    request::{validate_inner, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -109,15 +109,15 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     pub fn exec(self) -> ResponseFuture<Command> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for CreateGuildChatInputCommand<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for CreateGuildChatInputCommand<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),

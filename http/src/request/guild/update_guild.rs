@@ -2,8 +2,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField,
-        Request,
+        self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request,
+        TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -331,7 +331,7 @@ impl<'a> UpdateGuild<'a> {
     pub fn exec(self) -> ResponseFuture<PartialGuild> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -346,8 +346,8 @@ impl<'a> AuditLogReason<'a> for UpdateGuild<'a> {
     }
 }
 
-impl IntoRequest for UpdateGuild<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateGuild<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateGuild {
             guild_id: self.guild_id.get(),
         });

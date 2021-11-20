@@ -3,7 +3,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, IntoRequest, Request,
+        Form, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -346,15 +346,15 @@ impl<'a> CreateFollowupMessage<'a> {
     pub fn exec(self) -> ResponseFuture<Message> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for CreateFollowupMessage<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for CreateFollowupMessage<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             token: self.token,
             wait: None,

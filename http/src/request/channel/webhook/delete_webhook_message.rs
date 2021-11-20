@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -57,7 +57,7 @@ impl<'a> DeleteWebhookMessage<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -72,8 +72,8 @@ impl<'a> AuditLogReason<'a> for DeleteWebhookMessage<'a> {
     }
 }
 
-impl IntoRequest for DeleteWebhookMessage<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for DeleteWebhookMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
             token: self.token,
@@ -94,7 +94,7 @@ mod tests {
     use super::DeleteWebhookMessage;
     use crate::{
         client::Client,
-        request::{IntoRequest, Request},
+        request::{Request, TryIntoRequest},
         routing::Route,
     };
     use twilight_model::id::{MessageId, WebhookId};
@@ -108,7 +108,9 @@ mod tests {
             "token",
             MessageId::new(2).expect("non zero"),
         );
-        let actual = builder.into_request().expect("failed to create request");
+        let actual = builder
+            .try_into_request()
+            .expect("failed to create request");
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,

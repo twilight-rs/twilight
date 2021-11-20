@@ -2,7 +2,7 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -57,15 +57,15 @@ impl<'a> CreateGuildMessageCommand<'a> {
     pub fn exec(self) -> ResponseFuture<Command> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for CreateGuildMessageCommand<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for CreateGuildMessageCommand<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),

@@ -2,7 +2,7 @@ use super::GetChannelMessagesConfigured;
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, IntoRequest, Request},
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -178,15 +178,15 @@ impl<'a> GetChannelMessages<'a> {
     pub fn exec(self) -> ResponseFuture<ListBody<Message>> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetChannelMessages<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for GetChannelMessages<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::GetMessages {
             after: None,
             around: None,

@@ -4,7 +4,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, IntoRequest, Request,
+        Form, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -374,15 +374,15 @@ impl<'a> ExecuteWebhook<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for ExecuteWebhook<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for ExecuteWebhook<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         self.request(false)
     }
 }

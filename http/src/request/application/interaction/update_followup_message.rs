@@ -6,7 +6,7 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, IntoRequest, NullableField, Request,
+        Form, NullableField, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -395,15 +395,15 @@ impl<'a> UpdateFollowupMessage<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for UpdateFollowupMessage<'_> {
-    fn into_request(mut self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateFollowupMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             token: self.token,

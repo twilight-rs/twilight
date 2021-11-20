@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate_inner, IntoRequest, Request, RequestBuilder,
+        validate_inner, Request, RequestBuilder, TryIntoRequest,
     },
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
@@ -63,15 +63,15 @@ impl<'a> UpdateCommandPermissions<'a> {
     pub fn exec(self) -> ResponseFuture<ListBody<CommandPermissions>> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for UpdateCommandPermissions<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for UpdateCommandPermissions<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateCommandPermissions {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -24,15 +24,15 @@ impl<'a> GetVoiceRegions<'a> {
     pub fn exec(self) -> ResponseFuture<ListBody<VoiceRegion>> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetVoiceRegions<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for GetVoiceRegions<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetVoiceRegions))
     }
 }

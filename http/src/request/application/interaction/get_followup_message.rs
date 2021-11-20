@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -60,15 +60,15 @@ impl<'a> GetFollowupMessage<'a> {
     pub fn exec(self) -> ResponseFuture<Message> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetFollowupMessage<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for GetFollowupMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetFollowupMessage {
             application_id: self.application_id.get(),
             interaction_token: self.interaction_token,
@@ -82,7 +82,7 @@ mod tests {
     use super::GetFollowupMessage;
     use crate::{
         client::Client,
-        request::{IntoRequest, Request},
+        request::{Request, TryIntoRequest},
         routing::Route,
     };
     use static_assertions::assert_impl_all;
@@ -108,7 +108,7 @@ mod tests {
 
         let actual = client
             .followup_message(TOKEN, message_id())?
-            .into_request()?;
+            .try_into_request()?;
 
         let expected = Request::from_route(&Route::GetFollowupMessage {
             application_id: application_id().get(),

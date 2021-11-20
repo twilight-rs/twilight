@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -66,7 +66,7 @@ impl<'a> UpdateChannelPermissionConfigured<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -81,8 +81,8 @@ impl<'a> AuditLogReason<'a> for UpdateChannelPermissionConfigured<'a> {
     }
 }
 
-impl IntoRequest for UpdateChannelPermissionConfigured<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for UpdateChannelPermissionConfigured<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdatePermissionOverwrite {
             channel_id: self.channel_id.get(),
             target_id: self.target_id,
@@ -101,7 +101,7 @@ impl IntoRequest for UpdateChannelPermissionConfigured<'_> {
 mod tests {
     use super::{UpdateChannelPermissionConfigured, UpdateChannelPermissionConfiguredFields};
     use crate::{
-        request::{IntoRequest, Request},
+        request::{Request, TryIntoRequest},
         routing::Route,
         Client,
     };
@@ -121,7 +121,9 @@ mod tests {
             Permissions::SEND_MESSAGES,
             PermissionOverwriteType::Member(UserId::new(2).expect("non zero")),
         );
-        let actual = builder.into_request().expect("failed to create request");
+        let actual = builder
+            .try_into_request()
+            .expect("failed to create request");
 
         let body = crate::json::to_vec(&UpdateChannelPermissionConfiguredFields {
             allow: Permissions::empty(),

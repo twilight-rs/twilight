@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -25,15 +25,15 @@ impl<'a> GetGuildWebhooks<'a> {
     pub fn exec(self) -> ResponseFuture<ListBody<Webhook>> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetGuildWebhooks<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for GetGuildWebhooks<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildWebhooks {
             guild_id: self.guild_id.get(),
         }))

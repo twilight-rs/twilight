@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -32,7 +32,7 @@ impl<'a> DeleteRole<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -47,8 +47,8 @@ impl<'a> AuditLogReason<'a> for DeleteRole<'a> {
     }
 }
 
-impl IntoRequest for DeleteRole<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for DeleteRole<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteRole {
             guild_id: self.guild_id.get(),
             role_id: self.role_id.get(),

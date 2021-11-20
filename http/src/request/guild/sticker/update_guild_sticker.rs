@@ -2,7 +2,7 @@ use super::{StickerValidationError, StickerValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -112,7 +112,7 @@ impl<'a> UpdateGuildSticker<'a> {
     pub fn exec(self) -> ResponseFuture<Sticker> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -127,8 +127,8 @@ impl<'a> AuditLogReason<'a> for UpdateGuildSticker<'a> {
     }
 }
 
-impl IntoRequest for UpdateGuildSticker<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateGuildSticker<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let request = Request::builder(&Route::UpdateGuildSticker {
             guild_id: self.guild_id.get(),
             sticker_id: self.sticker_id.get(),

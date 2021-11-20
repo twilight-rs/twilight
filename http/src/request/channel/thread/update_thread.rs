@@ -2,7 +2,7 @@ use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -161,7 +161,7 @@ impl<'a> UpdateThread<'a> {
     pub fn exec(self) -> ResponseFuture<Channel> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -176,8 +176,8 @@ impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
     }
 }
 
-impl IntoRequest for UpdateThread<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateThread<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
         })
@@ -195,7 +195,7 @@ impl IntoRequest for UpdateThread<'_> {
 mod tests {
     use super::{UpdateThread, UpdateThreadFields};
     use crate::{
-        request::{IntoRequest, Request},
+        request::{Request, TryIntoRequest},
         routing::Route,
         Client,
     };
@@ -209,7 +209,7 @@ mod tests {
 
         let actual = UpdateThread::new(&client, channel_id)
             .rate_limit_per_user(60)?
-            .into_request()?;
+            .try_into_request()?;
 
         let expected = Request::builder(&Route::UpdateChannel {
             channel_id: channel_id.get(),

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -42,15 +42,15 @@ impl<'a> GetWebhook<'a> {
     pub fn exec(self) -> ResponseFuture<Webhook> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetWebhook<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for GetWebhook<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::GetWebhook {
             token: self.fields.token,
             webhook_id: self.id.get(),

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, NullableField, Request},
+    request::{NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -64,15 +64,15 @@ impl<'a> UpdateWebhookWithToken<'a> {
     pub fn exec(self) -> ResponseFuture<Webhook> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for UpdateWebhookWithToken<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for UpdateWebhookWithToken<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: Some(self.token),
             webhook_id: self.webhook_id.get(),

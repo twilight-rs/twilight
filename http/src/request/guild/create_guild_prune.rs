@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -139,7 +139,7 @@ impl<'a> CreateGuildPrune<'a> {
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -154,8 +154,8 @@ impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
     }
 }
 
-impl IntoRequest for CreateGuildPrune<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for CreateGuildPrune<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateGuildPrune {
             compute_prune_count: self.fields.compute_prune_count,
             days: self.fields.days,

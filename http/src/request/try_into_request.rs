@@ -36,8 +36,8 @@ mod private {
             thread::{
                 AddThreadMember, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
-                GetPublicArchivedThreads, GetThreadMembers, JoinThread, LeaveThread,
-                RemoveThreadMember, UpdateThread,
+                GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
+                LeaveThread, RemoveThreadMember, UpdateThread,
             },
             webhook::{
                 CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
@@ -194,6 +194,7 @@ mod private {
     impl Sealed for GetTemplate<'_> {}
     impl Sealed for GetTemplates<'_> {}
     impl Sealed for GetThreadMembers<'_> {}
+    impl Sealed for GetThreadMember<'_> {}
     impl Sealed for GetUser<'_> {}
     impl Sealed for GetUserApplicationInfo<'_> {}
     impl Sealed for GetVoiceRegions<'_> {}
@@ -260,7 +261,7 @@ use crate::error::Error;
 /// ```no_run
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::{env, str};
-/// use twilight_http::{client::Client, request::IntoRequest};
+/// use twilight_http::{client::Client, request::TryIntoRequest};
 /// use twilight_model::{channel::Message, id::ChannelId};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
@@ -269,7 +270,7 @@ use crate::error::Error;
 ///     .content("This is a test message!")?
 ///     .tts(false);
 ///
-/// let request = builder.into_request()?;
+/// let request = builder.try_into_request()?;
 ///
 /// println!("{:?} {}", request.method(), request.path());
 ///
@@ -285,8 +286,8 @@ use crate::error::Error;
 ///
 /// [`Client::request`]: crate::client::Client::request
 /// [`CreateMessage`]: super::channel::message::CreateMessage
-pub trait IntoRequest: private::Sealed {
-    /// Convert a request builder into a raw [`Request`].
+pub trait TryIntoRequest: private::Sealed {
+    /// Try to convert a request builder into a raw [`Request`].
     ///
     /// # Errors
     ///
@@ -302,25 +303,25 @@ pub trait IntoRequest: private::Sealed {
     ///
     /// [`ErrorType::CreatingHeader`]: crate::error::ErrorType::CreatingHeader
     /// [`ErrorType::Json`]: crate::error::ErrorType::Json
-    fn into_request(self) -> Result<Request, Error>;
+    fn try_into_request(self) -> Result<Request, Error>;
 }
 
 #[cfg(test)]
 mod tests {
-    use super::IntoRequest;
+    use super::TryIntoRequest;
     use crate::{client::Client, request::Method};
     use static_assertions::assert_obj_safe;
     use std::error::Error;
     use twilight_model::id::ChannelId;
 
-    assert_obj_safe!(IntoRequest);
+    assert_obj_safe!(TryIntoRequest);
 
     #[test]
     fn test_conversion() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
         let channel_id = ChannelId::new(1).expect("non zero");
         let builder = client.create_message(channel_id).content("test")?;
-        let request = builder.into_request()?;
+        let request = builder.try_into_request()?;
 
         assert_eq!(Some(br#"{"content":"test"}"#.as_ref()), request.body());
         assert!(request.form().is_none());

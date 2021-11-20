@@ -6,7 +6,7 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AuditLogReason, AuditLogReasonError, Form, IntoRequest, NullableField, Request,
+        AuditLogReason, AuditLogReasonError, Form, NullableField, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -396,7 +396,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -411,8 +411,8 @@ impl<'a> AuditLogReason<'a> for UpdateWebhookMessage<'a> {
     }
 }
 
-impl IntoRequest for UpdateWebhookMessage<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateWebhookMessage<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             token: self.token,
@@ -464,7 +464,7 @@ mod tests {
     use super::{UpdateWebhookMessage, UpdateWebhookMessageFields};
     use crate::{
         client::Client,
-        request::{AuditLogReason, IntoRequest, NullableField, Request},
+        request::{AuditLogReason, NullableField, Request, TryIntoRequest},
         routing::Route,
     };
     use twilight_model::id::{MessageId, WebhookId};
@@ -482,7 +482,9 @@ mod tests {
         .expect("'test' content couldn't be set")
         .reason("reason")
         .expect("'reason' is not a valid reason");
-        let actual = builder.into_request().expect("failed to create request");
+        let actual = builder
+            .try_into_request()
+            .expect("failed to create request");
 
         let body = UpdateWebhookMessageFields {
             allowed_mentions: None,

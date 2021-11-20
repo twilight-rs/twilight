@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, IntoRequest, Request},
+    request::{validate_inner, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -139,15 +139,15 @@ impl<'a> CreateTemplate<'a> {
     pub fn exec(self) -> ResponseFuture<Template> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for CreateTemplate<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for CreateTemplate<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateTemplate {
             guild_id: self.guild_id.get(),
         });

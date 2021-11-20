@@ -11,8 +11,8 @@ mod get_gateway;
 mod get_gateway_authed;
 mod get_user_application;
 mod get_voice_regions;
-mod into_request;
 mod multipart;
+mod try_into_request;
 
 // Rename this module so we can expose a select amount of validation types.
 //
@@ -28,8 +28,8 @@ pub use self::{
     get_gateway_authed::GetGatewayAuthed,
     get_user_application::GetUserApplicationInfo,
     get_voice_regions::GetVoiceRegions,
-    into_request::IntoRequest,
     multipart::Form,
+    try_into_request::TryIntoRequest,
 };
 pub use twilight_http_ratelimiting::request::Method;
 

@@ -2,8 +2,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, NullableField,
-        Request,
+        self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request,
+        TryIntoRequest,
     },
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
@@ -170,7 +170,7 @@ impl<'a> UpdateGuildMember<'a> {
         let guild_id = self.guild_id;
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => {
                 let mut future = http.request(request);
                 future.set_guild_id(guild_id);
@@ -190,8 +190,8 @@ impl<'a> AuditLogReason<'a> for UpdateGuildMember<'a> {
     }
 }
 
-impl IntoRequest for UpdateGuildMember<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for UpdateGuildMember<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
@@ -210,7 +210,7 @@ impl IntoRequest for UpdateGuildMember<'_> {
 mod tests {
     use super::{UpdateGuildMember, UpdateGuildMemberFields};
     use crate::{
-        request::{IntoRequest, NullableField, Request},
+        request::{NullableField, Request, TryIntoRequest},
         routing::Route,
         Client,
     };
@@ -231,7 +231,7 @@ mod tests {
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id())
             .deaf(true)
             .mute(true);
-        let actual = builder.into_request()?;
+        let actual = builder.try_into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
@@ -256,7 +256,7 @@ mod tests {
     fn test_nick_set_null() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(None)?;
-        let actual = builder.into_request()?;
+        let actual = builder.try_into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
@@ -280,7 +280,7 @@ mod tests {
     fn test_nick_set_value() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(Some("foo"))?;
-        let actual = builder.into_request()?;
+        let actual = builder.try_into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,

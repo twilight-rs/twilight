@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, IntoRequest, Request},
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::MemberListBody, ResponseFuture},
     routing::Route,
 };
@@ -144,7 +144,7 @@ impl<'a> SearchGuildMembers<'a> {
         let guild_id = self.guild_id;
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => {
                 let mut future = http.request(request);
                 future.set_guild_id(guild_id);
@@ -156,8 +156,8 @@ impl<'a> SearchGuildMembers<'a> {
     }
 }
 
-impl IntoRequest for SearchGuildMembers<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for SearchGuildMembers<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::SearchGuildMembers {
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,

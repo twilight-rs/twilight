@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, AuditLogReason, AuditLogReasonError, IntoRequest, Request},
+    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -135,7 +135,7 @@ impl<'a> CreateBan<'a> {
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
@@ -152,8 +152,8 @@ impl<'a> AuditLogReason<'a> for CreateBan<'a> {
     }
 }
 
-impl IntoRequest for CreateBan<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for CreateBan<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::CreateBan {
             delete_message_days: self.fields.delete_message_days,
             guild_id: self.guild_id.get(),

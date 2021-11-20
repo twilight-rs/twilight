@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{IntoRequest, Request},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -49,15 +49,15 @@ impl<'a> GetJoinedPrivateArchivedThreads<'a> {
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetJoinedPrivateArchivedThreads<'_> {
-    fn into_request(self) -> Result<Request, Error> {
+impl TryIntoRequest for GetJoinedPrivateArchivedThreads<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(
             &Route::GetJoinedPrivateArchivedThreads {
                 before: self.before.map(ChannelId::get),

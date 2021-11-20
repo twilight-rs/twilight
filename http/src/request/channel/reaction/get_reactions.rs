@@ -2,7 +2,7 @@ use super::RequestReactionType;
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, IntoRequest, Request},
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -134,15 +134,15 @@ impl<'a> GetReactions<'a> {
     pub fn exec(self) -> ResponseFuture<ListBody<User>> {
         let http = self.http;
 
-        match self.into_request() {
+        match self.try_into_request() {
             Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
 }
 
-impl IntoRequest for GetReactions<'_> {
-    fn into_request(self) -> Result<Request, HttpError> {
+impl TryIntoRequest for GetReactions<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::GetReactionUsers {
             after: self.fields.after.map(UserId::get),
             channel_id: self.channel_id.get(),
