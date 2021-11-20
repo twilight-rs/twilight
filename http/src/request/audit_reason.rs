@@ -29,7 +29,7 @@ mod private {
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole},
             sticker::{CreateGuildSticker, UpdateGuildSticker},
-            CreateGuildChannel, CreateGuildPrune, UpdateGuild,
+            CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
         },
         user::UpdateCurrentUser,
     };
@@ -71,6 +71,7 @@ mod private {
     impl<'a> Sealed for UpdateThread<'a> {}
     impl Sealed for UpdateWebhookMessage<'_> {}
     impl<'a> Sealed for UpdateCurrentUser<'a> {}
+    impl Sealed for UpdateCurrentMember<'_> {}
 }
 
 impl AuditLogReasonError {
@@ -161,7 +162,7 @@ mod test {
             member::{AddRoleToMember, RemoveMember, RemoveRoleFromMember, UpdateGuildMember},
             role::{CreateRole, DeleteRole, UpdateRole},
             sticker::{CreateGuildSticker, UpdateGuildSticker},
-            CreateGuildChannel, CreateGuildPrune, UpdateGuild,
+            CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
         },
         user::UpdateCurrentUser,
     };
@@ -201,4 +202,5 @@ mod test {
     assert_impl_all!(UpdateGuildSticker<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateGuild<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateCurrentUser<'_>: AuditLogReason<'static>);
+    assert_impl_all!(UpdateCurrentMember<'_>: AuditLogReason<'static>);
 }
