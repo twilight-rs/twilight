@@ -926,12 +926,9 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         });
     }
 
-    if let Some(name) = embed
-        .author
-        .as_ref()
-        .and_then(|author| author.name.as_ref())
+    if let Some(author) = embed.author.as_ref()
     {
-        let chars = name.chars().count();
+        let chars = author.name.chars().count();
 
         if chars > EmbedValidationError::AUTHOR_NAME_LENGTH {
             return Err(EmbedValidationError {
@@ -1303,7 +1300,7 @@ mod tests {
         let mut embed = base_embed();
         embed.author.replace(EmbedAuthor {
             icon_url: None,
-            name: Some("twilight".to_owned()),
+            name: "twilight".to_owned(),
             proxy_icon_url: None,
             url: None,
         });
@@ -1324,7 +1321,7 @@ mod tests {
         let mut embed = base_embed();
         embed.author.replace(EmbedAuthor {
             icon_url: None,
-            name: Some(str::repeat("a", 256)),
+            name: str::repeat("a", 256),
             proxy_icon_url: None,
             url: None,
         });
@@ -1332,7 +1329,7 @@ mod tests {
 
         embed.author.replace(EmbedAuthor {
             icon_url: None,
-            name: Some(str::repeat("a", 257)),
+            name: str::repeat("a", 257),
             proxy_icon_url: None,
             url: None,
         });
