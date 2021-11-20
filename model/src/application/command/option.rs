@@ -51,6 +51,21 @@ impl CommandOption {
         }
     }
 
+    /// Whether the command supports autocomplete.
+    pub const fn is_autocomplete(&self) -> bool {
+        match self {
+            CommandOption::String(data) => data.autocomplete,
+            CommandOption::Integer(data) | CommandOption::Number(data) => data.autocomplete,
+            CommandOption::Boolean(_)
+            | CommandOption::User(_)
+            | CommandOption::Role(_)
+            | CommandOption::Mentionable(_)
+            | CommandOption::SubCommand(_)
+            | CommandOption::SubCommandGroup(_)
+            | CommandOption::Channel(_) => false,
+        }
+    }
+
     pub const fn is_required(&self) -> bool {
         match self {
             CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => false,
@@ -73,6 +88,8 @@ impl<'de> Deserialize<'de> for CommandOption {
 
 #[derive(Serialize)]
 struct CommandOptionEnvelope<'ser> {
+    #[serde(skip_serializing_if = "is_false")]
+    autocomplete: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_types: Option<&'ser [ChannelType]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -95,44 +112,48 @@ impl Serialize for CommandOption {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let envelope = match self {
             Self::SubCommand(data) | Self::SubCommandGroup(data) => CommandOptionEnvelope {
+                autocomplete: false,
                 channel_types: None,
                 choices: None,
                 description: data.description.as_ref(),
-                min_value: None,
                 max_value: None,
+                min_value: None,
                 name: data.name.as_ref(),
                 options: Some(data.options.as_ref()),
                 required: false,
                 kind: self.kind(),
             },
             Self::String(data) => CommandOptionEnvelope {
+                autocomplete: data.autocomplete,
                 channel_types: None,
                 choices: Some(data.choices.as_ref()),
                 description: data.description.as_ref(),
-                min_value: None,
                 max_value: None,
+                min_value: None,
                 name: data.name.as_ref(),
                 options: None,
                 required: data.required,
                 kind: self.kind(),
             },
             Self::Integer(data) | Self::Number(data) => CommandOptionEnvelope {
+                autocomplete: data.autocomplete,
                 channel_types: None,
                 choices: Some(data.choices.as_ref()),
                 description: data.description.as_ref(),
-                min_value: data.min_value,
                 max_value: data.max_value,
+                min_value: data.min_value,
                 name: data.name.as_ref(),
                 options: None,
                 required: data.required,
                 kind: self.kind(),
             },
             Self::Channel(data) => CommandOptionEnvelope {
+                autocomplete: false,
                 channel_types: Some(data.channel_types.as_ref()),
                 choices: None,
                 description: data.description.as_ref(),
-                min_value: None,
                 max_value: None,
+                min_value: None,
                 name: data.name.as_ref(),
                 options: None,
                 required: data.required,
@@ -140,11 +161,12 @@ impl Serialize for CommandOption {
             },
             Self::Boolean(data) | Self::User(data) | Self::Role(data) | Self::Mentionable(data) => {
                 CommandOptionEnvelope {
+                    autocomplete: false,
                     channel_types: None,
                     choices: None,
                     description: data.description.as_ref(),
-                    min_value: None,
                     max_value: None,
+                    min_value: None,
                     name: data.name.as_ref(),
                     options: None,
                     required: data.required,
@@ -160,6 +182,7 @@ impl Serialize for CommandOption {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum OptionField {
+    Autocomplete,
     ChannelTypes,
     Choices,
     Description,
@@ -182,6 +205,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+        let mut autocomplete: Option<bool> = None;
         let mut channel_types: Option<Option<Vec<ChannelType>>> = None;
         let mut choices: Option<Option<Vec<CommandOptionChoice>>> = None;
         let mut description: Option<String> = None;
@@ -216,8 +240,15 @@ impl<'de> Visitor<'de> for OptionVisitor {
             };
 
             match key {
+                OptionField::Autocomplete => {
+                    if autocomplete.is_some() {
+                        return Err(DeError::duplicate_field("autocomplete"));
+                    }
+
+                    autocomplete = Some(map.next_value()?);
+                }
                 OptionField::ChannelTypes => {
-                    if choices.is_some() {
+                    if channel_types.is_some() {
                         return Err(DeError::duplicate_field("channel_types"));
                     }
 
@@ -293,6 +324,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
             "common fields of all variants exist"
         );
 
+        let autocomplete = autocomplete.unwrap_or_default();
         let required = required.unwrap_or_default();
 
         Ok(match kind {
@@ -315,17 +347,19 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 })
             }
             CommandOptionType::String => CommandOption::String(ChoiceCommandOptionData {
+                autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
                 name,
                 required,
             }),
             CommandOptionType::Integer => CommandOption::Integer(NumberCommandOptionData {
+                autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
-                name,
                 max_value: max_value.flatten(),
                 min_value: min_value.flatten(),
+                name,
                 required,
             }),
             CommandOptionType::Boolean => CommandOption::Boolean(BaseCommandOptionData {
@@ -355,6 +389,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 required,
             }),
             CommandOptionType::Number => CommandOption::Number(NumberCommandOptionData {
+                autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
                 max_value: max_value.flatten(),
@@ -410,6 +445,9 @@ pub struct OptionsCommandOptionData {
 /// [`String`]: CommandOption::String
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChoiceCommandOptionData {
+    /// Whether the command supports autocomplete.
+    #[serde(default)]
+    pub autocomplete: bool,
     /// Predetermined choices may be defined for a user to select.
     ///
     /// When completing this option, the user is prompted with a selector of all
@@ -452,6 +490,9 @@ pub struct ChannelCommandOptionData {
 /// [`Number`]: CommandOption::Number
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct NumberCommandOptionData {
+    /// Whether the command supports autocomplete.
+    #[serde(default)]
+    pub autocomplete: bool,
     /// Predetermined choices may be defined for a user to select.
     ///
     /// When completing this option, the user is prompted with a selector of all
@@ -628,33 +669,36 @@ mod tests {
             id: Some(CommandId::new(200).expect("non zero")),
             kind: CommandType::ChatInput,
             name: "test command".into(),
-            options: vec![CommandOption::SubCommandGroup(OptionsCommandOptionData {
+            options: Vec::from([CommandOption::SubCommandGroup(OptionsCommandOptionData {
                 description: "sub group desc".into(),
                 name: "sub group name".into(),
-                options: vec![CommandOption::SubCommand(OptionsCommandOptionData {
+                options: Vec::from([CommandOption::SubCommand(OptionsCommandOptionData {
                     description: "sub command desc".into(),
                     name: "sub command name".into(),
-                    options: vec![
+                    options: Vec::from([
                         CommandOption::String(ChoiceCommandOptionData {
+                            autocomplete: true,
                             choices: Vec::new(),
                             description: "string manual desc".into(),
                             name: "string_manual".into(),
                             required: false,
                         }),
                         CommandOption::String(ChoiceCommandOptionData {
-                            choices: vec![CommandOptionChoice::String {
+                            autocomplete: false,
+                            choices: Vec::from([CommandOptionChoice::String {
                                 name: "choicea".into(),
                                 value: "choice_a".into(),
-                            }],
+                            }]),
                             description: "string desc".into(),
                             name: "string".into(),
                             required: false,
                         }),
                         CommandOption::Integer(NumberCommandOptionData {
-                            choices: vec![CommandOptionChoice::Int {
+                            autocomplete: false,
+                            choices: Vec::from([CommandOptionChoice::Int {
                                 name: "choice2".into(),
                                 value: 2,
-                            }],
+                            }]),
                             description: "int desc".into(),
                             max_value: Some(CommandOptionValue::Integer(20)),
                             min_value: Some(CommandOptionValue::Integer(10)),
@@ -672,7 +716,7 @@ mod tests {
                             required: false,
                         }),
                         CommandOption::Channel(ChannelCommandOptionData {
-                            channel_types: vec![ChannelType::GuildText],
+                            channel_types: Vec::from([ChannelType::GuildText]),
                             description: "channel desc".into(),
                             name: "channel".into(),
                             required: false,
@@ -688,19 +732,20 @@ mod tests {
                             required: false,
                         }),
                         CommandOption::Number(NumberCommandOptionData {
-                            choices: vec![CommandOptionChoice::Number {
+                            autocomplete: false,
+                            choices: Vec::from([CommandOptionChoice::Number {
                                 name: "choice3".into(),
                                 value: Number(2.0),
-                            }],
+                            }]),
                             description: "number desc".into(),
                             max_value: Some(CommandOptionValue::Number(Number(5.5))),
                             min_value: Some(CommandOptionValue::Number(Number(10.0))),
                             name: "number".into(),
                             required: false,
                         }),
-                    ],
-                })],
-            })],
+                    ]),
+                })]),
+            })]),
             version: CommandVersionId::new(1).expect("non zero"),
         };
 
@@ -760,8 +805,10 @@ mod tests {
                 Token::Seq { len: Some(9) },
                 Token::Struct {
                     name: "CommandOptionEnvelope",
-                    len: 4,
+                    len: 5,
                 },
+                Token::Str("autocomplete"),
+                Token::Bool(true),
                 Token::Str("choices"),
                 Token::Some,
                 Token::Seq { len: Some(0) },
