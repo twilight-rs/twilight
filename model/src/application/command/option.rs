@@ -116,8 +116,8 @@ impl Serialize for CommandOption {
                 channel_types: None,
                 choices: None,
                 description: data.description.as_ref(),
-                min_value: None,
                 max_value: None,
+                min_value: None,
                 name: data.name.as_ref(),
                 options: Some(data.options.as_ref()),
                 required: false,
@@ -128,8 +128,8 @@ impl Serialize for CommandOption {
                 channel_types: None,
                 choices: Some(data.choices.as_ref()),
                 description: data.description.as_ref(),
-                min_value: None,
                 max_value: None,
+                min_value: None,
                 name: data.name.as_ref(),
                 options: None,
                 required: data.required,
@@ -140,8 +140,8 @@ impl Serialize for CommandOption {
                 channel_types: None,
                 choices: Some(data.choices.as_ref()),
                 description: data.description.as_ref(),
-                min_value: data.min_value,
                 max_value: data.max_value,
+                min_value: data.min_value,
                 name: data.name.as_ref(),
                 options: None,
                 required: data.required,
@@ -152,8 +152,8 @@ impl Serialize for CommandOption {
                 channel_types: Some(data.channel_types.as_ref()),
                 choices: None,
                 description: data.description.as_ref(),
-                min_value: None,
                 max_value: None,
+                min_value: None,
                 name: data.name.as_ref(),
                 options: None,
                 required: data.required,
@@ -165,8 +165,8 @@ impl Serialize for CommandOption {
                     channel_types: None,
                     choices: None,
                     description: data.description.as_ref(),
-                    min_value: None,
                     max_value: None,
+                    min_value: None,
                     name: data.name.as_ref(),
                     options: None,
                     required: data.required,
@@ -248,7 +248,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
                     autocomplete = Some(map.next_value()?);
                 }
                 OptionField::ChannelTypes => {
-                    if choices.is_some() {
+                    if channel_types.is_some() {
                         return Err(DeError::duplicate_field("channel_types"));
                     }
 
@@ -357,9 +357,9 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
-                name,
                 max_value: max_value.flatten(),
                 min_value: min_value.flatten(),
+                name,
                 required,
             }),
             CommandOptionType::Boolean => CommandOption::Boolean(BaseCommandOptionData {
