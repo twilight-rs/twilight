@@ -1234,7 +1234,7 @@ mod tests {
             event::{Event, EventType},
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
-        id::Id,
+        id::{marker::GuildMarker, Id},
         oauth::{current_application_info::ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
     };
@@ -1344,7 +1344,7 @@ mod tests {
     #[tokio::test]
     async fn test_dropped() {
         let standby = Standby::new();
-        let guild_id = GuildId::new(1).expect("non zero");
+        let guild_id = Id::new(1).expect("non zero");
 
         {
             let _rx = standby.wait_for(guild_id, move |_: &Event| false);
@@ -1352,7 +1352,7 @@ mod tests {
 
         let results = standby.process(&Event::RoleDelete(RoleDelete {
             guild_id,
-            role_id: RoleId::new(2).expect("non zero"),
+            role_id: Id::new(2).expect("non zero"),
         }));
 
         assert_eq!(1, results.dropped());
@@ -1364,13 +1364,13 @@ mod tests {
     /// not matched by testing the returned matched amount.
     #[tokio::test]
     async fn test_matched() {
-        fn check(event: &Event, guild_id: GuildId) -> bool {
+        fn check(event: &Event, guild_id: Id<GuildMarker>) -> bool {
             matches!(event, Event::RoleDelete(e) if e.guild_id == guild_id)
         }
 
         let standby = Standby::new();
-        let guild_id_one = GuildId::new(1).expect("non zero");
-        let guild_id_two = GuildId::new(2).expect("non zero");
+        let guild_id_one = Id::new(1).expect("non zero");
+        let guild_id_two = Id::new(2).expect("non zero");
         let _one = standby.wait_for(guild_id_one, move |event: &Event| {
             check(event, guild_id_one)
         });
@@ -1382,8 +1382,8 @@ mod tests {
         });
 
         let results = standby.process(&Event::RoleDelete(RoleDelete {
-            guild_id: GuildId::new(1).expect("non zero"),
-            role_id: RoleId::new(2).expect("non zero"),
+            guild_id: Id::new(1).expect("non zero"),
+            role_id: Id::new(2).expect("non zero"),
         }));
 
         assert_eq!(0, results.dropped());
@@ -1396,13 +1396,13 @@ mod tests {
     #[tokio::test]
     async fn test_sent() {
         let standby = Standby::new();
-        let guild_id = GuildId::new(1).expect("non zero");
+        let guild_id = Id::new(1).expect("non zero");
 
         let _rx = standby.wait_for_stream(guild_id, move |_: &Event| true);
 
         let results = standby.process(&Event::RoleDelete(RoleDelete {
             guild_id,
-            role_id: RoleId::new(2).expect("non zero"),
+            role_id: Id::new(2).expect("non zero"),
         }));
 
         assert_eq!(0, results.dropped());
