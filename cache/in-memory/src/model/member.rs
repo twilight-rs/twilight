@@ -43,8 +43,8 @@ impl CachedMember {
     }
 
     /// [`Timestamp`] of this member's join date.
-    pub const fn joined_at(&self) -> Option<Timestamp> {
-        Some(self.joined_at)
+    pub const fn joined_at(&self) -> Timestamp {
+        self.joined_at
     }
 
     /// Whether the member is muted in a voice channel.
@@ -105,8 +105,8 @@ impl PartialEq<Member> for CachedMember {
     }
 }
 
-impl PartialEq<&PartialMember> for CachedMember {
-    fn eq(&self, other: &&PartialMember) -> bool {
+impl PartialEq<PartialMember> for CachedMember {
+    fn eq(&self, other: &PartialMember) -> bool {
         (
             self.deaf,
             self.joined_at,
@@ -125,19 +125,15 @@ impl PartialEq<&PartialMember> for CachedMember {
     }
 }
 
-impl PartialEq<&InteractionMember> for CachedMember {
-    fn eq(&self, other: &&InteractionMember) -> bool {
-        (
-            self.joined_at,
-            self.nick.as_deref(),
-            self.premium_since,
-            &self.roles,
-        ) == (
-            other.joined_at,
-            other.nick.as_deref(),
-            other.premium_since,
-            &other.roles,
-        )
+impl PartialEq<InteractionMember> for CachedMember {
+    fn eq(&self, other: &InteractionMember) -> bool {
+        (self.joined_at, &self.nick, self.premium_since, &self.roles)
+            == (
+                other.joined_at,
+                &other.nick,
+                other.premium_since,
+                &other.roles,
+            )
     }
 }
 
@@ -237,6 +233,6 @@ mod tests {
             user: None,
         };
 
-        assert_eq!(cached_member(), &member);
+        assert_eq!(cached_member(), member);
     }
 }

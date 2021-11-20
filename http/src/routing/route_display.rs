@@ -1067,6 +1067,12 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("sync")
             }
+            Route::UpdateCurrentMember { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/members/@me")
+            }
             Route::UpdateCurrentUserVoiceState { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
@@ -1136,5 +1142,12 @@ mod tests {
             "channels/1/threads/archived/public?before=2021-01-01T00:00:00Z",
             route.display().to_string()
         );
+    }
+
+    #[test]
+    fn test_update_current_member() {
+        let route = Route::UpdateCurrentMember { guild_id: 1 };
+
+        assert_eq!("guilds/1/members/@me", route.display().to_string());
     }
 }

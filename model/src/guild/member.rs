@@ -58,6 +58,25 @@ pub struct MemberIntermediary {
     pub user: User,
 }
 
+impl MemberIntermediary {
+    /// Inject a guild ID to create a [`Member`].
+    #[allow(clippy::missing_const_for_fn)] // false positive
+    pub fn into_member(self, guild_id: Id<GuildMarker>) -> Member {
+        Member {
+            avatar: self.avatar,
+            deaf: self.deaf,
+            guild_id,
+            joined_at: self.joined_at,
+            mute: self.mute,
+            nick: self.nick,
+            pending: self.pending,
+            premium_since: self.premium_since,
+            roles: self.roles,
+            user: self.user,
+        }
+    }
+}
+
 /// Deserialize a member when the payload doesn't have the guild ID but
 /// you already know the guild ID.
 ///

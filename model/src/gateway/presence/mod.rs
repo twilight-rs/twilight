@@ -73,6 +73,19 @@ pub struct PresenceIntermediary {
     pub user: UserOrId,
 }
 
+impl PresenceIntermediary {
+    /// Inject guild ID into presence if not already present.
+    pub fn into_presence(self, guild_id: Id<GuildMarker>) -> Presence {
+        Presence {
+            activities: self.activities,
+            client_status: self.client_status,
+            guild_id: self.guild_id.unwrap_or(guild_id),
+            status: self.status,
+            user: self.user,
+        }
+    }
+}
+
 struct PresenceVisitor(Id<GuildMarker>);
 
 impl<'de> Visitor<'de> for PresenceVisitor {

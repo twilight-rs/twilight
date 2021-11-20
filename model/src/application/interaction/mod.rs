@@ -41,6 +41,8 @@ pub enum Interaction {
     Ping(Box<Ping>),
     /// Application command variant.
     ApplicationCommand(Box<ApplicationCommand>),
+    /// Application command autocomplete variant.
+    ApplicationCommandAutocomplete(Box<ApplicationCommand>),
     /// Message component variant.
     MessageComponent(Box<MessageComponentInteraction>),
 }
@@ -49,7 +51,9 @@ impl Interaction {
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
-            Self::ApplicationCommand(inner) => inner.guild_id,
+            Self::ApplicationCommand(inner) | Self::ApplicationCommandAutocomplete(inner) => {
+                inner.guild_id
+            }
             Self::MessageComponent(inner) => inner.guild_id,
         }
     }
@@ -58,7 +62,9 @@ impl Interaction {
     pub const fn id(&self) -> Id<InteractionMarker> {
         match self {
             Self::Ping(ping) => ping.id,
-            Self::ApplicationCommand(command) => command.id,
+            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
+                command.id
+            }
             Self::MessageComponent(component) => component.id,
         }
     }
@@ -230,7 +236,8 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     token,
                 }))
             }
-            InteractionType::ApplicationCommand => {
+            InteractionType::ApplicationCommandAutocomplete
+            | InteractionType::ApplicationCommand => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
@@ -243,7 +250,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                 tracing::trace!(%channel_id, "handling application command");
 
-                Self::Value::ApplicationCommand(Box::new(ApplicationCommand {
+                let command = Box::new(ApplicationCommand {
                     application_id,
                     channel_id,
                     data,
@@ -253,7 +260,15 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     member,
                     token,
                     user,
-                }))
+                });
+
+                match kind {
+                    InteractionType::ApplicationCommand => Self::Value::ApplicationCommand(command),
+                    InteractionType::ApplicationCommandAutocomplete => {
+                        Self::Value::ApplicationCommandAutocomplete(command)
+                    }
+                    _ => unreachable!(),
+                }
             }
             InteractionType::MessageComponent => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
@@ -318,10 +333,11 @@ mod test {
             data: CommandData {
                 id: Id::new(300).expect("non zero"),
                 name: "command name".into(),
-                options: vec![CommandDataOption {
+                options: Vec::from([CommandDataOption {
+                    focused: false,
                     name: "member".into(),
                     value: CommandOptionValue::User(Id::new(600).expect("non zero")),
-                }],
+                }]),
                 resolved: Some(CommandInteractionDataResolved {
                     channels: Vec::new(),
                     members: vec![InteractionMember {
