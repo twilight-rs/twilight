@@ -61,6 +61,7 @@ mod private {
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
             },
+            update_current_user_nick::UpdateCurrentUserNick,
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
@@ -218,6 +219,7 @@ mod private {
     impl Sealed for UpdateCommandPermissions<'_> {}
     impl Sealed for UpdateCurrentMember<'_> {}
     impl Sealed for UpdateCurrentUser<'_> {}
+    impl Sealed for UpdateCurrentUserNick<'_> {}
     impl Sealed for UpdateCurrentUserVoiceState<'_> {}
     impl Sealed for UpdateEmoji<'_> {}
     impl Sealed for UpdateFollowupMessage<'_> {}

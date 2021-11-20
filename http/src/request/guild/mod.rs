@@ -25,7 +25,7 @@ mod get_guild_voice_regions;
 mod get_guild_webhooks;
 mod get_guild_welcome_screen;
 mod get_guild_widget;
-mod update_current_user_nick;
+pub(crate) mod update_current_user_nick;
 mod update_guild_welcome_screen;
 mod update_guild_widget;
 
