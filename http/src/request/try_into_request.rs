@@ -65,7 +65,7 @@ mod private {
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentUserNick, UpdateGuild,
+            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
             UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
@@ -216,8 +216,8 @@ mod private {
     impl Sealed for UpdateChannelPermission<'_> {}
     impl Sealed for UpdateChannelPermissionConfigured<'_> {}
     impl Sealed for UpdateCommandPermissions<'_> {}
+    impl Sealed for UpdateCurrentMember<'_> {}
     impl Sealed for UpdateCurrentUser<'_> {}
-    impl Sealed for UpdateCurrentUserNick<'_> {}
     impl Sealed for UpdateCurrentUserVoiceState<'_> {}
     impl Sealed for UpdateEmoji<'_> {}
     impl Sealed for UpdateFollowupMessage<'_> {}
