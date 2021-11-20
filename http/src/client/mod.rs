@@ -110,6 +110,11 @@ type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 /// Almost all of the client methods require authentication, and as such, the client must be
 /// supplied with a Discord Token. Get yours [here].
 ///
+/// # Interactions
+///
+/// HTTP interaction requests may be accessed via the [`Client::interaction`]
+/// method.
+///
 /// # OAuth
 ///
 /// To use Bearer tokens prefix the token with `"Bearer "`, including the space
