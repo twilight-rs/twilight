@@ -217,8 +217,10 @@ pub enum Path {
     GuildsIdStickers(u64),
     /// Operating on one of the user's guilds' templates.
     GuildsIdTemplates(u64),
+    /// Operating on a guild template.
+    GuildsTemplatesCode(Box<str>),
     /// Operating on a template from one of the user's guilds.
-    GuildsIdTemplatesCode(u64),
+    GuildsIdTemplatesCode(u64, Box<str>),
     /// Operating on one of the user's guilds' threads.
     GuildsIdThreads(u64),
     /// Operating on one of the user's guilds' vanity URL.
@@ -253,10 +255,12 @@ pub enum Path {
     UsersIdGuildsId,
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
-    /// Operating on a message created by a webhook.
-    WebhooksIdTokenMessagesId(u64),
-    /// Operating on a webhook.
+    /// Operating on a webhook as a bot.
     WebhooksId(u64),
+    /// Operating on a webhook as a webhook.
+    WebhooksIdToken(u64, Box<str>),
+    /// Operating on a message created by a webhook.
+    WebhooksIdTokenMessagesId(u64, Box<str>),
 }
 
 impl FromStr for Path {
@@ -351,6 +355,9 @@ impl FromStr for Path {
             ["gateway"] => Gateway,
             ["gateway", "bot"] => GatewayBot,
             ["guilds"] => Guilds,
+            ["guilds", "templates", code] => {
+                GuildsTemplatesCode((*code).to_string().into_boxed_str())
+            }
             ["guilds", id] => GuildsId(parse_id(id)?),
             ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(parse_id(id)?),
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
@@ -377,7 +384,9 @@ impl FromStr for Path {
                 GuildsIdStickers(parse_id(id)?)
             }
             ["guilds", id, "templates"] => GuildsIdTemplates(parse_id(id)?),
-            ["guilds", id, "templates", _] => GuildsIdTemplatesCode(parse_id(id)?),
+            ["guilds", id, "templates", code] => {
+                GuildsIdTemplatesCode(parse_id(id)?, (*code).to_string().into_boxed_str())
+            }
             ["guilds", id, "threads", _] => GuildsIdThreads(parse_id(id)?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(parse_id(id)?),
             ["guilds", id, "voice-states", _] => GuildsIdVoiceStates(parse_id(id)?),
@@ -395,8 +404,13 @@ impl FromStr for Path {
             ["users", _, "guilds"] => UsersIdGuilds,
             ["users", _, "guilds", _] => UsersIdGuildsId,
             ["voice", "regions"] => VoiceRegions,
-            ["webhooks", id] | ["webhooks", id, _] => WebhooksId(parse_id(id)?),
-            ["webhooks", id, _, "messages", _] => WebhooksIdTokenMessagesId(parse_id(id)?),
+            ["webhooks", id] => WebhooksId(parse_id(id)?),
+            ["webhooks", id, token] => {
+                WebhooksIdToken(parse_id(id)?, (*token).to_string().into_boxed_str())
+            }
+            ["webhooks", id, token, "messages", _] => {
+                WebhooksIdTokenMessagesId(parse_id(id)?, (*token).to_string().into_boxed_str())
+            }
             _ => {
                 return Err(PathParseError {
                     kind: PathParseErrorType::NoMatch,

@@ -1,6 +1,6 @@
 //! # twilight-standby
 //!
-//! [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
+//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 //!
 //! Standby is a utility to wait for an event to happen based on a predicate
 //! check. For example, you may have a command that has a reaction menu of ✅
@@ -130,6 +130,8 @@
 //! For more examples, check out each of the methods on [`Standby`].
 //!
 //! [`tracing`]: https://crates.io/crates/tracing
+//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
+//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
 //! [discord link]: https://discord.gg/7jj8n7D
 //! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
@@ -272,35 +274,55 @@ impl Standby {
 
     /// Process an event, calling any bystanders that might be waiting on it.
     ///
+    /// Returns statistics about matched [`Standby`] calls and how they were
+    /// processed. For example, by using [`ProcessResults::matched`] you can
+    /// determine how many calls were sent an event.
+    ///
     /// When a bystander checks to see if an event is what it's waiting for, it
     /// will receive the event by cloning it.
     ///
     /// This function must be called when events are received in order for
     /// futures returned by methods to fulfill.
-    pub fn process(&self, event: &Event) {
+    pub fn process(&self, event: &Event) -> ProcessResults {
         #[cfg(feature = "tracing")]
         tracing::trace!(event_type = ?event.kind(), ?event, "processing event");
+
+        let mut completions = ProcessResults::new();
 
         match event {
             Event::InteractionCreate(e) => {
                 if let Interaction::MessageComponent(comp) = &e.0 {
-                    Self::process_specific_event(&self.components, comp.message.id, &**comp)
+                    completions.add_with(&Self::process_specific_event(
+                        &self.components,
+                        comp.message.id,
+                        &**comp,
+                    ));
                 }
             }
             Event::MessageCreate(e) => {
-                Self::process_specific_event(&self.messages, e.0.channel_id, e);
+                completions.add_with(&Self::process_specific_event(
+                    &self.messages,
+                    e.0.channel_id,
+                    e,
+                ));
             }
             Event::ReactionAdd(e) => {
-                Self::process_specific_event(&self.reactions, e.0.message_id, e);
+                completions.add_with(&Self::process_specific_event(
+                    &self.reactions,
+                    e.0.message_id,
+                    e,
+                ));
             }
             _ => {}
         }
 
         if let Some(guild_id) = event::guild_id(event) {
-            Self::process_specific_event(&self.guilds, guild_id, event);
+            completions.add_with(&Self::process_specific_event(&self.guilds, guild_id, event));
         }
 
-        Self::process_event(&self.events, event);
+        completions.add_with(&Self::process_event(&self.events, event));
+
+        completions
     }
 
     /// Wait for an event in a certain guild.
@@ -873,19 +895,26 @@ impl Standby {
     fn process_event<K: Debug + Display + Eq + Hash + PartialEq + 'static, V: Clone + Debug>(
         map: &DashMap<K, Bystander<V>>,
         event: &V,
-    ) {
+    ) -> ProcessResults {
         #[cfg(feature = "tracing")]
         tracing::trace!(?event, "processing event");
+
+        let mut results = ProcessResults::new();
 
         #[cfg_attr(not(feature = "tracing"), allow(clippy::let_and_return))]
         map.retain(|id, bystander| {
             let result = Self::bystander_process(bystander, event);
+            results.handle(result);
 
             #[cfg(feature = "tracing")]
             tracing::trace!(bystander_id = %id, ?result, "event bystander processed");
 
-            result.retain()
+            // We want to retain bystanders that are *incomplete* and remove
+            // bystanders that are *complete*.
+            !result.is_complete()
         });
+
+        results
     }
 
     /// Process a general event that is either of a particular type or in a
@@ -898,18 +927,18 @@ impl Standby {
         map: &DashMap<K, Vec<Bystander<V>>>,
         guild_id: K,
         event: &V,
-    ) {
+    ) -> ProcessResults {
         // Iterate over a guild's bystanders and mark it for removal if there
         // are no bystanders remaining.
-        let remove_guild = if let Some(mut bystanders) = map.get_mut(&guild_id) {
-            Self::bystander_iter(&mut bystanders, event);
+        let (remove_guild, results) = if let Some(mut bystanders) = map.get_mut(&guild_id) {
+            let results = Self::bystander_iter(&mut bystanders, event);
 
-            bystanders.is_empty()
+            (bystanders.is_empty(), results)
         } else {
             #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, "guild has no event bystanders");
 
-            return;
+            return ProcessResults::new();
         };
 
         if remove_guild {
@@ -918,11 +947,16 @@ impl Standby {
 
             map.remove(&guild_id);
         }
+
+        results
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
     #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
-    fn bystander_iter<E: Clone + Debug>(bystanders: &mut Vec<Bystander<E>>, event: &E) {
+    fn bystander_iter<E: Clone + Debug>(
+        bystanders: &mut Vec<Bystander<E>>,
+        event: &E,
+    ) -> ProcessResults {
         #[cfg(feature = "tracing")]
         tracing::trace!(?bystanders, "iterating over bystanders");
 
@@ -957,22 +991,26 @@ impl Standby {
         // doesn't advance; iterators would continue to provide incrementing
         // enumeration indexes while we sometimes want to re-use an index.
         let mut index = 0;
+        let mut results = ProcessResults::new();
 
         while index < bystanders.len() {
             #[cfg(feature = "tracing")]
             tracing::trace!(%index, "checking bystander");
 
             let status = Self::bystander_process(&mut bystanders[index], event);
+            results.handle(status);
 
             #[cfg(feature = "tracing")]
             tracing::trace!(%index, ?status, "checked bystander");
 
-            if status.retain() {
-                index += 1;
-            } else {
+            if status.is_complete() {
                 bystanders.remove(index);
+            } else {
+                index += 1;
             }
         }
+
+        results
     }
 
     /// Process a bystander, sending the event if the sender is active and the
@@ -993,7 +1031,7 @@ impl Standby {
             #[cfg(feature = "tracing")]
             tracing::trace!("bystander has no sender, indicating for removal");
 
-            return ProcessStatus::Complete;
+            return ProcessStatus::AlreadyComplete;
         };
 
         // The channel may have closed due to the receiver dropping their end,
@@ -1002,7 +1040,7 @@ impl Standby {
             #[cfg(feature = "tracing")]
             tracing::trace!("bystander's rx dropped, indicating for removal");
 
-            return ProcessStatus::Complete;
+            return ProcessStatus::Dropped;
         }
 
         // Lastly check to see if the predicate matches the event. If it doesn't
@@ -1015,7 +1053,7 @@ impl Standby {
             // next time around.
             bystander.sender.replace(sender);
 
-            return ProcessStatus::Incomplete;
+            return ProcessStatus::Skip;
         }
 
         match sender {
@@ -1027,7 +1065,7 @@ impl Standby {
                 #[cfg(feature = "tracing")]
                 tracing::trace!("bystander matched event, indicating for removal");
 
-                ProcessStatus::Complete
+                ProcessStatus::SentFuture
             }
             Sender::Stream(tx) => {
                 // If we can send an event to the receiver and the channel is
@@ -1039,11 +1077,104 @@ impl Standby {
 
                     bystander.sender.replace(Sender::Stream(tx));
 
-                    ProcessStatus::Incomplete
+                    ProcessStatus::SentStream
                 } else {
-                    ProcessStatus::Complete
+                    ProcessStatus::Dropped
                 }
             }
+        }
+    }
+}
+/// Number of [`Standby`] calls that were completed.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct ProcessResults {
+    /// Number of bystanders that were dropped due to the receiving end
+    /// dropping.
+    dropped: usize,
+    /// Number of future bystanders that were open and were sent an event.
+    fulfilled: usize,
+    /// Number of stream bystanders that were open and were sent an event.
+    sent: usize,
+}
+
+impl ProcessResults {
+    /// Create a new set of zeroed out results.
+    const fn new() -> Self {
+        Self {
+            dropped: 0,
+            fulfilled: 0,
+            sent: 0,
+        }
+    }
+
+    /// Number of [`Standby`] calls where the receiver had already dropped their
+    /// end.
+    ///
+    /// This may happen when a caller calls into [`Standby`] but then times out
+    /// or otherwise cancels their request.
+    pub const fn dropped(&self) -> usize {
+        self.dropped
+    }
+
+    /// Number of [`Standby`] calls that were fulfilled.
+    ///
+    /// Calls for futures via methods such as [`Standby::wait_for`] will be
+    /// marked as fulfilled once matched and an event is sent over the channel.
+    ///
+    /// **Caveat**: although an event has been sent over the channel to the
+    /// receiver it is not guaranteed whether the receiver end actually received
+    /// it; the receiver end may drop shortly after an event is sent. In this
+    /// case the call is considered to be fulfilled.
+    pub const fn fulfilled(&self) -> usize {
+        self.fulfilled
+    }
+
+    /// Number of calls that were matched and were sent an event.
+    ///
+    /// This is the sum of [`fulfilled`] and [`sent`].
+    ///
+    /// See the caveats for both methods.
+    ///
+    /// [`fulfilled`]: Self::fulfilled
+    /// [`sent`]: Self::sent
+    pub const fn matched(&self) -> usize {
+        self.fulfilled() + self.sent()
+    }
+
+    /// Number of [`Standby`] streaming calls that were matched and had an event
+    /// sent to them.
+    ///
+    /// **Caveat**: although an event has been sent over the channel to the
+    /// receiver it is not guaranteed whether the receiver end actually received
+    /// it; the receiver end may drop shortly after an event is sent. In this
+    /// case the call is considered to be sent. Checks over this call will in
+    /// the future be considered [`dropped`].
+    ///
+    /// [`dropped`]: Self::dropped
+    pub const fn sent(&self) -> usize {
+        self.sent
+    }
+
+    /// Add another set of results to this set.
+    fn add_with(&mut self, other: &Self) {
+        self.dropped = self.dropped.saturating_add(other.dropped);
+        self.fulfilled = self.fulfilled.saturating_add(other.fulfilled);
+        self.sent = self.sent.saturating_add(other.sent);
+    }
+
+    /// Handle a process status.
+    fn handle(&mut self, status: ProcessStatus) {
+        match status {
+            ProcessStatus::Dropped => {
+                self.dropped += 1;
+            }
+            ProcessStatus::SentFuture => {
+                self.fulfilled += 1;
+            }
+            ProcessStatus::SentStream => {
+                self.sent += 1;
+            }
+            ProcessStatus::AlreadyComplete | ProcessStatus::Skip => {}
         }
     }
 }
@@ -1051,16 +1182,26 @@ impl Standby {
 /// Status result of processing a bystander via [`Standby::bystander_process`].
 #[derive(Clone, Copy, Debug)]
 enum ProcessStatus {
-    /// Bystander has been completed and can be removed from [`Standby`].
-    Complete,
-    /// Bystander was not matched by the predicate and must be retained.
-    Incomplete,
+    /// Call matched but already matched previously and was not removed, so the
+    /// subject must be removed and not counted towards results.
+    AlreadyComplete,
+    /// Call matched but the receiver dropped their end.
+    Dropped,
+    /// Call matched a oneshot.
+    SentFuture,
+    /// Call matched a stream.
+    SentStream,
+    /// Call was not matched.
+    Skip,
 }
 
 impl ProcessStatus {
-    /// Whether to retain the bystander.
-    const fn retain(self) -> bool {
-        matches!(self, Self::Incomplete)
+    /// Whether the call is complete.
+    const fn is_complete(self) -> bool {
+        matches!(
+            self,
+            Self::AlreadyComplete | Self::Dropped | Self::SentFuture
+        )
     }
 }
 
@@ -1192,6 +1333,77 @@ mod tests {
                 verified: None,
             }),
         }
+    }
+
+    /// Test that if a receiver drops their end, the result properly counts the
+    /// statistic.
+    #[tokio::test]
+    async fn test_dropped() {
+        let standby = Standby::new();
+        let guild_id = GuildId::new(1).expect("non zero");
+
+        {
+            let _rx = standby.wait_for(guild_id, move |_: &Event| false);
+        }
+
+        let results = standby.process(&Event::RoleDelete(RoleDelete {
+            guild_id,
+            role_id: RoleId::new(2).expect("non zero"),
+        }));
+
+        assert_eq!(1, results.dropped());
+        assert_eq!(0, results.fulfilled());
+        assert_eq!(0, results.sent());
+    }
+
+    /// Test that both events in guild 1 is matched but the event in guild 2 is
+    /// not matched by testing the returned matched amount.
+    #[tokio::test]
+    async fn test_matched() {
+        fn check(event: &Event, guild_id: GuildId) -> bool {
+            matches!(event, Event::RoleDelete(e) if e.guild_id == guild_id)
+        }
+
+        let standby = Standby::new();
+        let guild_id_one = GuildId::new(1).expect("non zero");
+        let guild_id_two = GuildId::new(2).expect("non zero");
+        let _one = standby.wait_for(guild_id_one, move |event: &Event| {
+            check(event, guild_id_one)
+        });
+        let _two = standby.wait_for(guild_id_one, move |event: &Event| {
+            check(event, guild_id_one)
+        });
+        let _three = standby.wait_for(guild_id_two, move |event: &Event| {
+            check(event, guild_id_two)
+        });
+
+        let results = standby.process(&Event::RoleDelete(RoleDelete {
+            guild_id: GuildId::new(1).expect("non zero"),
+            role_id: RoleId::new(2).expect("non zero"),
+        }));
+
+        assert_eq!(0, results.dropped());
+        assert_eq!(2, results.fulfilled());
+        assert_eq!(0, results.sent());
+    }
+
+    /// Test that the [`ProcessResults::sent`] counter increments if a match is
+    /// sent to it.
+    #[tokio::test]
+    async fn test_sent() {
+        let standby = Standby::new();
+        let guild_id = GuildId::new(1).expect("non zero");
+
+        let _rx = standby.wait_for_stream(guild_id, move |_: &Event| true);
+
+        let results = standby.process(&Event::RoleDelete(RoleDelete {
+            guild_id,
+            role_id: RoleId::new(2).expect("non zero"),
+        }));
+
+        assert_eq!(0, results.dropped());
+        assert_eq!(0, results.fulfilled());
+        assert_eq!(1, results.sent());
     }
 
     /// Test basic functionality of the [`Standby::wait_for`] method.

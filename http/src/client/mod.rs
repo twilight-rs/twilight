@@ -21,27 +21,67 @@ use crate::{
             InteractionError, InteractionErrorType,
         },
         channel::{
-            reaction::delete_reaction::TargetUser,
-            stage::create_stage_instance::CreateStageInstanceError,
+            invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
+            message::{
+                CreateMessage, CrosspostMessage, DeleteMessage, DeleteMessages, GetChannelMessages,
+                GetMessage, UpdateMessage,
+            },
+            reaction::{
+                delete_reaction::TargetUser, CreateReaction, DeleteAllReaction, DeleteAllReactions,
+                DeleteReaction, GetReactions, RequestReactionType,
+            },
+            stage::{
+                create_stage_instance::CreateStageInstanceError, CreateStageInstance,
+                DeleteStageInstance, GetStageInstance, UpdateStageInstance,
+            },
             thread::{
                 AddThreadMember, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
-                GetPublicArchivedThreads, GetThreadMembers, JoinThread, LeaveThread,
-                RemoveThreadMember, ThreadValidationError, UpdateThread,
+                GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
+                LeaveThread, RemoveThreadMember, ThreadValidationError, UpdateThread,
             },
+            webhook::{
+                CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
+                GetChannelWebhooks, GetWebhook, GetWebhookMessage, UpdateWebhook,
+                UpdateWebhookMessage, UpdateWebhookWithToken,
+            },
+            CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission, DeletePin,
+            FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            ban::{CreateBan, DeleteBan, GetBan, GetBans},
             create_guild::CreateGuildError,
             create_guild_channel::CreateGuildChannelError,
+            emoji::{CreateEmoji, DeleteEmoji, GetEmoji, GetEmojis, UpdateEmoji},
+            integration::{DeleteGuildIntegration, GetGuildIntegrations},
+            member::{
+                AddGuildMember, AddRoleToMember, GetGuildMembers, GetMember, RemoveMember,
+                RemoveRoleFromMember, SearchGuildMembers, UpdateGuildMember,
+            },
+            role::{CreateRole, DeleteRole, GetGuildRoles, UpdateRole, UpdateRolePositions},
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 StickerValidationError, UpdateGuildSticker,
             },
             update_guild_channel_positions::Position,
+            user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
+            CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
+            GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
+            GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
+            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentUserNick, UpdateGuild,
+            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
-        prelude::*,
         sticker::{GetNitroStickerPacks, GetSticker},
-        GetUserApplicationInfo, Method, Request,
+        template::{
+            create_guild_from_template::CreateGuildFromTemplateError,
+            create_template::CreateTemplateError, CreateGuildFromTemplate, CreateTemplate,
+            DeleteTemplate, GetTemplate, GetTemplates, SyncTemplate, UpdateTemplate,
+        },
+        user::{
+            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
+            GetUser, LeaveGuild, UpdateCurrentUser,
+        },
+        GetGateway, GetUserApplicationInfo, GetVoiceRegions, Method, Request,
     },
     response::{future::InvalidToken, ResponseFuture},
     API_VERSION,
@@ -68,7 +108,6 @@ use twilight_model::{
     },
     channel::{
         message::{allowed_mentions::AllowedMentions, sticker::StickerId},
-        thread::AutoArchiveDuration,
         ChannelType,
     },
     guild::Permissions,
@@ -1557,10 +1596,9 @@ impl Client {
         &'a self,
         channel_id: ChannelId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
         kind: ChannelType,
     ) -> Result<CreateThread<'_>, ThreadValidationError> {
-        CreateThread::new(self, channel_id, name, auto_archive_duration, kind)
+        CreateThread::new(self, channel_id, name, kind)
     }
 
     /// Create a new thread from an existing message.
@@ -1589,9 +1627,8 @@ impl Client {
         channel_id: ChannelId,
         message_id: MessageId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
     ) -> Result<CreateThreadFromMessage<'_>, ThreadValidationError> {
-        CreateThreadFromMessage::new(self, channel_id, message_id, name, auto_archive_duration)
+        CreateThreadFromMessage::new(self, channel_id, message_id, name)
     }
 
     /// Add the current user to a thread.
@@ -1669,6 +1706,17 @@ impl Client {
         user_id: UserId,
     ) -> RemoveThreadMember<'_> {
         RemoveThreadMember::new(self, channel_id, user_id)
+    }
+
+    /// Returns a [`ThreadMember`] in a thread.
+    ///
+    /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
+    pub const fn thread_member(
+        &self,
+        channel_id: ChannelId,
+        user_id: UserId,
+    ) -> GetThreadMember<'_> {
+        GetThreadMember::new(self, channel_id, user_id)
     }
 
     /// Returns the [`ThreadMember`]s of the thread.

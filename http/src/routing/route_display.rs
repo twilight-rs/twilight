@@ -73,6 +73,10 @@ impl Display for RouteDisplay<'_> {
                 channel_id,
                 user_id,
             }
+            | Route::GetThreadMember {
+                channel_id,
+                user_id,
+            }
             | Route::RemoveThreadMember {
                 channel_id,
                 user_id,

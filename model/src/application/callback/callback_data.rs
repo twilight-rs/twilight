@@ -1,12 +1,18 @@
 use crate::{
-    application::component::Component,
+    application::{command::CommandOptionChoice, component::Component},
     channel::{
         embed::Embed,
         message::{AllowedMentions, MessageFlags},
     },
 };
-
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub(super) enum CallbackDataEnvelope {
+    Autocomplete(Autocomplete),
+    Messages(CallbackData),
+}
 
 /// Optional extra data sent when responding to an [`Interaction`] of type
 /// [`ApplicationCommand`].
@@ -37,9 +43,18 @@ pub struct CallbackData {
     pub tts: Option<bool>,
 }
 
+/// Response to an autocomplete [`Interaction`].
+///
+/// [`Interaction`]: crate::application::interaction::Interaction
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct Autocomplete {
+    /// List of autocomplete alternatives.
+    pub choices: Vec<CommandOptionChoice>,
+}
+
 #[cfg(test)]
 mod tests {
-    use super::CallbackData;
+    use super::{Autocomplete, CallbackData};
     use serde::{Deserialize, Serialize};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
@@ -54,6 +69,20 @@ mod tests {
     );
     assert_impl_all!(
         CallbackData: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
+
+    assert_fields!(Autocomplete: choices);
+
+    assert_impl_all!(
+        Autocomplete: Clone,
         Debug,
         Deserialize<'static>,
         Eq,

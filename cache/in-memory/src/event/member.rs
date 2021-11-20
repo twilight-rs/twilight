@@ -32,6 +32,7 @@ impl InMemoryCache {
 
         self.cache_user(Cow::Owned(member.user), Some(guild_id));
         let cached = CachedMember {
+            avatar: member.avatar,
             deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at,
@@ -58,7 +59,7 @@ impl InMemoryCache {
         let id = (guild_id, user_id);
 
         if let Some(m) = self.members.get(&id) {
-            if *m == member {
+            if &*m == member {
                 return;
             }
         }
@@ -69,9 +70,10 @@ impl InMemoryCache {
             .insert(user_id);
 
         let cached = CachedMember {
+            avatar: member.avatar.to_owned(),
             deaf: Some(member.deaf),
             guild_id,
-            joined_at: member.joined_at.to_owned(),
+            joined_at: member.joined_at,
             mute: Some(member.mute),
             nick: member.nick.to_owned(),
             pending: false,
@@ -89,10 +91,10 @@ impl InMemoryCache {
     ) {
         let id = (guild_id, member.id);
 
-        let (deaf, mute) = match self.members.get(&id) {
-            Some(m) if *m == member => return,
-            Some(m) => (m.deaf(), m.mute()),
-            None => (None, None),
+        let (avatar, deaf, mute) = match self.members.get(&id) {
+            Some(m) if &*m == member => return,
+            Some(m) => (m.avatar().map(ToString::to_string), m.deaf(), m.mute()),
+            None => (None, None, None),
         };
 
         self.guild_members
@@ -101,9 +103,10 @@ impl InMemoryCache {
             .insert(member.id);
 
         let cached = CachedMember {
+            avatar,
             deaf,
             guild_id,
-            joined_at: member.joined_at.to_owned(),
+            joined_at: member.joined_at,
             mute,
             nick: member.nick.to_owned(),
             pending: false,
@@ -187,11 +190,12 @@ impl UpdateCache for MemberUpdate {
             None => return,
         };
 
+        member.avatar = self.avatar.clone();
         member.deaf = self.deaf.or_else(|| member.deaf());
         member.mute = self.mute.or_else(|| member.mute());
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
-        member.joined_at.replace(self.joined_at);
+        member.joined_at = self.joined_at;
         member.pending = self.pending;
     }
 }

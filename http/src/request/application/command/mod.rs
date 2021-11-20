@@ -56,7 +56,7 @@ mod tests {
     use super::CommandBorrowed;
     use twilight_model::{
         application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
-        id::{ApplicationId, CommandId, GuildId},
+        id::{ApplicationId, CommandId, CommandVersionId, GuildId},
     };
 
     /// Test to convert a `Command` to a `CommandBorrowed`.
@@ -71,14 +71,15 @@ mod tests {
             default_permission: Some(true),
             description: "command description".to_owned(),
             guild_id: Some(GuildId::new(2).expect("non zero")),
+            id: Some(CommandId::new(3).expect("non zero")),
             kind: CommandType::ChatInput,
             name: "command name".to_owned(),
-            id: Some(CommandId::new(3).expect("non zero")),
             options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
                 description: "command description".to_owned(),
                 name: "command name".to_owned(),
                 required: true,
             })]),
+            version: CommandVersionId::new(1).expect("non zero"),
         };
 
         let _ = CommandBorrowed {

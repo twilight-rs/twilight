@@ -696,6 +696,7 @@ mod tests {
         cache.update(&GuildCreate(base_guild()));
         cache.update(&MemberAdd(test::member(user_id(), guild_id())));
         cache.update(&MemberUpdate {
+            avatar: None,
             guild_id: guild_id(),
             deaf: None,
             joined_at,

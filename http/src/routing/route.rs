@@ -661,6 +661,13 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a member of a thread.
+    GetThreadMember {
+        /// ID of the thread.
+        channel_id: u64,
+        /// ID of the member.
+        user_id: u64,
+    },
     /// Route information to get members of a thread.
     GetThreadMembers {
         /// ID of the thread.
@@ -1092,6 +1099,7 @@ impl<'a> Route<'a> {
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
             | Self::GetTemplates { .. }
+            | Self::GetThreadMember { .. }
             | Self::GetThreadMembers { .. }
             | Self::GetUserConnections
             | Self::GetUserPrivateChannels
@@ -1195,7 +1203,7 @@ impl<'a> Route<'a> {
     ///
     /// [`Ratelimiter`]: twilight_http_ratelimiting::Ratelimiter
     #[allow(clippy::too_many_lines)]
-    pub const fn path(&self) -> Path {
+    pub fn path(&self) -> Path {
         match self {
             Self::AddGuildMember { guild_id, .. }
             | Self::GetMember { guild_id, .. }
@@ -1205,6 +1213,7 @@ impl<'a> Route<'a> {
                 Path::GuildsIdMembersIdRolesId(*guild_id)
             }
             Self::AddThreadMember { channel_id, .. }
+            | Self::GetThreadMember { channel_id, .. }
             | Self::GetThreadMembers { channel_id, .. }
             | Self::JoinThread { channel_id, .. }
             | Self::LeaveThread { channel_id, .. }
@@ -1223,8 +1232,10 @@ impl<'a> Route<'a> {
             | Self::SetGlobalCommands { application_id } => {
                 Path::ApplicationCommand(*application_id)
             }
-            Self::CreateGuild | Self::CreateGuildFromTemplate { .. } | Self::GetTemplate { .. } => {
-                Path::Guilds
+            Self::CreateGuild => Path::Guilds,
+            Self::CreateGuildFromTemplate { template_code, .. }
+            | Self::GetTemplate { template_code, .. } => {
+                Path::GuildsTemplatesCode((*template_code).to_string().into_boxed_str())
             }
             Self::CreateGuildCommand { application_id, .. }
             | Self::DeleteGuildCommand { application_id, .. }
@@ -1290,12 +1301,29 @@ impl<'a> Route<'a> {
             | Self::UpdateGuildIntegration { guild_id, .. } => {
                 Path::GuildsIdIntegrationsId(*guild_id)
             }
-            Self::DeleteInteractionOriginal { application_id, .. }
-            | Self::GetFollowupMessage { application_id, .. }
-            | Self::GetInteractionOriginal { application_id, .. }
-            | Self::UpdateInteractionOriginal { application_id, .. } => {
-                Path::WebhooksIdTokenMessagesId(*application_id)
+            Self::DeleteInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
             }
+            | Self::GetFollowupMessage {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::GetInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::UpdateInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            } => Path::WebhooksIdTokenMessagesId(
+                *application_id,
+                (*interaction_token).to_string().into_boxed_str(),
+            ),
             Self::DeleteInvite { .. }
             | Self::GetInvite { .. }
             | Self::GetInviteWithExpiration { .. } => Path::InvitesCode,
@@ -1315,16 +1343,53 @@ impl<'a> Route<'a> {
             Self::DeleteRole { guild_id, .. }
             | Self::UpdateRole { guild_id, .. }
             | Self::UpdateRolePositions { guild_id } => Path::GuildsIdRolesId(*guild_id),
-            Self::DeleteTemplate { guild_id, .. }
-            | Self::SyncTemplate { guild_id, .. }
-            | Self::UpdateTemplate { guild_id, .. } => (Path::GuildsIdTemplatesCode(*guild_id)),
-            Self::DeleteWebhookMessage { webhook_id, .. }
-            | Self::GetWebhookMessage { webhook_id, .. }
-            | Self::UpdateWebhookMessage { webhook_id, .. } => {
-                Path::WebhooksIdTokenMessagesId(*webhook_id)
+            Self::DeleteTemplate {
+                guild_id,
+                template_code,
+                ..
             }
+            | Self::SyncTemplate {
+                guild_id,
+                template_code,
+                ..
+            }
+            | Self::UpdateTemplate {
+                guild_id,
+                template_code,
+                ..
+            } => Path::GuildsIdTemplatesCode(
+                *guild_id,
+                (*template_code).to_string().into_boxed_str(),
+            ),
+            Self::DeleteWebhookMessage {
+                webhook_id, token, ..
+            }
+            | Self::GetWebhookMessage {
+                webhook_id, token, ..
+            }
+            | Self::UpdateWebhookMessage {
+                webhook_id, token, ..
+            } => {
+                Path::WebhooksIdTokenMessagesId(*webhook_id, (*token).to_string().into_boxed_str())
+            }
+            Self::DeleteWebhook {
+                webhook_id,
+                token: Some(token),
+                ..
+            }
+            | Self::ExecuteWebhook {
+                webhook_id, token, ..
+            }
+            | Self::GetWebhook {
+                webhook_id,
+                token: Some(token),
+                ..
+            }
+            | Self::UpdateWebhook {
+                webhook_id,
+                token: Some(token),
+            } => Path::WebhooksIdToken(*webhook_id, (*token).to_string().into_boxed_str()),
             Self::DeleteWebhook { webhook_id, .. }
-            | Self::ExecuteWebhook { webhook_id, .. }
             | Self::GetWebhook { webhook_id, .. }
             | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(*webhook_id)),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(*channel_id),

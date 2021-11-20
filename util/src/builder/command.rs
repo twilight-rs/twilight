@@ -29,10 +29,11 @@
 use twilight_model::{
     application::command::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, Command,
-        CommandOption, CommandOptionChoice, CommandType, Number, OptionsCommandOptionData,
+        CommandOption, CommandOptionChoice, CommandOptionValue, CommandType, Number,
+        NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
-    id::{ApplicationId, CommandId, GuildId},
+    id::{CommandVersionId, GuildId},
 };
 
 /// Builder to create a [`Command`].
@@ -44,7 +45,7 @@ pub struct CommandBuilder(Command);
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String, kind: CommandType) -> Self {
+    pub fn new(name: String, description: String, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
             default_permission: None,
@@ -54,6 +55,7 @@ impl CommandBuilder {
             kind,
             name,
             options: Vec::new(),
+            version: CommandVersionId::new(1).expect("non zero"),
         })
     }
 
@@ -62,15 +64,6 @@ impl CommandBuilder {
     #[must_use = "must be built into a command"]
     pub fn build(self) -> Command {
         self.0
-    }
-
-    /// Set the application ID of the command.
-    ///
-    /// Defaults to [`None`].
-    pub const fn application_id(mut self, application_id: ApplicationId) -> Self {
-        self.0.application_id = Some(application_id);
-
-        self
     }
 
     /// Set the guild ID of the command.
@@ -87,15 +80,6 @@ impl CommandBuilder {
     /// Defaults to [`None`].
     pub const fn default_permission(mut self, default_permission: bool) -> Self {
         self.0.default_permission = Some(default_permission);
-
-        self
-    }
-
-    /// Set the ID of the command.
-    ///
-    /// Defaults to [`None`].
-    pub const fn id(mut self, id: CommandId) -> Self {
-        self.0.id = Some(id);
 
         self
     }
@@ -204,15 +188,18 @@ impl From<ChannelBuilder> for CommandOption {
 /// Create a integer option with a builder.
 #[derive(Clone, Debug)]
 #[must_use = "should be used in a command builder"]
-pub struct IntegerBuilder(ChoiceCommandOptionData);
+pub struct IntegerBuilder(NumberCommandOptionData);
 
 impl IntegerBuilder {
     /// Create a new default [`IntegerBuilder`].
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
-        Self(ChoiceCommandOptionData {
+        Self(NumberCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
+            max_value: None,
+            min_value: None,
             name,
             required: false,
         })
@@ -225,16 +212,43 @@ impl IntegerBuilder {
         CommandOption::Integer(self.0)
     }
 
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
+    }
+
     /// Set the list of choices for an option.
     ///
     /// Accepts tuples of `(String, i64)` corresponding to the name and value.
-
+    ///
     /// Defaults to no choices.
     pub fn choices(mut self, choices: impl IntoIterator<Item = (String, i64)>) -> Self {
         self.0.choices = choices
             .into_iter()
             .map(|(name, value)| CommandOptionChoice::Int { name, value })
             .collect();
+
+        self
+    }
+
+    /// Set the maximum value permitted.
+    ///
+    /// Defaults to no limit.
+    pub const fn max_value(mut self, value: i64) -> Self {
+        self.0.max_value = Some(CommandOptionValue::Integer(value));
+
+        self
+    }
+
+    /// Set the minimum value permitted.
+    ///
+    /// Defaults to no limit.
+    pub const fn min_value(mut self, value: i64) -> Self {
+        self.0.min_value = Some(CommandOptionValue::Integer(value));
 
         self
     }
@@ -297,15 +311,18 @@ impl From<MentionableBuilder> for CommandOption {
 /// Create a [`Number`] option with a builder.
 #[derive(Clone, Debug)]
 #[must_use = "should be used in a command builder"]
-pub struct NumberBuilder(ChoiceCommandOptionData);
+pub struct NumberBuilder(NumberCommandOptionData);
 
 impl NumberBuilder {
     /// Create a new default [`NumberBuilder`].
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
-        Self(ChoiceCommandOptionData {
+        Self(NumberCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
+            max_value: None,
+            min_value: None,
             name,
             required: false,
         })
@@ -316,6 +333,15 @@ impl NumberBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Number(self.0)
+    }
+
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
     }
 
     /// Set the list of choices for an option.
@@ -329,6 +355,24 @@ impl NumberBuilder {
             .into_iter()
             .map(|(name, value)| CommandOptionChoice::Number { name, value })
             .collect();
+
+        self
+    }
+
+    /// Set the maximum value permitted.
+    ///
+    /// Defaults to no limit.
+    pub const fn max_value(mut self, value: f64) -> Self {
+        self.0.max_value = Some(CommandOptionValue::Number(Number(value)));
+
+        self
+    }
+
+    /// Set the minimum value permitted.
+    ///
+    /// Defaults to no limit.
+    pub const fn min_value(mut self, value: f64) -> Self {
+        self.0.min_value = Some(CommandOptionValue::Number(Number(value)));
 
         self
     }
@@ -398,6 +442,7 @@ impl StringBuilder {
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
         Self(ChoiceCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
             name,
@@ -410,6 +455,15 @@ impl StringBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::String(self.0)
+    }
+
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
     }
 
     /// Set the list of choices for an option.
@@ -509,11 +563,11 @@ impl SubCommandGroupBuilder {
         CommandOption::SubCommandGroup(self.0)
     }
 
-    /// Add a sub command option to the sub command group.
+    /// Set the list of sub commands to the group.
     ///
-    /// Defaults to an empty list.
-    pub fn option(mut self, option: SubCommandBuilder) -> Self {
-        self.0.options.push(option.into());
+    /// Defaults to no subcommands.
+    pub fn subcommands(mut self, subcommands: impl IntoIterator<Item = SubCommandBuilder>) -> Self {
+        self.0.options = subcommands.into_iter().map(Into::into).collect();
 
         self
     }
@@ -591,7 +645,7 @@ mod tests {
         )
         .option(
             SubCommandGroupBuilder::new("user".into(), "Get or edit permissions for a user".into())
-                .option(
+                .subcommands([
                     SubCommandBuilder::new("get".into(), "Get permissions for a user".into())
                         .option(
                             UserBuilder::new("user".into(), "The user to get".into())
@@ -603,8 +657,6 @@ mod tests {
                              will be returned"
                                 .into(),
                         )),
-                )
-                .option(
                     SubCommandBuilder::new("edit".into(), "Edit permissions for a user".into())
                         .option(
                             UserBuilder::new("user".into(), "The user to edit".into())
@@ -616,11 +668,11 @@ mod tests {
                              will be edited"
                                 .into(),
                         )),
-                ),
+                ]),
         )
         .option(
             SubCommandGroupBuilder::new("role".into(), "Get or edit permissions for a role".into())
-                .option(
+                .subcommands([
                     SubCommandBuilder::new("get".into(), "Get permissions for a role".into())
                         .option(
                             RoleBuilder::new("role".into(), "The role to get".into())
@@ -632,8 +684,6 @@ mod tests {
                              will be returned"
                                 .into(),
                         )),
-                )
-                .option(
                     SubCommandBuilder::new("edit".into(), "Edit permissions for a role".into())
                         .option(
                             RoleBuilder::new("role".into(), "The role to edit".into())
@@ -645,11 +695,14 @@ mod tests {
                              will be edited"
                                 .into(),
                         ))
-                        .option(NumberBuilder::new(
-                            "position".into(),
-                            "The position of the new role".into(),
-                        )),
-                ),
+                        .option(
+                            NumberBuilder::new(
+                                "position".into(),
+                                "The position of the new role".into(),
+                            )
+                            .autocomplete(true),
+                        ),
+                ]),
         )
         .build();
 
@@ -661,15 +714,15 @@ mod tests {
             default_permission: None,
             description: String::from("Get or edit permissions for a user or a role"),
             id: None,
-            options: vec![
+            options: Vec::from([
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description: String::from("Get or edit permissions for a user"),
                     name: String::from("user"),
-                    options: vec![
+                    options: Vec::from([
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Get permissions for a user"),
                             name: String::from("get"),
-                            options: vec![
+                            options: Vec::from([
                                 CommandOption::User(BaseCommandOptionData {
                                     description: String::from("The user to get"),
                                     name: String::from("user"),
@@ -684,12 +737,12 @@ mod tests {
                                     name: String::from("channel"),
                                     required: false,
                                 }),
-                            ],
+                            ]),
                         }),
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Edit permissions for a user"),
                             name: String::from("edit"),
-                            options: vec![
+                            options: Vec::from([
                                 CommandOption::User(BaseCommandOptionData {
                                     description: String::from("The user to edit"),
                                     name: String::from("user"),
@@ -704,18 +757,18 @@ mod tests {
                                     name: String::from("channel"),
                                     required: false,
                                 }),
-                            ],
+                            ]),
                         }),
-                    ],
+                    ]),
                 }),
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description: String::from("Get or edit permissions for a role"),
                     name: String::from("role"),
-                    options: vec![
+                    options: Vec::from([
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Get permissions for a role"),
                             name: String::from("get"),
-                            options: vec![
+                            options: Vec::from([
                                 CommandOption::Role(BaseCommandOptionData {
                                     description: String::from("The role to get"),
                                     name: String::from("role"),
@@ -730,12 +783,12 @@ mod tests {
                                     name: String::from("channel"),
                                     required: false,
                                 }),
-                            ],
+                            ]),
                         }),
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Edit permissions for a role"),
                             name: String::from("edit"),
-                            options: vec![
+                            options: Vec::from([
                                 CommandOption::Role(BaseCommandOptionData {
                                     description: String::from("The role to edit"),
                                     name: String::from("role"),
@@ -750,17 +803,21 @@ mod tests {
                                     name: String::from("channel"),
                                     required: false,
                                 }),
-                                CommandOption::Number(ChoiceCommandOptionData {
+                                CommandOption::Number(NumberCommandOptionData {
+                                    autocomplete: true,
                                     choices: Vec::new(),
                                     description: String::from("The position of the new role"),
+                                    max_value: None,
+                                    min_value: None,
                                     name: String::from("position"),
                                     required: false,
                                 }),
-                            ],
+                            ]),
                         }),
-                    ],
+                    ]),
                 }),
-            ],
+            ]),
+            version: CommandVersionId::new(1).expect("non zero"),
         };
 
         assert_eq!(command, command_manual);

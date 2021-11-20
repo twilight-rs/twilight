@@ -3,8 +3,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialMember {
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
     pub deaf: bool,
-    pub joined_at: Option<Timestamp>,
+    pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
     /// Permission data for the member.
@@ -31,8 +34,9 @@ mod tests {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value = PartialMember {
+            avatar: None,
             deaf: false,
-            joined_at: Some(joined_at),
+            joined_at,
             mute: true,
             nick: Some("a nickname".to_owned()),
             permissions: None,
@@ -51,7 +55,6 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(true),

@@ -38,6 +38,8 @@ pub enum Interaction {
     Ping(Box<Ping>),
     /// Application command variant.
     ApplicationCommand(Box<ApplicationCommand>),
+    /// Application command autocomplete variant.
+    ApplicationCommandAutocomplete(Box<ApplicationCommand>),
     /// Message component variant.
     MessageComponent(Box<MessageComponentInteraction>),
 }
@@ -46,7 +48,9 @@ impl Interaction {
     pub const fn guild_id(&self) -> Option<GuildId> {
         match self {
             Self::Ping(_) => None,
-            Self::ApplicationCommand(inner) => inner.guild_id,
+            Self::ApplicationCommand(inner) | Self::ApplicationCommandAutocomplete(inner) => {
+                inner.guild_id
+            }
             Self::MessageComponent(inner) => inner.guild_id,
         }
     }
@@ -55,7 +59,9 @@ impl Interaction {
     pub const fn id(&self) -> InteractionId {
         match self {
             Self::Ping(ping) => ping.id,
-            Self::ApplicationCommand(command) => command.id,
+            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
+                command.id
+            }
             Self::MessageComponent(component) => component.id,
         }
     }
@@ -227,7 +233,8 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     token,
                 }))
             }
-            InteractionType::ApplicationCommand => {
+            InteractionType::ApplicationCommandAutocomplete
+            | InteractionType::ApplicationCommand => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
@@ -240,7 +247,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                 tracing::trace!(%channel_id, "handling application command");
 
-                Self::Value::ApplicationCommand(Box::new(ApplicationCommand {
+                let command = Box::new(ApplicationCommand {
                     application_id,
                     channel_id,
                     data,
@@ -250,7 +257,15 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     member,
                     token,
                     user,
-                }))
+                });
+
+                match kind {
+                    InteractionType::ApplicationCommand => Self::Value::ApplicationCommand(command),
+                    InteractionType::ApplicationCommandAutocomplete => {
+                        Self::Value::ApplicationCommandAutocomplete(command)
+                    }
+                    _ => unreachable!(),
+                }
             }
             InteractionType::MessageComponent => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
@@ -315,16 +330,17 @@ mod test {
             data: CommandData {
                 id: CommandId::new(300).expect("non zero"),
                 name: "command name".into(),
-                options: vec![CommandDataOption {
+                options: Vec::from([CommandDataOption {
+                    focused: false,
                     name: "member".into(),
                     value: CommandOptionValue::User(UserId::new(600).expect("non zero")),
-                }],
+                }]),
                 resolved: Some(CommandInteractionDataResolved {
                     channels: Vec::new(),
                     members: vec![InteractionMember {
                         hoisted_role: None,
                         id: UserId::new(600).expect("non zero"),
-                        joined_at: Some(joined_at),
+                        joined_at,
                         nick: Some("nickname".into()),
                         premium_since: None,
                         roles: Vec::new(),
@@ -354,8 +370,9 @@ mod test {
             id: InteractionId::new(500).expect("non zero"),
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
+                avatar: None,
                 deaf: false,
-                joined_at: Some(joined_at),
+                joined_at,
                 mute: false,
                 nick: Some("nickname".into()),
                 permissions: Some(Permissions::empty()),
@@ -411,7 +428,7 @@ mod test {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "CommandDataOptionRaw",
+                    name: "CommandDataOption",
                     len: 3,
                 },
                 Token::Str("name"),
@@ -419,7 +436,7 @@ mod test {
                 Token::Str("type"),
                 Token::U8(CommandOptionType::User as u8),
                 Token::Str("value"),
-                Token::Some,
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("600"),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -438,7 +455,6 @@ mod test {
                     len: 2,
                 },
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
                 Token::Some,
@@ -493,7 +509,6 @@ mod test {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
-                Token::Some,
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("mute"),
                 Token::Bool(false),

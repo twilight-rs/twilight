@@ -1,6 +1,6 @@
 use serde::Serialize;
 use twilight_model::{
-    gateway::presence::{Activity, ClientStatus, Presence, Status, UserOrId},
+    gateway::presence::{Activity, ClientStatus, Presence, Status},
     id::{GuildId, UserId},
 };
 
@@ -56,7 +56,7 @@ impl PartialEq<Presence> for CachedPresence {
             &other.client_status,
             other.guild_id,
             other.status,
-            presence_user_id(&other.user),
+            other.user.id(),
         )
     }
 }
@@ -68,14 +68,7 @@ impl From<Presence> for CachedPresence {
             client_status: presence.client_status,
             guild_id: presence.guild_id,
             status: presence.status,
-            user_id: presence_user_id(&presence.user),
+            user_id: presence.user.id(),
         }
-    }
-}
-
-const fn presence_user_id(user: &UserOrId) -> UserId {
-    match user {
-        UserOrId::User(ref u) => u.id,
-        UserOrId::UserId { id } => *id,
     }
 }
