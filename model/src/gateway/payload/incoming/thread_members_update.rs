@@ -109,7 +109,7 @@ mod tests {
             avatar: Some("guild avatar".to_owned()),
             deaf: false,
             guild_id: GuildId::new(2).expect("non zero"),
-            joined_at: Some(joined_at),
+            joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
             pending: false,
