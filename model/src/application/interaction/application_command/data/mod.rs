@@ -40,6 +40,8 @@ pub struct CommandData {
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandDataOption {
+    /// [`true`] if this autocomplete option is currently highlighted.
+    pub focused: bool,
     pub name: String,
     pub value: CommandOptionValue,
 }
@@ -53,9 +55,13 @@ impl Serialize for CommandDataOption {
                 if o.is_empty()
         );
 
-        let len = 2 + !subcommand_is_empty as usize;
+        let len = 2 + !subcommand_is_empty as usize + self.focused as usize;
 
         let mut state = serializer.serialize_struct("CommandDataOption", len)?;
+
+        if self.focused {
+            state.serialize_field("focused", &self.focused)?;
+        }
 
         state.serialize_field("name", &self.name)?;
 
@@ -89,8 +95,9 @@ impl<'de> Deserialize<'de> for CommandDataOption {
         enum Fields {
             Name,
             Type,
-            Options,
             Value,
+            Options,
+            Focused,
         }
 
         // Id before string such that IDs will always be interpreted
@@ -131,6 +138,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 let mut kind_opt = None;
                 let mut options = Vec::new();
                 let mut value_opt = None;
+                let mut focused = None;
 
                 loop {
                     let key = match map.next_key() {
@@ -160,6 +168,13 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 
                             kind_opt = Some(map.next_value()?);
                         }
+                        Fields::Value => {
+                            if value_opt.is_some() {
+                                return Err(DeError::duplicate_field("value"));
+                            }
+
+                            value_opt = Some(map.next_value()?);
+                        }
                         Fields::Options => {
                             if !options.is_empty() {
                                 return Err(DeError::duplicate_field("options"));
@@ -167,12 +182,12 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 
                             options = map.next_value()?;
                         }
-                        Fields::Value => {
-                            if value_opt.is_some() {
-                                return Err(DeError::duplicate_field("value"));
+                        Fields::Focused => {
+                            if focused.is_some() {
+                                return Err(DeError::duplicate_field("focused"));
                             }
 
-                            value_opt = Some(map.next_value()?);
+                            focused = map.next_value()?;
                         }
                     }
                 }
@@ -286,7 +301,11 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     }
                 };
 
-                Ok(CommandDataOption { name, value })
+                Ok(CommandDataOption {
+                    name,
+                    value,
+                    focused: focused.unwrap_or_default(),
+                })
             }
         }
 
@@ -369,6 +388,7 @@ mod tests {
             id: CommandId::new(1).expect("non zero"),
             name: "photo".to_owned(),
             options: Vec::from([CommandDataOption {
+                focused: false,
                 name: "cat".to_owned(),
                 value: CommandOptionValue::SubCommand(Vec::new()),
             }]),
@@ -407,6 +427,7 @@ mod tests {
     #[test]
     fn numbers() {
         let value = CommandDataOption {
+            focused: false,
             name: "opt".to_string(),
             value: CommandOptionValue::Number(Number(5.0)),
         };
