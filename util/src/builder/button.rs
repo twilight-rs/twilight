@@ -1,3 +1,30 @@
+//! Create a [`Button`] with a builder.
+//!
+//! # Example
+//! ```
+//! use twilight_util::builder::{button::ButtonBuilder, CallbackDataBuilder};
+//! use twilight_model::{
+//!     channel::message::MessageFlags,
+//!     application::component::{button::ButtonStyle, Component, Button}
+//! };
+//!
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! let component = Component::Button(
+//!     ButtonBuilder::primary("button_id".to_string())
+//!         .label("Button label".to_string())
+//!         .build()?
+//! );
+//!
+//! let callback_data = CallbackDataBuilder::new()
+//!     .content("Callback message".to_string())
+//!     .flags(MessageFlags::EPHEMERAL)
+//!     .components([component.clone()])
+//!     .build();
+//!
+//! assert_eq!(callback_data.components, Some(vec![component]));
+//! # Ok(()) }
+//! ```
+
 use std::{
     convert::TryFrom,
     error::Error,
@@ -91,7 +118,7 @@ pub enum ButtonErrorType {
 ///
 /// # Example
 /// ```
-/// use twilight_util::builder::{ButtonBuilder, CallbackDataBuilder};
+/// use twilight_util::builder::{button::ButtonBuilder, CallbackDataBuilder};
 /// use twilight_model::{
 ///     channel::message::MessageFlags,
 ///     application::component::{button::ButtonStyle, Component, Button}
@@ -269,7 +296,7 @@ impl ButtonBuilder {
     ///
     /// ```rust
     /// use twilight_model::application::component::button::ButtonStyle;
-    /// use twilight_util::builder::ButtonBuilder;
+    /// use twilight_util::builder::button::ButtonBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let button = ButtonBuilder::primary("unique-id".into())
@@ -290,7 +317,7 @@ impl ButtonBuilder {
     ///
     /// ```rust
     /// use twilight_model::{application::component::button::ButtonStyle, channel::ReactionType,};
-    /// use twilight_util::builder::ButtonBuilder;
+    /// use twilight_util::builder::button::ButtonBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let button = ButtonBuilder::primary("unique-id".into())
@@ -313,7 +340,7 @@ impl ButtonBuilder {
     ///
     /// ```rust
     /// use twilight_model::application::component::button::ButtonStyle;
-    /// use twilight_util::builder::ButtonBuilder;
+    /// use twilight_util::builder::button::ButtonBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let button = ButtonBuilder::primary("unique-id".into())
