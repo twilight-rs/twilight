@@ -290,6 +290,8 @@ pub enum ErrorCode {
     StickerFrameRateIsEitherTooSmallOrTooLarge,
     /// Sticker animation duration exceeds maximum of 5 seconds
     StickerAnimationDurationExceedsMaximum,
+    /// Cannot update a finished event
+    CannotUpdateFinishedEvent,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -440,6 +442,7 @@ impl ErrorCode {
             Self::LottieAnimationMaximumDimensionsExceeded => 170_005,
             Self::StickerFrameRateIsEitherTooSmallOrTooLarge => 170_006,
             Self::StickerAnimationDurationExceedsMaximum => 170_007,
+            Self::CannotUpdateFinishedEvent => 180_000,
             Self::Other(other) => *other,
         }
     }
@@ -589,6 +592,7 @@ impl From<u64> for ErrorCode {
             170_005 => Self::LottieAnimationMaximumDimensionsExceeded,
             170_006 => Self::StickerFrameRateIsEitherTooSmallOrTooLarge,
             170_007 => Self::StickerAnimationDurationExceedsMaximum,
+            180_000 => Self::CannotUpdateFinishedEvent,
             other => Self::Other(other),
         }
     }
@@ -738,6 +742,7 @@ impl Display for ErrorCode {
             Self::LottieAnimationMaximumDimensionsExceeded => f.write_str("Lottie animation maximum dimensions exceeded"),
             Self::StickerFrameRateIsEitherTooSmallOrTooLarge => f.write_str("Sticker frame rate is either too small or too large"),
             Self::StickerAnimationDurationExceedsMaximum => f.write_str("Sticker animation duration exceeds maximum of 5 seconds"),
+            Self::CannotUpdateFinishedEvent => f.write_str("Cannot update a finished event"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 
