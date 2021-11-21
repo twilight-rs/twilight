@@ -1,4 +1,4 @@
-use ed25519_dalek::{PublicKey, Signature, Verifier, PUBLIC_KEY_LENGTH};
+use ed25519_dalek::{PublicKey, Verifier, PUBLIC_KEY_LENGTH};
 use hex::FromHex;
 use hyper::{
     header::CONTENT_TYPE,
@@ -7,7 +7,7 @@ use hyper::{
     Body, Method, Request, Response, Server,
 };
 use once_cell::sync::Lazy;
-use std::{future::Future, str::FromStr};
+use std::future::Future;
 use twilight_model::application::{
     callback::{CallbackData, InteractionResponse},
     interaction::Interaction,
@@ -62,10 +62,9 @@ where
     let signature = if let Some(hex_sig) = req
         .headers()
         .get("x-signature-ed25519")
-        .map(|v| v.to_str().ok())
-        .flatten()
+        .and_then(|v| v.to_str().ok())
     {
-        Signature::from_str(hex_sig).unwrap()
+        hex_sig.parse().unwrap()
     } else {
         return Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
