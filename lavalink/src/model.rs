@@ -514,7 +514,7 @@ pub mod incoming {
     pub struct PlayerUpdateState {
         /// Track position in milliseconds. None if not playing anything.
         pub position: Option<i64>,
-        /// Unix timestmap of the player in milliseconds.
+        /// Unix timestamp of the player in milliseconds.
         pub time: i64,
         /// True when the player is connected to the voice gateway.
         pub connected: bool,
