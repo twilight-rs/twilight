@@ -380,7 +380,7 @@ mod tests {
     fn test_builder_without_link() {
         let button = ButtonBuilder::new(ButtonStyle::Primary, "primary-button".to_owned())
             .emoji(ReactionType::Unicode {
-                name: "🧪".to_owned(),
+                name: "\u{1f9ea}".to_owned(),
             })
             .label("testing".to_owned())
             .disabled(true)
@@ -390,7 +390,7 @@ mod tests {
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: Some(ReactionType::Unicode {
-                name: "🧪".to_owned(),
+                name: "\u{1f9ea}".to_owned(),
             }),
             label: Some("testing".to_owned()),
             custom_id: Some("primary-button".to_owned()),
@@ -405,7 +405,7 @@ mod tests {
     fn test_builder_with_link() {
         let button = ButtonBuilder::new(ButtonStyle::Link, "https://twilight.rs".to_owned())
             .emoji(ReactionType::Unicode {
-                name: "🧪".to_owned(),
+                name: "\u{1f9ea}".to_owned(),
             })
             .label("testing".to_owned())
             .disabled(false)
@@ -415,7 +415,7 @@ mod tests {
         let expected = Button {
             style: ButtonStyle::Link,
             emoji: Some(ReactionType::Unicode {
-                name: "🧪".to_owned(),
+                name: "\u{1f9ea}".to_owned(),
             }),
             label: Some("testing".to_owned()),
             custom_id: None,
