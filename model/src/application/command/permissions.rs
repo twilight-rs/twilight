@@ -41,18 +41,22 @@ impl<'de> Deserialize<'de> for CommandPermissions {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let data = CommandPermissionsData::deserialize(deserializer)?;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing command permission");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         let id = match data.kind {
             CommandPermissionsDataType::Role => {
                 let id = RoleId(data.id.0);
+                #[cfg(feature = "tracing")]
                 tracing::trace!(id = %id.0, kind = ?data.kind);
 
                 CommandPermissionsType::Role(id)
             }
             CommandPermissionsDataType::User => {
                 let id = UserId(data.id.0);
+                #[cfg(feature = "tracing")]
                 tracing::trace!(id = %id.0, kind = ?data.kind);
 
                 CommandPermissionsType::User(id)
