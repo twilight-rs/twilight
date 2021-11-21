@@ -60,7 +60,7 @@ use twilight_model::{
 
 /// Error building a `SelectMenuOption`.
 ///
-/// This is returned from [`SelectMenuBuilder::build`].
+/// This is returned from [`SelectMenuOptionBuilder::build`].
 #[derive(Debug)]
 pub struct SelectMenuOptionError {
     kind: SelectMenuOptionErrorType,
@@ -221,15 +221,15 @@ impl SelectMenuOptionBuilder {
     ///
     /// Returns an [`SelectMenuOptionErrorType::LabelTooLong`] error type if the provided `label` is longer than
     /// the limit defined at [`LABEL_LENGTH_LIMIT`].
-    /// 
+    ///
     /// Returns an [`SelectMenuOptionErrorType::ValueEmpty`] error type if the provided `value` is empty.
     ///
     /// Returns an [`SelectMenuOptionErrorType::ValueTooLong`] error type if the provided `value` is longer than
     /// the limit defined at [`VALUE_LENGTH_LIMIT`].
-    /// 
+    ///
     /// Returns an [`SelectMenuOptionErrorType::DescriptionTooLong`] error type if the provided `description` is longer than
     /// the limit defined at [`DESCRIPTION_LENGTH_LIMIT`].
-    /// 
+    ///
     /// [`LABEL_LENGTH_LIMIT`]: Self::LABEL_LENGTH_LIMIT
     /// [`VALUE_LENGTH_LIMIT`]: Self::VALUE_LENGTH_LIMIT
     /// [`DESCRIPTION_LENGTH_LIMIT`]: Self::DESCRIPTION_LENGTH_LIMIT
