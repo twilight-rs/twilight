@@ -85,7 +85,7 @@ impl Error for ButtonError {}
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ButtonErrorType {
-    /// custom_id is empty
+    /// custom_id is empty.
     CustomIdEmpty {
         /// Provided custom_id although it's empty.
         custom_id: String,
@@ -102,9 +102,9 @@ pub enum ButtonErrorType {
     },
     /// Neither a label nor an emoji has been provided.
     LabelAndEmojiEmpty {
-        /// Provided emoji although it's empty
+        /// Provided emoji although it's empty.
         emoji: Option<ReactionType>,
-        /// Provided label although it's empty
+        /// Provided label although it's empty.
         label: Option<String>,
     },
     /// Label is too long.
@@ -228,7 +228,7 @@ impl ButtonBuilder {
     /// has been provided.
     ///
     /// Returns an [`ButtonErrorType::LabelTooLong`] if the provided `label` is longer than the
-    /// limit defined at [`LABEL_LENGTH_LIMIT`]
+    /// limit defined at [`LABEL_LENGTH_LIMIT`].
     ///
     /// [`CUSTOM_ID_LENGTH_LIMIT`]: Self::CUSTOM_ID_LENGTH_LIMIT
     /// [`LABEL_LENGTH_LIMIT`]: Self::LABEL_LENGTH_LIMIT
