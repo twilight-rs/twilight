@@ -213,6 +213,7 @@ impl IntegerBuilder {
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
         Self(NumberCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
             max_value: None,
@@ -227,6 +228,15 @@ impl IntegerBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Integer(self.0)
+    }
+
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
     }
 
     /// Set the list of choices for an option.
@@ -326,6 +336,7 @@ impl NumberBuilder {
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
         Self(NumberCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
             max_value: None,
@@ -340,6 +351,15 @@ impl NumberBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Number(self.0)
+    }
+
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
     }
 
     /// Set the list of choices for an option.
@@ -440,6 +460,7 @@ impl StringBuilder {
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
         Self(ChoiceCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
             name,
@@ -452,6 +473,15 @@ impl StringBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::String(self.0)
+    }
+
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
     }
 
     /// Set the list of choices for an option.
@@ -687,10 +717,13 @@ mod tests {
                              will be edited"
                                 .into(),
                         ))
-                        .option(NumberBuilder::new(
-                            "position".into(),
-                            "The position of the new role".into(),
-                        )),
+                        .option(
+                            NumberBuilder::new(
+                                "position".into(),
+                                "The position of the new role".into(),
+                            )
+                            .autocomplete(true),
+                        ),
                 ),
         )
         .build();
@@ -793,6 +826,7 @@ mod tests {
                                     required: false,
                                 }),
                                 CommandOption::Number(NumberCommandOptionData {
+                                    autocomplete: true,
                                     choices: Vec::new(),
                                     description: String::from("The position of the new role"),
                                     max_value: None,

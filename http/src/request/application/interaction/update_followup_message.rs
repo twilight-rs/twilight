@@ -6,13 +6,14 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, NullableField, Request,
+        AttachmentFile, Form, NullableField, Request,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -172,13 +173,13 @@ struct UpdateFollowupMessageFields<'a> {
 /// [`DeleteFollowupMessage`]: super::DeleteFollowupMessage
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateFollowupMessage<'a> {
+    application_id: ApplicationId,
+    attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateFollowupMessageFields<'a>,
-    files: &'a [(&'a str, &'a [u8])],
     http: &'a Client,
     message_id: MessageId,
     thread_id: Option<ChannelId>,
     token: &'a str,
-    application_id: ApplicationId,
 }
 
 impl<'a> UpdateFollowupMessage<'a> {
@@ -200,7 +201,7 @@ impl<'a> UpdateFollowupMessage<'a> {
                 embeds: None,
                 payload_json: None,
             },
-            files: &[],
+            attachments: Cow::Borrowed(&[]),
             http,
             message_id,
             thread_id: None,
@@ -372,9 +373,22 @@ impl<'a> UpdateFollowupMessage<'a> {
         Ok(self)
     }
 
-    /// Attach multiple files to the followup message.
-    pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.files = files;
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[allow(clippy::missing_const_for_fn)] // False positive
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = Cow::Borrowed(attachments);
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[deprecated(since = "0.7.2", note = "Use attach instead")]
+    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
+        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -382,10 +396,10 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`files`]. See [Discord Docs/Create Message] and
+    /// [`attachments`]. See [Discord Docs/Create Message] and
     /// [`CreateFollowupMessage::payload_json`].
     ///
-    /// [`files`]: Self::files
+    /// [`attachments`]: Self::attachments
     /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
@@ -412,11 +426,17 @@ impl<'a> UpdateFollowupMessage<'a> {
             webhook_id: self.application_id.get(),
         });
 
-        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
-            for (index, (name, file)) in self.files.iter().enumerate() {
-                form.file(index.to_be_bytes().as_ref(), name.as_bytes(), file);
+            if !self.attachments.is_empty() {
+                for (index, attachment) in self.attachments.iter().enumerate() {
+                    form.attach(
+                        index as u64,
+                        attachment.filename.as_bytes(),
+                        attachment.file,
+                    );
+                }
             }
 
             if let Some(payload_json) = self.fields.payload_json.as_deref() {
