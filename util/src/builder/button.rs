@@ -125,7 +125,7 @@ impl ButtonBuilder {
     pub const LABEL_LENGTH_LIMIT: usize = 80;
 
     /// Create a new builder to construct a [`ButtonStyle::Primary`] styled [`Button`].
-    pub fn primary(custom_id: String) -> Self {
+    pub const fn primary(custom_id: String) -> Self {
         Self(Button {
             style: ButtonStyle::Primary,
             emoji: None,
@@ -137,7 +137,7 @@ impl ButtonBuilder {
     }
 
     /// Create a new builder to construct a [`ButtonStyle::Secondary`] styled [`Button`].
-    pub fn secondary(custom_id: String) -> Self {
+    pub const fn secondary(custom_id: String) -> Self {
         Self(Button {
             style: ButtonStyle::Secondary,
             emoji: None,
@@ -149,7 +149,7 @@ impl ButtonBuilder {
     }
 
     /// Create a new builder to construct a [`ButtonStyle::Success`] styled [`Button`].
-    pub fn success(custom_id: String) -> Self {
+    pub const fn success(custom_id: String) -> Self {
         Self(Button {
             style: ButtonStyle::Success,
             emoji: None,
@@ -161,7 +161,7 @@ impl ButtonBuilder {
     }
 
     /// Create a new builder to construct a [`ButtonStyle::Danger`] styled [`Button`].
-    pub fn danger(custom_id: String) -> Self {
+    pub const fn danger(custom_id: String) -> Self {
         Self(Button {
             style: ButtonStyle::Danger,
             emoji: None,
@@ -173,7 +173,7 @@ impl ButtonBuilder {
     }
 
     /// Create a new builder to construct a [`ButtonStyle::Link`] styled [`Button`].
-    pub fn link(url: String) -> Self {
+    pub const fn link(url: String) -> Self {
         Self(Button {
             style: ButtonStyle::Link,
             emoji: None,
