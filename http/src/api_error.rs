@@ -282,6 +282,8 @@ pub enum ErrorCode {
     UploadedLottiesCannotContainRasterizedImagesSuchAsPngOrJpeg,
     /// Sticker maximum framerate exceeded
     StickerMaximumFramerateExceeded,
+    /// Sticker frame count exceeds maximum of 1000 frames
+    StickerFrameCountExceedsMaximum,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -427,7 +429,8 @@ impl ErrorCode {
             Self::MaxActiveAnnouncementThreads => 160_007,
             Self::InvalidJsonForUploadedLottieFile => 170_001,
             Self::UploadedLottiesCannotContainRasterizedImagesSuchAsPngOrJpeg => 170_002,
-            Self:StickerMaximumFramerateExceeded => 170_003,
+            Self::StickerMaximumFramerateExceeded => 170_003,
+            Self::StickerFrameCountExceedsMaximum => 170_004,
             Self::Other(other) => *other,
         }
     }
@@ -573,6 +576,7 @@ impl From<u64> for ErrorCode {
             170_001 => Self::InvalidJsonForUploadedLottieFile,
             170_002 => Self::UploadedLottiesCannotContainRasterizedImagesSuchAsPngOrJpeg,
             170_003 => Self::StickerMaximumFramerateExceeded,
+            170_004 => Self::StickerFrameCountExceedsMaximum,
             other => Self::Other(other),
         }
     }
@@ -718,6 +722,7 @@ impl Display for ErrorCode {
             Self::InvalidJsonForUploadedLottieFile => f.write_str("Invalid JSON for uploaded Lottie file"),
             Self::UploadedLottiesCannotContainRasterizedImagesSuchAsPngOrJpeg => f.write_str("Uploaded Lotties cannot contain rasterized images such as PNG or JPEG"),
             Self::StickerMaximumFramerateExceeded => f.write_str("Sticker maximum framerate exceeded"),
+            Self::StickerFrameCountExceedsMaximum => f.write_str("Sticker frame count exceeds maximum of 1000 frames"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 
