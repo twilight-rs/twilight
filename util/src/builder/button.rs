@@ -570,4 +570,45 @@ mod tests {
 
         assert_eq!(button, expected);
     }
+
+    #[test]
+    fn test_builder_try_from() {
+        let button = Button::try_from(
+            ButtonBuilder::primary("primary-button".to_owned()).label("primary button".to_owned()),
+        )
+        .unwrap();
+
+        let expected = Button {
+            style: ButtonStyle::Primary,
+            emoji: None,
+            label: Some("primary button".to_owned()),
+            custom_id: Some("primary-button".to_owned()),
+            url: None,
+            disabled: false,
+        };
+
+        assert_eq!(button, expected);
+    }
+
+    #[test]
+    fn test_error_into_source() {
+        assert!(matches!(
+            ButtonBuilder::primary("".to_owned())
+                .build()
+                .unwrap_err()
+                .into_source(),
+            None
+        ));
+    }
+
+    #[test]
+    fn test_error_into_parts() {
+        assert!(matches!(
+            ButtonBuilder::primary("".to_owned())
+                .build()
+                .unwrap_err()
+                .into_parts(),
+            (ButtonErrorType::CustomIdEmpty { .. }, None)
+        ));
+    }
 }
