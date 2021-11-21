@@ -579,7 +579,7 @@ impl Connection {
             }
         };
 
-        player.set_position(update.state.position);
+        player.set_position(update.state.position.unwrap_or(0));
         player.set_time(update.state.time);
 
         Ok(())
