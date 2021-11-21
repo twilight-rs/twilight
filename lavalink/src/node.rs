@@ -547,7 +547,6 @@ impl Connection {
             Message::Text(text) => text,
             #[cfg(feature = "tracing")]
             other => {
-                #[cfg(feature = "tracing")]
                 tracing::debug!("got pong or bytes payload: {:?}", other);
 
                 return Ok(true);
