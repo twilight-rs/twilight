@@ -233,6 +233,8 @@ pub enum ErrorCode {
     InvalidApiVersion,
     /// File uploaded exceeds the maximum size
     FileUploadedExceedsTheMaximumSize,
+    /// Invalid file uploaded
+    InvalidFileUploaded,
     /// Cannot self-redeem this gift
     CannotSelfRedeemGift,
     /// Payment source required to redeem gift
@@ -396,6 +398,7 @@ impl ErrorCode {
             Self::InviteAcceptedToGuildBotNotIn => 50036,
             Self::InvalidApiVersion => 50041,
             Self::FileUploadedExceedsTheMaximumSize => 50045,
+            Self::InvalidFileUploaded => 50046,
             Self::CannotSelfRedeemGift => 50054,
             Self::PaymentRequiredForGift => 50070,
             Self::CommunityGuildRequired => 50074,
@@ -537,6 +540,7 @@ impl From<u64> for ErrorCode {
             50036 => Self::InviteAcceptedToGuildBotNotIn,
             50041 => Self::InvalidApiVersion,
             50045 => Self::FileUploadedExceedsTheMaximumSize,
+            50046 => Self::InvalidFileUploaded,
             50054 => Self::CannotSelfRedeemGift,
             50070 => Self::PaymentRequiredForGift,
             50074 => Self::CommunityGuildRequired,
@@ -678,6 +682,7 @@ impl Display for ErrorCode {
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
             Self::InvalidApiVersion => f.write_str("Invalid API version provided"),
             Self::FileUploadedExceedsTheMaximumSize => f.write_str("File uploaded exceeds the maximum size"),
+            Self::InvalidFileUploaded => f.write_str("Invalid file uploaded"),
             Self::CannotSelfRedeemGift => f.write_str("Cannot self-redeem this gift"),
             Self::PaymentRequiredForGift => f.write_str("Payment source required to redeem gift"),
             Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
