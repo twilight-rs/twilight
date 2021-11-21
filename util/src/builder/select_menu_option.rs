@@ -309,13 +309,13 @@ impl SelectMenuOptionBuilder {
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let option = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
-    ///     .description(Some("The first option.".into()))
+    ///     .description("The first option.".into())
     ///     .build()?;
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    pub fn description(mut self, description: Option<String>) -> Self {
-        self.0.description = description;
+    pub fn description(mut self, description: String) -> Self {
+        self.0.description = Some(description);
 
         self
     }
@@ -427,7 +427,7 @@ mod tests {
     fn test_description_too_long_error() {
         let description_too_long = SelectMenuOptionBuilder::DESCRIPTION_LENGTH_LIMIT + 1;
         assert!(matches!(
-            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned()).description(Some("a".repeat(description_too_long))).build().unwrap_err().kind(),
+            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned()).description("a".repeat(description_too_long)).build().unwrap_err().kind(),
             SelectMenuOptionErrorType::DescriptionTooLong { description }
             if description.len() == description_too_long
         ));
@@ -455,7 +455,7 @@ mod tests {
     fn test_description() {
         let select_menu_option =
             SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned())
-                .description(Some("description".to_owned()))
+                .description("description".to_owned())
                 .build()
                 .unwrap();
 
@@ -510,5 +510,46 @@ mod tests {
         };
 
         assert_eq!(select_menu_option, expected);
+    }
+
+    #[test]
+    fn test_builder_try_from() {
+        let select_menu_option = SelectMenuOption::try_from(
+            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned())
+                .description("testing".to_owned()),
+        )
+        .unwrap();
+
+        let expected = SelectMenuOption {
+            default: false,
+            description: Some("testing".to_owned()),
+            emoji: None,
+            label: "label".to_owned(),
+            value: "value".to_owned(),
+        };
+
+        assert_eq!(select_menu_option, expected);
+    }
+
+    #[test]
+    fn test_error_into_source() {
+        assert!(matches!(
+            SelectMenuOptionBuilder::new("".to_owned(), "value".to_owned())
+                .build()
+                .unwrap_err()
+                .into_source(),
+            None
+        ));
+    }
+
+    #[test]
+    fn test_error_into_parts() {
+        assert!(matches!(
+            SelectMenuOptionBuilder::new("".to_owned(), "value".to_owned())
+                .build()
+                .unwrap_err()
+                .into_parts(),
+            (SelectMenuOptionErrorType::LabelEmpty { .. }, None)
+        ));
     }
 }
