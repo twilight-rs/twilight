@@ -147,7 +147,7 @@ pub enum ErrorCode {
     /// Maximum number of bans fetches has been reached
     MaximumGuildBansFetchesReached,
     /// Maximum number of uncompleted guild scheduled events reached (100)
-    MaximumNumberOfUncompletedGuildScheduledEventsReached,
+    MaximumUncompletedEventsReached,
     /// Maximum number of stickers reached
     MaximumStickersReached,
     /// Maximum number of prune requests has been reached. Try again later
@@ -232,7 +232,7 @@ pub enum ErrorCode {
     /// Invalid API version provided
     InvalidApiVersion,
     /// File uploaded exceeds the maximum size
-    FileUploadedExceedsTheMaximumSize,
+    FileTooLarge,
     /// Invalid file uploaded
     InvalidFileUploaded,
     /// Cannot self-redeem this gift
@@ -277,23 +277,23 @@ pub enum ErrorCode {
     /// Maximum number of active announcement threads reached
     MaxActiveAnnouncementThreads,
     /// Invalid JSON for uploaded Lottie file
-    InvalidJsonForUploadedLottieFile,
+    InvalidLottieJson,
     /// Uploaded Lotties cannot contain rasterized images such as PNG or JPEG
-    UploadedLottiesCannotContainRasterizedImagesSuchAsPngOrJpeg,
+    InvalidLottieContent,
     /// Sticker maximum framerate exceeded
     StickerMaximumFramerateExceeded,
     /// Sticker frame count exceeds maximum of 1000 frames
     StickerFrameCountExceedsMaximum,
     /// Lottie animation maximum dimensions exceeded
-    LottieAnimationMaximumDimensionsExceeded,
+    LottieDimensionsTooLarge,
     /// Sticker frame rate is either too small or too large
-    StickerFrameRateIsEitherTooSmallOrTooLarge,
+    InvalidStickerFrameRate,
     /// Sticker animation duration exceeds maximum of 5 seconds
     StickerAnimationDurationExceedsMaximum,
     /// Cannot update a finished event
     CannotUpdateFinishedEvent,
     /// Failed to create stage needed for stage event
-    FailedToCreateStageNeededForStageEvent,
+    FailedToCreateStage,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -373,7 +373,7 @@ impl ErrorCode {
             Self::ThreadMaxParticipants => 30033,
             Self::MaximumNonGuildBansReached => 30035,
             Self::MaximumGuildBansFetchesReached => 30037,
-            Self::MaximumNumberOfUncompletedGuildScheduledEventsReached => 30038,
+            Self::MaximumUncompletedEventsReached => 30038,
             Self::MaximumStickersReached => 30039,
             Self::MaximumPruneRequestsReached => 30040,
             Self::MaximumGuildWidgets => 30042,
@@ -415,7 +415,7 @@ impl ErrorCode {
             Self::InvalidFormBodyOrContentType => 50035,
             Self::InviteAcceptedToGuildBotNotIn => 50036,
             Self::InvalidApiVersion => 50041,
-            Self::FileUploadedExceedsTheMaximumSize => 50045,
+            Self::FileTooLarge => 50045,
             Self::InvalidFileUploaded => 50046,
             Self::CannotSelfRedeemGift => 50054,
             Self::PaymentRequiredForGift => 50070,
@@ -437,15 +437,15 @@ impl ErrorCode {
             Self::ThreadLocked => 160_005,
             Self::MaxActiveThreads => 160_006,
             Self::MaxActiveAnnouncementThreads => 160_007,
-            Self::InvalidJsonForUploadedLottieFile => 170_001,
-            Self::UploadedLottiesCannotContainRasterizedImagesSuchAsPngOrJpeg => 170_002,
+            Self::InvalidLottieJson => 170_001,
+            Self::InvalidLottieContent => 170_002,
             Self::StickerMaximumFramerateExceeded => 170_003,
             Self::StickerFrameCountExceedsMaximum => 170_004,
-            Self::LottieAnimationMaximumDimensionsExceeded => 170_005,
-            Self::StickerFrameRateIsEitherTooSmallOrTooLarge => 170_006,
+            Self::LottieDimensionsTooLarge => 170_005,
+            Self::InvalidStickerFrameRate => 170_006,
             Self::StickerAnimationDurationExceedsMaximum => 170_007,
             Self::CannotUpdateFinishedEvent => 180_000,
-            Self::FailedToCreateStageNeededForStageEvent => 180_002,
+            Self::FailedToCreateStage => 180_002,
             Self::Other(other) => *other,
         }
     }
@@ -524,7 +524,7 @@ impl From<u64> for ErrorCode {
             30033 => Self::ThreadMaxParticipants,
             30035 => Self::MaximumNonGuildBansReached,
             30037 => Self::MaximumGuildBansFetchesReached,
-            30038 => Self::MaximumNumberOfUncompletedGuildScheduledEventsReached,
+            30038 => Self::MaximumUncompletedEventsReached,
             30039 => Self::MaximumStickersReached,
             30040 => Self::MaximumPruneRequestsReached,
             30042 => Self::MaximumGuildWidgets,
@@ -566,7 +566,7 @@ impl From<u64> for ErrorCode {
             50035 => Self::InvalidFormBodyOrContentType,
             50036 => Self::InviteAcceptedToGuildBotNotIn,
             50041 => Self::InvalidApiVersion,
-            50045 => Self::FileUploadedExceedsTheMaximumSize,
+            50045 => Self::FileTooLarge,
             50046 => Self::InvalidFileUploaded,
             50054 => Self::CannotSelfRedeemGift,
             50070 => Self::PaymentRequiredForGift,
@@ -588,15 +588,15 @@ impl From<u64> for ErrorCode {
             160_005 => Self::ThreadLocked,
             160_006 => Self::MaxActiveThreads,
             160_007 => Self::MaxActiveAnnouncementThreads,
-            170_001 => Self::InvalidJsonForUploadedLottieFile,
-            170_002 => Self::UploadedLottiesCannotContainRasterizedImagesSuchAsPngOrJpeg,
+            170_001 => Self::InvalidLottieJson,
+            170_002 => Self::InvalidLottieContent,
             170_003 => Self::StickerMaximumFramerateExceeded,
             170_004 => Self::StickerFrameCountExceedsMaximum,
-            170_005 => Self::LottieAnimationMaximumDimensionsExceeded,
-            170_006 => Self::StickerFrameRateIsEitherTooSmallOrTooLarge,
+            170_005 => Self::LottieDimensionsTooLarge,
+            170_006 => Self::InvalidStickerFrameRate,
             170_007 => Self::StickerAnimationDurationExceedsMaximum,
             180_000 => Self::CannotUpdateFinishedEvent,
-            180_002 => Self::FailedToCreateStageNeededForStageEvent,
+            180_002 => Self::FailedToCreateStage,
             other => Self::Other(other),
         }
     }
@@ -675,7 +675,7 @@ impl Display for ErrorCode {
             Self::ThreadMaxParticipants => f.write_str("Max number of thread participants has been reached (1000)"),
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),
-            Self::MaximumNumberOfUncompletedGuildScheduledEventsReached => f.write_str("Maximum number of uncompleted guild scheduled events reached (100)"),
+            Self::MaximumUncompletedEventsReached => f.write_str("Maximum number of uncompleted guild scheduled events reached (100)"),
             Self::MaximumStickersReached => f.write_str("Maximum number of stickers reached"),
             Self::MaximumPruneRequestsReached => f.write_str("Maximum number of prune requests has been reached. Try again later"),
             Self::MaximumGuildWidgets => f.write_str("Maximum number of guild widget settings updates has been reached. Try again later"),
@@ -717,7 +717,7 @@ impl Display for ErrorCode {
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
             Self::InvalidApiVersion => f.write_str("Invalid API version provided"),
-            Self::FileUploadedExceedsTheMaximumSize => f.write_str("File uploaded exceeds the maximum size"),
+            Self::FileTooLarge => f.write_str("File uploaded exceeds the maximum size"),
             Self::InvalidFileUploaded => f.write_str("Invalid file uploaded"),
             Self::CannotSelfRedeemGift => f.write_str("Cannot self-redeem this gift"),
             Self::PaymentRequiredForGift => f.write_str("Payment source required to redeem gift"),
@@ -739,15 +739,15 @@ impl Display for ErrorCode {
             Self::ThreadLocked => f.write_str("Thread is locked"),
             Self::MaxActiveThreads => f.write_str("Maximum number of active threads reached"),
             Self::MaxActiveAnnouncementThreads => f.write_str("Maximum number of active announcement threads reached"),
-            Self::InvalidJsonForUploadedLottieFile => f.write_str("Invalid JSON for uploaded Lottie file"),
-            Self::UploadedLottiesCannotContainRasterizedImagesSuchAsPngOrJpeg => f.write_str("Uploaded Lotties cannot contain rasterized images such as PNG or JPEG"),
+            Self::InvalidLottieJson => f.write_str("Invalid JSON for uploaded Lottie file"),
+            Self::InvalidLottieContent => f.write_str("Uploaded Lotties cannot contain rasterized images such as PNG or JPEG"),
             Self::StickerMaximumFramerateExceeded => f.write_str("Sticker maximum framerate exceeded"),
             Self::StickerFrameCountExceedsMaximum => f.write_str("Sticker frame count exceeds maximum of 1000 frames"),
-            Self::LottieAnimationMaximumDimensionsExceeded => f.write_str("Lottie animation maximum dimensions exceeded"),
-            Self::StickerFrameRateIsEitherTooSmallOrTooLarge => f.write_str("Sticker frame rate is either too small or too large"),
+            Self::LottieDimensionsTooLarge => f.write_str("Lottie animation maximum dimensions exceeded"),
+            Self::InvalidStickerFrameRate => f.write_str("Sticker frame rate is either too small or too large"),
             Self::StickerAnimationDurationExceedsMaximum => f.write_str("Sticker animation duration exceeds maximum of 5 seconds"),
             Self::CannotUpdateFinishedEvent => f.write_str("Cannot update a finished event"),
-            Self::FailedToCreateStageNeededForStageEvent => f.write_str("Failed to create stage needed for stage event"),
+            Self::FailedToCreateStage => f.write_str("Failed to create stage needed for stage event"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 
