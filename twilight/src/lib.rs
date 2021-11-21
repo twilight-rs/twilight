@@ -120,6 +120,14 @@
 //!
 //! ## Examples
 //!
+//! The following example is a template for bootstrapping a new bot using
+//! Twilight's HTTP and gateway clients with its in-memory cache. In order to
+//! run this, replace the contents of a new project's `main.rs` file with the
+//! following. Be sure to set the `DISCORD_TOKEN` environment variable to your
+//! bot's token. You must also depend on `futures`, `tokio`,
+//! `twilight-cache-inmemory`, `twilight-gateway`, `twilight-http`, and
+//! `twilight-model` in your `Cargo.toml`.
+//!
 //! ```rust,no_run
 //! use std::{env, error::Error, sync::Arc};
 //! use futures::stream::StreamExt;

@@ -2,6 +2,14 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.7.2] - 2021-11-20
+
+### Additions
+
+Add `CachedMember::avatar` ([#1252] - [@7596ff]).
+
+[#1252]: https://github.com/twilight-rs/twilight/pull/1252
+
 ## [0.7.1] - 2021-10-29
 
 ### Additions
@@ -505,6 +513,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.0
 [0.6.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.6.4
