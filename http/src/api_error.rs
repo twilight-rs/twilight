@@ -292,6 +292,8 @@ pub enum ErrorCode {
     StickerAnimationDurationExceedsMaximum,
     /// Cannot update a finished event
     CannotUpdateFinishedEvent,
+    /// Failed to create stage needed for stage event
+    FailedToCreateStageNeededForStageEvent,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -443,6 +445,7 @@ impl ErrorCode {
             Self::StickerFrameRateIsEitherTooSmallOrTooLarge => 170_006,
             Self::StickerAnimationDurationExceedsMaximum => 170_007,
             Self::CannotUpdateFinishedEvent => 180_000,
+            Self::FailedToCreateStageNeededForStageEvent => 180_002,
             Self::Other(other) => *other,
         }
     }
@@ -593,6 +596,7 @@ impl From<u64> for ErrorCode {
             170_006 => Self::StickerFrameRateIsEitherTooSmallOrTooLarge,
             170_007 => Self::StickerAnimationDurationExceedsMaximum,
             180_000 => Self::CannotUpdateFinishedEvent,
+            180_002 => Self::FailedToCreateStageNeededForStageEvent,
             other => Self::Other(other),
         }
     }
@@ -743,6 +747,7 @@ impl Display for ErrorCode {
             Self::StickerFrameRateIsEitherTooSmallOrTooLarge => f.write_str("Sticker frame rate is either too small or too large"),
             Self::StickerAnimationDurationExceedsMaximum => f.write_str("Sticker animation duration exceeds maximum of 5 seconds"),
             Self::CannotUpdateFinishedEvent => f.write_str("Cannot update a finished event"),
+            Self::FailedToCreateStageNeededForStageEvent => f.write_str("Failed to create stage needed for stage event"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 
