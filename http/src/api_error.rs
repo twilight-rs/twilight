@@ -276,6 +276,8 @@ pub enum ErrorCode {
     MaxActiveThreads,
     /// Maximum number of active announcement threads reached
     MaxActiveAnnouncementThreads,
+    /// Invalid JSON for uploaded Lottie file
+    InvalidJsonForUploadedLottieFile,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -419,6 +421,7 @@ impl ErrorCode {
             Self::ThreadLocked => 160_005,
             Self::MaxActiveThreads => 160_006,
             Self::MaxActiveAnnouncementThreads => 160_007,
+            Self::InvalidJsonForUploadedLottieFile => 170_001,
             Self::Other(other) => *other,
         }
     }
@@ -561,6 +564,7 @@ impl From<u64> for ErrorCode {
             160_005 => Self::ThreadLocked,
             160_006 => Self::MaxActiveThreads,
             160_007 => Self::MaxActiveAnnouncementThreads,
+            170_001 => Self::InvalidJsonForUploadedLottieFile,
             other => Self::Other(other),
         }
     }
@@ -703,6 +707,7 @@ impl Display for ErrorCode {
             Self::ThreadLocked => f.write_str("Thread is locked"),
             Self::MaxActiveThreads => f.write_str("Maximum number of active threads reached"),
             Self::MaxActiveAnnouncementThreads => f.write_str("Maximum number of active announcement threads reached"),
+            Self::InvalidJsonForUploadedLottieFile => f.write_str("Invalid JSON for uploaded Lottie file"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 
