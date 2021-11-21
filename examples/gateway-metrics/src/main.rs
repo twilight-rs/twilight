@@ -1,4 +1,4 @@
-use futures::StreamExt;
+use futures_util::StreamExt;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
 use std::{env, error::Error, time::Duration};
 use twilight_gateway::{Cluster, Intents};
@@ -16,11 +16,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     );
     // Install receiver.
     receiver.install();
-
-    // Forward log events to the tracing subscriber
-    // This is needed because the metrics LogExporter
-    // exports the the log and not tracing.
-    tracing_log::LogTracer::init()?;
 
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();

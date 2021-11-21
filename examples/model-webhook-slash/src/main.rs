@@ -7,7 +7,7 @@ use hyper::{
     Body, Method, Request, Response, Server,
 };
 use once_cell::sync::Lazy;
-use std::future::Future;
+use std::{future::Future, str::FromStr};
 use twilight_model::application::{
     callback::{CallbackData, InteractionResponse},
     interaction::Interaction,
@@ -59,8 +59,13 @@ where
     };
 
     // Extract the signature to check against.
-    let signature = if let Some(hex_sig) = req.headers().get("x-signature-ed25519") {
-        Signature::new(FromHex::from_hex(hex_sig)?)
+    let signature = if let Some(hex_sig) = req
+        .headers()
+        .get("x-signature-ed25519")
+        .map(|v| v.to_str().ok())
+        .flatten()
+    {
+        Signature::from_str(hex_sig).unwrap()
     } else {
         return Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
