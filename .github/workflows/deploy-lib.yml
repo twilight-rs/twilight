@@ -4,6 +4,21 @@ on:
   push:
     branches:
       - main
+    paths:
+      - ".github/**"
+      - "cache/**"
+      - "command-parser/**"
+      - "embed-builder/**"
+      - "gateway/**"
+      - "gateway-queue/**"
+      - "http/**"
+      - "lavalink/**"
+      - "mention/**"
+      - "model/**"
+      - "standby/**"
+      - "twilight/**"
+      - "util/**"
+      - "Cargo.toml"
 
 jobs:
   deploy-docs:
