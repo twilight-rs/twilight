@@ -99,7 +99,7 @@ pub enum ButtonErrorType {
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let component = Component::Button(
-///     ButtonBuilder::new(ButtonStyle::Primary, "button_id".to_string())
+///     ButtonBuilder::primary("button_id".to_string())
 ///         .label("Button label".to_string())
 ///         .build()?
 /// );
@@ -124,27 +124,64 @@ impl ButtonBuilder {
     /// The maximum amount of characters which a label can have.
     pub const LABEL_LENGTH_LIMIT: usize = 80;
 
-    /// Create a new builder to construct a [`Button`].
-    pub fn new(style: ButtonStyle, custom_id_or_url: String) -> Self {
-        if style == ButtonStyle::Link {
-            Self(Button {
-                style,
-                emoji: None,
-                label: None,
-                custom_id: None,
-                url: Some(custom_id_or_url),
-                disabled: false,
-            })
-        } else {
-            Self(Button {
-                style,
-                emoji: None,
-                label: None,
-                custom_id: Some(custom_id_or_url),
-                url: None,
-                disabled: false,
-            })
-        }
+    /// Create a new builder to construct a [`ButtonStyle::Primary`] styled [`Button`].
+    pub fn primary(custom_id: String) -> Self {
+        Self(Button {
+            style: ButtonStyle::Primary,
+            emoji: None,
+            label: None,
+            custom_id: Some(custom_id),
+            url: None,
+            disabled: false,
+        })
+    }
+
+    /// Create a new builder to construct a [`ButtonStyle::Secondary`] styled [`Button`].
+    pub fn secondary(custom_id: String) -> Self {
+        Self(Button {
+            style: ButtonStyle::Secondary,
+            emoji: None,
+            label: None,
+            custom_id: Some(custom_id),
+            url: None,
+            disabled: false,
+        })
+    }
+
+    /// Create a new builder to construct a [`ButtonStyle::Success`] styled [`Button`].
+    pub fn success(custom_id: String) -> Self {
+        Self(Button {
+            style: ButtonStyle::Success,
+            emoji: None,
+            label: None,
+            custom_id: Some(custom_id),
+            url: None,
+            disabled: false,
+        })
+    }
+
+    /// Create a new builder to construct a [`ButtonStyle::Danger`] styled [`Button`].
+    pub fn danger(custom_id: String) -> Self {
+        Self(Button {
+            style: ButtonStyle::Danger,
+            emoji: None,
+            label: None,
+            custom_id: Some(custom_id),
+            url: None,
+            disabled: false,
+        })
+    }
+
+    /// Create a new builder to construct a [`ButtonStyle::Link`] styled [`Button`].
+    pub fn link(url: String) -> Self {
+        Self(Button {
+            style: ButtonStyle::Link,
+            emoji: None,
+            label: None,
+            custom_id: None,
+            url: Some(url),
+            disabled: false,
+        })
     }
 
     /// Consume the builder, returning a [`Button`].
@@ -235,7 +272,7 @@ impl ButtonBuilder {
     /// use twilight_util::builder::ButtonBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let button = ButtonBuilder::new(ButtonStyle::Primary, "unique-id".into())
+    /// let button = ButtonBuilder::primary("unique-id".into())
     ///     .label("twilight".into())
     ///     .build()?;
     /// # Ok(()) }
@@ -256,7 +293,7 @@ impl ButtonBuilder {
     /// use twilight_util::builder::ButtonBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let button = ButtonBuilder::new(ButtonStyle::Primary, "unique-id".into())
+    /// let button = ButtonBuilder::primary("unique-id".into())
     ///     .emoji(ReactionType::Unicode {
     ///         name: "🙂".into()
     ///     })
@@ -279,7 +316,7 @@ impl ButtonBuilder {
     /// use twilight_util::builder::ButtonBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let button = ButtonBuilder::new(ButtonStyle::Primary, "unique-id".into())
+    /// let button = ButtonBuilder::primary("unique-id".into())
     ///     .label("disabled button".into())
     ///     .disabled(true)
     ///     .build()?;
@@ -329,7 +366,7 @@ mod tests {
     #[test]
     fn test_custom_id_empty_error() {
         assert!(matches!(
-            ButtonBuilder::new(ButtonStyle::Primary, "".to_owned()).build().unwrap_err().kind(),
+            ButtonBuilder::primary("".to_owned()).build().unwrap_err().kind(),
             ButtonErrorType::CustomIdEmpty { custom_id }
             if custom_id.is_empty()
         ));
@@ -339,7 +376,7 @@ mod tests {
     fn test_custom_id_too_long_error() {
         let custom_id_too_long = ButtonBuilder::CUSTOM_ID_LENGTH_LIMIT + 1;
         assert!(matches!(
-            ButtonBuilder::new(ButtonStyle::Primary, "a".repeat(custom_id_too_long)).build().unwrap_err().kind(),
+            ButtonBuilder::primary("a".repeat(custom_id_too_long)).build().unwrap_err().kind(),
             ButtonErrorType::CustomIdTooLong { custom_id }
             if custom_id.len() == custom_id_too_long
         ));
@@ -348,7 +385,7 @@ mod tests {
     #[test]
     fn test_protocol_unsupported_error() {
         assert!(matches!(
-            ButtonBuilder::new(ButtonStyle::Link, "foo://bar.baz".to_owned()).label("testing".to_owned()).build().unwrap_err().kind(),
+            ButtonBuilder::link("foo://bar.baz".to_owned()).label("testing".to_owned()).build().unwrap_err().kind(),
             ButtonErrorType::ProtocolUnsupported { url } if url == "foo://bar.baz"
         ));
     }
@@ -356,12 +393,12 @@ mod tests {
     #[test]
     fn test_label_and_emoji_empty() {
         assert!(matches!(
-            ButtonBuilder::new(ButtonStyle::Primary, "testing".to_owned()).build().unwrap_err().kind(),
+            ButtonBuilder::primary("testing".to_owned()).build().unwrap_err().kind(),
             ButtonErrorType::LabelAndEmojiEmpty { emoji, label } if emoji.is_none() && label.is_none()
         ));
 
         assert!(matches!(
-            ButtonBuilder::new(ButtonStyle::Primary, "testing".to_owned()).label("".to_owned()).build().unwrap_err().kind(),
+            ButtonBuilder::primary("testing".to_owned()).label("".to_owned()).build().unwrap_err().kind(),
             ButtonErrorType::LabelAndEmojiEmpty { emoji, label: Some(label) } if emoji.is_none() && label.is_empty()
         ));
     }
@@ -370,30 +407,120 @@ mod tests {
     fn test_label_too_long_error() {
         let label_too_long = ButtonBuilder::LABEL_LENGTH_LIMIT + 1;
         assert!(matches!(
-            ButtonBuilder::new(ButtonStyle::Primary, "testing".to_owned()).label("a".repeat(label_too_long)).build().unwrap_err().kind(),
+            ButtonBuilder::primary("testing".to_owned()).label("a".repeat(label_too_long)).build().unwrap_err().kind(),
             ButtonErrorType::LabelTooLong { label }
             if label.len() == label_too_long
         ));
     }
 
     #[test]
-    fn test_builder_without_link() {
-        let button = ButtonBuilder::new(ButtonStyle::Primary, "primary-button".to_owned())
-            .emoji(ReactionType::Unicode {
-                name: "\u{1f9ea}".to_owned(),
-            })
-            .label("testing".to_owned())
+    fn test_builder_primary() {
+        let button = ButtonBuilder::primary("primary-button".to_owned())
+            .label("primary button".to_owned())
+            .build()
+            .unwrap();
+
+        let expected = Button {
+            style: ButtonStyle::Primary,
+            emoji: None,
+            label: Some("primary button".to_owned()),
+            custom_id: Some("primary-button".to_owned()),
+            url: None,
+            disabled: false,
+        };
+
+        assert_eq!(button, expected);
+    }
+
+    #[test]
+    fn test_builder_secondary() {
+        let button = ButtonBuilder::secondary("secondary-button".to_owned())
+            .label("secondary button".to_owned())
+            .build()
+            .unwrap();
+
+        let expected = Button {
+            style: ButtonStyle::Secondary,
+            emoji: None,
+            label: Some("secondary button".to_owned()),
+            custom_id: Some("secondary-button".to_owned()),
+            url: None,
+            disabled: false,
+        };
+
+        assert_eq!(button, expected);
+    }
+
+    #[test]
+    fn test_builder_success() {
+        let button = ButtonBuilder::success("success-button".to_owned())
+            .label("success button".to_owned())
+            .build()
+            .unwrap();
+
+        let expected = Button {
+            style: ButtonStyle::Success,
+            emoji: None,
+            label: Some("success button".to_owned()),
+            custom_id: Some("success-button".to_owned()),
+            url: None,
+            disabled: false,
+        };
+
+        assert_eq!(button, expected);
+    }
+
+    #[test]
+    fn test_builder_danger() {
+        let button = ButtonBuilder::danger("danger-button".to_owned())
+            .label("danger button".to_owned())
+            .build()
+            .unwrap();
+
+        let expected = Button {
+            style: ButtonStyle::Danger,
+            emoji: None,
+            label: Some("danger button".to_owned()),
+            custom_id: Some("danger-button".to_owned()),
+            url: None,
+            disabled: false,
+        };
+
+        assert_eq!(button, expected);
+    }
+
+    #[test]
+    fn test_builder_link() {
+        let button = ButtonBuilder::link("https://twilight.rs".to_owned())
+            .label("link button".to_owned())
+            .build()
+            .unwrap();
+
+        let expected = Button {
+            style: ButtonStyle::Link,
+            emoji: None,
+            label: Some("link button".to_owned()),
+            custom_id: None,
+            url: Some("https://twilight.rs".to_owned()),
+            disabled: false,
+        };
+
+        assert_eq!(button, expected);
+    }
+
+    #[test]
+    fn test_builder_disabled_button() {
+        let button = ButtonBuilder::primary("disabled-button".to_owned())
+            .label("disabled button".to_owned())
             .disabled(true)
             .build()
             .unwrap();
 
         let expected = Button {
             style: ButtonStyle::Primary,
-            emoji: Some(ReactionType::Unicode {
-                name: "\u{1f9ea}".to_owned(),
-            }),
-            label: Some("testing".to_owned()),
-            custom_id: Some("primary-button".to_owned()),
+            emoji: None,
+            label: Some("disabled button".to_owned()),
+            custom_id: Some("disabled-button".to_owned()),
             url: None,
             disabled: true,
         };
@@ -402,24 +529,42 @@ mod tests {
     }
 
     #[test]
-    fn test_builder_with_link() {
-        let button = ButtonBuilder::new(ButtonStyle::Link, "https://twilight.rs".to_owned())
-            .emoji(ReactionType::Unicode {
-                name: "\u{1f9ea}".to_owned(),
-            })
-            .label("testing".to_owned())
+    fn test_builder_explicit_enabled_button() {
+        let button = ButtonBuilder::primary("enabled-button".to_owned())
+            .label("enabled button".to_owned())
             .disabled(false)
             .build()
             .unwrap();
 
         let expected = Button {
-            style: ButtonStyle::Link,
+            style: ButtonStyle::Primary,
+            emoji: None,
+            label: Some("enabled button".to_owned()),
+            custom_id: Some("enabled-button".to_owned()),
+            url: None,
+            disabled: false,
+        };
+
+        assert_eq!(button, expected);
+    }
+
+    #[test]
+    fn test_builder_with_emoji() {
+        let button = ButtonBuilder::primary("emoji-button".to_owned())
+            .emoji(ReactionType::Unicode {
+                name: "\u{1f9ea}".to_owned(),
+            })
+            .build()
+            .unwrap();
+
+        let expected = Button {
+            style: ButtonStyle::Primary,
             emoji: Some(ReactionType::Unicode {
                 name: "\u{1f9ea}".to_owned(),
             }),
-            label: Some("testing".to_owned()),
-            custom_id: None,
-            url: Some("https://twilight.rs".to_owned()),
+            label: None,
+            custom_id: Some("emoji-button".to_owned()),
+            url: None,
             disabled: false,
         };
 
