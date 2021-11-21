@@ -54,7 +54,7 @@ jobs:
         uses: Swatinem/rust-cache@v1
 
       - name: Install cargo-hack
-        uses: actions-rs/install@v0.1
+        uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-hack
 
