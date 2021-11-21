@@ -155,25 +155,26 @@ jobs:
         with:
           toolchain: nightly
           profile: minimal
-          override: true
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
 
       - name: Install cargo-hack
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-hack
 
-      - name: Check minimal versions
+      - name: Prepare minimal versions
         run: |
           # Ignore dev-deps
           cargo hack --remove-dev-deps --workspace
           # Ignore examples
           sed -i '/examples/d' Cargo.toml
           # Update Cargo.lock to minimal version dependencies.
-          cargo update -Z minimal-versions
-          cargo check --all-features
+          cargo +nightly update -Z minimal-versions
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Check minimal versions
+        run: cargo check --all-features
 
   # Tests
   test:
