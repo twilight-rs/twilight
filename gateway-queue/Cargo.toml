@@ -16,14 +16,16 @@ version = "0.7.0"
 
 [dependencies]
 tokio = { default-features = false, features = ["rt", "sync", "time"], version = "1.0" }
-tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-http = { default-features = false, path = "../http" }
+
+# optional
+tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
 
 [features]
-default = ["rustls"]
+default = ["rustls", "tracing"]
 native = ["twilight-http/native"]
 rustls = ["rustls-native-roots"]
 rustls-native-roots = ["twilight-http/rustls-native-roots"]
