@@ -146,6 +146,8 @@ pub enum ErrorCode {
     MaximumNonGuildBansReached,
     /// Maximum number of bans fetches has been reached
     MaximumGuildBansFetchesReached,
+    /// Maximum number of uncompleted guild scheduled events reached (100)
+    MaximumNumberOfUncompletedGuildScheduledEventsReached,
     /// Maximum number of stickers reached
     MaximumStickersReached,
     /// Maximum number of prune requests has been reached. Try again later
@@ -349,6 +351,7 @@ impl ErrorCode {
             Self::ThreadMaxParticipants => 30033,
             Self::MaximumNonGuildBansReached => 30035,
             Self::MaximumGuildBansFetchesReached => 30037,
+            Self::MaximumNumberOfUncompletedGuildScheduledEventsReached => 30038,
             Self::MaximumStickersReached => 30039,
             Self::MaximumPruneRequestsReached => 30040,
             Self::MaximumGuildWidgets => 30042,
@@ -488,6 +491,7 @@ impl From<u64> for ErrorCode {
             30033 => Self::ThreadMaxParticipants,
             30035 => Self::MaximumNonGuildBansReached,
             30037 => Self::MaximumGuildBansFetchesReached,
+            30038 => Self::MaximumNumberOfUncompletedGuildScheduledEventsReached,
             30039 => Self::MaximumStickersReached,
             30040 => Self::MaximumPruneRequestsReached,
             30042 => Self::MaximumGuildWidgets,
@@ -627,6 +631,7 @@ impl Display for ErrorCode {
             Self::ThreadMaxParticipants => f.write_str("Max number of thread participants has been reached (1000)"),
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),
+            Self::MaximumNumberOfUncompletedGuildScheduledEventsReached => f.write_str("Maximum number of uncompleted guild scheduled events reached (100)"),
             Self::MaximumStickersReached => f.write_str("Maximum number of stickers reached"),
             Self::MaximumPruneRequestsReached => f.write_str("Maximum number of prune requests has been reached. Try again later"),
             Self::MaximumGuildWidgets => f.write_str("Maximum number of guild widget settings updates has been reached. Try again later"),
