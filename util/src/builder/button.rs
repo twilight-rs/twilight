@@ -43,7 +43,9 @@ impl Display for ButtonError {
         match &self.kind {
             ButtonErrorType::CustomIdEmpty { .. } => f.write_str("the custom_id is empty"),
             ButtonErrorType::CustomIdTooLong { .. } => f.write_str("the custom_id is too long"),
-            ButtonErrorType::ProtocolUnsupported { .. } => f.write_str("url uses an unsupported protocol"),
+            ButtonErrorType::ProtocolUnsupported { .. } => {
+                f.write_str("url uses an unsupported protocol")
+            }
             ButtonErrorType::LabelAndEmojiEmpty { .. } => f.write_str("label and emoji are empty"),
             ButtonErrorType::LabelTooLong { .. } => f.write_str("label is too long"),
         }
@@ -154,16 +156,16 @@ impl ButtonBuilder {
     ///
     /// Returns an [`ButtonErrorType::CustomIdTooLong`] error type if the provided
     /// `custom_id` is longer than the limit defined at [`CUSTOM_ID_LENGTH_LIMIT`].
-    /// 
+    ///
     /// Returns an [`ButtonErrorType::ProtocolUnsupported`] error type if the provided `url`
     /// does not start with `https:` or `http:`.
     ///
     /// Returns an [`ButtonErrorType::LabelAndEmojiEmpty`] if neither an `emoji` nor a `label`
     /// has been provided.
-    /// 
+    ///
     /// Returns an [`ButtonErrorType::LabelTooLong`] if the provided `label` is longer than the
     /// limit defined at [`LABEL_LENGTH_LIMIT`]
-    /// 
+    ///
     /// [`CUSTOM_ID_LENGTH_LIMIT`]: Self::CUSTOM_ID_LENGTH_LIMIT
     /// [`LABEL_LENGTH_LIMIT`]: Self::LABEL_LENGTH_LIMIT
     #[allow(clippy::missing_const_for_fn)]
