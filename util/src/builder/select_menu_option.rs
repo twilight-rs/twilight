@@ -5,7 +5,7 @@
 //! use twilight_util::builder::{select_menu_option::SelectMenuOptionBuilder, CallbackDataBuilder};
 //! use twilight_model::{
 //!     channel::message::MessageFlags,
-//!     application::component::{button::ButtonStyle, Component, Button, SelectMenu},
+//!     application::component::{Component, SelectMenu},
 //!     channel::ReactionType,
 //!     id::EmojiId,
 //! };
@@ -58,9 +58,9 @@ use twilight_model::{
     application::component::select_menu::SelectMenuOption, channel::ReactionType,
 };
 
-/// Error building a button.
+/// Error building a `SelectMenuOption`.
 ///
-/// This is returned from [`ButtonBuilder::build`].
+/// This is returned from [`SelectMenuBuilder::build`].
 #[derive(Debug)]
 pub struct SelectMenuOptionError {
     kind: SelectMenuOptionErrorType,
@@ -146,7 +146,7 @@ pub enum SelectMenuOptionErrorType {
 /// use twilight_util::builder::{select_menu_option::SelectMenuOptionBuilder, CallbackDataBuilder};
 /// use twilight_model::{
 ///     channel::message::MessageFlags,
-///     application::component::{button::ButtonStyle, Component, Button, SelectMenu},
+///     application::component::{Component, SelectMenu},
 ///     channel::ReactionType,
 ///     id::EmojiId,
 /// };
@@ -214,6 +214,25 @@ impl SelectMenuOptionBuilder {
     }
 
     /// Consume the builder, returning a [`SelectMenuOption`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`SelectMenuOptionErrorType::LabelEmpty`] error type if the provided `label` is empty.
+    ///
+    /// Returns an [`SelectMenuOptionErrorType::LabelTooLong`] error type if the provided `label` is longer than
+    /// the limit defined at [`LABEL_LENGTH_LIMIT`].
+    /// 
+    /// Returns an [`SelectMenuOptionErrorType::ValueEmpty`] error type if the provided `value` is empty.
+    ///
+    /// Returns an [`SelectMenuOptionErrorType::ValueTooLong`] error type if the provided `value` is longer than
+    /// the limit defined at [`VALUE_LENGTH_LIMIT`].
+    /// 
+    /// Returns an [`SelectMenuOptionErrorType::DescriptionTooLong`] error type if the provided `description` is longer than
+    /// the limit defined at [`DESCRIPTION_LENGTH_LIMIT`].
+    /// 
+    /// [`LABEL_LENGTH_LIMIT`]: Self::LABEL_LENGTH_LIMIT
+    /// [`VALUE_LENGTH_LIMIT`]: Self::VALUE_LENGTH_LIMIT
+    /// [`DESCRIPTION_LENGTH_LIMIT`]: Self::DESCRIPTION_LENGTH_LIMIT
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
     pub fn build(mut self) -> Result<SelectMenuOption, SelectMenuOptionError> {
@@ -270,7 +289,7 @@ impl SelectMenuOptionBuilder {
     /// use twilight_util::builder::select_menu_option::SelectMenuOptionBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let button = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
+    /// let option = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
     ///     .default(true)
     ///     .build()?;
     /// # Ok(()) }
@@ -289,7 +308,7 @@ impl SelectMenuOptionBuilder {
     /// use twilight_util::builder::select_menu_option::SelectMenuOptionBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let button = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
+    /// let option = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
     ///     .description(Some("The first option.".into()))
     ///     .build()?;
     /// # Ok(()) }
@@ -310,7 +329,7 @@ impl SelectMenuOptionBuilder {
     /// use twilight_model::channel::ReactionType;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let button = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
+    /// let option = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
     ///     .emoji(ReactionType::Unicode {
     ///         name: "1️⃣".into()
     ///     })
@@ -328,7 +347,7 @@ impl SelectMenuOptionBuilder {
 impl TryFrom<SelectMenuOptionBuilder> for SelectMenuOption {
     type Error = SelectMenuOptionError;
 
-    /// Convert a button builder into a button.
+    /// Convert a `SelectMenuOptionBuilder` into a `SelectMenuOption`.
     ///
     /// This is equivalent to calling [`SelectMenuOptionBuilder::build`].
     fn try_from(builder: SelectMenuOptionBuilder) -> Result<Self, Self::Error> {
