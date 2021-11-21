@@ -286,6 +286,8 @@ pub enum ErrorCode {
     StickerFrameCountExceedsMaximum,
     /// Lottie animation maximum dimensions exceeded
     LottieAnimationMaximumDimensionsExceeded,
+    /// Sticker frame rate is either too small or too large
+    StickerFrameRateIsEitherTooSmallOrTooLarge,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -434,6 +436,7 @@ impl ErrorCode {
             Self::StickerMaximumFramerateExceeded => 170_003,
             Self::StickerFrameCountExceedsMaximum => 170_004,
             Self::LottieAnimationMaximumDimensionsExceeded => 170_005,
+            Self::StickerFrameRateIsEitherTooSmallOrTooLarge => 170_006,
             Self::Other(other) => *other,
         }
     }
@@ -581,6 +584,7 @@ impl From<u64> for ErrorCode {
             170_003 => Self::StickerMaximumFramerateExceeded,
             170_004 => Self::StickerFrameCountExceedsMaximum,
             170_005 => Self::LottieAnimationMaximumDimensionsExceeded,
+            170_006 => Self::StickerFrameRateIsEitherTooSmallOrTooLarge,
             other => Self::Other(other),
         }
     }
@@ -728,6 +732,7 @@ impl Display for ErrorCode {
             Self::StickerMaximumFramerateExceeded => f.write_str("Sticker maximum framerate exceeded"),
             Self::StickerFrameCountExceedsMaximum => f.write_str("Sticker frame count exceeds maximum of 1000 frames"),
             Self::LottieAnimationMaximumDimensionsExceeded => f.write_str("Lottie animation maximum dimensions exceeded"),
+            Self::StickerFrameRateIsEitherTooSmallOrTooLarge => f.write_str("Sticker frame rate is either too small or too large"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 
