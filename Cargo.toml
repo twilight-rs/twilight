@@ -7,6 +7,7 @@ members = [
     "gateway",
     "gateway-queue",
     "http",
+    "http-ratelimiting",
     "lavalink",
     "mention",
     "model",

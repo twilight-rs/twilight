@@ -33,7 +33,7 @@ use twilight_model::{
         NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
-    id::{ApplicationId, CommandId, CommandVersionId, GuildId},
+    id::{CommandVersionId, GuildId},
 };
 
 /// Builder to create a [`Command`].
@@ -66,15 +66,6 @@ impl CommandBuilder {
         self.0
     }
 
-    /// Set the application ID of the command.
-    ///
-    /// Defaults to [`None`].
-    pub const fn application_id(mut self, application_id: ApplicationId) -> Self {
-        self.0.application_id = Some(application_id);
-
-        self
-    }
-
     /// Set the guild ID of the command.
     ///
     /// Defaults to [`None`].
@@ -89,15 +80,6 @@ impl CommandBuilder {
     /// Defaults to [`None`].
     pub const fn default_permission(mut self, default_permission: bool) -> Self {
         self.0.default_permission = Some(default_permission);
-
-        self
-    }
-
-    /// Set the ID of the command.
-    ///
-    /// Defaults to [`None`].
-    pub const fn id(mut self, id: CommandId) -> Self {
-        self.0.id = Some(id);
 
         self
     }
@@ -213,6 +195,7 @@ impl IntegerBuilder {
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
         Self(NumberCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
             max_value: None,
@@ -227,6 +210,15 @@ impl IntegerBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Integer(self.0)
+    }
+
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
     }
 
     /// Set the list of choices for an option.
@@ -326,6 +318,7 @@ impl NumberBuilder {
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
         Self(NumberCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
             max_value: None,
@@ -340,6 +333,15 @@ impl NumberBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Number(self.0)
+    }
+
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
     }
 
     /// Set the list of choices for an option.
@@ -440,6 +442,7 @@ impl StringBuilder {
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
         Self(ChoiceCommandOptionData {
+            autocomplete: false,
             choices: Vec::new(),
             description,
             name,
@@ -452,6 +455,15 @@ impl StringBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::String(self.0)
+    }
+
+    /// Set whether this option supports autocomplete.
+    ///
+    /// Defaults to false.
+    pub const fn autocomplete(mut self, autocomplete: bool) -> Self {
+        self.0.autocomplete = autocomplete;
+
+        self
     }
 
     /// Set the list of choices for an option.
@@ -551,11 +563,11 @@ impl SubCommandGroupBuilder {
         CommandOption::SubCommandGroup(self.0)
     }
 
-    /// Add a sub command option to the sub command group.
+    /// Set the list of sub commands to the group.
     ///
-    /// Defaults to an empty list.
-    pub fn option(mut self, option: SubCommandBuilder) -> Self {
-        self.0.options.push(option.into());
+    /// Defaults to no subcommands.
+    pub fn subcommands(mut self, subcommands: impl IntoIterator<Item = SubCommandBuilder>) -> Self {
+        self.0.options = subcommands.into_iter().map(Into::into).collect();
 
         self
     }
@@ -633,7 +645,7 @@ mod tests {
         )
         .option(
             SubCommandGroupBuilder::new("user".into(), "Get or edit permissions for a user".into())
-                .option(
+                .subcommands([
                     SubCommandBuilder::new("get".into(), "Get permissions for a user".into())
                         .option(
                             UserBuilder::new("user".into(), "The user to get".into())
@@ -645,8 +657,6 @@ mod tests {
                              will be returned"
                                 .into(),
                         )),
-                )
-                .option(
                     SubCommandBuilder::new("edit".into(), "Edit permissions for a user".into())
                         .option(
                             UserBuilder::new("user".into(), "The user to edit".into())
@@ -658,11 +668,11 @@ mod tests {
                              will be edited"
                                 .into(),
                         )),
-                ),
+                ]),
         )
         .option(
             SubCommandGroupBuilder::new("role".into(), "Get or edit permissions for a role".into())
-                .option(
+                .subcommands([
                     SubCommandBuilder::new("get".into(), "Get permissions for a role".into())
                         .option(
                             RoleBuilder::new("role".into(), "The role to get".into())
@@ -674,8 +684,6 @@ mod tests {
                              will be returned"
                                 .into(),
                         )),
-                )
-                .option(
                     SubCommandBuilder::new("edit".into(), "Edit permissions for a role".into())
                         .option(
                             RoleBuilder::new("role".into(), "The role to edit".into())
@@ -687,11 +695,14 @@ mod tests {
                              will be edited"
                                 .into(),
                         ))
-                        .option(NumberBuilder::new(
-                            "position".into(),
-                            "The position of the new role".into(),
-                        )),
-                ),
+                        .option(
+                            NumberBuilder::new(
+                                "position".into(),
+                                "The position of the new role".into(),
+                            )
+                            .autocomplete(true),
+                        ),
+                ]),
         )
         .build();
 
@@ -793,6 +804,7 @@ mod tests {
                                     required: false,
                                 }),
                                 CommandOption::Number(NumberCommandOptionData {
+                                    autocomplete: true,
                                     choices: Vec::new(),
                                     description: String::from("The position of the new role"),
                                     max_value: None,

@@ -14,8 +14,10 @@ use std::{
 /// Iterator of header name-value pairs failed to be parsed.
 #[derive(Debug)]
 pub struct HeaderParsingError {
-    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
+    /// Detailed reason why the headers failed to be parsed.
     pub(super) kind: HeaderParsingErrorType,
+    /// Original error leading up to this one.
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl HeaderParsingError {
@@ -37,6 +39,7 @@ impl HeaderParsingError {
         (self.kind, self.source)
     }
 
+    /// Create a new error because a header is missing in the response.
     pub(super) fn missing(name: HeaderName) -> Self {
         Self {
             kind: HeaderParsingErrorType::Missing { name },
@@ -44,6 +47,7 @@ impl HeaderParsingError {
         }
     }
 
+    /// Create a new error because a header is not valid UTF-8.
     pub(super) fn not_utf8(name: HeaderName, value: Vec<u8>, source: Utf8Error) -> Self {
         Self {
             kind: HeaderParsingErrorType::NotUtf8 { name, value },
@@ -161,6 +165,7 @@ impl HeaderName {
     pub const RETRY_AFTER: &'static str = "retry-after";
 
     /// Lowercased name of the header.
+    #[must_use]
     pub const fn name(self) -> &'static str {
         match self {
             Self::Bucket => Self::BUCKET,
@@ -218,6 +223,7 @@ pub struct GlobalLimited {
 
 impl GlobalLimited {
     /// Number of seconds before retrying.
+    #[must_use]
     pub const fn retry_after(&self) -> u64 {
         self.retry_after
     }
@@ -240,6 +246,7 @@ pub struct Present {
 
 impl Present {
     /// Immutable reference to the bucket.
+    #[must_use]
     pub const fn bucket_ref(&self) -> Option<&str> {
         // Clippy recommends using `Option::map`, but we can't because this is a
         // `const` function.
@@ -254,26 +261,31 @@ impl Present {
     /// Consume the present ratelimit headers, returning the owned bucket if
     /// available.
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use]
     pub fn into_bucket(self) -> Option<Box<str>> {
         self.bucket
     }
 
     /// Total number of tickets allocated to the bucket.
+    #[must_use]
     pub const fn limit(&self) -> u64 {
         self.limit
     }
 
     /// Remaining number of tickets.
+    #[must_use]
     pub const fn remaining(&self) -> u64 {
         self.remaining
     }
 
     /// Number of seconds until the bucket resets.
+    #[must_use]
     pub const fn reset_after(&self) -> u64 {
         self.reset_after
     }
 
     /// When the bucket resets as a Unix timestamp in milliseconds.
+    #[must_use]
     pub const fn reset(&self) -> u64 {
         self.reset
     }
@@ -296,16 +308,19 @@ pub enum RatelimitHeaders {
 
 impl RatelimitHeaders {
     /// Whether the ratelimit headers are a global ratelimit.
+    #[must_use]
     pub const fn is_global(&self) -> bool {
         matches!(self, Self::GlobalLimited(_))
     }
 
     /// Whether there are no ratelimit headers.
+    #[must_use]
     pub const fn is_none(&self) -> bool {
         matches!(self, Self::None)
     }
 
     /// Whether the ratelimit headers are a present and not a global ratelimit.
+    #[must_use]
     pub const fn is_present(&self) -> bool {
         matches!(self, Self::Present(_))
     }
@@ -323,7 +338,7 @@ impl RatelimitHeaders {
     ///
     /// ```
     /// use std::array::IntoIter;
-    /// use twilight_http::ratelimiting::headers::RatelimitHeaders;
+    /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let iter = IntoIter::new([
@@ -347,7 +362,7 @@ impl RatelimitHeaders {
     ///
     /// ```
     /// use std::array::IntoIter;
-    /// use twilight_http::ratelimiting::headers::RatelimitHeaders;
+    /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let headers = Vec::from([
@@ -362,6 +377,11 @@ impl RatelimitHeaders {
     /// ));
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// This method will error if a required header is missing or the header
+    /// value is of an invalid type.
     pub fn from_pairs<'a>(
         headers: impl Iterator<Item = (&'a str, &'a [u8])>,
     ) -> Result<Self, HeaderParsingError> {
@@ -497,7 +517,7 @@ mod tests {
         GlobalLimited, HeaderName, HeaderParsingError, HeaderParsingErrorType, HeaderType, Present,
         RatelimitHeaders,
     };
-    use hyper::header::{HeaderMap, HeaderName as HyperHeaderName, HeaderValue};
+    use http::header::{HeaderMap, HeaderName as HttpHeaderName, HeaderValue};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
         error::Error,
@@ -538,11 +558,11 @@ mod tests {
         let map = {
             let mut map = HeaderMap::new();
             map.insert(
-                HyperHeaderName::from_static("x-ratelimit-global"),
+                HttpHeaderName::from_static("x-ratelimit-global"),
                 HeaderValue::from_static("true"),
             );
             map.insert(
-                HyperHeaderName::from_static("retry-after"),
+                HttpHeaderName::from_static("retry-after"),
                 HeaderValue::from_static("65"),
             );
 

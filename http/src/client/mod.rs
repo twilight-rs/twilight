@@ -2,9 +2,9 @@ mod builder;
 
 pub use self::builder::ClientBuilder;
 
+#[allow(deprecated)]
 use crate::{
     error::{Error, ErrorType},
-    ratelimiting::Ratelimiter,
     request::{
         application::{
             command::{
@@ -69,8 +69,8 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentUserNick, UpdateGuild,
-            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateCurrentUserNick,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
@@ -93,7 +93,7 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::TryFrom,
+    convert::{AsRef, TryFrom},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
         Arc,
@@ -101,6 +101,7 @@ use std::{
     time::Duration,
 };
 use tokio::time;
+use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     application::{
         callback::InteractionResponse,
@@ -108,7 +109,6 @@ use twilight_model::{
     },
     channel::{
         message::{allowed_mentions::AllowedMentions, sticker::StickerId},
-        thread::AutoArchiveDuration,
         ChannelType,
     },
     guild::Permissions,
@@ -196,7 +196,7 @@ pub struct Client {
     default_headers: Option<HeaderMap>,
     http: HyperClient<HttpsConnector<HttpConnector>, Body>,
     proxy: Option<Box<str>>,
-    ratelimiter: Option<Ratelimiter>,
+    ratelimiter: Option<Box<dyn Ratelimiter>>,
     /// Whether to short-circuit when a 401 has been encountered with the client
     /// authorization.
     ///
@@ -267,8 +267,8 @@ impl Client {
     ///
     /// This will return `None` only if ratelimit handling
     /// has been explicitly disabled in the [`ClientBuilder`].
-    pub fn ratelimiter(&self) -> Option<Ratelimiter> {
-        self.ratelimiter.clone()
+    pub fn ratelimiter(&self) -> Option<&dyn Ratelimiter> {
+        self.ratelimiter.as_ref().map(AsRef::as_ref)
     }
 
     /// Get the audit log for a guild.
@@ -597,6 +597,8 @@ impl Client {
     }
 
     /// Changes the user's nickname in a guild.
+    #[allow(deprecated)]
+    #[deprecated(note = "use update_current_member instead", since = "0.7.2")]
     pub const fn update_current_user_nick<'a>(
         &'a self,
         guild_id: GuildId,
@@ -989,6 +991,11 @@ impl Client {
         user_id: UserId,
     ) -> UpdateGuildMember<'_> {
         UpdateGuildMember::new(self, guild_id, user_id)
+    }
+
+    /// Update the user's member in a guild.
+    pub const fn update_current_member(&self, guild_id: GuildId) -> UpdateCurrentMember<'_> {
+        UpdateCurrentMember::new(self, guild_id)
     }
 
     /// Add a role to a member in a guild.
@@ -1597,10 +1604,9 @@ impl Client {
         &'a self,
         channel_id: ChannelId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
         kind: ChannelType,
     ) -> Result<CreateThread<'_>, ThreadValidationError> {
-        CreateThread::new(self, channel_id, name, auto_archive_duration, kind)
+        CreateThread::new(self, channel_id, name, kind)
     }
 
     /// Create a new thread from an existing message.
@@ -1629,9 +1635,8 @@ impl Client {
         channel_id: ChannelId,
         message_id: MessageId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
     ) -> Result<CreateThreadFromMessage<'_>, ThreadValidationError> {
-        CreateThreadFromMessage::new(self, channel_id, message_id, name, auto_archive_duration)
+        CreateThreadFromMessage::new(self, channel_id, message_id, name)
     }
 
     /// Add the current user to a thread.
@@ -2731,7 +2736,7 @@ impl Client {
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder()
-            .method(method.into_hyper())
+            .method(method.into_http())
             .uri(&url);
 
         if use_authorization_token {
@@ -2840,12 +2845,12 @@ impl Client {
         // due to move semantics in both cases.
         #[allow(clippy::option_if_let_else)]
         if let Some(ratelimiter) = self.ratelimiter.as_ref() {
-            let rx = ratelimiter.ticket(ratelimit_path);
+            let tx_future = ratelimiter.wait_for_ticket(ratelimit_path);
 
             Ok(ResponseFuture::ratelimit(
                 None,
                 invalid_token,
-                rx,
+                tx_future,
                 self.timeout,
                 inner,
             ))

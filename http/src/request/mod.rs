@@ -5,12 +5,7 @@ pub mod sticker;
 pub mod template;
 pub mod user;
 
-#[deprecated(
-    note = "this will be removed in a future major version",
-    since = "0.7.2"
-)]
-pub mod prelude;
-
+mod attachment;
 mod audit_reason;
 mod base;
 mod get_gateway;
@@ -27,6 +22,7 @@ mod multipart;
 mod validate_inner;
 
 pub use self::{
+    attachment::AttachmentFile,
     audit_reason::{AuditLogReason, AuditLogReasonError},
     base::{Request, RequestBuilder},
     get_gateway::GetGateway,
@@ -35,43 +31,13 @@ pub use self::{
     get_voice_regions::GetVoiceRegions,
     multipart::Form,
 };
+pub use twilight_http_ratelimiting::request::Method;
 
 use crate::error::{Error, ErrorType};
-use hyper::{
-    header::{HeaderName, HeaderValue},
-    Method as HyperMethod,
-};
+use hyper::header::{HeaderName, HeaderValue};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Serialize, Serializer};
 use std::iter;
-
-/// Request method.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-#[non_exhaustive]
-pub enum Method {
-    /// DELETE method.
-    Delete,
-    /// GET method.
-    Get,
-    /// PATCH method.
-    Patch,
-    /// POST method.
-    Post,
-    /// PUT method.
-    Put,
-}
-
-impl Method {
-    pub(crate) const fn into_hyper(self) -> HyperMethod {
-        match self {
-            Self::Delete => HyperMethod::DELETE,
-            Self::Get => HyperMethod::GET,
-            Self::Patch => HyperMethod::PATCH,
-            Self::Post => HyperMethod::POST,
-            Self::Put => HyperMethod::PUT,
-        }
-    }
-}
 
 /// Field that either serializes to null or a value.
 ///
@@ -92,6 +58,13 @@ impl<T: Serialize> Serialize for NullableField<T> {
     }
 }
 
+#[derive(Serialize)]
+pub(crate) struct PartialAttachment<'a> {
+    pub description: Option<&'a str>,
+    pub filename: &'a str,
+    pub id: u64,
+}
+
 pub(crate) fn audit_header(
     reason: &str,
 ) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>, Error> {
@@ -109,23 +82,4 @@ pub(crate) fn audit_header(
 
 const fn slice_is_empty<T>(slice: &[T]) -> bool {
     slice.is_empty()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::Method;
-    use hyper::Method as HyperMethod;
-    use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
-
-    assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
-
-    #[test]
-    fn test_method_conversions() {
-        assert_eq!(HyperMethod::DELETE, Method::Delete.into_hyper());
-        assert_eq!(HyperMethod::GET, Method::Get.into_hyper());
-        assert_eq!(HyperMethod::PATCH, Method::Patch.into_hyper());
-        assert_eq!(HyperMethod::POST, Method::Post.into_hyper());
-        assert_eq!(HyperMethod::PUT, Method::Put.into_hyper());
-    }
 }

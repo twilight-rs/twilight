@@ -10,3 +10,5 @@ pub use self::{
     auto_archive_duration::AutoArchiveDuration, listing::ThreadsListing, member::ThreadMember,
     metadata::ThreadMetadata, news::NewsThread, private::PrivateThread, public::PublicThread,
 };
+
+pub(crate) use self::member::ThreadMemberIntermediary;
