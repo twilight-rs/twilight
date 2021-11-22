@@ -39,6 +39,7 @@ impl ClientBuilder {
             .enable_http1()
             .enable_http2()
             .build();
+
         #[cfg(all(feature = "rustls-webpki-roots", not(feature = "rustls-native-roots")))]
         let connector = hyper_rustls::HttpsConnectorBuilder::new()
             .with_webpki_roots()
@@ -46,6 +47,7 @@ impl ClientBuilder {
             .enable_http1()
             .enable_http2()
             .build();
+
         #[cfg(all(
             feature = "hyper-tls",
             not(feature = "rustls-native-roots"),
