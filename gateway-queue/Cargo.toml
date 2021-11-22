@@ -18,7 +18,7 @@ version = "0.7.0"
 tokio = { default-features = false, features = ["rt", "sync", "time"], version = "1.0" }
 twilight-http = { default-features = false, path = "../http" }
 
-# optional
+# Optional dependencies.
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [dev-dependencies]

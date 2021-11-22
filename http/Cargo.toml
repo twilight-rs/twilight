@@ -26,7 +26,7 @@ tokio = { default-features = false, features = ["sync", "time"], version = "1.0"
 twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
 twilight-model = { default-features = false, path = "../model" }
 
-# optional
+# Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
