@@ -203,7 +203,7 @@ impl SelectMenuOptionBuilder {
     pub const DESCRIPTION_LENGTH_LIMIT: usize = 100;
 
     /// Create a new builder to construct a [`SelectMenuOption`].
-    pub const fn new(label: String, value: String) -> Self {
+    pub const fn new(value: String, label: String) -> Self {
         Self(SelectMenuOption {
             default: false,
             description: None,
