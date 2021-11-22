@@ -16,6 +16,8 @@ pub struct Attachment {
     pub ephemeral: bool,
     pub filename: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
     pub id: AttachmentId,
     pub proxy_url: String,
@@ -62,6 +64,7 @@ mod tests {
             content_type: Some("image/png".to_owned()),
             ephemeral: false,
             filename: "a.png".to_owned(),
+            description: Some("a image".to_owned()),
             height: Some(184),
             id: AttachmentId::new(700_000_000_000_000_000).expect("non zero"),
             proxy_url: "https://cdn.example.com/1.png".to_owned(),
@@ -75,13 +78,16 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Attachment",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("content_type"),
                 Token::Some,
                 Token::Str("image/png"),
                 Token::Str("filename"),
                 Token::Str("a.png"),
+                Token::Str("description"),
+                Token::Some,
+                Token::Str("a image"),
                 Token::Str("height"),
                 Token::Some,
                 Token::U64(184),

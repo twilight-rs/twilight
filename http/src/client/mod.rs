@@ -2,6 +2,7 @@ mod builder;
 
 pub use self::builder::ClientBuilder;
 
+#[allow(deprecated)]
 use crate::{
     error::{Error, ErrorType},
     request::{
@@ -68,8 +69,8 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentUserNick, UpdateGuild,
-            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateCurrentUserNick,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
@@ -596,6 +597,8 @@ impl Client {
     }
 
     /// Changes the user's nickname in a guild.
+    #[allow(deprecated)]
+    #[deprecated(note = "use update_current_member instead", since = "0.7.2")]
     pub const fn update_current_user_nick<'a>(
         &'a self,
         guild_id: GuildId,
@@ -988,6 +991,11 @@ impl Client {
         user_id: UserId,
     ) -> UpdateGuildMember<'_> {
         UpdateGuildMember::new(self, guild_id, user_id)
+    }
+
+    /// Update the user's member in a guild.
+    pub const fn update_current_member(&self, guild_id: GuildId) -> UpdateCurrentMember<'_> {
+        UpdateCurrentMember::new(self, guild_id)
     }
 
     /// Add a role to a member in a guild.

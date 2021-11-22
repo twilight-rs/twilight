@@ -19,6 +19,8 @@ pub enum InteractionType {
     ///
     /// [`Component`]: super::super::component::Component
     MessageComponent = 3,
+    /// Interaction involves a autocomplete request.
+    ApplicationCommandAutocomplete = 4,
 }
 
 impl InteractionType {
@@ -27,6 +29,7 @@ impl InteractionType {
             Self::Ping => "Ping",
             Self::ApplicationCommand => "ApplicationCommand",
             Self::MessageComponent => "MessageComponent",
+            Self::ApplicationCommandAutocomplete => "ApplicationCommandAutocomplete",
         }
     }
 }
@@ -52,6 +55,7 @@ impl TryFrom<u8> for InteractionType {
             1 => Ok(Self::Ping),
             2 => Ok(Self::ApplicationCommand),
             3 => Ok(Self::MessageComponent),
+            4 => Ok(Self::ApplicationCommandAutocomplete),
             other => Err(UnknownInteractionTypeError { value: other }),
         }
     }
@@ -81,6 +85,7 @@ mod tests {
     const_assert_eq!(1, InteractionType::Ping as u8);
     const_assert_eq!(2, InteractionType::ApplicationCommand as u8);
     const_assert_eq!(3, InteractionType::MessageComponent as u8);
+    const_assert_eq!(4, InteractionType::ApplicationCommandAutocomplete as u8);
 
     #[test]
     fn test_kind() {
@@ -90,6 +95,10 @@ mod tests {
             InteractionType::ApplicationCommand.kind()
         );
         assert_eq!("MessageComponent", InteractionType::MessageComponent.kind());
+        assert_eq!(
+            "ApplicationCommandAutocomplete",
+            InteractionType::ApplicationCommandAutocomplete.kind()
+        );
     }
 
     #[test]
@@ -102,6 +111,10 @@ mod tests {
         assert_eq!(
             InteractionType::MessageComponent,
             InteractionType::try_from(3)?
+        );
+        assert_eq!(
+            InteractionType::ApplicationCommandAutocomplete,
+            InteractionType::try_from(4)?,
         );
         assert!(InteractionType::try_from(u8::MAX).is_err());
 

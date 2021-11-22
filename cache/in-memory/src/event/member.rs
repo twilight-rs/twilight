@@ -59,7 +59,7 @@ impl InMemoryCache {
         let id = (guild_id, user_id);
 
         if let Some(m) = self.members.get(&id) {
-            if *m == member {
+            if &*m == member {
                 return;
             }
         }
@@ -93,7 +93,7 @@ impl InMemoryCache {
         let id = (guild_id, user_id);
 
         let (avatar, deaf, mute) = match self.members.get(&id) {
-            Some(m) if *m == member => return,
+            Some(m) if &*m == member => return,
             Some(m) => (m.avatar().map(ToString::to_string), m.deaf(), m.mute()),
             None => (None, None, None),
         };

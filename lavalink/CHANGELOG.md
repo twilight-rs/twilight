@@ -2,6 +2,15 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.7.2] - 2021-11-20
+
+### Fixes
+
+Allow the crate to compile with `default-features = false` set ([#1248] -
+[@7596ff]).
+
+[#1248]: https://github.com/twilight-rs/twilight/pull/1248
+
 ## [0.7.1] - 2021-10-29
 
 ### Changes
