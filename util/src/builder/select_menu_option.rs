@@ -18,7 +18,7 @@
 //!         max_values: None,
 //!         min_values: None,
 //!         options: vec![
-//!             SelectMenuOptionBuilder::new("Twilight Sparkle".to_string(), "twilight-sparkle".to_string())
+//!             SelectMenuOptionBuilder::new("twilight-sparkle".to_string(), "Twilight Sparkle".to_string())
 //!                 .default(true)
 //!                 .emoji(ReactionType::Custom {
 //!                     animated: false,
@@ -26,7 +26,7 @@
 //!                     name: Some("sparkle".to_string()),
 //!                 })
 //!                 .build()?,
-//!             SelectMenuOptionBuilder::new("Rarity".to_string(), "rarity".to_string())
+//!             SelectMenuOptionBuilder::new("rarity".to_string(), "Rarity".to_string())
 //!                 .emoji(ReactionType::Custom {
 //!                     animated: false,
 //!                     id: EmojiId::new(765306914153299978_u64).unwrap(),
@@ -159,7 +159,7 @@ pub enum SelectMenuOptionErrorType {
 ///         max_values: None,
 ///         min_values: None,
 ///         options: vec![
-///             SelectMenuOptionBuilder::new("Twilight Sparkle".to_string(), "twilight-sparkle".to_string())
+///             SelectMenuOptionBuilder::new("twilight-sparkle".to_string(), "Twilight Sparkle".to_string())
 ///                 .default(true)
 ///                 .emoji(ReactionType::Custom {
 ///                     animated: false,
@@ -167,7 +167,7 @@ pub enum SelectMenuOptionErrorType {
 ///                     name: Some("sparkle".to_string()),
 ///                 })
 ///                 .build()?,
-///             SelectMenuOptionBuilder::new("Rarity".to_string(), "rarity".to_string())
+///             SelectMenuOptionBuilder::new("rarity".to_string(), "Rarity".to_string())
 ///                 .emoji(ReactionType::Custom {
 ///                     animated: false,
 ///                     id: EmojiId::new(765306914153299978_u64).unwrap(),
@@ -289,7 +289,7 @@ impl SelectMenuOptionBuilder {
     /// use twilight_util::builder::select_menu_option::SelectMenuOptionBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let option = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
+    /// let option = SelectMenuOptionBuilder::new("option-1".into(), "Option One".into())
     ///     .default(true)
     ///     .build()?;
     /// # Ok(()) }
@@ -308,7 +308,7 @@ impl SelectMenuOptionBuilder {
     /// use twilight_util::builder::select_menu_option::SelectMenuOptionBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let option = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
+    /// let option = SelectMenuOptionBuilder::new("option-1".into(), "Option One".into())
     ///     .description("The first option.".into())
     ///     .build()?;
     /// # Ok(()) }
@@ -329,7 +329,7 @@ impl SelectMenuOptionBuilder {
     /// use twilight_model::channel::ReactionType;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let option = SelectMenuOptionBuilder::new("Option One".into(), "option-1".into())
+    /// let option = SelectMenuOptionBuilder::new("option-1".into(), "Option One".into())
     ///     .emoji(ReactionType::Unicode {
     ///         name: "1️⃣".into()
     ///     })
@@ -388,7 +388,7 @@ mod tests {
     #[test]
     fn test_label_empty_error() {
         assert!(matches!(
-            SelectMenuOptionBuilder::new("".to_owned(), "value".to_owned()).build().unwrap_err().kind(),
+            SelectMenuOptionBuilder::new("value".to_owned(),"".to_owned()).build().unwrap_err().kind(),
             SelectMenuOptionErrorType::LabelEmpty { label }
             if label.is_empty()
         ));
@@ -398,7 +398,7 @@ mod tests {
     fn test_label_too_long_error() {
         let label_too_long = SelectMenuOptionBuilder::LABEL_LENGTH_LIMIT + 1;
         assert!(matches!(
-            SelectMenuOptionBuilder::new("a".repeat(label_too_long), "value".to_owned()).build().unwrap_err().kind(),
+            SelectMenuOptionBuilder::new( "value".to_owned(), "a".repeat(label_too_long),).build().unwrap_err().kind(),
             SelectMenuOptionErrorType::LabelTooLong { label }
             if label.len() == label_too_long
         ));
@@ -407,7 +407,7 @@ mod tests {
     #[test]
     fn test_value_empty_error() {
         assert!(matches!(
-            SelectMenuOptionBuilder::new("label".to_owned(), "".to_owned()).build().unwrap_err().kind(),
+            SelectMenuOptionBuilder::new( "".to_owned(),"label".to_owned(),).build().unwrap_err().kind(),
             SelectMenuOptionErrorType::ValueEmpty { value }
             if value.is_empty()
         ));
@@ -417,7 +417,7 @@ mod tests {
     fn test_value_too_long_error() {
         let value_too_long = SelectMenuOptionBuilder::VALUE_LENGTH_LIMIT + 1;
         assert!(matches!(
-            SelectMenuOptionBuilder::new("label".to_owned(), "a".repeat(value_too_long)).build().unwrap_err().kind(),
+            SelectMenuOptionBuilder::new( "a".repeat(value_too_long),"label".to_owned(),).build().unwrap_err().kind(),
             SelectMenuOptionErrorType::ValueTooLong { value }
             if value.len() == value_too_long
         ));
@@ -427,7 +427,7 @@ mod tests {
     fn test_description_too_long_error() {
         let description_too_long = SelectMenuOptionBuilder::DESCRIPTION_LENGTH_LIMIT + 1;
         assert!(matches!(
-            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned()).description("a".repeat(description_too_long)).build().unwrap_err().kind(),
+            SelectMenuOptionBuilder::new( "value".to_owned(),"label".to_owned(),).description("a".repeat(description_too_long)).build().unwrap_err().kind(),
             SelectMenuOptionErrorType::DescriptionTooLong { description }
             if description.len() == description_too_long
         ));
@@ -436,7 +436,7 @@ mod tests {
     #[test]
     fn test_normal() {
         let select_menu_option =
-            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned())
+            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .build()
                 .unwrap();
 
@@ -454,7 +454,7 @@ mod tests {
     #[test]
     fn test_description() {
         let select_menu_option =
-            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned())
+            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .description("description".to_owned())
                 .build()
                 .unwrap();
@@ -473,7 +473,7 @@ mod tests {
     #[test]
     fn test_default() {
         let select_menu_option =
-            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned())
+            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .default(true)
                 .build()
                 .unwrap();
@@ -492,7 +492,7 @@ mod tests {
     #[test]
     fn test_emoji() {
         let select_menu_option =
-            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned())
+            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .emoji(ReactionType::Unicode {
                     name: "\u{1f9ea}".to_owned(),
                 })
@@ -515,7 +515,7 @@ mod tests {
     #[test]
     fn test_builder_try_from() {
         let select_menu_option = SelectMenuOption::try_from(
-            SelectMenuOptionBuilder::new("label".to_owned(), "value".to_owned())
+            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .description("testing".to_owned()),
         )
         .unwrap();
@@ -534,7 +534,7 @@ mod tests {
     #[test]
     fn test_error_into_source() {
         assert!(matches!(
-            SelectMenuOptionBuilder::new("".to_owned(), "value".to_owned())
+            SelectMenuOptionBuilder::new("value".to_owned(), "".to_owned(),)
                 .build()
                 .unwrap_err()
                 .into_source(),
@@ -545,7 +545,7 @@ mod tests {
     #[test]
     fn test_error_into_parts() {
         assert!(matches!(
-            SelectMenuOptionBuilder::new("".to_owned(), "value".to_owned())
+            SelectMenuOptionBuilder::new("value".to_owned(), "".to_owned(),)
                 .build()
                 .unwrap_err()
                 .into_parts(),
