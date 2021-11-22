@@ -435,10 +435,9 @@ mod tests {
 
     #[test]
     fn test_normal() {
-        let select_menu =
-            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
-                .build()
-                .unwrap();
+        let select_menu = SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
+            .build()
+            .unwrap();
 
         let expected = SelectMenuOption {
             default: false,
@@ -453,11 +452,10 @@ mod tests {
 
     #[test]
     fn test_description() {
-        let select_menu =
-            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
-                .description("description".to_owned())
-                .build()
-                .unwrap();
+        let select_menu = SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
+            .description("description".to_owned())
+            .build()
+            .unwrap();
 
         let expected = SelectMenuOption {
             default: false,
@@ -472,11 +470,10 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let select_menu =
-            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
-                .default(true)
-                .build()
-                .unwrap();
+        let select_menu = SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
+            .default(true)
+            .build()
+            .unwrap();
 
         let expected = SelectMenuOption {
             default: true,
@@ -491,13 +488,12 @@ mod tests {
 
     #[test]
     fn test_emoji() {
-        let select_menu =
-            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
-                .emoji(ReactionType::Unicode {
-                    name: "\u{1f9ea}".to_owned(),
-                })
-                .build()
-                .unwrap();
+        let select_menu = SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
+            .emoji(ReactionType::Unicode {
+                name: "\u{1f9ea}".to_owned(),
+            })
+            .build()
+            .unwrap();
 
         let expected = SelectMenuOption {
             default: false,
