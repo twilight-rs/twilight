@@ -2,7 +2,7 @@
 //!
 //! # Example
 //! ```
-//! use twilight_util::builder::{select_menu_option::SelectMenuOptionBuilder, CallbackDataBuilder};
+//! use twilight_util::builder::{select_menu::SelectMenuOptionBuilder, CallbackDataBuilder};
 //! use twilight_model::{
 //!     channel::message::MessageFlags,
 //!     application::component::{Component, SelectMenu},
@@ -143,7 +143,7 @@ pub enum SelectMenuOptionErrorType {
 ///
 /// # Example
 /// ```
-/// use twilight_util::builder::{select_menu_option::SelectMenuOptionBuilder, CallbackDataBuilder};
+/// use twilight_util::builder::{select_menu::SelectMenuOptionBuilder, CallbackDataBuilder};
 /// use twilight_model::{
 ///     channel::message::MessageFlags,
 ///     application::component::{Component, SelectMenu},
@@ -286,7 +286,7 @@ impl SelectMenuOptionBuilder {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_util::builder::select_menu_option::SelectMenuOptionBuilder;
+    /// use twilight_util::builder::select_menu::SelectMenuOptionBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let option = SelectMenuOptionBuilder::new("option-1".into(), "Option One".into())
@@ -305,7 +305,7 @@ impl SelectMenuOptionBuilder {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_util::builder::select_menu_option::SelectMenuOptionBuilder;
+    /// use twilight_util::builder::select_menu::SelectMenuOptionBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let option = SelectMenuOptionBuilder::new("option-1".into(), "Option One".into())
@@ -325,7 +325,7 @@ impl SelectMenuOptionBuilder {
     /// # Examples
     ///
     /// ```rust
-    /// use twilight_util::builder::select_menu_option::SelectMenuOptionBuilder;
+    /// use twilight_util::builder::select_menu::SelectMenuOptionBuilder;
     /// use twilight_model::channel::ReactionType;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -435,7 +435,7 @@ mod tests {
 
     #[test]
     fn test_normal() {
-        let select_menu_option =
+        let select_menu =
             SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .build()
                 .unwrap();
@@ -448,12 +448,12 @@ mod tests {
             value: "value".to_owned(),
         };
 
-        assert_eq!(select_menu_option, expected);
+        assert_eq!(select_menu, expected);
     }
 
     #[test]
     fn test_description() {
-        let select_menu_option =
+        let select_menu =
             SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .description("description".to_owned())
                 .build()
@@ -467,12 +467,12 @@ mod tests {
             value: "value".to_owned(),
         };
 
-        assert_eq!(select_menu_option, expected);
+        assert_eq!(select_menu, expected);
     }
 
     #[test]
     fn test_default() {
-        let select_menu_option =
+        let select_menu =
             SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .default(true)
                 .build()
@@ -486,12 +486,12 @@ mod tests {
             value: "value".to_owned(),
         };
 
-        assert_eq!(select_menu_option, expected);
+        assert_eq!(select_menu, expected);
     }
 
     #[test]
     fn test_emoji() {
-        let select_menu_option =
+        let select_menu =
             SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .emoji(ReactionType::Unicode {
                     name: "\u{1f9ea}".to_owned(),
@@ -509,12 +509,12 @@ mod tests {
             value: "value".to_owned(),
         };
 
-        assert_eq!(select_menu_option, expected);
+        assert_eq!(select_menu, expected);
     }
 
     #[test]
     fn test_builder_try_from() {
-        let select_menu_option = SelectMenuOption::try_from(
+        let select_menu = SelectMenuOption::try_from(
             SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
                 .description("testing".to_owned()),
         )
@@ -528,7 +528,7 @@ mod tests {
             value: "value".to_owned(),
         };
 
-        assert_eq!(select_menu_option, expected);
+        assert_eq!(select_menu, expected);
     }
 
     #[test]

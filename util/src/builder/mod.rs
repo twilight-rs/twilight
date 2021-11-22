@@ -3,6 +3,6 @@
 
 mod callback_data;
 pub mod command;
-pub mod select_menu_option;
+pub mod select_menu;
 
 pub use self::callback_data::CallbackDataBuilder;
