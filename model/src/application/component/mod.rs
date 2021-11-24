@@ -10,12 +10,14 @@
 
 pub mod action_row;
 pub mod button;
+pub mod input_text;
 pub mod select_menu;
 
 mod kind;
 
 pub use self::{
-    action_row::ActionRow, button::Button, kind::ComponentType, select_menu::SelectMenu,
+    action_row::ActionRow, button::Button, input_text::InputText, kind::ComponentType,
+    select_menu::SelectMenu,
 };
 
 use serde::{Deserialize, Serialize};
@@ -31,6 +33,7 @@ pub enum Component {
     ActionRow(ActionRow),
     Button(Button),
     SelectMenu(SelectMenu),
+    InputText(InputText),
 }
 
 impl Component {
@@ -59,6 +62,7 @@ impl Component {
             Self::ActionRow(_) => ComponentType::ActionRow,
             Self::Button(_) => ComponentType::Button,
             Self::SelectMenu(_) => ComponentType::SelectMenu,
+            Self::InputText(_) => ComponentType::InputText,
         }
     }
 }
