@@ -37,7 +37,7 @@ impl Serialize for ModalDataActionRow {
 
         let mut state = serializer.serialize_struct("ModalDataActionRow", len)?;
 
-        state.serialize_field("type", &1)?;
+        state.serialize_field("type", &ComponentType::ActionRow)?;
         state.serialize_field("components", &self.components)?;
 
         state.end()
@@ -231,6 +231,11 @@ mod tests {
             Token::String("test-modal"),
             Token::String("components"),
             Token::Seq { len: Some(1) },
+            Token::Struct { name: "ModalDataActionRow", len: 2},
+            Token::String("type"),
+            Token::U8(ComponentType::ActionRow as u8),
+            Token::String("components"),
+            Token::Seq { len: Some(1) },
             Token::Struct {
                 name: "ModalDataComponent",
                 len: 3
@@ -241,6 +246,8 @@ mod tests {
             Token::U8(ComponentType::InputText as u8),
             Token::String("value"),
             Token::String("Twilight is a powerful, flexible and scalable ecosystem of Rust libraries for the Discord API."),
+            Token::StructEnd,
+            Token::SeqEnd,
             Token::StructEnd,
             Token::SeqEnd,
             Token::StructEnd
