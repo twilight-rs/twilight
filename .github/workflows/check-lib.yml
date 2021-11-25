@@ -117,6 +117,9 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       # - name: Run clippy
       #   uses: actions-rs/clippy-check@v1
       #   with:
