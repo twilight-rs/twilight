@@ -117,11 +117,13 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
+      # - name: Run clippy
+      #   uses: actions-rs/clippy-check@v1
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     args: --workspace --all-features --all-targets
       - name: Run clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --all-features --all-targets
+        run: cargo clippy --workspace --all-features --all-targets
 
   codespell:
     name: Spelling
