@@ -120,11 +120,6 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      # - name: Run clippy
-      #   uses: actions-rs/clippy-check@v1
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     args: --workspace --all-features --all-targets
       - name: Run clippy
         run: cargo clippy --workspace --all-features --all-targets
 
