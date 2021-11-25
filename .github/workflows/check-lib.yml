@@ -33,6 +33,9 @@ jobs:
       - name: Output processor info
         run: cat /proc/cpuinfo
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       - run: cargo check --workspace --all-features --all-targets
 
   # Check documentation
@@ -51,6 +54,9 @@ jobs:
           toolchain: nightly
           profile: minimal
           override: true
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
 
       - name: Build docs
         env:
@@ -138,6 +144,9 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
@@ -172,6 +181,9 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+    
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
 
       - name: Check minimal versions
         run: cargo check --all-features
@@ -188,6 +200,9 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
 
       - name: Run cargo test
         run: cargo test
@@ -238,6 +253,9 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
 
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
