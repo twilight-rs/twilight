@@ -74,7 +74,8 @@ impl ApplicationId {
     /// The value must not be zero.
     #[allow(unsafe_code)]
     pub const unsafe fn new_unchecked(n: u64) -> Self {
-        Self(NonZeroU64::new_unchecked(n))
+        Self(
+            NonZeroU64::new_unchecked(n))
     }
 
     /// Create a non-zero application ID if the given value is not zero.
