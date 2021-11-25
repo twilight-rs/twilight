@@ -69,8 +69,9 @@ pub struct TrackInfo {
 pub struct PlaylistInfo {
     /// The name of the playlist, if available.
     pub name: Option<String>,
-    /// The selected track, if one was selected.
-    pub selected_track: Option<u64>,
+    /// The selected track within the playlist. If there is no selected track, this will either be
+    /// None or have a negative value.
+    pub selected_track: Option<i64>,
 }
 
 /// Possible track results for a query.
