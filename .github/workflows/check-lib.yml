@@ -243,31 +243,3 @@ jobs:
         working-directory: ${{ matrix.package }}
         run: |
           cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
-
-  coverage:
-    name: Coverage
-    runs-on: ubuntu-latest
-    # Don't collect coverage if tests failed
-    needs: [test]
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Set excluded examples
-        id: excluded-examples
-        run: echo "::set-output name=out::$(grep -h '^name' examples/*/Cargo.toml | cut -d \" -f2 | xargs -I '{}' printf '--exclude {} ')"
-
-      - name: Collect coverage
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          args: "--ignore-tests --workspace --all-features ${{ steps.excluded-examples.outputs.out }}"
-
-      - name: Upload coverage to codecov.io
-        uses: codecov/codecov-action@v2
-
-      - name: Upload coverage to GitHub
-        uses: actions/upload-artifact@v2
-        with:
-          name: code-coverage-report
-          path: cobertura.xml
