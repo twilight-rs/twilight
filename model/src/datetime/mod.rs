@@ -1,4 +1,4 @@
-//! Utilities for parsing and format ISO 8601 timestamps returned by the API.
+//! Utilities for parsing and formatting ISO 8601 timestamps.
 //!
 //! # Examples
 //!
@@ -19,7 +19,8 @@
 //! Format a timestamp as an ISO 8601 string used by the Discord API:
 //!
 //! ```
-//! # fn foo() -> Option<()> {
+//! # use std::error::Error;
+//! # fn foo() -> Result<(), Box<dyn Error>> {
 //! use twilight_model::datetime::Timestamp;
 //!
 //! let timestamp = Timestamp::from_secs(1_580_608_922)?;
@@ -28,24 +29,17 @@
 //!     "2020-02-02T02:02:02.000000+00:00",
 //!     timestamp.iso_8601().to_string(),
 //! );
-//! # None }
+//! # Ok(()) }
 //! ```
 
 #![deny(clippy::missing_docs_in_private_items)]
 
 pub mod error;
 
-mod constant;
 mod display;
-
-use crate::datetime::constant::{MINUTES_PER_HOUR, SECONDS_PER_MINUTE};
 
 pub use self::{display::TimestampIso8601Display, error::TimestampParseError};
 
-use self::constant::{
-    Month, DAYS_PER_YEAR, EPOCH_UNIX, MICROSECONDS_PER_SECOND, SECONDS_PER_DAY, SECONDS_PER_HOUR,
-    YEAR_MAX, YEAR_MIN,
-};
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Visitor},
     ser::{Serialize, Serializer},
@@ -53,12 +47,15 @@ use serde::{
 use std::{
     convert::TryFrom,
     fmt::{Formatter, Result as FmtResult},
-    num::NonZeroU64,
     str::FromStr,
 };
+use time::{format_description::well_known::Rfc3339, OffsetDateTime, PrimitiveDateTime};
 
-/// Byte value of the number 0.
-const ZERO_BYTE: u8 = b'0';
+/// Number of microseconds in a second.
+const MICROSECONDS_PER_SECOND: i64 = 1_000_000;
+
+/// Number of nanoseconds in a microsecond.
+const NANOSECONDS_PER_MICROSECOND: i64 = 1_000;
 
 /// Representation of a Unix timestamp with milliseconds.
 ///
@@ -74,34 +71,37 @@ const ZERO_BYTE: u8 = b'0';
 /// [retrieving an ISO 8601 formatter]: Self::iso_8601
 /// [microseconds precision]: Self::as_micros
 /// [seconds precision]: Self::as_secs
+// We use a [`PrimitiveDateTime`] here since it does not store an offset, and
+// the API only operates in UTC. Additionally, it is four bytes smaller than an
+// [`OffsetDateTime`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct Timestamp(NonZeroU64);
+pub struct Timestamp(PrimitiveDateTime);
 
 impl Timestamp {
     /// Create a non-zero timestamp from a Unix timestamp with microseconds
     /// precision if the value is not zero.
-    pub const fn from_micros(unix_microseconds: u64) -> Option<Self> {
-        // `const`: Clippy suggests using `Option::map_or` which isn't const.
-        #[allow(clippy::option_if_let_else)]
-        if let Some(value) = NonZeroU64::new(unix_microseconds) {
-            Some(Self(value))
-        } else {
-            None
-        }
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`TimestampParseErrorType::Parsing`] if the parsing failed.
+    pub fn from_micros(unix_microseconds: i64) -> Result<Self, TimestampParseError> {
+        let nanoseconds = i128::from(unix_microseconds) * i128::from(NANOSECONDS_PER_MICROSECOND);
+
+        OffsetDateTime::from_unix_timestamp_nanos(nanoseconds)
+            .map(|offset| Self(PrimitiveDateTime::new(offset.date(), offset.time())))
+            .map_err(TimestampParseError::from_component_range)
     }
 
     /// Create a non-zero timestamp from a Unix timestamp with seconds precision
     /// if the value is not zero.
-    pub const fn from_secs(unix_seconds: u64) -> Option<Self> {
-        let micros = unix_seconds * MICROSECONDS_PER_SECOND;
-
-        // `const`: Clippy suggests using `Option::map_or` which isn't const.
-        #[allow(clippy::option_if_let_else)]
-        if let Some(value) = NonZeroU64::new(micros) {
-            Some(Self(value))
-        } else {
-            None
-        }
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`TimestampParseErrorType::Parsing`] if the parsing failed.
+    pub fn from_secs(unix_seconds: i64) -> Result<Self, TimestampParseError> {
+        OffsetDateTime::from_unix_timestamp(unix_seconds)
+            .map(|offset| Self(PrimitiveDateTime::new(offset.date(), offset.time())))
+            .map_err(TimestampParseError::from_component_range)
     }
 
     /// Parse a timestamp from an ISO 8601 datetime string emitted by Discord.
@@ -135,24 +135,9 @@ impl Timestamp {
     /// Returns a [`TimestampParseErrorType::Format`] error type if the provided
     /// string is too short to be an ISO 8601 datetime without a time offset.
     ///
-    /// Returns a [`TimestampParseErrorType::Range`] error type if one of the
-    /// provided datetime segment values is not within an acceptable range.
-    ///
-    /// [`TimestampParseErrorType::Format`]: error::TimestampParseErrorType::Format
-    /// [`TimestampParseErrorType::Range`]: error::TimestampParseErrorType::Range
-    pub const fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
-        let micros = match parse_iso8601(datetime) {
-            Ok(micros) => micros,
-            Err(source) => return Err(source),
-        };
-
-        // `const`: Clippy suggests using `Option::map_or` which isn't const.
-        #[allow(clippy::option_if_let_else)]
-        if let Some(timestamp) = Timestamp::from_micros(micros) {
-            Ok(timestamp)
-        } else {
-            Err(TimestampParseError::ZERO)
-        }
+    /// Returns a [`TimestampParseErrorType::Parsing`] if the parsing failed.
+    pub fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
+        parse_iso8601(datetime).map(Self)
     }
 
     /// Total number of seconds within the timestamp.
@@ -171,8 +156,8 @@ impl Timestamp {
     /// assert_eq!(1_628_594_197, timestamp.as_secs());
     /// # Ok(()) }
     /// ```
-    pub const fn as_secs(self) -> u64 {
-        self.0.get() / MICROSECONDS_PER_SECOND
+    pub const fn as_secs(self) -> i64 {
+        self.0.assume_utc().unix_timestamp()
     }
 
     /// Total number of microseconds within the timestamp.
@@ -191,8 +176,10 @@ impl Timestamp {
     /// assert_eq!(1_628_594_197_123_456, timestamp.as_micros());
     /// # Ok(()) }
     /// ```
-    pub const fn as_micros(self) -> u64 {
-        self.0.get()
+    pub const fn as_micros(self) -> i64 {
+        let utc = self.0.assume_utc();
+
+        (utc.unix_timestamp() * MICROSECONDS_PER_SECOND) + (utc.microsecond() as i64)
     }
 
     /// Create a Display implementation to format the timestamp as an ISO 8601
@@ -299,15 +286,8 @@ impl TryFrom<&'_ str> for Timestamp {
 ///
 /// # Errors
 ///
-/// Returns a [`TimestampParseErrorType::Format`] error type if the provided string
-/// is too short to be an ISO 8601 datetime without a time offset.
-///
-/// Returns a [`TimestampParseErrorType::Range`] error type if one of the provided
-/// datetime segment values is not within an acceptable range.
-///
-/// [`TimestampParseErrorType::Format`]: error::TimestampParseErrorType::Format
-/// [`TimestampParseErrorType::Range`]: error::TimestampParseErrorType::Range
-const fn parse_iso8601(input: &str) -> Result<u64, TimestampParseError> {
+/// Returns a [`TimestampParseErrorType::Parsing`] if the parsing failed.
+fn parse_iso8601(input: &str) -> Result<PrimitiveDateTime, TimestampParseError> {
     /// Discord sends some timestamps with the microseconds and some without.
     const TIMESTAMP_LENGTH: usize = "2021-01-01T01:01:01+00:00".len();
 
@@ -315,134 +295,18 @@ const fn parse_iso8601(input: &str) -> Result<u64, TimestampParseError> {
         return Err(TimestampParseError::FORMAT);
     }
 
-    let bytes = input.as_bytes();
-
-    // Years.
-    //
-    // Input: 2021-01-01T01:01:01.010000+00:00
-    //       |----|
-    //
-    // First we take the first two digits - the thousands and hundreds - and
-    // multiply them by 100, followed by adding the tens and ones.
-    let year = digits(bytes[0], bytes[1]) as u16 * 100 + digits(bytes[2], bytes[3]) as u16;
-
-    if year > YEAR_MAX || year < YEAR_MIN {
-        return Err(TimestampParseError::year(year));
-    }
-
-    let month = {
-        let value = digits(bytes[5], bytes[6]) - 1;
-
-        match Month::new(value) {
-            Some(month) => month,
-            None => {
-                return Err(TimestampParseError::month(value));
-            }
-        }
-    };
-
-    let day = digits(bytes[8], bytes[9]);
-
-    let is_leap_year = constant::is_leap_year(year as u64);
-
-    if day > month.days(is_leap_year) {
-        return Err(TimestampParseError::day(year, month.legible(), day));
-    }
-
-    let hour = digits(bytes[11], bytes[12]);
-
-    if hour > 23 {
-        return Err(TimestampParseError::hour(hour));
-    }
-
-    let minute = digits(bytes[14], bytes[15]);
-
-    if minute >= MINUTES_PER_HOUR {
-        return Err(TimestampParseError::minute(minute));
-    }
-    let second = digits(bytes[17], bytes[18]);
-
-    if second > SECONDS_PER_MINUTE {
-        return Err(TimestampParseError::second(second));
-    }
-
-    // 10 leap years before the Discord epoch.
-    let leap_years = 10 + (year - 2009) / 4;
-
-    let mut running_year_days = month.running_total(is_leap_year);
-
-    // We subtract one because the calendar is 1-indexed, but we're
-    // computationally working off of a 0-indexed day.
-    running_year_days += day as u16 - 1;
-
-    // `const`: we can't implement `Ord` on `Month` and do an ordered check
-    // because it isn't const.
-    if is_leap_year && month.legible() > Month::February.legible() {
-        running_year_days += 1;
-    }
-
-    let days = (year - EPOCH_UNIX) * DAYS_PER_YEAR + leap_years + running_year_days;
-
-    // Active multiplier for the current byte.
-    //
-    // The first byte will be the hundred-thousands, so we need to multiply it by
-    // that. The second is ten-thousands, so after the first iteration it needs
-    // to be divided by 10, and so on.
-    let mut multiplier = MICROSECONDS_PER_SECOND / 10;
-
-    // Milliseconds.
-    //
-    // 2021-01-01T01:01:01.010000+00:00
-    //                    |---|
-    //
-    // The API only works in milliseconds - not microseconds - so we can ignore
-    // the last three digits due to them always being zeroes.
-    let mut microseconds = 0;
-
-    if bytes[19] == b'.' {
-        // `const`: `for` loops can't be used so we need to use a `while`.
-        //
-        // The microseconds starts at index 20 of the input.
-        let mut milliseconds_idx = 20;
-
-        while milliseconds_idx < 26 {
-            let byte = bytes[milliseconds_idx];
-
-            microseconds += multiplier * (byte - ZERO_BYTE) as u64;
-
-            // Remove a magnitude from the multiplier.
-            multiplier /= 10;
-
-            milliseconds_idx += 1;
-        }
-    }
-
-    let time = second as u64
-        + minute as u64 * MINUTES_PER_HOUR as u64
-        + hour as u64 * (SECONDS_PER_HOUR as u64);
-
-    // The Discord API doesn't send timestamps in any offset other than +00:00,
-    // so we can just add up what we've got and call good.
-    let seconds = time + days as u64 * SECONDS_PER_DAY;
-
-    Ok(seconds * MICROSECONDS_PER_SECOND + microseconds)
-}
-
-/// Parse two bytes into digits and then add them together, multiplying the
-/// first by a magnitude.
-const fn digits(first: u8, second: u8) -> u8 {
-    let tens = (first - ZERO_BYTE) * 10;
-    let ones = second - ZERO_BYTE;
-
-    tens + ones
+    OffsetDateTime::parse(input, &Rfc3339)
+        .map(|offset| PrimitiveDateTime::new(offset.date(), offset.time()))
+        .map_err(TimestampParseError::from_parse)
 }
 
 #[cfg(test)]
 mod tests {
     use super::{Timestamp, TimestampParseError};
     use serde::{Deserialize, Serialize};
-    use static_assertions::{assert_impl_all, const_assert_eq};
+    use static_assertions::assert_impl_all;
     use std::{convert::TryFrom, fmt::Debug, hash::Hash, str::FromStr};
+    use time::{OffsetDateTime, PrimitiveDateTime};
 
     assert_impl_all!(
         Timestamp: Clone,
@@ -458,21 +322,23 @@ mod tests {
         Sync,
         TryFrom<&'static str>,
     );
-    const_assert_eq!(17, super::digits(b'1', b'7'));
-    const_assert_eq!(3, super::digits(b'0', b'3'));
 
     /// Test a variety of supported ISO 8601 datetime formats.
     #[test]
     fn test_parse_iso8601() -> Result<(), TimestampParseError> {
         // With milliseconds.
+        let offset = OffsetDateTime::from_unix_timestamp_nanos(1_580_608_922_020_000_000).unwrap();
+
         assert_eq!(
-            1_580_608_922_020_000,
+            PrimitiveDateTime::new(offset.date(), offset.time()),
             super::parse_iso8601("2020-02-02T02:02:02.020000+00:00")?
         );
 
         // Without milliseconds.
+        let offset = OffsetDateTime::from_unix_timestamp_nanos(1_580_608_922_000_000_000).unwrap();
+
         assert_eq!(
-            1_580_608_922_000_000,
+            PrimitiveDateTime::new(offset.date(), offset.time()),
             super::parse_iso8601("2020-02-02T02:02:02+00:00")?
         );
 
