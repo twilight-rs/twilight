@@ -83,7 +83,10 @@ impl Timestamp {
     ///
     /// # Errors
     ///
-    /// Returns a [`TimestampParseErrorType::Parsing`] if the parsing failed.
+    /// Returns a [`TimestampParseErrorType::Parsing`] error type if the parsing
+    /// failed.
+    ///
+    /// [`TimestampParseErrorType::Parsing`]: self::error::TimestampParseErrorType::Parsing
     pub fn from_micros(unix_microseconds: i64) -> Result<Self, TimestampParseError> {
         let nanoseconds = i128::from(unix_microseconds) * i128::from(NANOSECONDS_PER_MICROSECOND);
 
@@ -97,7 +100,10 @@ impl Timestamp {
     ///
     /// # Errors
     ///
-    /// Returns a [`TimestampParseErrorType::Parsing`] if the parsing failed.
+    /// Returns a [`TimestampParseErrorType::Parsing`] error type if the parsing
+    /// failed.
+    ///
+    /// [`TimestampParseErrorType::Parsing`]: self::error::TimestampParseErrorType::Parsing
     pub fn from_secs(unix_seconds: i64) -> Result<Self, TimestampParseError> {
         OffsetDateTime::from_unix_timestamp(unix_seconds)
             .map(|offset| Self(PrimitiveDateTime::new(offset.date(), offset.time())))
@@ -135,7 +141,11 @@ impl Timestamp {
     /// Returns a [`TimestampParseErrorType::Format`] error type if the provided
     /// string is too short to be an ISO 8601 datetime without a time offset.
     ///
-    /// Returns a [`TimestampParseErrorType::Parsing`] if the parsing failed.
+    /// Returns a [`TimestampParseErrorType::Parsing`] error type if the parsing
+    /// failed.
+    ///
+    /// [`TimestampParseErrorType::Format`]: self::error::TimestampParseErrorType::Format
+    /// [`TimestampParseErrorType::Parsing`]: self::error::TimestampParseErrorType::Parsing
     pub fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
         parse_iso8601(datetime).map(Self)
     }
