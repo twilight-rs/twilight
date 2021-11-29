@@ -82,8 +82,10 @@ fn deserialize_selected_track<'de, D>(deserializer: D) -> Result<Option<u64>, D:
 where
     D: Deserializer<'de>,
 {
-    let selected = Option::<i64>::deserialize(deserializer)?;
-    Ok(selected.and_then(|selected| u64::try_from(selected).ok()))
+    Ok(Option::<i64>::deserialize(deserializer)
+        .ok()
+        .flatten()
+        .and_then(|selected| u64::try_from(selected).ok()))
 }
 
 /// Possible track results for a query.
