@@ -6,8 +6,11 @@ use http::{
     Error as HttpError, Request,
 };
 use percent_encoding::NON_ALPHANUMERIC;
-use serde::{Deserialize, Serialize};
-use std::net::{IpAddr, SocketAddr};
+use serde::{Deserialize, Deserializer, Serialize};
+use std::{
+    convert::TryFrom,
+    net::{IpAddr, SocketAddr},
+};
 
 /// The type of search result given.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -69,9 +72,18 @@ pub struct TrackInfo {
 pub struct PlaylistInfo {
     /// The name of the playlist, if available.
     pub name: Option<String>,
-    /// The selected track within the playlist. If there is no selected track, this will either be
-    /// None or have a negative value.
-    pub selected_track: Option<i64>,
+    /// The selected track within the playlist, if available.
+    #[serde(deserialize_with = "deserialize_selected_track")]
+    pub selected_track: Option<u64>,
+}
+
+// Any negative value should be treated as None.
+fn deserialize_selected_track<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let selected = Option::<i64>::deserialize(deserializer)?;
+    Ok(selected.and_then(|selected| u64::try_from(selected).ok()))
 }
 
 /// Possible track results for a query.
