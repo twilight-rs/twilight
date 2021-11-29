@@ -32,6 +32,8 @@
 //! all so a [`Queue`] trait is provided that shards can use to make requests to
 //! create sessions.
 //!
+//! ## Features
+//!
 //! ### Tracing
 //!
 //! The `tracing` feature enables logging via the [`tracing`] crate.
