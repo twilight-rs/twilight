@@ -73,7 +73,7 @@ pub struct PlaylistInfo {
     /// The name of the playlist, if available.
     pub name: Option<String>,
     /// The selected track within the playlist, if available.
-    #[serde(deserialize_with = "deserialize_selected_track")]
+    #[serde(default, deserialize_with = "deserialize_selected_track")]
     pub selected_track: Option<u64>,
 }
 
