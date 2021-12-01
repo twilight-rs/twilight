@@ -23,7 +23,7 @@ pub struct ModalInteractionData {
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [`ActionRow`]: crate::application::interaction::modal::data::ModalInteractionDataActionRow
+/// [`ActionRow`]: crate::application::interaction::modal::ModalInteractionDataActionRow
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ModalInteractionDataActionRow {
     /// The parsed components.
