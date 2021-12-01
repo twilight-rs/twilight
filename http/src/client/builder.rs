@@ -58,7 +58,7 @@ impl ClientBuilder {
             not(feature = "rustls-native-roots"),
             not(feature = "rustls-webpki-roots")
         ))]
-        let connector = hyper_tls::HttpsConnector::new();
+        let connector = hyper_tls::HttpsConnector::new_with_connector(http_connector);
 
         let http = hyper::client::Builder::default().build(connector);
 
