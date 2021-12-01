@@ -77,6 +77,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn test_component_full() {
         let component = Component::ActionRow(ActionRow {
             components: Vec::from([
