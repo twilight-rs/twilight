@@ -22,7 +22,7 @@ tracing = { default-features = false, features = ["std", "attributes"], version 
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
-tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.14" }
+tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.16" }
 twilight-model = { default-features = false, path = "../model" }
 
 # Optional dependencies.
@@ -39,4 +39,6 @@ twilight-http = { default-features = false, features = ["rustls"], path = "../ht
 default = ["http-support", "rustls"]
 http-support = ["percent-encoding"]
 native = ["tokio-tungstenite/native-tls"]
-rustls = ["tokio-tungstenite/rustls-tls"]
+rustls = ["rustls-native-roots"]
+rustls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots"]
+rustls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots"]

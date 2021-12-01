@@ -16,7 +16,7 @@ version = "0.7.2"
 
 [dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
-hyper-rustls = { default-features = false, optional = true, version = "0.22" }
+hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.23" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
 percent-encoding = { default-features = false, version = "2" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
