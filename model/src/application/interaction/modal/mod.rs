@@ -1,6 +1,9 @@
 mod data;
 
-pub use self::data::{ModalInteractionData, ModalInteractionDataActionRow, ModalInteractionDataComponent, ModalComponentValue};
+pub use self::data::{
+    ModalComponentValue, ModalInteractionData, ModalInteractionDataActionRow,
+    ModalInteractionDataComponent,
+};
 
 use super::InteractionType;
 use crate::{

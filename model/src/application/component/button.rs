@@ -369,29 +369,35 @@ mod tests {
             ],
         );
 
-        serde_test::assert_de_tokens(&value, &[
-            Token::Struct { name: "Button", len: 7 },
-            Token::String("custom_id"),
-            Token::String("test"),
-            Token::String("disabled"),
-            Token::Bool(false),
-            Token::String("emoji"),
-            Token::Struct {
-                name: "ReactionType",
-                len: 1,
-            },
-            Token::String("name"),
-            Token::String(FLAG),
-            Token::StructEnd,
-            Token::String("label"),
-            Token::String("Test"),
-            Token::String("style"),
-            Token::U8(ButtonStyle::Link as u8),
-            Token::String("type"),
-            Token::U8(ComponentType::Button as u8),
-            Token::String("url"),
-            Token::String("https://twilight.rs"),
-            Token::StructEnd,
-        ]);
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Button",
+                    len: 7,
+                },
+                Token::String("custom_id"),
+                Token::String("test"),
+                Token::String("disabled"),
+                Token::Bool(false),
+                Token::String("emoji"),
+                Token::Struct {
+                    name: "ReactionType",
+                    len: 1,
+                },
+                Token::String("name"),
+                Token::String(FLAG),
+                Token::StructEnd,
+                Token::String("label"),
+                Token::String("Test"),
+                Token::String("style"),
+                Token::U8(ButtonStyle::Link as u8),
+                Token::String("type"),
+                Token::U8(ComponentType::Button as u8),
+                Token::String("url"),
+                Token::String("https://twilight.rs"),
+                Token::StructEnd,
+            ],
+        );
     }
 }

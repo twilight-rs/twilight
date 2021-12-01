@@ -125,7 +125,7 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
 
 #[cfg(test)]
 mod tests {
-    use crate::application::component::{Button, Component, button::ButtonStyle};
+    use crate::application::component::{button::ButtonStyle, Button, Component};
 
     use super::ActionRow;
     use serde::{Deserialize, Serialize};
@@ -148,63 +148,79 @@ mod tests {
 
     #[test]
     fn test_action_row() {
-        let value = ActionRow { 
-            components: Vec::from([
-                Component::Button(Button { 
-                    custom_id: Some("button-1".to_owned()),
-                    disabled: false,
-                    emoji: None,
-                    style: ButtonStyle::Primary,
-                    label: Some("Button".to_owned()),
-                    url: None,
-                })
-            ]),
+        let value = ActionRow {
+            components: Vec::from([Component::Button(Button {
+                custom_id: Some("button-1".to_owned()),
+                disabled: false,
+                emoji: None,
+                style: ButtonStyle::Primary,
+                label: Some("Button".to_owned()),
+                url: None,
+            })]),
         };
 
-        serde_test::assert_ser_tokens(&value, &[
-            Token::Struct { name: "ActionRow", len: 2 },
-            Token::String("components"),
-            Token::Seq { len: Some(1) },
-            Token::Struct { name: "Button", len: 5 },
-            Token::String("custom_id"),
-            Token::Some,
-            Token::String("button-1"),
-            Token::String("disabled"),
-            Token::Bool(false),
-            Token::String("label"),
-            Token::Some,
-            Token::String("Button"),
-            Token::String("style"),
-            Token::U8(1),
-            Token::String("type"),
-            Token::U8(2),
-            Token::StructEnd,
-            Token::SeqEnd,
-            Token::String("type"),
-            Token::U8(1),
-            Token::StructEnd,
-        ]);
+        serde_test::assert_ser_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ActionRow",
+                    len: 2,
+                },
+                Token::String("components"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "Button",
+                    len: 5,
+                },
+                Token::String("custom_id"),
+                Token::Some,
+                Token::String("button-1"),
+                Token::String("disabled"),
+                Token::Bool(false),
+                Token::String("label"),
+                Token::Some,
+                Token::String("Button"),
+                Token::String("style"),
+                Token::U8(1),
+                Token::String("type"),
+                Token::U8(2),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::String("type"),
+                Token::U8(1),
+                Token::StructEnd,
+            ],
+        );
 
-        serde_test::assert_de_tokens(&value, &[
-            Token::Struct { name: "ActionRow", len: 2 },
-            Token::String("components"),
-            Token::Seq { len: Some(1) },
-            Token::Struct { name: "Button", len: 5 },
-            Token::String("custom_id"),
-            Token::String("button-1"),
-            Token::String("disabled"),
-            Token::Bool(false),
-            Token::String("label"),
-            Token::String("Button"),
-            Token::String("style"),
-            Token::U8(1),
-            Token::String("type"),
-            Token::U8(2),
-            Token::StructEnd,
-            Token::SeqEnd,
-            Token::String("type"),
-            Token::U8(1),
-            Token::StructEnd,
-        ]);
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ActionRow",
+                    len: 2,
+                },
+                Token::String("components"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "Button",
+                    len: 5,
+                },
+                Token::String("custom_id"),
+                Token::String("button-1"),
+                Token::String("disabled"),
+                Token::Bool(false),
+                Token::String("label"),
+                Token::String("Button"),
+                Token::String("style"),
+                Token::U8(1),
+                Token::String("type"),
+                Token::U8(2),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::String("type"),
+                Token::U8(1),
+                Token::StructEnd,
+            ],
+        );
     }
 }
