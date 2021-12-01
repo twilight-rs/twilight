@@ -105,7 +105,7 @@ mod tests {
             ]),
         });
 
-        serde_test::assert_tokens(
+        serde_test::assert_ser_tokens(
             &component,
             &[
                 Token::Struct {
@@ -164,6 +164,70 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("placeholder"),
                 Token::Some,
+                Token::Str("test placeholder"),
+                Token::Str("type"),
+                Token::U8(ComponentType::SelectMenu as u8),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("type"),
+                Token::U8(ComponentType::ActionRow as u8),
+                Token::StructEnd,
+            ],
+        );
+
+        serde_test::assert_de_tokens(
+            &component,
+            &[
+                Token::Struct {
+                    name: "ActionRow",
+                    len: 2,
+                },
+                Token::Str("components"),
+                Token::Seq { len: Some(2) },
+                Token::Struct {
+                    name: "Button",
+                    len: 5,
+                },
+                Token::Str("custom_id"),
+                Token::Str("test custom id"),
+                Token::Str("disabled"),
+                Token::Bool(false),
+                Token::Str("label"),
+                Token::Str("test label"),
+                Token::Str("style"),
+                Token::U8(ButtonStyle::Primary as u8),
+                Token::Str("type"),
+                Token::U8(ComponentType::Button as u8),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "SelectMenu",
+                    len: 7,
+                },
+                Token::Str("custom_id"),
+                Token::Str("test custom id 2"),
+                Token::Str("disabled"),
+                Token::Bool(false),
+                Token::Str("max_values"),
+                Token::U8(25),
+                Token::Str("min_values"),
+                Token::U8(5),
+                Token::Str("options"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "SelectMenuOption",
+                    len: 4,
+                },
+                Token::Str("default"),
+                Token::Bool(false),
+                Token::Str("description"),
+                Token::Str("test description"),
+                Token::Str("label"),
+                Token::Str("test option label"),
+                Token::Str("value"),
+                Token::Str("test option value"),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("placeholder"),
                 Token::Str("test placeholder"),
                 Token::Str("type"),
                 Token::U8(ComponentType::SelectMenu as u8),

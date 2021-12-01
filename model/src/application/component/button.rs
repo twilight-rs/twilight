@@ -1,9 +1,12 @@
+use std::fmt::{Formatter, Result as FmtResult};
+
 use crate::channel::ReactionType;
 
 use super::ComponentType;
 use serde::{
+    de::{Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor},
     ser::{SerializeStruct, Serializer},
-    Deserialize, Serialize,
+    Deserialize, Deserializer, Serialize,
 };
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
@@ -12,7 +15,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// See [Discord Docs/Message Components].
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#button-object-button-structure
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Button {
     /// User defined identifier for the button.
     ///
@@ -26,7 +29,6 @@ pub struct Button {
     /// Whether the button is disabled.
     ///
     /// Defaults to `false`.
-    #[serde(default)]
     pub disabled: bool,
     /// Visual emoji for clients to display with the button.
     pub emoji: Option<ReactionType>,
@@ -71,6 +73,156 @@ pub enum ButtonStyle {
     /// Selecting this button style requires specifying the [`Button::url`]
     /// field.
     Link = 5,
+}
+
+impl<'de> Deserialize<'de> for Button {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        deserializer.deserialize_map(ButtonVisitor)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(field_identifier, rename_all = "snake_case")]
+enum ButtonField {
+    Type,
+    CustomId,
+    Disabled,
+    Style,
+    Label,
+    Emoji,
+    Url,
+}
+
+struct ButtonVisitor;
+
+impl<'de> Visitor<'de> for ButtonVisitor {
+    type Value = Button;
+
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("struct Button")
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+        let mut kind: Option<ComponentType> = None;
+        let mut custom_id: Option<String> = None;
+        let mut disabled: Option<bool> = None;
+        let mut style: Option<ButtonStyle> = None;
+        let mut label: Option<String> = None;
+        let mut emoji: Option<ReactionType> = None;
+        let mut url: Option<String> = None;
+
+        let span = tracing::trace_span!("deserializing button");
+        let _span_enter = span.enter();
+
+        loop {
+            let span_child = tracing::trace_span!("iterating over button");
+            let _span_child_enter = span_child.enter();
+
+            let key = match map.next_key() {
+                Ok(Some(key)) => {
+                    tracing::trace!(?key, "found key");
+
+                    key
+                }
+                Ok(None) => break,
+                Err(why) => {
+                    // Encountered when we run into an unknown key.
+                    map.next_value::<IgnoredAny>()?;
+
+                    tracing::trace!("ran into an unknown key: {:?}", why);
+
+                    continue;
+                }
+            };
+
+            match key {
+                ButtonField::Type => {
+                    if kind.is_some() {
+                        return Err(DeError::duplicate_field("type"));
+                    }
+
+                    let value: ComponentType = map.next_value()?;
+
+                    if value != ComponentType::Button {
+                        return Err(DeError::invalid_value(
+                            Unexpected::Unsigned(value as u64),
+                            &"a button type",
+                        ));
+                    }
+
+                    kind = Some(value)
+                }
+                ButtonField::CustomId => {
+                    if custom_id.is_some() {
+                        return Err(DeError::duplicate_field("custom_id"));
+                    }
+
+                    custom_id = Some(map.next_value()?);
+                }
+                ButtonField::Disabled => {
+                    if disabled.is_some() {
+                        return Err(DeError::duplicate_field("disabled"));
+                    }
+
+                    disabled = Some(map.next_value()?);
+                }
+                ButtonField::Style => {
+                    if style.is_some() {
+                        return Err(DeError::duplicate_field("style"));
+                    }
+
+                    style = Some(map.next_value()?);
+                }
+
+                ButtonField::Label => {
+                    if label.is_some() {
+                        return Err(DeError::duplicate_field("label"));
+                    }
+
+                    label = Some(map.next_value()?);
+                }
+                ButtonField::Emoji => {
+                    if emoji.is_some() {
+                        return Err(DeError::duplicate_field("emoji"));
+                    }
+
+                    emoji = Some(map.next_value()?);
+                }
+                ButtonField::Url => {
+                    if url.is_some() {
+                        return Err(DeError::duplicate_field("url"));
+                    }
+
+                    url = Some(map.next_value()?);
+                }
+            }
+        }
+
+        if kind.is_none() {
+            return Err(DeError::missing_field("type"));
+        }
+
+        // defaults to false
+        let disabled = disabled.unwrap_or(false);
+        let style = style.ok_or_else(|| DeError::missing_field("style"))?;
+
+        tracing::trace!(
+            ?disabled,
+            ?style,
+            ?kind,
+            "all required fields of Button exist"
+        );
+
+        Ok(Button {
+            custom_id,
+            disabled,
+            emoji,
+            label,
+            style,
+            url,
+        })
+    }
 }
 
 impl Serialize for Button {
@@ -182,7 +334,7 @@ mod tests {
             url: Some("https://twilight.rs".to_owned()),
         };
 
-        serde_test::assert_tokens(
+        serde_test::assert_ser_tokens(
             &value,
             &[
                 Token::Struct {
@@ -216,5 +368,30 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        serde_test::assert_de_tokens(&value, &[
+            Token::Struct { name: "Button", len: 7 },
+            Token::String("custom_id"),
+            Token::String("test"),
+            Token::String("disabled"),
+            Token::Bool(false),
+            Token::String("emoji"),
+            Token::Struct {
+                name: "ReactionType",
+                len: 1,
+            },
+            Token::String("name"),
+            Token::String(FLAG),
+            Token::StructEnd,
+            Token::String("label"),
+            Token::String("Test"),
+            Token::String("style"),
+            Token::U8(ButtonStyle::Link as u8),
+            Token::String("type"),
+            Token::U8(ComponentType::Button as u8),
+            Token::String("url"),
+            Token::String("https://twilight.rs"),
+            Token::StructEnd,
+        ]);
     }
 }
