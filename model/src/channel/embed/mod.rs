@@ -113,7 +113,7 @@ mod tests {
         let value = Embed {
             author: Some(EmbedAuthor {
                 icon_url: Some("https://example.com/1.png".to_owned()),
-                name: Some("test".to_owned()),
+                name: "test".to_owned(),
                 proxy_icon_url: Some("https://example.com".to_owned()),
                 url: Some("https://example.com".to_owned()),
             }),
@@ -132,7 +132,7 @@ mod tests {
             image: Some(EmbedImage {
                 height: Some(1440),
                 proxy_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
-                url: Some("https://example.com/1.png".to_owned()),
+                url: "https://example.com/1.png".to_owned(),
                 width: Some(2560),
             }),
             kind: "rich".to_owned(),
@@ -143,7 +143,7 @@ mod tests {
             thumbnail: Some(EmbedThumbnail {
                 height: Some(1440),
                 proxy_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
-                url: Some("https://example.com/1.png".to_owned()),
+                url: "https://example.com/1.png".to_owned(),
                 width: Some(2560),
             }),
             timestamp: Some(timestamp),
@@ -174,7 +174,6 @@ mod tests {
                 Token::Some,
                 Token::Str("https://example.com/1.png"),
                 Token::Str("name"),
-                Token::Some,
                 Token::Str("test"),
                 Token::Str("proxy_icon_url"),
                 Token::Some,
@@ -231,7 +230,6 @@ mod tests {
                 Token::Some,
                 Token::Str("https://cdn.example.com/1-hash.png"),
                 Token::Str("url"),
-                Token::Some,
                 Token::Str("https://example.com/1.png"),
                 Token::Str("width"),
                 Token::Some,
@@ -265,7 +263,6 @@ mod tests {
                 Token::Some,
                 Token::Str("https://cdn.example.com/1-hash.png"),
                 Token::Str("url"),
-                Token::Some,
                 Token::Str("https://example.com/1.png"),
                 Token::Str("width"),
                 Token::Some,
