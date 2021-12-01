@@ -12,30 +12,30 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///
 /// [`ModalSubmit`]: crate::application::interaction::Interaction::ModalSubmit
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct ModalData {
+pub struct ModalInteractionData {
     /// User defined identifier for the input text.
     pub custom_id: String,
     /// List of parsed user inputs.
-    pub components: Vec<ModalDataActionRow>,
+    pub components: Vec<ModalInteractionDataActionRow>,
 }
 
 /// The parsed [`ActionRow`] of the users input.
 ///
 /// Refer to [the discord docs] for more information.
 ///
-/// [`ActionRow`]: crate::application::interaction::Interaction::modal::data::ModalDataActionRow
+/// [`ActionRow`]: crate::application::interaction::Interaction::modal::data::ModalInteractionDataActionRow
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-pub struct ModalDataActionRow {
+pub struct ModalInteractionDataActionRow {
     /// The parsed components.
-    pub components: Vec<ModalDataComponent>,
+    pub components: Vec<ModalInteractionDataComponent>,
 }
 
-impl Serialize for ModalDataActionRow {
+impl Serialize for ModalInteractionDataActionRow {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         // Reserved for `type`
         let len = 2;
 
-        let mut state = serializer.serialize_struct("ModalDataActionRow", len)?;
+        let mut state = serializer.serialize_struct("ModalInteractionDataActionRow", len)?;
 
         state.serialize_field("type", &ComponentType::ActionRow)?;
         state.serialize_field("components", &self.components)?;
@@ -48,17 +48,17 @@ impl Serialize for ModalDataActionRow {
 ///
 /// Refer to [the discord docs] for more information.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ModalDataComponent {
+pub struct ModalInteractionDataComponent {
     pub custom_id: String,
     pub value: ModalComponentValue,
 }
 
-impl Serialize for ModalDataComponent {
+impl Serialize for ModalInteractionDataComponent {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         // Reserved for `type`, `custom_id` and `value`
         let len = 3;
 
-        let mut state = serializer.serialize_struct("ModalDataComponent", len)?;
+        let mut state = serializer.serialize_struct("ModalInteractionDataComponent", len)?;
 
         state.serialize_field("custom_id", &self.custom_id)?;
         state.serialize_field("type", &self.value.kind())?;
@@ -71,7 +71,7 @@ impl Serialize for ModalDataComponent {
     }
 }
 
-impl<'de> Deserialize<'de> for ModalDataComponent {
+impl<'de> Deserialize<'de> for ModalInteractionDataComponent {
     #[allow(clippy::too_many_lines)]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         #[derive(Debug, Deserialize)]
@@ -88,13 +88,13 @@ impl<'de> Deserialize<'de> for ModalDataComponent {
             String(String),
         }
 
-        struct ModalDataComponentVisitor;
+        struct ModalInteractionDataComponentVisitor;
 
-        impl<'de> Visitor<'de> for ModalDataComponentVisitor {
-            type Value = ModalDataComponent;
+        impl<'de> Visitor<'de> for ModalInteractionDataComponentVisitor {
+            type Value = ModalInteractionDataComponent;
 
             fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-                formatter.write_str("ModalDataComponent")
+                formatter.write_str("ModalInteractionDataComponent")
             }
 
             #[allow(clippy::too_many_lines)]
@@ -116,7 +116,6 @@ impl<'de> Deserialize<'de> for ModalDataComponent {
                         }
                     };
 
-                    println!("Matching: {:?}", key);
                     match key {
                         Fields::CustomId => {
                             if custom_id_opt.is_some() {
@@ -162,15 +161,15 @@ impl<'de> Deserialize<'de> for ModalDataComponent {
                     }
                 };
 
-                Ok(ModalDataComponent { custom_id, value })
+                Ok(ModalInteractionDataComponent { custom_id, value })
             }
         }
 
-        deserializer.deserialize_map(ModalDataComponentVisitor)
+        deserializer.deserialize_map(ModalInteractionDataComponentVisitor)
     }
 }
 
-/// Value of a [`ModalDataComponent`].
+/// Value of a [`ModalInteractionDataComponent`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ModalComponentValue {
     InputText(String),
@@ -193,14 +192,23 @@ mod tests {
 
     use crate::application::component::ComponentType;
 
-    use super::{ModalComponentValue, ModalData, ModalDataActionRow, ModalDataComponent};
+    use super::{
+        ModalComponentValue, ModalInteractionData, ModalInteractionDataActionRow,
+        ModalInteractionDataComponent,
+    };
 
-    assert_fields!(ModalData: custom_id, components);
-    assert_impl_all!(ModalData: Clone, Debug, Deserialize<'static>, Eq, Serialize,);
-
-    assert_fields!(ModalDataComponent: custom_id, value);
+    assert_fields!(ModalInteractionData: custom_id, components);
     assert_impl_all!(
-        ModalDataComponent: Clone,
+        ModalInteractionData: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Serialize,
+    );
+
+    assert_fields!(ModalInteractionDataComponent: custom_id, value);
+    assert_impl_all!(
+        ModalInteractionDataComponent: Clone,
         Debug,
         Eq,
         PartialEq,
@@ -210,11 +218,11 @@ mod tests {
 
     #[test]
     fn test_modal_data() {
-        let value = ModalData {
+        let value = ModalInteractionData {
             custom_id: "test-modal".to_owned(),
-            components: Vec::from([ModalDataActionRow {
+            components: Vec::from([ModalInteractionDataActionRow {
                 components: Vec::from([
-                ModalDataComponent {
+                ModalInteractionDataComponent {
                     custom_id: "the-data-id".to_owned(),
                     value: ModalComponentValue::InputText("Twilight is a powerful, flexible and scalable ecosystem of Rust libraries for the Discord API.".to_owned())
                 }
@@ -224,20 +232,20 @@ mod tests {
 
         serde_test::assert_tokens(&value, &[
             Token::Struct {
-                name: "ModalData",
+                name: "ModalInteractionData",
                 len: 2
             },
             Token::String("custom_id"),
             Token::String("test-modal"),
             Token::String("components"),
             Token::Seq { len: Some(1) },
-            Token::Struct { name: "ModalDataActionRow", len: 2},
+            Token::Struct { name: "ModalInteractionDataActionRow", len: 2},
             Token::String("type"),
             Token::U8(ComponentType::ActionRow as u8),
             Token::String("components"),
             Token::Seq { len: Some(1) },
             Token::Struct {
-                name: "ModalDataComponent",
+                name: "ModalInteractionDataComponent",
                 len: 3
             },
             Token::String("custom_id"),

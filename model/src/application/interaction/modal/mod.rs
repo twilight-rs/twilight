@@ -1,6 +1,6 @@
 mod data;
 
-use self::data::ModalData;
+pub use self::data::{ModalInteractionData, ModalInteractionDataActionRow, ModalInteractionDataComponent, ModalComponentValue};
 
 use super::InteractionType;
 use crate::{
@@ -21,7 +21,7 @@ pub struct ModalSubmitInteraction {
     /// ID of the channel the interaction was triggered from.
     pub channel_id: ChannelId,
     /// Data from the submitted modal.
-    pub data: ModalData,
+    pub data: ModalInteractionData,
     /// ID of the guild the interaction was triggered from.
     pub guild_id: Option<GuildId>,
     /// ID of the interaction.
@@ -74,7 +74,7 @@ mod tests {
     use std::{fmt::Debug, str::FromStr};
 
     use crate::{
-        application::interaction::{modal::data::ModalDataActionRow, InteractionType},
+        application::interaction::{modal::data::ModalInteractionDataActionRow, InteractionType},
         datetime::Timestamp,
         guild::PartialMember,
         id::{ApplicationId, ChannelId, GuildId, InteractionId, UserId},
@@ -82,7 +82,7 @@ mod tests {
     };
 
     use super::{
-        data::{ModalComponentValue, ModalData, ModalDataComponent},
+        data::{ModalComponentValue, ModalInteractionData, ModalInteractionDataComponent},
         ModalSubmitInteraction,
     };
 
@@ -134,10 +134,10 @@ mod tests {
         let in_guild = ModalSubmitInteraction {
             application_id: ApplicationId::new(1).expect("non zero"),
             channel_id: ChannelId::new(1).expect("non zero"),
-            data: ModalData {
+            data: ModalInteractionData {
                 custom_id: "the-id".to_owned(),
-                components: Vec::from([ModalDataActionRow {
-                    components: Vec::from([ModalDataComponent {
+                components: Vec::from([ModalInteractionDataActionRow {
+                    components: Vec::from([ModalInteractionDataComponent {
                         custom_id: "input-1".to_owned(),
                         value: ModalComponentValue::InputText("got it".to_owned()),
                     }]),
