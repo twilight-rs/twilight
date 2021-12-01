@@ -313,6 +313,7 @@ mod tests {
         TrackInfo,
     };
     use serde::{Deserialize, Serialize};
+    use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
 
@@ -512,4 +513,28 @@ mod tests {
         Serialize,
         Sync
     );
+
+    #[test]
+    pub fn test_deserialize_playlist_info_negative_selected_track() {
+        let value = PlaylistInfo {
+            name: Some("Test Playlist".to_owned()),
+            selected_track: None,
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "PlaylistInfo",
+                    len: 13,
+                },
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("Test Playlist"),
+                Token::Str("selectedTrack"),
+                Token::I64(-1),
+                Token::StructEnd,
+            ],
+        );
+    }
 }
