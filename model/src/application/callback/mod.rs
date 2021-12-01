@@ -101,24 +101,36 @@ impl<'de> Visitor<'de> for ResponseVisitor {
         let mut data: Option<CallbackDataEnvelope> = None;
         let mut kind: Option<ResponseType> = None;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing interaction response");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
+            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over interaction response");
+            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
+                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
+                #[cfg(feature = "tracing")]
                 Err(why) => {
                     map.next_value::<IgnoredAny>()?;
 
                     tracing::trace!("ran into an unknown key: {:?}", why);
+
+                    continue;
+                }
+                #[cfg(not(feature = "tracing"))]
+                Err(_) => {
+                    map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }

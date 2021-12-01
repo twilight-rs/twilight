@@ -77,7 +77,7 @@ This is enabled by default.
 
 The `tracing` feature enables logging via the [`tracing`] crate.
 
-This is disabled by default.
+This is enabled by default.
 
 [`brotli`]: https://github.com/dropbox/rust-brotli
 [`native-tls`]: https://crates.io/crates/native-tls

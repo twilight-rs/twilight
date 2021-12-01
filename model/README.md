@@ -26,6 +26,14 @@ or extended by other crates.
 Some models have associated builders, which can be found in the
 [`twilight-util`] crate.
 
+## Features
+
+### Tracing
+
+The `tracing` feature enables logging via the [`tracing`] crate.
+
+This is enabled by default.
+
 ## License
 
 [ISC][LICENSE.md]
