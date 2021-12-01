@@ -6,8 +6,6 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Display implementation to format a [`Timestamp`] in an ISO 8601 format.
 ///
-/// Timestamps up to and including the year 2038 are supported.
-///
 /// # Examples
 ///
 /// Format a timestamp as an ISO 8601 datetime both with microseconds:
@@ -26,7 +24,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 /// ```
 #[derive(Debug)]
 pub struct TimestampIso8601Display {
-    /// Timestamp with the time stored as a Unix timestamp.
+    /// Timestamp.
     timestamp: Timestamp,
     /// Whether to format the timestamp with microseconds included.
     with_microseconds: bool,

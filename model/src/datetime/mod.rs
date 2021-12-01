@@ -57,7 +57,7 @@ const MICROSECONDS_PER_SECOND: i64 = 1_000_000;
 /// Number of nanoseconds in a microsecond.
 const NANOSECONDS_PER_MICROSECOND: i64 = 1_000;
 
-/// Representation of a Unix timestamp with milliseconds.
+/// Representation of a Unix timestamp.
 ///
 /// # Display
 ///
@@ -78,8 +78,7 @@ const NANOSECONDS_PER_MICROSECOND: i64 = 1_000;
 pub struct Timestamp(PrimitiveDateTime);
 
 impl Timestamp {
-    /// Create a non-zero timestamp from a Unix timestamp with microseconds
-    /// precision if the value is not zero.
+    /// Create a timestamp from a Unix timestamp with microseconds precision.
     ///
     /// # Errors
     ///
@@ -95,8 +94,7 @@ impl Timestamp {
             .map_err(TimestampParseError::from_component_range)
     }
 
-    /// Create a non-zero timestamp from a Unix timestamp with seconds precision
-    /// if the value is not zero.
+    /// Create a timestamp from a Unix timestamp with seconds precision.
     ///
     /// # Errors
     ///
