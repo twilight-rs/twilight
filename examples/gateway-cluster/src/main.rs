@@ -1,10 +1,9 @@
+use futures_util::StreamExt;
+use std::{env, error::Error, sync::Arc};
 use twilight_gateway::{
     cluster::{Cluster, ShardScheme},
     Intents,
 };
-
-use futures::StreamExt;
-use std::{env, error::Error, sync::Arc};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

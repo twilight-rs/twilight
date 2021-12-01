@@ -1,4 +1,4 @@
-use futures::StreamExt;
+use futures_util::StreamExt;
 use std::{env, error::Error};
 use twilight_gateway::{Intents, Shard};
 
