@@ -109,8 +109,6 @@ pub(crate) struct ExecuteWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    thread_id: Option<ChannelId>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<&'a str>,
@@ -164,7 +162,6 @@ impl<'a> ExecuteWebhook<'a> {
                 content: None,
                 embeds: None,
                 payload_json: None,
-                thread_id: None,
                 tts: None,
                 username: None,
                 allowed_mentions: None,
