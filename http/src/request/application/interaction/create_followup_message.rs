@@ -364,6 +364,7 @@ impl<'a> CreateFollowupMessage<'a> {
     // being consumed in request construction.
     fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
+            thread_id: None,
             token: self.token,
             wait: None,
             webhook_id: self.application_id.get(),

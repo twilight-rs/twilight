@@ -6,8 +6,11 @@ use http::{
     Error as HttpError, Request,
 };
 use percent_encoding::NON_ALPHANUMERIC;
-use serde::{Deserialize, Serialize};
-use std::net::{IpAddr, SocketAddr};
+use serde::{Deserialize, Deserializer, Serialize};
+use std::{
+    convert::TryFrom,
+    net::{IpAddr, SocketAddr},
+};
 
 /// The type of search result given.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -69,8 +72,20 @@ pub struct TrackInfo {
 pub struct PlaylistInfo {
     /// The name of the playlist, if available.
     pub name: Option<String>,
-    /// The selected track, if one was selected.
+    /// The selected track within the playlist, if available.
+    #[serde(default, deserialize_with = "deserialize_selected_track")]
     pub selected_track: Option<u64>,
+}
+
+// Any negative value should be treated as None.
+fn deserialize_selected_track<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Ok(Option::<i64>::deserialize(deserializer)
+        .ok()
+        .flatten()
+        .and_then(|selected| u64::try_from(selected).ok()))
 }
 
 /// Possible track results for a query.
@@ -298,6 +313,7 @@ mod tests {
         TrackInfo,
     };
     use serde::{Deserialize, Serialize};
+    use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
 
@@ -497,4 +513,28 @@ mod tests {
         Serialize,
         Sync
     );
+
+    #[test]
+    pub fn test_deserialize_playlist_info_negative_selected_track() {
+        let value = PlaylistInfo {
+            name: Some("Test Playlist".to_owned()),
+            selected_track: None,
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "PlaylistInfo",
+                    len: 13,
+                },
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("Test Playlist"),
+                Token::Str("selectedTrack"),
+                Token::I64(-1),
+                Token::StructEnd,
+            ],
+        );
+    }
 }

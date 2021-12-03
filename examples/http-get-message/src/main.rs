@@ -1,4 +1,4 @@
-use futures::future;
+use futures_util::future;
 use std::{env, error::Error};
 use twilight_http::Client;
 use twilight_model::id::ChannelId;

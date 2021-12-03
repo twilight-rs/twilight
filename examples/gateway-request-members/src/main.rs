@@ -1,4 +1,4 @@
-use futures::StreamExt;
+use futures_util::StreamExt;
 use std::{env, error::Error};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_model::{
@@ -6,13 +6,12 @@ use twilight_model::{
     id::{GuildId, UserId},
 };
 
-/// simple example of how to request one or more members from the gateway
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    // to interact with the gateway we first need to connect to it (with a shard or cluster)
+    // To interact with the gateway we first need to connect to it (with a shard or cluster)
     let (shard, mut events) = Shard::new(
         env::var("DISCORD_TOKEN")?,
         Intents::GUILD_MEMBERS | Intents::GUILDS,

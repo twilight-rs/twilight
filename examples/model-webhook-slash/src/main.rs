@@ -1,4 +1,4 @@
-use ed25519_dalek::{PublicKey, Signature, Verifier, PUBLIC_KEY_LENGTH};
+use ed25519_dalek::{PublicKey, Verifier, PUBLIC_KEY_LENGTH};
 use hex::FromHex;
 use hyper::{
     header::CONTENT_TYPE,
@@ -59,8 +59,12 @@ where
     };
 
     // Extract the signature to check against.
-    let signature = if let Some(hex_sig) = req.headers().get("x-signature-ed25519") {
-        Signature::new(FromHex::from_hex(hex_sig)?)
+    let signature = if let Some(hex_sig) = req
+        .headers()
+        .get("x-signature-ed25519")
+        .and_then(|v| v.to_str().ok())
+    {
+        hex_sig.parse().unwrap()
     } else {
         return Ok(Response::builder()
             .status(StatusCode::BAD_REQUEST)
