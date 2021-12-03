@@ -49,6 +49,7 @@ impl<'a> DeleteFollowupMessage<'a> {
     fn request(self) -> Request {
         Request::from_route(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         })
@@ -82,6 +83,7 @@ mod tests {
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,
+            thread_id: None,
             token: "token",
             webhook_id: 1,
         });

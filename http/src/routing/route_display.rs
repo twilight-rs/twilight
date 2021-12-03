@@ -523,21 +523,25 @@ impl Display for RouteDisplay<'_> {
             }
             Route::DeleteWebhookMessage {
                 message_id,
+                thread_id,
                 token,
                 webhook_id,
             }
             | Route::GetFollowupMessage {
                 application_id: webhook_id,
                 interaction_token: token,
+                thread_id,
                 message_id,
             }
             | Route::GetWebhookMessage {
                 message_id,
                 token,
+                thread_id,
                 webhook_id,
             }
             | Route::UpdateWebhookMessage {
                 message_id,
+                thread_id,
                 token,
                 webhook_id,
             } => {
@@ -546,8 +550,14 @@ impl Display for RouteDisplay<'_> {
                 f.write_str("/")?;
                 f.write_str(token)?;
                 f.write_str("/messages/")?;
+                Display::fmt(message_id, f)?;
 
-                Display::fmt(message_id, f)
+                if let Some(thread_id) = thread_id {
+                    f.write_str("?thread_id=")?;
+                    Display::fmt(thread_id, f)?;
+                }
+
+                Ok(())
             }
             Route::DeleteWebhook { token, webhook_id }
             | Route::GetWebhook { token, webhook_id }
@@ -563,6 +573,7 @@ impl Display for RouteDisplay<'_> {
                 Ok(())
             }
             Route::ExecuteWebhook {
+                thread_id,
                 token,
                 wait,
                 webhook_id,
@@ -571,9 +582,16 @@ impl Display for RouteDisplay<'_> {
                 Display::fmt(webhook_id, f)?;
                 f.write_str("/")?;
                 f.write_str(token)?;
+                f.write_str("?")?;
+
+                if let Some(thread_id) = thread_id {
+                    f.write_str("thread_id=")?;
+                    Display::fmt(thread_id, f)?;
+                    f.write_str("&")?;
+                }
 
                 if let Some(wait) = wait {
-                    f.write_str("?wait=")?;
+                    f.write_str("wait=")?;
                     f.write_str(if *wait { "true" } else { "false" })?;
                 }
 
@@ -1142,6 +1160,21 @@ mod tests {
             "channels/1/threads/archived/public?before=2021-01-01T00:00:00Z",
             route.display().to_string()
         );
+    }
+
+    #[test]
+    fn test_update_webhook_message_thread_id() {
+        let route = Route::UpdateWebhookMessage {
+            message_id: 1,
+            thread_id: Some(2),
+            token: "token",
+            webhook_id: 3,
+        };
+
+        assert_eq!(
+            "webhooks/3/token/messages/1?thread_id=2",
+            route.display().to_string()
+        )
     }
 
     #[test]

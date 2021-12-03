@@ -140,6 +140,7 @@ impl Player {
     }
 
     fn _send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
+        #[cfg(feature = "tracing")]
         tracing::debug!(
             "sending event on guild player {}: {:?}",
             self.guild_id,

@@ -5,209 +5,21 @@ use crate::{
     id::{ChannelId, MessageId, RoleId, UserId},
     user::User,
 };
-use serde::{
-    de::{Deserializer, Error as DeError, MapAccess, Visitor},
-    ser::{SerializeStruct, Serializer},
-    Deserialize, Serialize,
-};
-use std::{
-    collections::hash_map::{HashMap, RandomState},
-    fmt::{Formatter, Result as FmtResult},
-};
+use serde::{Deserialize, Serialize};
+use std::collections::hash_map::HashMap;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandInteractionDataResolved {
-    pub channels: Vec<InteractionChannel>,
-    pub members: Vec<InteractionMember>,
-    pub messages: Vec<Message>,
-    pub roles: Vec<Role>,
-    pub users: Vec<User>,
-}
-
-impl<'de> Deserialize<'de> for CommandInteractionDataResolved {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer.deserialize_map(ResolvedVisitor)
-    }
-}
-
-impl Serialize for CommandInteractionDataResolved {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let len = vec![
-            self.channels.is_empty(),
-            self.members.is_empty(),
-            self.messages.is_empty(),
-            self.roles.is_empty(),
-            self.users.is_empty(),
-        ]
-        .into_iter()
-        .filter(|b| !b)
-        .count();
-
-        let mut state = serializer.serialize_struct("CommandInteractionDataResolved", len)?;
-
-        if !self.channels.is_empty() {
-            let map: HashMap<ChannelId, &InteractionChannel, RandomState> = self
-                .channels
-                .iter()
-                .map(|c| c.id)
-                .zip(self.channels.iter())
-                .collect();
-
-            state.serialize_field("channels", &map)?;
-        }
-
-        if !self.members.is_empty() {
-            let map: HashMap<UserId, &InteractionMember, RandomState> = self
-                .members
-                .iter()
-                .map(|m| m.id)
-                .zip(self.members.iter())
-                .collect();
-
-            state.serialize_field("members", &map)?;
-        }
-
-        if !self.messages.is_empty() {
-            let map: HashMap<MessageId, &Message, RandomState> = self
-                .messages
-                .iter()
-                .map(|m| m.id)
-                .zip(self.messages.iter())
-                .collect();
-
-            state.serialize_field("messages", &map)?;
-        }
-
-        if !self.roles.is_empty() {
-            let map: HashMap<RoleId, &Role, RandomState> = self
-                .roles
-                .iter()
-                .map(|r| r.id)
-                .zip(self.roles.iter())
-                .collect();
-
-            state.serialize_field("roles", &map)?;
-        }
-
-        if !self.users.is_empty() {
-            let map: HashMap<UserId, &User, RandomState> = self
-                .users
-                .iter()
-                .map(|u| u.id)
-                .zip(self.users.iter())
-                .collect();
-
-            state.serialize_field("users", &map)?;
-        }
-
-        state.end()
-    }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(field_identifier, rename_all = "snake_case")]
-enum ResolvedField {
-    Channels,
-    Members,
-    Messages,
-    Roles,
-    Users,
-}
-
-struct ResolvedVisitor;
-
-impl<'de> Visitor<'de> for ResolvedVisitor {
-    type Value = CommandInteractionDataResolved;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("struct CommandInteractionDataResolved")
-    }
-
-    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut channels: Option<Vec<InteractionChannel>> = None;
-        let mut members: Option<Vec<InteractionMember>> = None;
-        let mut messages: Option<Vec<Message>> = None;
-        let mut roles: Option<Vec<Role>> = None;
-        let mut users: Option<Vec<User>> = None;
-
-        loop {
-            let key = match map.next_key() {
-                Ok(Some(key)) => key,
-                Ok(None) => break,
-                Err(_) => continue,
-            };
-
-            match key {
-                ResolvedField::Channels => {
-                    if channels.is_some() {
-                        return Err(DeError::duplicate_field("channels"));
-                    }
-
-                    let mapped_channels: HashMap<ChannelId, InteractionChannel> =
-                        map.next_value()?;
-
-                    channels = Some(mapped_channels.into_iter().map(|(_, v)| v).collect());
-                }
-                ResolvedField::Members => {
-                    if members.is_some() {
-                        return Err(DeError::duplicate_field("members"));
-                    }
-
-                    let mapped_members: HashMap<UserId, InteractionMemberEnvelope> =
-                        map.next_value()?;
-
-                    members = Some(
-                        mapped_members
-                            .into_iter()
-                            .map(|(k, v)| InteractionMember {
-                                hoisted_role: v.hoisted_role,
-                                id: k,
-                                joined_at: v.joined_at,
-                                nick: v.nick,
-                                premium_since: v.premium_since,
-                                roles: v.roles,
-                            })
-                            .collect(),
-                    );
-                }
-                ResolvedField::Messages => {
-                    if messages.is_some() {
-                        return Err(DeError::duplicate_field("messages"));
-                    }
-
-                    let mapped_messages: HashMap<MessageId, Message> = map.next_value()?;
-
-                    messages = Some(mapped_messages.into_iter().map(|(_, v)| v).collect());
-                }
-                ResolvedField::Roles => {
-                    if roles.is_some() {
-                        return Err(DeError::duplicate_field("roles"));
-                    }
-
-                    let map_roles: HashMap<RoleId, Role> = map.next_value()?;
-
-                    roles = Some(map_roles.into_iter().map(|(_, v)| v).collect());
-                }
-                ResolvedField::Users => {
-                    if users.is_some() {
-                        return Err(DeError::duplicate_field("users"));
-                    }
-
-                    let map_users: HashMap<UserId, User> = map.next_value()?;
-
-                    users = Some(map_users.into_iter().map(|(_, v)| v).collect());
-                }
-            }
-        }
-
-        Ok(CommandInteractionDataResolved {
-            channels: channels.unwrap_or_default(),
-            members: members.unwrap_or_default(),
-            messages: messages.unwrap_or_default(),
-            roles: roles.unwrap_or_default(),
-            users: users.unwrap_or_default(),
-        })
-    }
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub channels: HashMap<ChannelId, InteractionChannel>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub members: HashMap<UserId, InteractionMember>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub messages: HashMap<MessageId, Message>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub roles: HashMap<RoleId, Role>,
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub users: HashMap<UserId, User>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -223,27 +35,11 @@ pub struct InteractionChannel {
     pub thread_metadata: Option<ThreadMetadata>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-#[serde(rename = "InteractionMemberEnvelope")]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionMember {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub hoisted_role: Option<RoleId>,
-    #[serde(skip_serializing)]
-    pub id: UserId,
-    pub joined_at: Timestamp,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub nick: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_since: Option<Timestamp>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub roles: Vec<RoleId>,
-}
-
-#[derive(Deserialize)]
-struct InteractionMemberEnvelope {
-    pub hoisted_role: Option<RoleId>,
     pub joined_at: Timestamp,
     pub nick: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
     #[serde(default)]
     pub roles: Vec<RoleId>,
@@ -275,115 +71,133 @@ mod tests {
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let value = CommandInteractionDataResolved {
-            channels: Vec::from([InteractionChannel {
-                id: ChannelId::new(100).expect("non zero"),
-                kind: ChannelType::GuildText,
-                name: "channel name".into(),
-                parent_id: None,
-                permissions: Permissions::empty(),
-                thread_metadata: None,
-            }]),
-            members: Vec::from([InteractionMember {
-                hoisted_role: None,
-                id: UserId::new(300).expect("non zero"),
-                joined_at,
-                nick: None,
-                premium_since: None,
-                roles: Vec::new(),
-            }]),
-            messages: Vec::from([Message {
-                activity: None,
-                application: None,
-                application_id: None,
-                attachments: Vec::new(),
-                author: User {
+            channels: IntoIterator::into_iter([(
+                ChannelId::new(100).expect("non zero"),
+                InteractionChannel {
+                    id: ChannelId::new(100).expect("non zero"),
+                    kind: ChannelType::GuildText,
+                    name: "channel name".into(),
+                    parent_id: None,
+                    permissions: Permissions::empty(),
+                    thread_metadata: None,
+                },
+            )])
+            .collect(),
+            members: IntoIterator::into_iter([(
+                UserId::new(300).expect("non zero"),
+                InteractionMember {
+                    joined_at,
+                    nick: None,
+                    premium_since: None,
+                    roles: Vec::new(),
+                },
+            )])
+            .collect(),
+            messages: IntoIterator::into_iter([(
+                MessageId::new(4).expect("non zero"),
+                Message {
+                    activity: None,
+                    application: None,
+                    application_id: None,
+                    attachments: Vec::new(),
+                    author: User {
+                        accent_color: None,
+                        avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                        banner: None,
+                        bot: false,
+                        discriminator: 1,
+                        email: None,
+                        flags: None,
+                        id: UserId::new(3).expect("non zero"),
+                        locale: None,
+                        mfa_enabled: None,
+                        name: "test".to_owned(),
+                        premium_type: None,
+                        public_flags: None,
+                        system: None,
+                        verified: None,
+                    },
+                    channel_id: ChannelId::new(2).expect("non zero"),
+                    components: Vec::new(),
+                    content: "ping".to_owned(),
+                    edited_timestamp: None,
+                    embeds: Vec::new(),
+                    flags: Some(MessageFlags::empty()),
+                    guild_id: Some(GuildId::new(1).expect("non zero")),
+                    id: MessageId::new(4).expect("non zero"),
+                    interaction: None,
+                    kind: MessageType::Regular,
+                    member: Some(PartialMember {
+                        avatar: None,
+                        deaf: false,
+                        joined_at,
+                        mute: false,
+                        nick: Some("member nick".to_owned()),
+                        permissions: None,
+                        premium_since: None,
+                        roles: Vec::new(),
+                        user: None,
+                    }),
+                    mention_channels: Vec::new(),
+                    mention_everyone: false,
+                    mention_roles: Vec::new(),
+                    mentions: Vec::new(),
+                    pinned: false,
+                    reactions: Vec::new(),
+                    reference: None,
+                    sticker_items: vec![MessageSticker {
+                        format_type: StickerFormatType::Png,
+                        id: StickerId::new(1).expect("non zero"),
+                        name: "sticker name".to_owned(),
+                    }],
+                    referenced_message: None,
+                    thread: None,
+                    timestamp,
+                    tts: false,
+                    webhook_id: None,
+                },
+            )])
+            .collect(),
+            roles: IntoIterator::into_iter([(
+                RoleId::new(400).expect("non zero"),
+                Role {
+                    color: 0,
+                    hoist: true,
+                    icon: None,
+                    id: RoleId::new(400).expect("non zero"),
+                    managed: false,
+                    mentionable: true,
+                    name: "test".to_owned(),
+                    permissions: Permissions::ADMINISTRATOR,
+                    position: 12,
+                    tags: None,
+                    unicode_emoji: None,
+                },
+            )])
+            .collect(),
+            users: IntoIterator::into_iter([(
+                UserId::new(300).expect("non zero"),
+                User {
                     accent_color: None,
                     avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                     banner: None,
                     bot: false,
                     discriminator: 1,
-                    email: None,
-                    flags: None,
-                    id: UserId::new(3).expect("non zero"),
-                    locale: None,
-                    mfa_enabled: None,
+                    email: Some("address@example.com".to_owned()),
+                    flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
+                    id: UserId::new(300).expect("non zero"),
+                    locale: Some("en-us".to_owned()),
+                    mfa_enabled: Some(true),
                     name: "test".to_owned(),
-                    premium_type: None,
-                    public_flags: None,
+                    premium_type: Some(PremiumType::Nitro),
+                    public_flags: Some(
+                        UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
+                    ),
                     system: None,
-                    verified: None,
+                    verified: Some(true),
                 },
-                channel_id: ChannelId::new(2).expect("non zero"),
-                components: Vec::new(),
-                content: "ping".to_owned(),
-                edited_timestamp: None,
-                embeds: Vec::new(),
-                flags: Some(MessageFlags::empty()),
-                guild_id: Some(GuildId::new(1).expect("non zero")),
-                id: MessageId::new(4).expect("non zero"),
-                interaction: None,
-                kind: MessageType::Regular,
-                member: Some(PartialMember {
-                    avatar: None,
-                    deaf: false,
-                    joined_at,
-                    mute: false,
-                    nick: Some("member nick".to_owned()),
-                    permissions: None,
-                    premium_since: None,
-                    roles: Vec::new(),
-                    user: None,
-                }),
-                mention_channels: Vec::new(),
-                mention_everyone: false,
-                mention_roles: Vec::new(),
-                mentions: Vec::new(),
-                pinned: false,
-                reactions: Vec::new(),
-                reference: None,
-                sticker_items: vec![MessageSticker {
-                    format_type: StickerFormatType::Png,
-                    id: StickerId::new(1).expect("non zero"),
-                    name: "sticker name".to_owned(),
-                }],
-                referenced_message: None,
-                thread: None,
-                timestamp,
-                tts: false,
-                webhook_id: None,
-            }]),
-            roles: Vec::from([Role {
-                color: 0,
-                hoist: true,
-                icon: None,
-                id: RoleId::new(400).expect("non zero"),
-                managed: false,
-                mentionable: true,
-                name: "test".to_owned(),
-                permissions: Permissions::ADMINISTRATOR,
-                position: 12,
-                tags: None,
-                unicode_emoji: None,
-            }]),
-            users: Vec::from([User {
-                accent_color: None,
-                avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
-                banner: None,
-                bot: false,
-                discriminator: 1,
-                email: Some("address@example.com".to_owned()),
-                flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-                id: UserId::new(300).expect("non zero"),
-                locale: Some("en-us".to_owned()),
-                mfa_enabled: Some(true),
-                name: "test".to_owned(),
-                premium_type: Some(PremiumType::Nitro),
-                public_flags: Some(
-                    UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
-                ),
-                system: None,
-                verified: Some(true),
-            }]),
+            )])
+            .collect(),
         };
 
         serde_test::assert_tokens(
@@ -417,11 +231,16 @@ mod tests {
                 Token::NewtypeStruct { name: "UserId" },
                 Token::Str("300"),
                 Token::Struct {
-                    name: "InteractionMemberEnvelope",
-                    len: 1,
+                    name: "InteractionMember",
+                    len: 3,
                 },
                 Token::Str("joined_at"),
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
+                Token::Str("nick"),
+                Token::None,
+                Token::Str("roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::StructEnd,
                 Token::MapEnd,
                 Token::Str("messages"),

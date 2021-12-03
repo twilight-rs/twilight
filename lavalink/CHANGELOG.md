@@ -2,6 +2,15 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.7.3] - 2021-12-03
+
+### Fixes
+
+Support deserializing negative track vales in `PlaylistInfo` as `None` ([#1304]
+- [@james7132]).
+
+[#1304]: https://github.com/twilight-rs/twilight/pull/1304
+
 ## [0.7.2] - 2021-11-20
 
 ### Fixes
@@ -238,6 +247,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.0
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.6.1

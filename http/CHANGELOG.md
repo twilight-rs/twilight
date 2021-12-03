@@ -2,6 +2,21 @@
 
 Changelog for `twilight-http`.
 
+## [0.7.3] - 2021-12-03
+
+### Additions
+
+`DeleteWebhookMessage`, `UpdateWebhookMessage`, and `GetWebhookMessage` now
+support targeting a `thread_id` instead of the channel itself. `ExecuteWebhook`
+already had a method to do this, but it was not functioning until now ([#1286],
+[#1311] - [@7596ff]]).
+
+Added some missing error codes ([#1291] - [@itohatweb]).
+
+[#1286]: https://github.com/twilight-rs/twilight/pull/1286
+[#1291]: https://github.com/twilight-rs/twilight/pull/1291
+[#1311]: https://github.com/twilight-rs/twilight/pull/1311
+
 ## [0.7.2] - 2021-11-20
 
 ### Additions
@@ -1377,6 +1392,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.7.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.3
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.0

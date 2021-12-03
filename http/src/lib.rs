@@ -75,7 +75,7 @@
 //!
 //! The `tracing` feature enables logging via the [`tracing`] crate.
 //!
-//! This is disabled by default.
+//! This is enabled by default.
 //!
 //! ### Trust-DNS
 //!
