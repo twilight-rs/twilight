@@ -16,7 +16,7 @@ Provides builders for large structs.
 ### `link`
 
 Provides implementations for parsing and formatting entities' URLs, such as
-webhook URLs.
+webhook and image URLs.
 
 ### `permission-calculator`
 
