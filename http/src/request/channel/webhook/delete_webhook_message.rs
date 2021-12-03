@@ -5,7 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{MessageId, WebhookId};
+use twilight_model::id::{ChannelId, MessageId, WebhookId};
 
 /// Delete a message created by a webhook.
 ///
@@ -31,6 +31,7 @@ pub struct DeleteWebhookMessage<'a> {
     http: &'a Client,
     message_id: MessageId,
     reason: Option<&'a str>,
+    thread_id: Option<ChannelId>,
     token: &'a str,
     webhook_id: WebhookId,
 }
@@ -46,6 +47,7 @@ impl<'a> DeleteWebhookMessage<'a> {
             http,
             message_id,
             reason: None,
+            thread_id: None,
             token,
             webhook_id,
         }
@@ -56,6 +58,7 @@ impl<'a> DeleteWebhookMessage<'a> {
     fn request(&self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: self.thread_id.map(ChannelId::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
@@ -66,6 +69,14 @@ impl<'a> DeleteWebhookMessage<'a> {
         }
 
         Ok(request.build())
+    }
+
+    /// Delete in a thread belonging to the channel instead of the channel
+    /// itself.
+    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+        self.thread_id.replace(thread_id);
+
+        self
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -106,6 +117,7 @@ mod tests {
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,
+            thread_id: None,
             token: "token",
             webhook_id: 1,
         });

@@ -20,7 +20,7 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{MessageId, WebhookId},
+    id::{ChannelId, MessageId, WebhookId},
 };
 
 /// A webhook's message can not be updated as configured.
@@ -175,6 +175,7 @@ pub struct UpdateWebhookMessage<'a> {
     http: &'a Client,
     message_id: MessageId,
     reason: Option<&'a str>,
+    thread_id: Option<ChannelId>,
     token: &'a str,
     webhook_id: WebhookId,
 }
@@ -202,6 +203,7 @@ impl<'a> UpdateWebhookMessage<'a> {
             http,
             message_id,
             reason: None,
+            thread_id: None,
             token,
             webhook_id,
         }
@@ -402,11 +404,20 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
+    /// Update in a thread belonging to the channel instead of the channel
+    /// itself.
+    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+        self.thread_id.replace(thread_id);
+
+        self
+    }
+
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
     fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: self.thread_id.map(ChannelId::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
@@ -479,7 +490,7 @@ mod tests {
         request::{AuditLogReason, NullableField, Request},
         routing::Route,
     };
-    use twilight_model::id::{MessageId, WebhookId};
+    use twilight_model::id::{ChannelId, MessageId, WebhookId};
 
     #[test]
     fn test_request() {
@@ -492,6 +503,7 @@ mod tests {
         )
         .content(Some("test"))
         .expect("'test' content couldn't be set")
+        .thread_id(ChannelId::new(3).expect("non zero"))
         .reason("reason")
         .expect("'reason' is not a valid reason");
         let actual = builder.request().expect("failed to create request");
@@ -506,6 +518,7 @@ mod tests {
         };
         let route = Route::UpdateWebhookMessage {
             message_id: 2,
+            thread_id: Some(3),
             token: "token",
             webhook_id: 1,
         };

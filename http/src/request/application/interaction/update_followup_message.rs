@@ -411,6 +411,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         });
