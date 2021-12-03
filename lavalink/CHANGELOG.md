@@ -2,6 +2,25 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.8.0] - 2021-12-03
+
+### Changes
+
+`tracing` is now an optional feature, and enabled by default ([#1203] -
+[@Gelbpunkt]).
+
+The `rustls` feature now defaults to `rustls-native-roots`; users may
+optionally select `rustls-webpki-roots` ([#1276] - [@Gelbpunkt]). This
+matches the functionality of other crates that include a `rustls`
+feature.
+
+### Dependency Updates
+
+`tokio-tungstenite` has been updated to `0.16` ([#1276] - [@Gelbpunkt]).
+
+[#1203]: https://github.com/twilight-rs/twilight/pull/1203
+[#1276]: https://github.com/twilight-rs/twilight/pull/1276
+
 ## [0.7.3] - 2021-12-03
 
 ### Fixes
@@ -247,6 +266,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.0
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.0
