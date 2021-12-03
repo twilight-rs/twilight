@@ -32,13 +32,12 @@ tracing = { default-features = false, features = ["std", "attributes"], optional
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-twilight-gateway = { default-features = false, features = ["rustls"], path = "../gateway" }
-twilight-http = { default-features = false, features = ["rustls"], path = "../http" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http" }
 
 [features]
-default = ["http-support", "rustls", "tracing"]
+default = ["http-support", "rustls-native-roots", "tracing"]
 http-support = ["percent-encoding"]
 native = ["tokio-tungstenite/native-tls"]
-rustls = ["rustls-native-roots"]
 rustls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots"]

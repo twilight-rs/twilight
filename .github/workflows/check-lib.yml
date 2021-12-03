@@ -204,22 +204,22 @@ jobs:
           - lavalink
         features:
           - native
-          - rustls
+          - rustls-native-roots
           - simd-json
 
         include:
           - package: http
             features: simd-json
-            additional: --features rustls
+            additional: --features rustls-native-roots
           - package: gateway
-            features: rustls
+            features: rustls-native-roots
             additional: --features zlib-stock
           - package: gateway
             features: native
             additional: --features zlib-stock
           - package: gateway
             features: simd-json
-            additional: --features rustls,zlib-stock
+            additional: --features rustls-native-roots,zlib-stock
           - package: lavalink
             additional: --features http-support
 
