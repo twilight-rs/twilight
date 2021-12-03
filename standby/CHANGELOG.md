@@ -2,6 +2,15 @@
 
 Changelog for `twilight-standby`.
 
+## [0.8.0] - 2021-12-03
+
+### Additions
+
+Results of event processing are now exposed through a `ProcessResults`
+struct ([#1160] - [@zeylahellyer]).
+
+[#1160]: https://github.com/twilight-rs/twilight/pull/1160
+
 ## [0.7.1] - 2021-10-29
 
 ### Additions
@@ -150,6 +159,7 @@ Initial release.
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.8.0
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.7.0
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.6.2
