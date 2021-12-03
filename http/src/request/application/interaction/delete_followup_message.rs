@@ -4,7 +4,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ApplicationId, ChannelId, MessageId};
+use twilight_model::id::{ApplicationId, MessageId};
 
 /// Delete a followup message created from a interaction.
 ///
@@ -27,7 +27,6 @@ use twilight_model::id::{ApplicationId, ChannelId, MessageId};
 pub struct DeleteFollowupMessage<'a> {
     http: &'a Client,
     message_id: MessageId,
-    thread_id: Option<ChannelId>,
     token: &'a str,
     application_id: ApplicationId,
 }
@@ -42,24 +41,15 @@ impl<'a> DeleteFollowupMessage<'a> {
         Self {
             http,
             message_id,
-            thread_id: None,
             token,
             application_id,
         }
     }
 
-    /// Delete in a thread belonging to the channel instead of the channel
-    /// itself.
-    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
-        self.thread_id.replace(thread_id);
-
-        self
-    }
-
     fn request(self) -> Request {
         Request::from_route(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
-            thread_id: self.thread_id.map(ChannelId::get),
+            thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         })

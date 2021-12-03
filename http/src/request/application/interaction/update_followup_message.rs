@@ -20,7 +20,7 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{ApplicationId, ChannelId, MessageId},
+    id::{ApplicationId, MessageId},
 };
 
 /// A followup message can not be updated as configured.
@@ -178,7 +178,6 @@ pub struct UpdateFollowupMessage<'a> {
     fields: UpdateFollowupMessageFields<'a>,
     http: &'a Client,
     message_id: MessageId,
-    thread_id: Option<ChannelId>,
     token: &'a str,
 }
 
@@ -204,7 +203,6 @@ impl<'a> UpdateFollowupMessage<'a> {
             attachments: Cow::Borrowed(&[]),
             http,
             message_id,
-            thread_id: None,
             token,
             application_id,
         }
@@ -408,20 +406,12 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
-    /// Update in a thread belonging to the channel instead of the channel
-    /// itself.
-    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
-        self.thread_id.replace(thread_id);
-
-        self
-    }
-
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
     fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
-            thread_id: self.thread_id.map(ChannelId::get),
+            thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         });
