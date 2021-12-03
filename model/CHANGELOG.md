@@ -2,6 +2,15 @@
 
 Changelog for `twilight-model`.
 
+## [0.7.3] - 2021-12-03
+
+### Fixes
+
+Mark some `old` fields as `Option`s to fix a case where they weren't present
+([#1284] - [@7596ff]).
+
+[#1284]: https://github.com/twilight-rs/twilight/pull/1284
+
 ## [0.7.2] - 2021-11-20
 
 ### Additions
@@ -1075,6 +1084,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.7.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.3
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.0
