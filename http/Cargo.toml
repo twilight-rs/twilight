@@ -18,6 +18,7 @@ version = "0.7.3"
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.23" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
+hyper-trust-dns = { default-features = false, optional = true, version = "0.3.1" }
 percent-encoding = { default-features = false, version = "2" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
 serde = { default-features = false, features = ["derive"], version = "1" }
@@ -38,6 +39,7 @@ native = ["hyper-tls"]
 rustls = ["rustls-native-roots"]
 rustls-native-roots = ["hyper-rustls/native-tokio"]
 rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
+trust-dns = ["hyper-trust-dns"]
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.3" }

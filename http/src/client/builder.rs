@@ -32,13 +32,18 @@ impl ClientBuilder {
 
     /// Build the [`Client`].
     pub fn build(self) -> Client {
+        #[cfg(not(feature = "trust-dns"))]
+        let http_connector = hyper::client::HttpConnector::new();
+        #[cfg(feature = "trust-dns")]
+        let http_connector = hyper_trust_dns::new_trust_dns_http_connector();
+
         #[cfg(feature = "rustls-native-roots")]
         let connector = hyper_rustls::HttpsConnectorBuilder::new()
             .with_native_roots()
             .https_or_http()
             .enable_http1()
             .enable_http2()
-            .build();
+            .wrap_connector(http_connector);
 
         #[cfg(all(feature = "rustls-webpki-roots", not(feature = "rustls-native-roots")))]
         let connector = hyper_rustls::HttpsConnectorBuilder::new()
@@ -46,14 +51,14 @@ impl ClientBuilder {
             .https_or_http()
             .enable_http1()
             .enable_http2()
-            .build();
+            .wrap_connector(http_connector);
 
         #[cfg(all(
             feature = "hyper-tls",
             not(feature = "rustls-native-roots"),
             not(feature = "rustls-webpki-roots")
         ))]
-        let connector = hyper_tls::HttpsConnector::new();
+        let connector = hyper_tls::HttpsConnector::new_with_connector(http_connector);
 
         let http = hyper::client::Builder::default().build(connector);
 

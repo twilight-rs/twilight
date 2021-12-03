@@ -88,7 +88,7 @@ use crate::{
     API_VERSION,
 };
 use hyper::{
-    client::{Client as HyperClient, HttpConnector},
+    client::Client as HyperClient,
     header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
     Body,
 };
@@ -122,6 +122,11 @@ use twilight_model::{
 type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
 #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
 type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
+
+#[cfg(feature = "trust-dns")]
+type HttpConnector = hyper_trust_dns::TrustDnsHttpConnector;
+#[cfg(not(feature = "trust-dns"))]
+type HttpConnector = hyper::client::HttpConnector;
 
 /// Twilight's http client.
 ///
