@@ -53,7 +53,7 @@ impl TimestampParseError {
     /// Create a new error from a [`ComponentRangeError`].
     pub(super) fn from_component_range(source: ComponentRangeError) -> Self {
         Self {
-            kind: TimestampParseErrorType::Parsing,
+            kind: TimestampParseErrorType::Range,
             source: Some(Box::new(source)),
         }
     }
@@ -74,6 +74,9 @@ impl Display for TimestampParseError {
                 f.write_str("provided value is not in an iso 8601 format")
             }
             TimestampParseErrorType::Parsing => f.write_str("timestamp parsing failed"),
+            TimestampParseErrorType::Range => {
+                f.write_str("value of a field is not in an acceptable range")
+            }
         }
     }
 }
@@ -90,6 +93,8 @@ pub enum TimestampParseErrorType {
     Format,
     /// Timestamp parsing failed.
     Parsing,
+    /// Value of a field is not in an acceptable range.
+    Range,
 }
 
 #[cfg(test)]
