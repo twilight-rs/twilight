@@ -1,4 +1,4 @@
-use futures::StreamExt;
+use futures_util::StreamExt;
 use hyper::{
     client::{Client as HyperClient, HttpConnector},
     Body, Request,

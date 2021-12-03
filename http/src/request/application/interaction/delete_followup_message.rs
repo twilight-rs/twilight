@@ -64,6 +64,7 @@ impl TryIntoRequest for DeleteFollowupMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         }))
@@ -95,6 +96,7 @@ mod tests {
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,
+            thread_id: None,
             token: "token",
             webhook_id: 1,
         });

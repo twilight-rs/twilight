@@ -2,6 +2,95 @@
 
 Changelog for `twilight-model`.
 
+## [0.7.3] - 2021-12-03
+
+### Fixes
+
+Mark some `old` fields as `Option`s to fix a case where they weren't present
+([#1284] - [@7596ff]).
+
+[#1284]: https://github.com/twilight-rs/twilight/pull/1284
+
+## [0.7.2] - 2021-11-20
+
+### Additions
+
+Add the `UserOrId::id` function ([#1219] - [@vilgotf]).
+
+Support `ApplicationCommand` autocomplete ([#1228] - [@vilgotf]). 
+
+New struct(s):
+- `application::callback::Autocomplete`
+
+New method(s):
+- `application::command::CommandOption::is_autocomplete`
+
+New fields/variants:
+- `application::callback::ResponseType::ApplicationCommandAutocompleteResult`
+- `application::interaction::application_command::CommandDataOption::focused`
+- `application::interaction::InteractionType::ApplicationCommandAutocomplete`
+- `application::interaction::Interaction::ApplicationCommandAutocomplete`
+
+Add `Permissions::START_EMBEDDED_ACTIVITIES` ([#1229] - [@vilgotf]).
+
+Add `Command::version` field, which is a `CommandVersionId` ([#1230] -
+[@vilgotf]).
+
+Add a new `CommandOptionData` variant with `min_value` and `max_value` fields
+([#1235] - [@baptiste0928]).
+
+Inject the guild ID while deserializing `ThreadMembersUpdate` ([#1264] -
+[@Erk-]).
+
+Add `ActivityFlags::{PARTY_PRIVACY_FRIENDS, PARTY_PRIVACY_VOICE_CHANNEL,
+EMBEDDED}` ([#1266] - [@7596ff]).
+
+Add `ApplicationFlags::{GATEWAY_MESSAGE_CONTENT,
+GATEWAY_MESSAGE_CONTENT_LIMITED}` ([#1267] - [@7596ff]).
+
+Bring the `UserFlags` struct up to date ([#1268] - [@7596ff]).
+
+Add `SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATION_REPLIES` ([#1269] -
+[@7596ff]).
+
+### Changes
+
+`Member::joined_at`, `PartialMember::joined_at`, and
+`InteractionMember::joined_at` required ([#1220] - [@vilgotf]).
+
+Depend on at least `serde 1.0.103` and `serde_repr 0.1.5` ([#1277] -
+[@vilgotf]).
+
+### Fixes
+
+Properly serialize the `CommandData` struct ([#1234] - [@vilgotf]).
+
+Fix deserialization of the `CommandDataOption` struct ([#1240] - [@Erk-]). This
+properly accounts for the `type` field that Discord provides.
+
+Fix the `Invite` struct by moving some fields from the erroneous
+`InviteMetadata` struct ([#1247] - [@7596ff]).
+
+Fix an issue in `CommandOption` deserialization where `channel_types` was not
+properly deserialized ([#1272] - [@vilgotf]).
+
+[#1217]: https://github.com/twilight-rs/twilight/pull/1217
+[#1219]: https://github.com/twilight-rs/twilight/pull/1219
+[#1220]: https://github.com/twilight-rs/twilight/pull/1220
+[#1228]: https://github.com/twilight-rs/twilight/pull/1228
+[#1229]: https://github.com/twilight-rs/twilight/pull/1229
+[#1230]: https://github.com/twilight-rs/twilight/pull/1230
+[#1235]: https://github.com/twilight-rs/twilight/pull/1235
+[#1240]: https://github.com/twilight-rs/twilight/pull/1240
+[#1247]: https://github.com/twilight-rs/twilight/pull/1247
+[#1264]: https://github.com/twilight-rs/twilight/pull/1264
+[#1266]: https://github.com/twilight-rs/twilight/pull/1266
+[#1267]: https://github.com/twilight-rs/twilight/pull/1267
+[#1268]: https://github.com/twilight-rs/twilight/pull/1268
+[#1269]: https://github.com/twilight-rs/twilight/pull/1269
+[#1272]: https://github.com/twilight-rs/twilight/pull/1272
+[#1277]: https://github.com/twilight-rs/twilight/pull/1277
+
 ## [0.7.1] - 2021-10-29
 
 ### Additions
@@ -995,6 +1084,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.7.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.3
+[0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.0
 [0.6.5]: https://github.com/twilight-rs/twilight/releases/tag/model-0.6.5

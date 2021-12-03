@@ -273,12 +273,14 @@ impl GatewayEventVisitor<'_> {
     }
 
     fn ignore_all<'de, V: MapAccess<'de>>(map: &mut V) -> Result<(), V::Error> {
+        #[cfg(feature = "tracing")]
         tracing::trace!("ignoring all other fields");
 
         while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
             map.next_value::<IgnoredAny>()?;
         }
 
+        #[cfg(feature = "tracing")]
         tracing::trace!("ignored all other fields");
 
         Ok(())
@@ -307,13 +309,17 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
             "RECONNECT",
         ];
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing gateway event");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
+        #[cfg(feature = "tracing")]
         tracing::trace!(event_type=?self.2, op=self.0, seq=?self.1);
 
         let op_deser: U8Deserializer<V::Error> = self.0.into_deserializer();
 
         let op = OpCode::deserialize(op_deser).ok().ok_or_else(|| {
+            #[cfg(feature = "tracing")]
             tracing::trace!(op = self.0, "unknown opcode");
             let unexpected = Unexpected::Unsigned(u64::from(self.0));
 
@@ -326,25 +332,36 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                     .2
                     .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
 
+                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing gateway dispatch");
 
                 let mut d = None;
 
                 loop {
+                    #[cfg(feature = "tracing")]
                     let span_child = tracing::trace_span!("iterating over element");
+                    #[cfg(feature = "tracing")]
                     let _span_child_enter = span_child.enter();
 
                     let key = match map.next_key() {
                         Ok(Some(key)) => {
+                            #[cfg(feature = "tracing")]
                             tracing::trace!(?key, "found key");
 
                             key
                         }
                         Ok(None) => break,
+                        #[cfg(feature = "tracing")]
                         Err(why) => {
                             map.next_value::<IgnoredAny>()?;
 
                             tracing::trace!("ran into an unknown key: {:?}", why);
+
+                            continue;
+                        }
+                        #[cfg(not(feature = "tracing"))]
+                        Err(_) => {
+                            map.next_value::<IgnoredAny>()?;
 
                             continue;
                         }
@@ -363,6 +380,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                         Field::Op | Field::S | Field::T => {
                             map.next_value::<IgnoredAny>()?;
 
+                            #[cfg(feature = "tracing")]
                             tracing::trace!(key=?key, "ignoring key");
                         }
                     }
@@ -376,8 +394,10 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Dispatch(s, Box::new(d))
             }
             OpCode::Heartbeat => {
+                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing gateway heartbeat");
                 let seq = Self::field(&mut map, Field::D)?;
+                #[cfg(feature = "tracing")]
                 tracing::trace!(seq = %seq);
 
                 Self::ignore_all(&mut map)?;
@@ -385,6 +405,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Heartbeat(seq)
             }
             OpCode::HeartbeatAck => {
+                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing gateway heartbeat ack");
 
                 Self::ignore_all(&mut map)?;
@@ -392,8 +413,10 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::HeartbeatAck
             }
             OpCode::Hello => {
+                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing gateway hello");
                 let hello = Self::field::<Hello, _>(&mut map, Field::D)?;
+                #[cfg(feature = "tracing")]
                 tracing::trace!(hello = ?hello);
 
                 Self::ignore_all(&mut map)?;
@@ -401,8 +424,10 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Hello(hello.heartbeat_interval)
             }
             OpCode::InvalidSession => {
+                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing invalid session");
                 let invalidate = Self::field::<bool, _>(&mut map, Field::D)?;
+                #[cfg(feature = "tracing")]
                 tracing::trace!(invalidate = %invalidate);
 
                 Self::ignore_all(&mut map)?;

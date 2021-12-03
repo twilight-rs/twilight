@@ -101,7 +101,7 @@ pub enum AuditLogChange {
         #[serde(rename = "new_value")]
         new: u64,
         /// Old bitrate.
-        #[serde(rename = "old_value")]
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
     },
     /// Channel for an invite code.
@@ -122,8 +122,8 @@ pub enum AuditLogChange {
         #[serde(rename = "new_value")]
         new: u64,
         /// Old role color.
-        #[serde(rename = "old_value")]
-        old: u64,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// Whether a member is guild deafened.
     Deaf {
@@ -221,8 +221,8 @@ pub enum AuditLogChange {
         #[serde(rename = "new_value")]
         new: bool,
         /// Whether a role was hoisted.
-        #[serde(rename = "old_value")]
-        old: bool,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
     },
     /// Hash of a guild icon.
     IconHash {
@@ -263,8 +263,8 @@ pub enum AuditLogChange {
         #[serde(rename = "new_value")]
         new: bool,
         /// Whether a role was mentionable.
-        #[serde(rename = "old_value")]
-        old: bool,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
     },
     /// Multi-Factor Authentication level required of a guild's moderators.
     MfaLevel {
@@ -326,8 +326,8 @@ pub enum AuditLogChange {
         #[serde(rename = "new_value")]
         new: Permissions,
         /// Old set of permissions.
-        #[serde(rename = "old_value")]
-        old: Permissions,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Permissions>,
     },
     /// Position of an entity such as a channel or role.
     Position {
@@ -335,8 +335,8 @@ pub enum AuditLogChange {
         #[serde(rename = "new_value")]
         new: u64,
         /// Old position value.
-        #[serde(rename = "old_value")]
-        old: u64,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// Preferred locale of a guild.
     PreferredLocale {
@@ -377,8 +377,8 @@ pub enum AuditLogChange {
         #[serde(rename = "new_value")]
         new: u64,
         /// Old ratelimit, in seconds.
-        #[serde(rename = "old_value")]
-        old: u64,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// Role was added to a user.
     RoleAdded {
@@ -436,10 +436,10 @@ pub enum AuditLogChange {
     },
     /// Topic of a textual channel.
     Topic {
-        /// Old topic.
+        /// New topic.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
         new: Option<String>,
-        /// New topic.
+        /// Old topic.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<String>,
     },
@@ -718,7 +718,10 @@ mod tests {
         let old: Permissions = Permissions::SEND_MESSAGES;
         let new: Permissions = old | Permissions::EMBED_LINKS;
 
-        let value = AuditLogChange::Permissions { new, old };
+        let value = AuditLogChange::Permissions {
+            new,
+            old: Some(old),
+        };
 
         assert_eq!(Some(AuditLogChangeKey::Permissions), value.key());
 
@@ -734,6 +737,7 @@ mod tests {
                 Token::String("new_value"),
                 Token::Str("18432"),
                 Token::String("old_value"),
+                Token::Some,
                 Token::Str("2048"),
                 Token::StructEnd,
             ],

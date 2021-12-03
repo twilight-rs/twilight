@@ -12,14 +12,20 @@ name = "twilight-model"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.7.1"
+version = "0.7.3"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
 serde = { default-features = false, features = ["derive", "std"], version = "1.0.103" }
 serde-value = { default-features = false, version = "0.7" }
 serde_repr = { default-features = false, version = "0.1.5" }
-tracing = { default-features = false, version = "0.1" }
+time = { default-features = false, features = ["parsing", "std"], version = "0.3" }
+
+# Optional dependencies.
+tracing = { default-features = false, optional = true, version = "0.1" }
+
+[features]
+default = ["tracing"]
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.3" }

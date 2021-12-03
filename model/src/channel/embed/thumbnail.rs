@@ -6,8 +6,7 @@ pub struct EmbedThumbnail {
     pub height: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proxy_url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
+    pub url: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<u64>,
 }
@@ -22,7 +21,7 @@ mod tests {
         let value = EmbedThumbnail {
             height: Some(1440),
             proxy_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
-            url: Some("https://example.com/1.png".to_owned()),
+            url: "https://example.com/1.png".to_owned(),
             width: Some(2560),
         };
 
@@ -40,7 +39,6 @@ mod tests {
                 Token::Some,
                 Token::Str("https://cdn.example.com/1-hash.png"),
                 Token::Str("url"),
-                Token::Some,
                 Token::Str("https://example.com/1.png"),
                 Token::Str("width"),
                 Token::Some,

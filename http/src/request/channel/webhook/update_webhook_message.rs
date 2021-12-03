@@ -6,20 +6,22 @@ use crate::{
     request::{
         self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AuditLogReason, AuditLogReasonError, Form, NullableField, Request, TryIntoRequest,
+        AttachmentFile, AuditLogReason, AuditLogReasonError, Form, NullableField, Request,
+        TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{MessageId, WebhookId},
+    id::{ChannelId, MessageId, WebhookId},
 };
 
 /// A webhook's message can not be updated as configured.
@@ -169,11 +171,12 @@ struct UpdateWebhookMessageFields<'a> {
 /// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookMessage<'a> {
+    attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateWebhookMessageFields<'a>,
-    files: &'a [(&'a str, &'a [u8])],
     http: &'a Client,
     message_id: MessageId,
     reason: Option<&'a str>,
+    thread_id: Option<ChannelId>,
     token: &'a str,
     webhook_id: WebhookId,
 }
@@ -197,10 +200,11 @@ impl<'a> UpdateWebhookMessage<'a> {
                 embeds: None,
                 payload_json: None,
             },
-            files: &[],
+            attachments: Cow::Borrowed(&[]),
             http,
             message_id,
             reason: None,
+            thread_id: None,
             token,
             webhook_id,
         }
@@ -366,11 +370,22 @@ impl<'a> UpdateWebhookMessage<'a> {
         Ok(self)
     }
 
-    /// Attach multiple files to the webhook.
+    /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.files = files;
+    #[allow(clippy::missing_const_for_fn)] // False positive
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = Cow::Borrowed(attachments);
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[deprecated(since = "0.7.2", note = "Use attach instead")]
+    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
+        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -386,6 +401,14 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
+
+        self
+    }
+
+    /// Update in a thread belonging to the channel instead of the channel
+    /// itself.
+    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+        self.thread_id.replace(thread_id);
 
         self
     }
@@ -415,16 +438,23 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: self.thread_id.map(ChannelId::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false);
 
-        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
-            for (index, (name, file)) in self.files.iter().enumerate() {
-                form.file(format!("{}", index).as_bytes(), name.as_bytes(), file);
+            if !self.attachments.is_empty() {
+                for (index, attachment) in self.attachments.iter().enumerate() {
+                    form.attach(
+                        index as u64,
+                        attachment.filename.as_bytes(),
+                        attachment.file,
+                    );
+                }
             }
 
             if let Some(payload_json) = &self.fields.payload_json {
@@ -467,7 +497,7 @@ mod tests {
         request::{AuditLogReason, NullableField, Request, TryIntoRequest},
         routing::Route,
     };
-    use twilight_model::id::{MessageId, WebhookId};
+    use twilight_model::id::{ChannelId, MessageId, WebhookId};
 
     #[test]
     fn test_request() {
@@ -480,6 +510,7 @@ mod tests {
         )
         .content(Some("test"))
         .expect("'test' content couldn't be set")
+        .thread_id(ChannelId::new(3).expect("non zero"))
         .reason("reason")
         .expect("'reason' is not a valid reason");
         let actual = builder
@@ -496,6 +527,7 @@ mod tests {
         };
         let route = Route::UpdateWebhookMessage {
             message_id: 2,
+            thread_id: Some(3),
             token: "token",
             webhook_id: 1,
         };

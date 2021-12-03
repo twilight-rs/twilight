@@ -3,13 +3,14 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, Request, TryIntoRequest,
+        AttachmentFile, Form, PartialAttachment, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -98,8 +99,8 @@ pub enum CreateFollowupMessageErrorType {
 
 #[derive(Serialize)]
 pub(crate) struct CreateFollowupMessageFields<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    avatar_url: Option<&'a str>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    attachments: Vec<PartialAttachment<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     components: Option<&'a [Component]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -110,8 +111,6 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    username: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
     allowed_mentions: Option<&'a AllowedMentions>,
@@ -145,11 +144,11 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
+    application_id: ApplicationId,
+    attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: CreateFollowupMessageFields<'a>,
-    files: &'a [(&'a str, &'a [u8])],
     http: &'a Client,
     token: &'a str,
-    application_id: ApplicationId,
 }
 
 impl<'a> CreateFollowupMessage<'a> {
@@ -160,17 +159,16 @@ impl<'a> CreateFollowupMessage<'a> {
     ) -> Self {
         Self {
             fields: CreateFollowupMessageFields {
-                avatar_url: None,
+                attachments: Vec::new(),
                 components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
                 tts: None,
-                username: None,
                 flags: None,
                 allowed_mentions: None,
             },
-            files: &[],
+            attachments: Cow::Borrowed(&[]),
             http,
             token,
             application_id,
@@ -180,14 +178,6 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Specify the [`AllowedMentions`] for the webhook message.
     pub const fn allowed_mentions(mut self, allowed_mentions: &'a AllowedMentions) -> Self {
         self.fields.allowed_mentions = Some(allowed_mentions);
-
-        self
-    }
-
-    #[deprecated(since = "0.7.2", note = "does not actually do anything")]
-    /// The URL of the avatar of the webhook.
-    pub const fn avatar_url(mut self, avatar_url: &'a str) -> Self {
-        self.fields.avatar_url = Some(avatar_url);
 
         self
     }
@@ -256,9 +246,22 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    /// Attach multiple files to the webhook.
-    pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.files = files;
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[allow(clippy::missing_const_for_fn)] // False positive
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = Cow::Borrowed(attachments);
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[deprecated(since = "0.7.2", note = "Use attach instead")]
+    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
+        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -266,7 +269,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`file`]. See [Discord Docs/Create Message].
+    /// [`attach`]. See [Discord Docs/Create Message].
     ///
     /// # Examples
     ///
@@ -319,6 +322,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// # Ok(()) }
     /// ```
     ///
+    /// [`attach`]: Self::attach
     /// [`payload_json`]: Self::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
@@ -330,14 +334,6 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Specify true if the message is TTS.
     pub const fn tts(mut self, tts: bool) -> Self {
         self.fields.tts = Some(tts);
-
-        self
-    }
-
-    #[deprecated(since = "0.7.2", note = "does not actually do anything")]
-    /// Specify the username of the webhook's message.
-    pub const fn username(mut self, username: &'a str) -> Self {
-        self.fields.username = Some(username);
 
         self
     }
@@ -356,18 +352,30 @@ impl<'a> CreateFollowupMessage<'a> {
 }
 
 impl TryIntoRequest for CreateFollowupMessage<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
+            thread_id: None,
             token: self.token,
             wait: None,
             webhook_id: self.application_id.get(),
         });
 
-        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
-            for (index, (name, file)) in self.files.iter().enumerate() {
-                form.file(index.to_be_bytes().as_ref(), name.as_bytes(), file);
+            if !self.attachments.is_empty() {
+                for (index, attachment) in self.attachments.iter().enumerate() {
+                    form.attach(
+                        index as u64,
+                        attachment.filename.as_bytes(),
+                        attachment.file,
+                    );
+                    self.fields.attachments.push(PartialAttachment {
+                        id: index as u64,
+                        filename: attachment.filename,
+                        description: attachment.description,
+                    })
+                }
             }
 
             if let Some(payload_json) = &self.fields.payload_json {
