@@ -33,9 +33,11 @@ impl ClientBuilder {
     /// Build the [`Client`].
     pub fn build(self) -> Client {
         #[cfg(not(feature = "trust-dns"))]
-        let http_connector = hyper::client::HttpConnector::new();
+        let mut http_connector = hyper::client::HttpConnector::new();
         #[cfg(feature = "trust-dns")]
-        let http_connector = hyper_trust_dns::new_trust_dns_http_connector();
+        let mut http_connector = hyper_trust_dns::new_trust_dns_http_connector();
+
+        http_connector.enforce_http(false);
 
         #[cfg(feature = "rustls-native-roots")]
         let connector = hyper_rustls::HttpsConnectorBuilder::new()
