@@ -65,6 +65,26 @@ use std::{
 pub struct ApplicationId(#[serde(with = "string")] pub NonZeroU64);
 
 impl ApplicationId {
+    /// Create a new non-zero application ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: ApplicationId = ApplicationId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero application ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -115,6 +135,26 @@ impl From<NonZeroU64> for ApplicationId {
 pub struct AttachmentId(#[serde(with = "string")] pub NonZeroU64);
 
 impl AttachmentId {
+    /// Create a new non-zero attachment ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: AttachmentId = AttachmentId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero attachment ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -165,6 +205,26 @@ impl From<NonZeroU64> for AttachmentId {
 pub struct AuditLogEntryId(#[serde(with = "string")] pub NonZeroU64);
 
 impl AuditLogEntryId {
+    /// Create a new non-zero audit log entry ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: AuditLogEntryId = AuditLogEntryId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero audit log entry ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -215,6 +275,26 @@ impl From<NonZeroU64> for AuditLogEntryId {
 pub struct ChannelId(#[serde(with = "string")] pub NonZeroU64);
 
 impl ChannelId {
+    /// Create a new non-zero channel ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: ChannelId = ChannelId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero channel ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -265,6 +345,26 @@ impl From<NonZeroU64> for ChannelId {
 pub struct CommandId(#[serde(with = "string")] pub NonZeroU64);
 
 impl CommandId {
+    /// Create a new non-zero command ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: CommandId = CommandId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero command ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -315,6 +415,26 @@ impl From<NonZeroU64> for CommandId {
 pub struct CommandVersionId(#[serde(with = "string")] pub NonZeroU64);
 
 impl CommandVersionId {
+    /// Create a new non-zero command version ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: CommandVersionId = CommandVersionId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero command version ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -365,6 +485,26 @@ impl From<NonZeroU64> for CommandVersionId {
 pub struct EmojiId(#[serde(with = "string")] pub NonZeroU64);
 
 impl EmojiId {
+    /// Create a new non-zero emoji ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: EmojiId = EmojiId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero emoji ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -415,6 +555,26 @@ impl From<NonZeroU64> for EmojiId {
 pub struct GenericId(#[serde(with = "string")] pub NonZeroU64);
 
 impl GenericId {
+    /// Create a new non-zero generic ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: GenericId = GenericId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero generic ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -465,6 +625,26 @@ impl From<NonZeroU64> for GenericId {
 pub struct GuildId(#[serde(with = "string")] pub NonZeroU64);
 
 impl GuildId {
+    /// Create a new non-zero guild ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: GuildId = GuildId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero guild ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -515,6 +695,26 @@ impl From<NonZeroU64> for GuildId {
 pub struct IntegrationId(#[serde(with = "string")] pub NonZeroU64);
 
 impl IntegrationId {
+    /// Create a new non-zero integration ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: IntegrationId = IntegrationId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero integration ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -565,6 +765,26 @@ impl From<NonZeroU64> for IntegrationId {
 pub struct InteractionId(#[serde(with = "string")] pub NonZeroU64);
 
 impl InteractionId {
+    /// Create a new non-zero interaction ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: InteractionId = InteractionId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero interaction ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -615,6 +835,26 @@ impl From<NonZeroU64> for InteractionId {
 pub struct MessageId(#[serde(with = "string")] pub NonZeroU64);
 
 impl MessageId {
+    /// Create a new non-zero message ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: MessageId = MessageId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero message ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -665,6 +905,26 @@ impl From<NonZeroU64> for MessageId {
 pub struct RoleId(#[serde(with = "string")] pub NonZeroU64);
 
 impl RoleId {
+    /// Create a new non-zero role ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: RoleId = RoleId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero role ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -715,6 +975,26 @@ impl From<NonZeroU64> for RoleId {
 pub struct StageId(#[serde(with = "string")] pub NonZeroU64);
 
 impl StageId {
+    /// Create a new non-zero stage ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: StageId = StageId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero stage ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -765,6 +1045,26 @@ impl From<NonZeroU64> for StageId {
 pub struct UserId(#[serde(with = "string")] pub NonZeroU64);
 
 impl UserId {
+    /// Create a new non-zero user ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: UserId = UserId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero user ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -815,6 +1115,26 @@ impl From<NonZeroU64> for UserId {
 pub struct WebhookId(#[serde(with = "string")] pub NonZeroU64);
 
 impl WebhookId {
+    /// Create a new non-zero webhook ID while checking the value.
+    ///
+    /// This is primarily useful in const contexts where you are passing a
+    /// hardcoded value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// const ID: WebhookId = WebhookId::new_checked(123);
+    ///
+    /// println!("id: {}", ID);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is 0.
+    pub const fn new_checked(n: u64) -> Self {
+        Self(check(n))
+    }
+
     /// Create a non-zero webhook ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
@@ -856,6 +1176,22 @@ impl Display for WebhookId {
 impl From<NonZeroU64> for WebhookId {
     fn from(id: NonZeroU64) -> Self {
         WebhookId(id)
+    }
+}
+
+/// Create a new non-zero u64 while checking the value.
+///
+/// This is primarily useful in const contexts where you are passing a
+/// hardcoded value.
+///
+/// # Panics
+///
+/// Panics if the value is 0.
+pub const fn check(n: u64) -> NonZeroU64 {
+    if let Some(non_zero) = NonZeroU64::new(n) {
+        non_zero
+    } else {
+        panic!("id value must not be 0");
     }
 }
 
@@ -1119,5 +1455,79 @@ mod tests {
                 Token::U64(114_941_315_417_899_012),
             ],
         );
+    }
+
+    #[test]
+    fn test_new_checked() {
+        assert_eq!(
+            917_105_223_879_766_056,
+            ApplicationId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            AttachmentId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            AuditLogEntryId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            ChannelId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            CommandId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            CommandVersionId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            EmojiId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            GenericId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            GuildId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            IntegrationId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            InteractionId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            MessageId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            RoleId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            StageId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            UserId::new_checked(917_105_223_879_766_056).get()
+        );
+        assert_eq!(
+            917_105_223_879_766_056,
+            WebhookId::new_checked(917_105_223_879_766_056).get()
+        );
+    }
+
+    #[should_panic]
+    #[test]
+    const fn test_new_checked_zero() {
+        let _ = MessageId::new_checked(0);
     }
 }
