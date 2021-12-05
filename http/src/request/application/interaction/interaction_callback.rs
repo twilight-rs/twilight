@@ -39,6 +39,7 @@ impl<'a> InteractionCallback<'a> {
             interaction_token: self.interaction_token,
         })
         .json(self.response)?
+        .use_authorization_token(false)
         .build();
 
         Ok(request)
@@ -52,5 +53,39 @@ impl<'a> InteractionCallback<'a> {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::client::Client;
+    use std::error::Error;
+    use twilight_http_ratelimiting::Path;
+    use twilight_model::{
+        application::callback::InteractionResponse,
+        id::{ApplicationId, InteractionId},
+    };
+
+    #[test]
+    fn test_interaction_callback() -> Result<(), Box<dyn Error>> {
+        let application_id = ApplicationId::new(1).expect("non zero id");
+        let interaction_id = InteractionId::new(2).expect("non zero id");
+        let token = "foo".to_owned().into_boxed_str();
+
+        let client = Client::new(String::new());
+        client.set_application_id(application_id);
+
+        let sent_response = InteractionResponse::DeferredUpdateMessage;
+        let req = client
+            .interaction_callback(interaction_id, &token, &sent_response)
+            .request()?;
+
+        assert!(!req.use_authorization_token());
+        assert_eq!(
+            &Path::InteractionCallback(interaction_id.get()),
+            req.ratelimit_path()
+        );
+
+        Ok(())
     }
 }
