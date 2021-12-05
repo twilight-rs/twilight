@@ -1036,7 +1036,7 @@ mod tests {
         );
     }
 
-    /// Assert that (de)serializing an [`ApiError::Ratelimited`] variant uses
+    /// Assert that deserializing an [`ApiError::Ratelimited`] variant uses
     /// the correct variant.
     ///
     /// Tests for [#1302], which was due to a previously ordered variant having
