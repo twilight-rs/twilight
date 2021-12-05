@@ -2,6 +2,30 @@
 
 Changelog for `twilight-util`.
 
+## [0.8.0] - 2021-12-03
+
+### Changes
+
+`CommandBuilder::{application_id, id}` have been removed since they are
+not sent to Discord regardless ([#1233] - [@vilgotf]).
+
+`SubCommandGroupBuilder::options` has been renamed to `subcommands`
+([#1233] - [@vilgotf]).
+
+[#1233]: https://github.com/twilight-rs/twilight/pull/1233
+
+## [0.7.1] - 2021-11-20
+
+### Additions
+
+Add autocomplete support to the `CommandBuilder` ([#1228] - [@vilgotf]).
+
+Add `max_value` and `min_value` support to `IntegerBuilder` and `NumberBuilder`
+([#1235] - [@baptiste0928]).
+
+[#1228]: https://github.com/twilight-rs/twilight/pull/1228
+[#1235]: https://github.com/twilight-rs/twilight/pull/1235
+
 ## [0.7.0] - 2021-10-21
 
 ### Changes

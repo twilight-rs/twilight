@@ -248,25 +248,38 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut user_limit = None;
         let mut video_quality_mode = None;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing guild channel");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
+            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over element");
+            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
+                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
+                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
                     tracing::trace!("ran into an unknown key: {:?}", why);
+
+                    continue;
+                }
+                #[cfg(not(feature = "tracing"))]
+                Err(_) => {
+                    // Encountered when we run into an unknown key.
+                    map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
@@ -446,6 +459,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let nsfw = nsfw.unwrap_or_default();
         let parent_id = parent_id.unwrap_or_default();
 
+        #[cfg(feature = "tracing")]
         tracing::trace!(
             %id,
             ?kind,
@@ -461,6 +475,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                     .ok_or_else(|| DeError::missing_field("permission_overwrites"))?;
                 let position = position.ok_or_else(|| DeError::missing_field("position"))?;
 
+                #[cfg(feature = "tracing")]
                 tracing::trace!(?permission_overwrites, %position, "handling category channel");
 
                 GuildChannel::Category(CategoryChannel {
@@ -480,6 +495,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 let rtc_region = rtc_region.unwrap_or_default();
                 let user_limit = user_limit.ok_or_else(|| DeError::missing_field("user_limit"))?;
 
+                #[cfg(feature = "tracing")]
                 tracing::trace!(
                     %bitrate,
                     ?permission_overwrites,
@@ -516,6 +532,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                 let position = position.ok_or_else(|| DeError::missing_field("position"))?;
                 let topic = topic.unwrap_or_default();
 
+                #[cfg(feature = "tracing")]
                 tracing::trace!(
                     ?last_message_id,
                     ?last_pin_timestamp,
@@ -555,6 +572,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
 
                 match kind {
                     ChannelType::GuildNewsThread => {
+                        #[cfg(feature = "tracing")]
                         tracing::trace!(
                             ?default_auto_archive_duration,
                             ?last_message_id,
@@ -586,6 +604,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                         let invitable = invitable.unwrap_or_default();
                         let permission_overwrites = permission_overwrites.unwrap_or_default();
 
+                        #[cfg(feature = "tracing")]
                         tracing::trace!(
                             ?default_auto_archive_duration,
                             ?invitable,
@@ -618,6 +637,7 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
                         })
                     }
                     ChannelType::GuildPublicThread => {
+                        #[cfg(feature = "tracing")]
                         tracing::trace!(
                             ?default_auto_archive_duration,
                             ?last_message_id,

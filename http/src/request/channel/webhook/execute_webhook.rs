@@ -4,13 +4,14 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        Form, Request,
+        AttachmentFile, Form, PartialAttachment, Request,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -95,6 +96,8 @@ pub enum ExecuteWebhookErrorType {
 
 #[derive(Serialize)]
 pub(crate) struct ExecuteWebhookFields<'a> {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    attachments: Vec<PartialAttachment<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar_url: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -105,8 +108,6 @@ pub(crate) struct ExecuteWebhookFields<'a> {
     embeds: Option<&'a [Embed]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    thread_id: Option<ChannelId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -143,9 +144,10 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhook<'a> {
+    attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: ExecuteWebhookFields<'a>,
-    files: &'a [(&'a str, &'a [u8])],
     pub(super) http: &'a Client,
+    thread_id: Option<ChannelId>,
     token: &'a str,
     webhook_id: WebhookId,
 }
@@ -154,18 +156,19 @@ impl<'a> ExecuteWebhook<'a> {
     pub(crate) const fn new(http: &'a Client, webhook_id: WebhookId, token: &'a str) -> Self {
         Self {
             fields: ExecuteWebhookFields {
+                attachments: Vec::new(),
                 avatar_url: None,
                 components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
-                thread_id: None,
                 tts: None,
                 username: None,
                 allowed_mentions: None,
             },
-            files: &[],
+            attachments: Cow::Borrowed(&[]),
             http,
+            thread_id: None,
             token,
             webhook_id,
         }
@@ -233,9 +236,22 @@ impl<'a> ExecuteWebhook<'a> {
         self
     }
 
-    /// Attach multiple files to the webhook.
-    pub const fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.files = files;
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[allow(clippy::missing_const_for_fn)] // False positive
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = Cow::Borrowed(attachments);
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    #[deprecated(since = "0.7.2", note = "Use attach instead")]
+    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
+        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -243,7 +259,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`file`]. See [Discord Docs/Create Message].
+    /// [`attach`]. See [Discord Docs/Create Message].
     ///
     /// # Examples
     ///
@@ -292,6 +308,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// # Ok(()) }
     /// ```
     ///
+    /// [`attach`]: Self::attach
     /// [`payload_json`]: Self::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
@@ -302,7 +319,7 @@ impl<'a> ExecuteWebhook<'a> {
 
     /// Execute in a thread belonging to the channel instead of the channel itself.
     pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
-        self.fields.thread_id.replace(thread_id);
+        self.thread_id.replace(thread_id);
 
         self
     }
@@ -334,8 +351,9 @@ impl<'a> ExecuteWebhook<'a> {
 
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
-    pub(super) fn request(&self, wait: bool) -> Result<Request, HttpError> {
+    pub(super) fn request(&mut self, wait: bool) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
+            thread_id: self.thread_id.map(ChannelId::get),
             token: self.token,
             wait: Some(wait),
             webhook_id: self.webhook_id.get(),
@@ -345,11 +363,22 @@ impl<'a> ExecuteWebhook<'a> {
         // webhook token.
         request = request.use_authorization_token(false);
 
-        if !self.files.is_empty() || self.fields.payload_json.is_some() {
+        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
             let mut form = Form::new();
 
-            for (index, (name, file)) in self.files.iter().enumerate() {
-                form.file(format!("{}", index).as_bytes(), name.as_bytes(), file);
+            if !self.attachments.is_empty() {
+                for (index, attachment) in self.attachments.iter().enumerate() {
+                    form.attach(
+                        index as u64,
+                        attachment.filename.as_bytes(),
+                        attachment.file,
+                    );
+                    self.fields.attachments.push(PartialAttachment {
+                        id: index as u64,
+                        filename: attachment.filename,
+                        description: attachment.description,
+                    })
+                }
             }
 
             if let Some(payload_json) = &self.fields.payload_json {
@@ -371,7 +400,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
         match self.request(false) {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),

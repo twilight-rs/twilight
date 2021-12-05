@@ -296,6 +296,8 @@ pub enum Route<'a> {
     /// Route information to delete a message created by a webhook.
     DeleteWebhookMessage {
         message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         token: &'a str,
         webhook_id: u64,
     },
@@ -308,6 +310,8 @@ pub enum Route<'a> {
     },
     /// Route information to execute a webhook by ID and token.
     ExecuteWebhook {
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         /// The token of the webhook.
         token: &'a str,
         /// Whether to wait for a message response.
@@ -401,6 +405,8 @@ pub enum Route<'a> {
         application_id: u64,
         /// Token of the interaction.
         interaction_token: &'a str,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         /// ID of the followup message.
         message_id: u64,
     },
@@ -661,6 +667,13 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a member of a thread.
+    GetThreadMember {
+        /// ID of the thread.
+        channel_id: u64,
+        /// ID of the member.
+        user_id: u64,
+    },
     /// Route information to get members of a thread.
     GetThreadMembers {
         /// ID of the thread.
@@ -689,6 +702,8 @@ pub enum Route<'a> {
     GetWebhookMessage {
         /// ID of the message.
         message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         /// Token of the webhook.
         token: &'a str,
         /// ID of the webhook.
@@ -807,6 +822,11 @@ pub enum Route<'a> {
         /// The ID of the command.
         command_id: u64,
         /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update the current member.
+    UpdateCurrentMember {
+        /// ID of the guild.
         guild_id: u64,
     },
     /// Route information to update the current user.
@@ -941,6 +961,8 @@ pub enum Route<'a> {
     /// Route information to update a message created by a webhook.
     UpdateWebhookMessage {
         message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
         token: &'a str,
         webhook_id: u64,
     },
@@ -1092,6 +1114,7 @@ impl<'a> Route<'a> {
             | Self::GetSticker { .. }
             | Self::GetTemplate { .. }
             | Self::GetTemplates { .. }
+            | Self::GetThreadMember { .. }
             | Self::GetThreadMembers { .. }
             | Self::GetUserConnections
             | Self::GetUserPrivateChannels
@@ -1101,6 +1124,7 @@ impl<'a> Route<'a> {
             | Self::GetWebhookMessage { .. }
             | Self::SearchGuildMembers { .. } => Method::Get,
             Self::UpdateChannel { .. }
+            | Self::UpdateCurrentMember { .. }
             | Self::UpdateCurrentUser
             | Self::UpdateCurrentUserVoiceState { .. }
             | Self::UpdateEmoji { .. }
@@ -1205,6 +1229,7 @@ impl<'a> Route<'a> {
                 Path::GuildsIdMembersIdRolesId(*guild_id)
             }
             Self::AddThreadMember { channel_id, .. }
+            | Self::GetThreadMember { channel_id, .. }
             | Self::GetThreadMembers { channel_id, .. }
             | Self::JoinThread { channel_id, .. }
             | Self::LeaveThread { channel_id, .. }
@@ -1292,12 +1317,29 @@ impl<'a> Route<'a> {
             | Self::UpdateGuildIntegration { guild_id, .. } => {
                 Path::GuildsIdIntegrationsId(*guild_id)
             }
-            Self::DeleteInteractionOriginal { application_id, .. }
-            | Self::GetFollowupMessage { application_id, .. }
-            | Self::GetInteractionOriginal { application_id, .. }
-            | Self::UpdateInteractionOriginal { application_id, .. } => {
-                Path::WebhooksIdTokenMessagesId(*application_id)
+            Self::DeleteInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
             }
+            | Self::GetFollowupMessage {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::GetInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::UpdateInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            } => Path::WebhooksIdTokenMessagesId(
+                *application_id,
+                (*interaction_token).to_string().into_boxed_str(),
+            ),
             Self::DeleteInvite { .. }
             | Self::GetInvite { .. }
             | Self::GetInviteWithExpiration { .. } => Path::InvitesCode,
@@ -1335,13 +1377,35 @@ impl<'a> Route<'a> {
                 *guild_id,
                 (*template_code).to_string().into_boxed_str(),
             ),
-            Self::DeleteWebhookMessage { webhook_id, .. }
-            | Self::GetWebhookMessage { webhook_id, .. }
-            | Self::UpdateWebhookMessage { webhook_id, .. } => {
-                Path::WebhooksIdTokenMessagesId(*webhook_id)
+            Self::DeleteWebhookMessage {
+                webhook_id, token, ..
             }
+            | Self::GetWebhookMessage {
+                webhook_id, token, ..
+            }
+            | Self::UpdateWebhookMessage {
+                webhook_id, token, ..
+            } => {
+                Path::WebhooksIdTokenMessagesId(*webhook_id, (*token).to_string().into_boxed_str())
+            }
+            Self::DeleteWebhook {
+                webhook_id,
+                token: Some(token),
+                ..
+            }
+            | Self::ExecuteWebhook {
+                webhook_id, token, ..
+            }
+            | Self::GetWebhook {
+                webhook_id,
+                token: Some(token),
+                ..
+            }
+            | Self::UpdateWebhook {
+                webhook_id,
+                token: Some(token),
+            } => Path::WebhooksIdToken(*webhook_id, (*token).to_string().into_boxed_str()),
             Self::DeleteWebhook { webhook_id, .. }
-            | Self::ExecuteWebhook { webhook_id, .. }
             | Self::GetWebhook { webhook_id, .. }
             | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(*webhook_id)),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(*channel_id),
@@ -1379,7 +1443,9 @@ impl<'a> Route<'a> {
             }
             Self::GetGuildIntegrations { guild_id } => Path::GuildsIdIntegrations(*guild_id),
             Self::GetGuildInvites { guild_id } => Path::GuildsIdInvites(*guild_id),
-            Self::GetGuildMembers { guild_id, .. } => Path::GuildsIdMembers(*guild_id),
+            Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
+                Path::GuildsIdMembers(*guild_id)
+            }
             Self::GetGuildPreview { guild_id } => Path::GuildsIdPreview(*guild_id),
             Self::GetGuildVanityUrl { guild_id } => Path::GuildsIdVanityUrl(*guild_id),
             Self::GetGuildVoiceRegions { guild_id } => Path::GuildsIdRegions(*guild_id),

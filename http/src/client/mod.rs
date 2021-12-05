@@ -3,6 +3,7 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
+#[allow(deprecated)]
 use crate::{
     error::{Error, ErrorType},
     request::{
@@ -23,8 +24,8 @@ use crate::{
             thread::{
                 AddThreadMember, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
-                GetPublicArchivedThreads, GetThreadMembers, JoinThread, LeaveThread,
-                RemoveThreadMember, ThreadValidationError, UpdateThread,
+                GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
+                LeaveThread, RemoveThreadMember, ThreadValidationError, UpdateThread,
             },
             webhook::{
                 CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
@@ -54,8 +55,8 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentUserNick, UpdateGuild,
-            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateCurrentUserNick,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
@@ -73,7 +74,7 @@ use crate::{
     API_VERSION,
 };
 use hyper::{
-    client::{Client as HyperClient, HttpConnector},
+    client::Client as HyperClient,
     header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
     Body,
 };
@@ -90,7 +91,6 @@ use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{
         message::{allowed_mentions::AllowedMentions, sticker::StickerId},
-        thread::AutoArchiveDuration,
         ChannelType,
     },
     guild::Permissions,
@@ -104,6 +104,11 @@ use twilight_model::{
 type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
 #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
 type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
+
+#[cfg(feature = "trust-dns")]
+type HttpConnector = hyper_trust_dns::TrustDnsHttpConnector;
+#[cfg(not(feature = "trust-dns"))]
+type HttpConnector = hyper::client::HttpConnector;
 
 /// Twilight's http client.
 ///
@@ -600,6 +605,8 @@ impl Client {
     }
 
     /// Changes the user's nickname in a guild.
+    #[allow(deprecated)]
+    #[deprecated(note = "use update_current_member instead", since = "0.7.2")]
     pub const fn update_current_user_nick<'a>(
         &'a self,
         guild_id: GuildId,
@@ -992,6 +999,11 @@ impl Client {
         user_id: UserId,
     ) -> UpdateGuildMember<'_> {
         UpdateGuildMember::new(self, guild_id, user_id)
+    }
+
+    /// Update the user's member in a guild.
+    pub const fn update_current_member(&self, guild_id: GuildId) -> UpdateCurrentMember<'_> {
+        UpdateCurrentMember::new(self, guild_id)
     }
 
     /// Add a role to a member in a guild.
@@ -1600,10 +1612,9 @@ impl Client {
         &'a self,
         channel_id: ChannelId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
         kind: ChannelType,
     ) -> Result<CreateThread<'_>, ThreadValidationError> {
-        CreateThread::new(self, channel_id, name, auto_archive_duration, kind)
+        CreateThread::new(self, channel_id, name, kind)
     }
 
     /// Create a new thread from an existing message.
@@ -1632,9 +1643,8 @@ impl Client {
         channel_id: ChannelId,
         message_id: MessageId,
         name: &'a str,
-        auto_archive_duration: AutoArchiveDuration,
     ) -> Result<CreateThreadFromMessage<'_>, ThreadValidationError> {
-        CreateThreadFromMessage::new(self, channel_id, message_id, name, auto_archive_duration)
+        CreateThreadFromMessage::new(self, channel_id, message_id, name)
     }
 
     /// Add the current user to a thread.
@@ -1712,6 +1722,17 @@ impl Client {
         user_id: UserId,
     ) -> RemoveThreadMember<'_> {
         RemoveThreadMember::new(self, channel_id, user_id)
+    }
+
+    /// Returns a [`ThreadMember`] in a thread.
+    ///
+    /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
+    pub const fn thread_member(
+        &self,
+        channel_id: ChannelId,
+        user_id: UserId,
+    ) -> GetThreadMember<'_> {
+        GetThreadMember::new(self, channel_id, user_id)
     }
 
     /// Returns the [`ThreadMember`]s of the thread.

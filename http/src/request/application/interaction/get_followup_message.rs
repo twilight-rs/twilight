@@ -53,6 +53,7 @@ impl<'a> GetFollowupMessage<'a> {
         Request::from_route(&Route::GetFollowupMessage {
             application_id: self.application_id.get(),
             interaction_token: self.interaction_token,
+            thread_id: None,
             message_id: self.message_id.get(),
         })
     }
@@ -95,6 +96,7 @@ mod tests {
         let expected = Request::from_route(&Route::GetFollowupMessage {
             application_id: application_id().get(),
             interaction_token: TOKEN,
+            thread_id: None,
             message_id: message_id().get(),
         });
 

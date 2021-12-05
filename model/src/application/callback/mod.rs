@@ -3,8 +3,11 @@
 mod callback_data;
 mod response_type;
 
-pub use self::{callback_data::CallbackData, response_type::ResponseType};
+pub use self::{
+    callback_data::Autocomplete, callback_data::CallbackData, response_type::ResponseType,
+};
 
+use callback_data::CallbackDataEnvelope;
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::{SerializeStruct, Serializer},
@@ -31,6 +34,8 @@ pub enum InteractionResponse {
     DeferredUpdateMessage,
     /// Edit the message a component is attached to.
     UpdateMessage(CallbackData),
+    /// Autocomplete results.
+    Autocomplete(Autocomplete),
 }
 
 impl InteractionResponse {
@@ -58,6 +63,7 @@ impl InteractionResponse {
     /// [`Pong`]: Self::Pong
     pub const fn kind(&self) -> ResponseType {
         match self {
+            Self::Autocomplete(_) => ResponseType::ApplicationCommandAutocompleteResult,
             Self::Pong => ResponseType::Pong,
             Self::ChannelMessageWithSource(_) => ResponseType::ChannelMessageWithSource,
             Self::DeferredChannelMessageWithSource(_) => {
@@ -92,27 +98,39 @@ impl<'de> Visitor<'de> for ResponseVisitor {
     }
 
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut data: Option<CallbackData> = None;
+        let mut data: Option<CallbackDataEnvelope> = None;
         let mut kind: Option<ResponseType> = None;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing interaction response");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
+            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over interaction response");
+            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
+                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
+                #[cfg(feature = "tracing")]
                 Err(why) => {
                     map.next_value::<IgnoredAny>()?;
 
                     tracing::trace!("ran into an unknown key: {:?}", why);
+
+                    continue;
+                }
+                #[cfg(not(feature = "tracing"))]
+                Err(_) => {
+                    map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
@@ -138,23 +156,29 @@ impl<'de> Visitor<'de> for ResponseVisitor {
 
         let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
 
-        Ok(match kind {
-            ResponseType::Pong => Self::Value::Pong,
-            ResponseType::ChannelMessageWithSource => {
-                let data = data.ok_or_else(|| DeError::missing_field("data"))?;
-
-                Self::Value::ChannelMessageWithSource(data)
-            }
-            ResponseType::DeferredChannelMessageWithSource => {
-                let data = data.ok_or_else(|| DeError::missing_field("data"))?;
-
-                Self::Value::DeferredChannelMessageWithSource(data)
-            }
-            ResponseType::DeferredUpdateMessage => Self::Value::DeferredUpdateMessage,
-            ResponseType::UpdateMessage => {
-                let data = data.ok_or_else(|| DeError::missing_field("data"))?;
-
+        Ok(match (kind, data) {
+            (ResponseType::Pong, _) => Self::Value::Pong,
+            (
+                ResponseType::ChannelMessageWithSource,
+                Some(CallbackDataEnvelope::Messages(data)),
+            ) => Self::Value::ChannelMessageWithSource(data),
+            (
+                ResponseType::DeferredChannelMessageWithSource,
+                Some(CallbackDataEnvelope::Messages(data)),
+            ) => Self::Value::DeferredChannelMessageWithSource(data),
+            (ResponseType::DeferredUpdateMessage, _) => Self::Value::DeferredUpdateMessage,
+            (ResponseType::UpdateMessage, Some(CallbackDataEnvelope::Messages(data))) => {
                 Self::Value::UpdateMessage(data)
+            }
+            (
+                ResponseType::ApplicationCommandAutocompleteResult,
+                Some(CallbackDataEnvelope::Autocomplete(data)),
+            ) => Self::Value::Autocomplete(data),
+            (t, d) => {
+                return Err(DeError::custom(format!(
+                    "unknown type/data combination: type={:?} data={:?}",
+                    t, d
+                )))
             }
         })
     }
@@ -163,6 +187,14 @@ impl<'de> Visitor<'de> for ResponseVisitor {
 impl Serialize for InteractionResponse {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         match self {
+            Self::Autocomplete(data) => {
+                let mut state = serializer.serialize_struct("InteractionResponse", 2)?;
+
+                state.serialize_field("type", &self.kind())?;
+                state.serialize_field("data", &data)?;
+
+                state.end()
+            }
             Self::Pong | Self::DeferredUpdateMessage => {
                 let mut state = serializer.serialize_struct("InteractionResponse", 1)?;
 

@@ -59,7 +59,7 @@ impl InMemoryCache {
         let id = (guild_id, user_id);
 
         if let Some(m) = self.members.get(&id) {
-            if *m == member {
+            if &*m == member {
                 return;
             }
         }
@@ -73,7 +73,7 @@ impl InMemoryCache {
             avatar: member.avatar.to_owned(),
             deaf: Some(member.deaf),
             guild_id,
-            joined_at: member.joined_at.to_owned(),
+            joined_at: member.joined_at,
             mute: Some(member.mute),
             nick: member.nick.to_owned(),
             pending: false,
@@ -88,11 +88,12 @@ impl InMemoryCache {
         &self,
         guild_id: GuildId,
         member: &InteractionMember,
+        user_id: UserId,
     ) {
-        let id = (guild_id, member.id);
+        let id = (guild_id, user_id);
 
         let (avatar, deaf, mute) = match self.members.get(&id) {
-            Some(m) if *m == member => return,
+            Some(m) if &*m == member => return,
             Some(m) => (m.avatar().map(ToString::to_string), m.deaf(), m.mute()),
             None => (None, None, None),
         };
@@ -100,19 +101,19 @@ impl InMemoryCache {
         self.guild_members
             .entry(guild_id)
             .or_default()
-            .insert(member.id);
+            .insert(user_id);
 
         let cached = CachedMember {
             avatar,
             deaf,
             guild_id,
-            joined_at: member.joined_at.to_owned(),
+            joined_at: member.joined_at,
             mute,
             nick: member.nick.to_owned(),
             pending: false,
             premium_since: member.premium_since.to_owned(),
             roles: member.roles.to_owned(),
-            user_id: member.id,
+            user_id,
         };
 
         self.members.insert(id, cached);
@@ -195,7 +196,7 @@ impl UpdateCache for MemberUpdate {
         member.mute = self.mute.or_else(|| member.mute());
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
-        member.joined_at.replace(self.joined_at);
+        member.joined_at = self.joined_at;
         member.pending = self.pending;
     }
 }

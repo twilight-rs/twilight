@@ -45,6 +45,12 @@
 //!
 //! This is enabled by default.
 //!
+//! ### Tracing
+//!
+//! The `tracing` feature enables logging via the [`tracing`] crate.
+//!
+//! This is enabled by default.
+//!
 //! ## Examples
 //!
 //! Create a [client], add a [node], and give events to the client to [process]
