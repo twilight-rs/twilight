@@ -47,12 +47,14 @@ impl<'a> DeleteFollowupMessage<'a> {
     }
 
     fn request(self) -> Request {
-        Request::from_route(&Route::DeleteWebhookMessage {
+        Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         })
+        .use_authorization_token(false)
+        .build()
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -89,5 +91,6 @@ mod tests {
         });
 
         assert_eq!(expected.path, actual.path);
+        assert!(!actual.use_authorization_token());
     }
 }
