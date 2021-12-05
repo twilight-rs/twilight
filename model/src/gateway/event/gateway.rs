@@ -469,7 +469,7 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
         deserializer.deserialize_struct(
             "GatewayEvent",
             FIELDS,
-            GatewayEventVisitor(self.op, self.sequence, self.event_type.as_deref()),
+            GatewayEventVisitor(self.op, self.sequence, self.event_type),
         )
     }
 }

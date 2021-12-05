@@ -82,7 +82,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
                 continue;
             }
 
-            match msg.content.splitn(2, ' ').next() {
+            match msg.content.split_once(' ').map(|x| x.0) {
                 Some("!join") => spawn(join(msg.0, Arc::clone(&state))),
                 Some("!leave") => spawn(leave(msg.0, Arc::clone(&state))),
                 Some("!pause") => spawn(pause(msg.0, Arc::clone(&state))),
