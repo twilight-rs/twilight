@@ -70,9 +70,9 @@ impl LargeBotQueue {
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
     while let Some(req) = rx.recv().await {
-        if let Err(err) = req.send(()) {
+        if let Err(_source) = req.send(()) {
             #[cfg(feature = "tracing")]
-            tracing::warn!("skipping, send failed with: {:?}", err);
+            tracing::warn!("skipping, send failed with: {:?}", _source);
         }
         sleep(DUR).await;
     }
@@ -89,9 +89,9 @@ impl Queue for LargeBotQueue {
 
         Box::pin(async move {
             self.limiter.get().await;
-            if let Err(err) = self.buckets[bucket].clone().send(tx) {
+            if let Err(_source) = self.buckets[bucket].clone().send(tx) {
                 #[cfg(feature = "tracing")]
-                tracing::warn!("skipping, send failed with: {:?}", err);
+                tracing::warn!("skipping, send failed with: {:?}", _source);
                 return;
             }
 

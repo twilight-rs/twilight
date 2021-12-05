@@ -124,9 +124,9 @@ impl LocalQueue {
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
     while let Some(req) = rx.recv().await {
-        if let Err(err) = req.send(()) {
+        if let Err(_source) = req.send(()) {
             #[cfg(feature = "tracing")]
-            tracing::warn!("skipping, send failed: {:?}", err);
+            tracing::warn!("skipping, send failed: {:?}", _source);
         }
         sleep(DUR).await;
     }
@@ -136,18 +136,18 @@ impl Queue for LocalQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    fn request(&'_ self, [id, total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+    fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         Box::pin(async move {
             let (tx, rx) = oneshot::channel();
 
-            if let Err(err) = self.0.clone().send(tx) {
+            if let Err(_source) = self.0.clone().send(tx) {
                 #[cfg(feature = "tracing")]
-                tracing::warn!("skipping, send failed: {:?}", err);
+                tracing::warn!("skipping, send failed: {:?}", _source);
                 return;
             }
 
             #[cfg(feature = "tracing")]
-            tracing::info!("shard {}/{} waiting for allowance", id, total);
+            tracing::info!("shard {}/{} waiting for allowance", _id, _total);
 
             let _ = rx.await;
         })

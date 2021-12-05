@@ -348,7 +348,7 @@ impl<'a> UpdateFollowupMessage<'a> {
         mut self,
         embeds: Option<&'a [Embed]>,
     ) -> Result<Self, UpdateFollowupMessageError> {
-        if let Some(embeds_present) = embeds.as_deref() {
+        if let Some(embeds_present) = embeds {
             if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
                 return Err(UpdateFollowupMessageError {
                     kind: UpdateFollowupMessageErrorType::TooManyEmbeds,
@@ -429,7 +429,7 @@ impl<'a> UpdateFollowupMessage<'a> {
                 }
             }
 
-            if let Some(payload_json) = self.fields.payload_json.as_deref() {
+            if let Some(payload_json) = self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
                 if self.fields.allowed_mentions.is_none() {
