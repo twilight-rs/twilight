@@ -2840,7 +2840,10 @@ impl Client {
 
         let inner = self.http.request(req);
 
-        let invalid_token = if self.remember_invalid_token {
+        // For requests that don't use an authorization token we don't need to
+        // remember whether the token is invalid. This may be for requests such
+        // as webhooks and interactions.
+        let invalid_token = if self.remember_invalid_token && use_authorization_token {
             InvalidToken::Remember(Arc::clone(&self.token_invalid))
         } else {
             InvalidToken::Forget
