@@ -800,9 +800,10 @@ impl Serialize for ErrorCode {
 #[serde(untagged)]
 pub enum ApiError {
     General(GeneralApiError),
+    /// Request has been ratelimited.
+    Ratelimited(RatelimitedApiError),
     /// Something was wrong with the input when sending a message.
     Message(MessageApiError),
-    Ratelimited(RatelimitedApiError),
 }
 
 impl Display for ApiError {
@@ -1010,7 +1011,7 @@ mod tests {
     }
 
     #[test]
-    fn test_api_error_ratelimited() {
+    fn test_ratelimited_api_error() {
         let expected = RatelimitedApiError {
             global: true,
             message: "You are being rate limited.".to_owned(),
@@ -1030,6 +1031,39 @@ mod tests {
                 Token::Str("You are being rate limited."),
                 Token::Str("retry_after"),
                 Token::F64(6.457),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    /// Assert that (de)serializing an [`ApiError::Ratelimited`] variant uses
+    /// the correct variant.
+    ///
+    /// Tests for [#1302], which was due to a previously ordered variant having
+    /// higher priority for untagged deserialization.
+    ///
+    /// [#1302]: https://github.com/twilight-rs/twilight/issues/1302
+    #[test]
+    fn test_api_error_variant_ratelimited() {
+        let expected = ApiError::Ratelimited(RatelimitedApiError {
+            global: false,
+            message: "You are being rate limited.".to_owned(),
+            retry_after: 0.362,
+        });
+
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "RatelimitedApiError",
+                    len: 3,
+                },
+                Token::Str("global"),
+                Token::Bool(false),
+                Token::Str("message"),
+                Token::Str("You are being rate limited."),
+                Token::Str("retry_after"),
+                Token::F64(0.362),
                 Token::StructEnd,
             ],
         );
