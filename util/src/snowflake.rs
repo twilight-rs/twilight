@@ -1,8 +1,9 @@
 //! Provides the Snowflake trait for defining extractable information from a Discord Snowflake.
 
 use twilight_model::id::{
-    ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, EmojiId, GenericId,
-    GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId, WebhookId,
+    ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId, EmojiId,
+    GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId,
+    WebhookId,
 };
 
 /// Snowflake is a trait for defining extractable information from a Snowflake. A Snowflake is a
@@ -115,6 +116,12 @@ impl Snowflake for CommandId {
     }
 }
 
+impl Snowflake for CommandVersionId {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
 impl Snowflake for EmojiId {
     fn id(&self) -> u64 {
         self.get()
@@ -180,8 +187,9 @@ mod tests {
     use super::Snowflake;
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use twilight_model::id::{
-        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, EmojiId, GenericId,
-        GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId, WebhookId,
+        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId,
+        EmojiId, GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId,
+        UserId, WebhookId,
     };
 
     assert_impl_all!(ApplicationId: Snowflake);
@@ -189,6 +197,7 @@ mod tests {
     assert_impl_all!(AuditLogEntryId: Snowflake);
     assert_impl_all!(ChannelId: Snowflake);
     assert_impl_all!(CommandId: Snowflake);
+    assert_impl_all!(CommandVersionId: Snowflake);
     assert_impl_all!(EmojiId: Snowflake);
     assert_impl_all!(GenericId: Snowflake);
     assert_impl_all!(GuildId: Snowflake);
