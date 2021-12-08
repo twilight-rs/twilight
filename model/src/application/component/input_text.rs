@@ -22,9 +22,15 @@ pub struct InputText {
     /// Placeholder for the text input.
     pub placeholder: Option<String>,
     /// The minimum length of the text.
-    pub min_length: Option<i32>,
+    ///
+    /// Defaults to `0`.
+    pub min_length: Option<u16>,
     /// The maximum length of the text.
-    pub max_length: Option<i32>,
+    pub max_length: Option<u16>,
+    /// Whether the user is required to input a text.
+    ///
+    /// Defaults to `true`.
+    pub required: Option<bool>,
 }
 
 /// Style of an [`InputText`].
@@ -55,6 +61,7 @@ enum InputTextField {
     Placeholder,
     MinLength,
     MaxLength,
+    Required,
 }
 
 struct InputTextVisitor;
@@ -73,8 +80,9 @@ impl<'de> Visitor<'de> for InputTextVisitor {
         let mut label: Option<String> = None;
         let mut style: Option<InputTextStyle> = None;
         let mut placeholder: Option<String> = None;
-        let mut min_length: Option<i32> = None;
-        let mut max_length: Option<i32> = None;
+        let mut min_length: Option<u16> = None;
+        let mut max_length: Option<u16> = None;
+        let mut required: Option<bool> = None;
 
         let span = tracing::trace_span!("deserializing input text");
         let _span_enter = span.enter();
@@ -159,6 +167,13 @@ impl<'de> Visitor<'de> for InputTextVisitor {
 
                     min_length = Some(map.next_value()?)
                 }
+                InputTextField::Required => {
+                    if required.is_some() {
+                        return Err(DeError::duplicate_field("required"));
+                    }
+
+                    required = Some(map.next_value()?)
+                }
             }
         }
 
@@ -185,6 +200,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
             placeholder,
             min_length,
             max_length,
+            required,
         })
     }
 }
@@ -200,7 +216,8 @@ impl Serialize for InputText {
         let field_count = 4
             + usize::from(self.placeholder.is_some())
             + usize::from(self.min_length.is_some())
-            + usize::from(self.max_length.is_some());
+            + usize::from(self.max_length.is_some())
+            + usize::from(self.required.is_some());
         let mut state = serializer.serialize_struct("InputText", field_count)?;
 
         state.serialize_field("type", &ComponentType::InputText)?;
@@ -218,6 +235,10 @@ impl Serialize for InputText {
 
         if self.max_length.is_some() {
             state.serialize_field("max_length", &self.max_length)?;
+        }
+
+        if self.required.is_some() {
+            state.serialize_field("required", &self.required)?;
         }
 
         state.end()
@@ -285,6 +306,7 @@ mod tests {
             placeholder: Some("Taking this place".to_owned()),
             min_length: Some(1),
             max_length: Some(100),
+            required: Some(true),
         };
 
         serde_test::assert_ser_tokens(
@@ -292,7 +314,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "InputText",
-                    len: 7,
+                    len: 8,
                 },
                 Token::String("type"),
                 Token::U8(ComponentType::InputText as u8),
@@ -307,10 +329,13 @@ mod tests {
                 Token::String("Taking this place"),
                 Token::String("min_length"),
                 Token::Some,
-                Token::I32(1),
+                Token::U16(1),
                 Token::String("max_length"),
                 Token::Some,
-                Token::I32(100),
+                Token::U16(100),
+                Token::String("required"),
+                Token::Some,
+                Token::Bool(true),
                 Token::StructEnd,
             ],
         );
@@ -320,7 +345,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "InputText",
-                    len: 7,
+                    len: 8,
                 },
                 Token::String("type"),
                 Token::U8(ComponentType::InputText as u8),
@@ -335,10 +360,13 @@ mod tests {
                 Token::String("Taking this place"),
                 Token::String("min_length"),
                 Token::Some,
-                Token::I32(1),
+                Token::U16(1),
                 Token::String("max_length"),
                 Token::Some,
-                Token::I32(100),
+                Token::U16(100),
+                Token::String("required"),
+                Token::Some,
+                Token::Bool(true),
                 Token::StructEnd,
             ],
         );
