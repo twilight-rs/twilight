@@ -112,15 +112,18 @@ impl<'de> Visitor<'de> for ButtonVisitor {
         let mut emoji: Option<ReactionType> = None;
         let mut url: Option<String> = None;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing button");
         let _span_enter = span.enter();
 
         loop {
+            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over button");
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
+                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
@@ -130,6 +133,7 @@ impl<'de> Visitor<'de> for ButtonVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
+                    #[cfg(feature = "tracing")]
                     tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
@@ -207,6 +211,7 @@ impl<'de> Visitor<'de> for ButtonVisitor {
         let disabled = disabled.unwrap_or(false);
         let style = style.ok_or_else(|| DeError::missing_field("style"))?;
 
+        #[cfg(feature = "tracing")]
         tracing::trace!(
             ?disabled,
             ?style,

@@ -90,15 +90,18 @@ impl<'de> Visitor<'de> for SelectMenuVisitor {
         let mut max_values: Option<u8> = None;
         let mut min_values: Option<u8> = None;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing select menu");
         let _span_enter = span.enter();
 
         loop {
+            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over select menu");
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
+                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
@@ -108,6 +111,7 @@ impl<'de> Visitor<'de> for SelectMenuVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
+                    #[cfg(feature = "tracing")]
                     tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
@@ -185,6 +189,7 @@ impl<'de> Visitor<'de> for SelectMenuVisitor {
         let disabled = disabled.unwrap_or(false);
         let options = options.ok_or_else(|| DeError::missing_field("options"))?;
 
+        #[cfg(feature = "tracing")]
         tracing::trace!(?custom_id, %disabled, ?options, ?kind, "all fields of SelectMenu exist");
 
         Ok(SelectMenu {

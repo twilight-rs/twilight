@@ -60,15 +60,18 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
         let mut kind: Option<ComponentType> = None;
         let mut components: Option<Vec<Component>> = None;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing action row");
         let _span_enter = span.enter();
 
         loop {
+            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over action row");
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
+                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
@@ -78,6 +81,7 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
+                    #[cfg(feature = "tracing")]
                     tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
@@ -117,6 +121,7 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
 
         let components = components.ok_or_else(|| DeError::missing_field("components"))?;
 
+        #[cfg(feature = "tracing")]
         tracing::trace!(?components, ?kind, "all fields of ActionRow exist");
 
         Ok(ActionRow { components })
