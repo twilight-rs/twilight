@@ -86,11 +86,13 @@ impl<'de> Visitor<'de> for InputTextVisitor {
 
         #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing input text");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
             #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over input text");
+            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {

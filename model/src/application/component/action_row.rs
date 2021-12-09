@@ -62,11 +62,13 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
 
         #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing action row");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
             #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over action row");
+            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {

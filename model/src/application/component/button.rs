@@ -114,11 +114,13 @@ impl<'de> Visitor<'de> for ButtonVisitor {
 
         #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing button");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
             #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over button");
+            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
