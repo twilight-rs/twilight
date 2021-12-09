@@ -842,7 +842,10 @@ impl ShardProcessor {
         Ok(())
     }
 
-    async fn connect(url: &str, tls: Option<&TlsContainer>) -> Result<ShardStream, ConnectingError> {
+    async fn connect(
+        url: &str,
+        tls: Option<&TlsContainer>,
+    ) -> Result<ShardStream, ConnectingError> {
         #[allow(rust_2021_incompatible_closure_captures)]
         let url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
@@ -863,12 +866,16 @@ impl ShardProcessor {
             max_send_queue: None,
         };
 
-        let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.map(|t| t.connector()))
-            .await
-            .map_err(|source| ConnectingError {
-                kind: ConnectingErrorType::Establishing,
-                source: Some(Box::new(source)),
-            })?;
+        let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(
+            url,
+            Some(config),
+            tls.map(TlsContainer::connector),
+        )
+        .await
+        .map_err(|source| ConnectingError {
+            kind: ConnectingErrorType::Establishing,
+            source: Some(Box::new(source)),
+        })?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!("Shook hands with remote");

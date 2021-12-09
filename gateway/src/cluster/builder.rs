@@ -1,6 +1,12 @@
-use super::{ClusterStartErrorType, config::Config as ClusterConfig, event::Events, r#impl::{Cluster, ClusterStartError}, scheme::ShardScheme};
+use super::{
+    config::Config as ClusterConfig,
+    event::Events,
+    r#impl::{Cluster, ClusterStartError},
+    scheme::ShardScheme,
+    ClusterStartErrorType,
+};
 use crate::{
-    shard::{LargeThresholdError, ResumeSession, ShardBuilder, tls::TlsContainer},
+    shard::{tls::TlsContainer, LargeThresholdError, ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
 use std::{collections::HashMap, sync::Arc};
@@ -64,7 +70,7 @@ impl ClusterBuilder {
         })?;
 
         (self.1).0.tls = Some(tls);
-        
+
         if (self.1).0.gateway_url.is_none() {
             let maybe_response = (self.1).0.http_client.gateway().authed().exec().await;
 

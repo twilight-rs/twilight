@@ -1,4 +1,4 @@
-use crate::{EventTypeFlags, shard::tls::TlsContainer};
+use crate::{shard::tls::TlsContainer, EventTypeFlags};
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
