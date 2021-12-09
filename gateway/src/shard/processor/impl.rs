@@ -10,7 +10,7 @@ use super::{
     session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
 };
-use crate::event::EventTypeFlags;
+use crate::{event::EventTypeFlags, shard::tls::TlsContainer};
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -314,7 +314,7 @@ impl ShardProcessor {
             gateway: url.clone(),
             shard_id: config.shard()[0],
         }));
-        let stream = Self::connect(&url).await?;
+        let stream = Self::connect(&url, config.tls.as_ref()).await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(async move {
             forwarder.run().await;
@@ -842,7 +842,8 @@ impl ShardProcessor {
         Ok(())
     }
 
-    async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
+    async fn connect(url: &str, tls: Option<&TlsContainer>) -> Result<ShardStream, ConnectingError> {
+        #[allow(rust_2021_incompatible_closure_captures)]
         let url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),
@@ -862,7 +863,7 @@ impl ShardProcessor {
             max_send_queue: None,
         };
 
-        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config))
+        let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.map(|t| t.connector()))
             .await
             .map_err(|source| ConnectingError {
                 kind: ConnectingErrorType::Establishing,
@@ -927,7 +928,7 @@ impl ShardProcessor {
                 shard_id: self.config.shard()[0],
             }));
 
-            let stream = match Self::connect(&self.url).await {
+            let stream = match Self::connect(&self.url, self.config.tls.as_ref()).await {
                 Ok(s) => s,
                 Err(_source) => {
                     #[cfg(feature = "tracing")]
@@ -996,7 +997,7 @@ impl ShardProcessor {
             shard_id: self.config.shard()[0],
         }));
 
-        let stream = Self::connect(&self.url).await?;
+        let stream = Self::connect(&self.url, self.config.tls.as_ref()).await?;
 
         self.set_session(stream, Stage::Resuming);
 
