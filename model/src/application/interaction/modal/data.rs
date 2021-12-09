@@ -107,12 +107,18 @@ impl<'de> Deserialize<'de> for ModalInteractionDataComponent {
                     let key = match map.next_key() {
                         Ok(Some(key)) => key,
                         Ok(None) => break,
+                        #[cfg(feature = "tracing")]
                         Err(why) => {
                             map.next_value::<IgnoredAny>()?;
-
-                            #[cfg(feature = "tracing")]
+        
                             tracing::trace!("ran into an unknown key: {:?}", why);
-
+        
+                            continue;
+                        }
+                        #[cfg(not(feature = "tracing"))]
+                        Err(_) => {
+                            map.next_value::<IgnoredAny>()?;
+        
                             continue;
                         }
                     };

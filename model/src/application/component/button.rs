@@ -131,12 +131,17 @@ impl<'de> Visitor<'de> for ButtonVisitor {
                     key
                 }
                 Ok(None) => break,
+                #[cfg(feature = "tracing")]
                 Err(why) => {
-                    // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    #[cfg(feature = "tracing")]
                     tracing::trace!("ran into an unknown key: {:?}", why);
+
+                    continue;
+                }
+                #[cfg(not(feature = "tracing"))]
+                Err(_) => {
+                    map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
