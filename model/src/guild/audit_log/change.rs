@@ -671,7 +671,7 @@ impl AuditLogChange {
     /// };
     ///
     /// let change = AuditLogChange::UserLimit {
-    ///     new: 6,
+    ///     new: Some(6),
     ///     old: Some(3),
     /// };
     ///
