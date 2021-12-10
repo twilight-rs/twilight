@@ -110,15 +110,15 @@ impl<'de> Deserialize<'de> for ModalInteractionDataComponent {
                         #[cfg(feature = "tracing")]
                         Err(why) => {
                             map.next_value::<IgnoredAny>()?;
-        
+
                             tracing::trace!("ran into an unknown key: {:?}", why);
-        
+
                             continue;
                         }
                         #[cfg(not(feature = "tracing"))]
                         Err(_) => {
                             map.next_value::<IgnoredAny>()?;
-        
+
                             continue;
                         }
                     };
