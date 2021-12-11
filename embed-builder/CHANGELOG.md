@@ -2,6 +2,15 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.8.0] - 2021-12-03
+
+### Changes
+
+`EmbedAuthorBuilder` now properly requires the `name` field ([#1290] -
+[@itohatweb]).
+
+[#1290]: https://github.com/twilight-rs/twilight/pull/1290
+
 ## [0.7.1] - 2021-10-29
 
 ### Changes
@@ -142,8 +151,10 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 Initial release.
 
 [@7596ff]: https://github.com/7596ff
+[@itohatweb]: https://github.com/itohatweb
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.8.0
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.7.0
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.6.0

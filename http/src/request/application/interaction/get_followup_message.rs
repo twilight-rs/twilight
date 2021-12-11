@@ -69,12 +69,14 @@ impl<'a> GetFollowupMessage<'a> {
 
 impl TryIntoRequest for GetFollowupMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::GetFollowupMessage {
+        Ok(Request::builder(&Route::GetFollowupMessage {
             application_id: self.application_id.get(),
             interaction_token: self.interaction_token,
             thread_id: None,
             message_id: self.message_id.get(),
-        }))
+        })
+        .use_authorization_token(false)
+        .build())
     }
 }
 
@@ -111,16 +113,22 @@ mod tests {
             .followup_message(TOKEN, message_id())?
             .try_into_request()?;
 
-        let expected = Request::from_route(&Route::GetFollowupMessage {
+        let expected = Request::builder(&Route::GetFollowupMessage {
             application_id: application_id().get(),
             interaction_token: TOKEN,
             thread_id: None,
             message_id: message_id().get(),
-        });
+        })
+        .use_authorization_token(false)
+        .build();
 
         assert!(expected.body().is_none());
         assert_eq!(expected.path(), actual.path());
         assert_eq!(expected.ratelimit_path(), actual.ratelimit_path());
+        assert_eq!(
+            expected.use_authorization_token(),
+            actual.use_authorization_token()
+        );
 
         Ok(())
     }

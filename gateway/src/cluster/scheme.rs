@@ -233,6 +233,7 @@ impl ShardScheme {
     /// variant.
     ///
     /// [`Auto`]: Self::Auto
+    #[allow(clippy::iter_not_returning_iterator)]
     pub fn iter(&self) -> Option<ShardSchemeIter> {
         ShardSchemeIter::new(self)
     }

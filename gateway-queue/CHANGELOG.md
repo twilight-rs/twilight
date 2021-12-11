@@ -2,6 +2,15 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.8.0] - 2021-12-03
+
+### Changes
+
+`tracing` is now an optional feature, and enabled by default ([#1203] -
+[@Gelbpunkt]).
+
+[#1203]: https://github.com/twilight-rs/twilight/pull/1203
+
 ## [0.7.0] - 2021-10-21
 
 ### Changes
@@ -84,6 +93,7 @@ Initial release.
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.7.0
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.6.0
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.5.1

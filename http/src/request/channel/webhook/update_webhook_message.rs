@@ -347,7 +347,7 @@ impl<'a> UpdateWebhookMessage<'a> {
         mut self,
         embeds: Option<&'a [Embed]>,
     ) -> Result<Self, UpdateWebhookMessageError> {
-        if let Some(embeds_present) = embeds.as_deref() {
+        if let Some(embeds_present) = embeds {
             if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
                 return Err(UpdateWebhookMessageError {
                     kind: UpdateWebhookMessageErrorType::TooManyEmbeds,

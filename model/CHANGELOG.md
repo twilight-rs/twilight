@@ -2,6 +2,30 @@
 
 Changelog for `twilight-model`.
 
+## [0.8.0] - 2021-12-03
+
+### Changes
+
+`tracing` is now an optional feature, and enabled by default ([#1203] -
+[@Gelbpunkt]).
+
+`MessageType::ApplicationCommand` has been renamed to `ChatInputCommand`
+([#1211] - [@7596ff]).
+
+`CommandInteractionDataResolved` now has `HashMap` fields instead of
+`Vec`s ([#1225] - [@vilgotf]).
+
+Deprecated `UserFlags` have been removed ([#1274] - [@7596ff]).
+
+`EmbedAuthor::name`, `EmbedImage::url`, and `EmbedThumbnail::url` are
+now required fields ([#1290] - [@itohatweb]).
+
+[#1203]: https://github.com/twilight-rs/twilight/pull/1203
+[#1211]: https://github.com/twilight-rs/twilight/pull/1211
+[#1225]: https://github.com/twilight-rs/twilight/pull/1225
+[#1274]: https://github.com/twilight-rs/twilight/pull/1274
+[#1290]: https://github.com/twilight-rs/twilight/pull/1290
+
 ## [0.7.3] - 2021-12-03
 
 ### Fixes
@@ -1048,6 +1072,7 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@HTG-YT]: https://github.com/HTG-YT
+[@itohatweb]: https://github.com/itohatweb
 [@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
@@ -1084,6 +1109,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.0
 [0.7.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.3
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.7.1

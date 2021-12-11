@@ -63,9 +63,11 @@ impl<'a> DeleteOriginalResponse<'a> {
 
 impl TryIntoRequest for DeleteOriginalResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteInteractionOriginal {
+        Ok(Request::builder(&Route::DeleteInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
-        }))
+        })
+        .use_authorization_token(false)
+        .build())
     }
 }

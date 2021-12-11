@@ -2,6 +2,18 @@
 
 Changelog for `twilight-util`.
 
+## [0.8.0] - 2021-12-03
+
+### Changes
+
+`CommandBuilder::{application_id, id}` have been removed since they are
+not sent to Discord regardless ([#1233] - [@vilgotf]).
+
+`SubCommandGroupBuilder::options` has been renamed to `subcommands`
+([#1233] - [@vilgotf]).
+
+[#1233]: https://github.com/twilight-rs/twilight/pull/1233
+
 ## [0.7.1] - 2021-11-20
 
 ### Additions

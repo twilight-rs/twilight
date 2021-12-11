@@ -390,6 +390,35 @@ impl TryIntoRequest for CreateFollowupMessage<'_> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok(request.use_authorization_token(false).build())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{client::Client, request::TryIntoRequest};
+    use std::error::Error;
+    use twilight_http_ratelimiting::Path;
+    use twilight_model::id::ApplicationId;
+
+    #[test]
+    fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
+        let application_id = ApplicationId::new(1).expect("non zero id");
+        let token = "foo".to_owned().into_boxed_str();
+
+        let client = Client::new(String::new());
+        client.set_application_id(application_id);
+        let req = client
+            .create_followup_message(&token)?
+            .content("test")
+            .try_into_request()?;
+
+        assert!(!req.use_authorization_token());
+        assert_eq!(
+            &Path::WebhooksIdToken(application_id.get(), token),
+            req.ratelimit_path()
+        );
+
+        Ok(())
     }
 }

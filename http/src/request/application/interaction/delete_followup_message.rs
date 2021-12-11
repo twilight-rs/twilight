@@ -62,12 +62,14 @@ impl<'a> DeleteFollowupMessage<'a> {
 
 impl TryIntoRequest for DeleteFollowupMessage<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        Ok(Request::from_route(&Route::DeleteWebhookMessage {
+        Ok(Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
-        }))
+        })
+        .use_authorization_token(false)
+        .build())
     }
 }
 
@@ -102,6 +104,7 @@ mod tests {
         });
 
         assert_eq!(expected.path, actual.path);
+        assert!(!actual.use_authorization_token());
 
         Ok(())
     }
