@@ -19,10 +19,11 @@ use twilight_model::id::ApplicationId;
 /// use twilight_model::id::ApplicationId;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = ApplicationId::new(1).expect("non zero");
 ///
 /// client
-///     .delete_interaction_original("token here")?
+///     .interaction(application_id)
+///     .delete_interaction_original("token here")
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -77,8 +78,10 @@ mod tests {
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());
-        client.set_application_id(application_id);
-        let req = client.delete_interaction_original(&token)?.request();
+        let req = client
+            .interaction(application_id)
+            .delete_interaction_original(&token)
+            .request();
 
         assert!(!req.use_authorization_token());
         assert_eq!(

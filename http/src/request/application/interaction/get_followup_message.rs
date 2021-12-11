@@ -17,10 +17,11 @@ use twilight_model::{
 /// use twilight_model::id::{ApplicationId, MessageId};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = ApplicationId::new(1).expect("non zero");
 ///
 /// let response = client
-///     .followup_message("token here", MessageId::new(2).expect("non zero"))?
+///     .interaction(application_id)
+///     .followup_message("token here", MessageId::new(2).expect("non zero"))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -72,13 +73,12 @@ mod tests {
     use super::GetFollowupMessage;
     use crate::{client::Client, request::Request, routing::Route};
     use static_assertions::assert_impl_all;
-    use std::error::Error;
     use twilight_model::id::{ApplicationId, MessageId};
 
     assert_impl_all!(GetFollowupMessage<'_>: Send, Sync);
 
     #[test]
-    fn test_request() -> Result<(), Box<dyn Error>> {
+    fn test_request() {
         const TOKEN: &str = "token";
 
         fn application_id() -> ApplicationId {
@@ -90,9 +90,11 @@ mod tests {
         }
 
         let client = Client::new("token".to_owned());
-        client.set_application_id(application_id());
 
-        let actual = client.followup_message(TOKEN, message_id())?.request();
+        let actual = client
+            .interaction(application_id())
+            .followup_message(TOKEN, message_id())
+            .request();
         let expected = Request::builder(&Route::GetFollowupMessage {
             application_id: application_id().get(),
             interaction_token: TOKEN,
@@ -109,7 +111,5 @@ mod tests {
             expected.use_authorization_token(),
             actual.use_authorization_token()
         );
-
-        Ok(())
     }
 }
