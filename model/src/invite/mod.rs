@@ -22,7 +22,7 @@ pub struct Invite {
     pub approximate_member_count: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_presence_count: Option<u64>,
-    pub channel: InviteChannel,
+    pub channel: Option<InviteChannel>,
     pub code: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_at: Option<Timestamp>,
@@ -99,11 +99,11 @@ mod tests {
         let value = Invite {
             approximate_member_count: Some(31),
             approximate_presence_count: Some(7),
-            channel: InviteChannel {
+            channel: Some(InviteChannel {
                 id: ChannelId::new(2).expect("non zero"),
                 kind: ChannelType::Group,
                 name: None,
-            },
+            }),
             code: "uniquecode".to_owned(),
             created_at: None,
             expires_at: None,
@@ -132,6 +132,7 @@ mod tests {
                 Token::Some,
                 Token::U64(7),
                 Token::Str("channel"),
+                Token::Some,
                 Token::Struct {
                     name: "InviteChannel",
                     len: 2,
@@ -162,11 +163,11 @@ mod tests {
         let value = Invite {
             approximate_member_count: Some(31),
             approximate_presence_count: Some(7),
-            channel: InviteChannel {
+            channel: Some(InviteChannel {
                 id: ChannelId::new(2).expect("non zero"),
                 kind: ChannelType::Group,
                 name: None,
-            },
+            }),
             code: "uniquecode".to_owned(),
             created_at: Some(created_at),
             expires_at: Some(expires_at),
@@ -283,6 +284,7 @@ mod tests {
                 Token::Some,
                 Token::U64(7),
                 Token::Str("channel"),
+                Token::Some,
                 Token::Struct {
                     name: "InviteChannel",
                     len: 2,
