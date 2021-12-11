@@ -2175,7 +2175,7 @@ mod tests {
             format!(
                 "channels/{channel_id}/permissions/{target_id}",
                 channel_id = CHANNEL_ID,
-                target_id = CHANNEL_ID
+                target_id = ROLE_ID
             )
         );
     }
@@ -2859,8 +2859,8 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_prune() {
-        let mut route = Route::CreateGuildPrune {
+    fn test_create_guild_prune_none() {
+        let route = Route::CreateGuildPrune {
             compute_prune_count: None,
             days: None,
             guild_id: GUILD_ID,
@@ -2870,8 +2870,11 @@ mod tests {
             route.display().to_string(),
             format!("guilds/{guild_id}/prune?", guild_id = GUILD_ID)
         );
+    }
 
-        route = Route::CreateGuildPrune {
+    #[test]
+    fn test_create_guild_prune_compute_prune_count_true() {
+        let route = Route::CreateGuildPrune {
             compute_prune_count: Some(true),
             days: None,
             guild_id: GUILD_ID,
@@ -2884,8 +2887,11 @@ mod tests {
                 guild_id = GUILD_ID
             )
         );
+    }
 
-        route = Route::CreateGuildPrune {
+    #[test]
+    fn test_create_guild_prune_compute_prune_count_false() {
+        let route = Route::CreateGuildPrune {
             compute_prune_count: Some(false),
             days: None,
             guild_id: GUILD_ID,
@@ -2898,8 +2904,11 @@ mod tests {
                 guild_id = GUILD_ID
             )
         );
+    }
 
-        route = Route::CreateGuildPrune {
+    #[test]
+    fn test_create_guild_prune_days() {
+        let route = Route::CreateGuildPrune {
             compute_prune_count: None,
             days: Some(4),
             guild_id: GUILD_ID,
@@ -2909,10 +2918,13 @@ mod tests {
             route.display().to_string(),
             format!("guilds/{guild_id}/prune?&days=4", guild_id = GUILD_ID)
         );
+    }
 
+    #[test]
+    fn test_create_guild_prune_include_one_role() {
         let include_roles = [RoleId::new(1).expect("non zero id")];
 
-        route = Route::CreateGuildPrune {
+        let route = Route::CreateGuildPrune {
             compute_prune_count: None,
             days: None,
             guild_id: GUILD_ID,
@@ -2925,13 +2937,16 @@ mod tests {
                 guild_id = GUILD_ID
             )
         );
+    }
 
+    #[test]
+    fn test_create_guild_prune_include_two_roles() {
         let include_roles = [
             RoleId::new(1).expect("non zero id"),
             RoleId::new(2).expect("non zero id"),
         ];
 
-        route = Route::CreateGuildPrune {
+        let route = Route::CreateGuildPrune {
             compute_prune_count: None,
             days: None,
             guild_id: GUILD_ID,
@@ -2944,8 +2959,16 @@ mod tests {
                 guild_id = GUILD_ID
             )
         );
+    }
 
-        route = Route::CreateGuildPrune {
+    #[test]
+    fn test_create_guild_prune_all() {
+        let include_roles = [
+            RoleId::new(1).expect("non zero id"),
+            RoleId::new(2).expect("non zero id"),
+        ];
+
+        let route = Route::CreateGuildPrune {
             compute_prune_count: Some(true),
             days: Some(4),
             guild_id: GUILD_ID,
