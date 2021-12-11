@@ -846,7 +846,6 @@ impl ShardProcessor {
         url: &str,
         tls: Option<&TlsContainer>,
     ) -> Result<ShardStream, ConnectingError> {
-        #[allow(rust_2021_incompatible_closure_captures)]
         let url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),

@@ -38,7 +38,7 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 # TLS libraries
-# They need to track what is used in tokio-tungstenite
+# They are needed to track what is used in tokio-tungstenite
 native-tls = { default-features = false, features = [], optional = true, version = "0.2.8" }
 rustls-tls = { default-features = false, features = [], optional = true, package = "rustls", version = "0.20" }
 rustls-native-certs = {default-features = false, features = [], optional = true, version = "0.6.1" }
@@ -57,9 +57,9 @@ proc-macro-hack = { default-features = false, version = "0.5.7" }
 default = ["compression", "rustls", "tracing", "flate2/zlib"]
 compression = ["flate2"]
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
-rustls = ["rustls-tls", "rustls-native-roots"]
-rustls-native-roots = ["rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
-rustls-webpki-roots = ["webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
+rustls = ["rustls-native-roots"]
+rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
+rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
 zlib-simd = ["compression", "flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
 # always use stock zlib instead of zlib-ng.
