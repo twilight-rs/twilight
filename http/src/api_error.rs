@@ -106,6 +106,9 @@ pub enum ErrorCode {
     AnnouncementRateLimitReached,
     /// The channel you are writing has hit the write rate limit
     ChannelRateLimitReached,
+    /// The write action you are performing on the server has hit the write
+    /// rate limit
+    WriteActionsReached,
     /// Your Stage topic, server name, server description, or channel names contain words that are not allowed
     UnallowedWords,
     /// Guild premium subscription level too low
@@ -237,6 +240,8 @@ pub enum ErrorCode {
     InvalidFileUploaded,
     /// Cannot self-redeem this gift
     CannotSelfRedeemGift,
+    /// Invalid Guild
+    InvalidGuild,
     /// Payment source required to redeem gift
     PaymentRequiredForGift,
     /// Cannot delete a channel required for Community guilds
@@ -353,6 +358,7 @@ impl ErrorCode {
             Self::NotAccountOwner => 20018,
             Self::AnnouncementRateLimitReached => 20022,
             Self::ChannelRateLimitReached => 20028,
+            Self::WriteActionsReached => 20029,
             Self::UnallowedWords => 20031,
             Self::GuildPremiumTooLow => 20035,
             Self::MaximumGuildsReached => 30001,
@@ -418,6 +424,7 @@ impl ErrorCode {
             Self::FileTooLarge => 50045,
             Self::InvalidFileUploaded => 50046,
             Self::CannotSelfRedeemGift => 50054,
+            Self::InvalidGuild => 50055,
             Self::PaymentRequiredForGift => 50070,
             Self::CommunityGuildRequired => 50074,
             Self::InvalidStickerSent => 50081,
@@ -504,6 +511,7 @@ impl From<u64> for ErrorCode {
             20016 => Self::SlowModeRateLimitReached,
             20018 => Self::NotAccountOwner,
             20028 => Self::ChannelRateLimitReached,
+            20029 => Self::WriteActionsReached,
             20031 => Self::UnallowedWords,
             20035 => Self::GuildPremiumTooLow,
             30001 => Self::MaximumGuildsReached,
@@ -569,6 +577,7 @@ impl From<u64> for ErrorCode {
             50045 => Self::FileTooLarge,
             50046 => Self::InvalidFileUploaded,
             50054 => Self::CannotSelfRedeemGift,
+            50055 => Self::InvalidGuild,
             50070 => Self::PaymentRequiredForGift,
             50074 => Self::CommunityGuildRequired,
             50081 => Self::InvalidStickerSent,
@@ -655,6 +664,7 @@ impl Display for ErrorCode {
             Self::NotAccountOwner => f.write_str("Only the owner of this account can perform this action"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::ChannelRateLimitReached => f.write_str("The channel you are writing has hit the write rate limit"),
+            Self::WriteActionsReached => f.write_str("The write action you are performing on the server has hit the write rate limit"),
             Self::UnallowedWords => f.write_str("Your Stage topic, server name, server description, or channel names contain words that are not allowed"),
             Self::GuildPremiumTooLow => f.write_str("Guild premium subscription level too low"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
@@ -720,6 +730,7 @@ impl Display for ErrorCode {
             Self::FileTooLarge => f.write_str("File uploaded exceeds the maximum size"),
             Self::InvalidFileUploaded => f.write_str("Invalid file uploaded"),
             Self::CannotSelfRedeemGift => f.write_str("Cannot self-redeem this gift"),
+            Self::InvalidGuild => f.write_str("Invalid Guild"),
             Self::PaymentRequiredForGift => f.write_str("Payment source required to redeem gift"),
             Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
             Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
@@ -1093,6 +1104,12 @@ mod tests {
             num: 10069,
         });
         assert_error_code(AssertErrorCode {
+            code: ErrorCode::WriteActionsReached,
+            display:
+                "The write action you are performing on the server has hit the write rate limit",
+            num: 20029,
+        });
+        assert_error_code(AssertErrorCode {
             code: ErrorCode::MaximumServerCategoriesReached,
             display: "Maximum number of server categories has been reached",
             num: 30030,
@@ -1106,6 +1123,11 @@ mod tests {
             code: ErrorCode::MaximumPruneRequestsReached,
             display: "Maximum number of prune requests has been reached. Try again later",
             num: 30040,
+        });
+        assert_error_code(AssertErrorCode {
+            code: ErrorCode::InvalidGuild,
+            display: "Invalid Guild",
+            num: 50055,
         });
     }
 }
