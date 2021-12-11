@@ -18,8 +18,11 @@ use twilight_model::id::{ApplicationId, MessageId};
 /// use twilight_model::id::{MessageId, ApplicationId};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+/// let application_id = ApplicationId::new(1).expect("non zero");
+///
 /// client
-///     .delete_followup_message("token here", MessageId::new(2).expect("non zero"))?
+///     .interaction(application_id)
+///     .delete_followup_message("token here", MessageId::new(2).expect("non zero"))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }

@@ -75,10 +75,10 @@ mod tests {
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());
-        client.set_application_id(application_id);
 
         let sent_response = InteractionResponse::DeferredUpdateMessage;
         let req = client
+            .interaction(application_id)
             .interaction_callback(interaction_id, &token, &sent_response)
             .try_into_request()?;
 

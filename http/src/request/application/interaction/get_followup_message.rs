@@ -23,10 +23,11 @@ use twilight_model::{
 /// use twilight_model::id::{ApplicationId, MessageId};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = ApplicationId::new(1).expect("non zero");
 ///
 /// let response = client
-///     .followup_message("token here", MessageId::new(2).expect("non zero"))?
+///     .interaction(application_id)
+///     .followup_message("token here", MessageId::new(2).expect("non zero"))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -107,12 +108,11 @@ mod tests {
         }
 
         let client = Client::new("token".to_owned());
-        client.set_application_id(application_id());
 
         let actual = client
-            .followup_message(TOKEN, message_id())?
+            .interaction(application_id())
+            .followup_message(TOKEN, message_id())
             .try_into_request()?;
-
         let expected = Request::builder(&Route::GetFollowupMessage {
             application_id: application_id().get(),
             interaction_token: TOKEN,
