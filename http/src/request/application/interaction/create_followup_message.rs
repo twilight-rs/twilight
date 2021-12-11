@@ -383,7 +383,7 @@ impl<'a> CreateFollowupMessage<'a> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok(request.use_authorization_token(false).build())
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -394,5 +394,34 @@ impl<'a> CreateFollowupMessage<'a> {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::client::Client;
+    use std::error::Error;
+    use twilight_http_ratelimiting::Path;
+    use twilight_model::id::ApplicationId;
+
+    #[test]
+    fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
+        let application_id = ApplicationId::new(1).expect("non zero id");
+        let token = "foo".to_owned().into_boxed_str();
+
+        let client = Client::new(String::new());
+        let req = client
+            .interaction(application_id)
+            .create_followup_message(&token)
+            .content("test")
+            .request()?;
+
+        assert!(!req.use_authorization_token());
+        assert_eq!(
+            &Path::WebhooksIdToken(application_id.get(), token),
+            req.ratelimit_path()
+        );
+
+        Ok(())
     }
 }
