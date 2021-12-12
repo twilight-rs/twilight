@@ -7,7 +7,7 @@ use twilight_model::{channel::Channel, id::ChannelId};
 ///
 /// Get channel `100`:
 ///
-/// ```,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::ChannelId;
 ///

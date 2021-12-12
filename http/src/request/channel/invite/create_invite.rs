@@ -86,7 +86,7 @@ struct CreateInviteFields {
 ///
 /// # Examples
 ///
-/// ```,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::ChannelId;
 ///
@@ -140,7 +140,7 @@ impl<'a> CreateInvite<'a> {
     /// Create an invite for a channel with a maximum of 1 use and an age of 1
     /// hour:
     ///
-    /// ```,no_run
+    /// ```no_run
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_model::id::ChannelId;
@@ -178,7 +178,7 @@ impl<'a> CreateInvite<'a> {
     ///
     /// Create an invite for a channel with a maximum of 5 uses:
     ///
-    /// ```,no_run
+    /// ```no_run
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_model::id::ChannelId;

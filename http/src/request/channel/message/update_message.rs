@@ -142,7 +142,7 @@ struct UpdateMessageFields<'a> {
 ///
 /// Replace the content with `"test update"`:
 ///
-/// ```,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::{ChannelId, MessageId};
 ///
@@ -158,7 +158,7 @@ struct UpdateMessageFields<'a> {
 ///
 /// Remove the message's content:
 ///
-/// ```,no_run
+/// ```no_run
 /// # use twilight_http::Client;
 /// # use twilight_model::id::{ChannelId, MessageId};
 /// #

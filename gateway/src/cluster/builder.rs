@@ -23,7 +23,7 @@ use twilight_model::gateway::{
 /// Create a cluster with only the `GUILD_MESSAGES` intents with a
 /// [`large_threshold`] of 100.
 ///
-/// ```,no_run
+/// ```no_run
 /// use std::env;
 /// use twilight_gateway::{Cluster, Intents};
 ///

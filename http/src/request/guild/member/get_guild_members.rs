@@ -78,7 +78,7 @@ struct GetGuildMembersFields {
 ///
 /// Get the first 500 members of guild `100` after user ID `3000`:
 ///
-/// ```,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::{GuildId, UserId};
 ///

@@ -76,7 +76,7 @@ struct SearchGuildMembersFields<'a> {
 ///
 /// Get the first 10 members of guild `100` matching `Wumpus`:
 ///
-/// ```,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::GuildId;
 ///

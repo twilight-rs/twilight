@@ -73,7 +73,7 @@ struct GetCurrentUserGuildsFields {
 /// Get the first 25 guilds with an ID after `300` and before
 /// `400`:
 ///
-/// ```,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::GuildId;
 ///

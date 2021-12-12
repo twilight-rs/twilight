@@ -18,7 +18,7 @@ struct CreateWebhookFields<'a> {
 ///
 /// # Examples
 ///
-/// ```,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::ChannelId;
 ///
