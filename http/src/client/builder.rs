@@ -104,7 +104,7 @@ impl ClientBuilder {
     ///
     /// Set the proxy to `twilight_http_proxy.internal`:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_http::Client;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

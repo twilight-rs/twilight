@@ -17,7 +17,7 @@ use twilight_model::{
 ///
 /// Mention a `UserId`:
 ///
-/// ```rust
+/// ```
 /// use twilight_mention::Mention;
 /// use twilight_model::id::UserId;
 ///
@@ -92,7 +92,7 @@ impl Display for MentionFormat<UserId> {
 ///
 /// Mention a `ChannelId`:
 ///
-/// ```rust
+/// ```
 /// use twilight_mention::Mention;
 /// use twilight_model::id::ChannelId;
 ///
