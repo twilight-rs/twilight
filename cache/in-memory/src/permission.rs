@@ -274,14 +274,14 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_cache_inmemory::InMemoryCache;
-    /// use twilight_model::id::{ChannelId, UserId};
+    /// use twilight_model::id::Id;
     ///
     /// let cache = InMemoryCache::new();
     ///
     /// // later on...
     ///
-    /// let channel_id = ChannelId::new(4).expect("non zero");
-    /// let user_id = UserId::new(5).expect("non zero");
+    /// let channel_id = Id::new(4).expect("non zero");
+    /// let user_id = Id::new(5).expect("non zero");
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
     /// println!(
