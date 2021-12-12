@@ -6,9 +6,12 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ChannelId, MessageId};
+use twilight_model::id::{
+    marker::{ChannelMarker, MessageMarker},
+    Id,
+};
 
-/// Create a reaction in a [`ChannelId`] on a [`MessageId`].
+/// Create a reaction in a [`Id<ChannelMarker>`] on a [`Id<MessageMarker>`].
 ///
 /// The reaction must be a variant of [`RequestReactionType`].
 ///
@@ -16,15 +19,15 @@ use twilight_model::id::{ChannelId, MessageId};
 /// ```rust,no_run
 /// use twilight_http::{Client, request::channel::reaction::RequestReactionType};
 /// use twilight_model::{
-///     id::{ChannelId, MessageId},
+///     id::Id,
 /// };
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId::new(123).expect("non zero");
-/// let message_id = MessageId::new(456).expect("non zero");
+/// let channel_id = Id::new(123).expect("non zero");
+/// let message_id = Id::new(456).expect("non zero");
 /// let emoji = RequestReactionType::Unicode { name: "🌃" };
 ///
 /// let reaction = client
@@ -35,17 +38,17 @@ use twilight_model::id::{ChannelId, MessageId};
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateReaction<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     emoji: &'a RequestReactionType<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
 }
 
 impl<'a> CreateReaction<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
         emoji: &'a RequestReactionType<'a>,
     ) -> Self {
         Self {
@@ -90,7 +93,7 @@ mod tests {
         Client,
     };
     use std::error::Error;
-    use twilight_model::id::{ChannelId, MessageId};
+    use twilight_model::id::Id;
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
@@ -100,8 +103,8 @@ mod tests {
 
         let builder = CreateReaction::new(
             &client,
-            ChannelId::new(123).expect("non zero"),
-            MessageId::new(456).expect("non zero"),
+            Id::new(123).expect("non zero"),
+            Id::new(456).expect("non zero"),
             &emoji,
         );
         let actual = builder.try_into_request()?;

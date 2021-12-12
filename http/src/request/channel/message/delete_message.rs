@@ -5,22 +5,25 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ChannelId, MessageId};
+use twilight_model::id::{
+    marker::{ChannelMarker, MessageMarker},
+    Id,
+};
 
-/// Delete a message by [`ChannelId`] and [`MessageId`].
+/// Delete a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteMessage<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     reason: Option<&'a str>,
 }
 
 impl<'a> DeleteMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             channel_id,

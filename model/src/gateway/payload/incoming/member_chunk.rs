@@ -1,7 +1,10 @@
 use crate::{
     gateway::presence::{Presence, PresenceListDeserializer},
     guild::member::{Member, MemberListDeserializer},
-    id::{GuildId, UserId},
+    id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -13,11 +16,11 @@ use std::fmt::{Formatter, Result as FmtResult};
 pub struct MemberChunk {
     pub chunk_count: u32,
     pub chunk_index: u32,
-    pub guild_id: GuildId,
+    pub guild_id: Id<GuildMarker>,
     pub members: Vec<Member>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nonce: Option<String>,
-    pub not_found: Vec<UserId>,
+    pub not_found: Vec<Id<UserMarker>>,
     #[serde(default)]
     pub presences: Vec<Presence>,
 }
@@ -120,8 +123,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                     // Since the guild ID may not be deserialized yet we'll use
                     // a temporary placeholder value and update it with the real
                     // guild ID after all the fields have been deserialized.
-                    let deserializer =
-                        MemberListDeserializer::new(GuildId::new(1).expect("non zero"));
+                    let deserializer = MemberListDeserializer::new(Id::new(1).expect("non zero"));
 
                     members = Some(map.next_value_seed(deserializer)?);
                 }
@@ -144,8 +146,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("presences"));
                     }
 
-                    let deserializer =
-                        PresenceListDeserializer::new(GuildId::new(1).expect("non zero"));
+                    let deserializer = PresenceListDeserializer::new(Id::new(1).expect("non zero"));
 
                     presences = Some(map.next_value_seed(deserializer)?);
                 }
@@ -212,7 +213,7 @@ mod tests {
         datetime::{Timestamp, TimestampParseError},
         gateway::presence::{ClientStatus, Presence, Status, UserOrId},
         guild::Member,
-        id::{GuildId, RoleId, UserId},
+        id::Id,
         user::{User, UserFlags},
     };
     use std::str::FromStr;
@@ -322,23 +323,20 @@ mod tests {
         let expected = MemberChunk {
             chunk_count: 1,
             chunk_index: 0,
-            guild_id: GuildId::new(1).expect("non zero"),
+            guild_id: Id::new(1).expect("non zero"),
             members: Vec::from([
                 Member {
                     avatar: None,
                     deaf: false,
-                    guild_id: GuildId::new(1).expect("non zero"),
+                    guild_id: Id::new(1).expect("non zero"),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![
-                        RoleId::new(6).expect("non zero"),
-                        RoleId::new(7).expect("non zero"),
-                    ],
+                    roles: vec![Id::new(6).expect("non zero"), Id::new(7).expect("non zero")],
                     user: User {
-                        id: UserId::new(2).expect("non zero"),
+                        id: Id::new(2).expect("non zero"),
                         accent_color: None,
                         avatar: Some("dddddddddddddddddddddddddddddddd".to_owned()),
                         banner: None,
@@ -358,15 +356,15 @@ mod tests {
                 Member {
                     avatar: None,
                     deaf: false,
-                    guild_id: GuildId::new(1).expect("non zero"),
+                    guild_id: Id::new(1).expect("non zero"),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![RoleId::new(6).expect("non zero")],
+                    roles: vec![Id::new(6).expect("non zero")],
                     user: User {
-                        id: UserId::new(3).expect("non zero"),
+                        id: Id::new(3).expect("non zero"),
                         accent_color: None,
                         avatar: Some("cccccccccccccccccccccccccccccccc".to_owned()),
                         banner: None,
@@ -386,15 +384,15 @@ mod tests {
                 Member {
                     avatar: None,
                     deaf: false,
-                    guild_id: GuildId::new(1).expect("non zero"),
+                    guild_id: Id::new(1).expect("non zero"),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: true,
                     premium_since: None,
-                    roles: vec![RoleId::new(6).expect("non zero")],
+                    roles: vec![Id::new(6).expect("non zero")],
                     user: User {
-                        id: UserId::new(5).expect("non zero"),
+                        id: Id::new(5).expect("non zero"),
                         accent_color: None,
                         avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
                         banner: None,
@@ -414,15 +412,15 @@ mod tests {
                 Member {
                     avatar: None,
                     deaf: false,
-                    guild_id: GuildId::new(1).expect("non zero"),
+                    guild_id: Id::new(1).expect("non zero"),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![RoleId::new(6).expect("non zero")],
+                    roles: vec![Id::new(6).expect("non zero")],
                     user: User {
-                        id: UserId::new(6).expect("non zero"),
+                        id: Id::new(6).expect("non zero"),
                         accent_color: None,
                         avatar: Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned()),
                         banner: None,
@@ -450,10 +448,10 @@ mod tests {
                         mobile: None,
                         web: Some(Status::Online),
                     },
-                    guild_id: GuildId::new(1).expect("non zero"),
+                    guild_id: Id::new(1).expect("non zero"),
                     status: Status::Online,
                     user: UserOrId::UserId {
-                        id: UserId::new(2).expect("non zero"),
+                        id: Id::new(2).expect("non zero"),
                     },
                 },
                 Presence {
@@ -463,10 +461,10 @@ mod tests {
                         mobile: None,
                         web: Some(Status::Online),
                     },
-                    guild_id: GuildId::new(1).expect("non zero"),
+                    guild_id: Id::new(1).expect("non zero"),
                     status: Status::Online,
                     user: UserOrId::UserId {
-                        id: UserId::new(3).expect("non zero"),
+                        id: Id::new(3).expect("non zero"),
                     },
                 },
                 Presence {
@@ -476,10 +474,10 @@ mod tests {
                         mobile: None,
                         web: None,
                     },
-                    guild_id: GuildId::new(1).expect("non zero"),
+                    guild_id: Id::new(1).expect("non zero"),
                     status: Status::DoNotDisturb,
                     user: UserOrId::UserId {
-                        id: UserId::new(5).expect("non zero"),
+                        id: Id::new(5).expect("non zero"),
                     },
                 },
             ]),

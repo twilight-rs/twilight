@@ -9,7 +9,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::{GuildId, UserId};
+use twilight_model::id::{
+    marker::{GuildMarker, UserMarker},
+    Id,
+};
 
 /// The error created when the members can not be fetched as configured.
 #[derive(Debug)]
@@ -65,7 +68,7 @@ pub enum GetGuildMembersErrorType {
 }
 
 struct GetGuildMembersFields {
-    after: Option<UserId>,
+    after: Option<Id<UserMarker>>,
     limit: Option<u64>,
     presences: Option<bool>,
 }
@@ -81,26 +84,26 @@ struct GetGuildMembersFields {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::{GuildId, UserId};
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(100).expect("non zero");
-/// let user_id = UserId::new(3000).expect("non zero");
+/// let guild_id = Id::new(100).expect("non zero");
+/// let user_id = Id::new(3000).expect("non zero");
 /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildMembers<'a> {
     fields: GetGuildMembersFields,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildMembers<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: GetGuildMembersFields {
                 after: None,
@@ -113,7 +116,7 @@ impl<'a> GetGuildMembers<'a> {
     }
 
     /// Sets the user ID to get members after.
-    pub const fn after(mut self, after: UserId) -> Self {
+    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
         self.fields.after = Some(after);
 
         self
@@ -168,7 +171,7 @@ impl<'a> GetGuildMembers<'a> {
 impl TryIntoRequest for GetGuildMembers<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
         Ok(Request::from_route(&Route::GetGuildMembers {
-            after: self.fields.after.map(UserId::get),
+            after: self.fields.after.map(Id::get),
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,
             presences: self.fields.presences,

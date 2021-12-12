@@ -5,18 +5,21 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::{channel::Channel, id::ChannelId};
+use twilight_model::{
+    channel::Channel,
+    id::{marker::ChannelMarker, Id},
+};
 
 /// Delete a channel by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteChannel<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> DeleteChannel<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             http,

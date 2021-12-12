@@ -1,9 +1,12 @@
 //! Provides the Snowflake trait for defining extractable information from a Discord Snowflake.
 
 use twilight_model::id::{
-    ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId, EmojiId,
-    GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId,
-    WebhookId,
+    marker::{
+        ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
+        CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
+        InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
+    },
+    Id,
 };
 
 /// Snowflake is a trait for defining extractable information from a Snowflake. A Snowflake is a
@@ -23,9 +26,9 @@ pub trait Snowflake {
     /// ```
     /// use chrono::{Utc, TimeZone};
     /// use twilight_util::snowflake::Snowflake;
-    /// use twilight_model::id::UserId;
+    /// use twilight_model::id::{marker::UserMarker, Id};
     ///
-    /// let id = UserId::new(105484726235607040).expect("non zero");
+    /// let id = Id::<UserMarker>::new(105484726235607040).expect("non zero");
     ///
     /// assert_eq!(
     ///     "2015-10-19T01:58:38.546+00:00",
@@ -38,10 +41,10 @@ pub trait Snowflake {
     /// ```
     /// use time::{Duration, format_description::well_known::Rfc3339, OffsetDateTime};
     /// use twilight_util::snowflake::Snowflake;
-    /// use twilight_model::id::UserId;
+    /// use twilight_model::id::{marker::UserMarker, Id};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let id = UserId::new(105484726235607040).expect("non zero");
+    /// let id = Id::<UserMarker>::new(105484726235607040).expect("non zero");
     /// // Convert milliseconds to seconds or nanoseconds.
     /// let dur = Duration::milliseconds(id.timestamp());
     ///
@@ -86,97 +89,97 @@ pub trait Snowflake {
     }
 }
 
-impl Snowflake for ApplicationId {
+impl Snowflake for Id<ApplicationMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for AttachmentId {
+impl Snowflake for Id<AttachmentMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for AuditLogEntryId {
+impl Snowflake for Id<AuditLogEntryMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for ChannelId {
+impl Snowflake for Id<ChannelMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for CommandId {
+impl Snowflake for Id<CommandMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for CommandVersionId {
+impl Snowflake for Id<CommandVersionMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for EmojiId {
+impl Snowflake for Id<EmojiMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for GenericId {
+impl Snowflake for Id<GenericMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for GuildId {
+impl Snowflake for Id<GuildMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for IntegrationId {
+impl Snowflake for Id<IntegrationMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for InteractionId {
+impl Snowflake for Id<InteractionMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for MessageId {
+impl Snowflake for Id<MessageMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for RoleId {
+impl Snowflake for Id<RoleMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for StageId {
+impl Snowflake for Id<StageMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for UserId {
+impl Snowflake for Id<UserMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
-impl Snowflake for WebhookId {
+impl Snowflake for Id<WebhookMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
@@ -187,33 +190,36 @@ mod tests {
     use super::Snowflake;
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use twilight_model::id::{
-        ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId,
-        EmojiId, GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId,
-        UserId, WebhookId,
+        marker::{
+            ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
+            CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
+            InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
+        },
+        Id,
     };
 
-    assert_impl_all!(ApplicationId: Snowflake);
-    assert_impl_all!(AttachmentId: Snowflake);
-    assert_impl_all!(AuditLogEntryId: Snowflake);
-    assert_impl_all!(ChannelId: Snowflake);
-    assert_impl_all!(CommandId: Snowflake);
-    assert_impl_all!(CommandVersionId: Snowflake);
-    assert_impl_all!(EmojiId: Snowflake);
-    assert_impl_all!(GenericId: Snowflake);
-    assert_impl_all!(GuildId: Snowflake);
-    assert_impl_all!(IntegrationId: Snowflake);
-    assert_impl_all!(InteractionId: Snowflake);
-    assert_impl_all!(MessageId: Snowflake);
-    assert_impl_all!(RoleId: Snowflake);
-    assert_impl_all!(StageId: Snowflake);
-    assert_impl_all!(UserId: Snowflake);
-    assert_impl_all!(WebhookId: Snowflake);
+    assert_impl_all!(Id<ApplicationMarker>: Snowflake);
+    assert_impl_all!(Id<AttachmentMarker>: Snowflake);
+    assert_impl_all!(Id<AuditLogEntryMarker>: Snowflake);
+    assert_impl_all!(Id<ChannelMarker>: Snowflake);
+    assert_impl_all!(Id<CommandMarker>: Snowflake);
+    assert_impl_all!(Id<CommandVersionMarker>: Snowflake);
+    assert_impl_all!(Id<EmojiMarker>: Snowflake);
+    assert_impl_all!(Id<GenericMarker>: Snowflake);
+    assert_impl_all!(Id<GuildMarker>: Snowflake);
+    assert_impl_all!(Id<IntegrationMarker>: Snowflake);
+    assert_impl_all!(Id<InteractionMarker>: Snowflake);
+    assert_impl_all!(Id<MessageMarker>: Snowflake);
+    assert_impl_all!(Id<RoleMarker>: Snowflake);
+    assert_impl_all!(Id<StageMarker>: Snowflake);
+    assert_impl_all!(Id<UserMarker>: Snowflake);
+    assert_impl_all!(Id<WebhookMarker>: Snowflake);
     assert_obj_safe!(Snowflake);
 
     #[test]
     fn test_timestamp() {
         let expected: i64 = 1_445_219_918_546;
-        let id = GenericId::new(105_484_726_235_607_040).expect("non zero");
+        let id = Id::<GenericMarker>::new(105_484_726_235_607_040).expect("non zero");
 
         assert_eq!(expected, id.timestamp())
     }
@@ -221,7 +227,7 @@ mod tests {
     #[test]
     fn test_worker_id() {
         let expected: u8 = 8;
-        let id = GenericId::new(762_022_344_856_174_632).expect("non zero");
+        let id = Id::<GenericMarker>::new(762_022_344_856_174_632).expect("non zero");
 
         assert_eq!(expected, id.worker_id())
     }
@@ -229,7 +235,7 @@ mod tests {
     #[test]
     fn test_process_id() {
         let expected: u8 = 1;
-        let id = GenericId::new(61_189_081_970_774_016).expect("non zero");
+        let id = Id::<GenericMarker>::new(61_189_081_970_774_016).expect("non zero");
 
         assert_eq!(expected, id.process_id())
     }
@@ -237,7 +243,7 @@ mod tests {
     #[test]
     fn test_increment() {
         let expected: u16 = 40;
-        let id = GenericId::new(762_022_344_856_174_632).expect("non zero");
+        let id = Id::<GenericMarker>::new(762_022_344_856_174_632).expect("non zero");
 
         assert_eq!(expected, id.increment())
     }

@@ -1,6 +1,9 @@
 use crate::{
     datetime::Timestamp,
-    id::{GuildId, RoleId},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
     user::User,
 };
 
@@ -19,7 +22,7 @@ pub struct Member {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     pub deaf: bool,
-    pub guild_id: GuildId,
+    pub guild_id: Id<GuildMarker>,
     pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
@@ -28,7 +31,7 @@ pub struct Member {
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
     pub user: User,
 }
 
@@ -51,14 +54,14 @@ pub struct MemberIntermediary {
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
     pub user: User,
 }
 
 impl MemberIntermediary {
     /// Inject a guild ID to create a [`Member`].
     #[allow(clippy::missing_const_for_fn)] // false positive
-    pub fn into_member(self, guild_id: GuildId) -> Member {
+    pub fn into_member(self, guild_id: Id<GuildMarker>) -> Member {
         Member {
             avatar: self.avatar,
             deaf: self.deaf,
@@ -80,12 +83,12 @@ impl MemberIntermediary {
 /// Member payloads from the HTTP API, for example, don't have the guild
 /// ID.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberDeserializer(GuildId);
+pub struct MemberDeserializer(Id<GuildMarker>);
 
 impl MemberDeserializer {
     /// Create a new deserializer for a member when you know the ID but the
     /// payload probably doesn't contain it.
-    pub const fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
         Self(guild_id)
     }
 }
@@ -98,7 +101,7 @@ impl<'de> DeserializeSeed<'de> for MemberDeserializer {
     }
 }
 
-pub(crate) struct MemberVisitor(GuildId);
+pub(crate) struct MemberVisitor(Id<GuildMarker>);
 
 impl<'de> Visitor<'de> for MemberVisitor {
     type Value = Member;
@@ -127,12 +130,12 @@ impl<'de> Visitor<'de> for MemberVisitor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct OptionalMemberDeserializer(GuildId);
+pub(crate) struct OptionalMemberDeserializer(Id<GuildMarker>);
 
 impl OptionalMemberDeserializer {
     /// Create a new deserializer for a member when you know the ID but the
     /// payload probably doesn't contain it.
-    pub const fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
         Self(guild_id)
     }
 }
@@ -145,7 +148,7 @@ impl<'de> DeserializeSeed<'de> for OptionalMemberDeserializer {
     }
 }
 
-struct OptionalMemberVisitor(GuildId);
+struct OptionalMemberVisitor(Id<GuildMarker>);
 
 impl<'de> Visitor<'de> for OptionalMemberVisitor {
     type Value = Option<Member>;
@@ -164,17 +167,17 @@ impl<'de> Visitor<'de> for OptionalMemberVisitor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberListDeserializer(GuildId);
+pub struct MemberListDeserializer(Id<GuildMarker>);
 
 impl MemberListDeserializer {
     /// Create a new deserializer for a map of members when you know the
     /// Guild ID but the payload probably doesn't contain it.
-    pub const fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
         Self(guild_id)
     }
 }
 
-struct MemberListVisitor(GuildId);
+struct MemberListVisitor(Id<GuildMarker>);
 
 impl<'de> Visitor<'de> for MemberListVisitor {
     type Value = Vec<Member>;
@@ -207,7 +210,7 @@ mod tests {
     use super::Member;
     use crate::{
         datetime::{Timestamp, TimestampParseError},
-        id::{GuildId, UserId},
+        id::Id,
         user::User,
     };
     use serde_test::Token;
@@ -221,7 +224,7 @@ mod tests {
         let value = Member {
             avatar: Some("guild avatar".to_owned()),
             deaf: false,
-            guild_id: GuildId::new(1).expect("non zero"),
+            guild_id: Id::new(1).expect("non zero"),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -236,7 +239,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(3).expect("non zero"),
+                id: Id::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
@@ -260,7 +263,7 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
@@ -293,7 +296,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("username"),
                 Token::Str("twilight"),

@@ -10,7 +10,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{id::GuildId, template::Template};
+use twilight_model::{
+    id::{marker::GuildMarker, Id},
+    template::Template,
+};
 
 /// Error emitted when the template can not be updated as configured.
 #[derive(Debug)]
@@ -79,13 +82,17 @@ struct UpdateTemplateFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
     fields: UpdateTemplateFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     template_code: &'a str,
 }
 
 impl<'a> UpdateTemplate<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, template_code: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        template_code: &'a str,
+    ) -> Self {
         Self {
             fields: UpdateTemplateFields {
                 name: None,

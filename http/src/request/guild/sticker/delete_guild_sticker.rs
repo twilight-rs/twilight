@@ -5,7 +5,10 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{channel::message::sticker::StickerId, id::GuildId};
+use twilight_model::id::{
+    marker::{GuildMarker, StickerMarker},
+    Id,
+};
 
 /// Deletes a guild sticker by the ID of the guild and its ID.
 ///
@@ -13,17 +16,14 @@ use twilight_model::{channel::message::sticker::StickerId, id::GuildId};
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::{
-///     channel::message::sticker::StickerId,
-///     id::GuildId,
-/// };
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(1).expect("non zero");
-/// let sticker_id = StickerId::new(2).expect("non zero");
+/// let guild_id = Id::new(1).expect("non zero");
+/// let sticker_id = Id::new(2).expect("non zero");
 ///
 /// client
 ///     .delete_guild_sticker(guild_id, sticker_id)
@@ -32,13 +32,17 @@ use twilight_model::{channel::message::sticker::StickerId, id::GuildId};
 /// # Ok(()) }
 /// ```
 pub struct DeleteGuildSticker<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    sticker_id: StickerId,
+    sticker_id: Id<StickerMarker>,
 }
 
 impl<'a> DeleteGuildSticker<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, sticker_id: StickerId) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        sticker_id: Id<StickerMarker>,
+    ) -> Self {
         Self {
             guild_id,
             http,

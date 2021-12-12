@@ -9,7 +9,7 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
-    id::ChannelId,
+    id::{marker::ChannelMarker, Id},
 };
 
 #[derive(Serialize)]
@@ -34,14 +34,14 @@ struct UpdateThreadFields<'a> {
 /// characters and the maximum is 100 UTF-16 characters.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateThread<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateThreadFields<'a>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateThread<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: UpdateThreadFields {
@@ -200,12 +200,12 @@ mod tests {
         Client,
     };
     use std::error::Error;
-    use twilight_model::id::ChannelId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_string());
-        let channel_id = ChannelId::new(123).expect("non zero");
+        let channel_id = Id::new(123).expect("non zero");
 
         let actual = UpdateThread::new(&client, channel_id)
             .rate_limit_per_user(60)?

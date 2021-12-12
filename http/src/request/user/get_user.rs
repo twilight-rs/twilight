@@ -5,17 +5,20 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::{id::UserId, user::User};
+use twilight_model::{
+    id::{marker::UserMarker, Id},
+    user::User,
+};
 
 /// Get a user's information by id.
 #[must_use = "requests must be configured and executed"]
 pub struct GetUser<'a> {
     http: &'a Client,
-    user_id: UserId,
+    user_id: Id<UserMarker>,
 }
 
 impl<'a> GetUser<'a> {
-    pub(crate) const fn new(http: &'a Client, user_id: UserId) -> Self {
+    pub(crate) const fn new(http: &'a Client, user_id: Id<UserMarker>) -> Self {
         Self { http, user_id }
     }
 

@@ -5,17 +5,20 @@ use crate::{
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{channel::GuildChannel, id::GuildId};
+use twilight_model::{
+    channel::GuildChannel,
+    id::{marker::GuildMarker, Id},
+};
 
 /// Get the channels in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildChannels<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildChannels<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self { guild_id, http }
     }
 

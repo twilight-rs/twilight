@@ -21,7 +21,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Message,
     },
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// A followup message can not be created as configured.
@@ -126,10 +126,10 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::id::ApplicationId;
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = ApplicationId::new(1).expect("non zero");
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// client
 ///     .interaction(application_id)
@@ -145,7 +145,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     http: &'a Client,
@@ -155,7 +155,7 @@ pub struct CreateFollowupMessage<'a> {
 impl<'a> CreateFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
     ) -> Self {
         Self {
@@ -282,10 +282,10 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use std::env;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = ApplicationId::new(1).expect("non zero");
+    /// let application_id = Id::new(1).expect("non zero");
     ///
     /// let message = client
     ///     .interaction(application_id)
@@ -308,10 +308,10 @@ impl<'a> CreateFollowupMessage<'a> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = ApplicationId::new(1).expect("non zero");
+    /// let application_id = Id::new(1).expect("non zero");
     ///
     /// let message = client
     ///     .interaction(application_id)
@@ -404,11 +404,11 @@ mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::ApplicationId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
+        let application_id = Id::new(1).expect("non zero id");
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());

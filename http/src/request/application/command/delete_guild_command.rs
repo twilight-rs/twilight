@@ -5,23 +5,26 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ApplicationId, CommandId, GuildId};
+use twilight_model::id::{
+    marker::{ApplicationMarker, CommandMarker, GuildMarker},
+    Id,
+};
 
 /// Delete a command in a guild, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGuildCommand<'a> {
-    application_id: ApplicationId,
-    command_id: CommandId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> DeleteGuildCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
-        command_id: CommandId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
+        command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
             application_id,

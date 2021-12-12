@@ -8,7 +8,7 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     guild::{Permissions, Role},
-    id::GuildId,
+    id::{marker::GuildMarker, Id},
 };
 
 #[derive(Serialize)]
@@ -35,12 +35,12 @@ struct CreateRoleFields<'a> {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let guild_id = GuildId::new(234).expect("non zero");
+/// let guild_id = Id::new(234).expect("non zero");
 ///
 /// client.create_role(guild_id)
 ///     .color(0xd90083)
@@ -52,13 +52,13 @@ struct CreateRoleFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateRole<'a> {
     fields: CreateRoleFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateRole<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: CreateRoleFields {
                 color: None,

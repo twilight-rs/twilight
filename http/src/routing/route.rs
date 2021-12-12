@@ -1,6 +1,6 @@
 use super::{route_display::RouteDisplay, Path};
 use crate::request::{channel::reaction::RequestReactionType, Method};
-use twilight_model::id::RoleId;
+use twilight_model::id::{marker::RoleMarker, Id};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
@@ -82,7 +82,7 @@ pub enum Route<'a> {
         ///
         /// A user must have at least one of these roles to be able to be
         /// pruned.
-        include_roles: &'a [RoleId],
+        include_roles: &'a [Id<RoleMarker>],
     },
     /// Route information to create a sticker in a guild.
     CreateGuildSticker {
@@ -500,7 +500,7 @@ pub enum Route<'a> {
         ///
         /// A user must have at least one of these roles to be able to be
         /// pruned.
-        include_roles: &'a [RoleId],
+        include_roles: &'a [Id<RoleMarker>],
     },
     /// Route information to get a guild's roles.
     GetGuildRoles {

@@ -18,7 +18,10 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions},
-    id::{ChannelId, WebhookId},
+    id::{
+        marker::{ChannelMarker, WebhookMarker},
+        Id,
+    },
 };
 
 /// A webhook could not be executed.
@@ -124,12 +127,12 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::WebhookId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let id = WebhookId::new(432).expect("non zero");
+/// let id = Id::new(432).expect("non zero");
 ///
 /// client
 ///     .execute_webhook(id, "webhook token")
@@ -147,13 +150,17 @@ pub struct ExecuteWebhook<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: ExecuteWebhookFields<'a>,
     pub(super) http: &'a Client,
-    thread_id: Option<ChannelId>,
+    thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> ExecuteWebhook<'a> {
-    pub(crate) const fn new(http: &'a Client, webhook_id: WebhookId, token: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        webhook_id: Id<WebhookMarker>,
+        token: &'a str,
+    ) -> Self {
         Self {
             fields: ExecuteWebhookFields {
                 attachments: Vec::new(),
@@ -268,12 +275,12 @@ impl<'a> ExecuteWebhook<'a> {
     /// ```rust,no_run
     /// use twilight_embed_builder::EmbedBuilder;
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, WebhookId};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let message = client.execute_webhook(WebhookId::new(1).expect("non zero"), "token here")
+    /// let message = client.execute_webhook(Id::new(1).expect("non zero"), "token here")
     ///     .content("some content")
     ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
     ///     .wait()
@@ -290,12 +297,12 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, WebhookId};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let message = client.execute_webhook(WebhookId::new(1).expect("non zero"), "token here")
+    /// let message = client.execute_webhook(Id::new(1).expect("non zero"), "token here")
     ///     .content("some content")
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
@@ -318,7 +325,7 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Execute in a thread belonging to the channel instead of the channel itself.
-    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
         self.thread_id.replace(thread_id);
 
         self
@@ -353,7 +360,7 @@ impl<'a> ExecuteWebhook<'a> {
     // being consumed in request construction.
     pub(super) fn request(&mut self, wait: bool) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
-            thread_id: self.thread_id.map(ChannelId::get),
+            thread_id: self.thread_id.map(Id::get),
             token: self.token,
             wait: Some(wait),
             webhook_id: self.webhook_id.get(),

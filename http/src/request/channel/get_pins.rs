@@ -5,17 +5,20 @@ use crate::{
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{channel::Message, id::ChannelId};
+use twilight_model::{
+    channel::Message,
+    id::{marker::ChannelMarker, Id},
+};
 
 /// Get the pins of a channel.
 #[must_use = "requests must be configured and executed"]
 pub struct GetPins<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetPins<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self { channel_id, http }
     }
 

@@ -1,4 +1,8 @@
-use crate::{guild::VerificationLevel, id::GuildId, invite::WelcomeScreen};
+use crate::{
+    guild::VerificationLevel,
+    id::{marker::GuildMarker, Id},
+    invite::WelcomeScreen,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -12,7 +16,7 @@ pub struct InviteGuild {
     /// Hash of the icon image.
     pub icon: Option<String>,
     /// ID of the guild.
-    pub id: GuildId,
+    pub id: Id<GuildMarker>,
     /// Name of the guild.
     pub name: String,
     /// Hash of the splash image.
@@ -27,11 +31,8 @@ pub struct InviteGuild {
 
 #[cfg(test)]
 mod tests {
-    use super::{GuildId, InviteGuild, VerificationLevel, WelcomeScreen};
-    use crate::{
-        id::{ChannelId, EmojiId},
-        invite::WelcomeScreenChannel,
-    };
+    use super::{InviteGuild, VerificationLevel, WelcomeScreen};
+    use crate::{id::Id, invite::WelcomeScreenChannel};
     use serde_test::Token;
 
     #[test]
@@ -42,7 +43,7 @@ mod tests {
             description: Some("a description".to_owned()),
             features: vec!["a feature".to_owned()],
             icon: Some("icon hash".to_owned()),
-            id: GuildId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             name: "guild name".to_owned(),
             splash: Some("splash hash".to_owned()),
             vanity_url_code: Some("twilight".to_owned()),
@@ -51,15 +52,15 @@ mod tests {
                 description: Some("welcome description".to_owned()),
                 welcome_channels: vec![
                     WelcomeScreenChannel {
-                        channel_id: ChannelId::new(123).expect("non zero"),
+                        channel_id: Id::new(123).expect("non zero"),
                         description: "channel description".to_owned(),
                         emoji_id: None,
                         emoji_name: Some("\u{1f352}".to_owned()),
                     },
                     WelcomeScreenChannel {
-                        channel_id: ChannelId::new(456).expect("non zero"),
+                        channel_id: Id::new(456).expect("non zero"),
                         description: "custom description".to_owned(),
-                        emoji_id: Some(EmojiId::new(789).expect("non zero")),
+                        emoji_id: Some(Id::new(789).expect("non zero")),
                         emoji_name: Some("custom_name".to_owned()),
                     },
                 ],
@@ -87,7 +88,7 @@ mod tests {
                 Token::Some,
                 Token::Str("icon hash"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("guild name"),
@@ -115,7 +116,7 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("description"),
                 Token::Str("channel description"),
@@ -130,13 +131,13 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("456"),
                 Token::Str("description"),
                 Token::Str("custom description"),
                 Token::Str("emoji_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "EmojiId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("789"),
                 Token::Str("emoji_name"),
                 Token::Some,

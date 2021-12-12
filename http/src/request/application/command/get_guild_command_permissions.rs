@@ -7,22 +7,25 @@ use crate::{
 };
 use twilight_model::{
     application::command::permissions::GuildCommandPermissions,
-    id::{ApplicationId, GuildId},
+    id::{
+        marker::{ApplicationMarker, GuildMarker},
+        Id,
+    },
 };
 
 /// Get command permissions for all commands from the current application in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildCommandPermissions<'a> {
-    application_id: ApplicationId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildCommandPermissions<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
     ) -> Self {
         Self {
             application_id,

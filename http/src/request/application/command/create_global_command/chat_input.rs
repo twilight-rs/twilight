@@ -11,7 +11,7 @@ use crate::{
 };
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// Create a new chat input global command.
@@ -23,7 +23,7 @@ use twilight_model::{
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalChatInputCommand<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     default_permission: Option<bool>,
     description: &'a str,
     http: &'a Client,
@@ -34,7 +34,7 @@ pub struct CreateGlobalChatInputCommand<'a> {
 impl<'a> CreateGlobalChatInputCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {

@@ -5,7 +5,10 @@ use crate::{
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{guild::Emoji, id::GuildId};
+use twilight_model::{
+    guild::Emoji,
+    id::{marker::GuildMarker, Id},
+};
 
 /// Get the emojis for a guild, by the guild's id.
 ///
@@ -15,25 +18,25 @@ use twilight_model::{guild::Emoji, id::GuildId};
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(100).expect("non zero");
+/// let guild_id = Id::new(100).expect("non zero");
 ///
 /// client.emojis(guild_id).exec().await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetEmojis<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetEmojis<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self { guild_id, http }
     }
 

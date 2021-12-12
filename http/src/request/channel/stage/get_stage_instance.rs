@@ -5,17 +5,20 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::{channel::StageInstance, id::ChannelId};
+use twilight_model::{
+    channel::StageInstance,
+    id::{marker::ChannelMarker, Id},
+};
 
 /// Gets the stage instance associated with a stage channel, if it exists.
 #[must_use = "requests must be configured and executed"]
 pub struct GetStageInstance<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetStageInstance<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self { channel_id, http }
     }
 

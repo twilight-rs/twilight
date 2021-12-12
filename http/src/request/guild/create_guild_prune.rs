@@ -11,7 +11,10 @@ use std::{
 };
 use twilight_model::{
     guild::GuildPrune,
-    id::{GuildId, RoleId},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
 };
 
 /// The error created when the guild prune can not be created as configured.
@@ -69,7 +72,7 @@ pub enum CreateGuildPruneErrorType {
 struct CreateGuildPruneFields<'a> {
     compute_prune_count: Option<bool>,
     days: Option<u64>,
-    include_roles: &'a [RoleId],
+    include_roles: &'a [Id<RoleMarker>],
 }
 
 /// Begin a guild prune.
@@ -80,13 +83,13 @@ struct CreateGuildPruneFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {
     fields: CreateGuildPruneFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateGuildPrune<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: CreateGuildPruneFields {
                 compute_prune_count: None,
@@ -100,7 +103,7 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     /// List of roles to include when pruning.
-    pub const fn include_roles(mut self, roles: &'a [RoleId]) -> Self {
+    pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields.include_roles = roles;
 
         self

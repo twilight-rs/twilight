@@ -264,10 +264,10 @@ use crate::error::Error;
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::{env, str};
 /// use twilight_http::{client::Client, request::TryIntoRequest};
-/// use twilight_model::{channel::Message, id::ChannelId};
+/// use twilight_model::{channel::Message, id::Id};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let channel_id = ChannelId::new(1).expect("non zero");
+/// let channel_id = Id::new(1).expect("non zero");
 /// let builder = client.create_message(channel_id)
 ///     .content("This is a test message!")?
 ///     .tts(false);
@@ -314,14 +314,14 @@ mod tests {
     use crate::{client::Client, request::Method};
     use static_assertions::assert_obj_safe;
     use std::error::Error;
-    use twilight_model::id::ChannelId;
+    use twilight_model::id::Id;
 
     assert_obj_safe!(TryIntoRequest);
 
     #[test]
     fn test_conversion() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
-        let channel_id = ChannelId::new(1).expect("non zero");
+        let channel_id = Id::new(1).expect("non zero");
         let builder = client.create_message(channel_id).content("test")?;
         let request = builder.try_into_request()?;
 

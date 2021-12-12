@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    id::GuildId,
+    id::{marker::GuildMarker, Id},
     invite::{WelcomeScreen, WelcomeScreenChannel},
 };
 
@@ -29,12 +29,12 @@ struct UpdateGuildWelcomeScreenFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWelcomeScreen<'a> {
     fields: UpdateGuildWelcomeScreenFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> UpdateGuildWelcomeScreen<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: UpdateGuildWelcomeScreenFields {
                 description: None,

@@ -15,7 +15,7 @@ use std::{
 };
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, VideoQualityMode},
-    id::ChannelId,
+    id::{marker::ChannelMarker, Id},
 };
 
 /// Returned when the channel can not be updated as configured.
@@ -82,7 +82,7 @@ struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     nsfw: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<NullableField<ChannelId>>,
+    parent_id: Option<NullableField<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permission_overwrites: Option<&'a [PermissionOverwrite]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -106,14 +106,14 @@ struct UpdateChannelFields<'a> {
 /// and the maximum is 100 UTF-16 characters.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannel<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateChannelFields<'a>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateChannel<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: UpdateChannelFields {
@@ -171,7 +171,7 @@ impl<'a> UpdateChannel<'a> {
 
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, move this
     /// channel to a child of the category channel.
-    pub const fn parent_id(mut self, parent_id: Option<ChannelId>) -> Self {
+    pub const fn parent_id(mut self, parent_id: Option<Id<ChannelMarker>>) -> Self {
         self.fields.parent_id = Some(NullableField(parent_id));
 
         self

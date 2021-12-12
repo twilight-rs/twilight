@@ -7,7 +7,10 @@ use crate::{
 };
 use twilight_model::{
     channel::Message,
-    id::{ApplicationId, MessageId},
+    id::{
+        marker::{ApplicationMarker, MessageMarker},
+        Id,
+    },
 };
 
 /// Get a followup message of an interaction.
@@ -20,32 +23,32 @@ use twilight_model::{
 /// use std::env;
 /// use twilight_http::Client;
 /// use twilight_http::request::AuditLogReason;
-/// use twilight_model::id::{ApplicationId, MessageId};
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = ApplicationId::new(1).expect("non zero");
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// let response = client
 ///     .interaction(application_id)
-///     .followup_message("token here", MessageId::new(2).expect("non zero"))
+///     .followup_message("token here", Id::new(2).expect("non zero"))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetFollowupMessage<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     interaction_token: &'a str,
 }
 
 impl<'a> GetFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         interaction_token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             application_id,
@@ -91,7 +94,10 @@ mod tests {
     };
     use static_assertions::assert_impl_all;
     use std::error::Error;
-    use twilight_model::id::{ApplicationId, MessageId};
+    use twilight_model::id::{
+        marker::{ApplicationMarker, MessageMarker},
+        Id,
+    };
 
     assert_impl_all!(GetFollowupMessage<'_>: Send, Sync);
 
@@ -99,12 +105,12 @@ mod tests {
     fn test_request() -> Result<(), Box<dyn Error>> {
         const TOKEN: &str = "token";
 
-        fn application_id() -> ApplicationId {
-            ApplicationId::new(1).expect("non zero")
+        fn application_id() -> Id<ApplicationMarker> {
+            Id::new(1).expect("non zero")
         }
 
-        fn message_id() -> MessageId {
-            MessageId::new(2).expect("non zero")
+        fn message_id() -> Id<MessageMarker> {
+            Id::new(2).expect("non zero")
         }
 
         let client = Client::new("token".to_owned());

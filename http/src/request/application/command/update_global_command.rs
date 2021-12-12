@@ -8,7 +8,10 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     application::command::{Command, CommandOption},
-    id::{ApplicationId, CommandId},
+    id::{
+        marker::{ApplicationMarker, CommandMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
@@ -30,16 +33,16 @@ struct UpdateGlobalCommandFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGlobalCommand<'a> {
     fields: UpdateGlobalCommandFields<'a>,
-    command_id: CommandId,
-    application_id: ApplicationId,
+    command_id: Id<CommandMarker>,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
 }
 
 impl<'a> UpdateGlobalCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        command_id: CommandId,
+        application_id: Id<ApplicationMarker>,
+        command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
             application_id,

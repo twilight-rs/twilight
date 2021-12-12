@@ -21,7 +21,10 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{ChannelId, MessageId, WebhookId},
+    id::{
+        marker::{ChannelMarker, MessageMarker, WebhookMarker},
+        Id,
+    },
 };
 
 /// A webhook's message can not be updated as configured.
@@ -152,13 +155,13 @@ struct UpdateWebhookMessageFields<'a> {
 /// # use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::{MessageId, WebhookId}
+///     id::Id,
 /// };
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
-/// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
+/// client.update_webhook_message(Id::new(1).expect("non zero"), "token here", Id::new(2).expect("non zero"))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -174,11 +177,11 @@ pub struct UpdateWebhookMessage<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateWebhookMessageFields<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     reason: Option<&'a str>,
-    thread_id: Option<ChannelId>,
+    thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
@@ -187,9 +190,9 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: WebhookId,
+        webhook_id: Id<WebhookMarker>,
         token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             fields: UpdateWebhookMessageFields {
@@ -316,7 +319,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::{MessageId, WebhookId};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -326,7 +329,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token", MessageId::new(2).expect("non zero"))
+    /// client.update_webhook_message(Id::new(1).expect("non zero"), "token", Id::new(2).expect("non zero"))
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -407,7 +410,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     /// Update in a thread belonging to the channel instead of the channel
     /// itself.
-    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
         self.thread_id.replace(thread_id);
 
         self
@@ -438,7 +441,7 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
-            thread_id: self.thread_id.map(ChannelId::get),
+            thread_id: self.thread_id.map(Id::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
@@ -497,20 +500,20 @@ mod tests {
         request::{AuditLogReason, NullableField, Request, TryIntoRequest},
         routing::Route,
     };
-    use twilight_model::id::{ChannelId, MessageId, WebhookId};
+    use twilight_model::id::Id;
 
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
         let builder = UpdateWebhookMessage::new(
             &client,
-            WebhookId::new(1).expect("non zero"),
+            Id::new(1).expect("non zero"),
             "token",
-            MessageId::new(2).expect("non zero"),
+            Id::new(2).expect("non zero"),
         )
         .content(Some("test"))
         .expect("'test' content couldn't be set")
-        .thread_id(ChannelId::new(3).expect("non zero"))
+        .thread_id(Id::new(3).expect("non zero"))
         .reason("reason")
         .expect("'reason' is not a valid reason");
         let actual = builder

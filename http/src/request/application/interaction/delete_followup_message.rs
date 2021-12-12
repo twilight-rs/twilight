@@ -5,7 +5,10 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ApplicationId, MessageId};
+use twilight_model::id::{
+    marker::{ApplicationMarker, MessageMarker},
+    Id,
+};
 
 /// Delete a followup message created from a interaction.
 ///
@@ -15,14 +18,14 @@ use twilight_model::id::{ApplicationId, MessageId};
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::id::{MessageId, ApplicationId};
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = ApplicationId::new(1).expect("non zero");
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// client
 ///     .interaction(application_id)
-///     .delete_followup_message("token here", MessageId::new(2).expect("non zero"))
+///     .delete_followup_message("token here", Id::new(2).expect("non zero"))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -30,17 +33,17 @@ use twilight_model::id::{ApplicationId, MessageId};
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteFollowupMessage<'a> {
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     token: &'a str,
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
 }
 
 impl<'a> DeleteFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             http,
@@ -85,7 +88,7 @@ mod tests {
         routing::Route,
     };
     use std::error::Error;
-    use twilight_model::id::{ApplicationId, MessageId};
+    use twilight_model::id::Id;
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
@@ -93,9 +96,9 @@ mod tests {
 
         let builder = DeleteFollowupMessage::new(
             &client,
-            ApplicationId::new(1).expect("non zero"),
+            Id::new(1).expect("non zero"),
             "token",
-            MessageId::new(2).expect("non zero"),
+            Id::new(2).expect("non zero"),
         );
         let actual = builder.try_into_request()?;
 

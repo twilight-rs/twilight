@@ -5,17 +5,20 @@ use crate::{
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{guild::Role, id::GuildId};
+use twilight_model::{
+    guild::Role,
+    id::{marker::GuildMarker, Id},
+};
 
 /// Get the roles of a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildRoles<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildRoles<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self { guild_id, http }
     }
 

@@ -23,7 +23,10 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Attachment, Message,
     },
-    id::{ChannelId, MessageId},
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
 };
 
 /// The error created when a message can not be updated as configured.
@@ -133,7 +136,7 @@ struct UpdateMessageFields<'a> {
     flags: Option<MessageFlags>,
 }
 
-/// Update a message by [`ChannelId`] and [`MessageId`].
+/// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
 ///
 /// You can pass `None` to any of the methods to remove the associated field.
 /// For example, if you have a message with an embed you want to remove, you can
@@ -145,12 +148,12 @@ struct UpdateMessageFields<'a> {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::{ChannelId, MessageId};
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
+/// client.update_message(Id::new(1).expect("non zero"), Id::new(2).expect("non zero"))
 ///     .content(Some("test update"))?
 ///     .exec()
 ///     .await?;
@@ -161,12 +164,12 @@ struct UpdateMessageFields<'a> {
 ///
 /// ```rust,no_run
 /// # use twilight_http::Client;
-/// # use twilight_model::id::{ChannelId, MessageId};
+/// # use twilight_model::id::Id;
 /// #
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("my token".to_owned());
-/// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
+/// client.update_message(Id::new(1).expect("non zero"), Id::new(2).expect("non zero"))
 ///     .content(None)?
 ///     .exec()
 ///     .await?;
@@ -174,17 +177,17 @@ struct UpdateMessageFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateMessage<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateMessageFields<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
 }
 
 impl<'a> UpdateMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             channel_id,

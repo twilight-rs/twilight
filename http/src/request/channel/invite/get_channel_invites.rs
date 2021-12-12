@@ -5,7 +5,10 @@ use crate::{
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{id::ChannelId, invite::Invite};
+use twilight_model::{
+    id::{marker::ChannelMarker, Id},
+    invite::Invite,
+};
 
 /// Get the invites for a guild channel.
 ///
@@ -16,12 +19,12 @@ use twilight_model::{id::ChannelId, invite::Invite};
 /// [`GuildChannel`]: twilight_model::channel::GuildChannel
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelInvites<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetChannelInvites<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self { channel_id, http }
     }
 

@@ -8,7 +8,7 @@ use crate::{
 };
 use twilight_model::{
     application::command::{Command, CommandType},
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// Create a new message global command.
@@ -19,7 +19,7 @@ use twilight_model::{
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalMessageCommand<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     default_permission: Option<bool>,
     http: &'a Client,
     name: &'a str,
@@ -28,7 +28,7 @@ pub struct CreateGlobalMessageCommand<'a> {
 impl<'a> CreateGlobalMessageCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         name: &'a str,
     ) -> Self {
         Self {

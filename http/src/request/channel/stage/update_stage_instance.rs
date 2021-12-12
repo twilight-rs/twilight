@@ -10,7 +10,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{channel::stage_instance::PrivacyLevel, id::ChannelId};
+use twilight_model::{
+    channel::stage_instance::PrivacyLevel,
+    id::{marker::ChannelMarker, Id},
+};
 
 /// The request can not be created as configured.
 #[derive(Debug)]
@@ -79,13 +82,13 @@ struct UpdateStageInstanceFields<'a> {
 /// Requires the user to be a moderator of the stage channel.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateStageInstance<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateStageInstanceFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> UpdateStageInstance<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: UpdateStageInstanceFields {

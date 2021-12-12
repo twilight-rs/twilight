@@ -5,24 +5,27 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{GuildId, RoleId, UserId};
+use twilight_model::id::{
+    marker::{GuildMarker, RoleMarker, UserMarker},
+    Id,
+};
 
 /// Remove a role from a member in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct RemoveRoleFromMember<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    role_id: RoleId,
-    user_id: UserId,
+    role_id: Id<RoleMarker>,
+    user_id: Id<UserMarker>,
     reason: Option<&'a str>,
 }
 
 impl<'a> RemoveRoleFromMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: GuildId,
-        user_id: UserId,
-        role_id: RoleId,
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+        role_id: Id<RoleMarker>,
     ) -> Self {
         Self {
             guild_id,

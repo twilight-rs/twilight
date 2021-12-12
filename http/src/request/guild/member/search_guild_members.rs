@@ -9,7 +9,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::GuildId;
+use twilight_model::id::{marker::GuildMarker, Id};
 
 /// The error created when the members can not be queried as configured.
 #[derive(Debug)]
@@ -79,13 +79,13 @@ struct SearchGuildMembersFields<'a> {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(100).expect("non zero");
+/// let guild_id = Id::new(100).expect("non zero");
 /// let members = client.search_guild_members(guild_id, "Wumpus")
 ///     .limit(10)?
 ///     .exec()
@@ -102,12 +102,12 @@ struct SearchGuildMembersFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct SearchGuildMembers<'a> {
     fields: SearchGuildMembersFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> SearchGuildMembers<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, query: &'a str) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, query: &'a str) -> Self {
         Self {
             fields: SearchGuildMembersFields { query, limit: None },
             guild_id,

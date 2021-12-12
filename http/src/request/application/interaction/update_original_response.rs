@@ -20,7 +20,7 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment, Message},
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// A original response can not be updated as configured.
@@ -154,11 +154,11 @@ struct UpdateOriginalResponseFields<'a> {
 /// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::ApplicationId,
+///     id::Id,
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = ApplicationId::new(1).expect("non zero");
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// client
 ///     .interaction(application_id)
@@ -175,7 +175,7 @@ struct UpdateOriginalResponseFields<'a> {
 /// [`DeleteOriginalResponse`]: super::DeleteOriginalResponse
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateOriginalResponse<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateOriginalResponseFields<'a>,
     http: &'a Client,
@@ -188,7 +188,7 @@ impl<'a> UpdateOriginalResponse<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         interaction_token: &'a str,
     ) -> Self {
         Self {
@@ -319,10 +319,10 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::ApplicationId;
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = ApplicationId::new(1).expect("non zero");
+    /// let application_id = Id::new(1).expect("non zero");
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -470,11 +470,11 @@ mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::ApplicationId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_delete_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
+        let application_id = Id::new(1).expect("non zero id");
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());

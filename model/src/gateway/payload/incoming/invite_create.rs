@@ -2,7 +2,10 @@
 
 use crate::{
     datetime::Timestamp,
-    id::{ChannelId, GuildId, UserId},
+    id::{
+        marker::{ChannelMarker, GuildMarker, UserMarker},
+        Id,
+    },
     invite::TargetType,
     user::{self, DiscriminatorDisplay, User},
 };
@@ -14,13 +17,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteCreate {
     /// ID of the channel invited users will first see.
-    pub channel_id: ChannelId,
+    pub channel_id: Id<ChannelMarker>,
     /// Unique code.
     pub code: String,
     /// When the invite was created.
     pub created_at: Timestamp,
     /// ID of the guild being invited to.
-    pub guild_id: GuildId,
+    pub guild_id: Id<GuildMarker>,
     /// Information about the user who created the invite.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inviter: Option<User>,
@@ -65,7 +68,7 @@ pub struct PartialUser {
     #[serde(with = "user::discriminator")]
     pub discriminator: u16,
     /// ID of the user.
-    pub id: UserId,
+    pub id: Id<UserMarker>,
     /// Username of the user.
     pub username: String,
 }
@@ -82,10 +85,7 @@ impl PartialUser {
 #[cfg(test)]
 mod tests {
     use super::{InviteCreate, PartialUser};
-    use crate::{
-        datetime::Timestamp,
-        id::{ChannelId, GuildId, UserId},
-    };
+    use crate::{datetime::Timestamp, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -133,10 +133,10 @@ mod tests {
         let created_at = Timestamp::from_secs(1_609_459_200).expect("non zero");
 
         let value = InviteCreate {
-            channel_id: ChannelId::new(1).expect("non zero"),
+            channel_id: Id::new(1).expect("non zero"),
             code: "a".repeat(7),
             created_at,
-            guild_id: GuildId::new(2).expect("non zero"),
+            guild_id: Id::new(2).expect("non zero"),
             inviter: None,
             max_age: 3600,
             max_uses: 5,
@@ -154,14 +154,14 @@ mod tests {
                     len: 8,
                 },
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("code"),
                 Token::Str("aaaaaaa"),
                 Token::Str("created_at"),
                 Token::Str("2021-01-01T00:00:00.000000+00:00"),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("max_age"),
                 Token::U64(3600),
@@ -181,7 +181,7 @@ mod tests {
         let value = PartialUser {
             avatar: Some("a".repeat(32)),
             discriminator: 123,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             username: "twilight".to_owned(),
         };
 
@@ -198,7 +198,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0123"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("username"),
                 Token::Str("twilight"),

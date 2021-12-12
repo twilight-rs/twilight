@@ -8,7 +8,10 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     guild::Emoji,
-    id::{EmojiId, GuildId, RoleId},
+    id::{
+        marker::{EmojiMarker, GuildMarker, RoleMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
@@ -16,21 +19,25 @@ struct UpdateEmojiFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    roles: Option<&'a [RoleId]>,
+    roles: Option<&'a [Id<RoleMarker>]>,
 }
 
 /// Update an emoji in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateEmoji<'a> {
-    emoji_id: EmojiId,
+    emoji_id: Id<EmojiMarker>,
     fields: UpdateEmojiFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateEmoji<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, emoji_id: EmojiId) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        emoji_id: Id<EmojiMarker>,
+    ) -> Self {
         Self {
             fields: UpdateEmojiFields {
                 name: None,
@@ -51,7 +58,7 @@ impl<'a> UpdateEmoji<'a> {
     }
 
     /// Change the roles that the emoji is whitelisted to.
-    pub const fn roles(mut self, roles: &'a [RoleId]) -> Self {
+    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields.roles = Some(roles);
 
         self

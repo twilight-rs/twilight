@@ -8,13 +8,16 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     guild::GuildWidget,
-    id::{ChannelId, GuildId},
+    id::{
+        marker::{ChannelMarker, GuildMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
 struct UpdateGuildWidgetFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<NullableField<ChannelId>>,
+    channel_id: Option<NullableField<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     enabled: Option<bool>,
 }
@@ -23,12 +26,12 @@ struct UpdateGuildWidgetFields {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWidget<'a> {
     fields: UpdateGuildWidgetFields,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> UpdateGuildWidget<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: UpdateGuildWidgetFields {
                 channel_id: None,
@@ -40,7 +43,7 @@ impl<'a> UpdateGuildWidget<'a> {
     }
 
     /// Set which channel to display on the widget.
-    pub const fn channel_id(mut self, channel_id: Option<ChannelId>) -> Self {
+    pub const fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
         self.fields.channel_id = Some(NullableField(channel_id));
 
         self

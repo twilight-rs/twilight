@@ -22,11 +22,7 @@ impl DerefMut for MemberAdd {
 #[cfg(test)]
 mod tests {
     use super::{Member, MemberAdd};
-    use crate::{
-        datetime::Timestamp,
-        id::{GuildId, UserId},
-        user::User,
-    };
+    use crate::{datetime::Timestamp, id::Id, user::User};
     use serde_test::Token;
 
     #[test]
@@ -36,7 +32,7 @@ mod tests {
         let value = MemberAdd(Member {
             avatar: None,
             deaf: false,
-            guild_id: GuildId::new(1).expect("non zero"),
+            guild_id: Id::new(1).expect("non zero"),
             joined_at,
             mute: false,
             nick: None,
@@ -44,7 +40,7 @@ mod tests {
             premium_since: None,
             roles: vec![],
             user: User {
-                id: UserId::new(2).expect("non zero"),
+                id: Id::new(2).expect("non zero"),
                 accent_color: None,
                 avatar: None,
                 banner: None,
@@ -73,7 +69,7 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2021-09-19T17:30:45.000000+00:00"),
@@ -102,7 +98,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0987"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("username"),
                 Token::Str("ab"),
