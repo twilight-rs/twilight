@@ -144,7 +144,7 @@ async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
             components: None,
             flags: None,
             tts: None,
-            content: Some(format!("```\n{:?}\n```", i)),
+            content: Some(format!("```rust\n{:?}\n```", i)),
             embeds: Default::default(),
         },
     ))
