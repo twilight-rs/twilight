@@ -66,15 +66,12 @@ mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::{
-        application::callback::InteractionResponse,
-        id::{ApplicationId, InteractionId},
-    };
+    use twilight_model::{application::callback::InteractionResponse, id::Id};
 
     #[test]
     fn test_interaction_callback() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
-        let interaction_id = InteractionId::new(2).expect("non zero id");
+        let application_id = Id::new(1).expect("non zero id");
+        let interaction_id = Id::new(2).expect("non zero id");
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());

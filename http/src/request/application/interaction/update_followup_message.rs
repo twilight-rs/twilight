@@ -474,12 +474,12 @@ mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::{ApplicationId, MessageId};
+    use twilight_model::id::Id;
 
     #[test]
     fn test_update_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
-        let message_id = MessageId::new(2).expect("non zero id");
+        let application_id = Id::new(1).expect("non zero id");
+        let message_id = Id::new(2).expect("non zero id");
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());
