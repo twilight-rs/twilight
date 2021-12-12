@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     request::{
         application::{InteractionError, InteractionErrorType},
-        validate_inner, Request, RequestBuilder,
+        validate_inner, Request, RequestBuilder, TryIntoRequest,
     },
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
@@ -60,7 +60,21 @@ impl<'a> UpdateCommandPermissions<'a> {
         })
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<ListBody<CommandPermissions>> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateCommandPermissions<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateCommandPermissions {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
@@ -68,15 +82,5 @@ impl<'a> UpdateCommandPermissions<'a> {
         })
         .json(&self.fields)
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<ListBody<CommandPermissions>> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

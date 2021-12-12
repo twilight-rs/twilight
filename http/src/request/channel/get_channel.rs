@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     channel::Channel,
     id::{marker::ChannelMarker, Id},
@@ -38,10 +44,19 @@ impl<'a> GetChannel<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
-        let request = Request::from_route(&Route::GetChannel {
-            channel_id: self.channel_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetChannel<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetChannel {
+            channel_id: self.channel_id.get(),
+        }))
     }
 }

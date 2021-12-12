@@ -1,6 +1,10 @@
 use crate::{
     client::Client,
-    request::{multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    error::Error,
+    request::{
+        multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, Request,
+        TryIntoRequest,
+    },
     response::ResponseFuture,
     routing::Route,
 };
@@ -98,6 +102,25 @@ impl<'a> CreateGuildSticker<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Sticker> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
+
+        Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateGuildSticker<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateGuildSticker {
             guild_id: self.guild_id.get(),
         });
@@ -114,14 +137,6 @@ impl<'a> CreateGuildSticker<'a> {
 
         request = request.form(form);
 
-        self.http.request(request.build())
-    }
-}
-
-impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
+        Ok(request.build())
     }
 }

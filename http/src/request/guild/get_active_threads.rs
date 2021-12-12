@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     channel::thread::ThreadsListing,
     id::{marker::GuildMarker, Id},
@@ -23,10 +29,19 @@ impl<'a> GetActiveThreads<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
-        let request = Request::from_route(&Route::GetActiveThreads {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetActiveThreads<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetActiveThreads {
+            guild_id: self.guild_id.get(),
+        }))
     }
 }

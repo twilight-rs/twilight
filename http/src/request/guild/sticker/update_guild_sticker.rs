@@ -2,7 +2,7 @@ use super::{StickerValidationError, StickerValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -110,22 +110,14 @@ impl<'a> UpdateGuildSticker<'a> {
         Ok(self)
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
-        let request = Request::builder(&Route::UpdateGuildSticker {
-            guild_id: self.guild_id.get(),
-            sticker_id: self.sticker_id.get(),
-        })
-        .json(&self.fields)?;
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Sticker> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
@@ -136,5 +128,17 @@ impl<'a> AuditLogReason<'a> for UpdateGuildSticker<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for UpdateGuildSticker<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let request = Request::builder(&Route::UpdateGuildSticker {
+            guild_id: self.guild_id.get(),
+            sticker_id: self.sticker_id.get(),
+        })
+        .json(&self.fields)?;
+
+        Ok(request.build())
     }
 }

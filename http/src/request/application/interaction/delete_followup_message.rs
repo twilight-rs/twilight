@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -52,33 +53,45 @@ impl<'a> DeleteFollowupMessage<'a> {
         }
     }
 
-    fn request(self) -> Request {
-        Request::builder(&Route::DeleteWebhookMessage {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for DeleteFollowupMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         })
         .use_authorization_token(false)
-        .build()
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.http.request(self.request())
+        .build())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::DeleteFollowupMessage;
-    use crate::{client::Client, request::Request, routing::Route};
+    use crate::{
+        client::Client,
+        request::{Request, TryIntoRequest},
+        routing::Route,
+    };
+    use std::error::Error;
     use twilight_model::id::Id;
 
     #[test]
-    fn test_request() {
+    fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
 
         let builder = DeleteFollowupMessage::new(
@@ -87,7 +100,7 @@ mod tests {
             "token",
             Id::new(2).expect("non zero"),
         );
-        let actual = builder.request();
+        let actual = builder.try_into_request()?;
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,
@@ -98,5 +111,7 @@ mod tests {
 
         assert_eq!(expected.path, actual.path);
         assert!(!actual.use_authorization_token());
+
+        Ok(())
     }
 }

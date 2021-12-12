@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     channel::Message,
     id::{
@@ -32,11 +38,20 @@ impl<'a> CrosspostMessage<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let request = Request::from_route(&Route::CrosspostMessage {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CrosspostMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::CrosspostMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

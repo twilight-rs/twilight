@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -48,26 +49,33 @@ impl<'a> DeleteOriginalResponse<'a> {
         }
     }
 
-    fn request(&self) -> Request {
-        Request::builder(&Route::DeleteInteractionOriginal {
-            application_id: self.application_id.get(),
-            interaction_token: self.token,
-        })
-        .use_authorization_token(false)
-        .build()
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.http.request(self.request())
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for DeleteOriginalResponse<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::builder(&Route::DeleteInteractionOriginal {
+            application_id: self.application_id.get(),
+            interaction_token: self.token,
+        })
+        .use_authorization_token(false)
+        .build())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
     use twilight_model::id::ApplicationId;
@@ -81,7 +89,7 @@ mod tests {
         let req = client
             .interaction(application_id)
             .delete_interaction_original(&token)
-            .request();
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

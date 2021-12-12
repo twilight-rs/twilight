@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -56,9 +56,37 @@ impl<'a> DeleteWebhookMessage<'a> {
         }
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&self) -> Result<Request, Error> {
+    /// Delete in a thread belonging to the channel instead of the channel
+    /// itself.
+    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+        self.thread_id.replace(thread_id);
+
+        self
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for DeleteWebhookMessage<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
+
+        Ok(self)
+    }
+}
+
+impl TryIntoRequest for DeleteWebhookMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: self.thread_id.map(Id::get),
@@ -73,38 +101,16 @@ impl<'a> DeleteWebhookMessage<'a> {
 
         Ok(request.build())
     }
-
-    /// Delete in a thread belonging to the channel instead of the channel
-    /// itself.
-    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
-        self.thread_id.replace(thread_id);
-
-        self
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
-}
-
-impl<'a> AuditLogReason<'a> for DeleteWebhookMessage<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::DeleteWebhookMessage;
-    use crate::{client::Client, request::Request, routing::Route};
+    use crate::{
+        client::Client,
+        request::{Request, TryIntoRequest},
+        routing::Route,
+    };
     use twilight_model::id::Id;
 
     #[test]
@@ -116,7 +122,9 @@ mod tests {
             "token",
             Id::new(2).expect("non zero"),
         );
-        let actual = builder.request().expect("failed to create request");
+        let actual = builder
+            .try_into_request()
+            .expect("failed to create request");
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,

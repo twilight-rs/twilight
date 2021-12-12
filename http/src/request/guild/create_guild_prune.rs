@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    error::Error as HttpError,
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -139,23 +140,12 @@ impl<'a> CreateGuildPrune<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
-        let mut request = Request::builder(&Route::CreateGuildPrune {
-            compute_prune_count: self.fields.compute_prune_count,
-            days: self.fields.days,
-            guild_id: self.guild_id.get(),
-            include_roles: self.fields.include_roles,
-        });
+        let http = self.http;
 
-        if let Some(reason) = self.reason.as_ref() {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -164,5 +154,24 @@ impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateGuildPrune<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::CreateGuildPrune {
+            compute_prune_count: self.fields.compute_prune_count,
+            days: self.fields.days,
+            guild_id: self.guild_id.get(),
+            include_roles: self.fields.include_roles,
+        });
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

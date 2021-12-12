@@ -8,7 +8,7 @@ use crate::{
         validate_inner::{
             self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
         },
-        PartialAttachment, Request,
+        PartialAttachment, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -374,7 +374,18 @@ impl<'a> CreateMessage<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<Message> {
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.get(),
         });
@@ -400,22 +411,16 @@ impl<'a> CreateMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
-                let body = match crate::json::to_vec(&self.fields) {
-                    Ok(body) => body,
-                    Err(source) => return ResponseFuture::error(HttpError::json(source)),
-                };
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
 
                 form.payload_json(&body);
             }
 
             request = request.form(form);
         } else {
-            request = match request.json(&self.fields) {
-                Ok(request) => request,
-                Err(source) => return ResponseFuture::error(source),
-            };
+            request = request.json(&self.fields)?;
         }
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     application::command::Command,
     id::{
@@ -32,11 +38,20 @@ impl<'a> GetGlobalCommand<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Command> {
-        let request = Request::from_route(&Route::GetGlobalCommand {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetGlobalCommand<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetGlobalCommand {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::Request,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -34,9 +34,21 @@ impl<'a> InteractionCallback<'a> {
         }
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for InteractionCallback<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let request = Request::builder(&Route::InteractionCallback {
             interaction_id: self.interaction_id.get(),
             interaction_token: self.interaction_token,
@@ -47,21 +59,11 @@ impl<'a> InteractionCallback<'a> {
 
         Ok(request)
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
     use twilight_model::{
@@ -81,7 +83,7 @@ mod tests {
         let req = client
             .interaction(application_id)
             .interaction_callback(interaction_id, &token, &sent_response)
-            .request()?;
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

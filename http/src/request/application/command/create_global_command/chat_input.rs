@@ -5,7 +5,7 @@ use super::super::{
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, RequestBuilder},
+    request::{validate_inner, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -98,7 +98,21 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateGlobalChatInputCommand<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Request::builder(&Route::CreateGlobalCommand {
             application_id: self.application_id.get(),
         })
@@ -111,15 +125,5 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
             options: self.options,
         })
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

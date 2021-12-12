@@ -1,7 +1,8 @@
 use super::RequestReactionType;
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -58,19 +59,26 @@ impl<'a> CreateReaction<'a> {
         }
     }
 
-    fn request(&self) -> Request {
-        Request::from_route(&Route::CreateReaction {
-            channel_id: self.channel_id.get(),
-            emoji: self.emoji,
-            message_id: self.message_id.get(),
-        })
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        self.http.request(self.request())
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateReaction<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::CreateReaction {
+            channel_id: self.channel_id.get(),
+            emoji: self.emoji,
+            message_id: self.message_id.get(),
+        }))
     }
 }
 
@@ -80,14 +88,15 @@ mod tests {
 
     use super::CreateReaction;
     use crate::{
-        request::{channel::reaction::RequestReactionType, Request},
+        request::{channel::reaction::RequestReactionType, Request, TryIntoRequest},
         routing::Route,
         Client,
     };
+    use std::error::Error;
     use twilight_model::id::Id;
 
     #[test]
-    fn test_request() {
+    fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
 
         let emoji = RequestReactionType::Unicode { name: "🌃" };
@@ -98,7 +107,7 @@ mod tests {
             Id::new(456).expect("non zero"),
             &emoji,
         );
-        let actual = builder.request();
+        let actual = builder.try_into_request()?;
 
         let expected = Request::from_route(&Route::CreateReaction {
             channel_id: 123,
@@ -107,5 +116,7 @@ mod tests {
         });
 
         assert_eq!(actual.path, expected.path);
+
+        Ok(())
     }
 }

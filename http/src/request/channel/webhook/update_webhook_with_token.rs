@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{NullableField, Request},
+    error::Error,
+    request::{NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -68,17 +69,25 @@ impl<'a> UpdateWebhookWithToken<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Webhook> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateWebhookWithToken<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateWebhook {
             token: Some(self.token),
             webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false);
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }
