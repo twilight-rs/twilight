@@ -2,7 +2,7 @@ use crate::{client::Client, request::Request, response::ResponseFuture, routing:
 use twilight_model::{
     channel::Message,
     id::{
-        marker::{MessageMarker, WebhookMarker},
+        marker::{ChannelMarker, MessageMarker, WebhookMarker},
         Id,
     },
 };
@@ -12,6 +12,7 @@ use twilight_model::{
 pub struct GetWebhookMessage<'a> {
     http: &'a Client,
     message_id: Id<MessageMarker>,
+    thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
     webhook_id: Id<WebhookMarker>,
 }
@@ -26,9 +27,18 @@ impl<'a> GetWebhookMessage<'a> {
         Self {
             http,
             message_id,
+            thread_id: None,
             token,
             webhook_id,
         }
+    }
+
+    /// Get a message in a thread belonging to the channel instead of the
+    /// channel itself.
+    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+        self.thread_id.replace(thread_id);
+
+        self
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -37,6 +47,7 @@ impl<'a> GetWebhookMessage<'a> {
     pub fn exec(self) -> ResponseFuture<Message> {
         let request = Request::builder(&Route::GetWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: self.thread_id.map(Id::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })

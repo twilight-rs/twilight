@@ -3,8 +3,8 @@
 use twilight_model::id::{
     marker::{
         ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
-        EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker, InteractionMarker,
-        MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
+        CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
+        InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
     },
     Id,
 };
@@ -119,6 +119,12 @@ impl Snowflake for Id<CommandMarker> {
     }
 }
 
+impl Snowflake for Id<CommandVersionMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
 impl Snowflake for Id<EmojiMarker> {
     fn id(&self) -> u64 {
         self.get()
@@ -186,8 +192,8 @@ mod tests {
     use twilight_model::id::{
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
-            EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker, InteractionMarker,
-            MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
+            CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
+            InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
         },
         Id,
     };
@@ -197,6 +203,7 @@ mod tests {
     assert_impl_all!(Id<AuditLogEntryMarker>: Snowflake);
     assert_impl_all!(Id<ChannelMarker>: Snowflake);
     assert_impl_all!(Id<CommandMarker>: Snowflake);
+    assert_impl_all!(Id<CommandVersionMarker>: Snowflake);
     assert_impl_all!(Id<EmojiMarker>: Snowflake);
     assert_impl_all!(Id<GenericMarker>: Snowflake);
     assert_impl_all!(Id<GuildMarker>: Snowflake);

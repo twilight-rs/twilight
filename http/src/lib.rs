@@ -75,7 +75,13 @@
 //!
 //! The `tracing` feature enables logging via the [`tracing`] crate.
 //!
-//! This is disabled by default.
+//! This is enabled by default.
+//!
+//! ### Trust-DNS
+//!
+//! The `trust-dns` enables [`hyper-trust-dns`], which replaces the default
+//! `GaiResolver` in [`hyper`]. [`hyper-trust-dns`] instead provides a fully
+//! async DNS resolver on the application level.
 //!
 //! [`brotli`]: https://github.com/dropbox/rust-brotli
 //! [`native-tls`]: https://crates.io/crates/native-tls
@@ -84,6 +90,7 @@
 //! [`serde_json`]: https://crates.io/crates/serde_json
 //! [`simd-json`]: https://crates.io/crates/simd-json
 //! [`tracing`]: https://crates.io/crates/tracing
+//! [`hyper-trust-dns`]: https://crates.io/crates/hyper-trust-dns
 //! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 //! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge

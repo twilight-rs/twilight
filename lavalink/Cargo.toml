@@ -12,21 +12,21 @@ name = "twilight-lavalink"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.7.2"
+version = "0.8.0"
 
 [dependencies]
 dashmap = { default-features = false, version = "4.0" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
 http = { default-features = false, version = "0.2" }
-tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
-tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.14" }
+tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.16" }
 twilight-model = { default-features = false, path = "../model" }
 
 # Optional dependencies.
 percent-encoding = { default-features = false, optional = true, version = "2" }
+tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
@@ -36,7 +36,9 @@ twilight-gateway = { default-features = false, features = ["rustls"], path = "..
 twilight-http = { default-features = false, features = ["rustls"], path = "../http" }
 
 [features]
-default = ["http-support", "rustls"]
+default = ["http-support", "rustls", "tracing"]
 http-support = ["percent-encoding"]
 native = ["tokio-tungstenite/native-tls"]
-rustls = ["tokio-tungstenite/rustls-tls"]
+rustls = ["rustls-native-roots"]
+rustls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots"]
+rustls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots"]

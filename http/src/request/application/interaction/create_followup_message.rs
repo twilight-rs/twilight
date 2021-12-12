@@ -102,8 +102,6 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     attachments: Vec<PartialAttachment<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar_url: Option<&'a str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     components: Option<&'a [Component]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<&'a str>,
@@ -113,8 +111,6 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    username: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
     allowed_mentions: Option<&'a AllowedMentions>,
@@ -133,10 +129,11 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(Id::new(1).expect("non zero"));
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// client
-///     .create_followup_message("webhook token")?
+///     .interaction(application_id)
+///     .create_followup_message("webhook token")
 ///     .content("Pinkie...")
 ///     .exec()
 ///     .await?;
@@ -164,13 +161,11 @@ impl<'a> CreateFollowupMessage<'a> {
         Self {
             fields: CreateFollowupMessageFields {
                 attachments: Vec::new(),
-                avatar_url: None,
                 components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
                 tts: None,
-                username: None,
                 flags: None,
                 allowed_mentions: None,
             },
@@ -184,14 +179,6 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Specify the [`AllowedMentions`] for the webhook message.
     pub const fn allowed_mentions(mut self, allowed_mentions: &'a AllowedMentions) -> Self {
         self.fields.allowed_mentions = Some(allowed_mentions);
-
-        self
-    }
-
-    #[deprecated(since = "0.7.2", note = "does not actually do anything")]
-    /// The URL of the avatar of the webhook.
-    pub const fn avatar_url(mut self, avatar_url: &'a str) -> Self {
-        self.fields.avatar_url = Some(avatar_url);
 
         self
     }
@@ -298,9 +285,11 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(Id::new(1).expect("non zero"));
+    /// let application_id = Id::new(1).expect("non zero");
     ///
-    /// let message = client.create_followup_message("token here")?
+    /// let message = client
+    ///     .interaction(application_id)
+    ///     .create_followup_message("token here")
     ///     .content("some content")
     ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
     ///     .exec()
@@ -322,9 +311,11 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(Id::new(1).expect("non zero"));
+    /// let application_id = Id::new(1).expect("non zero");
     ///
-    /// let message = client.create_followup_message("token here")?
+    /// let message = client
+    ///     .interaction(application_id)
+    ///     .create_followup_message("token here")
     ///     .content("some content")
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .exec()
@@ -352,18 +343,11 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    #[deprecated(since = "0.7.2", note = "does not actually do anything")]
-    /// Specify the username of the webhook's message.
-    pub const fn username(mut self, username: &'a str) -> Self {
-        self.fields.username = Some(username);
-
-        self
-    }
-
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
     fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
+            thread_id: None,
             token: self.token,
             wait: None,
             webhook_id: self.application_id.get(),
@@ -399,7 +383,7 @@ impl<'a> CreateFollowupMessage<'a> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok(request.use_authorization_token(false).build())
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -410,5 +394,34 @@ impl<'a> CreateFollowupMessage<'a> {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::client::Client;
+    use std::error::Error;
+    use twilight_http_ratelimiting::Path;
+    use twilight_model::id::ApplicationId;
+
+    #[test]
+    fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
+        let application_id = ApplicationId::new(1).expect("non zero id");
+        let token = "foo".to_owned().into_boxed_str();
+
+        let client = Client::new(String::new());
+        let req = client
+            .interaction(application_id)
+            .create_followup_message(&token)
+            .content("test")
+            .request()?;
+
+        assert!(!req.use_authorization_token());
+        assert_eq!(
+            &Path::WebhooksIdToken(application_id.get(), token),
+            req.ratelimit_path()
+        );
+
+        Ok(())
     }
 }

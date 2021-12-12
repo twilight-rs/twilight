@@ -91,8 +91,9 @@ impl InMemoryCache {
         &self,
         guild_id: Id<GuildMarker>,
         member: &InteractionMember,
+        user_id: Id<UserMarker>,
     ) {
-        let id = (guild_id, member.id);
+        let id = (guild_id, user_id);
 
         let (avatar, deaf, mute) = match self.members.get(&id) {
             Some(m) if &*m == member => return,
@@ -103,7 +104,7 @@ impl InMemoryCache {
         self.guild_members
             .entry(guild_id)
             .or_default()
-            .insert(member.id);
+            .insert(user_id);
 
         let cached = CachedMember {
             avatar,
@@ -115,7 +116,7 @@ impl InMemoryCache {
             pending: false,
             premium_since: member.premium_since.to_owned(),
             roles: member.roles.to_owned(),
-            user_id: member.id,
+            user_id,
         };
 
         self.members.insert(id, cached);

@@ -4,6 +4,21 @@ on:
   push:
     branches:
       - main
+    paths:
+      - ".github/**"
+      - "cache/**"
+      - "command-parser/**"
+      - "embed-builder/**"
+      - "gateway/**"
+      - "gateway-queue/**"
+      - "http/**"
+      - "lavalink/**"
+      - "mention/**"
+      - "model/**"
+      - "standby/**"
+      - "twilight/**"
+      - "util/**"
+      - "Cargo.toml"
 
 jobs:
   deploy-docs:
@@ -20,6 +35,9 @@ jobs:
           toolchain: nightly
           profile: minimal
           override: true
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
 
       - name: Build docs
         env:

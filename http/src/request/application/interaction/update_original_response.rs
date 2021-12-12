@@ -158,9 +158,11 @@ struct UpdateOriginalResponseFields<'a> {
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(Id::new(1).expect("non zero"));
+/// let application_id = Id::new(1).expect("non zero");
 ///
-/// client.update_interaction_original("token here")?
+/// client
+///     .interaction(application_id)
+///     .update_interaction_original("token here")
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -320,7 +322,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(Id::new(1).expect("non zero"));
+    /// let application_id = Id::new(1).expect("non zero");
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -328,7 +330,9 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_interaction_original("token")?
+    /// client
+    ///     .interaction(application_id)
+    ///     .update_interaction_original("token")
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -448,7 +452,7 @@ impl<'a> UpdateOriginalResponse<'a> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok(request.use_authorization_token(false).build())
     }
 
     pub fn exec(mut self) -> ResponseFuture<Message> {
@@ -456,5 +460,34 @@ impl<'a> UpdateOriginalResponse<'a> {
             Ok(request) => self.http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::client::Client;
+    use std::error::Error;
+    use twilight_http_ratelimiting::Path;
+    use twilight_model::id::ApplicationId;
+
+    #[test]
+    fn test_delete_followup_message() -> Result<(), Box<dyn Error>> {
+        let application_id = ApplicationId::new(1).expect("non zero id");
+        let token = "foo".to_owned().into_boxed_str();
+
+        let client = Client::new(String::new());
+        let req = client
+            .interaction(application_id)
+            .update_interaction_original(&token)
+            .content(Some("test"))?
+            .request()?;
+
+        assert!(!req.use_authorization_token());
+        assert_eq!(
+            &Path::WebhooksIdTokenMessagesId(application_id.get(), token),
+            req.ratelimit_path()
+        );
+
+        Ok(())
     }
 }

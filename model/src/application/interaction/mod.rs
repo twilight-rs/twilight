@@ -113,25 +113,38 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut kind: Option<InteractionType> = None;
         let mut user: Option<Option<User>> = None;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing interaction");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
+            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over interaction");
+            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
+                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
+                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
                     tracing::trace!("ran into an unknown key: {:?}", why);
+
+                    continue;
+                }
+                #[cfg(not(feature = "tracing"))]
+                Err(_) => {
+                    // Encountered when we run into an unknown key.
+                    map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
@@ -217,6 +230,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let token = token.ok_or_else(|| DeError::missing_field("token"))?;
         let kind = kind.ok_or_else(|| DeError::missing_field("kind"))?;
 
+        #[cfg(feature = "tracing")]
         tracing::trace!(
             %application_id,
             %id,
@@ -227,6 +241,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
         Ok(match kind {
             InteractionType::Ping => {
+                #[cfg(feature = "tracing")]
                 tracing::trace!("handling ping");
 
                 Self::Value::Ping(Box::new(Ping {
@@ -248,6 +263,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let member = member.unwrap_or_default();
                 let user = user.unwrap_or_default();
 
+                #[cfg(feature = "tracing")]
                 tracing::trace!(%channel_id, "handling application command");
 
                 let command = Box::new(ApplicationCommand {
@@ -320,7 +336,7 @@ mod test {
         user::User,
     };
     use serde_test::Token;
-    use std::str::FromStr;
+    use std::{collections::HashMap, str::FromStr};
 
     #[test]
     #[allow(clippy::too_many_lines)]
@@ -339,34 +355,40 @@ mod test {
                     value: CommandOptionValue::User(Id::new(600).expect("non zero")),
                 }]),
                 resolved: Some(CommandInteractionDataResolved {
-                    channels: Vec::new(),
-                    members: vec![InteractionMember {
-                        hoisted_role: None,
-                        id: Id::new(600).expect("non zero"),
-                        joined_at,
-                        nick: Some("nickname".into()),
-                        premium_since: None,
-                        roles: Vec::new(),
-                    }],
-                    messages: Vec::new(),
-                    roles: Vec::new(),
-                    users: vec![User {
-                        accent_color: None,
-                        avatar: Some("avatar string".into()),
-                        banner: None,
-                        bot: false,
-                        discriminator: 1111,
-                        email: None,
-                        flags: None,
-                        id: Id::new(600).expect("non zero"),
-                        locale: None,
-                        mfa_enabled: None,
-                        name: "username".into(),
-                        premium_type: None,
-                        public_flags: None,
-                        system: None,
-                        verified: None,
-                    }],
+                    channels: HashMap::new(),
+                    members: IntoIterator::into_iter([(
+                        Id::new(600).expect("non zero"),
+                        InteractionMember {
+                            joined_at,
+                            nick: Some("nickname".into()),
+                            premium_since: None,
+                            roles: Vec::new(),
+                        },
+                    )])
+                    .collect(),
+                    messages: HashMap::new(),
+                    roles: HashMap::new(),
+                    users: IntoIterator::into_iter([(
+                        Id::new(600).expect("non zero"),
+                        User {
+                            accent_color: None,
+                            avatar: Some("avatar string".into()),
+                            banner: None,
+                            bot: false,
+                            discriminator: 1111,
+                            email: None,
+                            flags: None,
+                            id: Id::new(600).expect("non zero"),
+                            locale: None,
+                            mfa_enabled: None,
+                            name: "username".into(),
+                            premium_type: None,
+                            public_flags: None,
+                            system: None,
+                            verified: None,
+                        },
+                    )])
+                    .collect(),
                 }),
             },
             guild_id: Some(Id::new(400).expect("non zero")),
@@ -452,14 +474,17 @@ mod test {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("600"),
                 Token::Struct {
-                    name: "InteractionMemberEnvelope",
-                    len: 2,
+                    name: "InteractionMember",
+                    len: 3,
                 },
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("nickname"),
+                Token::Str("roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::StructEnd,
                 Token::MapEnd,
                 Token::Str("users"),

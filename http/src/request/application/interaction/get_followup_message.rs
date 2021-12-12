@@ -20,10 +20,11 @@ use twilight_model::{
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(Id::new(1).expect("non zero"));
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// let response = client
-///     .followup_message("token here", Id::new(2).expect("non zero"))?
+///     .interaction(application_id)
+///     .followup_message("token here", Id::new(2).expect("non zero"))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -52,11 +53,14 @@ impl<'a> GetFollowupMessage<'a> {
     }
 
     fn request(&self) -> Request {
-        Request::from_route(&Route::GetFollowupMessage {
+        Request::builder(&Route::GetFollowupMessage {
             application_id: self.application_id.get(),
             interaction_token: self.interaction_token,
+            thread_id: None,
             message_id: self.message_id.get(),
         })
+        .use_authorization_token(false)
+        .build()
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -72,7 +76,6 @@ mod tests {
     use super::GetFollowupMessage;
     use crate::{client::Client, request::Request, routing::Route};
     use static_assertions::assert_impl_all;
-    use std::error::Error;
     use twilight_model::id::{
         marker::{ApplicationMarker, MessageMarker},
         Id,
@@ -81,7 +84,7 @@ mod tests {
     assert_impl_all!(GetFollowupMessage<'_>: Send, Sync);
 
     #[test]
-    fn test_request() -> Result<(), Box<dyn Error>> {
+    fn test_request() {
         const TOKEN: &str = "token";
 
         fn application_id() -> Id<ApplicationMarker> {
@@ -93,19 +96,26 @@ mod tests {
         }
 
         let client = Client::new("token".to_owned());
-        client.set_application_id(application_id());
 
-        let actual = client.followup_message(TOKEN, message_id())?.request();
-        let expected = Request::from_route(&Route::GetFollowupMessage {
+        let actual = client
+            .interaction(application_id())
+            .followup_message(TOKEN, message_id())
+            .request();
+        let expected = Request::builder(&Route::GetFollowupMessage {
             application_id: application_id().get(),
             interaction_token: TOKEN,
+            thread_id: None,
             message_id: message_id().get(),
-        });
+        })
+        .use_authorization_token(false)
+        .build();
 
         assert!(expected.body().is_none());
         assert_eq!(expected.path(), actual.path());
         assert_eq!(expected.ratelimit_path(), actual.ratelimit_path());
-
-        Ok(())
+        assert_eq!(
+            expected.use_authorization_token(),
+            actual.use_authorization_token()
+        );
     }
 }

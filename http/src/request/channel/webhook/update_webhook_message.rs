@@ -21,7 +21,7 @@ use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
     id::{
-        marker::{MessageMarker, WebhookMarker},
+        marker::{ChannelMarker, MessageMarker, WebhookMarker},
         Id,
     },
 };
@@ -178,6 +178,7 @@ pub struct UpdateWebhookMessage<'a> {
     http: &'a Client,
     message_id: Id<MessageMarker>,
     reason: Option<&'a str>,
+    thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
     webhook_id: Id<WebhookMarker>,
 }
@@ -205,6 +206,7 @@ impl<'a> UpdateWebhookMessage<'a> {
             http,
             message_id,
             reason: None,
+            thread_id: None,
             token,
             webhook_id,
         }
@@ -347,7 +349,7 @@ impl<'a> UpdateWebhookMessage<'a> {
         mut self,
         embeds: Option<&'a [Embed]>,
     ) -> Result<Self, UpdateWebhookMessageError> {
-        if let Some(embeds_present) = embeds.as_deref() {
+        if let Some(embeds_present) = embeds {
             if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
                 return Err(UpdateWebhookMessageError {
                     kind: UpdateWebhookMessageErrorType::TooManyEmbeds,
@@ -405,11 +407,20 @@ impl<'a> UpdateWebhookMessage<'a> {
         self
     }
 
+    /// Update in a thread belonging to the channel instead of the channel
+    /// itself.
+    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+        self.thread_id.replace(thread_id);
+
+        self
+    }
+
     // `self` needs to be consumed and the client returned due to parameters
     // being consumed in request construction.
     fn request(&mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: self.thread_id.map(Id::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
@@ -495,6 +506,7 @@ mod tests {
         )
         .content(Some("test"))
         .expect("'test' content couldn't be set")
+        .thread_id(Id::new(3).expect("non zero"))
         .reason("reason")
         .expect("'reason' is not a valid reason");
         let actual = builder.request().expect("failed to create request");
@@ -509,6 +521,7 @@ mod tests {
         };
         let route = Route::UpdateWebhookMessage {
             message_id: 2,
+            thread_id: Some(3),
             token: "token",
             webhook_id: 1,
         };

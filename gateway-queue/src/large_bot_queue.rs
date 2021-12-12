@@ -48,8 +48,10 @@ impl LargeBotQueue {
         // tracing levels. It is made for the static_max_level_xxx features
         // And will return false if you do not use those features of if
         // You use the feature but then dynamically set a lower feature.
+        #[cfg(feature = "tracing")]
         if tracing::level_enabled!(tracing::Level::INFO) {
             let lock = limiter.0.lock().await;
+
             tracing::info!(
                 "{}/{} identifies used before next reset in {:.2?}",
                 lock.current,
@@ -68,8 +70,9 @@ impl LargeBotQueue {
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
     while let Some(req) = rx.recv().await {
-        if let Err(err) = req.send(()) {
-            tracing::warn!("skipping, send failed with: {:?}", err);
+        if let Err(_source) = req.send(()) {
+            #[cfg(feature = "tracing")]
+            tracing::warn!("skipping, send failed with: {:?}", _source);
         }
         sleep(DUR).await;
     }
@@ -86,11 +89,13 @@ impl Queue for LargeBotQueue {
 
         Box::pin(async move {
             self.limiter.get().await;
-            if let Err(err) = self.buckets[bucket].clone().send(tx) {
-                tracing::warn!("skipping, send failed with: {:?}", err);
+            if let Err(_source) = self.buckets[bucket].clone().send(tx) {
+                #[cfg(feature = "tracing")]
+                tracing::warn!("skipping, send failed with: {:?}", _source);
                 return;
             }
 
+            #[cfg(feature = "tracing")]
             tracing::info!("waiting for allowance on shard {}", shard_id[0]);
 
             let _ = rx.await;

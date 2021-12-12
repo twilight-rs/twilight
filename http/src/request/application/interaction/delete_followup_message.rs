@@ -20,8 +20,11 @@ use twilight_model::id::{
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+/// let application_id = Id::new(1).expect("non zero");
+///
 /// client
-///     .delete_followup_message("token here", Id::new(2).expect("non zero"))?
+///     .interaction(application_id)
+///     .delete_followup_message("token here", Id::new(2).expect("non zero"))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -50,11 +53,14 @@ impl<'a> DeleteFollowupMessage<'a> {
     }
 
     fn request(self) -> Request {
-        Request::from_route(&Route::DeleteWebhookMessage {
+        Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
+            thread_id: None,
             token: self.token,
             webhook_id: self.application_id.get(),
         })
+        .use_authorization_token(false)
+        .build()
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -85,10 +91,12 @@ mod tests {
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {
             message_id: 2,
+            thread_id: None,
             token: "token",
             webhook_id: 1,
         });
 
         assert_eq!(expected.path, actual.path);
+        assert!(!actual.use_authorization_token());
     }
 }

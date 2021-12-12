@@ -45,6 +45,7 @@ struct CommandBorrowed<'a> {
     pub default_permission: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<&'a str>,
+    #[serde(rename = "type")]
     pub kind: CommandType,
     pub name: &'a str,
     #[serde(default)]

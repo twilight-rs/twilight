@@ -106,6 +106,9 @@ pub enum ErrorCode {
     AnnouncementRateLimitReached,
     /// The channel you are writing has hit the write rate limit
     ChannelRateLimitReached,
+    /// The write action you are performing on the server has hit the write
+    /// rate limit
+    WriteActionsReached,
     /// Your Stage topic, server name, server description, or channel names contain words that are not allowed
     UnallowedWords,
     /// Guild premium subscription level too low
@@ -146,6 +149,8 @@ pub enum ErrorCode {
     MaximumNonGuildBansReached,
     /// Maximum number of bans fetches has been reached
     MaximumGuildBansFetchesReached,
+    /// Maximum number of uncompleted guild scheduled events reached (100)
+    MaximumUncompletedEventsReached,
     /// Maximum number of stickers reached
     MaximumStickersReached,
     /// Maximum number of prune requests has been reached. Try again later
@@ -229,8 +234,14 @@ pub enum ErrorCode {
     InviteAcceptedToGuildBotNotIn,
     /// Invalid API version provided
     InvalidApiVersion,
+    /// File uploaded exceeds the maximum size
+    FileTooLarge,
+    /// Invalid file uploaded
+    InvalidFileUploaded,
     /// Cannot self-redeem this gift
     CannotSelfRedeemGift,
+    /// Invalid Guild
+    InvalidGuild,
     /// Payment source required to redeem gift
     PaymentRequiredForGift,
     /// Cannot delete a channel required for Community guilds
@@ -270,6 +281,24 @@ pub enum ErrorCode {
     MaxActiveThreads,
     /// Maximum number of active announcement threads reached
     MaxActiveAnnouncementThreads,
+    /// Invalid JSON for uploaded Lottie file
+    InvalidLottieJson,
+    /// Uploaded Lotties cannot contain rasterized images such as PNG or JPEG
+    InvalidLottieContent,
+    /// Sticker maximum framerate exceeded
+    StickerMaximumFramerateExceeded,
+    /// Sticker frame count exceeds maximum of 1000 frames
+    StickerFrameCountExceedsMaximum,
+    /// Lottie animation maximum dimensions exceeded
+    LottieDimensionsTooLarge,
+    /// Sticker frame rate is either too small or too large
+    InvalidStickerFrameRate,
+    /// Sticker animation duration exceeds maximum of 5 seconds
+    StickerAnimationDurationExceedsMaximum,
+    /// Cannot update a finished event
+    CannotUpdateFinishedEvent,
+    /// Failed to create stage needed for stage event
+    FailedToCreateStage,
     /// A status code that Twilight doesn't have registered.
     ///
     /// Please report the number if you see this variant!
@@ -329,6 +358,7 @@ impl ErrorCode {
             Self::NotAccountOwner => 20018,
             Self::AnnouncementRateLimitReached => 20022,
             Self::ChannelRateLimitReached => 20028,
+            Self::WriteActionsReached => 20029,
             Self::UnallowedWords => 20031,
             Self::GuildPremiumTooLow => 20035,
             Self::MaximumGuildsReached => 30001,
@@ -349,6 +379,7 @@ impl ErrorCode {
             Self::ThreadMaxParticipants => 30033,
             Self::MaximumNonGuildBansReached => 30035,
             Self::MaximumGuildBansFetchesReached => 30037,
+            Self::MaximumUncompletedEventsReached => 30038,
             Self::MaximumStickersReached => 30039,
             Self::MaximumPruneRequestsReached => 30040,
             Self::MaximumGuildWidgets => 30042,
@@ -390,7 +421,10 @@ impl ErrorCode {
             Self::InvalidFormBodyOrContentType => 50035,
             Self::InviteAcceptedToGuildBotNotIn => 50036,
             Self::InvalidApiVersion => 50041,
+            Self::FileTooLarge => 50045,
+            Self::InvalidFileUploaded => 50046,
             Self::CannotSelfRedeemGift => 50054,
+            Self::InvalidGuild => 50055,
             Self::PaymentRequiredForGift => 50070,
             Self::CommunityGuildRequired => 50074,
             Self::InvalidStickerSent => 50081,
@@ -410,6 +444,15 @@ impl ErrorCode {
             Self::ThreadLocked => 160_005,
             Self::MaxActiveThreads => 160_006,
             Self::MaxActiveAnnouncementThreads => 160_007,
+            Self::InvalidLottieJson => 170_001,
+            Self::InvalidLottieContent => 170_002,
+            Self::StickerMaximumFramerateExceeded => 170_003,
+            Self::StickerFrameCountExceedsMaximum => 170_004,
+            Self::LottieDimensionsTooLarge => 170_005,
+            Self::InvalidStickerFrameRate => 170_006,
+            Self::StickerAnimationDurationExceedsMaximum => 170_007,
+            Self::CannotUpdateFinishedEvent => 180_000,
+            Self::FailedToCreateStage => 180_002,
             Self::Other(other) => *other,
         }
     }
@@ -468,6 +511,7 @@ impl From<u64> for ErrorCode {
             20016 => Self::SlowModeRateLimitReached,
             20018 => Self::NotAccountOwner,
             20028 => Self::ChannelRateLimitReached,
+            20029 => Self::WriteActionsReached,
             20031 => Self::UnallowedWords,
             20035 => Self::GuildPremiumTooLow,
             30001 => Self::MaximumGuildsReached,
@@ -488,6 +532,7 @@ impl From<u64> for ErrorCode {
             30033 => Self::ThreadMaxParticipants,
             30035 => Self::MaximumNonGuildBansReached,
             30037 => Self::MaximumGuildBansFetchesReached,
+            30038 => Self::MaximumUncompletedEventsReached,
             30039 => Self::MaximumStickersReached,
             30040 => Self::MaximumPruneRequestsReached,
             30042 => Self::MaximumGuildWidgets,
@@ -529,7 +574,10 @@ impl From<u64> for ErrorCode {
             50035 => Self::InvalidFormBodyOrContentType,
             50036 => Self::InviteAcceptedToGuildBotNotIn,
             50041 => Self::InvalidApiVersion,
+            50045 => Self::FileTooLarge,
+            50046 => Self::InvalidFileUploaded,
             50054 => Self::CannotSelfRedeemGift,
+            50055 => Self::InvalidGuild,
             50070 => Self::PaymentRequiredForGift,
             50074 => Self::CommunityGuildRequired,
             50081 => Self::InvalidStickerSent,
@@ -549,6 +597,15 @@ impl From<u64> for ErrorCode {
             160_005 => Self::ThreadLocked,
             160_006 => Self::MaxActiveThreads,
             160_007 => Self::MaxActiveAnnouncementThreads,
+            170_001 => Self::InvalidLottieJson,
+            170_002 => Self::InvalidLottieContent,
+            170_003 => Self::StickerMaximumFramerateExceeded,
+            170_004 => Self::StickerFrameCountExceedsMaximum,
+            170_005 => Self::LottieDimensionsTooLarge,
+            170_006 => Self::InvalidStickerFrameRate,
+            170_007 => Self::StickerAnimationDurationExceedsMaximum,
+            180_000 => Self::CannotUpdateFinishedEvent,
+            180_002 => Self::FailedToCreateStage,
             other => Self::Other(other),
         }
     }
@@ -607,6 +664,7 @@ impl Display for ErrorCode {
             Self::NotAccountOwner => f.write_str("Only the owner of this account can perform this action"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::ChannelRateLimitReached => f.write_str("The channel you are writing has hit the write rate limit"),
+            Self::WriteActionsReached => f.write_str("The write action you are performing on the server has hit the write rate limit"),
             Self::UnallowedWords => f.write_str("Your Stage topic, server name, server description, or channel names contain words that are not allowed"),
             Self::GuildPremiumTooLow => f.write_str("Guild premium subscription level too low"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
@@ -627,6 +685,7 @@ impl Display for ErrorCode {
             Self::ThreadMaxParticipants => f.write_str("Max number of thread participants has been reached (1000)"),
             Self::MaximumNonGuildBansReached => f.write_str("Maximum number of bans for non-guild members have been exceeded"),
             Self::MaximumGuildBansFetchesReached => f.write_str("Maximum number of bans fetches has been reached"),
+            Self::MaximumUncompletedEventsReached => f.write_str("Maximum number of uncompleted guild scheduled events reached (100)"),
             Self::MaximumStickersReached => f.write_str("Maximum number of stickers reached"),
             Self::MaximumPruneRequestsReached => f.write_str("Maximum number of prune requests has been reached. Try again later"),
             Self::MaximumGuildWidgets => f.write_str("Maximum number of guild widget settings updates has been reached. Try again later"),
@@ -668,7 +727,10 @@ impl Display for ErrorCode {
             Self::InvalidFormBodyOrContentType => f.write_str("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided"),
             Self::InviteAcceptedToGuildBotNotIn => f.write_str("An invite was accepted to a guild the application's bot is not in"),
             Self::InvalidApiVersion => f.write_str("Invalid API version provided"),
+            Self::FileTooLarge => f.write_str("File uploaded exceeds the maximum size"),
+            Self::InvalidFileUploaded => f.write_str("Invalid file uploaded"),
             Self::CannotSelfRedeemGift => f.write_str("Cannot self-redeem this gift"),
+            Self::InvalidGuild => f.write_str("Invalid Guild"),
             Self::PaymentRequiredForGift => f.write_str("Payment source required to redeem gift"),
             Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
             Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
@@ -688,6 +750,15 @@ impl Display for ErrorCode {
             Self::ThreadLocked => f.write_str("Thread is locked"),
             Self::MaxActiveThreads => f.write_str("Maximum number of active threads reached"),
             Self::MaxActiveAnnouncementThreads => f.write_str("Maximum number of active announcement threads reached"),
+            Self::InvalidLottieJson => f.write_str("Invalid JSON for uploaded Lottie file"),
+            Self::InvalidLottieContent => f.write_str("Uploaded Lotties cannot contain rasterized images such as PNG or JPEG"),
+            Self::StickerMaximumFramerateExceeded => f.write_str("Sticker maximum framerate exceeded"),
+            Self::StickerFrameCountExceedsMaximum => f.write_str("Sticker frame count exceeds maximum of 1000 frames"),
+            Self::LottieDimensionsTooLarge => f.write_str("Lottie animation maximum dimensions exceeded"),
+            Self::InvalidStickerFrameRate => f.write_str("Sticker frame rate is either too small or too large"),
+            Self::StickerAnimationDurationExceedsMaximum => f.write_str("Sticker animation duration exceeds maximum of 5 seconds"),
+            Self::CannotUpdateFinishedEvent => f.write_str("Cannot update a finished event"),
+            Self::FailedToCreateStage => f.write_str("Failed to create stage needed for stage event"),
             Self::Other(number) => {
                 f.write_str("An error code Twilight doesn't have registered: ")?;
 
@@ -740,9 +811,10 @@ impl Serialize for ErrorCode {
 #[serde(untagged)]
 pub enum ApiError {
     General(GeneralApiError),
+    /// Request has been ratelimited.
+    Ratelimited(RatelimitedApiError),
     /// Something was wrong with the input when sending a message.
     Message(MessageApiError),
-    Ratelimited(RatelimitedApiError),
 }
 
 impl Display for ApiError {
@@ -950,7 +1022,7 @@ mod tests {
     }
 
     #[test]
-    fn test_api_error_ratelimited() {
+    fn test_ratelimited_api_error() {
         let expected = RatelimitedApiError {
             global: true,
             message: "You are being rate limited.".to_owned(),
@@ -970,6 +1042,39 @@ mod tests {
                 Token::Str("You are being rate limited."),
                 Token::Str("retry_after"),
                 Token::F64(6.457),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    /// Assert that deserializing an [`ApiError::Ratelimited`] variant uses
+    /// the correct variant.
+    ///
+    /// Tests for [#1302], which was due to a previously ordered variant having
+    /// higher priority for untagged deserialization.
+    ///
+    /// [#1302]: https://github.com/twilight-rs/twilight/issues/1302
+    #[test]
+    fn test_api_error_variant_ratelimited() {
+        let expected = ApiError::Ratelimited(RatelimitedApiError {
+            global: false,
+            message: "You are being rate limited.".to_owned(),
+            retry_after: 0.362,
+        });
+
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "RatelimitedApiError",
+                    len: 3,
+                },
+                Token::Str("global"),
+                Token::Bool(false),
+                Token::Str("message"),
+                Token::Str("You are being rate limited."),
+                Token::Str("retry_after"),
+                Token::F64(0.362),
                 Token::StructEnd,
             ],
         );
@@ -999,6 +1104,12 @@ mod tests {
             num: 10069,
         });
         assert_error_code(AssertErrorCode {
+            code: ErrorCode::WriteActionsReached,
+            display:
+                "The write action you are performing on the server has hit the write rate limit",
+            num: 20029,
+        });
+        assert_error_code(AssertErrorCode {
             code: ErrorCode::MaximumServerCategoriesReached,
             display: "Maximum number of server categories has been reached",
             num: 30030,
@@ -1012,6 +1123,11 @@ mod tests {
             code: ErrorCode::MaximumPruneRequestsReached,
             display: "Maximum number of prune requests has been reached. Try again later",
             num: 30040,
+        });
+        assert_error_code(AssertErrorCode {
+            code: ErrorCode::InvalidGuild,
+            display: "Invalid Guild",
+            num: 50055,
         });
     }
 }

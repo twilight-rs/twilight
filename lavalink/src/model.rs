@@ -517,10 +517,12 @@ pub mod incoming {
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct PlayerUpdateState {
-        /// The new position of the player.
-        pub position: i64,
-        /// The new time of the player.
+        /// True when the player is connected to the voice gateway.
+        pub connected: bool,
+        /// Unix timestamp of the player in milliseconds.
         pub time: i64,
+        /// Track position in milliseconds. None if not playing anything.
+        pub position: Option<i64>,
     }
 
     /// Statistics about a node and its host.

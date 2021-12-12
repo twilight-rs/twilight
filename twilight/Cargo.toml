@@ -12,7 +12,7 @@ name = "twilight"
 publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "../README.md"
-version = "0.7.1"
+version = "0.8.0"
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
@@ -28,3 +28,7 @@ twilight-mention = { default-features = false, path = "../mention" }
 twilight-model = { default-features = false, path = "../model" }
 twilight-standby = { default-features = false, path = "../standby" }
 twilight-util = { default-features = false, path = "../util" }
+
+# Depend on at least this version to fix an issue with `minvers` CI and
+# `futures`
+proc-macro-hack = { default-features = false, version = "0.5.7" }

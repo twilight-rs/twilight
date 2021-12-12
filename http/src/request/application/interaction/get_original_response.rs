@@ -17,10 +17,11 @@ use twilight_model::{
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(Id::new(1).expect("non zero"));
+/// let application_id = Id::new(1).expect("non zero");
 ///
-/// let message = client
-///     .get_interaction_original("token here")?
+/// client
+///     .interaction(application_id)
+///     .get_interaction_original("token here")
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -45,15 +46,47 @@ impl<'a> GetOriginalResponse<'a> {
         }
     }
 
+    fn request(&self) -> Request {
+        Request::builder(&Route::GetInteractionOriginal {
+            application_id: self.application_id.get(),
+            interaction_token: self.token,
+        })
+        .use_authorization_token(false)
+        .build()
+    }
+
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let request = Request::from_route(&Route::GetInteractionOriginal {
-            application_id: self.application_id.get(),
-            interaction_token: self.token,
-        });
+        self.http.request(self.request())
+    }
+}
 
-        self.http.request(request)
+#[cfg(test)]
+mod tests {
+    use crate::client::Client;
+    use std::error::Error;
+    use twilight_http_ratelimiting::Path;
+    use twilight_model::id::ApplicationId;
+
+    #[test]
+    fn test_delete_followup_message() -> Result<(), Box<dyn Error>> {
+        let application_id = ApplicationId::new(1).expect("non zero id");
+        let token = "foo".to_owned().into_boxed_str();
+
+        let client = Client::new(String::new());
+        let req = client
+            .interaction(application_id)
+            .get_interaction_original(&token)
+            .request();
+
+        assert!(!req.use_authorization_token());
+        assert_eq!(
+            &Path::WebhooksIdTokenMessagesId(application_id.get(), token),
+            req.ratelimit_path()
+        );
+
+        Ok(())
     }
 }

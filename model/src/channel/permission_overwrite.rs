@@ -76,19 +76,23 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let data = PermissionOverwriteData::deserialize(deserializer)?;
 
+        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing permission overwrite");
+        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         let kind = match data.kind {
             PermissionOverwriteTargetType::Member => {
                 let id = Id::new(data.id).expect("non zero");
-                tracing::trace!(id = %id, kind = ?data.kind);
+                #[cfg(feature = "tracing")]
+                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 PermissionOverwriteType::Member(id)
             }
             PermissionOverwriteTargetType::Role => {
                 let id = Id::new(data.id).expect("non zero");
-                tracing::trace!(id = %id, kind = ?data.kind);
+                #[cfg(feature = "tracing")]
+                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 PermissionOverwriteType::Role(id)
             }
