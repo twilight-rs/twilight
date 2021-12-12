@@ -3,7 +3,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, PartialAttachment, Request,
+        AttachmentFile, Form, PartialAttachment, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -343,9 +343,21 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateFollowupMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.token,
@@ -385,21 +397,11 @@ impl<'a> CreateFollowupMessage<'a> {
 
         Ok(request.use_authorization_token(false).build())
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<Message> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
     use twilight_model::id::ApplicationId;
@@ -414,7 +416,7 @@ mod tests {
             .interaction(application_id)
             .create_followup_message(&token)
             .content("test")
-            .request()?;
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

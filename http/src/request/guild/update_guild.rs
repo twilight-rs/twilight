@@ -1,6 +1,10 @@
 use crate::{
     client::Client,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    error::Error as HttpError,
+    request::{
+        self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request,
+        TryIntoRequest,
+    },
     response::ResponseFuture,
     routing::Route,
 };
@@ -325,25 +329,12 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<PartialGuild> {
-        let mut request = Request::builder(&Route::UpdateGuild {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = &self.reason {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -352,5 +343,23 @@ impl<'a> AuditLogReason<'a> for UpdateGuild<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for UpdateGuild<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateGuild {
+            guild_id: self.guild_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

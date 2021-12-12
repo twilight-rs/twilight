@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     channel::Message,
     id::{ApplicationId, MessageId},
@@ -49,36 +55,48 @@ impl<'a> GetFollowupMessage<'a> {
         }
     }
 
-    fn request(&self) -> Request {
-        Request::builder(&Route::GetFollowupMessage {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetFollowupMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::builder(&Route::GetFollowupMessage {
             application_id: self.application_id.get(),
             interaction_token: self.interaction_token,
             thread_id: None,
             message_id: self.message_id.get(),
         })
         .use_authorization_token(false)
-        .build()
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Message> {
-        self.http.request(self.request())
+        .build())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::GetFollowupMessage;
-    use crate::{client::Client, request::Request, routing::Route};
+    use crate::{
+        client::Client,
+        request::{Request, TryIntoRequest},
+        routing::Route,
+    };
     use static_assertions::assert_impl_all;
+    use std::error::Error;
     use twilight_model::id::{ApplicationId, MessageId};
 
     assert_impl_all!(GetFollowupMessage<'_>: Send, Sync);
 
     #[test]
-    fn test_request() {
+    fn test_request() -> Result<(), Box<dyn Error>> {
         const TOKEN: &str = "token";
 
         fn application_id() -> ApplicationId {
@@ -94,7 +112,7 @@ mod tests {
         let actual = client
             .interaction(application_id())
             .followup_message(TOKEN, message_id())
-            .request();
+            .try_into_request()?;
         let expected = Request::builder(&Route::GetFollowupMessage {
             application_id: application_id().get(),
             interaction_token: TOKEN,
@@ -111,5 +129,7 @@ mod tests {
             expected.use_authorization_token(),
             actual.use_authorization_token()
         );
+
+        Ok(())
     }
 }

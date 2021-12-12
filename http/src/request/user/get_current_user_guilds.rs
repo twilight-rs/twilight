@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -149,12 +150,21 @@ impl<'a> GetCurrentUserGuilds<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<CurrentUserGuild>> {
-        let request = Request::from_route(&Route::GetGuilds {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetCurrentUserGuilds<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        Ok(Request::from_route(&Route::GetGuilds {
             after: self.fields.after.map(GuildId::get),
             before: self.fields.before.map(GuildId::get),
             limit: self.fields.limit,
-        });
-
-        self.http.request(request)
+        }))
     }
 }

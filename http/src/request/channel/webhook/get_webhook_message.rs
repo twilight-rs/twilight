@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     channel::Message,
     id::{ChannelId, MessageId, WebhookId},
@@ -45,15 +51,24 @@ impl<'a> GetWebhookMessage<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let request = Request::builder(&Route::GetWebhookMessage {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetWebhookMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::builder(&Route::GetWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: self.thread_id.map(ChannelId::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
         .use_authorization_token(false)
-        .build();
-
-        self.http.request(request)
+        .build())
     }
 }

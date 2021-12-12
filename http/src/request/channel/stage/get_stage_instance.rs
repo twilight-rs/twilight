@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{channel::StageInstance, id::ChannelId};
 
 /// Gets the stage instance associated with a stage channel, if it exists.
@@ -17,10 +23,19 @@ impl<'a> GetStageInstance<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<StageInstance> {
-        let request = Request::from_route(&Route::GetStageInstance {
-            channel_id: self.channel_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetStageInstance<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetStageInstance {
+            channel_id: self.channel_id.get(),
+        }))
     }
 }

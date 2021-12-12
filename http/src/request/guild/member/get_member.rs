@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
@@ -27,14 +28,26 @@ impl<'a> GetMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<MemberBody> {
-        let request = Request::from_route(&Route::GetMember {
+        let guild_id = self.guild_id;
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => {
+                let mut future = http.request(request);
+                future.set_guild_id(guild_id);
+
+                future
+            }
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetMember<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
-        });
-
-        let mut future = self.http.request(request);
-        future.set_guild_id(self.guild_id);
-
-        future
+        }))
     }
 }

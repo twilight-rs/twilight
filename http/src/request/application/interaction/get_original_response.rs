@@ -1,4 +1,10 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{channel::Message, id::ApplicationId};
 
 /// Get the original message, by its token.
@@ -43,26 +49,33 @@ impl<'a> GetOriginalResponse<'a> {
         }
     }
 
-    fn request(&self) -> Request {
-        Request::builder(&Route::GetInteractionOriginal {
-            application_id: self.application_id.get(),
-            interaction_token: self.token,
-        })
-        .use_authorization_token(false)
-        .build()
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        self.http.request(self.request())
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetOriginalResponse<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::builder(&Route::GetInteractionOriginal {
+            application_id: self.application_id.get(),
+            interaction_token: self.token,
+        })
+        .use_authorization_token(false)
+        .build())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
     use twilight_model::id::ApplicationId;
@@ -76,7 +89,7 @@ mod tests {
         let req = client
             .interaction(application_id)
             .get_interaction_original(&token)
-            .request();
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

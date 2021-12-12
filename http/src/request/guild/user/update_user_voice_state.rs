@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -63,16 +64,24 @@ impl<'a> UpdateUserVoiceState<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateUserVoiceState<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateUserVoiceState {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

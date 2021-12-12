@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    error::Error as HttpError,
+    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -132,14 +133,12 @@ impl<'a> CreateBan<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(&Route::CreateBan {
-            delete_message_days: self.fields.delete_message_days,
-            guild_id: self.guild_id.get(),
-            reason: self.fields.reason,
-            user_id: self.user_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 
@@ -150,5 +149,16 @@ impl<'a> AuditLogReason<'a> for CreateBan<'a> {
             .replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateBan<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        Ok(Request::from_route(&Route::CreateBan {
+            delete_message_days: self.fields.delete_message_days,
+            guild_id: self.guild_id.get(),
+            reason: self.fields.reason,
+            user_id: self.user_id.get(),
+        }))
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -74,22 +74,26 @@ impl<'a> UpdateGlobalCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateGlobalCommand<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateGlobalCommand {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
         })
         .json(&self.fields)
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

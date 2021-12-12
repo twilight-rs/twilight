@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -31,11 +32,20 @@ impl<'a> DeleteAllReactions<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(&Route::DeleteMessageReactions {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for DeleteAllReactions<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::DeleteMessageReactions {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -129,14 +130,23 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Message>> {
-        let request = Request::from_route(&Route::GetMessages {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetChannelMessagesConfigured<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        Ok(Request::from_route(&Route::GetMessages {
             after: self.after.map(MessageId::get),
             around: self.around.map(MessageId::get),
             before: self.before.map(MessageId::get),
             channel_id: self.channel_id.get(),
             limit: self.fields.limit,
-        });
-
-        self.http.request(request)
+        }))
     }
 }
