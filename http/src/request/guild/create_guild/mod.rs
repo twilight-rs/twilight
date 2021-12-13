@@ -288,7 +288,7 @@ impl<'a> CreateGuild<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::{
     ///     Client,
     ///     request::guild::create_guild::{
@@ -417,7 +417,7 @@ impl<'a> CreateGuild<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::{Client, request::guild::create_guild::RoleFieldsBuilder};
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());

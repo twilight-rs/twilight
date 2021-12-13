@@ -16,7 +16,7 @@ use twilight_model::{
 ///
 /// Get the emojis for guild `100`:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
 ///

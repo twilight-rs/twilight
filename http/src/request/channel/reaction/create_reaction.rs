@@ -16,7 +16,7 @@ use twilight_model::id::{
 /// The reaction must be a variant of [`RequestReactionType`].
 ///
 /// # Examples
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::{Client, request::channel::reaction::RequestReactionType};
 /// use twilight_model::{
 ///     id::Id,

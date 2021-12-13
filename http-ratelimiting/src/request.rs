@@ -272,7 +272,7 @@ impl FromStr for Path {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use twilight_http_ratelimiting::Path;
     /// use std::str::FromStr;
     ///

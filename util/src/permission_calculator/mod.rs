@@ -27,7 +27,7 @@
 //!
 //! Let's see that in code:
 //!
-//! ```rust
+//! ```
 //! use twilight_util::permission_calculator::PermissionCalculator;
 //! use twilight_model::{
 //!     channel::{

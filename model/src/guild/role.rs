@@ -53,7 +53,7 @@ impl Ord for Role {
     ///
     /// Compare the position of two roles:
     ///
-    /// ```rust
+    /// ```
     /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
@@ -92,7 +92,7 @@ impl Ord for Role {
     ///
     /// Compare the position of two roles with the same position:
     ///
-    /// ```rust
+    /// ```
     /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {

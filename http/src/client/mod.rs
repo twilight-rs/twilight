@@ -153,7 +153,7 @@ type HttpConnector = hyper::client::HttpConnector;
 /// # Examples
 ///
 /// Create a client called `client`:
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
@@ -164,7 +164,7 @@ type HttpConnector = hyper::client::HttpConnector;
 ///
 /// Use [`ClientBuilder`] to create a client called `client`, with a shorter
 /// timeout:
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use std::time::Duration;
 ///
@@ -286,7 +286,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::id::{marker::GuildMarker, Id};
     ///
@@ -311,7 +311,7 @@ impl Client {
     ///
     /// Retrieve the bans for guild `1`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::id::{marker::GuildMarker, Id};
     /// #
@@ -343,7 +343,7 @@ impl Client {
     /// Ban user `200` from guild `100`, deleting
     /// 1 day's worth of messages, for the reason `"memes"`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
     /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
     /// #
@@ -374,7 +374,7 @@ impl Client {
     ///
     /// Unban user `200` from guild `100`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
     /// #
@@ -402,7 +402,7 @@ impl Client {
     ///
     /// Get channel `100`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::id::{marker::ChannelMarker, Id};
     /// #
@@ -462,7 +462,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
     ///
@@ -511,7 +511,7 @@ impl Client {
     ///
     /// Create permission overrides for a role to view the channel, but not send messages:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::guild::Permissions;
     /// use twilight_model::id::{marker::{ChannelMarker, RoleMarker}, Id};
@@ -593,7 +593,7 @@ impl Client {
     /// Get the first 25 guilds with an ID after `300` and before
     /// `400`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::id::{marker::GuildMarker, Id};
     ///
@@ -632,7 +632,7 @@ impl Client {
     ///
     /// Get the emojis for guild `100`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::id::{marker::GuildMarker, Id};
     /// #
@@ -655,7 +655,7 @@ impl Client {
     ///
     /// Get emoji `100` from guild `50`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::id::Id;
     /// #
@@ -718,7 +718,7 @@ impl Client {
     ///
     /// Get the gateway connection URL without bot information:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// #
     /// # #[tokio::main]
@@ -732,7 +732,7 @@ impl Client {
     /// Get the gateway connection URL with additional shard and session information, which
     /// requires specifying a bot token:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// #
     /// # #[tokio::main]
@@ -881,7 +881,7 @@ impl Client {
     ///
     /// Get the first 500 members of guild `100` after user ID `3000`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
     /// #
@@ -913,7 +913,7 @@ impl Client {
     ///
     /// Get the first 10 members of guild `100` matching `Wumpus`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::id::{marker::GuildMarker, Id};
     ///
@@ -993,7 +993,7 @@ impl Client {
     ///
     /// Update a member's nickname to "pinky pie" and server mute them:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
@@ -1042,7 +1042,7 @@ impl Client {
     ///
     /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
     /// use twilight_model::id::{marker::{GuildMarker, RoleMarker, UserMarker}, Id};
     /// #
@@ -1145,7 +1145,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// #
     /// # #[tokio::main]
@@ -1172,7 +1172,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::id::{marker::ChannelMarker, Id};
     /// #
@@ -1218,7 +1218,7 @@ impl Client {
     ///
     /// # Example
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::id::{marker::ChannelMarker, Id};
     /// #
@@ -1290,7 +1290,7 @@ impl Client {
     ///
     /// Replace the content with `"test update"`:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::Client;
     /// use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
     ///
@@ -1306,7 +1306,7 @@ impl Client {
     ///
     /// Remove the message's content:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
     /// #
@@ -1379,7 +1379,7 @@ impl Client {
     /// The reaction must be a variant of [`RequestReactionType`].
     ///
     /// # Examples
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::{Client, request::channel::reaction::RequestReactionType};
     /// # use twilight_model::{
     /// #     id::{marker::{ChannelMarker, MessageMarker}, Id},
@@ -1475,7 +1475,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::id::{marker::GuildMarker, Id};
     ///
@@ -1849,7 +1849,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::id::{marker::ChannelMarker, Id};
     /// #
@@ -1897,7 +1897,7 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// # use twilight_model::id::{marker::WebhookMarker, Id};
     /// #
