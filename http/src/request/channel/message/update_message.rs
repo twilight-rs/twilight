@@ -133,7 +133,7 @@ struct UpdateMessageFields<'a> {
     flags: Option<MessageFlags>,
 }
 
-/// Update a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
+/// Update a message by [`Id<Channel>`] and [`Id<Message>`].
 ///
 /// You can pass `None` to any of the methods to remove the associated field.
 /// For example, if you have a message with an embed you want to remove, you can

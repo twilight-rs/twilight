@@ -16,7 +16,7 @@ struct FollowNewsChannelFields {
     webhook_channel_id: Id<marker::Channel>,
 }
 
-/// Follow a news channel by [`Id<marker::Channel>`]s.
+/// Follow a news channel by [`Id<Channel>`]s.
 #[must_use = "requests must be configured and executed"]
 pub struct FollowNewsChannel<'a> {
     channel_id: Id<marker::Channel>,

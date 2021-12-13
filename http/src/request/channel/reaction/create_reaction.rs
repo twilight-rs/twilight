@@ -8,7 +8,7 @@ use crate::{
 };
 use twilight_model::id::{marker, Id};
 
-/// Create a reaction in a [`Id<marker::Channel>`] on a [`Id<marker::Message>`].
+/// Create a reaction in a [`Id<Channel>`] on a [`Id<Message>`].
 ///
 /// The reaction must be a variant of [`RequestReactionType`].
 ///

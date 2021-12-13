@@ -423,7 +423,7 @@ impl Client {
         UpdateChannel::new(self, channel_id)
     }
 
-    /// Follows a news channel by [`Id<marker::Channel>`].
+    /// Follows a news channel by [`Id<Channel>`].
     ///
     /// The type returned is [`FollowedChannel`].
     ///
@@ -447,7 +447,7 @@ impl Client {
         GetChannelInvites::new(self, channel_id)
     }
 
-    /// Get channel messages, by [`Id<marker::Channel>`].
+    /// Get channel messages, by [`Id<Channel>`].
     ///
     /// Only one of [`after`], [`around`], and [`before`] can be specified at a time.
     /// Once these are specified, the type returned is [`GetChannelMessagesConfigured`].
@@ -1211,7 +1211,7 @@ impl Client {
         DeleteInvite::new(self, code)
     }
 
-    /// Get a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
+    /// Get a message by [`Id<Channel>`] and [`Id<Message>`].
     pub const fn message(
         &self,
         channel_id: Id<marker::Channel>,
@@ -1262,7 +1262,7 @@ impl Client {
         CreateMessage::new(self, channel_id)
     }
 
-    /// Delete a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
+    /// Delete a message by [`Id<Channel>`] and [`Id<Message>`].
     pub const fn delete_message(
         &self,
         channel_id: Id<marker::Channel>,
@@ -1271,9 +1271,9 @@ impl Client {
         DeleteMessage::new(self, channel_id, message_id)
     }
 
-    /// Delete messages by [`Id<marker::Channel>`] and Vec<[`Id<marker::Message>`]>.
+    /// Delete messages by [`Id<Channel>`] and Vec<[`Id<Message>`]>.
     ///
-    /// The vec count can be between 2 and 100. If the supplied [`Id<marker::Message>`]s are invalid, they
+    /// The vec count can be between 2 and 100. If the supplied [`Id<Message>`]s are invalid, they
     /// still count towards the lower and upper limits. This method will not delete messages older
     /// than two weeks. Refer to [the discord docs] for more information.
     ///
@@ -1286,7 +1286,7 @@ impl Client {
         DeleteMessages::new(self, channel_id, message_ids)
     }
 
-    /// Update a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
+    /// Update a message by [`Id<Channel>`] and [`Id<Message>`].
     ///
     /// You can pass `None` to any of the methods to remove the associated field.
     /// For example, if you have a message with an embed you want to remove, you can
@@ -1335,7 +1335,7 @@ impl Client {
         UpdateMessage::new(self, channel_id, message_id)
     }
 
-    /// Crosspost a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
+    /// Crosspost a message by [`Id<Channel>`] and [`Id<Message>`].
     pub const fn crosspost_message(
         &self,
         channel_id: Id<marker::Channel>,
@@ -1380,7 +1380,7 @@ impl Client {
         GetReactions::new(self, channel_id, message_id, emoji)
     }
 
-    /// Create a reaction in a [`Id<marker::Channel>`] on a [`Id<marker::Message>`].
+    /// Create a reaction in a [`Id<Channel>`] on a [`Id<Message>`].
     ///
     /// The reaction must be a variant of [`RequestReactionType`].
     ///

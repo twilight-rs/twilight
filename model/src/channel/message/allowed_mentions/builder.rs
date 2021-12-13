@@ -38,7 +38,7 @@ impl AllowedMentionsBuilder {
         self
     }
 
-    /// Allow parsing of specific [`Id<marker::Role>`]s.
+    /// Allow parsing of specific [`Id<Role>`]s.
     ///
     /// [`roles`] and this method are mutually exclusive. The builder will favor
     /// specific role ids.
@@ -57,7 +57,7 @@ impl AllowedMentionsBuilder {
         self
     }
 
-    /// Allow parsing of  specific [`Id<marker::User>`]s.
+    /// Allow parsing of  specific [`Id<User>`]s.
     ///
     /// [`users`] and this method are mutually exclusive. The builder will favor
     /// specific user ids.

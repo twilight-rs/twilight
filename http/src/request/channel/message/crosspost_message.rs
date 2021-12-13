@@ -10,7 +10,7 @@ use twilight_model::{
     id::{marker, Id},
 };
 
-/// Crosspost a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
+/// Crosspost a message by [`Id<Channel>`] and [`Id<Message>`].
 #[must_use = "requests must be configured and executed"]
 pub struct CrosspostMessage<'a> {
     channel_id: Id<marker::Channel>,

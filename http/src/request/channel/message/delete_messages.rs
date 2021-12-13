@@ -13,7 +13,7 @@ struct DeleteMessagesFields<'a> {
     messages: &'a [Id<marker::Message>],
 }
 
-/// Delete messages by [`Id<marker::Channel>`] and a list of [`Id<marker::Message>`]s.
+/// Delete messages by [`Id<Channel>`] and a list of [`Id<Message>`]s.
 ///
 /// The number of message IDs must be between 2 and 100. If the supplied message
 /// IDs are invalid, they still count towards the lower and upper limits. This

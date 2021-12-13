@@ -69,7 +69,7 @@ struct GetChannelMessagesFields {
     limit: Option<u64>,
 }
 
-/// Get channel messages, by [`Id<marker::Channel>`].
+/// Get channel messages, by [`Id<Channel>`].
 ///
 /// Only one of [`after`], [`around`], and [`before`] can be specified at a time.
 /// Once these are specified, the type returned is [`GetChannelMessagesConfigured`].

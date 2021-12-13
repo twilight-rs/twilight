@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::id::{marker, Id};
 
-/// Delete a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
+/// Delete a message by [`Id<Channel>`] and [`Id<Message>`].
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteMessage<'a> {
     channel_id: Id<marker::Channel>,
