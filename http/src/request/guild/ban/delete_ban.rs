@@ -12,7 +12,7 @@ use twilight_model::id::{GuildId, UserId};
 ///
 /// Unban user `200` from guild `100`:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::{GuildId, UserId};
 ///

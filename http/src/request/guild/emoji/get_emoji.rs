@@ -10,7 +10,7 @@ use twilight_model::{
 ///
 /// Get emoji `100` from guild `50`:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::{EmojiId, GuildId};
 ///

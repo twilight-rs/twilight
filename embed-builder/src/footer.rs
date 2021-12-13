@@ -44,7 +44,7 @@ impl EmbedFooterBuilder {
     ///
     /// Create a footer by Twilight with a URL to an image of its logo:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::{EmbedFooterBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
