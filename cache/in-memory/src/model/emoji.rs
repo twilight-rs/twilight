@@ -20,14 +20,14 @@ pub struct CachedEmoji {
 }
 
 impl CachedEmoji {
-    /// Whether the emoji is animated.
+    /// Whether this emoji can be used.
+    ///
+    /// May be false due to loss of Server Boosts.
     pub const fn available(&self) -> bool {
         self.available
     }
 
-    /// Whether this emoji can be used.
-    ///
-    /// May be false due to loss of Server Boosts.
+    /// Whether the emoji is animated.
     pub const fn animated(&self) -> bool {
         self.animated
     }
