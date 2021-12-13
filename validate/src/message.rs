@@ -1,4 +1,6 @@
-//! Constants, error types, and functions for validating message fields.
+//! Constants, error types, and functions for validating [`Message`] fields.
+//!
+//! [`Message`]: twilight_model::channel::Message
 
 use crate::{
     component::{ComponentValidationErrorType, COMPONENT_COUNT},

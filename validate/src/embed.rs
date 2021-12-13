@@ -1,4 +1,4 @@
-//! Error type and associated functions for validating [`Embed`]s.
+//! Constants, error types, and functions for validating [`Embed`]s.
 
 use std::{
     error::Error,

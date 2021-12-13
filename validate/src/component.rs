@@ -1,4 +1,4 @@
-//! Error type and associated functions for validating [`Component`]s.
+//! Constants, error types, and functions for validating [`Component`]s.
 
 use std::{
     error::Error,

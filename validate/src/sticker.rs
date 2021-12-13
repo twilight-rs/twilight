@@ -1,4 +1,6 @@
-//! Constants, error types, and functions for validating sticker fields.
+//! Constants, error types, and functions for validating [`Sticker`] fields.
+//!
+//! [`Sticker`]: twilight_model::channel::message::Sticker
 
 use std::{
     error::Error,
