@@ -58,7 +58,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// client
 ///     .interaction(application_id)
 ///     .create_followup_message("webhook token")
-///     .content("Pinkie...")
+///     .content("Pinkie...")?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -218,8 +218,8 @@ impl<'a> CreateFollowupMessage<'a> {
     /// let message = client
     ///     .interaction(application_id)
     ///     .create_followup_message("token here")
-    ///     .content("some content")
-    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
+    ///     .content("some content")?
+    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])?
     ///     .exec()
     ///     .await?
     ///     .model()
@@ -244,7 +244,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// let message = client
     ///     .interaction(application_id)
     ///     .create_followup_message("token here")
-    ///     .content("some content")
+    ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .exec()
     ///     .await?

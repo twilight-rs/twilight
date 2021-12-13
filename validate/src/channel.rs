@@ -10,7 +10,7 @@ use twilight_model::channel::ChannelType;
 pub const CHANNEL_NAME_MAX_LENGTH: usize = 100;
 
 /// Minimum length of a channel's name.
-pub const CHANNEL_NAME_MIN_LENGTH: usize = 100;
+pub const CHANNEL_NAME_MIN_LENGTH: usize = 1;
 
 /// Maximum length of a channel's rate limit per user.
 pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u64 = 21600;

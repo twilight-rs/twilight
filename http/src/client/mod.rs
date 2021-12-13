@@ -1902,7 +1902,7 @@ impl Client {
     /// #
     /// let webhook = client
     ///     .execute_webhook(id, "webhook token")
-    ///     .content("Pinkie...")
+    ///     .content("Pinkie...")?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }

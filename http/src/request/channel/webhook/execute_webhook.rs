@@ -60,7 +60,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 ///
 /// client
 ///     .execute_webhook(id, "webhook token")
-///     .content("Pinkie...")
+///     .content("Pinkie...")?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -214,8 +214,8 @@ impl<'a> ExecuteWebhook<'a> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
     /// let message = client.execute_webhook(Id::new(1).expect("non zero"), "token here")
-    ///     .content("some content")
-    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
+    ///     .content("some content")?
+    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])?
     ///     .wait()
     ///     .exec()
     ///     .await?
@@ -236,7 +236,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
     /// let message = client.execute_webhook(Id::new(1).expect("non zero"), "token here")
-    ///     .content("some content")
+    ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
     ///     .exec()
