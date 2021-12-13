@@ -1,66 +1,18 @@
 use crate::{
     client::Client,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::{
     id::{ApplicationId, ChannelId, UserId},
     invite::{Invite, TargetType},
 };
-
-/// Error created when an invite can not be created as configured.
-#[derive(Debug)]
-pub struct CreateInviteError {
-    kind: CreateInviteErrorType,
-}
-
-impl CreateInviteError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &CreateInviteErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (CreateInviteErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, None)
-    }
-}
-
-impl Display for CreateInviteError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            CreateInviteErrorType::MaxAgeTooOld { .. } => f.write_str("max age is too long"),
-            CreateInviteErrorType::MaxUsesTooLarge { .. } => f.write_str("max uses is too many"),
-        }
-    }
-}
-
-impl Error for CreateInviteError {}
-
-/// Type of [`CreateInviteError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum CreateInviteErrorType {
-    /// Configured maximum age is over 604800.
-    MaxAgeTooOld,
-    /// Configured maximum uses is over 100.
-    MaxUsesTooLarge,
-}
+use twilight_validate::misc::{
+    invite_max_age as validate_invite_max_age, invite_max_uses as validate_invite_max_uses,
+    ValidationError,
+};
 
 #[derive(Serialize)]
 struct CreateInviteFields {
@@ -158,11 +110,9 @@ impl<'a> CreateInvite<'a> {
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
     /// ```
-    pub const fn max_age(mut self, max_age: u64) -> Result<Self, CreateInviteError> {
-        if !validate_inner::invite_max_age(max_age) {
-            return Err(CreateInviteError {
-                kind: CreateInviteErrorType::MaxAgeTooOld,
-            });
+    pub const fn max_age(mut self, max_age: u64) -> Result<Self, ValidationError> {
+        if let Err(source) = validate_invite_max_age(max_age) {
+            return Err(source);
         }
 
         self.fields.max_age = Some(max_age);
@@ -196,11 +146,9 @@ impl<'a> CreateInvite<'a> {
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
     /// ```
-    pub const fn max_uses(mut self, max_uses: u64) -> Result<Self, CreateInviteError> {
-        if !validate_inner::invite_max_uses(max_uses) {
-            return Err(CreateInviteError {
-                kind: CreateInviteErrorType::MaxUsesTooLarge,
-            });
+    pub const fn max_uses(mut self, max_uses: u64) -> Result<Self, ValidationError> {
+        if let Err(source) = validate_invite_max_uses(max_uses) {
+            return Err(source);
         }
 
         self.fields.max_uses = Some(max_uses);

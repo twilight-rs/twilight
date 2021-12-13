@@ -18,14 +18,13 @@ use crate::{
                 DeleteReaction, GetReactions, RequestReactionType,
             },
             stage::{
-                create_stage_instance::CreateStageInstanceError, CreateStageInstance,
-                DeleteStageInstance, GetStageInstance, UpdateStageInstance,
+                CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
             },
             thread::{
                 AddThreadMember, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
                 GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
-                LeaveThread, RemoveThreadMember, ThreadValidationError, UpdateThread,
+                LeaveThread, RemoveThreadMember, UpdateThread,
             },
             webhook::{
                 CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
@@ -38,7 +37,6 @@ use crate::{
         guild::{
             ban::{CreateBan, DeleteBan, GetBan, GetBans},
             create_guild::CreateGuildError,
-            create_guild_channel::CreateGuildChannelError,
             emoji::{CreateEmoji, DeleteEmoji, GetEmoji, GetEmojis, UpdateEmoji},
             integration::{DeleteGuildIntegration, GetGuildIntegrations},
             member::{
@@ -48,7 +46,7 @@ use crate::{
             role::{CreateRole, DeleteRole, GetGuildRoles, UpdateRole, UpdateRolePositions},
             sticker::{
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
-                StickerValidationError, UpdateGuildSticker,
+                UpdateGuildSticker,
             },
             update_guild_channel_positions::Position,
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
@@ -60,9 +58,8 @@ use crate::{
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
-            create_guild_from_template::CreateGuildFromTemplateError,
-            create_template::CreateTemplateError, CreateGuildFromTemplate, CreateTemplate,
-            DeleteTemplate, GetTemplate, GetTemplates, SyncTemplate, UpdateTemplate,
+            CreateGuildFromTemplate, CreateTemplate, DeleteTemplate, GetTemplate, GetTemplates,
+            SyncTemplate, UpdateTemplate,
         },
         user::{
             CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
@@ -98,6 +95,9 @@ use twilight_model::{
         ApplicationId, ChannelId, EmojiId, GuildId, IntegrationId, MessageId, RoleId, UserId,
         WebhookId,
     },
+};
+use twilight_validate::{
+    channel::ChannelValidationError, misc::ValidationError, sticker::StickerValidationError,
 };
 
 #[cfg(feature = "hyper-rustls")]
@@ -474,15 +474,15 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`GetChannelMessagesErrorType::LimitInvalid`] error type if
+    /// Returns an error of type [`ValidationErrorType::GetChannelMessages`] if
     /// the amount is less than 1 or greater than 100.
     ///
+    /// [`GetChannelMessagesConfigured`]: crate::request::channel::message::GetChannelMessagesConfigured
+    /// [`ValidationErrorType::GetChannelMessages`]: twilight_validate::misc::ValidationErrorType::GetChannelMessages
     /// [`after`]: GetChannelMessages::after
     /// [`around`]: GetChannelMessages::around
     /// [`before`]: GetChannelMessages::before
-    /// [`GetChannelMessagesConfigured`]: crate::request::channel::message::GetChannelMessagesConfigured
     /// [`limit`]: GetChannelMessages::limit
-    /// [`GetChannelMessagesErrorType::LimitInvalid`]: crate::request::channel::message::get_channel_messages::GetChannelMessagesErrorType::LimitInvalid
     pub const fn channel_messages(&self, channel_id: ChannelId) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
@@ -777,24 +777,23 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateGuildChannelErrorType::NameInvalid`] error type when
-    /// the length of the name is either fewer than 1 UTF-16 character or more
-    /// than 100 UTF-16 characters.
+    /// Returns an error of type [`NameInvalid`] when the length of the name is
+    /// either fewer than 1 UTF-16 character or more than 100 UTF-16 characters.
     ///
-    /// Returns a [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`] error
-    /// type when the seconds of the rate limit per user is more than 21600.
+    /// Returns an error of type [`RateLimitPerUserInvalid`] when the seconds of
+    /// the rate limit per user is more than 21600.
     ///
-    /// Returns a [`CreateGuildChannelErrorType::TopicInvalid`] error type when
-    /// the length of the topic is more than 1024 UTF-16 characters.
+    /// Returns an error of type [`TopicInvalid`] when the length of the topic
+    /// is more than 1024 UTF-16 characters.
     ///
-    /// [`CreateGuildChannelErrorType::NameInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::NameInvalid
-    /// [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::RateLimitPerUserInvalid
-    /// [`CreateGuildChannelErrorType::TopicInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::TopicInvalid
+    /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
+    /// [`TopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TopicInvalid
     pub fn create_guild_channel<'a>(
         &'a self,
         guild_id: GuildId,
         name: &'a str,
-    ) -> Result<CreateGuildChannel<'a>, CreateGuildChannelError> {
+    ) -> Result<CreateGuildChannel<'a>, ChannelValidationError> {
         CreateGuildChannel::new(self, guild_id, name)
     }
 
@@ -874,10 +873,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`GetGuildMembersErrorType::LimitInvalid`] error type if the
+    /// Returns an error of type [`ValidationErrorType::GetGuildMembers`] if the
     /// limit is invalid.
     ///
-    /// [`GetGuildMembersErrorType::LimitInvalid`]: crate::request::guild::member::get_guild_members::GetGuildMembersErrorType::LimitInvalid
+    /// [`ValidationErrorType::GetGuildMembers`]: twilight_validate::misc::ValidationErrorType::GetGuildMembers
     pub const fn guild_members(&self, guild_id: GuildId) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
@@ -908,11 +907,11 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`SearchGuildMembersErrorType::LimitInvalid`] error type if
+    /// Returns an error of type [`ValidationErrorType::SearchGuildMembers`] if
     /// the limit is invalid.
     ///
     /// [`GUILD_MEMBERS`]: twilight_model::gateway::Intents::GUILD_MEMBERS
-    /// [`SearchGuildMembersErrorType::LimitInvalid`]: crate::request::guild::member::search_guild_members::SearchGuildMembersErrorType::LimitInvalid
+    /// [`ValidationErrorType::SearchGuildMembers`]: twilight_validate::misc::ValidationErrorType::SearchGuildMembers
     pub const fn search_guild_members<'a>(
         &'a self,
         guild_id: GuildId,
@@ -934,11 +933,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`AddGuildMemberErrorType::NicknameInvalid`] if the nickname is
-    /// too short or too long.
+    /// Returns an error of type [`ValidationErrorType::Nickname`] if the
+    /// nickname is too short or too long.
     ///
-    /// [`AddGuildMemberErrorType::NickNameInvalid`]: crate::request::guild::member::add_guild_member::AddGuildMemberErrorType::NicknameInvalid
-    ///
+    /// [`ValidationErrorType::Nickname`]: twilight_validate::misc::ValidationErrorType::Nickname
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub const fn add_guild_member<'a>(
         &'a self,
@@ -987,11 +985,10 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`UpdateGuildMemberErrorType::NicknameInvalid`] if the nickname length is too short or too
-    /// long.
+    /// Returns an error of type [`ValidationErrorType::Nickname`] if the
+    /// nickname length is too short or too long.
     ///
-    /// [`UpdateGuildMemberErrorType::NicknameInvalid`]: crate::request::guild::member::update_guild_member::UpdateGuildMemberErrorType::NicknameInvalid
-    ///
+    /// [`ValidationErrorType::Nickname`]: twilight_validate::misc::ValidationErrorType::Nickname
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub const fn update_guild_member(
         &self,
@@ -1201,20 +1198,17 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// The method [`content`] returns
-    /// [`CreateMessageErrorType::ContentInvalid`] if the content is over 2000
+    /// The method [`content`] returns an error of type
+    /// [`MessageValidationErrorType::ContentInvalid`] if the content is over 2000
     /// UTF-16 characters.
     ///
-    /// The method [`embeds`] returns
-    /// [`CreateMessageErrorType::EmbedTooLarge`] if the length of the embed
-    /// is over 6000 characters.
+    /// The method [`embeds`] returns an error of type
+    /// [`MessageValidationErrorType::EmbedInvalid`] if the embed is invalid.
     ///
+    /// [`MessageValidationErrorType::ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    /// [`MessageValidationErrorType::EmbedInvalid`]: twilight_validate::message::MessageValidationErrorType::EmbedInvalid
     /// [`content`]: crate::request::channel::message::create_message::CreateMessage::content
     /// [`embeds`]: crate::request::channel::message::create_message::CreateMessage::embeds
-    /// [`CreateMessageErrorType::ContentInvalid`]:
-    /// crate::request::channel::message::create_message::CreateMessageErrorType::ContentInvalid
-    /// [`CreateMessageErrorType::EmbedTooLarge`]:
-    /// crate::request::channel::message::create_message::CreateMessageErrorType::EmbedTooLarge
     pub const fn create_message(&self, channel_id: ChannelId) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
@@ -1471,15 +1465,15 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateStageInstanceError`] of type [`InvalidTopic`] when the
-    /// topic is not between 1 and 120 characters in length.
+    /// Returns an error of type [`ValidationError::StageTopic`] when the topic
+    /// is not between 1 and 120 characters in length.
     ///
-    /// [`InvalidTopic`]: crate::request::channel::stage::create_stage_instance::CreateStageInstanceErrorType::InvalidTopic
+    /// [`ValidationError::StageTopic`]: twilight_validate::misc::ValidationErrorType::StageTopic
     pub fn create_stage_instance<'a>(
         &'a self,
         channel_id: ChannelId,
         topic: &'a str,
-    ) -> Result<CreateStageInstance<'a>, CreateStageInstanceError> {
+    ) -> Result<CreateStageInstance<'a>, ValidationError> {
         CreateStageInstance::new(self, channel_id, topic)
     }
 
@@ -1508,15 +1502,15 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateGuildFromTemplateErrorType::NameInvalid`] error type
-    /// if the name is invalid.
+    /// Returns an error of type [`ValidationErrorType::TemplateName`] if the
+    /// name is invalid.
     ///
-    /// [`CreateGuildFromTemplateErrorType::NameInvalid`]: crate::request::template::create_guild_from_template::CreateGuildFromTemplateErrorType::NameInvalid
+    /// [`ValidationErrorType::TemplateName`]: twilight_validate::misc::ValidationErrorType::TemplateName
     pub fn create_guild_from_template<'a>(
         &'a self,
         template_code: &'a str,
         name: &'a str,
-    ) -> Result<CreateGuildFromTemplate<'a>, CreateGuildFromTemplateError> {
+    ) -> Result<CreateGuildFromTemplate<'a>, ValidationError> {
         CreateGuildFromTemplate::new(self, template_code, name)
     }
 
@@ -1527,15 +1521,15 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateTemplateErrorType::NameInvalid`] error type if the
+    /// Returns an error of type [`ValidationErrorType::TemplateName`] if the
     /// name is invalid.
     ///
-    /// [`CreateTemplateErrorType::NameInvalid`]: crate::request::template::create_template::CreateTemplateErrorType::NameInvalid
+    /// [`ValidationErrorType::TemplateName`]: twilight_validate::misc::ValidationErrorType::TemplateName
     pub fn create_template<'a>(
         &'a self,
         guild_id: GuildId,
         name: &'a str,
-    ) -> Result<CreateTemplate<'a>, CreateTemplateError> {
+    ) -> Result<CreateTemplate<'a>, ValidationError> {
         CreateTemplate::new(self, guild_id, name)
     }
 
@@ -1613,7 +1607,7 @@ impl Client {
         channel_id: ChannelId,
         name: &'a str,
         kind: ChannelType,
-    ) -> Result<CreateThread<'_>, ThreadValidationError> {
+    ) -> Result<CreateThread<'_>, ChannelValidationError> {
         CreateThread::new(self, channel_id, name, kind)
     }
 
@@ -1643,7 +1637,7 @@ impl Client {
         channel_id: ChannelId,
         message_id: MessageId,
         name: &'a str,
-    ) -> Result<CreateThreadFromMessage<'_>, ThreadValidationError> {
+    ) -> Result<CreateThreadFromMessage<'_>, ChannelValidationError> {
         CreateThreadFromMessage::new(self, channel_id, message_id, name)
     }
 

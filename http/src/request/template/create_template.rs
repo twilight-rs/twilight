@@ -1,72 +1,10 @@
-use crate::{
-    client::Client,
-    request::{validate_inner, Request},
-    response::ResponseFuture,
-    routing::Route,
-};
+use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::{id::GuildId, template::Template};
-
-/// Error returned when the template can not be created as configured.
-#[derive(Debug)]
-pub struct CreateTemplateError {
-    kind: CreateTemplateErrorType,
-}
-
-impl CreateTemplateError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &CreateTemplateErrorType {
-        &self.kind
-    }
-
-    /// Consumes the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type nad the source error.
-    #[must_use = "consuming the error int its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        CreateTemplateErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for CreateTemplateError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self.kind {
-            CreateTemplateErrorType::NameInvalid { .. } => {
-                f.write_str("the template name is invalid")
-            }
-            CreateTemplateErrorType::DescriptionTooLarge { .. } => {
-                f.write_str("the template description is too large")
-            }
-        }
-    }
-}
-
-impl Error for CreateTemplateError {}
-
-/// Type of [`CreateTemplateError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum CreateTemplateErrorType {
-    /// Name of the template is invalid.
-    NameInvalid,
-    /// Description of the template is invalid.
-    DescriptionTooLarge,
-}
+use twilight_validate::misc::{
+    template_description as validate_template_description, template_name as validate_template_name,
+    ValidationError,
+};
 
 #[derive(Serialize)]
 struct CreateTemplateFields<'a> {
@@ -81,8 +19,10 @@ struct CreateTemplateFields<'a> {
 ///
 /// # Errors
 ///
-/// Returns a [`CreateTemplateErrorType::NameInvalid`] error type if the name is
-/// invalid.
+/// Returns an error of type [`TemplateName`] if the name length is too short or
+/// too long.
+///
+/// [`TemplateName`]: twilight_validate::misc::ValidationErrorType::TemplateName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
     fields: CreateTemplateFields<'a>,
@@ -95,12 +35,8 @@ impl<'a> CreateTemplate<'a> {
         http: &'a Client,
         guild_id: GuildId,
         name: &'a str,
-    ) -> Result<Self, CreateTemplateError> {
-        if !validate_inner::template_name(&name) {
-            return Err(CreateTemplateError {
-                kind: CreateTemplateErrorType::NameInvalid,
-            });
-        }
+    ) -> Result<Self, ValidationError> {
+        validate_template_name(name)?;
 
         Ok(Self {
             fields: CreateTemplateFields {
@@ -118,14 +54,12 @@ impl<'a> CreateTemplate<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateTemplateErrorType::DescriptionTooLarge`] error type if
-    /// the description is too large.
-    pub fn description(mut self, description: &'a str) -> Result<Self, CreateTemplateError> {
-        if !validate_inner::template_description(description) {
-            return Err(CreateTemplateError {
-                kind: CreateTemplateErrorType::DescriptionTooLarge,
-            });
-        }
+    /// Returns an error of type [`TemplateDescription`] if the name length is
+    /// too short or too long.
+    ///
+    /// [`TemplateDescription`]: twilight_validate::misc::ValidationErrorType::TemplateDescription
+    pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
+        validate_template_description(description)?;
 
         self.fields.description.replace(description);
 

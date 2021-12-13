@@ -1,9 +1,4 @@
-use crate::{
-    client::Client,
-    request::{validate_inner, Request},
-    response::ResponseFuture,
-    routing::Route,
-};
+use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
 use serde::Serialize;
 use std::{
     error::Error,
@@ -17,6 +12,7 @@ use twilight_model::{
     },
     id::{ChannelId, RoleId},
 };
+use twilight_validate::misc::guild_name as validate_guild_name;
 
 mod builder;
 
@@ -26,6 +22,7 @@ pub use self::builder::*;
 #[derive(Debug)]
 pub struct CreateGuildError {
     kind: CreateGuildErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl CreateGuildError {
@@ -36,16 +33,15 @@ impl CreateGuildError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
     #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
     pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (CreateGuildErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, None)
+        (self.kind, self.source)
     }
 }
 
@@ -222,11 +218,10 @@ pub struct CreateGuild<'a> {
 
 impl<'a> CreateGuild<'a> {
     pub(crate) fn new(http: &'a Client, name: String) -> Result<Self, CreateGuildError> {
-        if !validate_inner::guild_name(&name) {
-            return Err(CreateGuildError {
-                kind: CreateGuildErrorType::NameInvalid { name },
-            });
-        }
+        validate_guild_name(&name).map_err(|source| CreateGuildError {
+            kind: CreateGuildErrorType::NameInvalid { name: name.clone() },
+            source: Some(Box::new(source)),
+        })?;
 
         Ok(Self {
             fields: CreateGuildFields {
@@ -327,6 +322,7 @@ impl<'a> CreateGuild<'a> {
         if channels.len() > 500 {
             return Err(CreateGuildError {
                 kind: CreateGuildErrorType::TooManyChannels { channels },
+                source: None,
             });
         }
 
@@ -431,6 +427,7 @@ impl<'a> CreateGuild<'a> {
         if roles.len() > 250 {
             return Err(CreateGuildError {
                 kind: CreateGuildErrorType::TooManyRoles { roles },
+                source: None,
             });
         }
 

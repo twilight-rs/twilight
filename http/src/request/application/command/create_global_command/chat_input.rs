@@ -1,11 +1,8 @@
-use super::super::{
-    super::{InteractionError, InteractionErrorType},
-    CommandBorrowed,
-};
+use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, RequestBuilder},
+    request::{Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
@@ -13,6 +10,7 @@ use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
     id::ApplicationId,
 };
+use twilight_validate::command::{description as validate_description, CommandValidationError};
 
 /// Create a new chat input global command.
 ///
@@ -37,12 +35,8 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         application_id: ApplicationId,
         name: &'a str,
         description: &'a str,
-    ) -> Result<Self, InteractionError> {
-        if !validate_inner::command_description(&description) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::CommandDescriptionValidationFailed,
-            });
-        }
+    ) -> Result<Self, CommandValidationError> {
+        validate_description(&description)?;
 
         Ok(Self {
             application_id,
@@ -60,13 +54,15 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     ///
     /// Errors
     ///
-    /// Returns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
-    /// if a required option was added after an optional option. The problem
-    /// option's index is provided.
+    /// Returns an error of type [`CommandOptionsRequiredFirst`] if a required
+    /// option was added after an optional option. The problem option's index is
+    /// provided.
+    ///
+    /// [`CommandOptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::CommandOptionsRequiredFirst
     pub const fn command_options(
         mut self,
         options: &'a [CommandOption],
-    ) -> Result<Self, InteractionError> {
+    ) -> Result<Self, CommandValidationError> {
         let mut optional_option_added = false;
         let mut idx = 0;
 
@@ -78,9 +74,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
             }
 
             if option.is_required() && optional_option_added {
-                return Err(InteractionError {
-                    kind: InteractionErrorType::CommandOptionsRequiredFirst { index: idx },
-                });
+                return Err(CommandValidationError::command_option_required_first(idx));
             }
 
             idx += 1;
