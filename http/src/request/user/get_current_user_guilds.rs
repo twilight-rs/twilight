@@ -10,7 +10,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
     user::CurrentUserGuild,
 };
 
@@ -65,8 +65,8 @@ pub enum GetCurrentUserGuildsErrorType {
 }
 
 struct GetCurrentUserGuildsFields {
-    after: Option<Id<GuildMarker>>,
-    before: Option<Id<GuildMarker>>,
+    after: Option<Id<marker::Guild>>,
+    before: Option<Id<marker::Guild>>,
     limit: Option<u64>,
 }
 
@@ -114,14 +114,14 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 
     /// Get guilds after this guild id.
-    pub const fn after(mut self, guild_id: Id<GuildMarker>) -> Self {
+    pub const fn after(mut self, guild_id: Id<marker::Guild>) -> Self {
         self.fields.after = Some(guild_id);
 
         self
     }
 
     /// Get guilds before this guild id.
-    pub const fn before(mut self, guild_id: Id<GuildMarker>) -> Self {
+    pub const fn before(mut self, guild_id: Id<marker::Guild>) -> Self {
         self.fields.before = Some(guild_id);
 
         self

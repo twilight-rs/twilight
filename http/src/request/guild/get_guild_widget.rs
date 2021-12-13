@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     guild::GuildWidget,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// Get the guild widget.
@@ -17,12 +17,12 @@ use twilight_model::{
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWidget<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildWidget<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

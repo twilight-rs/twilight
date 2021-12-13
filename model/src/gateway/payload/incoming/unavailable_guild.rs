@@ -1,9 +1,9 @@
-use crate::id::{marker::GuildMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UnavailableGuild {
-    pub id: Id<GuildMarker>,
+    pub id: Id<marker::Guild>,
 }
 
 #[cfg(test)]

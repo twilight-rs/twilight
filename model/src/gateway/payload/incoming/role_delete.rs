@@ -1,13 +1,10 @@
-use crate::id::{
-    marker::{GuildMarker, RoleMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RoleDelete {
-    pub guild_id: Id<GuildMarker>,
-    pub role_id: Id<RoleMarker>,
+    pub guild_id: Id<marker::Guild>,
+    pub role_id: Id<marker::Role>,
 }
 
 #[cfg(test)]

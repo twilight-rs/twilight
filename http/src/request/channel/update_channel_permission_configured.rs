@@ -9,7 +9,7 @@ use serde::Serialize;
 use twilight_model::{
     channel::permission_overwrite::{PermissionOverwriteTargetType, PermissionOverwriteType},
     guild::Permissions,
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 
 #[derive(Serialize)]
@@ -23,7 +23,7 @@ struct UpdateChannelPermissionConfiguredFields {
 /// Created when either `member` or `role` is called on a `DeleteChannelPermission` struct.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannelPermissionConfigured<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     fields: UpdateChannelPermissionConfiguredFields,
     http: &'a Client,
     target_id: u64,
@@ -33,7 +33,7 @@ pub struct UpdateChannelPermissionConfigured<'a> {
 impl<'a> UpdateChannelPermissionConfigured<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         allow: Permissions,
         deny: Permissions,
         target: PermissionOverwriteType,

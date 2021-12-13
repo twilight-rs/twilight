@@ -18,10 +18,7 @@ use twilight_model::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, SystemChannelFlags,
         VerificationLevel,
     },
-    id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// The error returned when the guild can not be updated as configured.
@@ -73,7 +70,7 @@ pub enum UpdateGuildErrorType {
 #[derive(Serialize)]
 struct UpdateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    afk_channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    afk_channel_id: Option<NullableField<Id<marker::Channel>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_timeout: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -91,19 +88,19 @@ struct UpdateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    owner_id: Option<Id<UserMarker>>,
+    owner_id: Option<Id<marker::User>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     splash: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system_channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    system_channel_id: Option<NullableField<Id<marker::Channel>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     system_channel_flags: Option<NullableField<SystemChannelFlags>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     verification_level: Option<NullableField<VerificationLevel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    rules_channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    rules_channel_id: Option<NullableField<Id<marker::Channel>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    public_updates_channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    public_updates_channel_id: Option<NullableField<Id<marker::Channel>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     preferred_locale: Option<NullableField<&'a str>>,
 }
@@ -116,13 +113,13 @@ struct UpdateGuildFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuild<'a> {
     fields: UpdateGuildFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateGuild<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self {
             fields: UpdateGuildFields {
                 afk_channel_id: None,
@@ -150,7 +147,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set the voice channel where AFK voice users are sent.
-    pub const fn afk_channel_id(mut self, afk_channel_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn afk_channel_id(mut self, afk_channel_id: Option<Id<marker::Channel>>) -> Self {
         self.fields.afk_channel_id = Some(NullableField(afk_channel_id));
 
         self
@@ -252,7 +249,7 @@ impl<'a> UpdateGuild<'a> {
     /// Transfer ownership to another user.
     ///
     /// Only works if the current user is the owner.
-    pub const fn owner_id(mut self, owner_id: Id<UserMarker>) -> Self {
+    pub const fn owner_id(mut self, owner_id: Id<marker::User>) -> Self {
         self.fields.owner_id = Some(owner_id);
 
         self
@@ -268,7 +265,7 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set the channel where events such as welcome messages are posted.
-    pub const fn system_channel(mut self, system_channel_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn system_channel(mut self, system_channel_id: Option<Id<marker::Channel>>) -> Self {
         self.fields.system_channel_id = Some(NullableField(system_channel_id));
 
         self
@@ -289,7 +286,7 @@ impl<'a> UpdateGuild<'a> {
     /// Requires the guild to be `PUBLIC`. Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
-    pub const fn rules_channel(mut self, rules_channel_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn rules_channel(mut self, rules_channel_id: Option<Id<marker::Channel>>) -> Self {
         self.fields.rules_channel_id = Some(NullableField(rules_channel_id));
 
         self
@@ -300,7 +297,7 @@ impl<'a> UpdateGuild<'a> {
     /// Requires the guild to be `PUBLIC`.
     pub const fn public_updates_channel(
         mut self,
-        public_updates_channel_id: Option<Id<ChannelMarker>>,
+        public_updates_channel_id: Option<Id<marker::Channel>>,
     ) -> Self {
         self.fields.public_updates_channel_id = Some(NullableField(public_updates_channel_id));
 

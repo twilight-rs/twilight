@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::Webhook,
-    id::{marker::WebhookMarker, Id},
+    id::{marker, Id},
 };
 
 struct GetWebhookFields<'a> {
@@ -19,11 +19,11 @@ struct GetWebhookFields<'a> {
 pub struct GetWebhook<'a> {
     fields: GetWebhookFields<'a>,
     http: &'a Client,
-    id: Id<WebhookMarker>,
+    id: Id<marker::Webhook>,
 }
 
 impl<'a> GetWebhook<'a> {
-    pub(crate) const fn new(http: &'a Client, id: Id<WebhookMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, id: Id<marker::Webhook>) -> Self {
         Self {
             fields: GetWebhookFields { token: None },
             http,

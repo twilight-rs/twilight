@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::Channel,
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 
 /// Get a channel by its ID.
@@ -31,12 +31,12 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannel<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
 }
 
 impl<'a> GetChannel<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self { channel_id, http }
     }
 

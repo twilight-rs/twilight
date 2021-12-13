@@ -1,6 +1,6 @@
 use crate::{
     guild::{Permissions, RoleTags},
-    id::{marker::RoleMarker, Id},
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct TemplateRole {
     pub color: u32,
     pub hoist: bool,
-    pub id: Id<RoleMarker>,
+    pub id: Id<marker::Role>,
     pub mentionable: bool,
     pub name: String,
     pub permissions: Permissions,

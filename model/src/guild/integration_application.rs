@@ -1,5 +1,5 @@
 use crate::{
-    id::{marker::ApplicationMarker, Id},
+    id::{marker, Id},
     user::User,
 };
 
@@ -11,7 +11,7 @@ pub struct IntegrationApplication {
     pub bot: Option<User>,
     pub description: String,
     pub icon: Option<String>,
-    pub id: Id<ApplicationMarker>,
+    pub id: Id<marker::Application>,
     pub name: String,
     pub summary: String,
 }

@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::thread::ThreadsListing,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// Returns all active threads in the guild.
@@ -16,12 +16,12 @@ use twilight_model::{
 /// descending order.
 #[must_use = "requests must be configured and executed"]
 pub struct GetActiveThreads<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetActiveThreads<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

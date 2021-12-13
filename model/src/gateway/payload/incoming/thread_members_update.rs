@@ -1,9 +1,6 @@
 use crate::{
     channel::thread::{ThreadMember, ThreadMemberIntermediary},
-    id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{
     de::{value::MapAccessDeserializer, MapAccess, Visitor},
@@ -20,12 +17,12 @@ pub struct ThreadMembersUpdate {
     /// [`member`]: ThreadMember::member
     #[serde(default)]
     pub added_members: Vec<ThreadMember>,
-    pub guild_id: Id<GuildMarker>,
-    pub id: Id<ChannelMarker>,
+    pub guild_id: Id<marker::Guild>,
+    pub id: Id<marker::Channel>,
     /// Max value of 50.
     pub member_count: u8,
     #[serde(default)]
-    pub removed_member_ids: Vec<Id<UserMarker>>,
+    pub removed_member_ids: Vec<Id<marker::User>>,
 }
 
 impl<'de> Deserialize<'de> for ThreadMembersUpdate {
@@ -39,12 +36,12 @@ struct ThreadMembersUpdateIntermediary {
     /// ThreadMembers without the guild ID.
     #[serde(default)]
     pub added_members: Vec<ThreadMemberIntermediary>,
-    pub guild_id: Id<GuildMarker>,
-    pub id: Id<ChannelMarker>,
+    pub guild_id: Id<marker::Guild>,
+    pub id: Id<marker::Channel>,
     /// Max value of 50.
     pub member_count: u8,
     #[serde(default)]
-    pub removed_member_ids: Vec<Id<UserMarker>>,
+    pub removed_member_ids: Vec<Id<marker::User>>,
 }
 
 impl ThreadMembersUpdateIntermediary {

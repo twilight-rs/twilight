@@ -7,18 +7,18 @@ use crate::{
 };
 use twilight_model::{
     channel::Webhook,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// Get the webhooks of a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWebhooks<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildWebhooks<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

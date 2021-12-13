@@ -7,19 +7,19 @@ use crate::{
 };
 use twilight_model::{
     channel::Channel,
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 
 /// Delete a channel by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteChannel<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> DeleteChannel<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self {
             channel_id,
             http,

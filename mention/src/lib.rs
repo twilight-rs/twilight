@@ -14,9 +14,9 @@
 //!
 //! ```rust
 //! use twilight_mention::Mention;
-//! use twilight_model::id::{marker::UserMarker, Id};
+//! use twilight_model::id::{marker, Id};
 //!
-//! let user_id = Id::<UserMarker>::new(123).expect("non zero");
+//! let user_id = Id::<marker::User>::new(123).expect("non zero");
 //! let message = format!("Hey there, {}!", user_id.mention());
 //! ```
 //!

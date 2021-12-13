@@ -21,10 +21,7 @@ pub use self::{
 };
 
 use crate::{
-    id::{
-        marker::{GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{
@@ -40,7 +37,7 @@ pub struct Presence {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
-    pub guild_id: Id<GuildMarker>,
+    pub guild_id: Id<marker::Guild>,
     pub status: Status,
     pub user: UserOrId,
 }
@@ -49,12 +46,12 @@ pub struct Presence {
 #[serde(untagged)]
 pub enum UserOrId {
     User(User),
-    UserId { id: Id<UserMarker> },
+    UserId { id: Id<marker::User> },
 }
 
 impl UserOrId {
     /// ID of the inner object.
-    pub const fn id(&self) -> Id<UserMarker> {
+    pub const fn id(&self) -> Id<marker::User> {
         match self {
             UserOrId::User(u) => u.id,
             UserOrId::UserId { id } => *id,
@@ -67,7 +64,7 @@ pub struct PresenceIntermediary {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     pub nick: Option<String>,
     pub status: Status,
     pub user: UserOrId,
@@ -75,7 +72,7 @@ pub struct PresenceIntermediary {
 
 impl PresenceIntermediary {
     /// Inject guild ID into presence if not already present.
-    pub fn into_presence(self, guild_id: Id<GuildMarker>) -> Presence {
+    pub fn into_presence(self, guild_id: Id<marker::Guild>) -> Presence {
         Presence {
             activities: self.activities,
             client_status: self.client_status,
@@ -86,7 +83,7 @@ impl PresenceIntermediary {
     }
 }
 
-struct PresenceVisitor(Id<GuildMarker>);
+struct PresenceVisitor(Id<marker::Guild>);
 
 impl<'de> Visitor<'de> for PresenceVisitor {
     type Value = Presence;
@@ -110,12 +107,12 @@ impl<'de> Visitor<'de> for PresenceVisitor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PresenceDeserializer(Id<GuildMarker>);
+pub struct PresenceDeserializer(Id<marker::Guild>);
 
 impl PresenceDeserializer {
     /// Create a new deserializer for a presence when you know the guild ID but
     /// the payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
+    pub const fn new(guild_id: Id<marker::Guild>) -> Self {
         Self(guild_id)
     }
 }
@@ -129,17 +126,17 @@ impl<'de> DeserializeSeed<'de> for PresenceDeserializer {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PresenceListDeserializer(Id<GuildMarker>);
+pub struct PresenceListDeserializer(Id<marker::Guild>);
 
 impl PresenceListDeserializer {
     /// Create a new deserializer for a map of presences when you know the
     /// Guild ID but the payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
+    pub const fn new(guild_id: Id<marker::Guild>) -> Self {
         Self(guild_id)
     }
 }
 
-struct PresenceListDeserializerVisitor(Id<GuildMarker>);
+struct PresenceListDeserializerVisitor(Id<marker::Guild>);
 
 impl<'de> Visitor<'de> for PresenceListDeserializerVisitor {
     type Value = Vec<Presence>;

@@ -5,7 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{marker::WebhookMarker, Id};
+use twilight_model::id::{marker, Id};
 
 struct DeleteWebhookParams<'a> {
     token: Option<&'a str>,
@@ -16,12 +16,12 @@ struct DeleteWebhookParams<'a> {
 pub struct DeleteWebhook<'a> {
     fields: DeleteWebhookParams<'a>,
     http: &'a Client,
-    id: Id<WebhookMarker>,
+    id: Id<marker::Webhook>,
     reason: Option<&'a str>,
 }
 
 impl<'a> DeleteWebhook<'a> {
-    pub(crate) const fn new(http: &'a Client, id: Id<WebhookMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, id: Id<marker::Webhook>) -> Self {
         Self {
             fields: DeleteWebhookParams { token: None },
             http,

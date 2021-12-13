@@ -4,7 +4,7 @@
 //! ensure that IDs of incorrect types aren't used. If IDs were only 64-bit
 //! integers then a role's ID may be erroneously used in the place of where
 //! a user's ID is required; by using markers it can be ensured that only an
-//! ID with a [`RoleMarker`] can be used where a role's ID is required.
+//! ID with a [`Role`] can be used where a role's ID is required.
 
 /// Marker for application IDs.
 ///
@@ -15,7 +15,7 @@
 /// [`Message::application_id`]: crate::channel::Message::application_id
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct ApplicationMarker;
+pub struct Application;
 
 /// Marker for attachment IDs.
 ///
@@ -24,7 +24,7 @@ pub struct ApplicationMarker;
 /// [`Attachment`]: crate::channel::Attachment
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct AttachmentMarker;
+pub struct Attachment;
 
 /// Marker for audit log entry IDs.
 ///
@@ -33,7 +33,7 @@ pub struct AttachmentMarker;
 /// [`AuditLogEntry`]: crate::guild::audit_log::AuditLogEntry
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct AuditLogEntryMarker;
+pub struct AuditLogEntry;
 
 /// Marker for channel IDs.
 ///
@@ -43,7 +43,7 @@ pub struct AuditLogEntryMarker;
 /// [`TextChannel`]: crate::channel::TextChannel
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct ChannelMarker;
+pub struct Channel;
 
 /// Marker for command IDs.
 ///
@@ -52,7 +52,7 @@ pub struct ChannelMarker;
 /// [`Command`]: crate::application::command::Command
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct CommandMarker;
+pub struct Command;
 
 /// Marker for command versions.
 ///
@@ -61,7 +61,7 @@ pub struct CommandMarker;
 /// [`Command`]: crate::application::command::Command
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct CommandVersionMarker;
+pub struct CommandVersion;
 
 /// Marker for emoji IDs.
 ///
@@ -71,7 +71,7 @@ pub struct CommandVersionMarker;
 /// [`ReactionType`]: crate::channel::ReactionType
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct EmojiMarker;
+pub struct Emoji;
 
 /// Marker for generic IDs.
 ///
@@ -82,7 +82,7 @@ pub struct EmojiMarker;
 /// [`CommandOptionValue`]: crate::application::interaction::application_command::CommandOptionValue
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct GenericMarker;
+pub struct Generic;
 
 /// Marker for guild IDs.
 ///
@@ -92,7 +92,7 @@ pub struct GenericMarker;
 /// [`Message`]: crate::channel::Message
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct GuildMarker;
+pub struct Guild;
 
 /// Marker for integration IDs.
 ///
@@ -102,7 +102,7 @@ pub struct GuildMarker;
 /// [`RoleTags`]: crate::guild::RoleTags
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct IntegrationMarker;
+pub struct Integration;
 
 /// Marker for interaction IDs.
 ///
@@ -113,7 +113,7 @@ pub struct IntegrationMarker;
 /// [`MessageInteraction`]: crate::channel::message::MessageInteraction
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct InteractionMarker;
+pub struct Interaction;
 
 /// Marker for message IDs.
 ///
@@ -123,7 +123,7 @@ pub struct InteractionMarker;
 /// [`Reaction`]: crate::channel::Reaction
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct MessageMarker;
+pub struct Message;
 
 /// Marker for OAuth SKU IDs.
 ///
@@ -132,7 +132,7 @@ pub struct MessageMarker;
 /// [`CurrentApplicationInfo`]: crate::oauth::CurrentApplicationInfo
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct OauthSkuMarker;
+pub struct OauthSku;
 
 /// Marker for OAuth team IDs.
 ///
@@ -142,7 +142,7 @@ pub struct OauthSkuMarker;
 /// [`TeamMember`]: crate::oauth::team::TeamMember
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct OauthTeamMarker;
+pub struct OauthTeam;
 
 /// Marker for role IDs.
 ///
@@ -152,7 +152,7 @@ pub struct OauthTeamMarker;
 /// [`Role`]: crate::guild::Role
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct RoleMarker;
+pub struct Role;
 
 /// Marker for stage IDs.
 ///
@@ -161,7 +161,7 @@ pub struct RoleMarker;
 /// [`StageInstance`]: crate::channel::StageInstance
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct StageMarker;
+pub struct Stage;
 
 /// Marker for sticker banner asset IDs.
 ///
@@ -170,7 +170,7 @@ pub struct StageMarker;
 /// [`StickerPack`]: crate::channel::message::sticker::StickerPack
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct StickerBannerAssetMarker;
+pub struct StickerBannerAsset;
 
 /// Marker for sticker IDs.
 ///
@@ -180,7 +180,7 @@ pub struct StickerBannerAssetMarker;
 /// [`Sticker`]: crate::channel::message::sticker::Sticker
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct StickerMarker;
+pub struct Sticker;
 
 /// Marker for sticker pack IDs.
 ///
@@ -190,7 +190,7 @@ pub struct StickerMarker;
 /// [`StickerPack`]: crate::channel::message::sticker::StickerPack
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct StickerPackMarker;
+pub struct StickerPack;
 
 /// Marker for sticker pack SKU IDs.
 ///
@@ -199,7 +199,7 @@ pub struct StickerPackMarker;
 /// [`StickerPack`]: crate::channel::message::sticker::StickerPack
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct StickerPackSkuMarker;
+pub struct StickerPackSku;
 
 /// Marker for user IDs.
 ///
@@ -209,7 +209,7 @@ pub struct StickerPackSkuMarker;
 /// [`User`]: crate::user::User
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct UserMarker;
+pub struct User;
 
 /// Marker for webhook IDs.
 ///
@@ -218,4 +218,4 @@ pub struct UserMarker;
 /// [`Webhook`]: crate::channel::webhook::Webhook
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
-pub struct WebhookMarker;
+pub struct Webhook;

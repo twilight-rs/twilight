@@ -20,7 +20,7 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment, Message},
-    id::{marker::ApplicationMarker, Id},
+    id::{marker, Id},
 };
 
 /// A original response can not be updated as configured.
@@ -175,7 +175,7 @@ struct UpdateOriginalResponseFields<'a> {
 /// [`DeleteOriginalResponse`]: super::DeleteOriginalResponse
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateOriginalResponse<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateOriginalResponseFields<'a>,
     http: &'a Client,
@@ -188,7 +188,7 @@ impl<'a> UpdateOriginalResponse<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         interaction_token: &'a str,
     ) -> Self {
         Self {

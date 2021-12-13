@@ -1,7 +1,7 @@
 use super::RoleTags;
 use crate::{
     guild::Permissions,
-    id::{marker::RoleMarker, Id},
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 use std::cmp::{Ord, Ordering, PartialOrd};
@@ -20,7 +20,7 @@ pub struct Role {
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
-    pub id: Id<RoleMarker>,
+    pub id: Id<marker::Role>,
     pub managed: bool,
     pub mentionable: bool,
     pub name: String,

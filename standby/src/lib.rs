@@ -178,10 +178,7 @@ use twilight_model::{
         event::Event,
         payload::incoming::{MessageCreate, ReactionAdd},
     },
-    id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Map keyed by an ID - such as a channel ID or message ID - storing a list of
@@ -238,7 +235,7 @@ impl<T: Debug> Debug for Bystander<T> {
 pub struct Standby {
     /// List of component bystanders where the ID of the message is known
     /// beforehand.
-    components: DashMap<Id<MessageMarker>, Vec<Bystander<MessageComponentInteraction>>>,
+    components: DashMap<Id<marker::Message>, Vec<Bystander<MessageComponentInteraction>>>,
     /// Bystanders for any event that may not be in any particular guild.
     ///
     /// The key is generated via [`event_counter`].
@@ -250,13 +247,13 @@ pub struct Standby {
     /// [`events`]: Self::events
     event_counter: AtomicU64,
     /// List of bystanders where the ID of the guild is known beforehand.
-    guilds: DashMap<Id<GuildMarker>, Vec<Bystander<Event>>>,
+    guilds: DashMap<Id<marker::Guild>, Vec<Bystander<Event>>>,
     /// List of message bystanders where the ID of the channel is known
     /// beforehand.
-    messages: DashMap<Id<ChannelMarker>, Vec<Bystander<MessageCreate>>>,
+    messages: DashMap<Id<marker::Channel>, Vec<Bystander<MessageCreate>>>,
     /// List of reaction bystanders where the ID of the message is known
     /// beforehand.
-    reactions: DashMap<Id<MessageMarker>, Vec<Bystander<ReactionAdd>>>,
+    reactions: DashMap<Id<marker::Message>, Vec<Bystander<ReactionAdd>>>,
 }
 
 impl Standby {
@@ -366,7 +363,7 @@ impl Standby {
     /// [`wait_for_stream`]: Self::wait_for_stream
     pub fn wait_for<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventFuture {
         #[cfg(feature = "tracing")]
@@ -425,7 +422,7 @@ impl Standby {
     /// [`wait_for`]: Self::wait_for
     pub fn wait_for_stream<F: Fn(&Event) -> bool + Send + Sync + 'static>(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventStream {
         #[cfg(feature = "tracing")]
@@ -592,7 +589,7 @@ impl Standby {
     /// [`wait_for_message_stream`]: Self::wait_for_message_stream
     pub fn wait_for_message<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageFuture {
         #[cfg(feature = "tracing")]
@@ -646,7 +643,7 @@ impl Standby {
     /// [`wait_for_message`]: Self::wait_for_message
     pub fn wait_for_message_stream<F: Fn(&MessageCreate) -> bool + Send + Sync + 'static>(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageStream {
         #[cfg(feature = "tracing")]
@@ -696,7 +693,7 @@ impl Standby {
     /// [`wait_for_reaction_stream`]: Self::wait_for_reaction_stream
     pub fn wait_for_reaction<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionFuture {
         #[cfg(feature = "tracing")]
@@ -749,7 +746,7 @@ impl Standby {
     /// [`wait_for_reaction`]: Self::wait_for_reaction
     pub fn wait_for_reaction_stream<F: Fn(&ReactionAdd) -> bool + Send + Sync + 'static>(
         &self,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionStream {
         #[cfg(feature = "tracing")]
@@ -794,7 +791,7 @@ impl Standby {
         F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
     >(
         &self,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
         check: impl Into<Box<F>>,
     ) -> WaitForComponentFuture {
         #[cfg(feature = "tracing")]
@@ -843,7 +840,7 @@ impl Standby {
         F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
     >(
         &self,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
         check: impl Into<Box<F>>,
     ) -> WaitForComponentStream {
         #[cfg(feature = "tracing")]
@@ -1234,7 +1231,7 @@ mod tests {
             event::{Event, EventType},
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
-        id::{marker::GuildMarker, Id},
+        id::{marker, Id},
         oauth::{current_application_info::ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
     };
@@ -1364,7 +1361,7 @@ mod tests {
     /// not matched by testing the returned matched amount.
     #[tokio::test]
     async fn test_matched() {
-        fn check(event: &Event, guild_id: Id<GuildMarker>) -> bool {
+        fn check(event: &Event, guild_id: Id<marker::Guild>) -> bool {
             matches!(event, Event::RoleDelete(e) if e.guild_id == guild_id)
         }
 

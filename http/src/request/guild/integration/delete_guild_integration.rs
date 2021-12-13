@@ -5,25 +5,22 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{GuildMarker, IntegrationMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Delete an integration for a guild, by the integration's id.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGuildIntegration<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    integration_id: Id<IntegrationMarker>,
+    integration_id: Id<marker::Integration>,
     reason: Option<&'a str>,
 }
 
 impl<'a> DeleteGuildIntegration<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        integration_id: Id<IntegrationMarker>,
+        guild_id: Id<marker::Guild>,
+        integration_id: Id<marker::Integration>,
     ) -> Self {
         Self {
             guild_id,

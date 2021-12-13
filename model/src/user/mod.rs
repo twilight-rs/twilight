@@ -12,7 +12,7 @@ pub use self::{
     profile::UserProfile,
 };
 
-use crate::id::{marker::UserMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -142,7 +142,7 @@ pub struct User {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
-    pub id: Id<UserMarker>,
+    pub id: Id<marker::User>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

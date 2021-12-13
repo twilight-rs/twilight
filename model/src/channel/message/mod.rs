@@ -24,12 +24,7 @@ use crate::{
     channel::{embed::Embed, Attachment, Channel, ChannelMention},
     datetime::Timestamp,
     guild::PartialMember,
-    id::{
-        marker::{
-            ApplicationMarker, ChannelMarker, GuildMarker, MessageMarker, RoleMarker, WebhookMarker,
-        },
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -44,10 +39,10 @@ pub struct Message {
     ///
     /// Sent if the message is a response to an Interaction.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<Id<ApplicationMarker>>,
+    pub application_id: Option<Id<marker::Application>>,
     pub attachments: Vec<Attachment>,
     pub author: User,
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     /// List of provided message components.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub components: Vec<Component>,
@@ -57,8 +52,8 @@ pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
-    pub id: Id<MessageMarker>,
+    pub guild_id: Option<Id<marker::Guild>>,
+    pub id: Id<marker::Message>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interaction: Option<MessageInteraction>,
     #[serde(rename = "type")]
@@ -68,7 +63,7 @@ pub struct Message {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub mention_channels: Vec<ChannelMention>,
     pub mention_everyone: bool,
-    pub mention_roles: Vec<Id<RoleMarker>>,
+    pub mention_roles: Vec<Id<marker::Role>>,
     pub mentions: Vec<Mention>,
     pub pinned: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -90,7 +85,7 @@ pub struct Message {
     pub thread: Option<Channel>,
     pub tts: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub webhook_id: Option<Id<WebhookMarker>>,
+    pub webhook_id: Option<Id<marker::Webhook>>,
 }
 
 #[cfg(test)]

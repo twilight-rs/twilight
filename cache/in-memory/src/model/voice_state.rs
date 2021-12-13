@@ -1,9 +1,6 @@
 use serde::Serialize;
 use twilight_model::{
-    id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     voice::VoiceState,
 };
 
@@ -12,9 +9,9 @@ use twilight_model::{
 /// [`VoiceState`]: twilight_model::voice::VoiceState
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
-    channel_id: Option<Id<ChannelMarker>>,
+    channel_id: Option<Id<marker::Channel>>,
     deaf: bool,
-    guild_id: Option<Id<GuildMarker>>,
+    guild_id: Option<Id<marker::Guild>>,
     mute: bool,
     self_deaf: bool,
     self_mute: bool,
@@ -22,12 +19,12 @@ pub struct CachedVoiceState {
     session_id: String,
     suppress: bool,
     token: Option<String>,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 impl CachedVoiceState {
     /// ID of the channel that this user is connected to.
-    pub const fn channel_id(&self) -> Option<Id<ChannelMarker>> {
+    pub const fn channel_id(&self) -> Option<Id<marker::Channel>> {
         self.channel_id
     }
 
@@ -37,7 +34,7 @@ impl CachedVoiceState {
     }
 
     /// ID of the guild that this user is connected in, if there is one.
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+    pub const fn guild_id(&self) -> Option<Id<marker::Guild>> {
         self.guild_id
     }
 
@@ -77,7 +74,7 @@ impl CachedVoiceState {
     }
 
     /// ID of the user.
-    pub const fn user_id(&self) -> Id<UserMarker> {
+    pub const fn user_id(&self) -> Id<marker::User> {
         self.user_id
     }
 }

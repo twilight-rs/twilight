@@ -13,10 +13,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::{
-    marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// The error created when the member can not be updated as configured.
 #[derive(Debug)]
@@ -74,7 +71,7 @@ pub enum UpdateGuildMemberErrorType {
 struct UpdateGuildMemberFields<'a> {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    channel_id: Option<NullableField<Id<marker::Channel>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -82,7 +79,7 @@ struct UpdateGuildMemberFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     nick: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    roles: Option<&'a [Id<RoleMarker>]>,
+    roles: Option<&'a [Id<marker::Role>]>,
 }
 
 /// Update a guild member.
@@ -93,17 +90,17 @@ struct UpdateGuildMemberFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateGuildMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> Self {
         Self {
             fields: UpdateGuildMemberFields {
@@ -121,7 +118,7 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     /// Move the member to a different voice channel.
-    pub const fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
+    pub const fn channel_id(mut self, channel_id: Option<Id<marker::Channel>>) -> Self {
         self.fields.channel_id = Some(NullableField(channel_id));
 
         self
@@ -164,7 +161,7 @@ impl<'a> UpdateGuildMember<'a> {
     }
 
     /// Set the new list of roles for a member.
-    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+    pub const fn roles(mut self, roles: &'a [Id<marker::Role>]) -> Self {
         self.fields.roles = Some(roles);
 
         self
@@ -222,16 +219,13 @@ mod tests {
         Client,
     };
     use std::error::Error;
-    use twilight_model::id::{
-        marker::{GuildMarker, UserMarker},
-        Id,
-    };
+    use twilight_model::id::{marker, Id};
 
-    fn guild_id() -> Id<GuildMarker> {
+    fn guild_id() -> Id<marker::Guild> {
         Id::new(1).expect("non zero")
     }
 
-    fn user_id() -> Id<UserMarker> {
+    fn user_id() -> Id<marker::User> {
         Id::new(1).expect("non zero")
     }
 

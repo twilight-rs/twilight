@@ -21,10 +21,7 @@ use std::{
         Arc,
     },
 };
-use twilight_model::id::{
-    marker::{ChannelMarker, GuildMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Retrieve and create players for guilds.
 ///
@@ -32,7 +29,7 @@ use twilight_model::id::{
 /// nodes, and can be used to read player information and send events to nodes.
 #[derive(Clone, Debug, Default)]
 pub struct PlayerManager {
-    pub(crate) players: Arc<DashMap<Id<GuildMarker>, Arc<Player>>>,
+    pub(crate) players: Arc<DashMap<Id<marker::Guild>, Arc<Player>>>,
 }
 
 impl PlayerManager {
@@ -42,13 +39,13 @@ impl PlayerManager {
     }
 
     /// Return an immutable reference to a player by guild ID.
-    pub fn get(&self, guild_id: &Id<GuildMarker>) -> Option<Arc<Player>> {
+    pub fn get(&self, guild_id: &Id<marker::Guild>) -> Option<Arc<Player>> {
         self.players.get(guild_id).map(|r| Arc::clone(r.value()))
     }
 
     /// Return a mutable reference to a player by guild ID or insert a new
     /// player linked to a given node.
-    pub fn get_or_insert(&self, guild_id: Id<GuildMarker>, node: Arc<Node>) -> Arc<Player> {
+    pub fn get_or_insert(&self, guild_id: Id<marker::Guild>, node: Arc<Node>) -> Arc<Player> {
         let player = self
             .players
             .entry(guild_id)
@@ -65,7 +62,7 @@ impl PlayerManager {
     /// longer connected.
     ///
     /// [`NodeSenderErrorType::Sending`]: crate::node::NodeSenderErrorType::Sending
-    pub fn destroy(&self, guild_id: Id<GuildMarker>) -> Result<(), NodeSenderError> {
+    pub fn destroy(&self, guild_id: Id<marker::Guild>) -> Result<(), NodeSenderError> {
         if let Some(player) = self.get(&guild_id) {
             player
                 .node()
@@ -84,7 +81,7 @@ impl PlayerManager {
 #[derive(Debug)]
 pub struct Player {
     channel_id: AtomicU64,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     node: Arc<Node>,
     paused: AtomicBool,
     position: AtomicI64,
@@ -93,7 +90,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub(crate) const fn new(guild_id: Id<GuildMarker>, node: Arc<Node>) -> Self {
+    pub(crate) const fn new(guild_id: Id<marker::Guild>, node: Arc<Node>) -> Self {
         Self {
             channel_id: AtomicU64::new(0),
             guild_id,
@@ -115,7 +112,7 @@ impl Player {
     ///
     /// ```
     /// use twilight_lavalink::{model::{Play, Pause}, Lavalink};
-    /// # use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// # use twilight_model::id::{marker, Id};
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let (guild_id, user_id) = (Id::new(1).expect("non zero"), Id::new(2).expect("non zero"));
     /// # let track = String::new();
@@ -167,7 +164,7 @@ impl Player {
     }
 
     /// Return the player's channel ID.
-    pub fn channel_id(&self) -> Option<Id<ChannelMarker>> {
+    pub fn channel_id(&self) -> Option<Id<marker::Channel>> {
         let channel_id = self.channel_id.load(Ordering::Acquire);
 
         if channel_id == 0 {
@@ -178,7 +175,7 @@ impl Player {
     }
 
     /// Sets the channel ID the player is currently connected to.
-    pub(crate) fn set_channel_id(&self, channel_id: Option<Id<ChannelMarker>>) {
+    pub(crate) fn set_channel_id(&self, channel_id: Option<Id<marker::Channel>>) {
         self.channel_id.store(
             channel_id.map(|id| id.get()).unwrap_or(0_u64),
             Ordering::Release,
@@ -186,7 +183,7 @@ impl Player {
     }
 
     /// Return the player's guild ID.
-    pub const fn guild_id(&self) -> Id<GuildMarker> {
+    pub const fn guild_id(&self) -> Id<marker::Guild> {
         self.guild_id
     }
 

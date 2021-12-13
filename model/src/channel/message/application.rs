@@ -1,4 +1,4 @@
-use crate::id::{marker::ApplicationMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -7,7 +7,7 @@ pub struct MessageApplication {
     pub cover_image: Option<String>,
     pub description: String,
     pub icon: Option<String>,
-    pub id: Id<ApplicationMarker>,
+    pub id: Id<marker::Application>,
     pub name: String,
 }
 

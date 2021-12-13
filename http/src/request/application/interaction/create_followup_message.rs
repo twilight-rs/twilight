@@ -21,7 +21,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Message,
     },
-    id::{marker::ApplicationMarker, Id},
+    id::{marker, Id},
 };
 
 /// A followup message can not be created as configured.
@@ -145,7 +145,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     http: &'a Client,
@@ -155,7 +155,7 @@ pub struct CreateFollowupMessage<'a> {
 impl<'a> CreateFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         token: &'a str,
     ) -> Self {
         Self {

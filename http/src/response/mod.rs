@@ -71,7 +71,7 @@ use std::{
 };
 use twilight_model::{
     guild::member::{Member, MemberDeserializer, MemberListDeserializer},
-    id::{marker::GuildMarker, Id},
+    id::{marker as IdMarker, Id},
 };
 
 /// Failure when processing a response body.
@@ -179,7 +179,7 @@ pub enum DeserializeBodyErrorType {
 /// ```
 #[derive(Debug)]
 pub struct Response<T> {
-    guild_id: Option<Id<GuildMarker>>,
+    guild_id: Option<Id<IdMarker::Guild>>,
     inner: HyperResponse<Body>,
     phantom: PhantomData<T>,
 }
@@ -308,7 +308,7 @@ impl<T> Response<T> {
     /// Set the ID of the relevant guild.
     ///
     /// Necessary for [`MemberBody`] and [`MemberListBody`] deserialization.
-    pub(crate) fn set_guild_id(&mut self, guild_id: Id<GuildMarker>) {
+    pub(crate) fn set_guild_id(&mut self, guild_id: Id<IdMarker::Guild>) {
         self.guild_id = Some(guild_id);
     }
 
@@ -317,7 +317,7 @@ impl<T> Response<T> {
     /// # Panics
     ///
     /// Panics if the guild ID hasn't been configured.
-    fn guild_id(&self) -> Id<GuildMarker> {
+    fn guild_id(&self) -> Id<IdMarker::Guild> {
         self.guild_id.expect("guild id has not been configured")
     }
 }
@@ -632,11 +632,11 @@ impl<T: DeserializeOwned + Unpin> Future for ModelFuture<T> {
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct MemberFuture {
     future: BytesFuture,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<IdMarker::Guild>,
 }
 
 impl MemberFuture {
-    const fn new(bytes: BytesFuture, guild_id: Id<GuildMarker>) -> Self {
+    const fn new(bytes: BytesFuture, guild_id: Id<IdMarker::Guild>) -> Self {
         Self {
             future: bytes,
             guild_id,
@@ -711,7 +711,7 @@ impl Future for MemberFuture {
 pub struct MemberListFuture(MemberFuture);
 
 impl MemberListFuture {
-    const fn new(bytes: BytesFuture, guild_id: Id<GuildMarker>) -> Self {
+    const fn new(bytes: BytesFuture, guild_id: Id<IdMarker::Guild>) -> Self {
         Self(MemberFuture {
             future: bytes,
             guild_id,

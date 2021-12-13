@@ -17,10 +17,10 @@ use std::{iter::Iterator, marker::PhantomData, str::CharIndices};
 ///
 /// ```
 /// use twilight_mention::ParseMention;
-/// use twilight_model::id::{marker::UserMarker, Id};
+/// use twilight_model::id::{marker, Id};
 ///
 /// let buf = "<@123> some <@456> users <@789>!";
-/// let mut iter = Id::<UserMarker>::iter(buf);
+/// let mut iter = Id::<marker::User>::iter(buf);
 /// assert!(matches!(iter.next(), Some((user, _, _)) if user.get() == 123));
 /// assert!(matches!(iter.next(), Some((user, _, _)) if user.get() == 456));
 /// assert!(matches!(iter.next(), Some((user, _, _)) if user.get() == 789));
@@ -107,27 +107,24 @@ mod tests {
     };
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use std::fmt::Debug;
-    use twilight_model::id::{
-        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
-        Id,
-    };
+    use twilight_model::id::{marker, Id};
 
-    assert_impl_all!(MentionIter<'_, Id<ChannelMarker>>: Clone, Debug, Iterator, Send, Sync);
-    assert_impl_all!(MentionIter<'_, Id<EmojiMarker>>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, Id<marker::Channel>>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, Id<marker::Emoji>>: Clone, Debug, Iterator, Send, Sync);
     assert_impl_all!(MentionIter<'_, MentionType>: Clone, Debug, Iterator, Send, Sync);
-    assert_impl_all!(MentionIter<'_, Id<RoleMarker>>: Clone, Debug, Iterator, Send, Sync);
-    assert_impl_all!(MentionIter<'_, Id<UserMarker>>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, Id<marker::Role>>: Clone, Debug, Iterator, Send, Sync);
+    assert_impl_all!(MentionIter<'_, Id<marker::User>>: Clone, Debug, Iterator, Send, Sync);
     assert_obj_safe!(
-        MentionIter<'_, Id<ChannelMarker>>,
-        MentionIter<'_, Id<EmojiMarker>>,
+        MentionIter<'_, Id<marker::Channel>>,
+        MentionIter<'_, Id<marker::Emoji>>,
         MentionIter<'_, MentionType>,
-        MentionIter<'_, Id<RoleMarker>>,
-        MentionIter<'_, Id<UserMarker>>,
+        MentionIter<'_, Id<marker::Role>>,
+        MentionIter<'_, Id<marker::User>>,
     );
 
     #[test]
     fn test_iter_channel_id() {
-        let mut iter = Id::<ChannelMarker>::iter("<#123>");
+        let mut iter = Id::<marker::Channel>::iter("<#123>");
         assert_eq!(Id::new(123).expect("non zero"), iter.next().unwrap().0);
         assert!(iter.next().is_none());
     }
@@ -135,7 +132,7 @@ mod tests {
     #[test]
     fn test_iter_multiple_ids() {
         let buf = "one <@123>two<#456><@789> ----";
-        let mut iter = Id::<UserMarker>::iter(buf);
+        let mut iter = Id::<marker::User>::iter(buf);
         assert_eq!(Id::new(123).expect("non zero"), iter.next().unwrap().0);
         let (mention, start, end) = iter.next().unwrap();
         assert_eq!(Id::new(789).expect("non zero"), mention);
@@ -146,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_iter_emoji_ids() {
-        let mut iter = Id::<EmojiMarker>::iter("some <:name:123> emojis <:emoji:456>");
+        let mut iter = Id::<marker::Emoji>::iter("some <:name:123> emojis <:emoji:456>");
         assert_eq!(Id::new(123).expect("non zero"), iter.next().unwrap().0);
         assert_eq!(Id::new(456).expect("non zero"), iter.next().unwrap().0);
         assert!(iter.next().is_none());
@@ -198,7 +195,7 @@ mod tests {
 
     #[test]
     fn test_iter_role_ids() {
-        let mut iter = Id::<RoleMarker>::iter("some <@&123> roles <@&456>");
+        let mut iter = Id::<marker::Role>::iter("some <@&123> roles <@&456>");
         assert_eq!(Id::new(123).expect("non zero"), iter.next().unwrap().0);
         assert_eq!(Id::new(456).expect("non zero"), iter.next().unwrap().0);
         assert!(iter.next().is_none());
@@ -217,7 +214,7 @@ mod tests {
 
     #[test]
     fn test_iter_user_ids() {
-        let mut iter = Id::<UserMarker>::iter("some <@123>users<@456>");
+        let mut iter = Id::<marker::User>::iter("some <@123>users<@456>");
         assert_eq!(Id::new(123).expect("non zero"), iter.next().unwrap().0);
         assert_eq!(Id::new(456).expect("non zero"), iter.next().unwrap().0);
         assert!(iter.next().is_none());
@@ -226,7 +223,7 @@ mod tests {
     #[test]
     fn test_iter_no_id() {
         let mention = "this is not <# actually a mention";
-        let mut iter = Id::<ChannelMarker>::iter(mention);
+        let mut iter = Id::<marker::Channel>::iter(mention);
 
         assert!(iter.next().is_none());
     }
@@ -234,7 +231,7 @@ mod tests {
     #[test]
     fn test_iter_ignores_other_types() {
         let mention = "<#123> <:name:456> <@&789>";
-        let mut iter = Id::<UserMarker>::iter(mention);
+        let mut iter = Id::<marker::User>::iter(mention);
 
         assert!(iter.next().is_none());
     }
@@ -242,7 +239,7 @@ mod tests {
     #[test]
     fn test_iter_as_str() {
         let buf = "a buf";
-        let mut iter = Id::<RoleMarker>::iter(buf);
+        let mut iter = Id::<marker::Role>::iter(buf);
         assert_eq!(buf, iter.as_str());
         // Advancing still returns the complete buffer.
         assert!(iter.next().is_none());

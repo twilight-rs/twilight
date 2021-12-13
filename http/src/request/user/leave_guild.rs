@@ -5,17 +5,17 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{marker::GuildMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// Leave a guild by id.
 #[must_use = "requests must be configured and executed"]
 pub struct LeaveGuild<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> LeaveGuild<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

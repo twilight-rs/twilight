@@ -1,5 +1,5 @@
 use crate::{
-    id::{marker::ApplicationMarker, Id},
+    id::{marker, Id},
     oauth::current_application_info::ApplicationFlags,
 };
 use serde::{Deserialize, Serialize};
@@ -7,5 +7,5 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PartialApplication {
     pub flags: ApplicationFlags,
-    pub id: Id<ApplicationMarker>,
+    pub id: Id<marker::Application>,
 }

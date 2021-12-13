@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     application::command::Command,
-    id::{marker::ApplicationMarker, Id},
+    id::{marker, Id},
 };
 
 /// Set global commands.
@@ -23,14 +23,14 @@ use twilight_model::{
 #[must_use = "requests must be configured and executed"]
 pub struct SetGlobalCommands<'a> {
     commands: &'a [Command],
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     http: &'a Client,
 }
 
 impl<'a> SetGlobalCommands<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         commands: &'a [Command],
     ) -> Self {
         Self {

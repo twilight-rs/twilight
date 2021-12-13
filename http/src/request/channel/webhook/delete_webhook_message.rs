@@ -5,10 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{ChannelMarker, MessageMarker, WebhookMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Delete a message created by a webhook.
 ///
@@ -32,19 +29,19 @@ use twilight_model::id::{
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteWebhookMessage<'a> {
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
     reason: Option<&'a str>,
-    thread_id: Option<Id<ChannelMarker>>,
+    thread_id: Option<Id<marker::Channel>>,
     token: &'a str,
-    webhook_id: Id<WebhookMarker>,
+    webhook_id: Id<marker::Webhook>,
 }
 
 impl<'a> DeleteWebhookMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> Self {
         Self {
             http,
@@ -58,7 +55,7 @@ impl<'a> DeleteWebhookMessage<'a> {
 
     /// Delete in a thread belonging to the channel instead of the channel
     /// itself.
-    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+    pub fn thread_id(mut self, thread_id: Id<marker::Channel>) -> Self {
         self.thread_id.replace(thread_id);
 
         self

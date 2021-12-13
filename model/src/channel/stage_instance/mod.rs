@@ -2,18 +2,15 @@ mod privacy_level;
 
 pub use self::privacy_level::PrivacyLevel;
 
-use crate::id::{
-    marker::{ChannelMarker, GuildMarker, StageMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct StageInstance {
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     pub discoverable_disabled: bool,
-    pub guild_id: Id<GuildMarker>,
-    pub id: Id<StageMarker>,
+    pub guild_id: Id<marker::Guild>,
+    pub id: Id<marker::Stage>,
     pub privacy_level: PrivacyLevel,
     pub topic: String,
 }

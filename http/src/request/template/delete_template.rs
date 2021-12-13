@@ -5,12 +5,12 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{marker::GuildMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// Delete a template by ID and code.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteTemplate<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     template_code: &'a str,
 }
@@ -18,7 +18,7 @@ pub struct DeleteTemplate<'a> {
 impl<'a> DeleteTemplate<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         template_code: &'a str,
     ) -> Self {
         Self {

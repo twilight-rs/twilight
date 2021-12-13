@@ -1,7 +1,4 @@
-use crate::id::{
-    marker::{ChannelMarker, EmojiMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -15,11 +12,11 @@ pub struct WelcomeScreen {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct WelcomeScreenChannel {
     /// ID of the channel.
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     /// Description of the channel.
     pub description: String,
     /// ID of the emoji if the emoji is custom.
-    pub emoji_id: Option<Id<EmojiMarker>>,
+    pub emoji_id: Option<Id<marker::Emoji>>,
     /// Emoji's name if it is custom, or the unicode character.
     pub emoji_name: Option<String>,
 }

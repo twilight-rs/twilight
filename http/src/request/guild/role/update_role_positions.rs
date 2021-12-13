@@ -7,10 +7,7 @@ use crate::{
 };
 use twilight_model::{
     guild::Role,
-    id::{
-        marker::{GuildMarker, RoleMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Modify the position of the roles.
@@ -18,16 +15,16 @@ use twilight_model::{
 /// The minimum amount of roles to modify, is a swap between two roles.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateRolePositions<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    roles: &'a [(Id<RoleMarker>, u64)],
+    roles: &'a [(Id<marker::Role>, u64)],
 }
 
 impl<'a> UpdateRolePositions<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        roles: &'a [(Id<RoleMarker>, u64)],
+        guild_id: Id<marker::Guild>,
+        roles: &'a [(Id<marker::Role>, u64)],
     ) -> Self {
         Self {
             guild_id,

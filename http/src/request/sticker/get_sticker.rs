@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::message::sticker::Sticker,
-    id::{marker::StickerMarker, Id},
+    id::{marker, Id},
 };
 
 /// Returns a single sticker by its ID.
@@ -29,11 +29,11 @@ use twilight_model::{
 #[must_use = "requests must be configured and executed"]
 pub struct GetSticker<'a> {
     http: &'a Client,
-    sticker_id: Id<StickerMarker>,
+    sticker_id: Id<marker::Sticker>,
 }
 
 impl<'a> GetSticker<'a> {
-    pub(crate) const fn new(http: &'a Client, sticker_id: Id<StickerMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, sticker_id: Id<marker::Sticker>) -> Self {
         Self { http, sticker_id }
     }
 

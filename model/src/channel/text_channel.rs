@@ -1,29 +1,26 @@
 use crate::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     datetime::Timestamp,
-    id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct TextChannel {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
-    pub id: Id<ChannelMarker>,
+    pub guild_id: Option<Id<marker::Guild>>,
+    pub id: Id<marker::Channel>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<Id<MessageMarker>>,
+    pub last_message_id: Option<Id<marker::Message>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
     pub name: String,
     #[serde(default)]
     pub nsfw: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<Id<ChannelMarker>>,
+    pub parent_id: Option<Id<marker::Channel>>,
     pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
     #[serde(skip_serializing_if = "Option::is_none")]

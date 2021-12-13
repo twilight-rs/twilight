@@ -1,5 +1,5 @@
 use super::{DiscriminatorDisplay, PremiumType, UserFlags};
-use crate::id::{marker::UserMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -26,7 +26,7 @@ pub struct UserProfile {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
-    pub id: Id<UserMarker>,
+    pub id: Id<marker::User>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -6,14 +6,14 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
     template::Template,
 };
 
 /// Sync a template to the current state of the guild, by ID and code.
 #[must_use = "requests must be configured and executed"]
 pub struct SyncTemplate<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     template_code: &'a str,
 }
@@ -21,7 +21,7 @@ pub struct SyncTemplate<'a> {
 impl<'a> SyncTemplate<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         template_code: &'a str,
     ) -> Self {
         Self {

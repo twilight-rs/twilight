@@ -9,10 +9,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::{
-    marker::{GuildMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// The error created when the members can not be fetched as configured.
 #[derive(Debug)]
@@ -68,7 +65,7 @@ pub enum GetGuildMembersErrorType {
 }
 
 struct GetGuildMembersFields {
-    after: Option<Id<UserMarker>>,
+    after: Option<Id<marker::User>>,
     limit: Option<u64>,
     presences: Option<bool>,
 }
@@ -98,12 +95,12 @@ struct GetGuildMembersFields {
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildMembers<'a> {
     fields: GetGuildMembersFields,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildMembers<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self {
             fields: GetGuildMembersFields {
                 after: None,
@@ -116,7 +113,7 @@ impl<'a> GetGuildMembers<'a> {
     }
 
     /// Sets the user ID to get members after.
-    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
+    pub const fn after(mut self, after: Id<marker::User>) -> Self {
         self.fields.after = Some(after);
 
         self

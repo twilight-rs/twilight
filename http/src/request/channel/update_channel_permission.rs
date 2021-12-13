@@ -3,10 +3,7 @@ use crate::client::Client;
 use twilight_model::{
     channel::permission_overwrite::PermissionOverwriteType,
     guild::Permissions,
-    id::{
-        marker::{ChannelMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Update the permissions for a role or a user in a channel.
@@ -38,7 +35,7 @@ use twilight_model::{
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannelPermission<'a> {
     allow: Permissions,
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     deny: Permissions,
     http: &'a Client,
 }
@@ -46,7 +43,7 @@ pub struct UpdateChannelPermission<'a> {
 impl<'a> UpdateChannelPermission<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         allow: Permissions,
         deny: Permissions,
     ) -> Self {
@@ -59,12 +56,12 @@ impl<'a> UpdateChannelPermission<'a> {
     }
 
     /// Specify this override to be for a member.
-    pub const fn member(self, user_id: Id<UserMarker>) -> UpdateChannelPermissionConfigured<'a> {
+    pub const fn member(self, user_id: Id<marker::User>) -> UpdateChannelPermissionConfigured<'a> {
         self.configure(PermissionOverwriteType::Member(user_id))
     }
 
     /// Specify this override to be for a role.
-    pub const fn role(self, role_id: Id<RoleMarker>) -> UpdateChannelPermissionConfigured<'a> {
+    pub const fn role(self, role_id: Id<marker::Role>) -> UpdateChannelPermissionConfigured<'a> {
         self.configure(PermissionOverwriteType::Role(role_id))
     }
 

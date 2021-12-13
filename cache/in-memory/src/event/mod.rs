@@ -17,7 +17,7 @@ use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use std::{borrow::Cow, collections::BTreeSet};
 use twilight_model::{
     gateway::payload::incoming::{Ready, UnavailableGuild, UserUpdate},
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
     user::{CurrentUser, User},
 };
 
@@ -29,7 +29,7 @@ impl InMemoryCache {
             .replace(current_user);
     }
 
-    pub(crate) fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<Id<GuildMarker>>) {
+    pub(crate) fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<Id<marker::Guild>>) {
         match self.users.get_mut(&user.id) {
             Some(u) if u.value() == user.as_ref() => {
                 if let Some(guild_id) = guild_id {
@@ -55,7 +55,7 @@ impl InMemoryCache {
         }
     }
 
-    fn unavailable_guild(&self, guild_id: Id<GuildMarker>) {
+    fn unavailable_guild(&self, guild_id: Id<marker::Guild>) {
         self.unavailable_guilds.insert(guild_id);
         self.guilds.remove(&guild_id);
     }

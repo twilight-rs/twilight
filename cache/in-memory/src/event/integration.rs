@@ -2,14 +2,11 @@ use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     gateway::payload::incoming::{IntegrationCreate, IntegrationDelete, IntegrationUpdate},
     guild::GuildIntegration,
-    id::{
-        marker::{GuildMarker, IntegrationMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 impl InMemoryCache {
-    fn cache_integration(&self, guild_id: Id<GuildMarker>, integration: GuildIntegration) {
+    fn cache_integration(&self, guild_id: Id<marker::Guild>, integration: GuildIntegration) {
         self.guild_integrations
             .entry(guild_id)
             .or_default()
@@ -23,7 +20,11 @@ impl InMemoryCache {
         );
     }
 
-    fn delete_integration(&self, guild_id: Id<GuildMarker>, integration_id: Id<IntegrationMarker>) {
+    fn delete_integration(
+        &self,
+        guild_id: Id<marker::Guild>,
+        integration_id: Id<marker::Integration>,
+    ) {
         if self
             .integrations
             .remove(&(guild_id, integration_id))

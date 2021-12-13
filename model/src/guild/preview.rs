@@ -1,6 +1,6 @@
 use crate::{
     guild::Emoji,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +12,7 @@ pub struct GuildPreview {
     pub discovery_splash: Option<String>,
     pub emojis: Vec<Emoji>,
     pub features: Vec<String>,
-    pub id: Id<GuildMarker>,
+    pub id: Id<marker::Guild>,
     pub name: String,
     pub icon: Option<String>,
     pub splash: Option<String>,

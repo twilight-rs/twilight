@@ -8,10 +8,7 @@ pub use self::data::{
 use super::InteractionType;
 use crate::{
     guild::PartialMember,
-    id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::Serialize;
@@ -24,16 +21,16 @@ use serde::Serialize;
 #[serde(rename(serialize = "Interaction"))]
 pub struct ApplicationCommand {
     /// ID of the associated application.
-    pub application_id: Id<ApplicationMarker>,
+    pub application_id: Id<marker::Application>,
     /// The channel the interaction was triggered from.
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     /// Data from the invoked command.
     pub data: CommandData,
     /// ID of the guild the interaction was triggered from.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     /// ID of the interaction.
-    pub id: Id<InteractionMarker>,
+    pub id: Id<marker::Interaction>,
     /// Kind of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,

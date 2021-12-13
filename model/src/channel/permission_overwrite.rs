@@ -1,9 +1,6 @@
 use crate::{
     guild::Permissions,
-    id::{
-        marker::{RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{de::Deserializer, ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -47,8 +44,8 @@ pub struct PermissionOverwrite {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum PermissionOverwriteType {
-    Member(Id<UserMarker>),
-    Role(Id<RoleMarker>),
+    Member(Id<marker::User>),
+    Role(Id<marker::Role>),
 }
 
 #[derive(Deserialize)]

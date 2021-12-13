@@ -1,9 +1,9 @@
-use crate::id::{marker::ChannelMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildWidget {
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     pub enabled: bool,
 }
 

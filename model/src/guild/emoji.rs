@@ -1,8 +1,5 @@
 use crate::{
-    id::{
-        marker::{EmojiMarker, RoleMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -17,14 +14,14 @@ pub struct Emoji {
     // This does not need to be optional here as it can only be optional
     // in a unicode emoji. Which can only happen in reactions, and we use
     // another struct for emojis in that case.
-    pub id: Id<EmojiMarker>,
+    pub id: Id<marker::Emoji>,
     #[serde(default)]
     pub managed: bool,
     pub name: String,
     #[serde(default)]
     pub require_colons: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub roles: Vec<Id<RoleMarker>>,
+    pub roles: Vec<Id<marker::Role>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 }

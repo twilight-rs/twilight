@@ -1,9 +1,9 @@
-use crate::id::{marker::GuildMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GuildDelete {
-    pub id: Id<GuildMarker>,
+    pub id: Id<marker::Guild>,
     // If `unavailable` is `None` the user was removed from the guild.
     #[serde(default, deserialize_with = "nullable_unavailable")]
     pub unavailable: bool,

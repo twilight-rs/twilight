@@ -3,10 +3,7 @@ use twilight_model::{
     application::interaction::application_command::InteractionMember,
     datetime::Timestamp,
     guild::{Member, PartialMember},
-    id::{
-        marker::{GuildMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Represents a cached [`Member`].
@@ -16,14 +13,14 @@ use twilight_model::{
 pub struct CachedMember {
     pub(crate) avatar: Option<String>,
     pub(crate) deaf: Option<bool>,
-    pub(crate) guild_id: Id<GuildMarker>,
+    pub(crate) guild_id: Id<marker::Guild>,
     pub(crate) joined_at: Timestamp,
     pub(crate) mute: Option<bool>,
     pub(crate) nick: Option<String>,
     pub(crate) pending: bool,
     pub(crate) premium_since: Option<Timestamp>,
-    pub(crate) roles: Vec<Id<RoleMarker>>,
-    pub(crate) user_id: Id<UserMarker>,
+    pub(crate) roles: Vec<Id<marker::Role>>,
+    pub(crate) user_id: Id<marker::User>,
 }
 
 impl CachedMember {
@@ -38,7 +35,7 @@ impl CachedMember {
     }
 
     /// ID of the guild this member is a part of.
-    pub const fn guild_id(&self) -> Id<GuildMarker> {
+    pub const fn guild_id(&self) -> Id<marker::Guild> {
         self.guild_id
     }
 
@@ -69,12 +66,12 @@ impl CachedMember {
     }
 
     /// List of role IDs this member has.
-    pub fn roles(&self) -> &[Id<RoleMarker>] {
+    pub fn roles(&self) -> &[Id<marker::Role>] {
         &self.roles
     }
 
     /// ID of the user relating to the member.
-    pub const fn user_id(&self) -> Id<UserMarker> {
+    pub const fn user_id(&self) -> Id<marker::User> {
         self.user_id
     }
 }

@@ -1,9 +1,6 @@
 use crate::{
     datetime::Timestamp,
-    id::{
-        marker::{GuildMarker, RoleMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 
@@ -22,7 +19,7 @@ pub struct Member {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     pub deaf: bool,
-    pub guild_id: Id<GuildMarker>,
+    pub guild_id: Id<marker::Guild>,
     pub joined_at: Timestamp,
     pub mute: bool,
     pub nick: Option<String>,
@@ -31,7 +28,7 @@ pub struct Member {
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<Id<RoleMarker>>,
+    pub roles: Vec<Id<marker::Role>>,
     pub user: User,
 }
 
@@ -54,14 +51,14 @@ pub struct MemberIntermediary {
     pub pending: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<Id<RoleMarker>>,
+    pub roles: Vec<Id<marker::Role>>,
     pub user: User,
 }
 
 impl MemberIntermediary {
     /// Inject a guild ID to create a [`Member`].
     #[allow(clippy::missing_const_for_fn)] // false positive
-    pub fn into_member(self, guild_id: Id<GuildMarker>) -> Member {
+    pub fn into_member(self, guild_id: Id<marker::Guild>) -> Member {
         Member {
             avatar: self.avatar,
             deaf: self.deaf,
@@ -83,12 +80,12 @@ impl MemberIntermediary {
 /// Member payloads from the HTTP API, for example, don't have the guild
 /// ID.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberDeserializer(Id<GuildMarker>);
+pub struct MemberDeserializer(Id<marker::Guild>);
 
 impl MemberDeserializer {
     /// Create a new deserializer for a member when you know the ID but the
     /// payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
+    pub const fn new(guild_id: Id<marker::Guild>) -> Self {
         Self(guild_id)
     }
 }
@@ -101,7 +98,7 @@ impl<'de> DeserializeSeed<'de> for MemberDeserializer {
     }
 }
 
-pub(crate) struct MemberVisitor(Id<GuildMarker>);
+pub(crate) struct MemberVisitor(Id<marker::Guild>);
 
 impl<'de> Visitor<'de> for MemberVisitor {
     type Value = Member;
@@ -130,12 +127,12 @@ impl<'de> Visitor<'de> for MemberVisitor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct OptionalMemberDeserializer(Id<GuildMarker>);
+pub(crate) struct OptionalMemberDeserializer(Id<marker::Guild>);
 
 impl OptionalMemberDeserializer {
     /// Create a new deserializer for a member when you know the ID but the
     /// payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
+    pub const fn new(guild_id: Id<marker::Guild>) -> Self {
         Self(guild_id)
     }
 }
@@ -148,7 +145,7 @@ impl<'de> DeserializeSeed<'de> for OptionalMemberDeserializer {
     }
 }
 
-struct OptionalMemberVisitor(Id<GuildMarker>);
+struct OptionalMemberVisitor(Id<marker::Guild>);
 
 impl<'de> Visitor<'de> for OptionalMemberVisitor {
     type Value = Option<Member>;
@@ -167,17 +164,17 @@ impl<'de> Visitor<'de> for OptionalMemberVisitor {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MemberListDeserializer(Id<GuildMarker>);
+pub struct MemberListDeserializer(Id<marker::Guild>);
 
 impl MemberListDeserializer {
     /// Create a new deserializer for a map of members when you know the
     /// Guild ID but the payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
+    pub const fn new(guild_id: Id<marker::Guild>) -> Self {
         Self(guild_id)
     }
 }
 
-struct MemberListVisitor(Id<GuildMarker>);
+struct MemberListVisitor(Id<marker::Guild>);
 
 impl<'de> Visitor<'de> for MemberListVisitor {
     type Value = Vec<Member>;

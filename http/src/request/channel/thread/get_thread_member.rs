@@ -7,10 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::thread::ThreadMember,
-    id::{
-        marker::{ChannelMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Returns a [`ThreadMember`] in a thread.
@@ -18,16 +15,16 @@ use twilight_model::{
 /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
 #[must_use = "requests must be configured and executed"]
 pub struct GetThreadMember<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 impl<'a> GetThreadMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        user_id: Id<UserMarker>,
+        channel_id: Id<marker::Channel>,
+        user_id: Id<marker::User>,
     ) -> Self {
         Self {
             channel_id,

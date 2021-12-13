@@ -3,10 +3,7 @@ use crate::channel::{
     thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
     ChannelType,
 };
-use crate::id::{
-    marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -14,8 +11,8 @@ pub struct PrivateThread {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
-    pub id: Id<ChannelMarker>,
+    pub guild_id: Option<Id<marker::Guild>>,
+    pub id: Id<marker::Channel>,
     /// Whether non-moderators can add other non-moderators to a thread.
     ///
     /// Only available on private threads.
@@ -24,7 +21,7 @@ pub struct PrivateThread {
     #[serde(rename = "type")]
     pub kind: ChannelType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<Id<MessageMarker>>,
+    pub last_message_id: Option<Id<marker::Message>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<ThreadMember>,
     /// Max value of 50.
@@ -33,9 +30,9 @@ pub struct PrivateThread {
     pub message_count: u8,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub owner_id: Option<Id<UserMarker>>,
+    pub owner_id: Option<Id<marker::User>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<Id<ChannelMarker>>,
+    pub parent_id: Option<Id<marker::Channel>>,
     pub permission_overwrites: Vec<PermissionOverwrite>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,

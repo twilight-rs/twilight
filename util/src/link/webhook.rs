@@ -8,7 +8,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     num::NonZeroU64,
 };
-use twilight_model::id::{marker::WebhookMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// Error when [parsing] a webhook URL.
 ///
@@ -118,7 +118,7 @@ pub enum WebhookParseErrorType {
 /// Returns [`WebhookParseErrorType::SegmentMissing`] error type if one of the
 /// required segments is missing. This can be the "api" or "webhooks" standard
 /// segment of the URL or the segment containing the webhook ID.
-pub fn parse(url: &str) -> Result<(Id<WebhookMarker>, Option<&str>), WebhookParseError> {
+pub fn parse(url: &str) -> Result<(Id<marker::Webhook>, Option<&str>), WebhookParseError> {
     let mut segments = {
         let mut start = url.split("discord.com/api/webhooks/");
         let path = start.nth(1).ok_or(WebhookParseError {

@@ -11,7 +11,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
     template::Template,
 };
 
@@ -90,14 +90,14 @@ struct CreateTemplateFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
     fields: CreateTemplateFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> CreateTemplate<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         name: &'a str,
     ) -> Result<Self, CreateTemplateError> {
         if !validate_inner::template_name(&name) {

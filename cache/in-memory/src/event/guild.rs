@@ -8,7 +8,7 @@ use std::{collections::HashSet, hash::Hash};
 use twilight_model::{
     gateway::payload::incoming::{GuildCreate, GuildDelete, GuildUpdate},
     guild::Guild,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 impl InMemoryCache {
@@ -114,9 +114,9 @@ impl UpdateCache for GuildCreate {
 impl UpdateCache for GuildDelete {
     fn update(&self, cache: &InMemoryCache) {
         fn remove_ids<T: Eq + Hash, U>(
-            guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
+            guild_map: &DashMap<Id<marker::Guild>, HashSet<T>>,
             container: &DashMap<T, U>,
-            guild_id: Id<GuildMarker>,
+            guild_id: Id<marker::Guild>,
         ) {
             if let Some((_, ids)) = guild_map.remove(&guild_id) {
                 for id in ids {

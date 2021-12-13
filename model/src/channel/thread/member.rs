@@ -2,10 +2,7 @@ use crate::{
     datetime::Timestamp,
     gateway::presence::{Presence, PresenceIntermediary},
     guild::{member::MemberIntermediary, Member},
-    id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
@@ -14,14 +11,14 @@ pub struct ThreadMember {
     // Values currently unknown and undocumented.
     pub flags: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<Id<ChannelMarker>>,
+    pub id: Option<Id<marker::Channel>>,
     pub join_timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<Presence>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<Id<UserMarker>>,
+    pub user_id: Option<Id<marker::User>>,
 }
 
 /// Version of [`ThreadMember`], but without a guild ID in the
@@ -31,19 +28,19 @@ pub struct ThreadMemberIntermediary {
     // Values currently unknown and undocumented.
     pub flags: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<Id<ChannelMarker>>,
+    pub id: Option<Id<marker::Channel>>,
     pub join_timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<MemberIntermediary>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<PresenceIntermediary>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<Id<UserMarker>>,
+    pub user_id: Option<Id<marker::User>>,
 }
 
 impl ThreadMemberIntermediary {
     /// Inject a guild ID into a thread member intermediary
-    pub fn into_thread_member(self, guild_id: Id<GuildMarker>) -> ThreadMember {
+    pub fn into_thread_member(self, guild_id: Id<marker::Guild>) -> ThreadMember {
         let member = self.member.map(|m| m.into_member(guild_id));
         let presence = self.presence.map(|p| p.into_presence(guild_id));
         ThreadMember {

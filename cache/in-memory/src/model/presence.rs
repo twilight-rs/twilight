@@ -1,10 +1,7 @@
 use serde::Serialize;
 use twilight_model::{
     gateway::presence::{Activity, ClientStatus, Presence, Status},
-    id::{
-        marker::{GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Represents a cached [`Presence`].
@@ -14,9 +11,9 @@ use twilight_model::{
 pub struct CachedPresence {
     pub(crate) activities: Vec<Activity>,
     pub(crate) client_status: ClientStatus,
-    pub(crate) guild_id: Id<GuildMarker>,
+    pub(crate) guild_id: Id<marker::Guild>,
     pub(crate) status: Status,
-    pub(crate) user_id: Id<UserMarker>,
+    pub(crate) user_id: Id<marker::User>,
 }
 
 impl CachedPresence {
@@ -31,7 +28,7 @@ impl CachedPresence {
     }
 
     /// ID of the guild.
-    pub const fn guild_id(&self) -> Id<GuildMarker> {
+    pub const fn guild_id(&self) -> Id<marker::Guild> {
         self.guild_id
     }
 
@@ -41,7 +38,7 @@ impl CachedPresence {
     }
 
     /// ID of the user.
-    pub const fn user_id(&self) -> Id<UserMarker> {
+    pub const fn user_id(&self) -> Id<marker::User> {
         self.user_id
     }
 }

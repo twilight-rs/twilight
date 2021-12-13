@@ -1,5 +1,5 @@
 use crate::{
-    id::{marker::AttachmentMarker, Id},
+    id::{marker, Id},
     util::is_false,
 };
 use serde::{Deserialize, Serialize};
@@ -22,7 +22,7 @@ pub struct Attachment {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
-    pub id: Id<AttachmentMarker>,
+    pub id: Id<marker::Attachment>,
     pub proxy_url: String,
     pub size: u64,
     pub url: String,

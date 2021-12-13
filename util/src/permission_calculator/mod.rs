@@ -113,10 +113,7 @@ use twilight_model::{
         ChannelType,
     },
     guild::Permissions,
-    id::{
-        marker::{GuildMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Calculate the permissions of a member.
@@ -132,13 +129,13 @@ pub struct PermissionCalculator<'a> {
     /// Permissions of the `@everyone` role for the guild.
     everyone_role: Permissions,
     /// ID of the guild.
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     /// Slice of tuples of the member's roles and their permissions.
-    member_roles: &'a [(Id<RoleMarker>, Permissions)],
+    member_roles: &'a [(Id<marker::Role>, Permissions)],
     /// ID of the owner.
-    owner_id: Option<Id<UserMarker>>,
+    owner_id: Option<Id<marker::User>>,
     /// ID of the user whose permissions are being calculated.
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 impl<'a> PermissionCalculator<'a> {
@@ -151,10 +148,10 @@ impl<'a> PermissionCalculator<'a> {
     /// The provided member's roles *should not* contain the `@everyone` role.
     #[must_use = "calculators should be used to calculate permissions"]
     pub const fn new(
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
         everyone_role: Permissions,
-        member_roles: &'a [(Id<RoleMarker>, Permissions)],
+        member_roles: &'a [(Id<marker::Role>, Permissions)],
     ) -> Self {
         Self {
             everyone_role,
@@ -176,7 +173,7 @@ impl<'a> PermissionCalculator<'a> {
     ///
     /// [`root`]: Self::root
     #[must_use = "calculators should be used to calculate permissions"]
-    pub const fn owner_id(mut self, owner_id: Id<UserMarker>) -> Self {
+    pub const fn owner_id(mut self, owner_id: Id<marker::User>) -> Self {
         self.owner_id = Some(owner_id);
 
         self
@@ -409,7 +406,7 @@ impl<'a> PermissionCalculator<'a> {
     }
 }
 
-const fn has_role(roles: &[(Id<RoleMarker>, Permissions)], role_id: Id<RoleMarker>) -> bool {
+const fn has_role(roles: &[(Id<marker::Role>, Permissions)], role_id: Id<marker::Role>) -> bool {
     let len = roles.len();
     let mut idx = 0;
 
@@ -429,9 +426,9 @@ const fn has_role(roles: &[(Id<RoleMarker>, Permissions)], role_id: Id<RoleMarke
 const fn process_permission_overwrites(
     mut permissions: Permissions,
     channel_overwrites: &[PermissionOverwrite],
-    member_roles: &[(Id<RoleMarker>, Permissions)],
-    configured_guild_id: Id<GuildMarker>,
-    configured_user_id: Id<UserMarker>,
+    member_roles: &[(Id<marker::Role>, Permissions)],
+    configured_guild_id: Id<marker::Guild>,
+    configured_user_id: Id<marker::User>,
 ) -> Permissions {
     // Hierarchy documentation:
     // <https://discord.com/developers/docs/topics/permissions>

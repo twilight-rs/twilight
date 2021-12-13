@@ -9,10 +9,7 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     channel::message::sticker::Sticker,
-    id::{
-        marker::{GuildMarker, StickerMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 #[derive(Serialize)]
@@ -49,17 +46,17 @@ struct UpdateGuildStickerFields<'a> {
 /// ```
 pub struct UpdateGuildSticker<'a> {
     fields: UpdateGuildStickerFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     reason: Option<&'a str>,
-    sticker_id: Id<StickerMarker>,
+    sticker_id: Id<marker::Sticker>,
 }
 
 impl<'a> UpdateGuildSticker<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        sticker_id: Id<StickerMarker>,
+        guild_id: Id<marker::Guild>,
+        sticker_id: Id<marker::Sticker>,
     ) -> Self {
         Self {
             guild_id,

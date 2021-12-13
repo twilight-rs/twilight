@@ -1,13 +1,13 @@
 use crate::{
     channel::ChannelType,
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteChannel {
     /// ID of the channel.
-    pub id: Id<ChannelMarker>,
+    pub id: Id<marker::Channel>,
     /// Name of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,

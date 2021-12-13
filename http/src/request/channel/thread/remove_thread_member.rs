@@ -5,10 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{ChannelMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Remove another member from a thread.
 ///
@@ -21,16 +18,16 @@ use twilight_model::id::{
 /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
 #[must_use = "requests must be configured and executed"]
 pub struct RemoveThreadMember<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 impl<'a> RemoveThreadMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        user_id: Id<UserMarker>,
+        channel_id: Id<marker::Channel>,
+        user_id: Id<marker::User>,
     ) -> Self {
         Self {
             channel_id,

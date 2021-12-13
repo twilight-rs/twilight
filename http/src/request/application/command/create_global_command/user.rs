@@ -8,7 +8,7 @@ use crate::{
 };
 use twilight_model::{
     application::command::{Command, CommandType},
-    id::{marker::ApplicationMarker, Id},
+    id::{marker, Id},
 };
 
 /// Create a new user global command.
@@ -19,7 +19,7 @@ use twilight_model::{
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalUserCommand<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     default_permission: Option<bool>,
     http: &'a Client,
     name: &'a str,
@@ -28,7 +28,7 @@ pub struct CreateGlobalUserCommand<'a> {
 impl<'a> CreateGlobalUserCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         name: &'a str,
     ) -> Self {
         Self {

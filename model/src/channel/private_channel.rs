@@ -1,19 +1,16 @@
 use crate::{
     channel::ChannelType,
     datetime::Timestamp,
-    id::{
-        marker::{ChannelMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PrivateChannel {
-    pub id: Id<ChannelMarker>,
+    pub id: Id<marker::Channel>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<Id<MessageMarker>>,
+    pub last_message_id: Option<Id<marker::Message>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
     #[serde(rename = "type")]

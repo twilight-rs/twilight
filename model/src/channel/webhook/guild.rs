@@ -1,11 +1,11 @@
-use crate::id::{marker::GuildMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 /// Partial guild object that a webhook is following.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct WebhookGuild {
     pub icon: Option<String>,
-    pub id: Id<GuildMarker>,
+    pub id: Id<marker::Guild>,
     pub name: String,
 }
 

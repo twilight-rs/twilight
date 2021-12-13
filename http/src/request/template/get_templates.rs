@@ -6,19 +6,19 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
     template::Template,
 };
 
 /// Get a list of templates in a guild, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct GetTemplates<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetTemplates<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

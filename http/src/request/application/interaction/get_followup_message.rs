@@ -7,10 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::Message,
-    id::{
-        marker::{ApplicationMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Get a followup message of an interaction.
@@ -37,18 +34,18 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetFollowupMessage<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
     interaction_token: &'a str,
 }
 
 impl<'a> GetFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         interaction_token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> Self {
         Self {
             application_id,
@@ -94,10 +91,7 @@ mod tests {
     };
     use static_assertions::assert_impl_all;
     use std::error::Error;
-    use twilight_model::id::{
-        marker::{ApplicationMarker, MessageMarker},
-        Id,
-    };
+    use twilight_model::id::{marker, Id};
 
     assert_impl_all!(GetFollowupMessage<'_>: Send, Sync);
 
@@ -105,11 +99,11 @@ mod tests {
     fn test_request() -> Result<(), Box<dyn Error>> {
         const TOKEN: &str = "token";
 
-        fn application_id() -> Id<ApplicationMarker> {
+        fn application_id() -> Id<marker::Application> {
             Id::new(1).expect("non zero")
         }
 
-        fn message_id() -> Id<MessageMarker> {
+        fn message_id() -> Id<marker::Message> {
             Id::new(2).expect("non zero")
         }
 

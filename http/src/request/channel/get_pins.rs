@@ -7,18 +7,18 @@ use crate::{
 };
 use twilight_model::{
     channel::Message,
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 
 /// Get the pins of a channel.
 #[must_use = "requests must be configured and executed"]
 pub struct GetPins<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
 }
 
 impl<'a> GetPins<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self { channel_id, http }
     }
 

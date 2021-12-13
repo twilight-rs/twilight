@@ -2,16 +2,13 @@ use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     gateway::payload::incoming::{RoleCreate, RoleDelete, RoleUpdate},
     guild::Role,
-    id::{
-        marker::{GuildMarker, RoleMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 impl InMemoryCache {
     pub(crate) fn cache_roles(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         roles: impl IntoIterator<Item = Role>,
     ) {
         for role in roles {
@@ -19,7 +16,7 @@ impl InMemoryCache {
         }
     }
 
-    fn cache_role(&self, guild_id: Id<GuildMarker>, role: Role) {
+    fn cache_role(&self, guild_id: Id<marker::Guild>, role: Role) {
         // Insert the role into the guild_roles map
         self.guild_roles
             .entry(guild_id)
@@ -30,7 +27,7 @@ impl InMemoryCache {
         crate::upsert_guild_item(&self.roles, guild_id, role.id, role);
     }
 
-    fn delete_role(&self, role_id: Id<RoleMarker>) {
+    fn delete_role(&self, role_id: Id<marker::Role>) {
         if let Some((_, role)) = self.roles.remove(&role_id) {
             if let Some(mut roles) = self.guild_roles.get_mut(&role.guild_id) {
                 roles.remove(&role_id);

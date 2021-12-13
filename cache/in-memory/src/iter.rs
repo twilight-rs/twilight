@@ -21,13 +21,7 @@ use std::{hash::Hash, ops::Deref};
 use twilight_model::{
     channel::{Group, GuildChannel, PrivateChannel, StageInstance},
     guild::{GuildIntegration, Role},
-    id::{
-        marker::{
-            ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            StageMarker, StickerMarker, UserMarker,
-        },
-        Id,
-    },
+    id::{marker, Id},
     user::User,
     voice::VoiceState,
 };
@@ -142,17 +136,17 @@ impl<'a> InMemoryCacheIter<'a> {
     }
 
     /// Create an iterator over the emojis in the cache.
-    pub fn emojis(&self) -> ResourceIter<'a, Id<EmojiMarker>, GuildResource<CachedEmoji>> {
+    pub fn emojis(&self) -> ResourceIter<'a, Id<marker::Emoji>, GuildResource<CachedEmoji>> {
         ResourceIter::new(self.0.emojis.iter())
     }
 
     /// Create an iterator over the groups in the cache.
-    pub fn groups(&self) -> ResourceIter<'a, Id<ChannelMarker>, Group> {
+    pub fn groups(&self) -> ResourceIter<'a, Id<marker::Channel>, Group> {
         ResourceIter::new(self.0.groups.iter())
     }
 
     /// Create an iterator over the guilds in the cache.
-    pub fn guilds(&self) -> ResourceIter<'a, Id<GuildMarker>, CachedGuild> {
+    pub fn guilds(&self) -> ResourceIter<'a, Id<marker::Guild>, CachedGuild> {
         ResourceIter::new(self.0.guilds.iter())
     }
 
@@ -162,62 +156,69 @@ impl<'a> InMemoryCacheIter<'a> {
     /// rather iterates over all [`GuildChannel`]s in the cache.
     pub fn guild_channels(
         &self,
-    ) -> ResourceIter<'a, Id<ChannelMarker>, GuildResource<GuildChannel>> {
+    ) -> ResourceIter<'a, Id<marker::Channel>, GuildResource<GuildChannel>> {
         ResourceIter::new(self.0.channels_guild.iter())
     }
 
     /// Create an iterator over the integrations in the cache.
     pub fn integrations(
         &self,
-    ) -> ResourceIter<'a, (Id<GuildMarker>, Id<IntegrationMarker>), GuildResource<GuildIntegration>>
-    {
+    ) -> ResourceIter<
+        'a,
+        (Id<marker::Guild>, Id<marker::Integration>),
+        GuildResource<GuildIntegration>,
+    > {
         ResourceIter::new(self.0.integrations.iter())
     }
 
     /// Create an iterator over the members across all guilds in the cache.
-    pub fn members(&self) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CachedMember> {
+    pub fn members(&self) -> ResourceIter<'a, (Id<marker::Guild>, Id<marker::User>), CachedMember> {
         ResourceIter::new(self.0.members.iter())
     }
 
     /// Create an iterator over the messages in the cache.
-    pub fn messages(&self) -> ResourceIter<'a, Id<MessageMarker>, CachedMessage> {
+    pub fn messages(&self) -> ResourceIter<'a, Id<marker::Message>, CachedMessage> {
         ResourceIter::new(self.0.messages.iter())
     }
 
     /// Create an iterator over the presences in the cache.
-    pub fn presences(&self) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CachedPresence> {
+    pub fn presences(
+        &self,
+    ) -> ResourceIter<'a, (Id<marker::Guild>, Id<marker::User>), CachedPresence> {
         ResourceIter::new(self.0.presences.iter())
     }
 
     /// Create an iterator over the private channels in the cache.
-    pub fn private_channels(&self) -> ResourceIter<'a, Id<ChannelMarker>, PrivateChannel> {
+    pub fn private_channels(&self) -> ResourceIter<'a, Id<marker::Channel>, PrivateChannel> {
         ResourceIter::new(self.0.channels_private.iter())
     }
 
     /// Create an iterator over the roles in the cache.
-    pub fn roles(&self) -> ResourceIter<'a, Id<RoleMarker>, GuildResource<Role>> {
+    pub fn roles(&self) -> ResourceIter<'a, Id<marker::Role>, GuildResource<Role>> {
         ResourceIter::new(self.0.roles.iter())
     }
 
     /// Create an iterator over the stage instances in the cache.
     pub fn stage_instances(
         &self,
-    ) -> ResourceIter<'a, Id<StageMarker>, GuildResource<StageInstance>> {
+    ) -> ResourceIter<'a, Id<marker::Stage>, GuildResource<StageInstance>> {
         ResourceIter::new(self.0.stage_instances.iter())
     }
 
     /// Create an iterator over the stickers in the cache.
-    pub fn stickers(&self) -> ResourceIter<'a, Id<StickerMarker>, GuildResource<CachedSticker>> {
+    pub fn stickers(&self) -> ResourceIter<'a, Id<marker::Sticker>, GuildResource<CachedSticker>> {
         ResourceIter::new(self.0.stickers.iter())
     }
 
     /// Create an iterator over the users in the cache.
-    pub fn users(&self) -> ResourceIter<'a, Id<UserMarker>, User> {
+    pub fn users(&self) -> ResourceIter<'a, Id<marker::User>, User> {
         ResourceIter::new(self.0.users.iter())
     }
 
     /// Create an iterator over the voice states in the cache.
-    pub fn voice_states(&self) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), VoiceState> {
+    pub fn voice_states(
+        &self,
+    ) -> ResourceIter<'a, (Id<marker::Guild>, Id<marker::User>), VoiceState> {
         ResourceIter::new(self.0.voice_states.iter())
     }
 }
@@ -269,13 +270,13 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::{borrow::Cow, fmt::Debug};
     use twilight_model::{
-        id::{marker::UserMarker, Id},
+        id::{marker, Id},
         user::User,
     };
 
     assert_impl_all!(InMemoryCacheIter<'_>: Debug, Send, Sync);
-    assert_impl_all!(IterReference<'_, Id<UserMarker>, User>: Send, Sync);
-    assert_impl_all!(ResourceIter<'_, Id<UserMarker>, User>: Iterator, Send, Sync);
+    assert_impl_all!(IterReference<'_, Id<marker::User>, User>: Send, Sync);
+    assert_impl_all!(ResourceIter<'_, Id<marker::User>, User>: Iterator, Send, Sync);
 
     #[test]
     fn test_iter() {

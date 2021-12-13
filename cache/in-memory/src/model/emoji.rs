@@ -1,10 +1,7 @@
 use serde::Serialize;
 use twilight_model::{
     guild::Emoji,
-    id::{
-        marker::{EmojiMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Represents a cached [`Emoji`].
@@ -14,12 +11,12 @@ use twilight_model::{
 pub struct CachedEmoji {
     pub(crate) animated: bool,
     pub(crate) available: bool,
-    pub(crate) id: Id<EmojiMarker>,
+    pub(crate) id: Id<marker::Emoji>,
     pub(crate) managed: bool,
     pub(crate) name: String,
     pub(crate) require_colons: bool,
-    pub(crate) roles: Vec<Id<RoleMarker>>,
-    pub(crate) user_id: Option<Id<UserMarker>>,
+    pub(crate) roles: Vec<Id<marker::Role>>,
+    pub(crate) user_id: Option<Id<marker::User>>,
 }
 
 impl CachedEmoji {
@@ -36,7 +33,7 @@ impl CachedEmoji {
     }
 
     /// ID of the Emoji.
-    pub const fn id(&self) -> Id<EmojiMarker> {
+    pub const fn id(&self) -> Id<marker::Emoji> {
         self.id
     }
 
@@ -56,12 +53,12 @@ impl CachedEmoji {
     }
 
     /// List of roles allowed to use this emoji.
-    pub fn roles(&self) -> &[Id<RoleMarker>] {
+    pub fn roles(&self) -> &[Id<marker::Role>] {
         &self.roles
     }
 
     /// ID of the user who created the emoji.
-    pub const fn user_id(&self) -> Option<Id<UserMarker>> {
+    pub const fn user_id(&self) -> Option<Id<marker::User>> {
         self.user_id
     }
 }

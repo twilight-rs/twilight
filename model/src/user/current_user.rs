@@ -1,5 +1,5 @@
 use super::{DiscriminatorDisplay, PremiumType, UserFlags};
-use crate::id::{marker::UserMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -41,7 +41,7 @@ pub struct CurrentUser {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
     /// User's id.
-    pub id: Id<UserMarker>,
+    pub id: Id<marker::User>,
     /// User's chosen language option.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,

@@ -2,10 +2,7 @@
 
 use crate::{
     datetime::Timestamp,
-    id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     invite::TargetType,
     user::{self, DiscriminatorDisplay, User},
 };
@@ -17,13 +14,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteCreate {
     /// ID of the channel invited users will first see.
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     /// Unique code.
     pub code: String,
     /// When the invite was created.
     pub created_at: Timestamp,
     /// ID of the guild being invited to.
-    pub guild_id: Id<GuildMarker>,
+    pub guild_id: Id<marker::Guild>,
     /// Information about the user who created the invite.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inviter: Option<User>,
@@ -68,7 +65,7 @@ pub struct PartialUser {
     #[serde(with = "user::discriminator")]
     pub discriminator: u16,
     /// ID of the user.
-    pub id: Id<UserMarker>,
+    pub id: Id<marker::User>,
     /// Username of the user.
     pub username: String,
 }

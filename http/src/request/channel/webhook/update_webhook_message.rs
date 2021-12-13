@@ -21,10 +21,7 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{
-        marker::{ChannelMarker, MessageMarker, WebhookMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// A webhook's message can not be updated as configured.
@@ -177,11 +174,11 @@ pub struct UpdateWebhookMessage<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateWebhookMessageFields<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
     reason: Option<&'a str>,
-    thread_id: Option<Id<ChannelMarker>>,
+    thread_id: Option<Id<marker::Channel>>,
     token: &'a str,
-    webhook_id: Id<WebhookMarker>,
+    webhook_id: Id<marker::Webhook>,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
@@ -190,9 +187,9 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> Self {
         Self {
             fields: UpdateWebhookMessageFields {
@@ -410,7 +407,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     /// Update in a thread belonging to the channel instead of the channel
     /// itself.
-    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+    pub fn thread_id(mut self, thread_id: Id<marker::Channel>) -> Self {
         self.thread_id.replace(thread_id);
 
         self

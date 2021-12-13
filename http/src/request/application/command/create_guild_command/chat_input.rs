@@ -11,10 +11,7 @@ use crate::{
 };
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
-    id::{
-        marker::{ApplicationMarker, GuildMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Create a chat input command in a guild.
@@ -27,10 +24,10 @@ use twilight_model::{
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChatInputCommand<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     default_permission: Option<bool>,
     description: &'a str,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     name: &'a str,
     options: Option<&'a [CommandOption]>,
@@ -39,8 +36,8 @@ pub struct CreateGuildChatInputCommand<'a> {
 impl<'a> CreateGuildChatInputCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
-        guild_id: Id<GuildMarker>,
+        application_id: Id<marker::Application>,
+        guild_id: Id<marker::Guild>,
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {

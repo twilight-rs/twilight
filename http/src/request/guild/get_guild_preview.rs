@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     guild::GuildPreview,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// For public guilds, get the guild preview.
@@ -15,12 +15,12 @@ use twilight_model::{
 /// This works even if the user is not in the guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildPreview<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildPreview<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

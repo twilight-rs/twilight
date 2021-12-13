@@ -11,10 +11,7 @@ use std::{
 };
 use twilight_model::{
     channel::Message,
-    id::{
-        marker::{ChannelMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// The error returned if the request can not be created as configured.
@@ -82,10 +79,10 @@ struct GetChannelMessagesConfiguredFields {
 // set in combination.
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessagesConfigured<'a> {
-    after: Option<Id<MessageMarker>>,
-    around: Option<Id<MessageMarker>>,
-    before: Option<Id<MessageMarker>>,
-    channel_id: Id<ChannelMarker>,
+    after: Option<Id<marker::Message>>,
+    around: Option<Id<marker::Message>>,
+    before: Option<Id<marker::Message>>,
+    channel_id: Id<marker::Channel>,
     fields: GetChannelMessagesConfiguredFields,
     http: &'a Client,
 }
@@ -93,10 +90,10 @@ pub struct GetChannelMessagesConfigured<'a> {
 impl<'a> GetChannelMessagesConfigured<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        after: Option<Id<MessageMarker>>,
-        around: Option<Id<MessageMarker>>,
-        before: Option<Id<MessageMarker>>,
+        channel_id: Id<marker::Channel>,
+        after: Option<Id<marker::Message>>,
+        around: Option<Id<marker::Message>>,
+        before: Option<Id<marker::Message>>,
         limit: Option<u64>,
     ) -> Self {
         Self {

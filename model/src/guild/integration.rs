@@ -1,10 +1,7 @@
 use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
 use crate::{
     datetime::Timestamp,
-    id::{
-        marker::{GuildMarker, IntegrationMarker, RoleMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -22,15 +19,15 @@ pub struct GuildIntegration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_grace_period: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
-    pub id: Id<IntegrationMarker>,
+    pub guild_id: Option<Id<marker::Guild>>,
+    pub id: Id<marker::Integration>,
     #[serde(rename = "type")]
     pub kind: String,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub revoked: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub role_id: Option<Id<RoleMarker>>,
+    pub role_id: Option<Id<marker::Role>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subscriber_count: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]

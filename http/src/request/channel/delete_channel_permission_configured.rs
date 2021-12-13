@@ -5,14 +5,14 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{marker::ChannelMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// Clear the permissions for a target ID in a channel.
 ///
-/// The `target_id` is a `u64`, but it should point to a `Id<RoleMarker>` or a `Id<UserMarker>`.
+/// The `target_id` is a `u64`, but it should point to a `Id<marker::Role>` or a `Id<marker::User>`.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteChannelPermissionConfigured<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
     reason: Option<&'a str>,
     target_id: u64,
@@ -21,7 +21,7 @@ pub struct DeleteChannelPermissionConfigured<'a> {
 impl<'a> DeleteChannelPermissionConfigured<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         target_id: u64,
     ) -> Self {
         Self {

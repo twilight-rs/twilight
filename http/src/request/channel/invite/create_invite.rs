@@ -11,10 +11,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{
-        marker::{ApplicationMarker, ChannelMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     invite::{Invite, TargetType},
 };
 
@@ -75,9 +72,9 @@ struct CreateInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     temporary: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    target_application_id: Option<Id<ApplicationMarker>>,
+    target_application_id: Option<Id<marker::Application>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    target_user_id: Option<Id<UserMarker>>,
+    target_user_id: Option<Id<marker::User>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_type: Option<TargetType>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -110,14 +107,14 @@ struct CreateInviteFields {
 /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
 #[must_use = "requests must be configured and executed"]
 pub struct CreateInvite<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     fields: CreateInviteFields,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateInvite<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self {
             channel_id,
             fields: CreateInviteFields {
@@ -219,7 +216,7 @@ impl<'a> CreateInvite<'a> {
     /// [`target_type`]: Self::target_type
     pub const fn target_application_id(
         mut self,
-        target_application_id: Id<ApplicationMarker>,
+        target_application_id: Id<marker::Application>,
     ) -> Self {
         self.fields.target_application_id = Some(target_application_id);
 
@@ -227,7 +224,7 @@ impl<'a> CreateInvite<'a> {
     }
 
     /// Set the target user id for this invite.
-    pub const fn target_user_id(mut self, target_user_id: Id<UserMarker>) -> Self {
+    pub const fn target_user_id(mut self, target_user_id: Id<marker::User>) -> Self {
         self.fields.target_user_id = Some(target_user_id);
 
         self

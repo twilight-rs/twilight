@@ -5,25 +5,22 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{GuildMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Kick a member from a guild, by their id.
 #[must_use = "requests must be configured and executed"]
 pub struct RemoveMember<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
     reason: Option<&'a str>,
 }
 
 impl<'a> RemoveMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> Self {
         Self {
             guild_id,

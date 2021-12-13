@@ -5,25 +5,22 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{GuildMarker, RoleMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Delete a role in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteRole<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    role_id: Id<RoleMarker>,
+    role_id: Id<marker::Role>,
     reason: Option<&'a str>,
 }
 
 impl<'a> DeleteRole<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        role_id: Id<RoleMarker>,
+        guild_id: Id<marker::Guild>,
+        role_id: Id<marker::Role>,
     ) -> Self {
         Self {
             guild_id,

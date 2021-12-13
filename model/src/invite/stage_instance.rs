@@ -1,6 +1,6 @@
 use crate::{
     datetime::Timestamp,
-    id::{marker::RoleMarker, Id},
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -37,7 +37,7 @@ pub struct InviteStageInstanceMember {
     pub premium_since: Option<Timestamp>,
     /// List of role IDs the user has.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub roles: Vec<Id<RoleMarker>>,
+    pub roles: Vec<Id<marker::Role>>,
     /// User data for the member.
     pub user: User,
 }

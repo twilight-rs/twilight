@@ -5,10 +5,7 @@ mod kind;
 pub use self::{channel::WebhookChannel, guild::WebhookGuild, kind::WebhookType};
 
 use crate::{
-    id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, WebhookMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -16,12 +13,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Webhook {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<Id<ApplicationMarker>>,
+    pub application_id: Option<Id<marker::Application>>,
     pub avatar: Option<String>,
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
-    pub id: Id<WebhookMarker>,
+    pub guild_id: Option<Id<marker::Guild>>,
+    pub id: Id<marker::Webhook>,
     #[serde(default = "WebhookType::default", rename = "type")]
     pub kind: WebhookType,
     pub name: Option<String>,

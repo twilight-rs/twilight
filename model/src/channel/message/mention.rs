@@ -1,6 +1,6 @@
 use crate::{
     guild::PartialMember,
-    id::{marker::UserMarker, Id},
+    id::{marker, Id},
     user::{self, DiscriminatorDisplay, UserFlags},
 };
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ pub struct Mention {
     #[serde(with = "user::discriminator")]
     pub discriminator: u16,
     /// Unique ID of the user.
-    pub id: Id<UserMarker>,
+    pub id: Id<marker::User>,
     /// Member object for the user in the guild, if available.
     pub member: Option<PartialMember>,
     #[serde(rename = "username")]

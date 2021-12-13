@@ -12,10 +12,7 @@ use std::{
 };
 use twilight_model::{
     channel::Message,
-    id::{
-        marker::{ChannelMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// The error returned if the request can not be created as configured.
@@ -72,7 +69,7 @@ struct GetChannelMessagesFields {
     limit: Option<u64>,
 }
 
-/// Get channel messages, by [`Id<ChannelMarker>`].
+/// Get channel messages, by [`Id<marker::Channel>`].
 ///
 /// Only one of [`after`], [`around`], and [`before`] can be specified at a time.
 /// Once these are specified, the type returned is [`GetChannelMessagesConfigured`].
@@ -108,13 +105,13 @@ struct GetChannelMessagesFields {
 /// [`limit`]: Self::limit
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessages<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     fields: GetChannelMessagesFields,
     http: &'a Client,
 }
 
 impl<'a> GetChannelMessages<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self {
             channel_id,
             fields: GetChannelMessagesFields { limit: None },
@@ -122,7 +119,7 @@ impl<'a> GetChannelMessages<'a> {
         }
     }
 
-    pub const fn after(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
+    pub const fn after(self, message_id: Id<marker::Message>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,
@@ -133,7 +130,7 @@ impl<'a> GetChannelMessages<'a> {
         )
     }
 
-    pub const fn around(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
+    pub const fn around(self, message_id: Id<marker::Message>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,
@@ -144,7 +141,7 @@ impl<'a> GetChannelMessages<'a> {
         )
     }
 
-    pub const fn before(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
+    pub const fn before(self, message_id: Id<marker::Message>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,

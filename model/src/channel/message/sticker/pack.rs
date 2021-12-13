@@ -1,8 +1,5 @@
 use super::Sticker;
-use crate::id::{
-    marker::{StickerBannerAssetMarker, StickerMarker, StickerPackMarker, StickerPackSkuMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 /// Pack of [`Standard`] stickers.
@@ -11,17 +8,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct StickerPack {
     /// ID of the sticker pack's banner image.
-    pub banner_asset_id: Id<StickerBannerAssetMarker>,
+    pub banner_asset_id: Id<marker::StickerBannerAsset>,
     /// ID of the sticker that is shown as the pack's icon.
-    pub cover_sticker_id: Option<Id<StickerMarker>>,
+    pub cover_sticker_id: Option<Id<marker::Sticker>>,
     /// Description of the sticker pack.
     pub description: String,
     /// ID of the sticker pack.
-    pub id: Id<StickerPackMarker>,
+    pub id: Id<marker::StickerPack>,
     /// Name of the sticker pack.
     pub name: String,
     /// ID of the pack's SKU.
-    pub sku_id: Id<StickerPackSkuMarker>,
+    pub sku_id: Id<marker::StickerPackSku>,
     /// List of stickers in the pack.
     pub stickers: Vec<Sticker>,
 }

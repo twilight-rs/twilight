@@ -5,10 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{ChannelMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Add another member to a thread.
 ///
@@ -16,16 +13,16 @@ use twilight_model::id::{
 /// not archived.
 #[must_use = "requests must be configured and executed"]
 pub struct AddThreadMember<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 impl<'a> AddThreadMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        user_id: Id<UserMarker>,
+        channel_id: Id<marker::Channel>,
+        user_id: Id<marker::User>,
     ) -> Self {
         Self {
             channel_id,

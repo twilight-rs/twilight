@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::thread::ThreadsListing,
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 
 /// Returns archived private threads in the channel.
@@ -19,13 +19,13 @@ use twilight_model::{
 #[must_use = "requests must be configured and executed"]
 pub struct GetPrivateArchivedThreads<'a> {
     before: Option<&'a str>,
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
     limit: Option<u64>,
 }
 
 impl<'a> GetPrivateArchivedThreads<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self {
             before: None,
             channel_id,

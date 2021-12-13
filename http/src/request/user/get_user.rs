@@ -6,7 +6,7 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    id::{marker::UserMarker, Id},
+    id::{marker, Id},
     user::User,
 };
 
@@ -14,11 +14,11 @@ use twilight_model::{
 #[must_use = "requests must be configured and executed"]
 pub struct GetUser<'a> {
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 impl<'a> GetUser<'a> {
-    pub(crate) const fn new(http: &'a Client, user_id: Id<UserMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, user_id: Id<marker::User>) -> Self {
         Self { http, user_id }
     }
 

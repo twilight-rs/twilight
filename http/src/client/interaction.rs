@@ -18,10 +18,7 @@ use twilight_model::{
         callback::InteractionResponse,
         command::{permissions::CommandPermissions, Command},
     },
-    id::{
-        marker::{ApplicationMarker, CommandMarker, GuildMarker, InteractionMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Client interface for using interactions.
@@ -54,13 +51,13 @@ use twilight_model::{
 /// ```
 #[derive(Debug)]
 pub struct InteractionClient<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     client: &'a Client,
 }
 
 impl<'a> InteractionClient<'a> {
     /// Create a new interface for using interactions.
-    pub(super) const fn new(client: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
+    pub(super) const fn new(client: &'a Client, application_id: Id<marker::Application>) -> Self {
         Self {
             application_id,
             client,
@@ -77,7 +74,7 @@ impl<'a> InteractionClient<'a> {
     /// [associated builder]: https://docs.rs/twilight-util/latest/builder/struct.CallbackDataBuilder.html
     pub const fn interaction_callback(
         &'a self,
-        interaction_id: Id<InteractionMarker>,
+        interaction_id: Id<marker::Interaction>,
         interaction_token: &'a str,
         response: &'a InteractionResponse,
     ) -> InteractionCallback<'a> {
@@ -104,7 +101,7 @@ impl<'a> InteractionClient<'a> {
     pub const fn followup_message(
         &'a self,
         interaction_token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> GetFollowupMessage<'a> {
         GetFollowupMessage::new(
             self.client,
@@ -134,7 +131,7 @@ impl<'a> InteractionClient<'a> {
     pub const fn update_followup_message(
         &'a self,
         interaction_token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> UpdateFollowupMessage<'a> {
         UpdateFollowupMessage::new(
             self.client,
@@ -148,7 +145,7 @@ impl<'a> InteractionClient<'a> {
     pub const fn delete_followup_message(
         &'a self,
         interaction_token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> DeleteFollowupMessage<'a> {
         DeleteFollowupMessage::new(
             self.client,
@@ -173,7 +170,7 @@ impl<'a> InteractionClient<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn create_guild_command(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         name: &'a str,
     ) -> Result<CreateGuildCommand<'a>, InteractionError> {
         CreateGuildCommand::new(self.client, self.application_id, guild_id, name)
@@ -182,14 +179,14 @@ impl<'a> InteractionClient<'a> {
     /// Fetch a guild command for your application.
     pub const fn get_guild_command(
         &self,
-        guild_id: Id<GuildMarker>,
-        command_id: Id<CommandMarker>,
+        guild_id: Id<marker::Guild>,
+        command_id: Id<marker::Command>,
     ) -> GetGuildCommand<'_> {
         GetGuildCommand::new(self.client, self.application_id, guild_id, command_id)
     }
 
     /// Fetch all commands for a guild, by ID.
-    pub const fn get_guild_commands(&self, guild_id: Id<GuildMarker>) -> GetGuildCommands<'_> {
+    pub const fn get_guild_commands(&self, guild_id: Id<marker::Guild>) -> GetGuildCommands<'_> {
         GetGuildCommands::new(self.client, self.application_id, guild_id)
     }
 
@@ -201,8 +198,8 @@ impl<'a> InteractionClient<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
     pub const fn update_guild_command(
         &self,
-        guild_id: Id<GuildMarker>,
-        command_id: Id<CommandMarker>,
+        guild_id: Id<marker::Guild>,
+        command_id: Id<marker::Command>,
     ) -> UpdateGuildCommand<'_> {
         UpdateGuildCommand::new(self.client, self.application_id, guild_id, command_id)
     }
@@ -210,8 +207,8 @@ impl<'a> InteractionClient<'a> {
     /// Delete a command in a guild, by ID.
     pub const fn delete_guild_command(
         &self,
-        guild_id: Id<GuildMarker>,
-        command_id: Id<CommandMarker>,
+        guild_id: Id<marker::Guild>,
+        command_id: Id<marker::Command>,
     ) -> DeleteGuildCommand<'_> {
         DeleteGuildCommand::new(self.client, self.application_id, guild_id, command_id)
     }
@@ -228,7 +225,7 @@ impl<'a> InteractionClient<'a> {
     /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
     pub const fn set_guild_commands(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         commands: &'a [Command],
     ) -> SetGuildCommands<'a> {
         SetGuildCommands::new(self.client, self.application_id, guild_id, commands)
@@ -253,7 +250,10 @@ impl<'a> InteractionClient<'a> {
     }
 
     /// Fetch a global command for your application.
-    pub const fn get_global_command(&self, command_id: Id<CommandMarker>) -> GetGlobalCommand<'_> {
+    pub const fn get_global_command(
+        &self,
+        command_id: Id<marker::Command>,
+    ) -> GetGlobalCommand<'_> {
         GetGlobalCommand::new(self.client, self.application_id, command_id)
     }
 
@@ -270,7 +270,7 @@ impl<'a> InteractionClient<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
     pub const fn update_global_command(
         &self,
-        command_id: Id<CommandMarker>,
+        command_id: Id<marker::Command>,
     ) -> UpdateGlobalCommand<'_> {
         UpdateGlobalCommand::new(self.client, self.application_id, command_id)
     }
@@ -278,7 +278,7 @@ impl<'a> InteractionClient<'a> {
     /// Delete a global command, by ID.
     pub const fn delete_global_command(
         &self,
-        command_id: Id<CommandMarker>,
+        command_id: Id<marker::Command>,
     ) -> DeleteGlobalCommand<'_> {
         DeleteGlobalCommand::new(self.client, self.application_id, command_id)
     }
@@ -301,8 +301,8 @@ impl<'a> InteractionClient<'a> {
     /// in a guild.
     pub const fn get_command_permissions(
         &self,
-        guild_id: Id<GuildMarker>,
-        command_id: Id<CommandMarker>,
+        guild_id: Id<marker::Guild>,
+        command_id: Id<marker::Command>,
     ) -> GetCommandPermissions<'_> {
         GetCommandPermissions::new(self.client, self.application_id, guild_id, command_id)
     }
@@ -311,7 +311,7 @@ impl<'a> InteractionClient<'a> {
     /// application in a guild.
     pub const fn get_guild_command_permissions(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
     ) -> GetGuildCommandPermissions<'_> {
         GetGuildCommandPermissions::new(self.client, self.application_id, guild_id)
     }
@@ -322,8 +322,8 @@ impl<'a> InteractionClient<'a> {
     /// have to be sent every time.
     pub const fn update_command_permissions(
         &'a self,
-        guild_id: Id<GuildMarker>,
-        command_id: Id<CommandMarker>,
+        guild_id: Id<marker::Guild>,
+        command_id: Id<marker::Command>,
         permissions: &'a [CommandPermissions],
     ) -> Result<UpdateCommandPermissions<'a>, InteractionError> {
         UpdateCommandPermissions::new(
@@ -348,8 +348,8 @@ impl<'a> InteractionClient<'a> {
     /// [`InteractionError::GUILD_COMMAND_LIMIT`]: crate::request::application::InteractionError::GUILD_COMMAND_LIMIT
     pub fn set_command_permissions(
         &'a self,
-        guild_id: Id<GuildMarker>,
-        permissions: &'a [(Id<CommandMarker>, CommandPermissions)],
+        guild_id: Id<marker::Guild>,
+        permissions: &'a [(Id<marker::Command>, CommandPermissions)],
     ) -> Result<SetCommandPermissions<'a>, InteractionError> {
         SetCommandPermissions::new(self.client, self.application_id, guild_id, permissions)
     }

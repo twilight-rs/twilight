@@ -1,8 +1,5 @@
 use crate::{
-    id::{
-        marker::{IntegrationMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     util::is_false,
 };
 use serde::{Deserialize, Serialize};
@@ -59,10 +56,10 @@ mod premium_subscriber {
 pub struct RoleTags {
     /// ID of the bot the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bot_id: Option<Id<UserMarker>>,
+    pub bot_id: Option<Id<marker::User>>,
     /// ID of the integration the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub integration_id: Option<Id<IntegrationMarker>>,
+    pub integration_id: Option<Id<marker::Integration>>,
     /// Whether this is the guild's premium subscriber role.
     #[serde(default, skip_serializing_if = "is_false", with = "premium_subscriber")]
     pub premium_subscriber: bool,

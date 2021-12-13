@@ -1,16 +1,13 @@
 use crate::{
     channel::ChannelType,
-    id::{
-        marker::{ChannelMarker, GuildMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChannelMention {
-    pub guild_id: Id<GuildMarker>,
-    pub id: Id<ChannelMarker>,
+    pub guild_id: Id<marker::Guild>,
+    pub id: Id<marker::Channel>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,

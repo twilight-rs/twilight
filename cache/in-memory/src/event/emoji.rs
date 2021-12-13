@@ -3,11 +3,11 @@ use std::borrow::Cow;
 use twilight_model::{
     gateway::payload::incoming::GuildEmojisUpdate,
     guild::Emoji,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 impl InMemoryCache {
-    pub(crate) fn cache_emojis(&self, guild_id: Id<GuildMarker>, emojis: Vec<Emoji>) {
+    pub(crate) fn cache_emojis(&self, guild_id: Id<marker::Guild>, emojis: Vec<Emoji>) {
         if let Some(mut guild_emojis) = self.guild_emojis.get_mut(&guild_id) {
             let incoming: Vec<_> = emojis.iter().map(|e| e.id).collect();
 
@@ -31,7 +31,7 @@ impl InMemoryCache {
         }
     }
 
-    pub(crate) fn cache_emoji(&self, guild_id: Id<GuildMarker>, emoji: Emoji) {
+    pub(crate) fn cache_emoji(&self, guild_id: Id<marker::Guild>, emoji: Emoji) {
         match self.emojis.get(&emoji.id) {
             Some(cached_emoji) if cached_emoji.value == emoji => return,
             Some(_) | None => {}
@@ -84,7 +84,7 @@ mod tests {
     use super::*;
     use crate::test;
     use twilight_model::{
-        id::{marker::EmojiMarker, Id},
+        id::{marker, Id},
         user::User,
     };
 
@@ -93,7 +93,7 @@ mod tests {
         let cache = InMemoryCache::new();
 
         // The user to do some of the inserts
-        fn user_mod(id: Id<EmojiMarker>) -> Option<User> {
+        fn user_mod(id: Id<marker::Emoji>) -> Option<User> {
             if id.get() % 2 == 0 {
                 // Only use user for half
                 Some(test::user(Id::new(1).expect("non zero")))

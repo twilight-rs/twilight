@@ -7,25 +7,22 @@ use crate::{
 };
 use twilight_model::{
     channel::Message,
-    id::{
-        marker::{ChannelMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
-/// Get a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
+/// Get a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
 #[must_use = "requests must be configured and executed"]
 pub struct GetMessage<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
 }
 
 impl<'a> GetMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> Self {
         Self {
             channel_id,

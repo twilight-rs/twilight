@@ -1,10 +1,7 @@
 use crate::{
     datetime::Timestamp,
     guild::member::{Member, OptionalMemberDeserializer},
-    id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -15,10 +12,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceState {
-    pub channel_id: Option<Id<ChannelMarker>>,
+    pub channel_id: Option<Id<marker::Channel>>,
     pub deaf: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     pub mute: bool,
@@ -31,7 +28,7 @@ pub struct VoiceState {
     pub suppress: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
-    pub user_id: Id<UserMarker>,
+    pub user_id: Id<marker::User>,
     /// When the user requested to speak.
     ///
     /// # serde

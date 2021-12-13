@@ -13,7 +13,7 @@ pub use self::{
 };
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{marker::EmojiMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// Handle a reaction of either a custom or unicode emoji.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -21,7 +21,7 @@ pub enum RequestReactionType<'a> {
     /// Reaction of a custom emoji.
     Custom {
         /// ID of the custom emoji.
-        id: Id<EmojiMarker>,
+        id: Id<marker::Emoji>,
         /// Name of the custom emoji.
         ///
         /// This is not strictly required, but may be helpful for Discord to

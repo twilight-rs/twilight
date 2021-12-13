@@ -6,10 +6,7 @@ pub use role::TemplateRole;
 
 use crate::{
     datetime::Timestamp,
-    id::{
-        marker::{GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -21,13 +18,13 @@ pub struct Template {
     /// User object of who created this template.
     pub creator: User,
     /// ID of the user who created this template.
-    pub creator_id: Id<UserMarker>,
+    pub creator_id: Id<marker::User>,
     pub description: Option<String>,
     /// Whether the template has unsynced changes.
     pub is_dirty: Option<bool>,
     pub name: String,
     pub serialized_source_guild: TemplateGuild,
-    pub source_guild_id: Id<GuildMarker>,
+    pub source_guild_id: Id<marker::Guild>,
     pub updated_at: Timestamp,
     pub usage_count: u64,
 }

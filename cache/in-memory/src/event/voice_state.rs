@@ -98,7 +98,7 @@ mod tests {
     use crate::test;
     use twilight_model::{
         datetime::Timestamp,
-        id::{marker::ChannelMarker, Id},
+        id::{marker, Id},
     };
 
     #[test]
@@ -253,7 +253,7 @@ mod tests {
         {
             let (guild_id, _channel_id, user_id) = (
                 Id::new(1).expect("non zero"),
-                Id::<ChannelMarker>::new(11).expect("non zero"),
+                Id::<marker::Channel>::new(11).expect("non zero"),
                 Id::new(1).expect("non zero"),
             );
             cache.cache_voice_state(test::voice_state(guild_id, None, user_id));

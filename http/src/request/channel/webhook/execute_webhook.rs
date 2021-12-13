@@ -18,10 +18,7 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions},
-    id::{
-        marker::{ChannelMarker, WebhookMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// A webhook could not be executed.
@@ -150,15 +147,15 @@ pub struct ExecuteWebhook<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: ExecuteWebhookFields<'a>,
     pub(super) http: &'a Client,
-    thread_id: Option<Id<ChannelMarker>>,
+    thread_id: Option<Id<marker::Channel>>,
     token: &'a str,
-    webhook_id: Id<WebhookMarker>,
+    webhook_id: Id<marker::Webhook>,
 }
 
 impl<'a> ExecuteWebhook<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
     ) -> Self {
         Self {
@@ -325,7 +322,7 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Execute in a thread belonging to the channel instead of the channel itself.
-    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+    pub fn thread_id(mut self, thread_id: Id<marker::Channel>) -> Self {
         self.thread_id.replace(thread_id);
 
         self

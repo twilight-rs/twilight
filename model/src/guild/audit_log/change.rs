@@ -5,12 +5,7 @@ use crate::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         VerificationLevel,
     },
-    id::{
-        marker::{
-            ApplicationMarker, ChannelMarker, GenericMarker, GuildMarker, RoleMarker, UserMarker,
-        },
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +20,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AffectedRole {
     /// ID of the role.
-    pub id: Id<RoleMarker>,
+    pub id: Id<marker::Role>,
     /// Name of the role.
     pub name: String,
 }
@@ -41,10 +36,10 @@ pub enum AuditLogChange {
     AfkChannelId {
         /// New ID of the AFK channel.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<Id<ChannelMarker>>,
+        new: Option<Id<marker::Channel>>,
         /// Old ID of the AFK channel.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<Id<ChannelMarker>>,
+        old: Option<Id<marker::Channel>>,
     },
     /// Timeout to cause a user to be moved to an AFK voice channel.
     AfkTimeout {
@@ -65,7 +60,7 @@ pub enum AuditLogChange {
     ApplicationId {
         /// Application's ID.
         #[serde(rename = "new_value")]
-        new: Id<ApplicationMarker>,
+        new: Id<marker::Application>,
     },
     /// Asset of a sticker.
     Asset {
@@ -113,7 +108,7 @@ pub enum AuditLogChange {
     ChannelId {
         /// New invite's channel.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<Id<ChannelMarker>>,
+        new: Option<Id<marker::Channel>>,
     },
     /// Code of an invite.
     Code {
@@ -215,10 +210,10 @@ pub enum AuditLogChange {
     GuildId {
         /// New guild that a sticker is in.
         #[serde(rename = "new_value")]
-        new: Id<GuildMarker>,
+        new: Id<marker::Guild>,
         /// Old guild that a sticker is in.
         #[serde(rename = "old_value")]
-        old: Id<GuildMarker>,
+        old: Id<marker::Guild>,
     },
     /// Whether a role is hoisted.
     Hoist {
@@ -242,13 +237,13 @@ pub enum AuditLogChange {
     Id {
         /// New entity's ID.
         #[serde(rename = "new_value")]
-        new: Id<GenericMarker>,
+        new: Id<marker::Generic>,
     },
     /// ID of the user who created an invite.
     InviterId {
         /// User ID.
         #[serde(rename = "new_value")]
-        new: Id<UserMarker>,
+        new: Id<marker::User>,
     },
     /// Maximum age of an invite.
     MaxAge {
@@ -320,10 +315,10 @@ pub enum AuditLogChange {
     OwnerId {
         /// New owner's ID.
         #[serde(rename = "new_value")]
-        new: Id<UserMarker>,
+        new: Id<marker::User>,
         /// Old owner's ID.
         #[serde(rename = "old_value")]
-        old: Id<UserMarker>,
+        old: Id<marker::User>,
     },
     /// Default permissions of a role.
     Permissions {
@@ -371,10 +366,10 @@ pub enum AuditLogChange {
     PublicUpdatesChannelId {
         /// New public updates channel ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<Id<ChannelMarker>>,
+        new: Option<Id<marker::Channel>>,
         /// Old public updates channel ID.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<Id<ChannelMarker>>,
+        old: Option<Id<marker::Channel>>,
     },
     /// Ratelimit per user in a textual channel.
     RateLimitPerUser {
@@ -401,10 +396,10 @@ pub enum AuditLogChange {
     RulesChannelId {
         /// New rules channel.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<Id<ChannelMarker>>,
+        new: Option<Id<marker::Channel>>,
         /// Old rules channel.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<Id<ChannelMarker>>,
+        old: Option<Id<marker::Channel>>,
     },
     /// Hash of a guild's splash.
     SplashHash {
@@ -419,10 +414,10 @@ pub enum AuditLogChange {
     SystemChannelId {
         /// New system channel ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<Id<ChannelMarker>>,
+        new: Option<Id<marker::Channel>>,
         /// Old system channel ID.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<Id<ChannelMarker>>,
+        old: Option<Id<marker::Channel>>,
     },
     /// Related emoji of a sticker.
     Tags {
@@ -494,10 +489,10 @@ pub enum AuditLogChange {
     WidgetChannelId {
         /// New channel ID.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<Id<ChannelMarker>>,
+        new: Option<Id<marker::Channel>>,
         /// Old channel ID.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<Id<ChannelMarker>>,
+        old: Option<Id<marker::Channel>>,
     },
     /// Whether a widget is enabled.
     WidgetEnabled {

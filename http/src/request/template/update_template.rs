@@ -11,7 +11,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
     template::Template,
 };
 
@@ -82,7 +82,7 @@ struct UpdateTemplateFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
     fields: UpdateTemplateFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     template_code: &'a str,
 }
@@ -90,7 +90,7 @@ pub struct UpdateTemplate<'a> {
 impl<'a> UpdateTemplate<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         template_code: &'a str,
     ) -> Self {
         Self {

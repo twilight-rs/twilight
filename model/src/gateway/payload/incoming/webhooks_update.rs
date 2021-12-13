@@ -1,13 +1,10 @@
-use crate::id::{
-    marker::{ChannelMarker, GuildMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct WebhooksUpdate {
-    pub channel_id: Id<ChannelMarker>,
-    pub guild_id: Id<GuildMarker>,
+    pub channel_id: Id<marker::Channel>,
+    pub guild_id: Id<marker::Guild>,
 }
 
 #[cfg(test)]

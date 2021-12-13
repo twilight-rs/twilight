@@ -6,10 +6,7 @@ use std::{
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     guild::Permissions,
-    id::{
-        marker::{ChannelMarker, RoleMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Error building role fields.
@@ -83,7 +80,7 @@ impl RoleFieldsBuilder {
     /// [`color`]: Self::color
     pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
 
-    fn role_id() -> Id<RoleMarker> {
+    fn role_id() -> Id<marker::Role> {
         Id::new(1).expect("non zero")
     }
 
@@ -139,7 +136,7 @@ impl RoleFieldsBuilder {
     ///
     /// Returns a [`RoleFieldsErrorType::IdInvalid`] error type if the ID is set
     /// to 1.
-    pub fn id(mut self, id: Id<RoleMarker>) -> Result<Self, RoleFieldsError> {
+    pub fn id(mut self, id: Id<marker::Role>) -> Result<Self, RoleFieldsError> {
         if id == Self::role_id() {
             return Err(RoleFieldsError {
                 kind: RoleFieldsErrorType::IdInvalid,
@@ -647,7 +644,7 @@ impl CategoryFieldsBuilder {
         })
     }
 
-    pub(super) fn build(mut self, id: Id<ChannelMarker>) -> Vec<GuildChannelFields> {
+    pub(super) fn build(mut self, id: Id<marker::Channel>) -> Vec<GuildChannelFields> {
         for channel in &mut self.channels {
             match channel {
                 GuildChannelFields::Text(t) => t.parent_id.replace(id),

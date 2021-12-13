@@ -2,10 +2,10 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use twilight_http::client::Client;
 use twilight_model::{
     application::command::permissions::{CommandPermissions, CommandPermissionsType},
-    id::{marker::CommandMarker, Id},
+    id::{marker, Id},
 };
 
-fn commands(commands: usize, permissions: usize) -> Vec<(Id<CommandMarker>, CommandPermissions)> {
+fn commands(commands: usize, permissions: usize) -> Vec<(Id<marker::Command>, CommandPermissions)> {
     (0..commands)
         .map(|id| {
             (0..permissions).map(move |_| {

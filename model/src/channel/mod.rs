@@ -41,10 +41,7 @@ use crate::{
         AutoArchiveDuration, NewsThread, PrivateThread, PublicThread, ThreadMember, ThreadMetadata,
     },
     datetime::Timestamp,
-    id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -81,7 +78,7 @@ pub enum Channel {
 
 impl Channel {
     /// Return the ID of the inner channel.
-    pub const fn id(&self) -> Id<ChannelMarker> {
+    pub const fn id(&self) -> Id<marker::Channel> {
         match self {
             Self::Group(group) => group.id,
             Self::Guild(guild_channel) => guild_channel.id(),
@@ -126,7 +123,7 @@ pub enum GuildChannel {
 
 impl GuildChannel {
     /// Return the guild ID of the inner guild channel.
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+    pub const fn guild_id(&self) -> Option<Id<marker::Guild>> {
         match self {
             Self::Category(category) => category.guild_id,
             Self::NewsThread(thread) => thread.guild_id,
@@ -139,7 +136,7 @@ impl GuildChannel {
     }
 
     /// Return the ID of the inner guild channel.
-    pub const fn id(&self) -> Id<ChannelMarker> {
+    pub const fn id(&self) -> Id<marker::Channel> {
         match self {
             Self::Category(category) => category.id,
             Self::NewsThread(thread) => thread.id,
@@ -233,15 +230,15 @@ impl<'de> Visitor<'de> for GuildChannelVisitor {
         let mut id = None;
         let mut invitable: Option<Option<bool>> = None;
         let mut kind = None;
-        let mut last_message_id: Option<Option<Id<MessageMarker>>> = None;
+        let mut last_message_id: Option<Option<Id<marker::Message>>> = None;
         let mut last_pin_timestamp: Option<Option<Timestamp>> = None;
         let mut member: Option<Option<ThreadMember>> = None;
         let mut member_count: Option<u8> = None;
         let mut message_count: Option<u8> = None;
         let mut name = None;
         let mut nsfw = None;
-        let mut owner_id: Option<Option<Id<UserMarker>>> = None;
-        let mut parent_id: Option<Option<Id<ChannelMarker>>> = None;
+        let mut owner_id: Option<Option<Id<marker::User>>> = None;
+        let mut parent_id: Option<Option<Id<marker::Channel>>> = None;
         let mut permission_overwrites = None;
         let mut position = None;
         let mut rate_limit_per_user = None;
@@ -693,7 +690,7 @@ mod tests {
         channel::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
         datetime::Timestamp,
         guild::Permissions,
-        id::{marker::ChannelMarker, Id},
+        id::{marker, Id},
     };
 
     fn group() -> Group {
@@ -991,7 +988,7 @@ mod tests {
                 "guild_id": Some("2"),
                 "name": "foo",
                 "nsfw": false,
-                "parent_id": None::<Id<ChannelMarker>>,
+                "parent_id": None::<Id<marker::Channel>>,
                 "permission_overwrites": permission_overwrites,
                 "position": 3,
                 "type": 4,

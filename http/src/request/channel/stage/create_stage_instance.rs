@@ -12,7 +12,7 @@ use std::{
 };
 use twilight_model::{
     channel::stage_instance::PrivacyLevel,
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 
 /// The request can not be created as configured.
@@ -71,7 +71,7 @@ pub enum CreateStageInstanceErrorType {
 
 #[derive(Serialize)]
 struct CreateStageInstanceFields<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
     topic: &'a str,
@@ -89,7 +89,7 @@ pub struct CreateStageInstance<'a> {
 impl<'a> CreateStageInstance<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         topic: &'a str,
     ) -> Result<Self, CreateStageInstanceError> {
         if !validate_inner::stage_topic(topic) {

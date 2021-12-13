@@ -28,11 +28,11 @@
 //! easily casted in order to fulfill this:
 //!
 //! ```
-//! use twilight_model::id::{marker::{GuildMarker, RoleMarker}, Id};
+//! use twilight_model::id::{marker, Id};
 //!
 //! // Often Rust's type inference will be able to infer the type of ID.
-//! let guild_id = Id::<GuildMarker>::new(123).expect("non zero id");
-//! let role_id = guild_id.cast::<RoleMarker>();
+//! let guild_id = Id::<marker::Guild>::new(123).expect("non zero id");
+//! let role_id = guild_id.cast::<marker::Role>();
 //!
 //! assert_eq!(guild_id.get(), role_id.get());
 //! ```
@@ -69,9 +69,9 @@ use std::{
 /// This ID deserializes from both integers and strings and serializes into a
 /// string.
 ///
-/// [channel]: marker::ChannelMarker
+/// [channel]: marker
 /// [marker documentation]: marker
-/// [user]: marker::UserMarker
+/// [user]: marker
 #[derive(Clone, Copy)]
 pub struct Id<T> {
     phantom: PhantomData<T>,
@@ -119,10 +119,10 @@ impl<T> Id<T> {
     /// Create an ID with a value and then confirm its inner value:
     ///
     /// ```
-    /// use twilight_model::id::{marker::ChannelMarker, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # fn try_main() -> Option<()> {
-    /// let channel_id = Id::<ChannelMarker>::new(7)?;
+    /// let channel_id = Id::<marker::Channel>::new(7)?;
     ///
     /// assert_eq!(7, channel_id.get());
     /// # Some(()) }
@@ -140,11 +140,11 @@ impl<T> Id<T> {
     /// Cast a role ID to a guild ID, useful for the `@everyone` role:
     ///
     /// ```
-    /// use twilight_model::id::{marker::{GuildMarker, RoleMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
-    /// let role_id: Id<RoleMarker> = Id::new(1).expect("non zero id");
+    /// let role_id: Id<marker::Role> = Id::new(1).expect("non zero id");
     ///
-    /// let guild_id: Id<GuildMarker> = role_id.cast();
+    /// let guild_id: Id<marker::Guild> = role_id.cast();
     /// assert_eq!(1, guild_id.get());
     /// ```
     pub const fn cast<New>(self) -> Id<New> {
@@ -358,14 +358,7 @@ impl<T> Serialize for IdStringDisplay<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        marker::{
-            ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
-            CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
-            InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
-        },
-        Id, IdStringDisplay,
-    };
+    use super::{marker, Id, IdStringDisplay};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -379,54 +372,54 @@ mod tests {
         str::FromStr,
     };
 
-    assert_impl_all!(ApplicationMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(AttachmentMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(AuditLogEntryMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(ChannelMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(CommandMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(CommandVersionMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(EmojiMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(GenericMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(GuildMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(IntegrationMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(InteractionMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(MessageMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(RoleMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(StageMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(UserMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(WebhookMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(Id<GenericMarker>:
+    assert_impl_all!(marker::Application: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Attachment: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::AuditLogEntry: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Channel: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Command: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::CommandVersion: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Emoji: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Generic: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Guild: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Integration: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Interaction: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Message: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Role: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Stage: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::User: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(marker::Webhook: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(Id<marker::Generic>:
         Clone, Copy, Debug, Deserialize<'static>, Display, Eq, From<NonZeroU64>,
         FromStr, Hash, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
         TryFrom<i64>, TryFrom<u64>
     );
-    assert_impl_all!(IdStringDisplay<GenericMarker>: Debug, Display, Send, Serialize, Sync);
+    assert_impl_all!(IdStringDisplay<marker::Generic>: Debug, Display, Send, Serialize, Sync);
 
     /// Test that various methods of initializing IDs are correct, such as via
     /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
     #[test]
     fn test_initializers() -> Result<(), Box<dyn Error>> {
         // `Id::new`
-        assert!(Id::<GenericMarker>::new(0).is_none());
-        assert_eq!(Some(1), Id::<GenericMarker>::new(1).map(Id::get));
+        assert!(Id::<marker::Generic>::new(0).is_none());
+        assert_eq!(Some(1), Id::<marker::Generic>::new(1).map(Id::get));
 
         // `From`
         assert_eq!(
             123_u64,
-            Id::<GenericMarker>::from(NonZeroU64::new(123).expect("non zero"))
+            Id::<marker::Generic>::from(NonZeroU64::new(123).expect("non zero"))
         );
 
         // `FromStr`
-        assert_eq!(123_u64, Id::<GenericMarker>::from_str("123")?);
-        assert!(Id::<GenericMarker>::from_str("0").is_err());
-        assert!(Id::<GenericMarker>::from_str("123a").is_err());
+        assert_eq!(123_u64, Id::<marker::Generic>::from_str("123")?);
+        assert!(Id::<marker::Generic>::from_str("0").is_err());
+        assert!(Id::<marker::Generic>::from_str("123a").is_err());
 
         // `TryFrom`
-        assert!(Id::<GenericMarker>::try_from(-123_i64).is_err());
-        assert!(Id::<GenericMarker>::try_from(0_i64).is_err());
-        assert_eq!(123_u64, Id::<GenericMarker>::try_from(123_i64)?);
-        assert!(Id::<GenericMarker>::try_from(0_u64).is_err());
-        assert_eq!(123_u64, Id::<GenericMarker>::try_from(123_u64)?);
+        assert!(Id::<marker::Generic>::try_from(-123_i64).is_err());
+        assert!(Id::<marker::Generic>::try_from(0_i64).is_err());
+        assert_eq!(123_u64, Id::<marker::Generic>::try_from(123_i64)?);
+        assert!(Id::<marker::Generic>::try_from(0_u64).is_err());
+        assert_eq!(123_u64, Id::<marker::Generic>::try_from(123_u64)?);
 
         Ok(())
     }
@@ -434,22 +427,22 @@ mod tests {
     /// Test that casting IDs maintains the original value.
     #[test]
     fn test_cast() {
-        let id = Id::<GenericMarker>::new(123).expect("non zero");
-        assert_eq!(123_u64, id.cast::<RoleMarker>());
+        let id = Id::<marker::Generic>::new(123).expect("non zero");
+        assert_eq!(123_u64, id.cast::<marker::Role>());
     }
 
     /// Test that debugging IDs formats the generic and value as a newtype.
     #[test]
     fn test_debug() {
-        let id = Id::<RoleMarker>::new(114_941_315_417_899_012).expect("non zero");
+        let id = Id::<marker::Role>::new(114_941_315_417_899_012).expect("non zero");
 
-        assert_eq!("Id<RoleMarker>(114941315417899012)", format!("{:?}", id));
+        assert_eq!("Id<Role>(114941315417899012)", format!("{:?}", id));
     }
 
     /// Test that display formatting an ID formats the value.
     #[test]
     fn test_display() {
-        let id = Id::<GenericMarker>::new(114_941_315_417_899_012).expect("non zero");
+        let id = Id::<marker::Generic>::new(114_941_315_417_899_012).expect("non zero");
 
         assert_eq!("114941315417899012", id.to_string());
     }
@@ -457,7 +450,7 @@ mod tests {
     /// Test that hashing an ID is equivalent to hashing only its inner value.
     #[test]
     fn test_hash() {
-        let id = Id::<GenericMarker>::new(123).expect("non zero");
+        let id = Id::<marker::Generic>::new(123).expect("non zero");
 
         let mut id_hasher = DefaultHasher::new();
         id.hash(&mut id_hasher);
@@ -471,9 +464,9 @@ mod tests {
     /// Test that IDs are ordered exactly like their inner values.
     #[test]
     fn test_ordering() {
-        let lesser = Id::<GenericMarker>::new(911_638_235_594_244_096).expect("non zero");
-        let center = Id::<GenericMarker>::new(911_638_263_322_800_208).expect("non zero");
-        let greater = Id::<GenericMarker>::new(911_638_287_939_166_208).expect("non zero");
+        let lesser = Id::<marker::Generic>::new(911_638_235_594_244_096).expect("non zero");
+        let center = Id::<marker::Generic>::new(911_638_263_322_800_208).expect("non zero");
+        let greater = Id::<marker::Generic>::new(911_638_287_939_166_208).expect("non zero");
 
         assert!(center.cmp(&greater).is_lt());
         assert!(center.cmp(&center).is_eq());
@@ -484,224 +477,224 @@ mod tests {
     #[test]
     fn test_serde() {
         serde_test::assert_tokens(
-            &Id::<ApplicationMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Application>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<ApplicationMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Application>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<AttachmentMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Attachment>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<AttachmentMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Attachment>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<AuditLogEntryMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::AuditLogEntry>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<AuditLogEntryMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::AuditLogEntry>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<ChannelMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Channel>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<ChannelMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Channel>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<CommandMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Command>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<CommandMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Command>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<CommandVersionMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::CommandVersion>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<CommandVersionMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::CommandVersion>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<EmojiMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Emoji>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<EmojiMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Emoji>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<GenericMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Generic>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<GenericMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Generic>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<GuildMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Guild>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<GuildMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Guild>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<IntegrationMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Integration>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<IntegrationMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Integration>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<InteractionMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Interaction>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<InteractionMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Interaction>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<MessageMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Message>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<MessageMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Message>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<RoleMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Role>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<RoleMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Role>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<StageMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Stage>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<StageMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Stage>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<UserMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::User>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<UserMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::User>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<WebhookMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Webhook>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<WebhookMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<marker::Webhook>::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),

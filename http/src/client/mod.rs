@@ -91,13 +91,7 @@ use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
     guild::Permissions,
-    id::{
-        marker::{
-            ApplicationMarker, ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker,
-            MessageMarker, RoleMarker, StickerMarker, UserMarker, WebhookMarker,
-        },
-        Id,
-    },
+    id::{marker, Id},
 };
 
 #[cfg(feature = "hyper-rustls")]
@@ -264,7 +258,7 @@ impl Client {
     /// [`current_user_application`]: Self::current_user_application
     pub const fn interaction(
         &self,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
     ) -> InteractionClient<'_> {
         InteractionClient::new(self, application_id)
     }
@@ -288,7 +282,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -301,7 +295,7 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub const fn audit_log(&self, guild_id: Id<GuildMarker>) -> GetAuditLog<'_> {
+    pub const fn audit_log(&self, guild_id: Id<marker::Guild>) -> GetAuditLog<'_> {
         GetAuditLog::new(self, guild_id)
     }
 
@@ -313,7 +307,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -324,14 +318,14 @@ impl Client {
     /// let bans = client.bans(guild_id).exec().await?;
     /// # Ok(()) }
     /// ```
-    pub const fn bans(&self, guild_id: Id<GuildMarker>) -> GetBans<'_> {
+    pub const fn bans(&self, guild_id: Id<marker::Guild>) -> GetBans<'_> {
         GetBans::new(self, guild_id)
     }
 
     /// Get information about a ban of a guild.
     ///
     /// Includes the user banned and the reason.
-    pub const fn ban(&self, guild_id: Id<GuildMarker>, user_id: Id<UserMarker>) -> GetBan<'_> {
+    pub const fn ban(&self, guild_id: Id<marker::Guild>, user_id: Id<marker::User>) -> GetBan<'_> {
         GetBan::new(self, guild_id, user_id)
     }
 
@@ -345,7 +339,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
-    /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -362,8 +356,8 @@ impl Client {
     /// ```
     pub const fn create_ban(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> CreateBan<'_> {
         CreateBan::new(self, guild_id, user_id)
     }
@@ -376,7 +370,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -390,8 +384,8 @@ impl Client {
     /// ```
     pub const fn delete_ban(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> DeleteBan<'_> {
         DeleteBan::new(self, guild_id, user_id)
     }
@@ -404,7 +398,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::ChannelMarker, Id};
+    /// # use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -415,29 +409,29 @@ impl Client {
     /// let channel = client.channel(channel_id).exec().await?;
     /// # Ok(()) }
     /// ```
-    pub const fn channel(&self, channel_id: Id<ChannelMarker>) -> GetChannel<'_> {
+    pub const fn channel(&self, channel_id: Id<marker::Channel>) -> GetChannel<'_> {
         GetChannel::new(self, channel_id)
     }
 
     /// Delete a channel by ID.
-    pub const fn delete_channel(&self, channel_id: Id<ChannelMarker>) -> DeleteChannel<'_> {
+    pub const fn delete_channel(&self, channel_id: Id<marker::Channel>) -> DeleteChannel<'_> {
         DeleteChannel::new(self, channel_id)
     }
 
     /// Update a channel.
-    pub const fn update_channel(&self, channel_id: Id<ChannelMarker>) -> UpdateChannel<'_> {
+    pub const fn update_channel(&self, channel_id: Id<marker::Channel>) -> UpdateChannel<'_> {
         UpdateChannel::new(self, channel_id)
     }
 
-    /// Follows a news channel by [`Id<ChannelMarker>`].
+    /// Follows a news channel by [`Id<marker::Channel>`].
     ///
     /// The type returned is [`FollowedChannel`].
     ///
     /// [`FollowedChannel`]: ::twilight_model::channel::FollowedChannel
     pub const fn follow_news_channel(
         &self,
-        channel_id: Id<ChannelMarker>,
-        webhook_channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
+        webhook_channel_id: Id<marker::Channel>,
     ) -> FollowNewsChannel<'_> {
         FollowNewsChannel::new(self, channel_id, webhook_channel_id)
     }
@@ -449,11 +443,11 @@ impl Client {
     ///
     /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
     /// [`GuildChannel`]: twilight_model::channel::GuildChannel
-    pub const fn channel_invites(&self, channel_id: Id<ChannelMarker>) -> GetChannelInvites<'_> {
+    pub const fn channel_invites(&self, channel_id: Id<marker::Channel>) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
 
-    /// Get channel messages, by [`Id<ChannelMarker>`].
+    /// Get channel messages, by [`Id<marker::Channel>`].
     ///
     /// Only one of [`after`], [`around`], and [`before`] can be specified at a time.
     /// Once these are specified, the type returned is [`GetChannelMessagesConfigured`].
@@ -464,7 +458,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use twilight_http::Client;
-    /// use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -494,13 +488,16 @@ impl Client {
     /// [`GetChannelMessagesConfigured`]: crate::request::channel::message::GetChannelMessagesConfigured
     /// [`limit`]: GetChannelMessages::limit
     /// [`GetChannelMessagesErrorType::LimitInvalid`]: crate::request::channel::message::get_channel_messages::GetChannelMessagesErrorType::LimitInvalid
-    pub const fn channel_messages(&self, channel_id: Id<ChannelMarker>) -> GetChannelMessages<'_> {
+    pub const fn channel_messages(
+        &self,
+        channel_id: Id<marker::Channel>,
+    ) -> GetChannelMessages<'_> {
         GetChannelMessages::new(self, channel_id)
     }
 
     pub const fn delete_channel_permission(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     ) -> DeleteChannelPermission<'_> {
         DeleteChannelPermission::new(self, channel_id)
     }
@@ -514,7 +511,7 @@ impl Client {
     /// ```rust,no_run
     /// # use twilight_http::Client;
     /// use twilight_model::guild::Permissions;
-    /// use twilight_model::id::{marker::{ChannelMarker, RoleMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -533,7 +530,7 @@ impl Client {
     /// ```
     pub const fn update_channel_permission(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         allow: Permissions,
         deny: Permissions,
     ) -> UpdateChannelPermission<'_> {
@@ -541,7 +538,10 @@ impl Client {
     }
 
     /// Get all the webhooks of a channel.
-    pub const fn channel_webhooks(&self, channel_id: Id<ChannelMarker>) -> GetChannelWebhooks<'_> {
+    pub const fn channel_webhooks(
+        &self,
+        channel_id: Id<marker::Channel>,
+    ) -> GetChannelWebhooks<'_> {
         GetChannelWebhooks::new(self, channel_id)
     }
 
@@ -573,8 +573,8 @@ impl Client {
     /// - Current user must have already joined `channel_id`.
     pub const fn update_current_user_voice_state(
         &self,
-        guild_id: Id<GuildMarker>,
-        channel_id: Id<ChannelMarker>,
+        guild_id: Id<marker::Guild>,
+        channel_id: Id<marker::Channel>,
     ) -> UpdateCurrentUserVoiceState<'_> {
         UpdateCurrentUserVoiceState::new(self, guild_id, channel_id)
     }
@@ -595,7 +595,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -620,7 +620,7 @@ impl Client {
     #[deprecated(note = "use update_current_member instead", since = "0.7.2")]
     pub const fn update_current_user_nick<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         nick: &'a str,
     ) -> UpdateCurrentUserNick<'a> {
         UpdateCurrentUserNick::new(self, guild_id, nick)
@@ -634,7 +634,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::GuildMarker, Id};
+    /// # use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -645,7 +645,7 @@ impl Client {
     /// client.emojis(guild_id).exec().await?;
     /// # Ok(()) }
     /// ```
-    pub const fn emojis(&self, guild_id: Id<GuildMarker>) -> GetEmojis<'_> {
+    pub const fn emojis(&self, guild_id: Id<marker::Guild>) -> GetEmojis<'_> {
         GetEmojis::new(self, guild_id)
     }
 
@@ -671,8 +671,8 @@ impl Client {
     /// ```
     pub const fn emoji(
         &self,
-        guild_id: Id<GuildMarker>,
-        emoji_id: Id<EmojiMarker>,
+        guild_id: Id<marker::Guild>,
+        emoji_id: Id<marker::Emoji>,
     ) -> GetEmoji<'_> {
         GetEmoji::new(self, guild_id, emoji_id)
     }
@@ -686,7 +686,7 @@ impl Client {
     /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
     pub const fn create_emoji<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         name: &'a str,
         image: &'a str,
     ) -> CreateEmoji<'a> {
@@ -696,8 +696,8 @@ impl Client {
     /// Delete an emoji in a guild, by id.
     pub const fn delete_emoji(
         &self,
-        guild_id: Id<GuildMarker>,
-        emoji_id: Id<EmojiMarker>,
+        guild_id: Id<marker::Guild>,
+        emoji_id: Id<marker::Emoji>,
     ) -> DeleteEmoji<'_> {
         DeleteEmoji::new(self, guild_id, emoji_id)
     }
@@ -705,8 +705,8 @@ impl Client {
     /// Update an emoji in a guild, by id.
     pub const fn update_emoji(
         &self,
-        guild_id: Id<GuildMarker>,
-        emoji_id: Id<EmojiMarker>,
+        guild_id: Id<marker::Guild>,
+        emoji_id: Id<marker::Emoji>,
     ) -> UpdateEmoji<'_> {
         UpdateEmoji::new(self, guild_id, emoji_id)
     }
@@ -750,7 +750,7 @@ impl Client {
     }
 
     /// Get information about a guild.
-    pub const fn guild(&self, guild_id: Id<GuildMarker>) -> GetGuild<'_> {
+    pub const fn guild(&self, guild_id: Id<marker::Guild>) -> GetGuild<'_> {
         GetGuild::new(self, guild_id)
     }
 
@@ -770,7 +770,7 @@ impl Client {
     }
 
     /// Delete a guild permanently. The user must be the owner.
-    pub const fn delete_guild(&self, guild_id: Id<GuildMarker>) -> DeleteGuild<'_> {
+    pub const fn delete_guild(&self, guild_id: Id<marker::Guild>) -> DeleteGuild<'_> {
         DeleteGuild::new(self, guild_id)
     }
 
@@ -779,17 +779,17 @@ impl Client {
     /// All endpoints are optional. Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
-    pub const fn update_guild(&self, guild_id: Id<GuildMarker>) -> UpdateGuild<'_> {
+    pub const fn update_guild(&self, guild_id: Id<marker::Guild>) -> UpdateGuild<'_> {
         UpdateGuild::new(self, guild_id)
     }
 
     /// Leave a guild by id.
-    pub const fn leave_guild(&self, guild_id: Id<GuildMarker>) -> LeaveGuild<'_> {
+    pub const fn leave_guild(&self, guild_id: Id<marker::Guild>) -> LeaveGuild<'_> {
         LeaveGuild::new(self, guild_id)
     }
 
     /// Get the channels in a guild.
-    pub const fn guild_channels(&self, guild_id: Id<GuildMarker>) -> GetGuildChannels<'_> {
+    pub const fn guild_channels(&self, guild_id: Id<marker::Guild>) -> GetGuildChannels<'_> {
         GetGuildChannels::new(self, guild_id)
     }
 
@@ -815,7 +815,7 @@ impl Client {
     /// [`CreateGuildChannelErrorType::TopicInvalid`]: crate::request::guild::create_guild_channel::CreateGuildChannelErrorType::TopicInvalid
     pub fn create_guild_channel<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         name: &'a str,
     ) -> Result<CreateGuildChannel<'a>, CreateGuildChannelError> {
         CreateGuildChannel::new(self, guild_id, name)
@@ -825,11 +825,11 @@ impl Client {
     ///
     /// The minimum amount of channels to modify, is a swap between two channels.
     ///
-    /// This function accepts an `Iterator` of `(Id<ChannelMarker>, u64)`. It also
+    /// This function accepts an `Iterator` of `(Id<marker::Channel>, u64)`. It also
     /// accepts an `Iterator` of `Position`, which has extra fields.
     pub const fn update_guild_channel_positions<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         channel_positions: &'a [Position],
     ) -> UpdateGuildChannelPositions<'a> {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
@@ -840,25 +840,28 @@ impl Client {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
-    pub const fn guild_widget(&self, guild_id: Id<GuildMarker>) -> GetGuildWidget<'_> {
+    pub const fn guild_widget(&self, guild_id: Id<marker::Guild>) -> GetGuildWidget<'_> {
         GetGuildWidget::new(self, guild_id)
     }
 
     /// Modify the guild widget.
-    pub const fn update_guild_widget(&self, guild_id: Id<GuildMarker>) -> UpdateGuildWidget<'_> {
+    pub const fn update_guild_widget(&self, guild_id: Id<marker::Guild>) -> UpdateGuildWidget<'_> {
         UpdateGuildWidget::new(self, guild_id)
     }
 
     /// Get the guild's integrations.
-    pub const fn guild_integrations(&self, guild_id: Id<GuildMarker>) -> GetGuildIntegrations<'_> {
+    pub const fn guild_integrations(
+        &self,
+        guild_id: Id<marker::Guild>,
+    ) -> GetGuildIntegrations<'_> {
         GetGuildIntegrations::new(self, guild_id)
     }
 
     /// Delete an integration for a guild, by the integration's id.
     pub const fn delete_guild_integration(
         &self,
-        guild_id: Id<GuildMarker>,
-        integration_id: Id<IntegrationMarker>,
+        guild_id: Id<marker::Guild>,
+        integration_id: Id<marker::Integration>,
     ) -> DeleteGuildIntegration<'_> {
         DeleteGuildIntegration::new(self, guild_id, integration_id)
     }
@@ -868,7 +871,7 @@ impl Client {
     /// Requires the [`MANAGE_GUILD`] permission.
     ///
     /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
-    pub const fn guild_invites(&self, guild_id: Id<GuildMarker>) -> GetGuildInvites<'_> {
+    pub const fn guild_invites(&self, guild_id: Id<marker::Guild>) -> GetGuildInvites<'_> {
         GetGuildInvites::new(self, guild_id)
     }
 
@@ -883,7 +886,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -901,7 +904,7 @@ impl Client {
     /// limit is invalid.
     ///
     /// [`GetGuildMembersErrorType::LimitInvalid`]: crate::request::guild::member::get_guild_members::GetGuildMembersErrorType::LimitInvalid
-    pub const fn guild_members(&self, guild_id: Id<GuildMarker>) -> GetGuildMembers<'_> {
+    pub const fn guild_members(&self, guild_id: Id<marker::Guild>) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
 
@@ -915,7 +918,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -938,7 +941,7 @@ impl Client {
     /// [`SearchGuildMembersErrorType::LimitInvalid`]: crate::request::guild::member::search_guild_members::SearchGuildMembersErrorType::LimitInvalid
     pub const fn search_guild_members<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         query: &'a str,
     ) -> SearchGuildMembers<'a> {
         SearchGuildMembers::new(self, guild_id, query)
@@ -947,8 +950,8 @@ impl Client {
     /// Get a member of a guild, by their id.
     pub const fn guild_member(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> GetMember<'_> {
         GetMember::new(self, guild_id, user_id)
     }
@@ -969,8 +972,8 @@ impl Client {
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub const fn add_guild_member<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
         access_token: &'a str,
     ) -> AddGuildMember<'a> {
         AddGuildMember::new(self, guild_id, user_id, access_token)
@@ -979,8 +982,8 @@ impl Client {
     /// Kick a member from a guild.
     pub const fn remove_guild_member(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> RemoveMember<'_> {
         RemoveMember::new(self, guild_id, user_id)
     }
@@ -996,7 +999,7 @@ impl Client {
     /// ```rust,no_run
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
@@ -1022,8 +1025,8 @@ impl Client {
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub const fn update_guild_member(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> UpdateGuildMember<'_> {
         UpdateGuildMember::new(self, guild_id, user_id)
     }
@@ -1031,7 +1034,7 @@ impl Client {
     /// Update the user's member in a guild.
     pub const fn update_current_member(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
     ) -> UpdateCurrentMember<'_> {
         UpdateCurrentMember::new(self, guild_id)
     }
@@ -1044,7 +1047,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
-    /// use twilight_model::id::{marker::{GuildMarker, RoleMarker, UserMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1062,9 +1065,9 @@ impl Client {
     /// ```
     pub const fn add_guild_member_role(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-        role_id: Id<RoleMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
+        role_id: Id<marker::Role>,
     ) -> AddRoleToMember<'_> {
         AddRoleToMember::new(self, guild_id, user_id, role_id)
     }
@@ -1072,9 +1075,9 @@ impl Client {
     /// Remove a role from a member in a guild, by id.
     pub const fn remove_guild_member_role(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-        role_id: Id<RoleMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
+        role_id: Id<marker::Role>,
     ) -> RemoveRoleFromMember<'_> {
         RemoveRoleFromMember::new(self, guild_id, user_id, role_id)
     }
@@ -1082,12 +1085,12 @@ impl Client {
     /// For public guilds, get the guild preview.
     ///
     /// This works even if the user is not in the guild.
-    pub const fn guild_preview(&self, guild_id: Id<GuildMarker>) -> GetGuildPreview<'_> {
+    pub const fn guild_preview(&self, guild_id: Id<marker::Guild>) -> GetGuildPreview<'_> {
         GetGuildPreview::new(self, guild_id)
     }
 
     /// Get the counts of guild members to be pruned.
-    pub const fn guild_prune_count(&self, guild_id: Id<GuildMarker>) -> GetGuildPruneCount<'_> {
+    pub const fn guild_prune_count(&self, guild_id: Id<marker::Guild>) -> GetGuildPruneCount<'_> {
         GetGuildPruneCount::new(self, guild_id)
     }
 
@@ -1096,31 +1099,34 @@ impl Client {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
-    pub const fn create_guild_prune(&self, guild_id: Id<GuildMarker>) -> CreateGuildPrune<'_> {
+    pub const fn create_guild_prune(&self, guild_id: Id<marker::Guild>) -> CreateGuildPrune<'_> {
         CreateGuildPrune::new(self, guild_id)
     }
 
     /// Get a guild's vanity url, if there is one.
-    pub const fn guild_vanity_url(&self, guild_id: Id<GuildMarker>) -> GetGuildVanityUrl<'_> {
+    pub const fn guild_vanity_url(&self, guild_id: Id<marker::Guild>) -> GetGuildVanityUrl<'_> {
         GetGuildVanityUrl::new(self, guild_id)
     }
 
     /// Get voice region data for the guild.
     ///
     /// Can return VIP servers if the guild is VIP-enabled.
-    pub const fn guild_voice_regions(&self, guild_id: Id<GuildMarker>) -> GetGuildVoiceRegions<'_> {
+    pub const fn guild_voice_regions(
+        &self,
+        guild_id: Id<marker::Guild>,
+    ) -> GetGuildVoiceRegions<'_> {
         GetGuildVoiceRegions::new(self, guild_id)
     }
 
     /// Get the webhooks of a guild.
-    pub const fn guild_webhooks(&self, guild_id: Id<GuildMarker>) -> GetGuildWebhooks<'_> {
+    pub const fn guild_webhooks(&self, guild_id: Id<marker::Guild>) -> GetGuildWebhooks<'_> {
         GetGuildWebhooks::new(self, guild_id)
     }
 
     /// Get the guild's welcome screen.
     pub const fn guild_welcome_screen(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
     ) -> GetGuildWelcomeScreen<'_> {
         GetGuildWelcomeScreen::new(self, guild_id)
     }
@@ -1132,7 +1138,7 @@ impl Client {
     /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn update_guild_welcome_screen(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
     ) -> UpdateGuildWelcomeScreen<'_> {
         UpdateGuildWelcomeScreen::new(self, guild_id)
     }
@@ -1174,7 +1180,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::ChannelMarker, Id};
+    /// # use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1190,7 +1196,7 @@ impl Client {
     /// ```
     ///
     /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
-    pub const fn create_invite(&self, channel_id: Id<ChannelMarker>) -> CreateInvite<'_> {
+    pub const fn create_invite(&self, channel_id: Id<marker::Channel>) -> CreateInvite<'_> {
         CreateInvite::new(self, channel_id)
     }
 
@@ -1205,11 +1211,11 @@ impl Client {
         DeleteInvite::new(self, code)
     }
 
-    /// Get a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
+    /// Get a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
     pub const fn message(
         &self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> GetMessage<'_> {
         GetMessage::new(self, channel_id, message_id)
     }
@@ -1220,7 +1226,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::ChannelMarker, Id};
+    /// # use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1252,35 +1258,35 @@ impl Client {
     /// crate::request::channel::message::create_message::CreateMessageErrorType::ContentInvalid
     /// [`CreateMessageErrorType::EmbedTooLarge`]:
     /// crate::request::channel::message::create_message::CreateMessageErrorType::EmbedTooLarge
-    pub const fn create_message(&self, channel_id: Id<ChannelMarker>) -> CreateMessage<'_> {
+    pub const fn create_message(&self, channel_id: Id<marker::Channel>) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
 
-    /// Delete a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
+    /// Delete a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
     pub const fn delete_message(
         &self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> DeleteMessage<'_> {
         DeleteMessage::new(self, channel_id, message_id)
     }
 
-    /// Delete messages by [`Id<ChannelMarker>`] and Vec<[`Id<MessageMarker>`]>.
+    /// Delete messages by [`Id<marker::Channel>`] and Vec<[`Id<marker::Message>`]>.
     ///
-    /// The vec count can be between 2 and 100. If the supplied [`Id<MessageMarker>`]s are invalid, they
+    /// The vec count can be between 2 and 100. If the supplied [`Id<marker::Message>`]s are invalid, they
     /// still count towards the lower and upper limits. This method will not delete messages older
     /// than two weeks. Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub const fn delete_messages<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
-        message_ids: &'a [Id<MessageMarker>],
+        channel_id: Id<marker::Channel>,
+        message_ids: &'a [Id<marker::Message>],
     ) -> DeleteMessages<'a> {
         DeleteMessages::new(self, channel_id, message_ids)
     }
 
-    /// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
+    /// Update a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
     ///
     /// You can pass `None` to any of the methods to remove the associated field.
     /// For example, if you have a message with an embed you want to remove, you can
@@ -1292,7 +1298,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use twilight_http::Client;
-    /// use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1308,7 +1314,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
+    /// # use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1323,31 +1329,31 @@ impl Client {
     /// [embed]: Self::embed
     pub const fn update_message(
         &self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> UpdateMessage<'_> {
         UpdateMessage::new(self, channel_id, message_id)
     }
 
-    /// Crosspost a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
+    /// Crosspost a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
     pub const fn crosspost_message(
         &self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> CrosspostMessage<'_> {
         CrosspostMessage::new(self, channel_id, message_id)
     }
 
     /// Get the pins of a channel.
-    pub const fn pins(&self, channel_id: Id<ChannelMarker>) -> GetPins<'_> {
+    pub const fn pins(&self, channel_id: Id<marker::Channel>) -> GetPins<'_> {
         GetPins::new(self, channel_id)
     }
 
     /// Create a new pin in a channel, by ID.
     pub const fn create_pin(
         &self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> CreatePin<'_> {
         CreatePin::new(self, channel_id, message_id)
     }
@@ -1355,8 +1361,8 @@ impl Client {
     /// Delete a pin in a channel, by ID.
     pub const fn delete_pin(
         &self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> DeletePin<'_> {
         DeletePin::new(self, channel_id, message_id)
     }
@@ -1367,23 +1373,21 @@ impl Client {
     /// requests must be chained until all reactions are retrieved.
     pub const fn reactions<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         emoji: &'a RequestReactionType<'a>,
     ) -> GetReactions<'a> {
         GetReactions::new(self, channel_id, message_id, emoji)
     }
 
-    /// Create a reaction in a [`Id<ChannelMarker>`] on a [`Id<MessageMarker>`].
+    /// Create a reaction in a [`Id<marker::Channel>`] on a [`Id<marker::Message>`].
     ///
     /// The reaction must be a variant of [`RequestReactionType`].
     ///
     /// # Examples
     /// ```rust,no_run
     /// # use twilight_http::{Client, request::channel::reaction::RequestReactionType};
-    /// # use twilight_model::{
-    /// #     id::{marker::{ChannelMarker, MessageMarker}, Id},
-    /// # };
+    /// # use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1401,8 +1405,8 @@ impl Client {
     /// ```
     pub const fn create_reaction<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         emoji: &'a RequestReactionType<'a>,
     ) -> CreateReaction<'a> {
         CreateReaction::new(self, channel_id, message_id, emoji)
@@ -1411,8 +1415,8 @@ impl Client {
     /// Delete the current user's (`@me`) reaction on a message.
     pub const fn delete_current_user_reaction<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         emoji: &'a RequestReactionType<'a>,
     ) -> DeleteReaction<'a> {
         DeleteReaction::new(self, channel_id, message_id, emoji, TargetUser::Current)
@@ -1421,10 +1425,10 @@ impl Client {
     /// Delete a reaction by a user on a message.
     pub const fn delete_reaction<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         emoji: &'a RequestReactionType<'a>,
-        user_id: Id<UserMarker>,
+        user_id: Id<marker::User>,
     ) -> DeleteReaction<'a> {
         DeleteReaction::new(self, channel_id, message_id, emoji, TargetUser::Id(user_id))
     }
@@ -1432,8 +1436,8 @@ impl Client {
     /// Remove all reactions on a message of an emoji.
     pub const fn delete_all_reaction<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         emoji: &'a RequestReactionType<'a>,
     ) -> DeleteAllReaction<'a> {
         DeleteAllReaction::new(self, channel_id, message_id, emoji)
@@ -1442,8 +1446,8 @@ impl Client {
     /// Delete all reactions by all users on a message.
     pub const fn delete_all_reactions(
         &self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> DeleteAllReactions<'_> {
         DeleteAllReactions::new(self, channel_id, message_id)
     }
@@ -1451,7 +1455,7 @@ impl Client {
     /// Fire a Typing Start event in the channel.
     pub const fn create_typing_trigger(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     ) -> CreateTypingTrigger<'_> {
         CreateTypingTrigger::new(self, channel_id)
     }
@@ -1461,13 +1465,13 @@ impl Client {
     /// This endpoint is limited to 10 active group DMs.
     pub const fn create_private_channel(
         &self,
-        recipient_id: Id<UserMarker>,
+        recipient_id: Id<marker::User>,
     ) -> CreatePrivateChannel<'_> {
         CreatePrivateChannel::new(self, recipient_id)
     }
 
     /// Get the roles of a guild.
-    pub const fn roles(&self, guild_id: Id<GuildMarker>) -> GetGuildRoles<'_> {
+    pub const fn roles(&self, guild_id: Id<marker::Guild>) -> GetGuildRoles<'_> {
         GetGuildRoles::new(self, guild_id)
     }
 
@@ -1477,7 +1481,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1491,15 +1495,15 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub const fn create_role(&self, guild_id: Id<GuildMarker>) -> CreateRole<'_> {
+    pub const fn create_role(&self, guild_id: Id<marker::Guild>) -> CreateRole<'_> {
         CreateRole::new(self, guild_id)
     }
 
     /// Delete a role in a guild, by id.
     pub const fn delete_role(
         &self,
-        guild_id: Id<GuildMarker>,
-        role_id: Id<RoleMarker>,
+        guild_id: Id<marker::Guild>,
+        role_id: Id<marker::Role>,
     ) -> DeleteRole<'_> {
         DeleteRole::new(self, guild_id, role_id)
     }
@@ -1507,8 +1511,8 @@ impl Client {
     /// Update a role by guild id and its id.
     pub const fn update_role(
         &self,
-        guild_id: Id<GuildMarker>,
-        role_id: Id<RoleMarker>,
+        guild_id: Id<marker::Guild>,
+        role_id: Id<marker::Role>,
     ) -> UpdateRole<'_> {
         UpdateRole::new(self, guild_id, role_id)
     }
@@ -1518,8 +1522,8 @@ impl Client {
     /// The minimum amount of roles to modify, is a swap between two roles.
     pub const fn update_role_positions<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
-        roles: &'a [(Id<RoleMarker>, u64)],
+        guild_id: Id<marker::Guild>,
+        roles: &'a [(Id<marker::Role>, u64)],
     ) -> UpdateRolePositions<'a> {
         UpdateRolePositions::new(self, guild_id, roles)
     }
@@ -1536,14 +1540,14 @@ impl Client {
     /// [`InvalidTopic`]: crate::request::channel::stage::create_stage_instance::CreateStageInstanceErrorType::InvalidTopic
     pub fn create_stage_instance<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         topic: &'a str,
     ) -> Result<CreateStageInstance<'a>, CreateStageInstanceError> {
         CreateStageInstance::new(self, channel_id, topic)
     }
 
     /// Gets the stage instance associated with a stage channel, if it exists.
-    pub const fn stage_instance(&self, channel_id: Id<ChannelMarker>) -> GetStageInstance<'_> {
+    pub const fn stage_instance(&self, channel_id: Id<marker::Channel>) -> GetStageInstance<'_> {
         GetStageInstance::new(self, channel_id)
     }
 
@@ -1552,7 +1556,7 @@ impl Client {
     /// Requires the user to be a moderator of the stage channel.
     pub const fn update_stage_instance(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     ) -> UpdateStageInstance<'_> {
         UpdateStageInstance::new(self, channel_id)
     }
@@ -1562,7 +1566,7 @@ impl Client {
     /// Requires the user to be a moderator of the stage channel.
     pub const fn delete_stage_instance(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     ) -> DeleteStageInstance<'_> {
         DeleteStageInstance::new(self, channel_id)
     }
@@ -1598,7 +1602,7 @@ impl Client {
     /// [`CreateTemplateErrorType::NameInvalid`]: crate::request::template::create_template::CreateTemplateErrorType::NameInvalid
     pub fn create_template<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         name: &'a str,
     ) -> Result<CreateTemplate<'a>, CreateTemplateError> {
         CreateTemplate::new(self, guild_id, name)
@@ -1607,7 +1611,7 @@ impl Client {
     /// Delete a template by ID and code.
     pub const fn delete_template<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         template_code: &'a str,
     ) -> DeleteTemplate<'a> {
         DeleteTemplate::new(self, guild_id, template_code)
@@ -1619,14 +1623,14 @@ impl Client {
     }
 
     /// Get a list of templates in a guild, by ID.
-    pub const fn get_templates(&self, guild_id: Id<GuildMarker>) -> GetTemplates<'_> {
+    pub const fn get_templates(&self, guild_id: Id<marker::Guild>) -> GetTemplates<'_> {
         GetTemplates::new(self, guild_id)
     }
 
     /// Sync a template to the current state of the guild, by ID and code.
     pub const fn sync_template<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         template_code: &'a str,
     ) -> SyncTemplate<'a> {
         SyncTemplate::new(self, guild_id, template_code)
@@ -1635,7 +1639,7 @@ impl Client {
     /// Update the template's metadata, by ID and code.
     pub const fn update_template<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         template_code: &'a str,
     ) -> UpdateTemplate<'a> {
         UpdateTemplate::new(self, guild_id, template_code)
@@ -1645,7 +1649,7 @@ impl Client {
     ///
     /// Includes public and private threads. Threads are ordered by their ID in
     /// descending order.
-    pub const fn active_threads(&self, guild_id: Id<GuildMarker>) -> GetActiveThreads<'_> {
+    pub const fn active_threads(&self, guild_id: Id<marker::Guild>) -> GetActiveThreads<'_> {
         GetActiveThreads::new(self, guild_id)
     }
 
@@ -1655,8 +1659,8 @@ impl Client {
     /// is not archived.
     pub const fn add_thread_member(
         &self,
-        channel_id: Id<ChannelMarker>,
-        user_id: Id<UserMarker>,
+        channel_id: Id<marker::Channel>,
+        user_id: Id<marker::User>,
     ) -> AddThreadMember<'_> {
         AddThreadMember::new(self, channel_id, user_id)
     }
@@ -1675,7 +1679,7 @@ impl Client {
     /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         name: &'a str,
         kind: ChannelType,
     ) -> Result<CreateThread<'_>, ThreadValidationError> {
@@ -1705,15 +1709,15 @@ impl Client {
     /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread_from_message<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         name: &'a str,
     ) -> Result<CreateThreadFromMessage<'_>, ThreadValidationError> {
         CreateThreadFromMessage::new(self, channel_id, message_id, name)
     }
 
     /// Add the current user to a thread.
-    pub const fn join_thread(&self, channel_id: Id<ChannelMarker>) -> JoinThread<'_> {
+    pub const fn join_thread(&self, channel_id: Id<marker::Channel>) -> JoinThread<'_> {
         JoinThread::new(self, channel_id)
     }
 
@@ -1723,7 +1727,7 @@ impl Client {
     /// Threads are ordered by their ID in descending order.
     pub const fn joined_private_archived_threads(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     ) -> GetJoinedPrivateArchivedThreads<'_> {
         GetJoinedPrivateArchivedThreads::new(self, channel_id)
     }
@@ -1731,7 +1735,7 @@ impl Client {
     /// Remove the current user from a thread.
     ///
     /// Requires that the thread is not archived.
-    pub const fn leave_thread(&self, channel_id: Id<ChannelMarker>) -> LeaveThread<'_> {
+    pub const fn leave_thread(&self, channel_id: Id<marker::Channel>) -> LeaveThread<'_> {
         LeaveThread::new(self, channel_id)
     }
 
@@ -1743,7 +1747,7 @@ impl Client {
     /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
     pub const fn private_archived_threads(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     ) -> GetPrivateArchivedThreads<'_> {
         GetPrivateArchivedThreads::new(self, channel_id)
     }
@@ -1766,7 +1770,7 @@ impl Client {
     /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
     pub const fn public_archived_threads(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     ) -> GetPublicArchivedThreads<'_> {
         GetPublicArchivedThreads::new(self, channel_id)
     }
@@ -1783,8 +1787,8 @@ impl Client {
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
     pub const fn remove_thread_member(
         &self,
-        channel_id: Id<ChannelMarker>,
-        user_id: Id<UserMarker>,
+        channel_id: Id<marker::Channel>,
+        user_id: Id<marker::User>,
     ) -> RemoveThreadMember<'_> {
         RemoveThreadMember::new(self, channel_id, user_id)
     }
@@ -1794,8 +1798,8 @@ impl Client {
     /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
     pub const fn thread_member(
         &self,
-        channel_id: Id<ChannelMarker>,
-        user_id: Id<UserMarker>,
+        channel_id: Id<marker::Channel>,
+        user_id: Id<marker::User>,
     ) -> GetThreadMember<'_> {
         GetThreadMember::new(self, channel_id, user_id)
     }
@@ -1803,7 +1807,7 @@ impl Client {
     /// Returns the [`ThreadMember`]s of the thread.
     ///
     /// [`ThreadMember`]: twilight_model::channel::thread::ThreadMember
-    pub const fn thread_members(&self, channel_id: Id<ChannelMarker>) -> GetThreadMembers<'_> {
+    pub const fn thread_members(&self, channel_id: Id<marker::Channel>) -> GetThreadMembers<'_> {
         GetThreadMembers::new(self, channel_id)
     }
 
@@ -1811,12 +1815,12 @@ impl Client {
     ///
     /// All fields are optional. The minimum length of the name is 1 UTF-16
     /// characters and the maximum is 100 UTF-16 characters.
-    pub const fn update_thread(&self, channel_id: Id<ChannelMarker>) -> UpdateThread<'_> {
+    pub const fn update_thread(&self, channel_id: Id<marker::Channel>) -> UpdateThread<'_> {
         UpdateThread::new(self, channel_id)
     }
 
     /// Get a user's information by id.
-    pub const fn user(&self, user_id: Id<UserMarker>) -> GetUser<'_> {
+    pub const fn user(&self, user_id: Id<marker::User>) -> GetUser<'_> {
         GetUser::new(self, user_id)
     }
 
@@ -1828,9 +1832,9 @@ impl Client {
     /// - User must already have joined `channel_id`.
     pub const fn update_user_voice_state(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-        channel_id: Id<ChannelMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
+        channel_id: Id<marker::Channel>,
     ) -> UpdateUserVoiceState<'_> {
         UpdateUserVoiceState::new(self, guild_id, user_id, channel_id)
     }
@@ -1841,7 +1845,7 @@ impl Client {
     }
 
     /// Get a webhook by ID.
-    pub const fn webhook(&self, id: Id<WebhookMarker>) -> GetWebhook<'_> {
+    pub const fn webhook(&self, id: Id<marker::Webhook>) -> GetWebhook<'_> {
         GetWebhook::new(self, id)
     }
 
@@ -1851,7 +1855,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::ChannelMarker, Id};
+    /// # use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1866,26 +1870,26 @@ impl Client {
     /// ```
     pub const fn create_webhook<'a>(
         &'a self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
         name: &'a str,
     ) -> CreateWebhook<'a> {
         CreateWebhook::new(self, channel_id, name)
     }
 
     /// Delete a webhook by its ID.
-    pub const fn delete_webhook(&self, id: Id<WebhookMarker>) -> DeleteWebhook<'_> {
+    pub const fn delete_webhook(&self, id: Id<marker::Webhook>) -> DeleteWebhook<'_> {
         DeleteWebhook::new(self, id)
     }
 
     /// Update a webhook by ID.
-    pub const fn update_webhook(&self, webhook_id: Id<WebhookMarker>) -> UpdateWebhook<'_> {
+    pub const fn update_webhook(&self, webhook_id: Id<marker::Webhook>) -> UpdateWebhook<'_> {
         UpdateWebhook::new(self, webhook_id)
     }
 
     /// Update a webhook, with a token, by ID.
     pub const fn update_webhook_with_token<'a>(
         &'a self,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
     ) -> UpdateWebhookWithToken<'a> {
         UpdateWebhookWithToken::new(self, webhook_id, token)
@@ -1899,7 +1903,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::WebhookMarker, Id};
+    /// # use twilight_model::id::{marker, Id};
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1919,7 +1923,7 @@ impl Client {
     /// [`files`]: crate::request::channel::webhook::ExecuteWebhook::files
     pub const fn execute_webhook<'a>(
         &'a self,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
     ) -> ExecuteWebhook<'a> {
         ExecuteWebhook::new(self, webhook_id, token)
@@ -1928,9 +1932,9 @@ impl Client {
     /// Get a webhook message by webhook ID, token, and message ID.
     pub const fn webhook_message<'a>(
         &'a self,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> GetWebhookMessage<'a> {
         GetWebhookMessage::new(self, webhook_id, token, message_id)
     }
@@ -1941,7 +1945,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::{MessageMarker, WebhookMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1954,9 +1958,9 @@ impl Client {
     /// ```
     pub const fn update_webhook_message<'a>(
         &'a self,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> UpdateWebhookMessage<'a> {
         UpdateWebhookMessage::new(self, webhook_id, token, message_id)
     }
@@ -1967,7 +1971,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::{MessageMarker, WebhookMarker}, Id};
+    /// use twilight_model::id::{marker, Id};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1980,9 +1984,9 @@ impl Client {
     /// ```
     pub const fn delete_webhook_message<'a>(
         &'a self,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> DeleteWebhookMessage<'a> {
         DeleteWebhookMessage::new(self, webhook_id, token, message_id)
     }
@@ -2005,7 +2009,7 @@ impl Client {
     /// println!("{:#?}", sticker);
     /// # Ok(()) }
     /// ```
-    pub const fn sticker(&self, sticker_id: Id<StickerMarker>) -> GetSticker<'_> {
+    pub const fn sticker(&self, sticker_id: Id<marker::Sticker>) -> GetSticker<'_> {
         GetSticker::new(self, sticker_id)
     }
 
@@ -2052,7 +2056,7 @@ impl Client {
     /// println!("{}", stickers.len());
     /// # Ok(()) }
     /// ```
-    pub const fn guild_stickers(&self, guild_id: Id<GuildMarker>) -> GetGuildStickers<'_> {
+    pub const fn guild_stickers(&self, guild_id: Id<marker::Guild>) -> GetGuildStickers<'_> {
         GetGuildStickers::new(self, guild_id)
     }
 
@@ -2082,8 +2086,8 @@ impl Client {
     /// ```
     pub const fn guild_sticker(
         &self,
-        guild_id: Id<GuildMarker>,
-        sticker_id: Id<StickerMarker>,
+        guild_id: Id<marker::Guild>,
+        sticker_id: Id<marker::Sticker>,
     ) -> GetGuildSticker<'_> {
         GetGuildSticker::new(self, guild_id, sticker_id)
     }
@@ -2119,7 +2123,7 @@ impl Client {
     /// ```
     pub fn create_guild_sticker<'a>(
         &'a self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         name: &'a str,
         description: &'a str,
         tags: &'a str,
@@ -2155,8 +2159,8 @@ impl Client {
     /// ```
     pub const fn update_guild_sticker(
         &self,
-        guild_id: Id<GuildMarker>,
-        sticker_id: Id<StickerMarker>,
+        guild_id: Id<marker::Guild>,
+        sticker_id: Id<marker::Sticker>,
     ) -> UpdateGuildSticker<'_> {
         UpdateGuildSticker::new(self, guild_id, sticker_id)
     }
@@ -2184,8 +2188,8 @@ impl Client {
     /// ```
     pub const fn delete_guild_sticker(
         &self,
-        guild_id: Id<GuildMarker>,
-        sticker_id: Id<StickerMarker>,
+        guild_id: Id<marker::Guild>,
+        sticker_id: Id<marker::Sticker>,
     ) -> DeleteGuildSticker<'_> {
         DeleteGuildSticker::new(self, guild_id, sticker_id)
     }

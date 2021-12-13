@@ -8,7 +8,7 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     guild::{Permissions, Role},
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 #[derive(Serialize)]
@@ -52,13 +52,13 @@ struct CreateRoleFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateRole<'a> {
     fields: CreateRoleFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateRole<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self {
             fields: CreateRoleFields {
                 color: None,

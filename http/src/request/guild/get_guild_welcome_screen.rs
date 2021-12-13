@@ -6,19 +6,19 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
     invite::WelcomeScreen,
 };
 
 /// Get the guild's welcome screen.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWelcomeScreen<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildWelcomeScreen<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

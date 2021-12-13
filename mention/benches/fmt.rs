@@ -1,10 +1,7 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::fmt::{Display, Write};
 use twilight_mention::fmt::Mention;
-use twilight_model::id::{
-    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 fn format_id<T: Display>(input: &mut String, formatter: &T) {
     input.write_fmt(format_args!("{}", formatter)).unwrap();
@@ -13,7 +10,7 @@ fn format_id<T: Display>(input: &mut String, formatter: &T) {
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("format channel id", |b| {
         let mut string = String::new();
-        let formatter = Id::<ChannelMarker>::new(999_999_999_999_999_999)
+        let formatter = Id::<marker::Channel>::new(999_999_999_999_999_999)
             .expect("non zero")
             .mention();
 
@@ -21,7 +18,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
     c.bench_function("format emoji id", |b| {
         let mut string = String::new();
-        let formatter = Id::<EmojiMarker>::new(999_999_999_999_999_999)
+        let formatter = Id::<marker::Emoji>::new(999_999_999_999_999_999)
             .expect("non zero")
             .mention();
 
@@ -29,7 +26,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
     c.bench_function("format role id", |b| {
         let mut string = String::new();
-        let formatter = Id::<RoleMarker>::new(999_999_999_999_999_999)
+        let formatter = Id::<marker::Role>::new(999_999_999_999_999_999)
             .expect("non zero")
             .mention();
 
@@ -37,7 +34,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
     c.bench_function("format user id", |b| {
         let mut string = String::new();
-        let formatter = Id::<UserMarker>::new(999_999_999_999_999_999)
+        let formatter = Id::<marker::User>::new(999_999_999_999_999_999)
             .expect("non zero")
             .mention();
 

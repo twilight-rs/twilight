@@ -1,5 +1,5 @@
 use crate::guild::Permissions;
-use crate::id::{marker::GuildMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 /// Information about a guild the current user is in.
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CurrentUserGuild {
     /// Unique ID.
-    pub id: Id<GuildMarker>,
+    pub id: Id<marker::Guild>,
     /// Name of the guild.
     ///
     /// The name must be at least 2 characters long and at most 100 characters

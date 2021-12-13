@@ -16,10 +16,7 @@ use twilight_model::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions,
         SystemChannelFlags, VerificationLevel,
     },
-    id::{
-        marker::{ChannelMarker, RoleMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 mod builder;
@@ -98,7 +95,7 @@ pub enum CreateGuildErrorType {
 #[derive(Serialize)]
 struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    afk_channel_id: Option<Id<ChannelMarker>>,
+    afk_channel_id: Option<Id<marker::Channel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_timeout: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -113,7 +110,7 @@ struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system_channel_id: Option<Id<ChannelMarker>>,
+    system_channel_id: Option<Id<marker::Channel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     system_channel_flags: Option<SystemChannelFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -129,7 +126,7 @@ pub struct RoleFields {
     pub color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hoist: Option<bool>,
-    pub id: Id<RoleMarker>,
+    pub id: Id<marker::Role>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mentionable: Option<bool>,
     pub name: String,
@@ -152,7 +149,7 @@ pub enum GuildChannelFields {
 }
 
 impl GuildChannelFields {
-    pub const fn id(&self) -> Id<ChannelMarker> {
+    pub const fn id(&self) -> Id<marker::Channel> {
         match self {
             Self::Category(c) => c.id,
             Self::Text(t) => t.id,
@@ -166,7 +163,7 @@ impl GuildChannelFields {
 /// Use [`CategoryFieldsBuilder`] to build one.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CategoryFields {
-    pub id: Id<ChannelMarker>,
+    pub id: Id<marker::Channel>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
@@ -179,7 +176,7 @@ pub struct CategoryFields {
 /// Use [`TextFieldsBuilder`] to build one.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct TextFields {
-    pub id: Id<ChannelMarker>,
+    pub id: Id<marker::Channel>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
@@ -188,7 +185,7 @@ pub struct TextFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<Id<ChannelMarker>>,
+    pub parent_id: Option<Id<marker::Channel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -202,14 +199,14 @@ pub struct TextFields {
 pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bitrate: Option<u64>,
-    pub id: Id<ChannelMarker>,
+    pub id: Id<marker::Channel>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<Id<ChannelMarker>>,
+    pub parent_id: Option<Id<marker::Channel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u64>,
 }
@@ -269,7 +266,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub const fn afk_channel_id(mut self, afk_channel_id: Id<ChannelMarker>) -> Self {
+    pub const fn afk_channel_id(mut self, afk_channel_id: Id<marker::Channel>) -> Self {
         self.fields.afk_channel_id = Some(afk_channel_id);
 
         self
@@ -398,7 +395,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub const fn system_channel_id(mut self, system_channel_id: Id<ChannelMarker>) -> Self {
+    pub const fn system_channel_id(mut self, system_channel_id: Id<marker::Channel>) -> Self {
         self.fields.system_channel_id = Some(system_channel_id);
 
         self

@@ -7,10 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::message::sticker::Sticker,
-    id::{
-        marker::{GuildMarker, StickerMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Returns a guild sticker by the guild's ID and the sticker's ID.
@@ -38,16 +35,16 @@ use twilight_model::{
 /// # Ok(()) }
 /// ```
 pub struct GetGuildSticker<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    sticker_id: Id<StickerMarker>,
+    sticker_id: Id<marker::Sticker>,
 }
 
 impl<'a> GetGuildSticker<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        sticker_id: Id<StickerMarker>,
+        guild_id: Id<marker::Guild>,
+        sticker_id: Id<marker::Sticker>,
     ) -> Self {
         Self {
             guild_id,

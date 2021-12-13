@@ -10,7 +10,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::{marker::GuildMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// Error emitted when the member can not be updated as configured.
 #[derive(Debug)]
@@ -74,13 +74,13 @@ struct UpdateCurrentMemberFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentMember<'a> {
     fields: UpdateCurrentMemberFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateCurrentMember<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self {
             fields: UpdateCurrentMemberFields { nick: None },
             guild_id,

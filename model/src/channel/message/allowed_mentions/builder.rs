@@ -1,9 +1,6 @@
 use crate::{
     channel::message::allowed_mentions::{AllowedMentions, ParseTypes},
-    id::{
-        marker::{RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -41,13 +38,13 @@ impl AllowedMentionsBuilder {
         self
     }
 
-    /// Allow parsing of specific [`Id<RoleMarker>`]s.
+    /// Allow parsing of specific [`Id<marker::Role>`]s.
     ///
     /// [`roles`] and this method are mutually exclusive. The builder will favor
     /// specific role ids.
     ///
     /// [`roles`]: Self::roles
-    pub fn role_ids(mut self, role_ids: impl IntoIterator<Item = Id<RoleMarker>>) -> Self {
+    pub fn role_ids(mut self, role_ids: impl IntoIterator<Item = Id<marker::Role>>) -> Self {
         self.0.roles.extend(role_ids);
 
         self
@@ -60,13 +57,13 @@ impl AllowedMentionsBuilder {
         self
     }
 
-    /// Allow parsing of  specific [`Id<UserMarker>`]s.
+    /// Allow parsing of  specific [`Id<marker::User>`]s.
     ///
     /// [`users`] and this method are mutually exclusive. The builder will favor
     /// specific user ids.
     ///
     /// [`users`]: Self::users
-    pub fn user_ids(mut self, user_ids: impl IntoIterator<Item = Id<UserMarker>>) -> Self {
+    pub fn user_ids(mut self, user_ids: impl IntoIterator<Item = Id<marker::User>>) -> Self {
         self.0.users.extend(user_ids);
 
         self

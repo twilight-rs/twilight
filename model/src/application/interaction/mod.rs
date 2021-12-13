@@ -14,10 +14,7 @@ pub use self::{
 use crate::{
     channel::Message,
     guild::PartialMember,
-    id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{
@@ -48,7 +45,7 @@ pub enum Interaction {
 }
 
 impl Interaction {
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+    pub const fn guild_id(&self) -> Option<Id<marker::Guild>> {
         match self {
             Self::Ping(_) => None,
             Self::ApplicationCommand(inner) | Self::ApplicationCommandAutocomplete(inner) => {
@@ -59,7 +56,7 @@ impl Interaction {
     }
 
     /// Return the ID of the inner interaction.
-    pub const fn id(&self) -> Id<InteractionMarker> {
+    pub const fn id(&self) -> Id<marker::Interaction> {
         match self {
             Self::Ping(ping) => ping.id,
             Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
@@ -102,11 +99,11 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut application_id: Option<Id<ApplicationMarker>> = None;
-        let mut channel_id: Option<Id<ChannelMarker>> = None;
+        let mut application_id: Option<Id<marker::Application>> = None;
+        let mut channel_id: Option<Id<marker::Channel>> = None;
         let mut data: Option<Value> = None;
-        let mut guild_id: Option<Option<Id<GuildMarker>>> = None;
-        let mut id: Option<Id<InteractionMarker>> = None;
+        let mut guild_id: Option<Option<Id<marker::Guild>>> = None;
+        let mut id: Option<Id<marker::Interaction>> = None;
         let mut member: Option<Option<PartialMember>> = None;
         let mut message: Option<Message> = None;
         let mut token: Option<String> = None;

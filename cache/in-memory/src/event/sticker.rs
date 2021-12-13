@@ -5,11 +5,11 @@ use std::borrow::Cow;
 use twilight_model::{
     channel::message::sticker::Sticker,
     gateway::payload::incoming::GuildStickersUpdate,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 impl InMemoryCache {
-    pub(crate) fn cache_stickers(&self, guild_id: Id<GuildMarker>, stickers: Vec<Sticker>) {
+    pub(crate) fn cache_stickers(&self, guild_id: Id<marker::Guild>, stickers: Vec<Sticker>) {
         if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
             let incoming: Vec<_> = stickers.iter().map(|s| s.id).collect();
 
@@ -33,7 +33,7 @@ impl InMemoryCache {
         }
     }
 
-    pub(crate) fn cache_sticker(&self, guild_id: Id<GuildMarker>, sticker: Sticker) {
+    pub(crate) fn cache_sticker(&self, guild_id: Id<marker::Guild>, sticker: Sticker) {
         match self.stickers.get(&sticker.id) {
             Some(cached_sticker) if cached_sticker.value == sticker => return,
             Some(_) | None => {}

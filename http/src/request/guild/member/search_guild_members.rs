@@ -9,7 +9,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::{marker::GuildMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// The error created when the members can not be queried as configured.
 #[derive(Debug)]
@@ -102,12 +102,12 @@ struct SearchGuildMembersFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct SearchGuildMembers<'a> {
     fields: SearchGuildMembersFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> SearchGuildMembers<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, query: &'a str) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>, query: &'a str) -> Self {
         Self {
             fields: SearchGuildMembersFields { query, limit: None },
             guild_id,

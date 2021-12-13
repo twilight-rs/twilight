@@ -1,9 +1,6 @@
 use crate::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType, VideoQualityMode},
-    id::{
-        marker::{ChannelMarker, GuildMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
@@ -11,13 +8,13 @@ use serde::{Deserialize, Serialize};
 pub struct VoiceChannel {
     pub bitrate: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
-    pub id: Id<ChannelMarker>,
+    pub guild_id: Option<Id<marker::Guild>>,
+    pub id: Id<marker::Channel>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<Id<ChannelMarker>>,
+    pub parent_id: Option<Id<marker::Channel>>,
     pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
     /// ID of the voice channel's region.

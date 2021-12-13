@@ -11,10 +11,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{
-        marker::{ChannelMarker, MessageMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 
@@ -67,7 +64,7 @@ pub enum GetReactionsErrorType {
 }
 
 struct GetReactionsFields {
-    after: Option<Id<UserMarker>>,
+    after: Option<Id<marker::User>>,
     limit: Option<u64>,
 }
 
@@ -77,18 +74,18 @@ struct GetReactionsFields {
 /// requests must be chained until all reactions are retrieved.
 #[must_use = "requests must be configured and executed"]
 pub struct GetReactions<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     emoji: &'a RequestReactionType<'a>,
     fields: GetReactionsFields,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
 }
 
 impl<'a> GetReactions<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         emoji: &'a RequestReactionType<'a>,
     ) -> Self {
         Self {
@@ -104,7 +101,7 @@ impl<'a> GetReactions<'a> {
     }
 
     /// Get users after this id.
-    pub const fn after(mut self, after: Id<UserMarker>) -> Self {
+    pub const fn after(mut self, after: Id<marker::User>) -> Self {
         self.fields.after = Some(after);
 
         self

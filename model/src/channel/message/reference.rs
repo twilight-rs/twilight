@@ -1,17 +1,14 @@
-use crate::id::{
-    marker::{ChannelMarker, GuildMarker, MessageMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReference {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel_id: Option<Id<ChannelMarker>>,
+    pub channel_id: Option<Id<marker::Channel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub message_id: Option<Id<MessageMarker>>,
+    pub message_id: Option<Id<marker::Message>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fail_if_not_exists: Option<bool>,
 }

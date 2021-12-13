@@ -17,10 +17,7 @@ pub use self::{
 };
 
 use crate::{
-    id::{
-        marker::{GuildMarker, StickerMarker, StickerPackMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
     util::is_false,
 };
@@ -38,9 +35,9 @@ pub struct Sticker {
     pub format_type: StickerFormatType,
     /// ID of the guild that owns the sticker.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     /// Unique ID of the sticker.
-    pub id: Id<StickerMarker>,
+    pub id: Id<marker::Sticker>,
     /// Kind of sticker.
     #[serde(rename = "type")]
     pub kind: StickerType,
@@ -48,7 +45,7 @@ pub struct Sticker {
     pub name: String,
     /// Unique ID of the pack the sticker is in.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub pack_id: Option<Id<StickerPackMarker>>,
+    pub pack_id: Option<Id<marker::StickerPack>>,
     /// Sticker's sort order within a pack.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort_value: Option<u64>,

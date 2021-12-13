@@ -6,7 +6,7 @@ use crate::{
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::id::{marker::GuildMarker, Id};
+use twilight_model::id::{marker, Id};
 
 #[derive(Serialize)]
 struct UpdateCurrentUserNickFields<'a> {
@@ -17,12 +17,12 @@ struct UpdateCurrentUserNickFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUserNick<'a> {
     fields: UpdateCurrentUserNickFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> UpdateCurrentUserNick<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, nick: &'a str) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>, nick: &'a str) -> Self {
         Self {
             fields: UpdateCurrentUserNickFields { nick },
             guild_id,

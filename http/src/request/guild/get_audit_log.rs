@@ -11,10 +11,7 @@ use std::{
 };
 use twilight_model::{
     guild::audit_log::{AuditLog, AuditLogEventType},
-    id::{
-        marker::{GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// The error returned when the audit log can not be requested as configured.
@@ -66,7 +63,7 @@ struct GetAuditLogFields {
     action_type: Option<AuditLogEventType>,
     before: Option<u64>,
     limit: Option<u64>,
-    user_id: Option<Id<UserMarker>>,
+    user_id: Option<Id<marker::User>>,
 }
 
 /// Get the audit log for a guild.
@@ -103,12 +100,12 @@ struct GetAuditLogFields {
 #[must_use = "requests must be configured and executed"]
 pub struct GetAuditLog<'a> {
     fields: GetAuditLogFields,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetAuditLog<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self {
             fields: GetAuditLogFields {
                 action_type: None,
@@ -158,7 +155,7 @@ impl<'a> GetAuditLog<'a> {
     /// Filter audit log for entries from a user.
     ///
     /// This is the user who did the auditable action, not the target of the auditable action.
-    pub const fn user_id(mut self, user_id: Id<UserMarker>) -> Self {
+    pub const fn user_id(mut self, user_id: Id<marker::User>) -> Self {
         self.fields.user_id = Some(user_id);
 
         self

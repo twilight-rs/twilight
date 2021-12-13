@@ -11,10 +11,7 @@ use crate::{
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use twilight_model::{
     application::command::permissions::CommandPermissions,
-    id::{
-        marker::{ApplicationMarker, CommandMarker, GuildMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -67,7 +64,7 @@ impl Serialize for OptionalCommandPermissions<'_> {
 struct SortedCommand<'a> {
     #[serde(skip_serializing)]
     count: u8,
-    id: Id<CommandMarker>,
+    id: Id<marker::Command>,
     permissions: OptionalCommandPermissions<'a>,
 }
 
@@ -97,7 +94,7 @@ struct SortedCommands<'a> {
 
 impl<'a> SortedCommands<'a> {
     pub fn from_pairs(
-        pairs: &'a [(Id<CommandMarker>, CommandPermissions)],
+        pairs: &'a [(Id<marker::Command>, CommandPermissions)],
     ) -> Result<Self, InteractionError> {
         let mut sorted = [SortedCommand::new(); InteractionError::GUILD_COMMAND_LIMIT];
         let mut outer_idx = 0;
@@ -169,8 +166,8 @@ impl Serialize for SortedCommands<'_> {
 #[derive(Debug)]
 #[must_use = "requests must be configured and executed"]
 pub struct SetCommandPermissions<'a> {
-    application_id: Id<ApplicationMarker>,
-    guild_id: Id<GuildMarker>,
+    application_id: Id<marker::Application>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     permissions: SortedCommands<'a>,
 }
@@ -178,9 +175,9 @@ pub struct SetCommandPermissions<'a> {
 impl<'a> SetCommandPermissions<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
-        guild_id: Id<GuildMarker>,
-        permissions: &'a [(Id<CommandMarker>, CommandPermissions)],
+        application_id: Id<marker::Application>,
+        guild_id: Id<marker::Guild>,
+        permissions: &'a [(Id<marker::Command>, CommandPermissions)],
     ) -> Result<Self, InteractionError> {
         let sorted_permissions = match SortedCommands::from_pairs(permissions) {
             Ok(sorted_permissions) => sorted_permissions,
@@ -230,29 +227,26 @@ mod tests {
     use std::{error::Error, iter};
     use twilight_model::{
         application::command::permissions::{CommandPermissions, CommandPermissionsType},
-        id::{
-            marker::{ApplicationMarker, CommandMarker, GuildMarker},
-            Id,
-        },
+        id::{marker, Id},
     };
 
-    fn application_id() -> Id<ApplicationMarker> {
+    fn application_id() -> Id<marker::Application> {
         Id::new(1).expect("non zero")
     }
 
-    fn guild_id() -> Id<GuildMarker> {
+    fn guild_id() -> Id<marker::Guild> {
         Id::new(2).expect("non zero")
     }
 
     #[derive(Debug, Deserialize, Eq, PartialEq)]
     struct GuildCommandPermissionDeserializable {
-        id: Id<CommandMarker>,
+        id: Id<marker::Command>,
         permissions: Vec<CommandPermissions>,
     }
 
     fn command_permissions(
-        id: Id<CommandMarker>,
-    ) -> impl Iterator<Item = (Id<CommandMarker>, CommandPermissions)> {
+        id: Id<marker::Command>,
+    ) -> impl Iterator<Item = (Id<marker::Command>, CommandPermissions)> {
         iter::repeat((
             id,
             CommandPermissions {

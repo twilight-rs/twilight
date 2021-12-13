@@ -1,10 +1,7 @@
 use crate::{
     gateway::presence::{Presence, PresenceListDeserializer},
     guild::member::{Member, MemberListDeserializer},
-    id::{
-        marker::{GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -16,11 +13,11 @@ use std::fmt::{Formatter, Result as FmtResult};
 pub struct MemberChunk {
     pub chunk_count: u32,
     pub chunk_index: u32,
-    pub guild_id: Id<GuildMarker>,
+    pub guild_id: Id<marker::Guild>,
     pub members: Vec<Member>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nonce: Option<String>,
-    pub not_found: Vec<Id<UserMarker>>,
+    pub not_found: Vec<Id<marker::User>>,
     #[serde(default)]
     pub presences: Vec<Presence>,
 }

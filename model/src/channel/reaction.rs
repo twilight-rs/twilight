@@ -1,10 +1,7 @@
 use crate::{
     channel::ReactionType,
     guild::member::{Member, OptionalMemberDeserializer},
-    id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -14,12 +11,12 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct Reaction {
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     pub emoji: ReactionType,
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     pub member: Option<Member>,
-    pub message_id: Id<MessageMarker>,
-    pub user_id: Id<UserMarker>,
+    pub message_id: Id<marker::Message>,
+    pub user_id: Id<marker::User>,
 }
 
 #[derive(Debug, Deserialize)]

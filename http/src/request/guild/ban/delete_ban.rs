@@ -5,10 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{GuildMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Remove a ban from a user in a guild.
 ///
@@ -32,17 +29,17 @@ use twilight_model::id::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteBan<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
     reason: Option<&'a str>,
 }
 
 impl<'a> DeleteBan<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> Self {
         Self {
             guild_id,

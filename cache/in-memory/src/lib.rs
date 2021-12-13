@@ -113,13 +113,7 @@ use twilight_model::{
     channel::{Group, GuildChannel, PrivateChannel, StageInstance},
     gateway::event::Event,
     guild::{GuildIntegration, Role},
-    id::{
-        marker::{
-            ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
-            StageMarker, StickerMarker, UserMarker,
-        },
-        Id,
-    },
+    id::{marker, Id},
     user::{CurrentUser, User},
     voice::VoiceState,
 };
@@ -131,13 +125,13 @@ use twilight_model::{
 /// includes it.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GuildResource<T> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     value: T,
 }
 
 impl<T> GuildResource<T> {
     /// ID of the guild associated with the resource.
-    pub const fn guild_id(&self) -> Id<GuildMarker> {
+    pub const fn guild_id(&self) -> Id<marker::Guild> {
         self.guild_id
     }
 
@@ -196,7 +190,7 @@ impl<'a, K: Eq + Hash, V> Deref for Reference<'a, K, V> {
 
 fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
     map: &DashMap<K, GuildResource<V>>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     key: K,
     value: V,
 ) {
@@ -251,40 +245,41 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
 #[derive(Debug, Default)]
 pub struct InMemoryCache {
     config: Config,
-    channels_guild: DashMap<Id<ChannelMarker>, GuildResource<GuildChannel>>,
-    channels_private: DashMap<Id<ChannelMarker>, PrivateChannel>,
-    channel_messages: DashMap<Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>,
+    channels_guild: DashMap<Id<marker::Channel>, GuildResource<GuildChannel>>,
+    channels_private: DashMap<Id<marker::Channel>, PrivateChannel>,
+    channel_messages: DashMap<Id<marker::Channel>, VecDeque<Id<marker::Message>>>,
     // So long as the lock isn't held across await or panic points this is fine.
     current_user: Mutex<Option<CurrentUser>>,
-    emojis: DashMap<Id<EmojiMarker>, GuildResource<CachedEmoji>>,
-    groups: DashMap<Id<ChannelMarker>, Group>,
-    guilds: DashMap<Id<GuildMarker>, CachedGuild>,
-    guild_channels: DashMap<Id<GuildMarker>, HashSet<Id<ChannelMarker>>>,
-    guild_emojis: DashMap<Id<GuildMarker>, HashSet<Id<EmojiMarker>>>,
-    guild_integrations: DashMap<Id<GuildMarker>, HashSet<Id<IntegrationMarker>>>,
-    guild_members: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
-    guild_presences: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
-    guild_roles: DashMap<Id<GuildMarker>, HashSet<Id<RoleMarker>>>,
-    guild_stage_instances: DashMap<Id<GuildMarker>, HashSet<Id<StageMarker>>>,
-    guild_stickers: DashMap<Id<GuildMarker>, HashSet<Id<StickerMarker>>>,
+    emojis: DashMap<Id<marker::Emoji>, GuildResource<CachedEmoji>>,
+    groups: DashMap<Id<marker::Channel>, Group>,
+    guilds: DashMap<Id<marker::Guild>, CachedGuild>,
+    guild_channels: DashMap<Id<marker::Guild>, HashSet<Id<marker::Channel>>>,
+    guild_emojis: DashMap<Id<marker::Guild>, HashSet<Id<marker::Emoji>>>,
+    guild_integrations: DashMap<Id<marker::Guild>, HashSet<Id<marker::Integration>>>,
+    guild_members: DashMap<Id<marker::Guild>, HashSet<Id<marker::User>>>,
+    guild_presences: DashMap<Id<marker::Guild>, HashSet<Id<marker::User>>>,
+    guild_roles: DashMap<Id<marker::Guild>, HashSet<Id<marker::Role>>>,
+    guild_stage_instances: DashMap<Id<marker::Guild>, HashSet<Id<marker::Stage>>>,
+    guild_stickers: DashMap<Id<marker::Guild>, HashSet<Id<marker::Sticker>>>,
     integrations:
-        DashMap<(Id<GuildMarker>, Id<IntegrationMarker>), GuildResource<GuildIntegration>>,
-    members: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedMember>,
-    messages: DashMap<Id<MessageMarker>, CachedMessage>,
-    presences: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedPresence>,
-    roles: DashMap<Id<RoleMarker>, GuildResource<Role>>,
-    stage_instances: DashMap<Id<StageMarker>, GuildResource<StageInstance>>,
-    stickers: DashMap<Id<StickerMarker>, GuildResource<CachedSticker>>,
-    unavailable_guilds: DashSet<Id<GuildMarker>>,
-    users: DashMap<Id<UserMarker>, User>,
-    user_guilds: DashMap<Id<UserMarker>, BTreeSet<Id<GuildMarker>>>,
+        DashMap<(Id<marker::Guild>, Id<marker::Integration>), GuildResource<GuildIntegration>>,
+    members: DashMap<(Id<marker::Guild>, Id<marker::User>), CachedMember>,
+    messages: DashMap<Id<marker::Message>, CachedMessage>,
+    presences: DashMap<(Id<marker::Guild>, Id<marker::User>), CachedPresence>,
+    roles: DashMap<Id<marker::Role>, GuildResource<Role>>,
+    stage_instances: DashMap<Id<marker::Stage>, GuildResource<StageInstance>>,
+    stickers: DashMap<Id<marker::Sticker>, GuildResource<CachedSticker>>,
+    unavailable_guilds: DashSet<Id<marker::Guild>>,
+    users: DashMap<Id<marker::User>, User>,
+    user_guilds: DashMap<Id<marker::User>, BTreeSet<Id<marker::Guild>>>,
     /// Mapping of channels and the users currently connected.
     #[allow(clippy::type_complexity)]
-    voice_state_channels: DashMap<Id<ChannelMarker>, HashSet<(Id<GuildMarker>, Id<UserMarker>)>>,
+    voice_state_channels:
+        DashMap<Id<marker::Channel>, HashSet<(Id<marker::Guild>, Id<marker::User>)>>,
     /// Mapping of guilds and users currently connected to its voice channels.
-    voice_state_guilds: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
+    voice_state_guilds: DashMap<Id<marker::Guild>, HashSet<Id<marker::User>>>,
     /// Mapping of guild ID and user ID pairs to their voice states.
-    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
+    voice_states: DashMap<(Id<marker::Guild>, Id<marker::User>), VoiceState>,
 }
 
 /// Implemented methods and types for the cache.
@@ -450,16 +445,16 @@ impl InMemoryCache {
     /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
     pub fn emoji(
         &self,
-        emoji_id: Id<EmojiMarker>,
-    ) -> Option<Reference<'_, Id<EmojiMarker>, GuildResource<CachedEmoji>>> {
+        emoji_id: Id<marker::Emoji>,
+    ) -> Option<Reference<'_, Id<marker::Emoji>, GuildResource<CachedEmoji>>> {
         self.emojis.get(&emoji_id).map(Reference::new)
     }
 
     /// Gets a group by ID.
     pub fn group(
         &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, Group>> {
+        channel_id: Id<marker::Channel>,
+    ) -> Option<Reference<'_, Id<marker::Channel>, Group>> {
         self.groups.get(&channel_id).map(Reference::new)
     }
 
@@ -470,8 +465,8 @@ impl InMemoryCache {
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     pub fn guild(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, CachedGuild>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, CachedGuild>> {
         self.guilds.get(&guild_id).map(Reference::new)
     }
 
@@ -482,8 +477,8 @@ impl InMemoryCache {
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     pub fn guild_channel(
         &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, GuildResource<GuildChannel>>> {
+        channel_id: Id<marker::Channel>,
+    ) -> Option<Reference<'_, Id<marker::Channel>, GuildResource<GuildChannel>>> {
         self.channels_guild.get(&channel_id).map(Reference::new)
     }
 
@@ -494,8 +489,8 @@ impl InMemoryCache {
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     pub fn guild_channels(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<ChannelMarker>>>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, HashSet<Id<marker::Channel>>>> {
         self.guild_channels.get(&guild_id).map(Reference::new)
     }
 
@@ -507,8 +502,8 @@ impl InMemoryCache {
     /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
     pub fn guild_emojis(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<EmojiMarker>>>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, HashSet<Id<marker::Emoji>>>> {
         self.guild_emojis.get(&guild_id).map(Reference::new)
     }
 
@@ -520,8 +515,8 @@ impl InMemoryCache {
     /// [`GUILD_INTEGRATIONS`]: twilight_model::gateway::Intents::GUILD_INTEGRATIONS
     pub fn guild_integrations(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<IntegrationMarker>>>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, HashSet<Id<marker::Integration>>>> {
         self.guild_integrations.get(&guild_id).map(Reference::new)
     }
 
@@ -534,8 +529,8 @@ impl InMemoryCache {
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
     pub fn guild_members(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<UserMarker>>>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, HashSet<Id<marker::User>>>> {
         self.guild_members.get(&guild_id).map(Reference::new)
     }
 
@@ -548,8 +543,8 @@ impl InMemoryCache {
     /// [`GUILD_PRESENCES`]: ::twilight_model::gateway::Intents::GUILD_PRESENCES
     pub fn guild_presences(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<UserMarker>>>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, HashSet<Id<marker::User>>>> {
         self.guild_presences.get(&guild_id).map(Reference::new)
     }
 
@@ -560,8 +555,8 @@ impl InMemoryCache {
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     pub fn guild_roles(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<RoleMarker>>>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, HashSet<Id<marker::Role>>>> {
         self.guild_roles.get(&guild_id).map(Reference::new)
     }
 
@@ -572,8 +567,8 @@ impl InMemoryCache {
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
     pub fn guild_stage_instances(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<StageMarker>>>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, HashSet<Id<marker::Stage>>>> {
         self.guild_stage_instances
             .get(&guild_id)
             .map(Reference::new)
@@ -589,8 +584,8 @@ impl InMemoryCache {
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn guild_stickers(
         &self,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<StickerMarker>>>> {
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, Id<marker::Guild>, HashSet<Id<marker::Sticker>>>> {
         self.guild_stickers.get(&guild_id).map(Reference::new)
     }
 
@@ -603,10 +598,14 @@ impl InMemoryCache {
     #[allow(clippy::type_complexity)]
     pub fn integration(
         &self,
-        guild_id: Id<GuildMarker>,
-        integration_id: Id<IntegrationMarker>,
+        guild_id: Id<marker::Guild>,
+        integration_id: Id<marker::Integration>,
     ) -> Option<
-        Reference<'_, (Id<GuildMarker>, Id<IntegrationMarker>), GuildResource<GuildIntegration>>,
+        Reference<
+            '_,
+            (Id<marker::Guild>, Id<marker::Integration>),
+            GuildResource<GuildIntegration>,
+        >,
     > {
         self.integrations
             .get(&(guild_id, integration_id))
@@ -621,9 +620,9 @@ impl InMemoryCache {
     #[allow(clippy::type_complexity)]
     pub fn member(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedMember>> {
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
+    ) -> Option<Reference<'_, (Id<marker::Guild>, Id<marker::User>), CachedMember>> {
         self.members.get(&(guild_id, user_id)).map(Reference::new)
     }
 
@@ -636,8 +635,8 @@ impl InMemoryCache {
     /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
     pub fn message(
         &self,
-        message_id: Id<MessageMarker>,
-    ) -> Option<Reference<'_, Id<MessageMarker>, CachedMessage>> {
+        message_id: Id<marker::Message>,
+    ) -> Option<Reference<'_, Id<marker::Message>, CachedMessage>> {
         self.messages.get(&message_id).map(Reference::new)
     }
 
@@ -649,9 +648,9 @@ impl InMemoryCache {
     #[allow(clippy::type_complexity)]
     pub fn presence(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedPresence>> {
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
+    ) -> Option<Reference<'_, (Id<marker::Guild>, Id<marker::User>), CachedPresence>> {
         self.presences.get(&(guild_id, user_id)).map(Reference::new)
     }
 
@@ -662,8 +661,8 @@ impl InMemoryCache {
     /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
     pub fn private_channel(
         &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, PrivateChannel>> {
+        channel_id: Id<marker::Channel>,
+    ) -> Option<Reference<'_, Id<marker::Channel>, PrivateChannel>> {
         self.channels_private.get(&channel_id).map(Reference::new)
     }
 
@@ -674,8 +673,8 @@ impl InMemoryCache {
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     pub fn role(
         &self,
-        role_id: Id<RoleMarker>,
-    ) -> Option<Reference<'_, Id<RoleMarker>, GuildResource<Role>>> {
+        role_id: Id<marker::Role>,
+    ) -> Option<Reference<'_, Id<marker::Role>, GuildResource<Role>>> {
         self.roles.get(&role_id).map(Reference::new)
     }
 
@@ -686,8 +685,8 @@ impl InMemoryCache {
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
     pub fn stage_instance(
         &self,
-        stage_id: Id<StageMarker>,
-    ) -> Option<Reference<'_, Id<StageMarker>, GuildResource<StageInstance>>> {
+        stage_id: Id<marker::Stage>,
+    ) -> Option<Reference<'_, Id<marker::Stage>, GuildResource<StageInstance>>> {
         self.stage_instances.get(&stage_id).map(Reference::new)
     }
 
@@ -700,8 +699,8 @@ impl InMemoryCache {
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn sticker(
         &self,
-        sticker_id: Id<StickerMarker>,
-    ) -> Option<Reference<'_, Id<StickerMarker>, GuildResource<CachedSticker>>> {
+        sticker_id: Id<marker::Sticker>,
+    ) -> Option<Reference<'_, Id<marker::Sticker>, GuildResource<CachedSticker>>> {
         self.stickers.get(&sticker_id).map(Reference::new)
     }
 
@@ -710,7 +709,7 @@ impl InMemoryCache {
     /// This requires the [`GUILD_MEMBERS`] intent.
     ///
     /// [`GUILD_MEMBERS`]: ::twilight_model::gateway::Intents::GUILD_MEMBERS
-    pub fn user(&self, user_id: Id<UserMarker>) -> Option<Reference<'_, Id<UserMarker>, User>> {
+    pub fn user(&self, user_id: Id<marker::User>) -> Option<Reference<'_, Id<marker::User>, User>> {
         self.users.get(&user_id).map(Reference::new)
     }
 
@@ -722,7 +721,7 @@ impl InMemoryCache {
     /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
     pub fn voice_channel_states(
         &self,
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     ) -> Option<VoiceChannelStates<'_>> {
         let user_ids = self.voice_state_channels.get(&channel_id)?;
 
@@ -742,9 +741,9 @@ impl InMemoryCache {
     #[allow(clippy::type_complexity)]
     pub fn voice_state(
         &self,
-        user_id: Id<UserMarker>,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), VoiceState>> {
+        user_id: Id<marker::User>,
+        guild_id: Id<marker::Guild>,
+    ) -> Option<Reference<'_, (Id<marker::Guild>, Id<marker::User>), VoiceState>> {
         self.voice_states
             .get(&(guild_id, user_id))
             .map(Reference::new)
@@ -758,15 +757,15 @@ impl InMemoryCache {
     /// [`GUILD_MEMBERS`]: twilight_model::gateway::Intents::GUILD_MEMBERS
     pub fn member_highest_role(
         &self,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-    ) -> Option<Id<RoleMarker>> {
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
+    ) -> Option<Id<marker::Role>> {
         let member = match self.members.get(&(guild_id, user_id)) {
             Some(member) => member,
             None => return None,
         };
 
-        let mut highest_role: Option<(i64, Id<RoleMarker>)> = None;
+        let mut highest_role: Option<(i64, Id<marker::Role>)> = None;
 
         for role_id in &member.roles {
             if let Some(role) = self.role(*role_id) {
@@ -809,12 +808,12 @@ pub trait UpdateCache {
 pub struct VoiceChannelStates<'a> {
     index: usize,
     #[allow(clippy::type_complexity)]
-    user_ids: Ref<'a, Id<ChannelMarker>, HashSet<(Id<GuildMarker>, Id<UserMarker>)>>,
-    voice_states: &'a DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
+    user_ids: Ref<'a, Id<marker::Channel>, HashSet<(Id<marker::Guild>, Id<marker::User>)>>,
+    voice_states: &'a DashMap<(Id<marker::Guild>, Id<marker::User>), VoiceState>,
 }
 
 impl<'a> Iterator for VoiceChannelStates<'a> {
-    type Item = Reference<'a, (Id<GuildMarker>, Id<UserMarker>), VoiceState>;
+    type Item = Reference<'a, (Id<marker::Guild>, Id<marker::User>), VoiceState>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some((guild_id, user_id)) = self.user_ids.iter().nth(self.index) {

@@ -12,10 +12,7 @@ use std::{
 };
 use twilight_model::{
     guild::PartialMember,
-    id::{
-        marker::{GuildMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Member cannot be added as configured.
@@ -78,15 +75,15 @@ struct AddGuildMemberFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nick: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub roles: Option<&'a [Id<RoleMarker>]>,
+    pub roles: Option<&'a [Id<marker::Role>]>,
 }
 
 #[must_use = "requests must be configured and executed"]
 pub struct AddGuildMember<'a> {
     fields: AddGuildMemberFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 /// Add a user to a guild.
@@ -98,8 +95,8 @@ pub struct AddGuildMember<'a> {
 impl<'a> AddGuildMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
         access_token: &'a str,
     ) -> Self {
         Self {
@@ -153,7 +150,7 @@ impl<'a> AddGuildMember<'a> {
     }
 
     /// List of roles to assign the new member.
-    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
+    pub const fn roles(mut self, roles: &'a [Id<marker::Role>]) -> Self {
         self.fields.roles = Some(roles);
 
         self

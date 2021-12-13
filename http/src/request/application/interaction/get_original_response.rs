@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::Message,
-    id::{marker::ApplicationMarker, Id},
+    id::{marker, Id},
 };
 
 /// Get the original message, by its token.
@@ -34,7 +34,7 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetOriginalResponse<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     http: &'a Client,
     token: &'a str,
 }
@@ -42,7 +42,7 @@ pub struct GetOriginalResponse<'a> {
 impl<'a> GetOriginalResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         interaction_token: &'a str,
     ) -> Self {
         Self {

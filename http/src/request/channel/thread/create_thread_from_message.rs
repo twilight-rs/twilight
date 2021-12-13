@@ -9,10 +9,7 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
-    id::{
-        marker::{ChannelMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 #[derive(Serialize)]
@@ -43,17 +40,17 @@ struct CreateThreadFromMessageFields<'a> {
 /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     fields: CreateThreadFromMessageFields<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
 }
 
 impl<'a> CreateThreadFromMessage<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         name: &'a str,
     ) -> Result<Self, ThreadValidationError> {
         if !validate_inner::channel_name(name) {

@@ -44,10 +44,7 @@ use crate::{
     channel::{message::sticker::Sticker, GuildChannel, StageInstance},
     datetime::Timestamp,
     gateway::presence::Presence,
-    id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     voice::voice_state::VoiceState,
 };
 use serde::{
@@ -58,9 +55,9 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Guild {
-    pub afk_channel_id: Option<Id<ChannelMarker>>,
+    pub afk_channel_id: Option<Id<marker::Channel>>,
     pub afk_timeout: u64,
-    pub application_id: Option<Id<ApplicationMarker>>,
+    pub application_id: Option<Id<marker::Application>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_member_count: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -75,7 +72,7 @@ pub struct Guild {
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
     pub icon: Option<String>,
-    pub id: Id<GuildMarker>,
+    pub id: Id<marker::Guild>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub joined_at: Option<Timestamp>,
     pub large: bool,
@@ -92,7 +89,7 @@ pub struct Guild {
     pub mfa_level: MfaLevel,
     pub name: String,
     pub nsfw_level: NSFWLevel,
-    pub owner_id: Id<UserMarker>,
+    pub owner_id: Id<marker::User>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -105,14 +102,14 @@ pub struct Guild {
     #[serde(default)]
     pub presences: Vec<Presence>,
     pub roles: Vec<Role>,
-    pub rules_channel_id: Option<Id<ChannelMarker>>,
+    pub rules_channel_id: Option<Id<marker::Channel>>,
     pub splash: Option<String>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub stage_instances: Vec<StageInstance>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub stickers: Vec<Sticker>,
     pub system_channel_flags: SystemChannelFlags,
-    pub system_channel_id: Option<Id<ChannelMarker>>,
+    pub system_channel_id: Option<Id<marker::Channel>>,
     #[serde(default)]
     pub threads: Vec<GuildChannel>,
     #[serde(default)]
@@ -122,7 +119,7 @@ pub struct Guild {
     #[serde(default)]
     pub voice_states: Vec<VoiceState>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub widget_channel_id: Option<Id<ChannelMarker>>,
+    pub widget_channel_id: Option<Id<marker::Channel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_enabled: Option<bool>,
 }

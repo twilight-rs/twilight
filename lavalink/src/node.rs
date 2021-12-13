@@ -44,7 +44,7 @@ use tokio_tungstenite::{
     tungstenite::{Error as TungsteniteError, Message},
     MaybeTlsStream, WebSocketStream,
 };
-use twilight_model::id::{marker::UserMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// An error occurred while either initializing a connection or while running
 /// its event loop.
@@ -237,7 +237,7 @@ pub struct NodeConfig {
     /// The number of shards in use by the bot.
     pub shard_count: u64,
     /// The user ID of the bot.
-    pub user_id: Id<UserMarker>,
+    pub user_id: Id<marker::User>,
 }
 
 /// Configuration for a session which can be resumed.
@@ -274,7 +274,7 @@ impl NodeConfig {
     ///
     /// [`Lavalink`]: crate::client::Lavalink
     pub fn new(
-        user_id: Id<UserMarker>,
+        user_id: Id<marker::User>,
         shard_count: u64,
         address: impl Into<SocketAddr>,
         authorization: impl Into<String>,
@@ -290,7 +290,7 @@ impl NodeConfig {
     }
 
     const fn _new(
-        user_id: Id<UserMarker>,
+        user_id: Id<marker::User>,
         shard_count: u64,
         address: SocketAddr,
         authorization: String,

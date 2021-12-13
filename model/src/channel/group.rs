@@ -1,10 +1,7 @@
 use crate::{
     channel::ChannelType,
     datetime::Timestamp,
-    id::{
-        marker::{ApplicationMarker, ChannelMarker, MessageMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -12,18 +9,18 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Group {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<Id<ApplicationMarker>>,
+    pub application_id: Option<Id<marker::Application>>,
     pub icon: Option<String>,
-    pub id: Id<ChannelMarker>,
+    pub id: Id<marker::Channel>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<Id<MessageMarker>>,
+    pub last_message_id: Option<Id<marker::Message>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    pub owner_id: Id<UserMarker>,
+    pub owner_id: Id<marker::User>,
     pub recipients: Vec<User>,
 }
 

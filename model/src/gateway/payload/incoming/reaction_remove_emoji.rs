@@ -1,16 +1,13 @@
 use crate::{
     channel::ReactionType,
-    id::{
-        marker::{ChannelMarker, GuildMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ReactionRemoveEmoji {
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     pub emoji: ReactionType,
-    pub guild_id: Id<GuildMarker>,
-    pub message_id: Id<MessageMarker>,
+    pub guild_id: Id<marker::Guild>,
+    pub message_id: Id<marker::Message>,
 }

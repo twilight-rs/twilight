@@ -26,10 +26,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageReference},
         Message,
     },
-    id::{
-        marker::{ChannelMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// The error created when a message can not be created as configured.
@@ -167,13 +164,13 @@ pub(crate) struct CreateMessageFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateMessage<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     pub(crate) fields: CreateMessageFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> CreateMessage<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self {
             channel_id,
             fields: CreateMessageFields {
@@ -339,7 +336,7 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Specify the ID of another message to create a reply to.
-    pub const fn reply(mut self, other: Id<MessageMarker>) -> Self {
+    pub const fn reply(mut self, other: Id<marker::Message>) -> Self {
         let channel_id = self.channel_id;
 
         // Clippy recommends using `Option::map_or_else` which is not `const`.

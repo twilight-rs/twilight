@@ -7,13 +7,13 @@ use crate::{
 };
 use twilight_model::{
     application::callback::InteractionResponse,
-    id::{marker::InteractionMarker, Id},
+    id::{marker, Id},
 };
 
 /// Respond to an interaction, by ID and token.
 #[must_use = "requests must be configured and executed"]
 pub struct InteractionCallback<'a> {
-    interaction_id: Id<InteractionMarker>,
+    interaction_id: Id<marker::Interaction>,
     interaction_token: &'a str,
     response: &'a InteractionResponse,
     http: &'a Client,
@@ -22,7 +22,7 @@ pub struct InteractionCallback<'a> {
 impl<'a> InteractionCallback<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        interaction_id: Id<InteractionMarker>,
+        interaction_id: Id<marker::Interaction>,
         interaction_token: &'a str,
         response: &'a InteractionResponse,
     ) -> Self {

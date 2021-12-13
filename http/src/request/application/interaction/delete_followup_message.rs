@@ -5,10 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{ApplicationMarker, MessageMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Delete a followup message created from a interaction.
 ///
@@ -33,17 +30,17 @@ use twilight_model::id::{
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteFollowupMessage<'a> {
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
     token: &'a str,
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
 }
 
 impl<'a> DeleteFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> Self {
         Self {
             http,

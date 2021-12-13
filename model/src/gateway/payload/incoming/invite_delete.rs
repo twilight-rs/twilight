@@ -1,12 +1,9 @@
-use crate::id::{
-    marker::{ChannelMarker, GuildMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteDelete {
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     pub code: String,
-    pub guild_id: Id<GuildMarker>,
+    pub guild_id: Id<marker::Guild>,
 }

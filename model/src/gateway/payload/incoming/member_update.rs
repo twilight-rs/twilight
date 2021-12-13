@@ -1,9 +1,6 @@
 use crate::{
     datetime::Timestamp,
-    id::{
-        marker::{GuildMarker, RoleMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -12,7 +9,7 @@ use serde::{Deserialize, Serialize};
 pub struct MemberUpdate {
     /// Member's guild avatar.
     pub avatar: Option<String>,
-    pub guild_id: Id<GuildMarker>,
+    pub guild_id: Id<marker::Guild>,
     pub deaf: Option<bool>,
     pub joined_at: Timestamp,
     pub mute: Option<bool>,
@@ -29,7 +26,7 @@ pub struct MemberUpdate {
     #[serde(default)]
     pub pending: bool,
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<Id<RoleMarker>>,
+    pub roles: Vec<Id<marker::Role>>,
     pub user: User,
 }
 

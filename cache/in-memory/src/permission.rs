@@ -31,10 +31,7 @@ use std::{
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, GuildChannel},
     guild::Permissions,
-    id::{
-        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use twilight_util::permission_calculator::PermissionCalculator;
 
@@ -108,7 +105,7 @@ pub enum ChannelErrorType {
     /// Guild channel is not present in the cache.
     ChannelUnavailable {
         /// ID of the channel.
-        channel_id: Id<ChannelMarker>,
+        channel_id: Id<marker::Channel>,
     },
     /// The user's member information is not available in the guild.
     ///
@@ -116,9 +113,9 @@ pub enum ChannelErrorType {
     /// because the member entity has not yet been received by the cache.
     MemberUnavailable {
         /// ID of the guild.
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         /// ID of the user.
-        user_id: Id<UserMarker>,
+        user_id: Id<marker::User>,
     },
     /// One of the user's roles is not available in the guild.
     ///
@@ -128,7 +125,7 @@ pub enum ChannelErrorType {
     /// [`RoleCreate`]: twilight_model::gateway::payload::incoming::RoleCreate
     RoleUnavailable {
         /// ID of the role that the user has but details about is missing.
-        role_id: Id<RoleMarker>,
+        role_id: Id<marker::Role>,
     },
 }
 
@@ -201,9 +198,9 @@ pub enum RootErrorType {
     /// because the member entity has not yet been received by the cache.
     MemberUnavailable {
         /// ID of the guild.
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         /// ID of the user.
-        user_id: Id<UserMarker>,
+        user_id: Id<marker::User>,
     },
     /// One of the user's roles is not available in the guild.
     ///
@@ -213,7 +210,7 @@ pub enum RootErrorType {
     /// [`RoleCreate`]: twilight_model::gateway::payload::incoming::RoleCreate
     RoleUnavailable {
         /// ID of the role that the user has but details about is missing.
-        role_id: Id<RoleMarker>,
+        role_id: Id<marker::Role>,
     },
 }
 
@@ -223,18 +220,18 @@ enum MemberRolesErrorType {
     /// Member is not in the cache.
     MemberMissing {
         /// ID of the guild.
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         /// ID of the user.
-        user_id: Id<UserMarker>,
+        user_id: Id<marker::User>,
     },
     /// Role is missing from the cache.
-    RoleMissing { role_id: Id<RoleMarker> },
+    RoleMissing { role_id: Id<marker::Role> },
 }
 
 /// Member's roles' permissions and the guild's `@everyone` role's permissions.
 struct MemberRoles {
     /// User's roles and their permissions.
-    assigned: Vec<(Id<RoleMarker>, Permissions)>,
+    assigned: Vec<(Id<marker::Role>, Permissions)>,
     /// Permissions of the guild's `@everyone` role.
     everyone: Permissions,
 }
@@ -311,8 +308,8 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// [`ResourceType`]: crate::ResourceType
     pub fn in_channel(
         &self,
-        user_id: Id<UserMarker>,
-        channel_id: Id<ChannelMarker>,
+        user_id: Id<marker::User>,
+        channel_id: Id<marker::Channel>,
     ) -> Result<Permissions, ChannelError> {
         let channel = self.0.channels_guild.get(&channel_id).ok_or(ChannelError {
             kind: ChannelErrorType::ChannelUnavailable { channel_id },
@@ -394,8 +391,8 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// [`ResourceType`]: crate::ResourceType
     pub fn root(
         &self,
-        user_id: Id<UserMarker>,
-        guild_id: Id<GuildMarker>,
+        user_id: Id<marker::User>,
+        guild_id: Id<marker::Guild>,
     ) -> Result<Permissions, RootError> {
         if self.is_owner(user_id, guild_id) {
             return Ok(Permissions::all());
@@ -414,7 +411,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// Returns true if the user is or false if the user is definitively not the
     /// owner of the guild or the guild is not in the cache.
-    fn is_owner(&self, user_id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> bool {
+    fn is_owner(&self, user_id: Id<marker::User>, guild_id: Id<marker::Guild>) -> bool {
         self.0
             .guilds
             .get(&guild_id)
@@ -434,8 +431,8 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// the cache.
     fn member_roles(
         &self,
-        user_id: Id<UserMarker>,
-        guild_id: Id<GuildMarker>,
+        user_id: Id<marker::User>,
+        guild_id: Id<marker::Guild>,
     ) -> Result<MemberRoles, MemberRolesErrorType> {
         let member = if let Some(member) = self.0.members.get(&(guild_id, user_id)) {
             member
@@ -472,7 +469,7 @@ impl<'a> InMemoryCachePermissions<'a> {
 
     fn parent_overwrites(
         &self,
-        channel_id: &Id<ChannelMarker>,
+        channel_id: &Id<marker::Channel>,
         parent_overwrites: Option<Vec<PermissionOverwrite>>,
     ) -> Result<Vec<PermissionOverwrite>, ChannelError> {
         let channel = self.0.channels_guild.get(channel_id).ok_or(ChannelError {
@@ -520,10 +517,7 @@ mod tests {
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
             Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
         },
-        id::{
-            marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
-            Id,
-        },
+        id::{marker, Id},
     };
 
     assert_fields!(ChannelErrorType::ChannelUnavailable: channel_id);
@@ -538,34 +532,34 @@ mod tests {
     assert_impl_all!(RootError: Debug, Send, Sync);
 
     /// Guild ID used in tests.
-    fn guild_id() -> Id<GuildMarker> {
+    fn guild_id() -> Id<marker::Guild> {
         Id::new(1).expect("non zero")
     }
 
     /// ID of the `@everyone` role.
-    fn everyone_role_id() -> Id<RoleMarker> {
+    fn everyone_role_id() -> Id<marker::Role> {
         guild_id().cast()
     }
 
     /// User ID used in tests.
-    fn user_id() -> Id<UserMarker> {
+    fn user_id() -> Id<marker::User> {
         Id::new(2).expect("non zero")
     }
 
     /// ID of another role.
-    fn other_role_id() -> Id<RoleMarker> {
+    fn other_role_id() -> Id<marker::Role> {
         Id::new(3).expect("non zero")
     }
 
     /// ID of the user that owns the guild with the ID [`GUILD_ID`].
-    fn owner_id() -> Id<UserMarker> {
+    fn owner_id() -> Id<marker::User> {
         Id::new(4).expect("non zero")
     }
 
     /// ID of the #general channel in the guild.
     ///
     /// This has the same ID as the [`GUILD_ID`].
-    fn channel_id() -> Id<ChannelMarker> {
+    fn channel_id() -> Id<marker::Channel> {
         guild_id().cast()
     }
 
@@ -655,14 +649,14 @@ mod tests {
         }))
     }
 
-    fn role_with_permissions(id: Id<RoleMarker>, permissions: Permissions) -> Role {
+    fn role_with_permissions(id: Id<marker::Role>, permissions: Permissions) -> Role {
         let mut role = test::role(id);
         role.permissions = permissions;
 
         role
     }
 
-    const fn role_create(guild_id: Id<GuildMarker>, role: Role) -> RoleCreate {
+    const fn role_create(guild_id: Id<marker::Guild>, role: Role) -> RoleCreate {
         RoleCreate { guild_id, role }
     }
 

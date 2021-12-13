@@ -7,10 +7,7 @@ use twilight_model::{
     datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
     guild::{Emoji, Member, PartialMember, Permissions, Role},
-    id::{
-        marker::{ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::{CurrentUser, User},
     voice::VoiceState,
 };
@@ -179,7 +176,7 @@ pub fn current_user(id: u64) -> CurrentUser {
     }
 }
 
-pub fn emoji(id: Id<EmojiMarker>, user: Option<User>) -> Emoji {
+pub fn emoji(id: Id<marker::Emoji>, user: Option<User>) -> Emoji {
     Emoji {
         animated: false,
         available: true,
@@ -192,7 +189,7 @@ pub fn emoji(id: Id<EmojiMarker>, user: Option<User>) -> Emoji {
     }
 }
 
-pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, GuildChannel) {
+pub fn guild_channel_text() -> (Id<marker::Guild>, Id<marker::Channel>, GuildChannel) {
     let guild_id = Id::new(1).expect("non zero");
     let channel_id = Id::new(2).expect("non zero");
     let channel = GuildChannel::Text(TextChannel {
@@ -213,7 +210,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, GuildChannel
     (guild_id, channel_id, channel)
 }
 
-pub fn member(id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> Member {
+pub fn member(id: Id<marker::User>, guild_id: Id<marker::Guild>) -> Member {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
     Member {
@@ -230,7 +227,7 @@ pub fn member(id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> Member {
     }
 }
 
-pub fn role(id: Id<RoleMarker>) -> Role {
+pub fn role(id: Id<marker::Role>) -> Role {
     Role {
         color: 0,
         hoist: false,
@@ -247,9 +244,9 @@ pub fn role(id: Id<RoleMarker>) -> Role {
 }
 
 pub fn voice_state(
-    guild_id: Id<GuildMarker>,
-    channel_id: Option<Id<ChannelMarker>>,
-    user_id: Id<UserMarker>,
+    guild_id: Id<marker::Guild>,
+    channel_id: Option<Id<marker::Channel>>,
+    user_id: Id<marker::User>,
 ) -> VoiceState {
     VoiceState {
         channel_id,
@@ -268,7 +265,7 @@ pub fn voice_state(
     }
 }
 
-pub fn user(id: Id<UserMarker>) -> User {
+pub fn user(id: Id<marker::User>) -> User {
     User {
         accent_color: None,
         avatar: None,

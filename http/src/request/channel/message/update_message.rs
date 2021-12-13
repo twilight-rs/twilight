@@ -23,10 +23,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Attachment, Message,
     },
-    id::{
-        marker::{ChannelMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// The error created when a message can not be updated as configured.
@@ -136,7 +133,7 @@ struct UpdateMessageFields<'a> {
     flags: Option<MessageFlags>,
 }
 
-/// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
+/// Update a message by [`Id<marker::Channel>`] and [`Id<marker::Message>`].
 ///
 /// You can pass `None` to any of the methods to remove the associated field.
 /// For example, if you have a message with an embed you want to remove, you can
@@ -177,17 +174,17 @@ struct UpdateMessageFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateMessage<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     fields: UpdateMessageFields<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
 }
 
 impl<'a> UpdateMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
     ) -> Self {
         Self {
             channel_id,

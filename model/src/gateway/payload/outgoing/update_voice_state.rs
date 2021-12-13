@@ -1,9 +1,6 @@
 use crate::{
     gateway::opcode::OpCode,
-    id::{
-        marker::{ChannelMarker, GuildMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{Deserialize, Serialize};
 
@@ -15,8 +12,8 @@ pub struct UpdateVoiceState {
 
 impl UpdateVoiceState {
     pub fn new(
-        guild_id: impl Into<Id<GuildMarker>>,
-        channel_id: impl Into<Option<Id<ChannelMarker>>>,
+        guild_id: impl Into<Id<marker::Guild>>,
+        channel_id: impl Into<Option<Id<marker::Channel>>>,
         self_deaf: bool,
         self_mute: bool,
     ) -> Self {
@@ -29,16 +26,16 @@ impl UpdateVoiceState {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UpdateVoiceStateInfo {
-    pub channel_id: Option<Id<ChannelMarker>>,
-    pub guild_id: Id<GuildMarker>,
+    pub channel_id: Option<Id<marker::Channel>>,
+    pub guild_id: Id<marker::Guild>,
     pub self_deaf: bool,
     pub self_mute: bool,
 }
 
 impl UpdateVoiceStateInfo {
     pub fn new(
-        guild_id: impl Into<Id<GuildMarker>>,
-        channel_id: impl Into<Option<Id<ChannelMarker>>>,
+        guild_id: impl Into<Id<marker::Guild>>,
+        channel_id: impl Into<Option<Id<marker::Channel>>>,
         self_deaf: bool,
         self_mute: bool,
     ) -> Self {
@@ -46,8 +43,8 @@ impl UpdateVoiceStateInfo {
     }
 
     const fn _new(
-        guild_id: Id<GuildMarker>,
-        channel_id: Option<Id<ChannelMarker>>,
+        guild_id: Id<marker::Guild>,
+        channel_id: Option<Id<marker::Channel>>,
         self_deaf: bool,
         self_mute: bool,
     ) -> Self {

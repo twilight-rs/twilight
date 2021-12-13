@@ -1,6 +1,6 @@
 use crate::{
     guild::VerificationLevel,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
     invite::WelcomeScreen,
 };
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,7 @@ pub struct InviteGuild {
     /// Hash of the icon image.
     pub icon: Option<String>,
     /// ID of the guild.
-    pub id: Id<GuildMarker>,
+    pub id: Id<marker::Guild>,
     /// Name of the guild.
     pub name: String,
     /// Hash of the splash image.

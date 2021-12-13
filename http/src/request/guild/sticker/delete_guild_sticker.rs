@@ -5,10 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{GuildMarker, StickerMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Deletes a guild sticker by the ID of the guild and its ID.
 ///
@@ -32,16 +29,16 @@ use twilight_model::id::{
 /// # Ok(()) }
 /// ```
 pub struct DeleteGuildSticker<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    sticker_id: Id<StickerMarker>,
+    sticker_id: Id<marker::Sticker>,
 }
 
 impl<'a> DeleteGuildSticker<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        sticker_id: Id<StickerMarker>,
+        guild_id: Id<marker::Guild>,
+        sticker_id: Id<marker::Sticker>,
     ) -> Self {
         Self {
             guild_id,

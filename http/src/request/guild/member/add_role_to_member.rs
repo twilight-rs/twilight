@@ -5,10 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{GuildMarker, RoleMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Add a role to a member in a guild.
 ///
@@ -36,19 +33,19 @@ use twilight_model::id::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct AddRoleToMember<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    role_id: Id<RoleMarker>,
-    user_id: Id<UserMarker>,
+    role_id: Id<marker::Role>,
+    user_id: Id<marker::User>,
     reason: Option<&'a str>,
 }
 
 impl<'a> AddRoleToMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-        role_id: Id<RoleMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
+        role_id: Id<marker::Role>,
     ) -> Self {
         Self {
             guild_id,

@@ -2,16 +2,13 @@ use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::{Channel, Group, GuildChannel, PrivateChannel},
     gateway::payload::incoming::{ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate},
-    id::{
-        marker::{ChannelMarker, GuildMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 impl InMemoryCache {
     pub(crate) fn cache_guild_channels(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         guild_channels: impl IntoIterator<Item = GuildChannel>,
     ) {
         for channel in guild_channels {
@@ -19,7 +16,11 @@ impl InMemoryCache {
         }
     }
 
-    pub(crate) fn cache_guild_channel(&self, guild_id: Id<GuildMarker>, mut channel: GuildChannel) {
+    pub(crate) fn cache_guild_channel(
+        &self,
+        guild_id: Id<marker::Guild>,
+        mut channel: GuildChannel,
+    ) {
         match channel {
             GuildChannel::Category(ref mut c) => {
                 c.guild_id.replace(guild_id);
@@ -63,7 +64,7 @@ impl InMemoryCache {
     ///
     /// The guild channel data itself and the channel entry in its guild's list
     /// of channels will be deleted.
-    pub(crate) fn delete_guild_channel(&self, channel_id: Id<ChannelMarker>) {
+    pub(crate) fn delete_guild_channel(&self, channel_id: Id<marker::Channel>) {
         if let Some((_, item)) = self.channels_guild.remove(&channel_id) {
             if let Some(mut guild_channels) = self.guild_channels.get_mut(&item.guild_id) {
                 guild_channels.remove(&channel_id);
@@ -71,7 +72,7 @@ impl InMemoryCache {
         }
     }
 
-    fn delete_group(&self, channel_id: Id<ChannelMarker>) {
+    fn delete_group(&self, channel_id: Id<marker::Channel>) {
         self.groups.remove(&channel_id);
     }
 }

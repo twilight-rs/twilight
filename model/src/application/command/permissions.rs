@@ -1,17 +1,12 @@
-use crate::id::{
-    marker::{
-        ApplicationMarker, CommandMarker, GenericMarker, GuildMarker, RoleMarker, UserMarker,
-    },
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GuildCommandPermissions {
-    pub application_id: Id<ApplicationMarker>,
-    pub guild_id: Id<GuildMarker>,
-    pub id: Id<CommandMarker>,
+    pub application_id: Id<marker::Application>,
+    pub guild_id: Id<marker::Guild>,
+    pub id: Id<marker::Command>,
     pub permissions: Vec<CommandPermissions>,
 }
 
@@ -23,13 +18,13 @@ pub struct CommandPermissions {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandPermissionsType {
-    Role(Id<RoleMarker>),
-    User(Id<UserMarker>),
+    Role(Id<marker::Role>),
+    User(Id<marker::User>),
 }
 
 #[derive(Deserialize, Serialize)]
 struct CommandPermissionsData {
-    id: Id<GenericMarker>,
+    id: Id<marker::Generic>,
     #[serde(rename = "type")]
     kind: CommandPermissionsDataType,
     permission: bool,

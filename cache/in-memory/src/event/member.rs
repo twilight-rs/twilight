@@ -4,16 +4,13 @@ use twilight_model::{
     application::interaction::application_command::InteractionMember,
     gateway::payload::incoming::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
     guild::{Member, PartialMember},
-    id::{
-        marker::{GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 impl InMemoryCache {
     pub(crate) fn cache_members(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         members: impl IntoIterator<Item = Member>,
     ) {
         for member in members {
@@ -21,7 +18,7 @@ impl InMemoryCache {
         }
     }
 
-    pub(crate) fn cache_member(&self, guild_id: Id<GuildMarker>, member: Member) {
+    pub(crate) fn cache_member(&self, guild_id: Id<marker::Guild>, member: Member) {
         let member_id = member.user.id;
         let id = (guild_id, member_id);
 
@@ -55,9 +52,9 @@ impl InMemoryCache {
 
     pub(crate) fn cache_borrowed_partial_member(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         member: &PartialMember,
-        user_id: Id<UserMarker>,
+        user_id: Id<marker::User>,
     ) {
         let id = (guild_id, user_id);
 
@@ -89,9 +86,9 @@ impl InMemoryCache {
 
     pub(crate) fn cache_borrowed_interaction_member(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         member: &InteractionMember,
-        user_id: Id<UserMarker>,
+        user_id: Id<marker::User>,
     ) {
         let id = (guild_id, user_id);
 

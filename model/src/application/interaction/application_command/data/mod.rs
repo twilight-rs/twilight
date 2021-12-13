@@ -4,10 +4,7 @@ pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, Int
 
 use crate::{
     application::command::{CommandOptionType, Number},
-    id::{
-        marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{
     de::{Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor},
@@ -25,7 +22,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the command.
-    pub id: Id<CommandMarker>,
+    pub id: Id<marker::Command>,
     /// Name of the command.
     pub name: String,
     /// List of parsed options specified by the user.
@@ -112,7 +109,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             Boolean(bool),
             Integer(i64),
             Number(f64),
-            Id(Id<GenericMarker>),
+            Id(Id<marker::Generic>),
             String(String),
         }
 
@@ -327,15 +324,15 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
     Boolean(bool),
-    Channel(Id<ChannelMarker>),
+    Channel(Id<marker::Channel>),
     Integer(i64),
-    Mentionable(Id<GenericMarker>),
+    Mentionable(Id<marker::Generic>),
     Number(Number),
-    Role(Id<RoleMarker>),
+    Role(Id<marker::Role>),
     String(String),
     SubCommand(Vec<CommandDataOption>),
     SubCommandGroup(Vec<CommandDataOption>),
-    User(Id<UserMarker>),
+    User(Id<marker::User>),
 }
 
 impl CommandOptionValue {

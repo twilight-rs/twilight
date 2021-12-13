@@ -1,8 +1,5 @@
 use super::{AuditLogChange, AuditLogEventType, AuditLogOptionalEntryInfo};
-use crate::id::{
-    marker::{AuditLogEntryMarker, GenericMarker, UserMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 /// Entry in an [`AuditLog`] possibly containing a number of detailed changes.
@@ -16,7 +13,7 @@ pub struct AuditLogEntry {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub changes: Vec<AuditLogChange>,
     /// ID of the entire entry.
-    pub id: Id<AuditLogEntryMarker>,
+    pub id: Id<marker::AuditLogEntry>,
     /// Optional information about the entry.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<AuditLogOptionalEntryInfo>,
@@ -25,11 +22,11 @@ pub struct AuditLogEntry {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     /// ID of the target entity.
-    pub target_id: Option<Id<GenericMarker>>,
+    pub target_id: Option<Id<marker::Generic>>,
     /// ID of the [user] that performed the action.
     ///
     /// [user]: crate::user::User
-    pub user_id: Option<Id<UserMarker>>,
+    pub user_id: Option<Id<marker::User>>,
 }
 
 #[cfg(test)]

@@ -1,7 +1,7 @@
 use crate::{
     datetime::Timestamp,
     guild::Permissions,
-    id::{marker::RoleMarker, Id},
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ pub struct PartialMember {
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<Id<RoleMarker>>,
+    pub roles: Vec<Id<marker::Role>>,
     pub user: Option<User>,
 }
 

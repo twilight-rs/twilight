@@ -17,14 +17,14 @@
 //! ```
 //! use twilight_mention::ParseMention;
 //! use twilight_model::id::{
-//!     marker::{ChannelMarker, EmojiMarker, RoleMarker},
+//!     marker,
 //!     Id,
 //! };
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! assert_eq!(Id::<EmojiMarker>::new(123).expect("non zero"), Id::parse("<:name:123>")?);
-//! assert_eq!(Id::<RoleMarker>::new(456).expect("non zero"), Id::parse("<@&456>")?);
-//! assert!(Id::<ChannelMarker>::parse("<#notamention>").is_err());
+//! assert_eq!(Id::<marker::Emoji>::new(123).expect("non zero"), Id::parse("<:name:123>")?);
+//! assert_eq!(Id::<marker::Role>::new(456).expect("non zero"), Id::parse("<@&456>")?);
+//! assert!(Id::<marker::Channel>::parse("<#notamention>").is_err());
 //! # Ok(()) }
 //! ```
 //!
@@ -32,9 +32,9 @@
 //!
 //! ```
 //! use twilight_mention::ParseMention;
-//! use twilight_model::id::{marker::UserMarker, Id};
+//! use twilight_model::id::{marker, Id};
 //!
-//! let mut iter = Id::<UserMarker>::iter("these <@123> are <#456> mentions <@789>");
+//! let mut iter = Id::<marker::User>::iter("these <@123> are <#456> mentions <@789>");
 //! assert!(matches!(iter.next(), Some((user, _, _)) if user.get() == 123));
 //! assert!(matches!(iter.next(), Some((user, _, _)) if user.get() == 789));
 //! assert!(iter.next().is_none());
@@ -72,10 +72,7 @@ pub use self::{
 };
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::{
-    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Any type of mention.
 ///
@@ -92,21 +89,21 @@ use twilight_model::id::{
 ///     timestamp::Timestamp,
 /// };
 /// use twilight_model::id::{
-///     marker::{ChannelMarker, RoleMarker, UserMarker},
+///     marker,
 ///     Id,
 /// };
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(
-///     MentionType::Channel(Id::<ChannelMarker>::new(123).expect("non zero")),
+///     MentionType::Channel(Id::<marker::Channel>::new(123).expect("non zero")),
 ///     MentionType::parse("<#123>")?,
 /// );
 /// assert_eq!(
-///     MentionType::Role(Id::<RoleMarker>::new(123).expect("non zero")),
+///     MentionType::Role(Id::<marker::Role>::new(123).expect("non zero")),
 ///     MentionType::parse("<@&123>")?,
 /// );
 /// assert_eq!(
-///     MentionType::User(Id::<UserMarker>::new(123).expect("non zero")),
+///     MentionType::User(Id::<marker::User>::new(123).expect("non zero")),
 ///     MentionType::parse("<@!123>")?,
 /// );
 ///
@@ -141,15 +138,15 @@ use twilight_model::id::{
 #[non_exhaustive]
 pub enum MentionType {
     /// Channel mention.
-    Channel(Id<ChannelMarker>),
+    Channel(Id<marker::Channel>),
     /// Emoji mention.
-    Emoji(Id<EmojiMarker>),
+    Emoji(Id<marker::Emoji>),
     /// Role mention.
-    Role(Id<RoleMarker>),
+    Role(Id<marker::Role>),
     /// Timestamp mention.
     Timestamp(Timestamp),
     /// User mention.
-    User(Id<UserMarker>),
+    User(Id<marker::User>),
 }
 
 impl Display for MentionType {

@@ -9,7 +9,7 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 
 #[derive(Serialize)]
@@ -34,14 +34,14 @@ struct UpdateThreadFields<'a> {
 /// characters and the maximum is 100 UTF-16 characters.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateThread<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     fields: UpdateThreadFields<'a>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateThread<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self {
             channel_id,
             fields: UpdateThreadFields {

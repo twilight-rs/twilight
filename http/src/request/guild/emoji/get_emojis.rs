@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     guild::Emoji,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// Get the emojis for a guild, by the guild's id.
@@ -31,12 +31,12 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetEmojis<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetEmojis<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

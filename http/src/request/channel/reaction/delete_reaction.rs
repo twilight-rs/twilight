@@ -6,34 +6,31 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{ChannelMarker, MessageMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// User to delete the reaction of.
 pub(crate) enum TargetUser {
     /// Delete a reaction of the current user.
     Current,
     /// Delete a reaction from a user by their ID.
-    Id(Id<UserMarker>),
+    Id(Id<marker::User>),
 }
 
 /// Delete one reaction by a user on a message.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteReaction<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     emoji: &'a RequestReactionType<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
     target_user: TargetUser,
 }
 
 impl<'a> DeleteReaction<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: Id<ChannelMarker>,
-        message_id: Id<MessageMarker>,
+        channel_id: Id<marker::Channel>,
+        message_id: Id<marker::Message>,
         emoji: &'a RequestReactionType<'a>,
         target_user: TargetUser,
     ) -> Self {

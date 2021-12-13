@@ -7,25 +7,22 @@ use crate::{
 };
 use twilight_model::{
     application::command::Command,
-    id::{
-        marker::{ApplicationMarker, CommandMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Retrieve a global command for an application.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGlobalCommand<'a> {
-    application_id: Id<ApplicationMarker>,
-    command_id: Id<CommandMarker>,
+    application_id: Id<marker::Application>,
+    command_id: Id<marker::Command>,
     http: &'a Client,
 }
 
 impl<'a> GetGlobalCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
-        command_id: Id<CommandMarker>,
+        application_id: Id<marker::Application>,
+        command_id: Id<marker::Command>,
     ) -> Self {
         Self {
             application_id,

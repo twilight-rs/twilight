@@ -20,10 +20,7 @@ use std::{
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{
-        marker::{ApplicationMarker, MessageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// A followup message can not be updated as configured.
@@ -178,11 +175,11 @@ struct UpdateFollowupMessageFields<'a> {
 /// [`DeleteFollowupMessage`]: super::DeleteFollowupMessage
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateFollowupMessage<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateFollowupMessageFields<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
+    message_id: Id<marker::Message>,
     token: &'a str,
 }
 
@@ -192,9 +189,9 @@ impl<'a> UpdateFollowupMessage<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> Self {
         Self {
             fields: UpdateFollowupMessageFields {

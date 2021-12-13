@@ -1,4 +1,4 @@
-use crate::id::{marker::EmojiMarker, Id};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
@@ -11,7 +11,7 @@ pub enum ReactionType {
         // it is a bit misleading as that should only happen when
         // the reaction is a unicode emoji and then it is caught by
         // the other variant.
-        id: Id<EmojiMarker>,
+        id: Id<marker::Emoji>,
         // Name is nil if the emoji data is no longer available, for
         // example if the emoji have been deleted off the guild.
         name: Option<String>,

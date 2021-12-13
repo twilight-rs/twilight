@@ -31,7 +31,7 @@ pub use self::{
 use serde::Serialize;
 use twilight_model::{
     application::command::{CommandOption, CommandType},
-    id::{marker::ApplicationMarker, Id},
+    id::{marker, Id},
 };
 
 /// Version of [`Command`] but with borrowed fields.
@@ -40,7 +40,7 @@ use twilight_model::{
 #[derive(Serialize)]
 struct CommandBorrowed<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<Id<ApplicationMarker>>,
+    pub application_id: Option<Id<marker::Application>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_permission: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

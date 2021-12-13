@@ -6,14 +6,11 @@ use crate::{
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::id::{
-    marker::{ChannelMarker, GuildMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 #[derive(Serialize)]
 struct UpdateUserVoiceStateFields {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suppress: Option<bool>,
 }
@@ -22,17 +19,17 @@ struct UpdateUserVoiceStateFields {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateUserVoiceState<'a> {
     fields: UpdateUserVoiceStateFields,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 impl<'a> UpdateUserVoiceState<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
-        channel_id: Id<ChannelMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
+        channel_id: Id<marker::Channel>,
     ) -> Self {
         Self {
             fields: UpdateUserVoiceStateFields {

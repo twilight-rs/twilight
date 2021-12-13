@@ -5,16 +5,13 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{
-    marker::{EmojiMarker, GuildMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Delete an emoji in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteEmoji<'a> {
-    emoji_id: Id<EmojiMarker>,
-    guild_id: Id<GuildMarker>,
+    emoji_id: Id<marker::Emoji>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
@@ -22,8 +19,8 @@ pub struct DeleteEmoji<'a> {
 impl<'a> DeleteEmoji<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        emoji_id: Id<EmojiMarker>,
+        guild_id: Id<marker::Guild>,
+        emoji_id: Id<marker::Emoji>,
     ) -> Self {
         Self {
             emoji_id,

@@ -3,10 +3,7 @@ mod flags;
 pub use self::flags::ApplicationFlags;
 
 use crate::{
-    id::{
-        marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
-        Id,
-    },
+    id::{marker, Id},
     oauth::team::Team,
     user::User,
 };
@@ -18,14 +15,14 @@ pub struct CurrentApplicationInfo {
     pub bot_require_code_grant: bool,
     pub cover_image: Option<String>,
     pub description: String,
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
     pub icon: Option<String>,
-    pub id: Id<ApplicationMarker>,
+    pub id: Id<marker::Application>,
     pub name: String,
     pub owner: User,
-    pub primary_sku_id: Option<Id<OauthSkuMarker>>,
+    pub primary_sku_id: Option<Id<marker::OauthSku>>,
     /// URL of the application's privacy policy.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy_url: Option<String>,

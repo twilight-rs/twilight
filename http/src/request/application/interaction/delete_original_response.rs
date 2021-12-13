@@ -5,7 +5,7 @@ use crate::{
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{marker::ApplicationMarker, Id};
+use twilight_model::id::{marker, Id};
 
 /// Delete a original interaction response.
 ///
@@ -31,7 +31,7 @@ use twilight_model::id::{marker::ApplicationMarker, Id};
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteOriginalResponse<'a> {
-    application_id: Id<ApplicationMarker>,
+    application_id: Id<marker::Application>,
     http: &'a Client,
     token: &'a str,
 }
@@ -39,7 +39,7 @@ pub struct DeleteOriginalResponse<'a> {
 impl<'a> DeleteOriginalResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: Id<ApplicationMarker>,
+        application_id: Id<marker::Application>,
         token: &'a str,
     ) -> Self {
         Self {

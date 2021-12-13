@@ -10,12 +10,7 @@ use twilight_model::{
     },
     datetime::Timestamp,
     guild::PartialMember,
-    id::{
-        marker::{
-            ChannelMarker, GuildMarker, MessageMarker, RoleMarker, UserMarker, WebhookMarker,
-        },
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Represents a cached [`Message`].
@@ -26,27 +21,27 @@ pub struct CachedMessage {
     activity: Option<MessageActivity>,
     application: Option<MessageApplication>,
     pub(crate) attachments: Vec<Attachment>,
-    author: Id<UserMarker>,
-    channel_id: Id<ChannelMarker>,
+    author: Id<marker::User>,
+    channel_id: Id<marker::Channel>,
     pub(crate) content: String,
     pub(crate) edited_timestamp: Option<Timestamp>,
     pub(crate) embeds: Vec<Embed>,
     flags: Option<MessageFlags>,
-    guild_id: Option<Id<GuildMarker>>,
-    id: Id<MessageMarker>,
+    guild_id: Option<Id<marker::Guild>>,
+    id: Id<marker::Message>,
     kind: MessageType,
     member: Option<PartialMember>,
     mention_channels: Vec<ChannelMention>,
     pub(crate) mention_everyone: bool,
-    pub(crate) mention_roles: Vec<Id<RoleMarker>>,
-    pub(crate) mentions: Vec<Id<UserMarker>>,
+    pub(crate) mention_roles: Vec<Id<marker::Role>>,
+    pub(crate) mentions: Vec<Id<marker::User>>,
     pub(crate) pinned: bool,
     pub(crate) reactions: Vec<MessageReaction>,
     reference: Option<MessageReference>,
     sticker_items: Vec<MessageSticker>,
     pub(crate) timestamp: Timestamp,
     pub(crate) tts: bool,
-    webhook_id: Option<Id<WebhookMarker>>,
+    webhook_id: Option<Id<marker::Webhook>>,
 }
 
 impl CachedMessage {
@@ -68,12 +63,12 @@ impl CachedMessage {
     /// ID of the message author.
     ///
     /// If the author is a webhook, this is its ID.
-    pub const fn author(&self) -> Id<UserMarker> {
+    pub const fn author(&self) -> Id<marker::User> {
         self.author
     }
 
     /// ID of the channel the message was sent in.
-    pub const fn channel_id(&self) -> Id<ChannelMarker> {
+    pub const fn channel_id(&self) -> Id<marker::Channel> {
         self.channel_id
     }
 
@@ -98,12 +93,12 @@ impl CachedMessage {
     }
 
     /// ID of the guild the message was sent in, if there is one.
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+    pub const fn guild_id(&self) -> Option<Id<marker::Guild>> {
         self.guild_id
     }
 
     /// ID of the message.
-    pub const fn id(&self) -> Id<MessageMarker> {
+    pub const fn id(&self) -> Id<marker::Message> {
         self.id
     }
 
@@ -128,12 +123,12 @@ impl CachedMessage {
     }
 
     /// Roles mentioned in the content.
-    pub fn mention_roles(&self) -> &[Id<RoleMarker>] {
+    pub fn mention_roles(&self) -> &[Id<marker::Role>] {
         &self.mention_roles
     }
 
     /// Users mentioned in the content.
-    pub fn mentions(&self) -> &[Id<UserMarker>] {
+    pub fn mentions(&self) -> &[Id<marker::User>] {
         &self.mentions
     }
 
@@ -168,7 +163,7 @@ impl CachedMessage {
     }
 
     /// For messages sent by webhooks, the webhook ID.
-    pub const fn webhook_id(&self) -> Option<Id<WebhookMarker>> {
+    pub const fn webhook_id(&self) -> Option<Id<marker::Webhook>> {
         self.webhook_id
     }
 }

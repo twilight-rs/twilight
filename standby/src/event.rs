@@ -5,7 +5,7 @@
 use twilight_model::{
     channel::Channel,
     gateway::event::Event,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// Retrieve the guild ID of an event if it took place in a guild.
@@ -20,7 +20,7 @@ use twilight_model::{
 /// [`GuildChannel`]: twilight_model::channel::GuildChannel
 /// [`MessageDelete`]: twilight_model::gateway::payload::MessageDelete
 /// [`PrivateChannel`]: twilight_model::channel::PrivateChannel
-pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
+pub const fn guild_id(event: &Event) -> Option<Id<marker::Guild>> {
     match event {
         Event::BanAdd(e) => Some(e.guild_id),
         Event::BanRemove(e) => Some(e.guild_id),
@@ -92,7 +92,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
 /// Retrieve the guild ID of a channel if it's a [`GuildChannel`].
 ///
 /// [`GuildChannel`]: twilight_model::channel::GuildChannel
-const fn channel_guild_id(channel: &Channel) -> Option<Id<GuildMarker>> {
+const fn channel_guild_id(channel: &Channel) -> Option<Id<marker::Guild>> {
     if let Channel::Guild(guild_channel) = channel {
         guild_channel.guild_id()
     } else {

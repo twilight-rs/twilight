@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     guild::Ban,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// Retrieve the bans for a guild.
@@ -31,12 +31,12 @@ use twilight_model::{
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetBans<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetBans<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

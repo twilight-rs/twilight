@@ -1,5 +1,5 @@
 use crate::{
-    id::{marker::OauthTeamMarker, Id},
+    id::{marker, Id},
     oauth::team::TeamMembershipState,
     user::User,
 };
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 pub struct TeamMember {
     pub membership_state: TeamMembershipState,
     pub permissions: Vec<String>,
-    pub team_id: Id<OauthTeamMarker>,
+    pub team_id: Id<marker::OauthTeam>,
     pub user: User,
 }
 

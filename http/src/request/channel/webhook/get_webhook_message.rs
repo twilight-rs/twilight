@@ -7,28 +7,25 @@ use crate::{
 };
 use twilight_model::{
     channel::Message,
-    id::{
-        marker::{ChannelMarker, MessageMarker, WebhookMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Get a webhook message by webhook ID, token, and message ID.
 #[must_use = "requests must be configured and executed"]
 pub struct GetWebhookMessage<'a> {
     http: &'a Client,
-    message_id: Id<MessageMarker>,
-    thread_id: Option<Id<ChannelMarker>>,
+    message_id: Id<marker::Message>,
+    thread_id: Option<Id<marker::Channel>>,
     token: &'a str,
-    webhook_id: Id<WebhookMarker>,
+    webhook_id: Id<marker::Webhook>,
 }
 
 impl<'a> GetWebhookMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: Id<WebhookMarker>,
+        webhook_id: Id<marker::Webhook>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
+        message_id: Id<marker::Message>,
     ) -> Self {
         Self {
             http,
@@ -41,7 +38,7 @@ impl<'a> GetWebhookMessage<'a> {
 
     /// Get a message in a thread belonging to the channel instead of the
     /// channel itself.
-    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
+    pub fn thread_id(mut self, thread_id: Id<marker::Channel>) -> Self {
         self.thread_id.replace(thread_id);
 
         self

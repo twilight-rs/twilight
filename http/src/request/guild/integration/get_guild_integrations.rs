@@ -7,18 +7,18 @@ use crate::{
 };
 use twilight_model::{
     guild::GuildIntegration,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// Get the guild's integrations.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildIntegrations<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildIntegrations<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<marker::Guild>) -> Self {
         Self { guild_id, http }
     }
 

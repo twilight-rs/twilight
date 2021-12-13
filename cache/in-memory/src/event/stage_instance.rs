@@ -2,16 +2,13 @@ use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::StageInstance,
     gateway::payload::incoming::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
-    id::{
-        marker::{GuildMarker, StageMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 impl InMemoryCache {
     pub(crate) fn cache_stage_instances(
         &self,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         stage_instances: impl IntoIterator<Item = StageInstance>,
     ) {
         for stage_instance in stage_instances {
@@ -19,7 +16,7 @@ impl InMemoryCache {
         }
     }
 
-    fn cache_stage_instance(&self, guild_id: Id<GuildMarker>, stage_instance: StageInstance) {
+    fn cache_stage_instance(&self, guild_id: Id<marker::Guild>, stage_instance: StageInstance) {
         self.guild_stage_instances
             .entry(guild_id)
             .or_default()
@@ -33,7 +30,7 @@ impl InMemoryCache {
         );
     }
 
-    fn delete_stage_instance(&self, stage_id: Id<StageMarker>) {
+    fn delete_stage_instance(&self, stage_id: Id<marker::Stage>) {
         if let Some((_, data)) = self.stage_instances.remove(&stage_id) {
             let guild_id = data.guild_id;
 

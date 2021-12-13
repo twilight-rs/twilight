@@ -2,10 +2,7 @@ use crate::{
     channel::{thread::ThreadMetadata, ChannelType, Message},
     datetime::Timestamp,
     guild::{Permissions, Role},
-    id::{
-        marker::{ChannelMarker, MessageMarker, RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -14,25 +11,25 @@ use std::collections::hash_map::HashMap;
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandInteractionDataResolved {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub channels: HashMap<Id<ChannelMarker>, InteractionChannel>,
+    pub channels: HashMap<Id<marker::Channel>, InteractionChannel>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub members: HashMap<Id<UserMarker>, InteractionMember>,
+    pub members: HashMap<Id<marker::User>, InteractionMember>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub messages: HashMap<Id<MessageMarker>, Message>,
+    pub messages: HashMap<Id<marker::Message>, Message>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub roles: HashMap<Id<RoleMarker>, Role>,
+    pub roles: HashMap<Id<marker::Role>, Role>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub users: HashMap<Id<UserMarker>, User>,
+    pub users: HashMap<Id<marker::User>, User>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionChannel {
-    pub id: Id<ChannelMarker>,
+    pub id: Id<marker::Channel>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<Id<ChannelMarker>>,
+    pub parent_id: Option<Id<marker::Channel>>,
     pub permissions: Permissions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_metadata: Option<ThreadMetadata>,
@@ -45,7 +42,7 @@ pub struct InteractionMember {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
     #[serde(default)]
-    pub roles: Vec<Id<RoleMarker>>,
+    pub roles: Vec<Id<marker::Role>>,
 }
 
 #[cfg(test)]

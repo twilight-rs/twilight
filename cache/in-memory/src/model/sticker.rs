@@ -4,10 +4,7 @@ use twilight_model::{
         sticker::{StickerFormatType, StickerType},
         Sticker,
     },
-    id::{
-        marker::{GuildMarker, StickerMarker, StickerPackMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Representation of a cached [`Sticker`].
@@ -22,21 +19,21 @@ pub struct CachedSticker {
     /// Format type.
     pub(crate) format_type: StickerFormatType,
     /// ID of the guild that owns the sticker.
-    pub(crate) guild_id: Option<Id<GuildMarker>>,
+    pub(crate) guild_id: Option<Id<marker::Guild>>,
     /// Unique ID of the sticker.
-    pub(crate) id: Id<StickerMarker>,
+    pub(crate) id: Id<marker::Sticker>,
     /// Kind of sticker.
     pub(crate) kind: StickerType,
     /// Name of the sticker.
     pub(crate) name: String,
     /// Unique ID of the pack the sticker is in.
-    pub(crate) pack_id: Option<Id<StickerPackMarker>>,
+    pub(crate) pack_id: Option<Id<marker::StickerPack>>,
     /// Sticker's sort order within a pack.
     pub(crate) sort_value: Option<u64>,
     /// CSV list of tags the sticker is assigned to, if any.
     pub(crate) tags: String,
     /// ID of the user that uploaded the sticker.
-    pub(crate) user_id: Option<Id<UserMarker>>,
+    pub(crate) user_id: Option<Id<marker::User>>,
 }
 
 impl CachedSticker {
@@ -56,12 +53,12 @@ impl CachedSticker {
     }
 
     /// ID of the guild that owns the sticker.
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+    pub const fn guild_id(&self) -> Option<Id<marker::Guild>> {
         self.guild_id
     }
 
     /// Unique ID of the sticker.
-    pub const fn id(&self) -> Id<StickerMarker> {
+    pub const fn id(&self) -> Id<marker::Sticker> {
         self.id
     }
 
@@ -76,7 +73,7 @@ impl CachedSticker {
     }
 
     /// Unique ID of the pack the sticker is in.
-    pub const fn pack_id(&self) -> Option<Id<StickerPackMarker>> {
+    pub const fn pack_id(&self) -> Option<Id<marker::StickerPack>> {
         self.pack_id
     }
 
@@ -91,7 +88,7 @@ impl CachedSticker {
     }
 
     /// ID of the user that uploaded the sticker.
-    pub const fn user_id(&self) -> Option<Id<UserMarker>> {
+    pub const fn user_id(&self) -> Option<Id<marker::User>> {
         self.user_id
     }
 }

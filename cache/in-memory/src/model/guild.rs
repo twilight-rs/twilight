@@ -7,10 +7,7 @@ use twilight_model::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         PremiumTier, SystemChannelFlags, VerificationLevel,
     },
-    id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 
 /// Represents a cached [`Guild`].
@@ -18,9 +15,9 @@ use twilight_model::{
 /// [`Guild`]: twilight_model::guild::Guild
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedGuild {
-    pub(crate) afk_channel_id: Option<Id<ChannelMarker>>,
+    pub(crate) afk_channel_id: Option<Id<marker::Channel>>,
     pub(crate) afk_timeout: u64,
-    pub(crate) application_id: Option<Id<ApplicationMarker>>,
+    pub(crate) application_id: Option<Id<marker::Application>>,
     pub(crate) banner: Option<String>,
     pub(crate) default_message_notifications: DefaultMessageNotificationLevel,
     pub(crate) description: Option<String>,
@@ -28,7 +25,7 @@ pub struct CachedGuild {
     pub(crate) explicit_content_filter: ExplicitContentFilter,
     pub(crate) features: Vec<String>,
     pub(crate) icon: Option<String>,
-    pub(crate) id: Id<GuildMarker>,
+    pub(crate) id: Id<marker::Guild>,
     pub(crate) joined_at: Option<Timestamp>,
     pub(crate) large: bool,
     pub(crate) max_members: Option<u64>,
@@ -37,26 +34,26 @@ pub struct CachedGuild {
     pub(crate) mfa_level: MfaLevel,
     pub(crate) name: String,
     pub(crate) nsfw_level: NSFWLevel,
-    pub(crate) owner_id: Id<UserMarker>,
+    pub(crate) owner_id: Id<marker::User>,
     pub(crate) owner: Option<bool>,
     pub(crate) permissions: Option<Permissions>,
     pub(crate) preferred_locale: String,
     pub(crate) premium_subscription_count: Option<u64>,
     pub(crate) premium_tier: PremiumTier,
-    pub(crate) rules_channel_id: Option<Id<ChannelMarker>>,
+    pub(crate) rules_channel_id: Option<Id<marker::Channel>>,
     pub(crate) splash: Option<String>,
-    pub(crate) system_channel_id: Option<Id<ChannelMarker>>,
+    pub(crate) system_channel_id: Option<Id<marker::Channel>>,
     pub(crate) system_channel_flags: SystemChannelFlags,
     pub(crate) unavailable: bool,
     pub(crate) vanity_url_code: Option<String>,
     pub(crate) verification_level: VerificationLevel,
-    pub(crate) widget_channel_id: Option<Id<ChannelMarker>>,
+    pub(crate) widget_channel_id: Option<Id<marker::Channel>>,
     pub(crate) widget_enabled: Option<bool>,
 }
 
 impl CachedGuild {
     /// ID of the AFK channel.
-    pub const fn afk_channel_id(&self) -> Option<Id<ChannelMarker>> {
+    pub const fn afk_channel_id(&self) -> Option<Id<marker::Channel>> {
         self.afk_channel_id
     }
 
@@ -66,7 +63,7 @@ impl CachedGuild {
     }
 
     /// For bot created guilds, the ID of the creating application.
-    pub const fn application_id(&self) -> Option<Id<ApplicationMarker>> {
+    pub const fn application_id(&self) -> Option<Id<marker::Application>> {
         self.application_id
     }
 
@@ -122,7 +119,7 @@ impl CachedGuild {
     }
 
     /// ID of the guild.
-    pub const fn id(&self) -> Id<GuildMarker> {
+    pub const fn id(&self) -> Id<marker::Guild> {
         self.id
     }
 
@@ -172,7 +169,7 @@ impl CachedGuild {
     }
 
     /// ID of the guild's owner.
-    pub const fn owner_id(&self) -> Id<UserMarker> {
+    pub const fn owner_id(&self) -> Id<marker::User> {
         self.owner_id
     }
 
@@ -199,7 +196,7 @@ impl CachedGuild {
     }
 
     /// For Community guilds, the ID of the rules channel.
-    pub const fn rules_channel_id(&self) -> Option<Id<ChannelMarker>> {
+    pub const fn rules_channel_id(&self) -> Option<Id<marker::Channel>> {
         self.rules_channel_id
     }
 
@@ -215,7 +212,7 @@ impl CachedGuild {
     /// ID of the channel where notices are posted.
     ///
     /// Example notices include welcome messages and boost events.
-    pub const fn system_channel_id(&self) -> Option<Id<ChannelMarker>> {
+    pub const fn system_channel_id(&self) -> Option<Id<marker::Channel>> {
         self.system_channel_id
     }
 
@@ -240,7 +237,7 @@ impl CachedGuild {
     }
 
     /// ID of the channel that a widget generates an invite to.
-    pub const fn widget_channel_id(&self) -> Option<Id<ChannelMarker>> {
+    pub const fn widget_channel_id(&self) -> Option<Id<marker::Channel>> {
         self.widget_channel_id
     }
 

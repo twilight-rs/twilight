@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::{
     channel::thread::ThreadsListing,
-    id::{marker::ChannelMarker, Id},
+    id::{marker, Id},
 };
 
 /// Returns archived private threads in the channel that the current user has
@@ -16,14 +16,14 @@ use twilight_model::{
 /// Threads are ordered by their ID in descending order.
 #[must_use = "requests must be configured and executed"]
 pub struct GetJoinedPrivateArchivedThreads<'a> {
-    before: Option<Id<ChannelMarker>>,
-    channel_id: Id<ChannelMarker>,
+    before: Option<Id<marker::Channel>>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
     limit: Option<u64>,
 }
 
 impl<'a> GetJoinedPrivateArchivedThreads<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self {
             before: None,
             channel_id,
@@ -33,7 +33,7 @@ impl<'a> GetJoinedPrivateArchivedThreads<'a> {
     }
 
     /// Return threads before this ID.
-    pub const fn before(mut self, before: Id<ChannelMarker>) -> Self {
+    pub const fn before(mut self, before: Id<marker::Channel>) -> Self {
         self.before = Some(before);
 
         self

@@ -9,10 +9,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::{
-    marker::{GuildMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// The error created when the ban can not be created as configured.
 #[derive(Debug)]
@@ -94,16 +91,16 @@ struct CreateBanFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateBan<'a> {
     fields: CreateBanFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
-    user_id: Id<UserMarker>,
+    user_id: Id<marker::User>,
 }
 
 impl<'a> CreateBan<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
-        user_id: Id<UserMarker>,
+        guild_id: Id<marker::Guild>,
+        user_id: Id<marker::User>,
     ) -> Self {
         Self {
             fields: CreateBanFields {

@@ -6,10 +6,7 @@ use super::InteractionType;
 use crate::{
     channel::Message,
     guild::PartialMember,
-    id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     user::User,
 };
 use serde::Serialize;
@@ -21,15 +18,15 @@ use serde::Serialize;
 #[serde(rename(serialize = "Interaction"))]
 pub struct MessageComponentInteraction {
     /// ID of the associated application.
-    pub application_id: Id<ApplicationMarker>,
+    pub application_id: Id<marker::Application>,
     /// ID of the channel the interaction was triggered from.
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     /// Data from the invoked command.
     pub data: MessageComponentInteractionData,
     /// ID of the guild the interaction was triggered from.
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     /// ID of the interaction.
-    pub id: Id<InteractionMarker>,
+    pub id: Id<marker::Interaction>,
     /// Type of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,
@@ -61,7 +58,7 @@ impl MessageComponentInteraction {
     ///
     /// [`member`]: Self::member
     /// [`user`]: Self::user
-    pub const fn author_id(&self) -> Option<Id<UserMarker>> {
+    pub const fn author_id(&self) -> Option<Id<marker::User>> {
         if let Some(member) = &self.member {
             if let Some(user) = &member.user {
                 return Some(user.id);
@@ -84,7 +81,7 @@ mod tests {
         channel::message::{Message, MessageType},
         datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
-        id::{marker::UserMarker, Id},
+        id::{marker, Id},
         user::User,
     };
     use serde::Serialize;
@@ -114,7 +111,7 @@ mod tests {
         Sync
     );
 
-    fn user(id: Id<UserMarker>) -> User {
+    fn user(id: Id<marker::User>) -> User {
         User {
             accent_color: None,
             avatar: None,
@@ -136,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_author_id() -> Result<(), TimestampParseError> {
-        fn user_id() -> Id<UserMarker> {
+        fn user_id() -> Id<marker::User> {
             Id::new(7).expect("non zero")
         }
 

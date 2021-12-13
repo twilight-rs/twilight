@@ -10,7 +10,7 @@ use crate::{
 };
 use twilight_model::{
     channel::message::Sticker,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 use super::{StickerValidationError, StickerValidationErrorType};
@@ -53,7 +53,7 @@ struct CreateGuildStickerFields<'a> {
 /// ```
 pub struct CreateGuildSticker<'a> {
     fields: CreateGuildStickerFields<'a>,
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
@@ -61,7 +61,7 @@ pub struct CreateGuildSticker<'a> {
 impl<'a> CreateGuildSticker<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         name: &'a str,
         description: &'a str,
         tags: &'a str,

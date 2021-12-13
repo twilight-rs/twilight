@@ -1,8 +1,5 @@
 use crate::{
-    id::{
-        marker::{RoleMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
     util::is_false,
 };
 use serde::{Deserialize, Serialize};
@@ -27,9 +24,9 @@ pub struct AllowedMentions {
     #[serde(default)]
     pub parse: Vec<ParseTypes>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub users: Vec<Id<UserMarker>>,
+    pub users: Vec<Id<marker::User>>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub roles: Vec<Id<RoleMarker>>,
+    pub roles: Vec<Id<marker::Role>>,
     #[serde(default, skip_serializing_if = "is_false")]
     pub replied_user: bool,
 }

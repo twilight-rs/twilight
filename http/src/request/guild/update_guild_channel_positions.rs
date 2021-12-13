@@ -6,24 +6,21 @@ use crate::{
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::id::{
-    marker::{ChannelMarker, GuildMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 #[derive(Serialize)]
 pub struct Position {
-    id: Id<ChannelMarker>,
+    id: Id<marker::Channel>,
     #[serde(skip_serializing_if = "Option::is_none")]
     lock_permissions: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<Id<ChannelMarker>>,
+    parent_id: Option<Id<marker::Channel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<u64>,
 }
 
-impl From<(Id<ChannelMarker>, u64)> for Position {
-    fn from((id, position): (Id<ChannelMarker>, u64)) -> Self {
+impl From<(Id<marker::Channel>, u64)> for Position {
+    fn from((id, position): (Id<marker::Channel>, u64)) -> Self {
         Self {
             id,
             lock_permissions: None,
@@ -37,11 +34,11 @@ impl From<(Id<ChannelMarker>, u64)> for Position {
 ///
 /// The minimum amount of channels to modify, is a swap between two channels.
 ///
-/// This function accepts an `Iterator` of `(Id<ChannelMarker>, u64)`. It also accepts
+/// This function accepts an `Iterator` of `(Id<marker::Channel>, u64)`. It also accepts
 /// an `Iterator` of `Position`, which has extra fields.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildChannelPositions<'a> {
-    guild_id: Id<GuildMarker>,
+    guild_id: Id<marker::Guild>,
     http: &'a Client,
     positions: &'a [Position],
 }
@@ -49,7 +46,7 @@ pub struct UpdateGuildChannelPositions<'a> {
 impl<'a> UpdateGuildChannelPositions<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: Id<GuildMarker>,
+        guild_id: Id<marker::Guild>,
         channel_positions: &'a [Position],
     ) -> Self {
         Self {

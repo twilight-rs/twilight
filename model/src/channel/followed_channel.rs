@@ -1,19 +1,16 @@
-use crate::id::{
-    marker::{ChannelMarker, WebhookMarker},
-    Id,
-};
+use crate::id::{marker, Id};
 use serde::{Deserialize, Serialize};
 
 /// An object indicating that following a news channel
 /// was successful.
 ///
-/// It contains the [`Id<ChannelMarker>`] that is being followed
-/// and the [`Id<WebhookMarker>`] that was created in the
+/// It contains the [`Id<marker::Channel>`] that is being followed
+/// and the [`Id<marker::Webhook>`] that was created in the
 /// target channel.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct FollowedChannel {
-    pub channel_id: Id<ChannelMarker>,
-    pub webhook_id: Id<WebhookMarker>,
+    pub channel_id: Id<marker::Channel>,
+    pub webhook_id: Id<marker::Webhook>,
 }
 
 #[cfg(test)]

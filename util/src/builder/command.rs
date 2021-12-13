@@ -33,7 +33,7 @@ use twilight_model::{
         NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
-    id::{marker::GuildMarker, Id},
+    id::{marker, Id},
 };
 
 /// Builder to create a [`Command`].
@@ -69,7 +69,7 @@ impl CommandBuilder {
     /// Set the guild ID of the command.
     ///
     /// Defaults to [`None`].
-    pub const fn guild_id(mut self, guild_id: Id<GuildMarker>) -> Self {
+    pub const fn guild_id(mut self, guild_id: Id<marker::Guild>) -> Self {
         self.0.guild_id = Some(guild_id);
 
         self

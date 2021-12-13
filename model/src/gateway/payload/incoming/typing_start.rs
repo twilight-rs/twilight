@@ -1,9 +1,6 @@
 use crate::{
     guild::member::{Member, OptionalMemberDeserializer},
-    id::{
-        marker::{ChannelMarker, GuildMarker, UserMarker},
-        Id,
-    },
+    id::{marker, Id},
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -13,13 +10,13 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct TypingStart {
-    pub channel_id: Id<ChannelMarker>,
+    pub channel_id: Id<marker::Channel>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub guild_id: Option<Id<marker::Guild>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     pub timestamp: u64,
-    pub user_id: Id<UserMarker>,
+    pub user_id: Id<marker::User>,
 }
 
 #[derive(Debug, Deserialize)]

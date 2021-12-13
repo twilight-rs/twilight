@@ -1,31 +1,28 @@
 use super::DeleteChannelPermissionConfigured;
 use crate::client::Client;
-use twilight_model::id::{
-    marker::{ChannelMarker, RoleMarker, UserMarker},
-    Id,
-};
+use twilight_model::id::{marker, Id};
 
 /// Clear the permissions for a target ID in a channel.
 ///
 /// The target ID must be set with one of the associated methods.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteChannelPermission<'a> {
-    channel_id: Id<ChannelMarker>,
+    channel_id: Id<marker::Channel>,
     http: &'a Client,
 }
 
 impl<'a> DeleteChannelPermission<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<marker::Channel>) -> Self {
         Self { channel_id, http }
     }
 
     /// Delete an override for an member.
-    pub const fn member(self, user_id: Id<UserMarker>) -> DeleteChannelPermissionConfigured<'a> {
+    pub const fn member(self, user_id: Id<marker::User>) -> DeleteChannelPermissionConfigured<'a> {
         self.configure(user_id.get())
     }
 
     /// Delete an override for an role.
-    pub const fn role(self, role_id: Id<RoleMarker>) -> DeleteChannelPermissionConfigured<'a> {
+    pub const fn role(self, role_id: Id<marker::Role>) -> DeleteChannelPermissionConfigured<'a> {
         self.configure(role_id.get())
     }
 
