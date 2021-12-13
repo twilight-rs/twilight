@@ -50,7 +50,7 @@ impl EmbedFieldBuilder {
     ///
     /// Create an inlined field:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::EmbedFieldBuilder;
     ///
     /// let field = EmbedFieldBuilder::new("twilight", "is cool")

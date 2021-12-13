@@ -49,7 +49,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
 ///
@@ -205,7 +205,7 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// Without [`payload_json`]:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_embed_builder::EmbedBuilder;
     /// # use twilight_http::Client;
     /// use twilight_model::id::Id;
@@ -228,7 +228,7 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// With [`payload_json`]:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::id::Id;
     ///

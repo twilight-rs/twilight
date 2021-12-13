@@ -27,7 +27,7 @@ struct CreateBanFields<'a> {
 /// Ban user `200` from guild `100`, deleting
 /// 1 day's worth of messages, for the reason `"memes"`:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::{request::AuditLogReason, Client};
 /// use twilight_model::id::Id;
 ///

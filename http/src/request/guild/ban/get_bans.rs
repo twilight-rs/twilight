@@ -16,7 +16,7 @@ use twilight_model::{
 ///
 /// Retrieve the bans for guild `1`:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
 ///

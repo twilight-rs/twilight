@@ -81,7 +81,7 @@ impl<'a> CommandParserConfig<'a> {
     ///
     /// Add a case-sensitive "ping" command:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_command_parser::CommandParserConfig;
     ///
     /// let mut config = CommandParserConfig::new();
@@ -112,7 +112,7 @@ impl<'a> CommandParserConfig<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use twilight_command_parser::CommandParserConfig;
     ///
     /// let mut config = CommandParserConfig::new();
@@ -132,7 +132,7 @@ impl<'a> CommandParserConfig<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use twilight_command_parser::CommandParserConfig;
     ///
     /// let mut config = CommandParserConfig::new();
@@ -155,7 +155,7 @@ impl<'a> CommandParserConfig<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use twilight_command_parser::CommandParserConfig;
     ///
     /// let mut config = CommandParserConfig::new();

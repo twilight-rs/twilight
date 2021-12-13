@@ -16,7 +16,7 @@ use twilight_model::id::{
 ///
 /// In guild `1`, add role `2` to user `3`, for the reason `"test"`:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::{request::AuditLogReason, Client};
 /// use twilight_model::id::Id;
 ///

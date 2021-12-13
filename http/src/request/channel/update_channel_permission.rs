@@ -15,7 +15,7 @@ use twilight_model::{
 ///
 /// Create permission overrides for a role to view the channel, but not send messages:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 /// use twilight_model::guild::Permissions;
 /// use twilight_model::id::Id;

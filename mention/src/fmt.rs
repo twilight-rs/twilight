@@ -20,7 +20,7 @@ use twilight_model::{
 ///
 /// Mention a `Id<UserMarker>`:
 ///
-/// ```rust
+/// ```
 /// use twilight_mention::Mention;
 /// use twilight_model::id::{marker::UserMarker, Id};
 ///
@@ -95,7 +95,7 @@ impl Display for MentionFormat<Id<UserMarker>> {
 ///
 /// Mention a channel ID:
 ///
-/// ```rust
+/// ```
 /// use twilight_mention::Mention;
 /// use twilight_model::id::{marker::ChannelMarker, Id};
 ///

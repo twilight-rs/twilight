@@ -20,7 +20,7 @@ struct GetInviteFields {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]

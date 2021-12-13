@@ -46,7 +46,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
@@ -204,7 +204,7 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// Without [`payload_json`]:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
@@ -231,7 +231,7 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// With [`payload_json`]:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
