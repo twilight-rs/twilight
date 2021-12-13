@@ -14,7 +14,7 @@ use twilight_model::{application::component::Component, channel::embed::Embed};
 pub const EMBED_COUNT_LIMIT: usize = 10;
 
 /// Maximum length of message content.
-pub const MESSAGE_CONTENT_MAX_LENGTH: usize = 2000;
+pub const MESSAGE_CONTENT_LENGTH_MAX: usize = 2000;
 
 /// A message is not valid.
 #[derive(Debug)]
@@ -154,7 +154,7 @@ pub fn components(components: &[Component]) -> Result<(), MessageValidationError
 /// [`ContentInvalid`]: MessageValidationErrorType::ContentInvalid
 pub fn content(value: impl AsRef<str>) -> Result<(), MessageValidationError> {
     // <https://discordapp.com/developers/docs/resources/channel#create-message-params>
-    if value.as_ref().chars().count() <= MESSAGE_CONTENT_MAX_LENGTH {
+    if value.as_ref().chars().count() <= MESSAGE_CONTENT_LENGTH_MAX {
         Ok(())
     } else {
         Err(MessageValidationError {

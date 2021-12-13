@@ -7,16 +7,16 @@ use std::{
 use twilight_model::channel::ChannelType;
 
 /// Maximum length of a channel's name.
-pub const CHANNEL_NAME_MAX_LENGTH: usize = 100;
+pub const CHANNEL_NAME_LENGTH_MAX: usize = 100;
 
 /// Minimum length of a channel's name.
-pub const CHANNEL_NAME_MIN_LENGTH: usize = 1;
+pub const CHANNEL_NAME_LENGTH_MIN: usize = 1;
 
 /// Maximum length of a channel's rate limit per user.
 pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u64 = 21600;
 
 /// Maximum length of a channel's topic.
-pub const CHANNEL_TOPIC_MAX_LENGTH: usize = 1024;
+pub const CHANNEL_TOPIC_LENGTH_MAX: usize = 1024;
 
 /// Returned when the channel can not be updated as configured.
 #[derive(Debug)]
@@ -116,8 +116,8 @@ pub const fn is_thread(kind: ChannelType) -> Result<(), ChannelValidationError> 
 
 /// Ensure a channel's name's length is correct.
 ///
-/// The length must be less than [`CHANNEL_NAME_MIN_LENGTH`] and at most
-/// [`CHANNEL_NAME_MAX_LENGTH`]. This is based on [this documentation entry].
+/// The length must be less than [`CHANNEL_NAME_LENGTH_MIN`] and at most
+/// [`CHANNEL_NAME_LENGTH_MAX`]. This is based on [this documentation entry].
 ///
 /// # Errors
 ///
@@ -129,7 +129,7 @@ pub const fn is_thread(kind: ChannelType) -> Result<(), ChannelValidationError> 
 pub fn name(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
     let len = value.as_ref().chars().count();
 
-    if (CHANNEL_NAME_MIN_LENGTH..=CHANNEL_NAME_MAX_LENGTH).contains(&len) {
+    if (CHANNEL_NAME_LENGTH_MIN..=CHANNEL_NAME_LENGTH_MAX).contains(&len) {
         Ok(())
     } else {
         Err(ChannelValidationError {
@@ -173,7 +173,7 @@ pub const fn rate_limit_per_user(value: u64) -> Result<(), ChannelValidationErro
 pub fn topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
     let count = value.as_ref().chars().count();
 
-    if count <= CHANNEL_TOPIC_MAX_LENGTH {
+    if count <= CHANNEL_TOPIC_LENGTH_MAX {
         Ok(())
     } else {
         Err(ChannelValidationError {

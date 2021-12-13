@@ -6,17 +6,17 @@ use std::{
 };
 use twilight_model::application::command::Command;
 
-/// Minimum length of a command's description.
-pub const COMMAND_DESCRIPTION_MIN_LENGTH: usize = 1;
-
 /// Maximum length of a command's description.
-pub const COMMAND_DESCRIPTION_MAX_LENGTH: usize = 100;
+pub const COMMAND_DESCRIPTION_LENGTH_MAX: usize = 100;
 
-/// Minimum length of a command's name.
-pub const COMMAND_NAME_MIN_LENGTH: usize = 1;
+/// Minimum length of a command's description.
+pub const COMMAND_DESCRIPTION_LENGTH_MIN: usize = 1;
 
 /// Maximum length of a command's name.
-pub const COMMAND_NAME_MAX_LENGTH: usize = 32;
+pub const COMMAND_NAME_LENGTH_MAX: usize = 32;
+
+/// Minimum length of a command's name.
+pub const COMMAND_NAME_LENGTH_MIN: usize = 1;
 
 /// Maximum amount of options a command may have.
 pub const COMMAND_OPTIONS_LIMIT: usize = 25;
@@ -95,17 +95,17 @@ impl Display for CommandValidationError {
             }
             CommandValidationErrorType::DescriptionInvalid => {
                 f.write_str("command description must be between ")?;
-                Display::fmt(&COMMAND_DESCRIPTION_MIN_LENGTH, f)?;
+                Display::fmt(&COMMAND_DESCRIPTION_LENGTH_MIN, f)?;
                 f.write_str(" and ")?;
-                Display::fmt(&COMMAND_DESCRIPTION_MAX_LENGTH, f)?;
+                Display::fmt(&COMMAND_DESCRIPTION_LENGTH_MAX, f)?;
 
                 f.write_str(" characters")
             }
             CommandValidationErrorType::NameInvalid => {
                 f.write_str("command name must be between ")?;
-                Display::fmt(&COMMAND_NAME_MIN_LENGTH, f)?;
+                Display::fmt(&COMMAND_NAME_LENGTH_MIN, f)?;
                 f.write_str(" and ")?;
-                Display::fmt(&COMMAND_NAME_MAX_LENGTH, f)?;
+                Display::fmt(&COMMAND_NAME_LENGTH_MAX, f)?;
 
                 f.write_str(" characters")
             }
@@ -169,8 +169,8 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
 /// Validate the description of a [`Command`].
 ///
 /// The length of the description must be more than
-/// [`COMMAND_DESCRIPTION_MIN_LENGTH`] and less than or equal to
-/// [`COMMAND_DESCRIPTION_MAX_LENGTH`].
+/// [`COMMAND_DESCRIPTION_LENGTH_MIN`] and less than or equal to
+/// [`COMMAND_DESCRIPTION_LENGTH_MAX`].
 ///
 /// # Errors
 ///
@@ -182,7 +182,7 @@ pub fn description(value: impl AsRef<str>) -> Result<(), CommandValidationError>
     let len = value.as_ref().chars().count();
 
     // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
-    if (COMMAND_DESCRIPTION_MIN_LENGTH..=COMMAND_DESCRIPTION_MAX_LENGTH).contains(&len) {
+    if (COMMAND_DESCRIPTION_LENGTH_MIN..=COMMAND_DESCRIPTION_LENGTH_MAX).contains(&len) {
         Ok(())
     } else {
         Err(CommandValidationError {
@@ -193,8 +193,8 @@ pub fn description(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 
 /// Validate the name of a [`Command`].
 ///
-/// The length of the name must be more than [`COMMAND_NAME_MIN_LENGTH`] and
-/// less than or equal to [`COMMAND_NAME_MAX_LENGTH`].
+/// The length of the name must be more than [`COMMAND_NAME_LENGTH_MIN`] and
+/// less than or equal to [`COMMAND_NAME_LENGTH_MAX`].
 ///
 /// # Errors
 ///
@@ -205,7 +205,7 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let len = value.as_ref().chars().count();
 
     // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
-    if (COMMAND_NAME_MIN_LENGTH..=COMMAND_NAME_MAX_LENGTH).contains(&len) {
+    if (COMMAND_NAME_LENGTH_MIN..=COMMAND_NAME_LENGTH_MAX).contains(&len) {
         Ok(())
     } else {
         Err(CommandValidationError {
