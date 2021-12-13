@@ -1,7 +1,10 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, attachment::AttachmentFile, multipart::Form, PartialAttachment, Request},
+    request::{
+        self, attachment::AttachmentFile, multipart::Form, PartialAttachment, Request,
+        TryIntoRequest,
+    },
     response::ResponseFuture,
     routing::Route,
 };
@@ -14,7 +17,10 @@ use twilight_model::{
         message::{AllowedMentions, MessageReference},
         Message,
     },
-    id::{ChannelId, MessageId},
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
@@ -49,13 +55,13 @@ pub(crate) struct CreateMessageFields<'a> {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::ChannelId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId::new(123).expect("non zero");
+/// let channel_id = Id::new(123).expect("non zero");
 /// let message = client
 ///     .create_message(channel_id)
 ///     .content("Twilight is best pony")?
@@ -67,13 +73,13 @@ pub(crate) struct CreateMessageFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateMessage<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     pub(crate) fields: CreateMessageFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> CreateMessage<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: CreateMessageFields {
@@ -224,7 +230,7 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Specify the ID of another message to create a reply to.
-    pub const fn reply(mut self, other: MessageId) -> Self {
+    pub const fn reply(mut self, other: Id<MessageMarker>) -> Self {
         let channel_id = self.channel_id;
 
         // Clippy recommends using `Option::map_or_else` which is not `const`.
@@ -259,7 +265,18 @@ impl<'a> CreateMessage<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<Message> {
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.get(),
         });
@@ -285,22 +302,16 @@ impl<'a> CreateMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
-                let body = match crate::json::to_vec(&self.fields) {
-                    Ok(body) => body,
-                    Err(source) => return ResponseFuture::error(HttpError::json(source)),
-                };
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
 
                 form.payload_json(&body);
             }
 
             request = request.form(form);
         } else {
-            request = match request.json(&self.fields) {
-                Ok(request) => request,
-                Err(source) => return ResponseFuture::error(source),
-            };
+            request = request.json(&self.fields)?;
         }
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

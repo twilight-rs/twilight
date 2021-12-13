@@ -1,4 +1,7 @@
-use crate::{guild::Emoji, id::GuildId};
+use crate::{
+    guild::Emoji,
+    id::{marker::GuildMarker, Id},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -9,7 +12,7 @@ pub struct GuildPreview {
     pub discovery_splash: Option<String>,
     pub emojis: Vec<Emoji>,
     pub features: Vec<String>,
-    pub id: GuildId,
+    pub id: Id<GuildMarker>,
     pub name: String,
     pub icon: Option<String>,
     pub splash: Option<String>,
@@ -17,8 +20,8 @@ pub struct GuildPreview {
 
 #[cfg(test)]
 mod tests {
-    use super::{Emoji, GuildId, GuildPreview};
-    use crate::id::EmojiId;
+    use super::{Emoji, GuildPreview};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -31,7 +34,7 @@ mod tests {
             emojis: vec![Emoji {
                 animated: false,
                 available: true,
-                id: EmojiId::new(2).expect("non zero"),
+                id: Id::new(2).expect("non zero"),
                 managed: false,
                 name: "test".to_owned(),
                 require_colons: true,
@@ -39,7 +42,7 @@ mod tests {
                 user: None,
             }],
             features: vec!["a feature".to_owned()],
-            id: GuildId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             name: "guild name".to_owned(),
             icon: Some("icon hash".to_owned()),
             splash: Some("splash hash".to_owned()),
@@ -73,7 +76,7 @@ mod tests {
                 Token::Str("available"),
                 Token::Bool(true),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "EmojiId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("managed"),
                 Token::Bool(false),
@@ -88,7 +91,7 @@ mod tests {
                 Token::Str("a feature"),
                 Token::SeqEnd,
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("guild name"),

@@ -8,7 +8,7 @@ pub use self::{
 };
 
 use crate::Client;
-use twilight_model::id::ApplicationId;
+use twilight_model::id::{marker::ApplicationMarker, Id};
 use twilight_validate::command::{name as validate_name, CommandValidationError};
 
 /// Create a new global command.
@@ -20,7 +20,7 @@ use twilight_validate::command::{name as validate_name, CommandValidationError};
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "the command must have a type"]
 pub struct CreateGlobalCommand<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
     name: &'a str,
 }
@@ -28,7 +28,7 @@ pub struct CreateGlobalCommand<'a> {
 impl<'a> CreateGlobalCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         name: &'a str,
     ) -> Result<Self, CommandValidationError> {
         validate_name(name)?;

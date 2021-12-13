@@ -1,4 +1,7 @@
-use crate::id::{ChannelId, GenericId, MessageId};
+use crate::id::{
+    marker::{ChannelMarker, GenericMarker, MessageMarker},
+    Id,
+};
 use serde::{Deserialize, Serialize};
 
 /// Additional information for certain [`AuditLogEventType`]s.
@@ -26,7 +29,7 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::StageInstanceDelete`]: super::AuditLogEventType::StageInstanceDelete
     /// [`AuditLogEventType::StageInstanceUpdate`]: super::AuditLogEventType::StageInstanceUpdate
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel_id: Option<ChannelId>,
+    pub channel_id: Option<Id<ChannelMarker>>,
     /// Number of entities that were targeted.
     ///
     /// The following events have this option:
@@ -63,7 +66,7 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::ChannelOverwriteCreate`]: super::AuditLogEventType::ChannelOverwriteCreate
     /// [`AuditLogEventType::ChannelOverwriteDelete`]: super::AuditLogEventType::ChannelOverwriteDelete
     /// [`AuditLogEventType::ChannelOverwriteUpdate`]: super::AuditLogEventType::ChannelOverwriteUpdate
-    pub id: Option<GenericId>,
+    pub id: Option<Id<GenericMarker>>,
     /// Type of overwritten entity.
     ///
     /// The following events have this option:
@@ -96,7 +99,7 @@ pub struct AuditLogOptionalEntryInfo {
     /// [`AuditLogEventType::MessagePin`]: super::AuditLogEventType::MessagePin
     /// [`AuditLogEventType::MessageUnpin`]: super::AuditLogEventType::MessageUnpin
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub message_id: Option<MessageId>,
+    pub message_id: Option<Id<MessageMarker>>,
     /// Name of a role.
     ///
     /// The following events have this option:

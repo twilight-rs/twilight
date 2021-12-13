@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::WebhookId;
+use twilight_model::id::{marker::WebhookMarker, Id};
 
 struct DeleteWebhookParams<'a> {
     token: Option<&'a str>,
@@ -15,12 +16,12 @@ struct DeleteWebhookParams<'a> {
 pub struct DeleteWebhook<'a> {
     fields: DeleteWebhookParams<'a>,
     http: &'a Client,
-    id: WebhookId,
+    id: Id<WebhookMarker>,
     reason: Option<&'a str>,
 }
 
 impl<'a> DeleteWebhook<'a> {
-    pub(crate) const fn new(http: &'a Client, id: WebhookId) -> Self {
+    pub(crate) const fn new(http: &'a Client, id: Id<WebhookMarker>) -> Self {
         Self {
             fields: DeleteWebhookParams { token: None },
             http,
@@ -40,21 +41,12 @@ impl<'a> DeleteWebhook<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let mut request = Request::builder(&Route::DeleteWebhook {
-            webhook_id: self.id.get(),
-            token: self.fields.token,
-        });
+        let http = self.http;
 
-        if let Some(reason) = self.reason.as_ref() {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -63,5 +55,22 @@ impl<'a> AuditLogReason<'a> for DeleteWebhook<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for DeleteWebhook<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::DeleteWebhook {
+            webhook_id: self.id.get(),
+            token: self.fields.token,
+        });
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

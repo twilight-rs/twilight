@@ -1,6 +1,9 @@
 use crate::{
     datetime::Timestamp,
-    id::{GuildId, RoleId},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -9,7 +12,7 @@ use serde::{Deserialize, Serialize};
 pub struct MemberUpdate {
     /// Member's guild avatar.
     pub avatar: Option<String>,
-    pub guild_id: GuildId,
+    pub guild_id: Id<GuildMarker>,
     pub deaf: Option<bool>,
     pub joined_at: Timestamp,
     pub mute: Option<bool>,
@@ -26,18 +29,14 @@ pub struct MemberUpdate {
     #[serde(default)]
     pub pending: bool,
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
     pub user: User,
 }
 
 #[cfg(test)]
 mod tests {
     use super::MemberUpdate;
-    use crate::{
-        datetime::Timestamp,
-        id::{GuildId, UserId},
-        user::User,
-    };
+    use crate::{datetime::Timestamp, id::Id, user::User};
     use serde_test::Token;
 
     #[test]
@@ -46,7 +45,8 @@ mod tests {
 
         let value = MemberUpdate {
             avatar: None,
-            guild_id: GuildId::new(1_234).expect("non zero"),
+            guild_id: Id::new(1_234).expect("non zero"),
+
             deaf: Some(false),
             joined_at,
             mute: Some(false),
@@ -59,7 +59,7 @@ mod tests {
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
-                id: UserId::new(424_242).expect("non zero"),
+                id: Id::new(424_242).expect("non zero"),
                 discriminator: 1234,
                 avatar: Some("cool image".to_string()),
                 bot: false,
@@ -83,7 +83,7 @@ mod tests {
                 Token::Str("avatar"),
                 Token::None,
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1234"),
                 Token::Str("deaf"),
                 Token::Some,
@@ -120,7 +120,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("1234"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("424242"),
                 Token::Str("username"),
                 Token::Str("Twilight Sparkle"),

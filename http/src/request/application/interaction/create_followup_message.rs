@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{AttachmentFile, Form, PartialAttachment, Request},
+    request::{AttachmentFile, Form, PartialAttachment, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -14,7 +14,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Message,
     },
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
@@ -50,10 +50,10 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::id::ApplicationId;
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = ApplicationId::new(1).expect("non zero");
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// client
 ///     .interaction(application_id)
@@ -69,7 +69,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     http: &'a Client,
@@ -79,7 +79,7 @@ pub struct CreateFollowupMessage<'a> {
 impl<'a> CreateFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
     ) -> Self {
         Self {
@@ -210,10 +210,10 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use std::env;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = ApplicationId::new(1).expect("non zero");
+    /// let application_id = Id::new(1).expect("non zero");
     ///
     /// let message = client
     ///     .interaction(application_id)
@@ -236,10 +236,10 @@ impl<'a> CreateFollowupMessage<'a> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = ApplicationId::new(1).expect("non zero");
+    /// let application_id = Id::new(1).expect("non zero");
     ///
     /// let message = client
     ///     .interaction(application_id)
@@ -271,9 +271,21 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateFollowupMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.token,
@@ -313,28 +325,18 @@ impl<'a> CreateFollowupMessage<'a> {
 
         Ok(request.use_authorization_token(false).build())
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<Message> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::ApplicationId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
+        let application_id = Id::new(1).expect("non zero id");
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());
@@ -342,7 +344,7 @@ mod tests {
             .interaction(application_id)
             .create_followup_message(&token)
             .content("test")?
-            .request()?;
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

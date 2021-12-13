@@ -7,7 +7,10 @@ use twilight_model::{
     datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
     guild::{Emoji, Member, PartialMember, Permissions, Role},
-    id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
+    id::{
+        marker::{ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, UserMarker},
+        Id,
+    },
     user::{CurrentUser, User},
     voice::VoiceState,
 };
@@ -29,7 +32,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             discriminator: 1,
             email: None,
             flags: None,
-            id: UserId::new(3).expect("non zero"),
+            id: Id::new(3).expect("non zero"),
             locale: None,
             mfa_enabled: None,
             name: "test".to_owned(),
@@ -38,14 +41,14 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             system: None,
             verified: None,
         },
-        channel_id: ChannelId::new(2).expect("non zero"),
+        channel_id: Id::new(2).expect("non zero"),
         components: Vec::new(),
         content: "ping".to_owned(),
         edited_timestamp: None,
         embeds: Vec::new(),
         flags: Some(MessageFlags::empty()),
-        guild_id: Some(GuildId::new(1).expect("non zero")),
-        id: MessageId::new(4).expect("non zero"),
+        guild_id: Some(Id::new(1).expect("non zero")),
+        id: Id::new(4).expect("non zero"),
         interaction: None,
         kind: MessageType::Regular,
         member: Some(PartialMember {
@@ -77,15 +80,15 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
     cache.update(&MessageCreate(msg));
 
     let mut reaction = ReactionAdd(Reaction {
-        channel_id: ChannelId::new(2).expect("non zero"),
+        channel_id: Id::new(2).expect("non zero"),
         emoji: ReactionType::Unicode {
             name: "😀".to_owned(),
         },
-        guild_id: Some(GuildId::new(1).expect("non zero")),
+        guild_id: Some(Id::new(1).expect("non zero")),
         member: Some(Member {
             avatar: None,
             deaf: false,
-            guild_id: GuildId::new(1).expect("non zero"),
+            guild_id: Id::new(1).expect("non zero"),
             joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
@@ -100,7 +103,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(3).expect("non zero"),
+                id: Id::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -110,8 +113,8 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
                 verified: None,
             },
         }),
-        message_id: MessageId::new(4).expect("non zero"),
-        user_id: UserId::new(3).expect("non zero"),
+        message_id: Id::new(4).expect("non zero"),
+        user_id: Id::new(3).expect("non zero"),
     });
 
     cache.update(&reaction);
@@ -119,7 +122,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
     reaction.member.replace(Member {
         avatar: None,
         deaf: false,
-        guild_id: GuildId::new(1).expect("non zero"),
+        guild_id: Id::new(1).expect("non zero"),
         joined_at,
         mute: false,
         nick: None,
@@ -134,7 +137,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             discriminator: 2,
             email: None,
             flags: None,
-            id: UserId::new(5).expect("non zero"),
+            id: Id::new(5).expect("non zero"),
             locale: None,
             mfa_enabled: None,
             name: "test".to_owned(),
@@ -144,7 +147,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             verified: None,
         },
     });
-    reaction.user_id = UserId::new(5).expect("non zero");
+    reaction.user_id = Id::new(5).expect("non zero");
 
     cache.update(&reaction);
 
@@ -165,7 +168,7 @@ pub fn current_user(id: u64) -> CurrentUser {
         bot: true,
         discriminator: 9876,
         email: None,
-        id: UserId::new(id).expect("non zero"),
+        id: Id::new(id).expect("non zero"),
         mfa_enabled: true,
         name: "test".to_owned(),
         verified: Some(true),
@@ -176,7 +179,7 @@ pub fn current_user(id: u64) -> CurrentUser {
     }
 }
 
-pub fn emoji(id: EmojiId, user: Option<User>) -> Emoji {
+pub fn emoji(id: Id<EmojiMarker>, user: Option<User>) -> Emoji {
     Emoji {
         animated: false,
         available: true,
@@ -189,9 +192,9 @@ pub fn emoji(id: EmojiId, user: Option<User>) -> Emoji {
     }
 }
 
-pub fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
-    let guild_id = GuildId::new(1).expect("non zero");
-    let channel_id = ChannelId::new(2).expect("non zero");
+pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, GuildChannel) {
+    let guild_id = Id::new(1).expect("non zero");
+    let channel_id = Id::new(2).expect("non zero");
     let channel = GuildChannel::Text(TextChannel {
         guild_id: Some(guild_id),
         id: channel_id,
@@ -210,7 +213,7 @@ pub fn guild_channel_text() -> (GuildId, ChannelId, GuildChannel) {
     (guild_id, channel_id, channel)
 }
 
-pub fn member(id: UserId, guild_id: GuildId) -> Member {
+pub fn member(id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> Member {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
     Member {
@@ -227,7 +230,7 @@ pub fn member(id: UserId, guild_id: GuildId) -> Member {
     }
 }
 
-pub fn role(id: RoleId) -> Role {
+pub fn role(id: Id<RoleMarker>) -> Role {
     Role {
         color: 0,
         hoist: false,
@@ -244,9 +247,9 @@ pub fn role(id: RoleId) -> Role {
 }
 
 pub fn voice_state(
-    guild_id: GuildId,
-    channel_id: Option<ChannelId>,
-    user_id: UserId,
+    guild_id: Id<GuildMarker>,
+    channel_id: Option<Id<ChannelMarker>>,
+    user_id: Id<UserMarker>,
 ) -> VoiceState {
     VoiceState {
         channel_id,
@@ -265,7 +268,7 @@ pub fn voice_state(
     }
 }
 
-pub fn user(id: UserId) -> User {
+pub fn user(id: Id<UserMarker>) -> User {
     User {
         accent_color: None,
         avatar: None,

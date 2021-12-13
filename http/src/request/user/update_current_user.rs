@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    error::Error as HttpError,
+    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -74,23 +75,26 @@ impl<'a> UpdateCurrentUser<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<User> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateCurrentUser<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateCurrentUser);
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
         if let Some(reason) = &self.reason {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
+            request = request.headers(request::audit_header(reason)?);
+        }
 
-            request = request.headers(header);
-        };
-
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }
 

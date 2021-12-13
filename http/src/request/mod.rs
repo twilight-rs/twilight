@@ -13,6 +13,7 @@ mod get_gateway_authed;
 mod get_user_application;
 mod get_voice_regions;
 mod multipart;
+mod try_into_request;
 
 pub use self::{
     attachment::AttachmentFile,
@@ -23,6 +24,7 @@ pub use self::{
     get_user_application::GetUserApplicationInfo,
     get_voice_regions::GetVoiceRegions,
     multipart::Form,
+    try_into_request::TryIntoRequest,
 };
 pub use twilight_http_ratelimiting::request::Method;
 

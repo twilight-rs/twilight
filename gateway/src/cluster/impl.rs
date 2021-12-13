@@ -512,7 +512,6 @@ impl Cluster {
     ///         payload::outgoing::UpdatePresence,
     ///         presence::{Activity, ActivityType, MinimalActivity, Status},
     ///     },
-    ///     id::GuildId,
     /// };
     ///
     /// let intents = Intents::GUILD_VOICE_STATES;

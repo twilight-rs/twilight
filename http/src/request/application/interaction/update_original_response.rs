@@ -3,7 +3,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AttachmentFile, Form, NullableField, Request},
+    request::{self, AttachmentFile, Form, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -12,7 +12,7 @@ use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment, Message},
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
@@ -54,11 +54,11 @@ struct UpdateOriginalResponseFields<'a> {
 /// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::ApplicationId,
+///     id::Id,
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = ApplicationId::new(1).expect("non zero");
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// client
 ///     .interaction(application_id)
@@ -75,7 +75,7 @@ struct UpdateOriginalResponseFields<'a> {
 /// [`DeleteOriginalResponse`]: super::DeleteOriginalResponse
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateOriginalResponse<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateOriginalResponseFields<'a>,
     http: &'a Client,
@@ -88,7 +88,7 @@ impl<'a> UpdateOriginalResponse<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         interaction_token: &'a str,
     ) -> Self {
         Self {
@@ -196,10 +196,10 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::ApplicationId;
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = ApplicationId::new(1).expect("non zero");
+    /// let application_id = Id::new(1).expect("non zero");
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -272,9 +272,18 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateOriginalResponse<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
@@ -315,25 +324,18 @@ impl<'a> UpdateOriginalResponse<'a> {
 
         Ok(request.use_authorization_token(false).build())
     }
-
-    pub fn exec(mut self) -> ResponseFuture<Message> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::ApplicationId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_delete_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
+        let application_id = Id::new(1).expect("non zero id");
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());
@@ -341,7 +343,7 @@ mod tests {
             .interaction(application_id)
             .update_interaction_original(&token)
             .content(Some("test"))?
-            .request()?;
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

@@ -1,13 +1,17 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     guild::Emoji,
-    id::{GuildId, RoleId},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
@@ -15,7 +19,7 @@ struct CreateEmojiFields<'a> {
     image: &'a str,
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
-    roles: Option<&'a [RoleId]>,
+    roles: Option<&'a [Id<RoleMarker>]>,
 }
 
 /// Create an emoji in a guild.
@@ -28,7 +32,7 @@ struct CreateEmojiFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateEmoji<'a> {
     fields: CreateEmojiFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
@@ -36,7 +40,7 @@ pub struct CreateEmoji<'a> {
 impl<'a> CreateEmoji<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
         image: &'a str,
     ) -> Self {
@@ -57,7 +61,7 @@ impl<'a> CreateEmoji<'a> {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/emoji
-    pub const fn roles(mut self, roles: &'a [RoleId]) -> Self {
+    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields.roles = Some(roles);
 
         self
@@ -67,25 +71,12 @@ impl<'a> CreateEmoji<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Emoji> {
-        let mut request = Request::builder(&Route::CreateEmoji {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = self.reason.as_ref() {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -94,5 +85,23 @@ impl<'a> AuditLogReason<'a> for CreateEmoji<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateEmoji<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::CreateEmoji {
+            guild_id: self.guild_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

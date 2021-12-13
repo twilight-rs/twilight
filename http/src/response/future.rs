@@ -18,7 +18,7 @@ use std::{
 };
 use tokio::time::{self, Timeout};
 use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
-use twilight_model::id::GuildId;
+use twilight_model::id::{marker::GuildMarker, Id};
 
 pub enum InvalidToken {
     Forget,
@@ -93,7 +93,7 @@ impl Failed {
 
 struct InFlight {
     future: Pin<Box<Timeout<HyperResponseFuture>>>,
-    guild_id: Option<GuildId>,
+    guild_id: Option<Id<GuildMarker>>,
     invalid_token: InvalidToken,
     tx: Option<TicketSender>,
 }
@@ -203,7 +203,7 @@ impl InFlight {
 }
 
 struct RatelimitQueue {
-    guild_id: Option<GuildId>,
+    guild_id: Option<Id<GuildMarker>>,
     invalid_token: InvalidToken,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
@@ -313,7 +313,7 @@ impl<T> ResponseFuture<T> {
     }
 
     pub(crate) fn ratelimit(
-        guild_id: Option<GuildId>,
+        guild_id: Option<Id<GuildMarker>>,
         invalid_token: InvalidToken,
         wait_for_sender: WaitForTicketFuture,
         request_timeout: Duration,
@@ -334,7 +334,7 @@ impl<T> ResponseFuture<T> {
     /// Set the ID of the relevant guild.
     ///
     /// Necessary for [`MemberBody`] and [`MemberListBody`] deserialization.
-    pub(crate) fn set_guild_id(&mut self, guild_id: GuildId) {
+    pub(crate) fn set_guild_id(&mut self, guild_id: Id<GuildMarker>) {
         match &mut self.stage {
             ResponseFutureStage::InFlight(ref mut stage) => {
                 stage.guild_id.replace(guild_id);

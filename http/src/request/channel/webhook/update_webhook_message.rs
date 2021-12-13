@@ -5,6 +5,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         self, AttachmentFile, AuditLogReason, AuditLogReasonError, Form, NullableField, Request,
+        TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -14,7 +15,10 @@ use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{ChannelId, MessageId, WebhookId},
+    id::{
+        marker::{ChannelMarker, MessageMarker, WebhookMarker},
+        Id,
+    },
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
@@ -53,13 +57,13 @@ struct UpdateWebhookMessageFields<'a> {
 /// # use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::{MessageId, WebhookId}
+///     id::Id,
 /// };
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
-/// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token here", MessageId::new(2).expect("non zero"))
+/// client.update_webhook_message(Id::new(1).expect("non zero"), "token here", Id::new(2).expect("non zero"))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -75,11 +79,11 @@ pub struct UpdateWebhookMessage<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateWebhookMessageFields<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     reason: Option<&'a str>,
-    thread_id: Option<ChannelId>,
+    thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
@@ -88,9 +92,9 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        webhook_id: WebhookId,
+        webhook_id: Id<WebhookMarker>,
         token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             fields: UpdateWebhookMessageFields {
@@ -197,7 +201,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::{MessageId, WebhookId};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -207,7 +211,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_webhook_message(WebhookId::new(1).expect("non zero"), "token", MessageId::new(2).expect("non zero"))
+    /// client.update_webhook_message(Id::new(1).expect("non zero"), "token", Id::new(2).expect("non zero"))
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -272,18 +276,38 @@ impl<'a> UpdateWebhookMessage<'a> {
 
     /// Update in a thread belonging to the channel instead of the channel
     /// itself.
-    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
         self.thread_id.replace(thread_id);
 
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for UpdateWebhookMessage<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
+
+        Ok(self)
+    }
+}
+
+impl TryIntoRequest for UpdateWebhookMessage<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
-            thread_id: self.thread_id.map(ChannelId::get),
+            thread_id: self.thread_id.map(Id::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
         })
@@ -305,21 +329,25 @@ impl<'a> UpdateWebhookMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
-                if self.fields.allowed_mentions.is_none() {
-                    self.fields.allowed_mentions = self.http.default_allowed_mentions();
+                let mut fields = self.fields;
+
+                if fields.allowed_mentions.is_none() {
+                    fields.allowed_mentions = self.http.default_allowed_mentions();
                 }
 
-                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let body = crate::json::to_vec(&fields).map_err(HttpError::json)?;
                 form.payload_json(&body);
             }
 
             request = request.form(form);
         } else {
-            if self.fields.allowed_mentions.is_none() {
-                self.fields.allowed_mentions = self.http.default_allowed_mentions();
+            let mut fields = self.fields;
+
+            if fields.allowed_mentions.is_none() {
+                fields.allowed_mentions = self.http.default_allowed_mentions();
             }
 
-            request = request.json(&self.fields)?;
+            request = request.json(&fields)?;
         }
 
         if let Some(reason) = self.reason.as_ref() {
@@ -328,24 +356,6 @@ impl<'a> UpdateWebhookMessage<'a> {
 
         Ok(request.build())
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
-}
-
-impl<'a> AuditLogReason<'a> for UpdateWebhookMessage<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
-    }
 }
 
 #[cfg(test)]
@@ -353,26 +363,28 @@ mod tests {
     use super::{UpdateWebhookMessage, UpdateWebhookMessageFields};
     use crate::{
         client::Client,
-        request::{AuditLogReason, NullableField, Request},
+        request::{AuditLogReason, NullableField, Request, TryIntoRequest},
         routing::Route,
     };
-    use twilight_model::id::{ChannelId, MessageId, WebhookId};
+    use twilight_model::id::Id;
 
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-        let mut builder = UpdateWebhookMessage::new(
+        let builder = UpdateWebhookMessage::new(
             &client,
-            WebhookId::new(1).expect("non zero"),
+            Id::new(1).expect("non zero"),
             "token",
-            MessageId::new(2).expect("non zero"),
+            Id::new(2).expect("non zero"),
         )
         .content(Some("test"))
         .expect("'test' content couldn't be set")
-        .thread_id(ChannelId::new(3).expect("non zero"))
+        .thread_id(Id::new(3).expect("non zero"))
         .reason("reason")
         .expect("'reason' is not a valid reason");
-        let actual = builder.request().expect("failed to create request");
+        let actual = builder
+            .try_into_request()
+            .expect("failed to create request");
 
         let body = UpdateWebhookMessageFields {
             allowed_mentions: None,

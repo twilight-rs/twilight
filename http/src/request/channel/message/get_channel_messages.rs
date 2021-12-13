@@ -1,13 +1,17 @@
 use super::GetChannelMessagesConfigured;
 use crate::{
     client::Client,
-    request::Request,
+    error::Error as HttpError,
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
 use twilight_model::{
     channel::Message,
-    id::{ChannelId, MessageId},
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
 };
 use twilight_validate::misc::{
     get_channel_messages_limit as validate_get_channel_messages_limit, ValidationError,
@@ -17,7 +21,7 @@ struct GetChannelMessagesFields {
     limit: Option<u64>,
 }
 
-/// Get channel messages, by [`ChannelId`].
+/// Get channel messages, by [`Id<ChannelMarker>`].
 ///
 /// Only one of [`after`], [`around`], and [`before`] can be specified at a time.
 /// Once these are specified, the type returned is [`GetChannelMessagesConfigured`].
@@ -28,13 +32,13 @@ struct GetChannelMessagesFields {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::{ChannelId, MessageId};
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let channel_id = ChannelId::new(123).expect("non zero");
-/// let message_id = MessageId::new(234).expect("non zero");
+/// let channel_id = Id::new(123).expect("non zero");
+/// let message_id = Id::new(234).expect("non zero");
 ///
 /// let messages = client
 ///     .channel_messages(channel_id)
@@ -53,13 +57,13 @@ struct GetChannelMessagesFields {
 /// [`limit`]: Self::limit
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelMessages<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: GetChannelMessagesFields,
     http: &'a Client,
 }
 
 impl<'a> GetChannelMessages<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: GetChannelMessagesFields { limit: None },
@@ -67,7 +71,7 @@ impl<'a> GetChannelMessages<'a> {
         }
     }
 
-    pub const fn after(self, message_id: MessageId) -> GetChannelMessagesConfigured<'a> {
+    pub const fn after(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,
@@ -78,7 +82,7 @@ impl<'a> GetChannelMessages<'a> {
         )
     }
 
-    pub const fn around(self, message_id: MessageId) -> GetChannelMessagesConfigured<'a> {
+    pub const fn around(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,
@@ -89,7 +93,7 @@ impl<'a> GetChannelMessages<'a> {
         )
     }
 
-    pub const fn before(self, message_id: MessageId) -> GetChannelMessagesConfigured<'a> {
+    pub const fn before(self, message_id: Id<MessageMarker>) -> GetChannelMessagesConfigured<'a> {
         GetChannelMessagesConfigured::new(
             self.http,
             self.channel_id,
@@ -124,14 +128,23 @@ impl<'a> GetChannelMessages<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Message>> {
-        let request = Request::from_route(&Route::GetMessages {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetChannelMessages<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        Ok(Request::from_route(&Route::GetMessages {
             after: None,
             around: None,
             before: None,
             channel_id: self.channel_id.get(),
             limit: self.fields.limit,
-        });
-
-        self.http.request(request)
+        }))
     }
 }

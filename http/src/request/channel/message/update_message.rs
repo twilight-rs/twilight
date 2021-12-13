@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{self, NullableField, Request},
+    error::Error as HttpError,
+    request::{self, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -12,7 +13,10 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Attachment, Message,
     },
-    id::{ChannelId, MessageId},
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
@@ -35,7 +39,7 @@ struct UpdateMessageFields<'a> {
     flags: Option<MessageFlags>,
 }
 
-/// Update a message by [`ChannelId`] and [`MessageId`].
+/// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
 ///
 /// You can pass `None` to any of the methods to remove the associated field.
 /// For example, if you have a message with an embed you want to remove, you can
@@ -47,12 +51,12 @@ struct UpdateMessageFields<'a> {
 ///
 /// ```rust,no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::{ChannelId, MessageId};
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
+/// client.update_message(Id::new(1).expect("non zero"), Id::new(2).expect("non zero"))
 ///     .content(Some("test update"))?
 ///     .exec()
 ///     .await?;
@@ -63,12 +67,12 @@ struct UpdateMessageFields<'a> {
 ///
 /// ```rust,no_run
 /// # use twilight_http::Client;
-/// # use twilight_model::id::{ChannelId, MessageId};
+/// # use twilight_model::id::Id;
 /// #
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("my token".to_owned());
-/// client.update_message(ChannelId::new(1).expect("non zero"), MessageId::new(2).expect("non zero"))
+/// client.update_message(Id::new(1).expect("non zero"), Id::new(2).expect("non zero"))
 ///     .content(None)?
 ///     .exec()
 ///     .await?;
@@ -76,17 +80,17 @@ struct UpdateMessageFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateMessage<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateMessageFields<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
 }
 
 impl<'a> UpdateMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             channel_id,
@@ -228,16 +232,24 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateMessage<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

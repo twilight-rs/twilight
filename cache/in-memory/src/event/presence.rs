@@ -1,10 +1,13 @@
 use crate::{config::ResourceType, model::CachedPresence, InMemoryCache, UpdateCache};
-use twilight_model::{gateway::payload::incoming::PresenceUpdate, id::GuildId};
+use twilight_model::{
+    gateway::payload::incoming::PresenceUpdate,
+    id::{marker::GuildMarker, Id},
+};
 
 impl InMemoryCache {
     pub(crate) fn cache_presences(
         &self,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         presences: impl IntoIterator<Item = CachedPresence>,
     ) {
         for presence in presences {
@@ -12,7 +15,7 @@ impl InMemoryCache {
         }
     }
 
-    fn cache_presence(&self, guild_id: GuildId, presence: CachedPresence) {
+    fn cache_presence(&self, guild_id: Id<GuildMarker>, presence: CachedPresence) {
         self.presences
             .insert((guild_id, presence.user_id()), presence);
     }
