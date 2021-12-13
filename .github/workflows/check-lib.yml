@@ -103,6 +103,8 @@ jobs:
         run: cd twilight && cargo sync-readme --check
       - name: Run in util
         run: cd util && cargo sync-readme --check
+      - name: Run in validate
+        run: cd validate && cargo sync-readme --check
 
   # Lints
   clippy:
@@ -179,7 +181,7 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
-    
+
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
