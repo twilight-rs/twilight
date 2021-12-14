@@ -115,7 +115,7 @@ impl Player {
     ///
     /// ```
     /// use twilight_lavalink::{model::{Play, Pause}, Lavalink};
-    /// # use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// # use twilight_model::id::Id;
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let (guild_id, user_id) = (Id::new(1).expect("non zero"), Id::new(2).expect("non zero"));
     /// # let track = String::new();
