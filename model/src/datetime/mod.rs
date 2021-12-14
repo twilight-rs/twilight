@@ -44,7 +44,6 @@ use serde::{
     ser::{Serialize, Serializer},
 };
 use std::{
-    convert::TryFrom,
     fmt::{Formatter, Result as FmtResult},
     str::FromStr,
 };
@@ -206,7 +205,7 @@ impl<'de> Deserialize<'de> for Timestamp {
     ///
     /// # Errors
     ///
-    /// Refer to the documentation for [`Timestamp::parse`] for a list of
+    /// Refer to the documentation for [`Timestamp::from_str`] for a list of
     /// errors.
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         /// Visitor for the [`Timestamp`] deserialize implementation.
@@ -231,28 +230,6 @@ impl<'de> Deserialize<'de> for Timestamp {
 impl Serialize for Timestamp {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.collect_str(&self.iso_8601())
-    }
-}
-
-impl TryFrom<&'_ str> for Timestamp {
-    type Error = TimestampParseError;
-
-    /// Parse a timestamp from an ISO 8601 datetime string emitted by Discord.
-    ///
-    /// Discord emits two ISO 8601 valid formats of datetimes: with microseconds
-    /// (2021-01-01T01:01:01.010000+00:00) and without microseconds
-    /// (2021-01-01T01:01:01+00:00). This supports parsing from either.
-    ///
-    /// # Examples
-    ///
-    /// Refer to the documentation for [`Timestamp::parse`] for examples.
-    ///
-    /// # Errors
-    ///
-    /// Refer to the documentation for [`Timestamp::parse`] for a list of
-    /// errors.
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::from_str(value)
     }
 }
 
@@ -281,7 +258,7 @@ mod tests {
     use super::{Timestamp, TimestampParseError};
     use serde::{Deserialize, Serialize};
     use static_assertions::assert_impl_all;
-    use std::{convert::TryFrom, fmt::Debug, hash::Hash, str::FromStr};
+    use std::{fmt::Debug, hash::Hash, str::FromStr};
     use time::{OffsetDateTime, PrimitiveDateTime};
 
     assert_impl_all!(
@@ -296,7 +273,6 @@ mod tests {
         Send,
         Serialize,
         Sync,
-        TryFrom<&'static str>,
     );
 
     /// Test a variety of supported ISO 8601 datetime formats.
