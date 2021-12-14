@@ -6,10 +6,9 @@
 //!
 //! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! use std::str::FromStr;
 //! use twilight_model::datetime::Timestamp;
 //!
-//! let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
+//! let timestamp = "2020-02-02T02:02:02.020000+00:00".parse::<Timestamp>()?;
 //!
 //! // Check the Unix timestamp, which includes microseconds.
 //! assert_eq!(1_580_608_922_020_000, timestamp.as_micros());
@@ -108,46 +107,6 @@ impl Timestamp {
             .map_err(TimestampParseError::from_component_range)
     }
 
-    /// Parse a timestamp from an ISO 8601 datetime string emitted by Discord.
-    ///
-    /// Discord emits two ISO 8601 valid formats of datetimes: with microseconds
-    /// (2021-01-01T01:01:01.010000+00:00) and without microseconds
-    /// (2021-01-01T01:01:01+00:00). This supports parsing from either.
-    ///
-    /// Supports parsing dates between the Discord epoch year (2010) and 2038.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use std::str::FromStr;
-    /// use twilight_model::datetime::Timestamp;
-    ///
-    /// // Date and time in UTC with +00:00 offsets are supported:
-    /// assert!(Timestamp::parse("2021-01-01T01:01:01.010000+00:00").is_ok());
-    /// assert!(Timestamp::parse("2021-01-01T01:01:01+00:00").is_ok());
-    ///
-    /// // Other formats, such as dates, weeks, zero UTC offset designators, or
-    /// // ordinal dates are not supported:
-    /// assert!(Timestamp::parse("2021-08-10T18:19:59Z").is_err());
-    /// assert!(Timestamp::parse("2021-01-01").is_err());
-    /// assert!(Timestamp::parse("2021-W32-2").is_err());
-    /// assert!(Timestamp::parse("2021-222").is_err());
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`TimestampParseErrorType::Format`] error type if the provided
-    /// string is too short to be an ISO 8601 datetime without a time offset.
-    ///
-    /// Returns a [`TimestampParseErrorType::Parsing`] error type if the parsing
-    /// failed.
-    ///
-    /// [`TimestampParseErrorType::Format`]: self::error::TimestampParseErrorType::Format
-    /// [`TimestampParseErrorType::Parsing`]: self::error::TimestampParseErrorType::Parsing
-    pub fn parse(datetime: &str) -> Result<Self, TimestampParseError> {
-        parse_iso8601(datetime).map(Self)
-    }
-
     /// Total number of seconds within the timestamp.
     ///
     /// # Examples
@@ -210,22 +169,33 @@ impl FromStr for Timestamp {
     ///
     /// # Examples
     ///
-    /// Refer to the documentation for [`Timestamp::parse`] for more examples.
-    ///
     /// ```
-    /// use std::str::FromStr;
     /// use twilight_model::datetime::Timestamp;
     ///
-    /// assert!(Timestamp::from_str("2021-01-01T01:01:01.010000+00:00").is_ok());
-    /// assert!(Timestamp::from_str("2021-01-01T01:01:01+00:00").is_ok());
+    /// // Date and time in UTC with +00:00 offsets are supported:
+    /// assert!("2021-01-01T01:01:01.010000+00:00".parse::<Timestamp>().is_ok());
+    /// assert!("2021-01-01T01:01:01+00:00".parse::<Timestamp>().is_ok());
+    ///
+    /// // Other formats, such as dates, weeks, zero UTC offset designators, or
+    /// // ordinal dates are not supported:
+    /// assert!("2021-08-10T18:19:59Z".parse::<Timestamp>().is_err());
+    /// assert!("2021-01-01".parse::<Timestamp>().is_err());
+    /// assert!("2021-W32-2".parse::<Timestamp>().is_err());
+    /// assert!("2021-222".parse::<Timestamp>().is_err());
     /// ```
     ///
     /// # Errors
     ///
-    /// Refer to the documentation for [`Timestamp::parse`] for a list of
-    /// errors.
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Timestamp::parse(s)
+    /// Returns a [`TimestampParseErrorType::Format`] error type if the provided
+    /// string is too short to be an ISO 8601 datetime without a time offset.
+    ///
+    /// Returns a [`TimestampParseErrorType::Parsing`] error type if the parsing
+    /// failed.
+    ///
+    /// [`TimestampParseErrorType::Format`]: self::error::TimestampParseErrorType::Format
+    /// [`TimestampParseErrorType::Parsing`]: self::error::TimestampParseErrorType::Parsing
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        parse_iso8601(input).map(Self)
     }
 }
 
@@ -252,7 +222,7 @@ impl<'de> Deserialize<'de> for Timestamp {
             }
 
             fn visit_str<E: DeError>(self, v: &str) -> Result<Self::Value, E> {
-                Timestamp::parse(v).map_err(DeError::custom)
+                v.parse().map_err(DeError::custom)
             }
         }
 
