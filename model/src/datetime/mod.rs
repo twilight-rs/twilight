@@ -116,10 +116,9 @@ impl Timestamp {
     ///
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::str::FromStr;
     /// use twilight_model::datetime::Timestamp;
     ///
-    /// let timestamp = Timestamp::from_str("2021-08-10T11:16:37.020000+00:00")?;
+    /// let timestamp = "2021-08-10T11:16:37.020000+00:00".parse::<Timestamp>()?;
     /// assert_eq!(1_628_594_197, timestamp.as_secs());
     /// # Ok(()) }
     /// ```
@@ -136,10 +135,9 @@ impl Timestamp {
     ///
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::str::FromStr;
     /// use twilight_model::datetime::Timestamp;
     ///
-    /// let timestamp = Timestamp::from_str("2021-08-10T11:16:37.123456+00:00")?;
+    /// let timestamp = "2021-08-10T11:16:37.123456+00:00".parse::<Timestamp>()?;
     /// assert_eq!(1_628_594_197_123_456, timestamp.as_micros());
     /// # Ok(()) }
     /// ```
