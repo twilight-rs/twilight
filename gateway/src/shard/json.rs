@@ -60,7 +60,6 @@ pub enum GatewayEventParsingErrorType {
 ///
 /// Returns a [`GatewayEventParsingErrorType::PayloadInvalid`] error type if the
 /// payload wasn't a valid `GatewayEvent` data structure.
-#[allow(dead_code)]
 pub fn parse_gateway_event(
     op: u8,
     sequence: Option<u64>,
