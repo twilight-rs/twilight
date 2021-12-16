@@ -681,25 +681,24 @@ impl Shard {
         // Only tick the ratelimiter if there wasn't an error sending it over
         // the tx. If tx sending fails then the message couldn't be sent anyway,
         // which does not affect ratelimiting of external sending.
-        match session.tx.send(message.into_tungstenite()) {
-            Ok(()) => {
-                // Tick ratelimiter.
-                if let Some(limiter) = session.ratelimit.get() {
-                    limiter.acquire_one().await.map_err(|source| SendError {
-                        kind: SendErrorType::ExecutorShutDown,
-                        source: Some(Box::new(source)),
-                    })
-                } else {
-                    Err(SendError {
-                        kind: SendErrorType::HeartbeaterNotStarted,
-                        source: None,
-                    })
-                }
-            }
-            Err(source) => Err(SendError {
+        if let Err(source) = session.tx.send(message.into_tungstenite()) {
+            Err(SendError {
                 source: Some(Box::new(source)),
                 kind: SendErrorType::Sending,
-            }),
+            })
+        } else {
+            // Tick ratelimiter.
+            if let Some(limiter) = session.ratelimit.get() {
+                limiter.acquire_one().await.map_err(|source| SendError {
+                    kind: SendErrorType::ExecutorShutDown,
+                    source: Some(Box::new(source)),
+                })
+            } else {
+                Err(SendError {
+                    kind: SendErrorType::HeartbeaterNotStarted,
+                    source: None,
+                })
+            }
         }
     }
 
@@ -738,9 +737,10 @@ impl Shard {
 
         let shard_id = self.config().shard()[0];
 
-        let session = match self.session() {
-            Ok(session) => session,
-            Err(_) => return (shard_id, None),
+        let session = if let Ok(session) = self.session() {
+            session
+        } else {
+            return (shard_id, None);
         };
 
         let _res = session.close(Some(TungsteniteCloseFrame {

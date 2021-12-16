@@ -1,9 +1,5 @@
 use super::super::ShardStream;
-use futures_util::{
-    future::{self, Either, FutureExt},
-    sink::SinkExt,
-    stream::StreamExt,
-};
+use futures_util::{sink::SinkExt, stream::StreamExt};
 use std::time::Duration;
 use tokio::{
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
@@ -41,18 +37,12 @@ impl SocketForwarder {
         #[cfg(feature = "tracing")]
         tracing::debug!("starting driving loop");
 
+        let timeout = sleep(Self::TIMEOUT);
+        tokio::pin!(timeout);
+
         loop {
-            let timeout = sleep(Self::TIMEOUT).fuse();
-            tokio::pin!(timeout);
-
-            let rx = Box::pin(self.rx.recv().fuse());
-            let tx = Box::pin(self.stream.next().fuse());
-
-            let select_message = future::select(rx, tx);
-
-            match future::select(select_message, timeout).await {
-                // `rx` future finished first.
-                Either::Left((Either::Left((maybe_msg, _)), _)) => {
+            tokio::select! {
+                maybe_msg = self.rx.recv() => {
                     if let Some(msg) = maybe_msg {
                         #[cfg(feature = "tracing")]
                         tracing::trace!("sending message: {}", msg);
@@ -72,8 +62,7 @@ impl SocketForwarder {
                         break;
                     }
                 }
-                // `tx` future finished first.
-                Either::Left((Either::Right((try_msg, _)), _)) => match try_msg {
+                try_msg = self.stream.next() => match try_msg {
                     Some(Ok(msg)) => {
                         if self.tx.send(msg).is_err() {
                             break;
@@ -92,14 +81,13 @@ impl SocketForwarder {
                         break;
                     }
                 },
-                // Timeout future finished first.
-                Either::Right((_, _)) => {
+                _ = &mut timeout => {
                     #[cfg(feature = "tracing")]
                     tracing::warn!("socket timed out");
 
                     break;
                 }
-            };
+            }
         }
 
         #[cfg(feature = "tracing")]

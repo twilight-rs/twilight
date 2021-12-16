@@ -74,11 +74,9 @@ impl Stream for ShardEventsWithId {
     type Item = (u64, Event);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        match Pin::new(&mut self.stream).poll_next(cx) {
-            Poll::Ready(Some(event)) => Poll::Ready(Some((self.id, event))),
-            Poll::Ready(None) => Poll::Ready(None),
-            Poll::Pending => Poll::Pending,
-        }
+        Pin::new(&mut self.stream)
+            .poll_next(cx)
+            .map(|opt_event| opt_event.map(|event| (self.id, event)))
     }
 }
 
