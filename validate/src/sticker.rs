@@ -152,3 +152,35 @@ pub fn tags(value: impl AsRef<str>) -> Result<(), StickerValidationError> {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_description() {
+        assert!(description("aa").is_ok());
+        assert!(description("a".repeat(200)).is_ok());
+
+        assert!(description("a").is_err());
+        assert!(description("a".repeat(201)).is_err());
+    }
+
+    #[test]
+    fn test_name() {
+        assert!(name("aa").is_ok());
+        assert!(name("a".repeat(30)).is_ok());
+
+        assert!(name("a").is_err());
+        assert!(name("a".repeat(31)).is_err());
+    }
+
+    #[test]
+    fn test_tags() {
+        assert!(tags("aa").is_ok());
+        assert!(tags("a".repeat(200)).is_ok());
+
+        assert!(tags("a").is_err());
+        assert!(tags("a".repeat(201)).is_err());
+    }
+}

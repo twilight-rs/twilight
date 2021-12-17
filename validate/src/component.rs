@@ -496,8 +496,8 @@ const fn component_action_row_components(
 /// label is too long.
 ///
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
-fn component_label(label: &str) -> Result<(), ComponentValidationError> {
-    let chars = label.chars().count();
+fn component_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let chars = label.as_ref().chars().count();
 
     if chars > COMPONENT_LABEL_LENGTH {
         return Err(ComponentValidationError {
@@ -516,8 +516,8 @@ fn component_label(label: &str) -> Result<(), ComponentValidationError> {
 /// ID is too long.
 ///
 /// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
-fn component_custom_id(custom_id: &str) -> Result<(), ComponentValidationError> {
-    let chars = custom_id.chars().count();
+fn component_custom_id(custom_id: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let chars = custom_id.as_ref().chars().count();
 
     if chars > COMPONENT_CUSTOM_ID_LENGTH {
         return Err(ComponentValidationError {
@@ -537,8 +537,10 @@ fn component_custom_id(custom_id: &str) -> Result<(), ComponentValidationError> 
 ///
 /// [`SelectMenuOption::description`]: twilight_model::application::component::select_menu::SelectMenuOption::description
 /// [`SelectOptionDescriptionLength`]: ComponentValidationErrorType::SelectOptionDescriptionLength
-fn component_option_description(description: &str) -> Result<(), ComponentValidationError> {
-    let chars = description.chars().count();
+fn component_option_description(
+    description: impl AsRef<str>,
+) -> Result<(), ComponentValidationError> {
+    let chars = description.as_ref().chars().count();
 
     if chars > SELECT_OPTION_DESCRIPTION_LENGTH {
         return Err(ComponentValidationError {
@@ -605,8 +607,8 @@ const fn component_select_min_values(count: usize) -> Result<(), ComponentValida
 ///
 /// [`SelectMenuOption::label`]: twilight_model::application::component::select_menu::SelectMenuOption::label
 /// [`SelectOptionLabelLength`]: ComponentValidationErrorType::SelectOptionLabelLength
-fn component_select_option_label(label: &str) -> Result<(), ComponentValidationError> {
-    let chars = label.chars().count();
+fn component_select_option_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let chars = label.as_ref().chars().count();
 
     if chars > SELECT_OPTION_LABEL_LENGTH {
         return Err(ComponentValidationError {
@@ -626,8 +628,8 @@ fn component_select_option_label(label: &str) -> Result<(), ComponentValidationE
 ///
 /// [`SelectMenuOption::value`]: twilight_model::application::component::select_menu::SelectMenuOption::value
 /// [`SelectOptionValueLength`]: ComponentValidationErrorType::SelectOptionValueLength
-fn component_select_option_value(value: &str) -> Result<(), ComponentValidationError> {
-    let chars = value.chars().count();
+fn component_select_option_value(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let chars = value.as_ref().chars().count();
 
     if chars > SELECT_OPTION_VALUE_LENGTH {
         return Err(ComponentValidationError {
@@ -675,8 +677,10 @@ const fn component_select_options(
 ///
 /// [`SelectMenu::placeholder`]: twilight_model::application::component::select_menu::SelectMenu::placeholder
 /// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceHolderLength
-fn component_select_placeholder(placeholder: &str) -> Result<(), ComponentValidationError> {
-    let chars = placeholder.chars().count();
+fn component_select_placeholder(
+    placeholder: impl AsRef<str>,
+) -> Result<(), ComponentValidationError> {
+    let chars = placeholder.as_ref().chars().count();
 
     if chars > SELECT_PLACEHOLDER_LENGTH {
         return Err(ComponentValidationError {
@@ -687,11 +691,19 @@ fn component_select_placeholder(placeholder: &str) -> Result<(), ComponentValida
     Ok(())
 }
 
+#[allow(clippy::non_ascii_literal)]
 #[cfg(test)]
 mod tests {
-    use super::{ComponentValidationError, ComponentValidationErrorType};
+    use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
+    use twilight_model::{
+        application::component::{
+            button::ButtonStyle, select_menu::SelectMenuOption, ActionRow, Button, Component,
+            SelectMenu,
+        },
+        channel::ReactionType,
+    };
 
     assert_fields!(ComponentValidationErrorType::ActionRowComponentCount: count);
     assert_fields!(ComponentValidationErrorType::ComponentCount: count);
@@ -707,4 +719,151 @@ mod tests {
     assert_fields!(ComponentValidationErrorType::SelectPlaceholderLength: chars);
     assert_impl_all!(ComponentValidationErrorType: Debug, Send, Sync);
     assert_impl_all!(ComponentValidationError: Debug, Send, Sync);
+
+    #[test]
+    fn test_component() {
+        let button = Button {
+            custom_id: Some("custom id 1".into()),
+            disabled: false,
+            emoji: Some(ReactionType::Unicode {
+                name: "📚".into()
+            }),
+            label: Some("Read".into()),
+            style: ButtonStyle::Danger,
+            url: Some("https://abebooks.com".into()),
+        };
+
+        let select_menu = SelectMenu {
+            custom_id: "custom id 2".into(),
+            disabled: false,
+            max_values: Some(2),
+            min_values: Some(1),
+            options: Vec::from([SelectMenuOption {
+                default: true,
+                description: Some("Book 1 of the Expanse".into()),
+                emoji: None,
+                label: "Leviathan Wakes".into(),
+                value: "9780316129084".into(),
+            }]),
+            placeholder: Some("Choose a book".into()),
+        };
+
+        let action_row = Component::ActionRow(ActionRow {
+            components: Vec::from([
+                Component::SelectMenu(select_menu.clone()),
+                Component::Button(button),
+            ]),
+        });
+
+        assert!(component(&action_row).is_ok());
+
+        assert!(component(&Component::SelectMenu(select_menu.clone())).is_err());
+
+        assert!(component_inner(&action_row).is_err());
+
+        let invalid_action_row = Component::ActionRow(ActionRow {
+            components: Vec::from([
+                Component::SelectMenu(select_menu.clone()),
+                Component::SelectMenu(select_menu.clone()),
+                Component::SelectMenu(select_menu.clone()),
+                Component::SelectMenu(select_menu.clone()),
+                Component::SelectMenu(select_menu.clone()),
+                Component::SelectMenu(select_menu),
+            ]),
+        });
+
+        assert!(component(&invalid_action_row).is_err());
+    }
+
+    #[test]
+    fn test_component_label() {
+        assert!(component_label("").is_ok());
+        assert!(component_label("a").is_ok());
+        assert!(component_label("a".repeat(80)).is_ok());
+
+        assert!(component_label("a".repeat(81)).is_err());
+    }
+
+    #[test]
+    fn test_component_custom_id() {
+        assert!(component_custom_id("").is_ok());
+        assert!(component_custom_id("a").is_ok());
+        assert!(component_custom_id("a".repeat(100)).is_ok());
+
+        assert!(component_custom_id("a".repeat(101)).is_err());
+    }
+
+    #[test]
+    fn test_component_option_description() {
+        assert!(component_option_description("").is_ok());
+        assert!(component_option_description("a").is_ok());
+        assert!(component_option_description("a".repeat(100)).is_ok());
+
+        assert!(component_option_description("a".repeat(101)).is_err());
+    }
+
+    #[test]
+    fn test_component_select_max_values() {
+        assert!(component_select_max_values(1).is_ok());
+        assert!(component_select_max_values(25).is_ok());
+
+        assert!(component_select_max_values(0).is_err());
+        assert!(component_select_max_values(26).is_err());
+    }
+
+    #[test]
+    fn test_component_select_min_values() {
+        assert!(component_select_min_values(1).is_ok());
+        assert!(component_select_min_values(25).is_ok());
+
+        assert!(component_select_min_values(26).is_err());
+    }
+
+    #[test]
+    fn test_component_select_option_value() {
+        assert!(component_select_option_value("a").is_ok());
+        assert!(component_select_option_value("a".repeat(100)).is_ok());
+
+        assert!(component_select_option_value("a".repeat(101)).is_err());
+    }
+
+    #[test]
+    fn test_component_select_options() {
+        let select_menu_options = Vec::from([SelectMenuOption {
+            default: false,
+            description: None,
+            emoji: None,
+            label: "label".into(),
+            value: "value".into(),
+        }]);
+
+        assert!(component_select_options(&select_menu_options).is_ok());
+
+        let select_menu_options_25 = select_menu_options
+            .iter()
+            .cloned()
+            .cycle()
+            .take(25)
+            .collect::<Vec<SelectMenuOption>>();
+
+        assert!(component_select_options(&select_menu_options_25).is_ok());
+
+        let select_menu_options_26 = select_menu_options
+            .iter()
+            .cloned()
+            .cycle()
+            .take(26)
+            .collect::<Vec<SelectMenuOption>>();
+
+        assert!(component_select_options(&select_menu_options_26).is_err());
+    }
+
+    #[test]
+    fn test_component_select_placeholder() {
+        assert!(component_select_placeholder("").is_ok());
+        assert!(component_select_placeholder("a").is_ok());
+        assert!(component_select_placeholder("a".repeat(100)).is_ok());
+
+        assert!(component_select_placeholder("a".repeat(101)).is_err());
+    }
 }

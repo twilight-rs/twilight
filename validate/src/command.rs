@@ -235,3 +235,44 @@ pub const fn guild_permissions(count: usize) -> Result<(), CommandValidationErro
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use twilight_model::{application::command::CommandType, id::Id};
+
+    // This tests [`description`] and [`name`] by proxy.
+    #[test]
+    fn test_command() {
+        let valid_command = Command {
+            application_id: Some(Id::new(1).expect("non zero")),
+            default_permission: None,
+            description: "a".repeat(100),
+            guild_id: Some(Id::new(2).expect("non zero")),
+            id: Some(Id::new(3).expect("non zero")),
+            kind: CommandType::ChatInput,
+            name: "b".repeat(32),
+            options: Vec::new(),
+            version: Id::new(4).expect("non zero"),
+        };
+
+        assert!(command(&valid_command).is_ok());
+
+        let invalid_command = Command {
+            description: "c".repeat(101),
+            name: "d".repeat(33),
+            ..valid_command
+        };
+
+        assert!(command(&invalid_command).is_err());
+    }
+
+    #[test]
+    fn test_guild_permissions() {
+        assert!(guild_permissions(0).is_ok());
+        assert!(guild_permissions(1).is_ok());
+        assert!(guild_permissions(10).is_ok());
+
+        assert!(guild_permissions(11).is_err());
+    }
+}

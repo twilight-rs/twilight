@@ -13,7 +13,7 @@ pub const CHANNEL_NAME_LENGTH_MAX: usize = 100;
 pub const CHANNEL_NAME_LENGTH_MIN: usize = 1;
 
 /// Maximum length of a channel's rate limit per user.
-pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u64 = 21600;
+pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u64 = 21_600;
 
 /// Maximum length of a channel's topic.
 pub const CHANNEL_TOPIC_LENGTH_MAX: usize = 1024;
@@ -184,7 +184,16 @@ pub fn topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
 
 #[cfg(test)]
 mod tests {
-    use super::name;
+    use super::*;
+
+    #[test]
+    fn test_is_thread() {
+        assert!(is_thread(ChannelType::GuildNewsThread).is_ok());
+        assert!(is_thread(ChannelType::GuildPrivateThread).is_ok());
+        assert!(is_thread(ChannelType::GuildPublicThread).is_ok());
+
+        assert!(is_thread(ChannelType::Group).is_err());
+    }
 
     #[test]
     fn test_channel_name() {
@@ -193,5 +202,22 @@ mod tests {
 
         assert!(name("").is_err());
         assert!(name("a".repeat(101)).is_err());
+    }
+
+    #[test]
+    fn test_rate_limit_per_user() {
+        assert!(rate_limit_per_user(0).is_ok());
+        assert!(rate_limit_per_user(21_600).is_ok());
+
+        assert!(rate_limit_per_user(21_601).is_err());
+    }
+
+    #[test]
+    fn test_topic() {
+        assert!(topic("").is_ok());
+        assert!(topic("a").is_ok());
+        assert!(topic("a".repeat(1_024)).is_ok());
+
+        assert!(topic("a".repeat(1_025)).is_err());
     }
 }
