@@ -42,7 +42,7 @@ pub struct InteractionMember {
     pub avatar: Option<String>,
     pub joined_at: Timestamp,
     pub nick: Option<String>,
-    /// Whether the user has yet to pass the guild's [Membership Screening]
+    /// Whether the user has yet to pass the guild's Membership Screening
     /// requirements.
     pub pending: bool,
     /// Total permissions of the member in this channel including overwrites
