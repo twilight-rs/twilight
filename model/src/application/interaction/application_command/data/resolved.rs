@@ -43,6 +43,14 @@ pub struct InteractionMember {
     pub premium_since: Option<Timestamp>,
     #[serde(default)]
     pub roles: Vec<RoleId>,
+    /// Total permissions of the member in this channel including overwrites
+    pub permissions: Permissions,
+    /// Whether the user has yet to pass the guild's [Membership Screening]
+    /// requirements.
+    pub pending: bool,
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
 }
 
 #[cfg(test)]
@@ -90,6 +98,9 @@ mod tests {
                     nick: None,
                     premium_since: None,
                     roles: Vec::new(),
+                    permissions: Permissions::empty(),
+                    pending: false,
+                    avatar: None,
                 },
             )])
             .collect(),
@@ -232,7 +243,7 @@ mod tests {
                 Token::Str("300"),
                 Token::Struct {
                     name: "InteractionMember",
-                    len: 3,
+                    len: 5,
                 },
                 Token::Str("joined_at"),
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
@@ -241,6 +252,10 @@ mod tests {
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
+                Token::Str("permissions"),
+                Token::Str("0"),
+                Token::Str("pending"),
+                Token::Bool(false),
                 Token::StructEnd,
                 Token::MapEnd,
                 Token::Str("messages"),

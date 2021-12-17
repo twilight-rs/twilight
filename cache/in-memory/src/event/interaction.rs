@@ -107,6 +107,9 @@ mod tests {
                                 nick: None,
                                 premium_since: None,
                                 roles: vec![RoleId::new(8).expect("non zero")],
+                                permissions: Permissions::empty(),
+                                pending: false,
+                                avatar: None,
                             },
                         )])
                         .collect(),
