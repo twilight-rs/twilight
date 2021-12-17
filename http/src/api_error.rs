@@ -1134,5 +1134,10 @@ mod tests {
             display: "Invalid Guild",
             num: 50055,
         });
+        assert_error_code(AssertErrorCode {
+            code: ErrorCode::RequestInvalidJson,
+            display: "The request body contains invalid JSON",
+            num: 50109,
+        })
     }
 }
