@@ -89,6 +89,7 @@ mod tests {
                     len: 7,
                 },
                 Token::Str("banner_asset_id"),
+                Token::Some,
                 Token::NewtypeStruct {
                     name: "StickerBannerAssetId",
                 },
