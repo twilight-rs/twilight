@@ -103,13 +103,13 @@ mod tests {
                         members: IntoIterator::into_iter([(
                             UserId::new(7).expect("non zero"),
                             InteractionMember {
+                                avatar: None,
                                 joined_at: timestamp,
                                 nick: None,
+                                pending: false,
+                                permissions: Permissions::empty(),
                                 premium_since: None,
                                 roles: vec![RoleId::new(8).expect("non zero")],
-                                permissions: Permissions::empty(),
-                                pending: false,
-                                avatar: None,
                             },
                         )])
                         .collect(),
