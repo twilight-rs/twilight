@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct StickerPack {
     /// ID of the sticker pack's banner image.
-    pub banner_asset_id: StickerBannerAssetId,
+    pub banner_asset_id: Option<StickerBannerAssetId>,
     /// ID of the sticker that is shown as the pack's icon.
     pub cover_sticker_id: Option<StickerId>,
     /// Description of the sticker pack.
@@ -58,7 +58,9 @@ mod tests {
     #[test]
     fn test_full() {
         let value = StickerPack {
-            banner_asset_id: StickerBannerAssetId::new(761_773_777_976_819_732).expect("non zero"),
+            banner_asset_id: Some(
+                StickerBannerAssetId::new(761_773_777_976_819_732).expect("non zero"),
+            ),
             cover_sticker_id: Some(StickerId::new(749_053_689_419_006_003).expect("non zero")),
             description: "Say hello to Wumpus!".into(),
             id: StickerPackId::new(847_199_849_233_514_549).expect("non zero"),
@@ -87,6 +89,7 @@ mod tests {
                     len: 7,
                 },
                 Token::Str("banner_asset_id"),
+                Token::Some,
                 Token::NewtypeStruct {
                     name: "StickerBannerAssetId",
                 },
