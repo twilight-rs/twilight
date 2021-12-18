@@ -261,6 +261,8 @@ pub enum ErrorCode {
     ServerNeedsMonetiazation,
     /// This server needs more boosts to perform this action
     ServerNeedsBoosts,
+    /// The request body contains invalid JSON.
+    RequestInvalidJson,
     /// Two factor is required for this operation.
     TwoFactorRequired,
     /// No users with DiscordTag exist
@@ -434,6 +436,7 @@ impl ErrorCode {
             Self::ServerNotAvailableLocation => 50095,
             Self::ServerNeedsMonetiazation => 50097,
             Self::ServerNeedsBoosts => 50101,
+            Self::RequestInvalidJson => 50109,
             Self::TwoFactorRequired => 60003,
             Self::NoSuchUser => 80004,
             Self::ReactionBlocked => 90001,
@@ -587,6 +590,7 @@ impl From<u64> for ErrorCode {
             50095 => Self::ServerNotAvailableLocation,
             50097 => Self::ServerNeedsMonetiazation,
             50101 => Self::ServerNeedsBoosts,
+            50109 => Self::RequestInvalidJson,
             60003 => Self::TwoFactorRequired,
             80004 => Self::NoSuchUser,
             90001 => Self::ReactionBlocked,
@@ -740,6 +744,7 @@ impl Display for ErrorCode {
             Self::ServerNotAvailableLocation => f.write_str("This server is not available in your location"),
             Self::ServerNeedsMonetiazation => f.write_str("This server needs monetization enabled in order to perform this action"),
             Self::ServerNeedsBoosts => f.write_str("This server needs more boosts to perform this action"),
+            Self::RequestInvalidJson => f.write_str("The request body contains invalid JSON"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
             Self::NoSuchUser => f.write_str("No users with DiscordTag exist"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
@@ -1129,5 +1134,10 @@ mod tests {
             display: "Invalid Guild",
             num: 50055,
         });
+        assert_error_code(AssertErrorCode {
+            code: ErrorCode::RequestInvalidJson,
+            display: "The request body contains invalid JSON",
+            num: 50109,
+        })
     }
 }
