@@ -51,7 +51,7 @@ pub enum GatewayEventParsingErrorType {
     PayloadInvalid,
 }
 
-/// Parse a gateway event from a string using `serde_json` with headers.
+/// Parse a gateway event from a string with headers.
 ///
 /// # Errors
 ///

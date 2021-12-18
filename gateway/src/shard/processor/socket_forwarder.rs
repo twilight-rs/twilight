@@ -37,10 +37,9 @@ impl SocketForwarder {
         #[cfg(feature = "tracing")]
         tracing::debug!("starting driving loop");
 
-        let timeout = sleep(Self::TIMEOUT);
-        tokio::pin!(timeout);
-
         loop {
+            let timeout = sleep(Self::TIMEOUT);
+
             tokio::select! {
                 maybe_msg = self.rx.recv() => {
                     if let Some(msg) = maybe_msg {
@@ -81,7 +80,7 @@ impl SocketForwarder {
                         break;
                     }
                 },
-                _ = &mut timeout => {
+                _ = timeout => {
                     #[cfg(feature = "tracing")]
                     tracing::warn!("socket timed out");
 

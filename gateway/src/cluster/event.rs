@@ -13,10 +13,7 @@
 //! [`ClusterBuilder::event_types`]: crate::cluster::ClusterBuilder::event_types
 
 use crate::shard::Events as ShardEvents;
-use futures_util::{
-    ready,
-    stream::{SelectAll, Stream},
-};
+use futures_util::stream::{SelectAll, Stream};
 use std::{
     pin::Pin,
     task::{Context, Poll},
@@ -77,7 +74,11 @@ impl Stream for ShardEventsWithId {
     type Item = (u64, Event);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        Poll::Ready(ready!(Pin::new(&mut self.stream).poll_next(cx)).map(|event| (self.id, event)))
+        match Pin::new(&mut self.stream).poll_next(cx) {
+            Poll::Ready(Some(event)) => Poll::Ready(Some((self.id, event))),
+            Poll::Ready(None) => Poll::Ready(None),
+            Poll::Pending => Poll::Pending,
+        }
     }
 }
 
