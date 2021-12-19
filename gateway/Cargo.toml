@@ -39,10 +39,10 @@ tracing = { default-features = false, features = ["std", "attributes"], optional
 
 # TLS libraries
 # They are needed to track what is used in tokio-tungstenite
-native-tls = { default-features = false, features = [], optional = true, version = "0.2.8" }
-rustls-tls = { default-features = false, features = [], optional = true, package = "rustls", version = "0.20" }
-rustls-native-certs = {default-features = false, features = [], optional = true, version = "0.6.1" }
-webpki-roots = {default-features = false, features = [], optional = true, version = "0.22" }
+native-tls = { default-features = false, optional = true, version = "0.2.8" }
+rustls-tls = { default-features = false, optional = true, package = "rustls", version = "0.20" }
+rustls-native-certs = {default-features = false, optional = true, version = "0.6" }
+webpki-roots = {default-features = false, optional = true, version = "0.22" }
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
