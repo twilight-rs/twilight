@@ -122,7 +122,7 @@ impl InMemoryCache {
 
 impl UpdateCache for MemberAdd {
     fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::MEMBER) || !cache.wants(ResourceType::MEMBER_CURRENT) {
+        if !cache.wants(ResourceType::MEMBER) && !cache.wants(ResourceType::MEMBER_CURRENT) {
             return;
         }
 
@@ -146,7 +146,7 @@ impl UpdateCache for MemberAdd {
 
 impl UpdateCache for MemberChunk {
     fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::MEMBER) || !cache.wants(ResourceType::MEMBER_CURRENT) {
+        if !cache.wants(ResourceType::MEMBER) && !cache.wants(ResourceType::MEMBER_CURRENT) {
             return;
         }
 
@@ -182,7 +182,7 @@ impl UpdateCache for MemberChunk {
 
 impl UpdateCache for MemberRemove {
     fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::MEMBER) || !cache.wants(ResourceType::MEMBER_CURRENT) {
+        if !cache.wants(ResourceType::MEMBER) && !cache.wants(ResourceType::MEMBER_CURRENT) {
             return;
         }
 
@@ -218,7 +218,7 @@ impl UpdateCache for MemberRemove {
 
 impl UpdateCache for MemberUpdate {
     fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::MEMBER) || !cache.wants(ResourceType::MEMBER_CURRENT) {
+        if !cache.wants(ResourceType::MEMBER) && !cache.wants(ResourceType::MEMBER_CURRENT) {
             return;
         }
 
