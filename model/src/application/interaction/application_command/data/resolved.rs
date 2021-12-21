@@ -37,6 +37,7 @@ pub struct InteractionChannel {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionMember {
+    pub communication_disabled_until: Option<Timestamp>,
     pub joined_at: Timestamp,
     pub nick: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,6 +87,7 @@ mod tests {
             members: IntoIterator::into_iter([(
                 UserId::new(300).expect("non zero"),
                 InteractionMember {
+                    communication_disabled_until: None,
                     joined_at,
                     nick: None,
                     premium_since: None,
@@ -129,6 +131,7 @@ mod tests {
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
                         avatar: None,
+                        communication_disabled_until: None,
                         deaf: false,
                         joined_at,
                         mute: false,
@@ -232,8 +235,10 @@ mod tests {
                 Token::Str("300"),
                 Token::Struct {
                     name: "InteractionMember",
-                    len: 3,
+                    len: 4,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("joined_at"),
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("nick"),
@@ -302,8 +307,10 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),

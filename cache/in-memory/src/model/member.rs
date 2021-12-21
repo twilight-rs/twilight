@@ -113,6 +113,7 @@ impl PartialEq<Member> for CachedMember {
 impl PartialEq<PartialMember> for CachedMember {
     fn eq(&self, other: &PartialMember) -> bool {
         (
+            self.communication_disabled_until,
             self.deaf,
             self.joined_at,
             self.mute,
@@ -120,6 +121,7 @@ impl PartialEq<PartialMember> for CachedMember {
             self.premium_since,
             &self.roles,
         ) == (
+            other.communication_disabled_until,
             Some(other.deaf),
             other.joined_at,
             Some(other.mute),
@@ -230,6 +232,7 @@ mod tests {
 
         let member = PartialMember {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: true,

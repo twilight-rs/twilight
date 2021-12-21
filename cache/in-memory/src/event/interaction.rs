@@ -103,6 +103,7 @@ mod tests {
                         members: IntoIterator::into_iter([(
                             UserId::new(7).expect("non zero"),
                             InteractionMember {
+                                communication_disabled_until: None,
                                 joined_at: timestamp,
                                 nick: None,
                                 premium_since: None,
@@ -146,6 +147,7 @@ mod tests {
                                 kind: MessageType::Regular,
                                 member: Some(PartialMember {
                                     avatar: None,
+                                    communication_disabled_until: None,
                                     deaf: false,
                                     joined_at: timestamp,
                                     mute: false,
@@ -220,6 +222,7 @@ mod tests {
                 kind: InteractionType::ApplicationCommand,
                 member: Some(PartialMember {
                     avatar: None,
+                    communication_disabled_until: None,
                     deaf: false,
                     joined_at: timestamp,
                     mute: false,
