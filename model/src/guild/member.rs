@@ -18,6 +18,8 @@ pub struct Member {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub guild_id: GuildId,
     pub joined_at: Timestamp,
@@ -43,6 +45,8 @@ pub struct MemberIntermediary {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -61,6 +65,7 @@ impl MemberIntermediary {
     pub fn into_member(self, guild_id: GuildId) -> Member {
         Member {
             avatar: self.avatar,
+            communication_disabled_until: self.communication_disabled_until,
             deaf: self.deaf,
             guild_id,
             joined_at: self.joined_at,
@@ -113,6 +118,7 @@ impl<'de> Visitor<'de> for MemberVisitor {
 
         Ok(Member {
             avatar: member.avatar,
+            communication_disabled_until: member.communication_disabled_until,
             deaf: member.deaf,
             guild_id: self.0,
             joined_at: member.joined_at,
@@ -220,6 +226,7 @@ mod tests {
 
         let value = Member {
             avatar: Some("guild avatar".to_owned()),
+            communication_disabled_until: None,
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             joined_at,

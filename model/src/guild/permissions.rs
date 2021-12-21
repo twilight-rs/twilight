@@ -51,6 +51,9 @@ bitflags! {
         /// Allows for launching activities (applications with the `EMBEDDED`
         /// flag) in a voice channel.
         const START_EMBEDDED_ACTIVITIES = 1 << 39;
+        /// Allows for timing out users to prevent them from sending or reacting to
+        /// messages in chat and threads, and from speaking in voice and stage channels.
+        const MODERATE_MEMBERS = 1 << 40;
     }
 }
 

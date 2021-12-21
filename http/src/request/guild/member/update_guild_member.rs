@@ -10,6 +10,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
+use twilight_model::datetime::Timestamp;
 use twilight_model::id::{ChannelId, GuildId, RoleId, UserId};
 
 /// The error created when the member can not be updated as configured.
@@ -70,6 +71,8 @@ struct UpdateGuildMemberFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<NullableField<ChannelId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    communication_disabled_util: Option<NullableField<Timestamp>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mute: Option<bool>,
@@ -98,6 +101,7 @@ impl<'a> UpdateGuildMember<'a> {
         Self {
             fields: UpdateGuildMemberFields {
                 channel_id: None,
+                communication_disabled_util: None,
                 deaf: None,
                 mute: None,
                 nick: None,
@@ -113,6 +117,14 @@ impl<'a> UpdateGuildMember<'a> {
     /// Move the member to a different voice channel.
     pub const fn channel_id(mut self, channel_id: Option<ChannelId>) -> Self {
         self.fields.channel_id = Some(NullableField(channel_id));
+
+        self
+    }
+
+    /// Sets when the user's time out will expire and be capable of communicating
+    /// in the guild again. Set to `None` to remove the time out completely.
+    pub const fn communication_disabled_until(mut self, timestamp: Option<Timestamp>) -> Self {
+        self.fields.communication_disabled_util = Some(NullableField(timestamp));
 
         self
     }
@@ -227,6 +239,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: Some(true),
             mute: Some(true),
             nick: None,
@@ -252,6 +265,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: None,
             mute: None,
             nick: Some(NullableField(None)),
@@ -276,6 +290,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: None,
             mute: None,
             nick: Some(NullableField(Some("foo"))),
