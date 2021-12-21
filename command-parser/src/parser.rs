@@ -28,7 +28,7 @@ pub struct Command<'a> {
 /// Using a parser configured with the commands `"echo"` and `"ping"` and the
 /// prefix `"!"`, parse the message "!echo foo bar baz":
 ///
-/// ```rust
+/// ```
 /// use twilight_command_parser::{Command, CommandParserConfig, Parser};
 ///
 /// let mut config = CommandParserConfig::new();
@@ -97,7 +97,7 @@ impl<'a> Parser<'a> {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
     /// # use twilight_command_parser::{Command, CommandParserConfig, Parser};
     /// # fn example() -> Option<()> {
     /// let mut config = CommandParserConfig::new();
