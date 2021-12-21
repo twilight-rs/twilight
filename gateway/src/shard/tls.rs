@@ -60,7 +60,10 @@ impl TlsError {
 
 impl Display for TlsError {
     // If TlsErrorType is an empty type f is not used.
-    #[cfg_attr(not(any(feature = "native", feature = "rustls-native-roots")), allow(unused))]
+    #[cfg_attr(
+        not(any(feature = "native", feature = "rustls-native-roots")),
+        allow(unused)
+    )]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
             #[cfg(all(
