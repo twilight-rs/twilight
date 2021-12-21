@@ -12,6 +12,7 @@ use twilight_model::{
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
     pub(crate) avatar: Option<String>,
+    pub(crate) communication_disabled_until: Option<Timestamp>,
     pub(crate) deaf: Option<bool>,
     pub(crate) guild_id: GuildId,
     pub(crate) joined_at: Timestamp,
@@ -27,6 +28,11 @@ impl CachedMember {
     /// Member's guild avatar.
     pub fn avatar(&self) -> Option<&str> {
         self.nick.as_deref()
+    }
+
+    /// When the user can resume communication in a guild again.
+    pub const fn communication_disabled_until(&self) -> Option<Timestamp> {
+        self.communication_disabled_until
     }
 
     /// Whether the member is deafened in a voice channel.
@@ -80,6 +86,7 @@ impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
         (
             &self.avatar,
+            self.communication_disabled_until,
             self.deaf,
             self.joined_at,
             self.mute,
@@ -90,6 +97,7 @@ impl PartialEq<Member> for CachedMember {
             self.user_id,
         ) == (
             &other.avatar,
+            other.communication_disabled_until,
             Some(other.deaf),
             other.joined_at,
             Some(other.mute),
@@ -162,6 +170,7 @@ mod tests {
 
         CachedMember {
             avatar: None,
+            communication_disabled_until: None,
             deaf: Some(false),
             guild_id: GuildId::new(3).expect("non zero"),
             joined_at,
@@ -200,6 +209,7 @@ mod tests {
 
         let member = Member {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             guild_id: GuildId::new(3).expect("non zero"),
             joined_at,

@@ -920,6 +920,7 @@ mod tests {
             guild_id,
             Member {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 guild_id,
                 joined_at,
