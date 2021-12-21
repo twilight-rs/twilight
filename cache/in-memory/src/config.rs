@@ -37,9 +37,7 @@ bitflags! {
         /// Information relating to guild stickers.
         const STICKER = 1 << 13;
         /// Information relating to the current user's member.
-        ///
-        /// In order for this to take effect, you must enable [`USER_CURRENT`] too.
-        const MEMBER_CURRENT = 1 << 14;
+        const MEMBER_CURRENT = Self::USER_CURRENT.bits | 1 << 14;
     }
 }
 
