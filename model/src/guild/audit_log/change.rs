@@ -227,10 +227,10 @@ pub enum AuditLogChange {
     EntityType {
         /// New entity type.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<bool>,
+        new: Option<u64>,
         /// Previous state, if any.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<bool>,
+        old: Option<u64>,
     },
     /// Behavior of the expiration of an integration.
     ExpireBehavior {
@@ -311,12 +311,14 @@ pub enum AuditLogChange {
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<UserId>,
     },
-    /// Channel ID for a scheduled event changed.
+    /// Location for a scheduled event changed.
+    ///
+    /// Can be a [`ChannelId`] or a [`String`].
     Location {
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<ChannelId>,
+        new: Option<String>,
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<ChannelId>,
+        old: Option<String>,
     },
     /// Thread was locked or unlocked.
     Locked {
