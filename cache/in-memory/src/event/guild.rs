@@ -29,6 +29,18 @@ impl InMemoryCache {
         if self.wants(ResourceType::MEMBER) {
             self.guild_members.insert(guild.id, HashSet::new());
             self.cache_members(guild.id, guild.members);
+        } else if self.wants(ResourceType::MEMBER_CURRENT) {
+            if let Some(current_user) = self.current_user() {
+                let current_member = guild
+                    .members
+                    .iter()
+                    .find(|member| member.user.id == current_user.id);
+
+                if let Some(member) = current_member {
+                    self.guild_members.insert(guild.id, HashSet::new());
+                    self.cache_member(guild.id, member.clone());
+                }
+            }
         }
 
         if self.wants(ResourceType::PRESENCE) {
@@ -154,7 +166,7 @@ impl UpdateCache for GuildDelete {
             cache.voice_state_guilds.remove(&id);
         }
 
-        if cache.wants(ResourceType::MEMBER) {
+        if cache.wants(ResourceType::MEMBER) || cache.wants(ResourceType::MEMBER_CURRENT) {
             if let Some((_, ids)) = cache.guild_members.remove(&id) {
                 for user_id in ids {
                     cache.members.remove(&(id, user_id));
