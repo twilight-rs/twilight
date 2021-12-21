@@ -107,6 +107,7 @@ mod tests {
 
         let member = Member {
             avatar: Some("guild avatar".to_owned()),
+            communication_disabled_until: None,
             deaf: false,
             guild_id: GuildId::new(2).expect("non zero"),
             joined_at,
