@@ -23,6 +23,7 @@ percent-encoding = { default-features = false, version = "2" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
+time = "0.3.5"
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
 twilight-model = { default-features = false, path = "../model" }

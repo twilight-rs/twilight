@@ -7,10 +7,13 @@ use super::{application::InteractionError, guild::sticker::StickerValidationErro
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    time::{SystemTime, UNIX_EPOCH},
 };
+use time::PrimitiveDateTime;
 use twilight_model::{
     application::component::{select_menu::SelectMenuOption, Component, ComponentType},
     channel::{embed::Embed, ChannelType},
+    datetime::Timestamp,
 };
 
 /// A provided [`Component`] is invalid.
@@ -1173,6 +1176,17 @@ fn _sticker_tags(value: &str) -> bool {
 
     (StickerValidationError::TAGS_MIN_LENGTH..=StickerValidationError::TAGS_MAX_LENGTH)
         .contains(&len)
+}
+
+pub fn communication_disabled_until(timestamp: Timestamp) -> bool {
+    _communication_disabled_until(timestamp)
+}
+
+fn _communication_disabled_until(timestamp: Timestamp) -> bool {
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    let end = timestamp.as_secs();
+
+    end - now <= 28 * 24 * 60 * 60
 }
 
 /// Validate the number of guild command permission overwrites.

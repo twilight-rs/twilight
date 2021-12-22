@@ -65,6 +65,8 @@ impl Error for UpdateGuildMemberError {}
 pub enum UpdateGuildMemberErrorType {
     /// The nickname is either empty or the length is more than 32 UTF-16 characters.
     NicknameInvalid,
+    /// The timeout expiry timestamp is more than 28 days from the current timestamp
+    TimeoutExpiryTimestampInvalid,
 }
 
 #[derive(Serialize)]
@@ -132,10 +134,18 @@ impl<'a> UpdateGuildMember<'a> {
     /// [Guild Timeout]: https://support.discord.com/hc/en-us/articles/4413305239191-Time-Out-FAQ
     /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
 
-    pub const fn communication_disabled_until(mut self, timestamp: Option<Timestamp>) -> Self {
+    pub const fn communication_disabled_until(mut self, timestamp: Option<Timestamp>) -> Result<Self, UpdateGuildMemberError> {
+        if let Some(timestamp) = timestamp {
+            if !validate_inner::communication_disabled_until(timestamp) {
+                return Err(UpdateGuildMemberError {
+                    kind: UpdateGuildMemberErrorType::TimeoutExpiryTimestampInvalid
+                });
+            }
+        }
+
         self.fields.communication_disabled_util = Some(NullableField(timestamp));
 
-        self
+        Ok(self)
     }
 
     /// If true, restrict the member's ability to hear sound from a voice channel.
