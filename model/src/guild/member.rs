@@ -360,7 +360,7 @@ mod tests {
                 Token::Str("guild avatar"),
                 Token::Str("communication_disabled_until"),
                 Token::Some,
-                Token::Str("2021-03-16T14:29:19.046000+00:00"),
+                Token::Str("2021-12-23T14:29:19.046000+00:00"),
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),

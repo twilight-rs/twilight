@@ -235,7 +235,7 @@ mod tests {
                 Token::Str("300"),
                 Token::Struct {
                     name: "InteractionMember",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
