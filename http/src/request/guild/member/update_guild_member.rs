@@ -121,8 +121,15 @@ impl<'a> UpdateGuildMember<'a> {
         self
     }
 
-    /// Sets when the user's time out will expire and be capable of communicating
-    /// in the guild again. Set to `None` to remove the time out completely.
+    /// Set the member's [Guild Timeout].
+    ///
+    /// The timestamp indicates when the user will be able to communicate again.
+    /// It can be up to 28 days in the future. Set to [`None`] to remove the
+    /// timeout. Requires the [`MODERATE_MEMBERS`] permission.
+    ///
+    /// [Guild Timeout]: https://support.discord.com/hc/en-us/articles/4413305239191-Time-Out-FAQ
+    /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
+
     pub const fn communication_disabled_until(mut self, timestamp: Option<Timestamp>) -> Self {
         self.fields.communication_disabled_util = Some(NullableField(timestamp));
 
