@@ -10,8 +10,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::datetime::Timestamp;
-use twilight_model::id::{ChannelId, GuildId, RoleId, UserId};
+use twilight_model::{
+    datetime::Timestamp,
+    id::{ChannelId, GuildId, RoleId, UserId},
+};
 
 /// The error created when the member can not be updated as configured.
 #[derive(Debug)]
