@@ -89,7 +89,7 @@ mod tests {
         gateway::presence::{
             Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId,
         },
-        guild::Member,
+        guild::{member::MemberTimeoutState, Member},
         id::{ChannelId, GuildId, UserId},
         user::User,
     };
@@ -107,7 +107,7 @@ mod tests {
 
         let member = Member {
             avatar: Some("guild avatar".to_owned()),
-            communication_disabled_until: None,
+            communication_disabled_until: MemberTimeoutState(None),
             deaf: false,
             guild_id: GuildId::new(2).expect("non zero"),
             joined_at,
@@ -213,10 +213,12 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "MemberIntermediary",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("guild avatar"),
                 Token::Str("deaf"),
                 Token::Bool(false),

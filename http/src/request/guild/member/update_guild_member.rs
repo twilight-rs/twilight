@@ -137,7 +137,7 @@ impl<'a> UpdateGuildMember<'a> {
     /// [Guild Timeout]: https://support.discord.com/hc/en-us/articles/4413305239191-Time-Out-FAQ
     /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
 
-    pub const fn communication_disabled_until(mut self, timestamp: Option<Timestamp>) -> Result<Self, UpdateGuildMemberError> {
+    pub fn communication_disabled_until(mut self, timestamp: Option<Timestamp>) -> Result<Self, UpdateGuildMemberError> {
         if let Some(timestamp) = timestamp {
             if !validate_inner::communication_disabled_until(timestamp) {
                 return Err(UpdateGuildMemberError {

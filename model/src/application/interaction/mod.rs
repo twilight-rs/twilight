@@ -328,7 +328,7 @@ mod test {
             },
         },
         datetime::{Timestamp, TimestampParseError},
-        guild::{PartialMember, Permissions},
+        guild::{member::MemberTimeoutState, PartialMember, Permissions},
         id::{ApplicationId, ChannelId, CommandId, GuildId, InteractionId, UserId},
         user::User,
     };
@@ -356,7 +356,8 @@ mod test {
                     members: IntoIterator::into_iter([(
                         UserId::new(600).expect("non zero"),
                         InteractionMember {
-                            communication_disabled_until: None,
+                            avatar: None,
+                            communication_disabled_until: MemberTimeoutState(None),
                             joined_at,
                             nick: Some("nickname".into()),
                             premium_since: None,
@@ -394,7 +395,7 @@ mod test {
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: None,
+                communication_disabled_until:MemberTimeoutState(None),
                 deaf: false,
                 joined_at,
                 mute: false,

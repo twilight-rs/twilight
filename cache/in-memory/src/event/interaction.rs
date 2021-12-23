@@ -78,7 +78,7 @@ mod tests {
             Message,
         },
         datetime::Timestamp,
-        guild::{PartialMember, Permissions, Role},
+        guild::{member::MemberTimeoutState, PartialMember, Permissions, Role},
         id::{
             ApplicationId, ChannelId, CommandId, GuildId, InteractionId, MessageId, RoleId, UserId,
         },
@@ -103,7 +103,8 @@ mod tests {
                         members: IntoIterator::into_iter([(
                             UserId::new(7).expect("non zero"),
                             InteractionMember {
-                                communication_disabled_until: None,
+                                avatar: None,
+                                communication_disabled_until: MemberTimeoutState(None),
                                 joined_at: timestamp,
                                 nick: None,
                                 premium_since: None,
@@ -147,7 +148,7 @@ mod tests {
                                 kind: MessageType::Regular,
                                 member: Some(PartialMember {
                                     avatar: None,
-                                    communication_disabled_until: None,
+                                    communication_disabled_until: MemberTimeoutState(None),
                                     deaf: false,
                                     joined_at: timestamp,
                                     mute: false,
@@ -222,7 +223,7 @@ mod tests {
                 kind: InteractionType::ApplicationCommand,
                 member: Some(PartialMember {
                     avatar: None,
-                    communication_disabled_until: None,
+                    communication_disabled_until: MemberTimeoutState(None),
                     deaf: false,
                     joined_at: timestamp,
                     mute: false,

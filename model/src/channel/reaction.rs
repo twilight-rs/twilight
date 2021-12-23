@@ -179,7 +179,7 @@ mod tests {
     use super::super::{Reaction, ReactionType};
     use crate::{
         datetime::{Timestamp, TimestampParseError},
-        guild::Member,
+        guild::{member::MemberTimeoutState, Member},
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::User,
     };
@@ -199,7 +199,7 @@ mod tests {
             guild_id: Some(GuildId::new(1).expect("non zero")),
             member: Some(Member {
                 avatar: None,
-                communication_disabled_until: None,
+                communication_disabled_until: MemberTimeoutState(None),
                 deaf: false,
                 guild_id: GuildId::new(1).expect("non zero"),
                 joined_at,
@@ -256,7 +256,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),

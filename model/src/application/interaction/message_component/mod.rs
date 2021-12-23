@@ -80,8 +80,13 @@ mod tests {
         application::{component::ComponentType, interaction::InteractionType},
         channel::message::{Message, MessageType},
         datetime::{Timestamp, TimestampParseError},
+<<<<<<< HEAD
         guild::PartialMember,
         id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, UserId},
+=======
+        guild::{member::MemberTimeoutState, PartialMember},
+        id::{marker::UserMarker, Id},
+>>>>>>> 1cc199abd (migrate everything to membertimeoutstate structure)
         user::User,
     };
     use serde::Serialize;
@@ -152,7 +157,7 @@ mod tests {
             kind: InteractionType::MessageComponent,
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: None,
+                communication_disabled_until: MemberTimeoutState(None),
                 deaf: false,
                 joined_at: timestamp,
                 mute: false,

@@ -4,18 +4,14 @@ use crate::{
     user::User,
 };
 
-use serde::{
-    de::{
-        value::MapAccessDeserializer, DeserializeSeed, Deserializer, Error as DeError, MapAccess,
-        SeqAccess, Visitor,
-    },
-    Deserialize, Serialize,
-};
+use serde::{de::{
+    value::MapAccessDeserializer, DeserializeSeed, Deserializer, Error as DeError, MapAccess,
+    SeqAccess, Visitor,
+}, Deserialize, Serialize, Serializer};
 use std::{
     fmt::{Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
-use serde::de::EnumAccess;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Member {
@@ -82,7 +78,8 @@ impl MemberIntermediary {
 }
 
 /// The state of a member's guild timeout.
-pub struct MemberTimeoutState(Option<Timestamp>);
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct MemberTimeoutState(pub Option<Timestamp>);
 
 impl MemberTimeoutState {
     /// Returns whether a member is currently timed out.
@@ -114,6 +111,16 @@ impl MemberTimeoutState {
 impl<'de> Deserialize<'de> for MemberTimeoutState {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_tuple_struct("MemberTimeoutState", 1, MemberTimeoutStateVisitor)
+    }
+}
+
+impl Serialize for MemberTimeoutState {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        if self.inner().is_none() {
+            return serializer.serialize_none();
+        }
+
+        serializer.serialize_some(self.inner().unwrap())
     }
 }
 
@@ -175,7 +182,7 @@ pub(crate) struct MemberTimeoutStateVisitor;
 impl<'de> Visitor<'de> for MemberTimeoutStateVisitor {
     type Value = MemberTimeoutState;
 
-    fn expecting(&self, f: &mut Formatter) -> FmtResult {
+    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("a member timeout state")
     }
 
@@ -266,7 +273,7 @@ impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
 
 #[cfg(test)]
 mod tests {
-    use super::Member;
+    use super::{Member, MemberTimeoutState};
     use crate::{
         datetime::{Timestamp, TimestampParseError},
         id::{GuildId, UserId},
@@ -282,7 +289,7 @@ mod tests {
 
         let value = Member {
             avatar: Some("guild avatar".to_owned()),
-            communication_disabled_until: None,
+            communication_disabled_until: MemberTimeoutState(None),
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             joined_at,
@@ -315,7 +322,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
@@ -376,9 +383,9 @@ mod tests {
 
         let value = Member {
             avatar: Some("guild avatar".to_owned()),
-            communication_disabled_until: Some(communication_disabled_until),
+            communication_disabled_until: MemberTimeoutState(Some(communication_disabled_until)),
             deaf: false,
-            guild_id: Id::new(1).expect("non zero"),
+            guild_id: GuildId::new(1).expect("non zero"),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -393,7 +400,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(3).expect("non zero"),
+                id: UserId::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),

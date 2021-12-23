@@ -44,6 +44,12 @@ impl Mention {
 
 #[cfg(test)]
 mod tests {
+    use super::{Mention, PartialMember, UserFlags};
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        guild::member::MemberTimeoutState,
+    };
+    use serde_test::Token;
     use std::str::FromStr;
 
     use crate::datetime::{Timestamp, TimestampParseError};
@@ -101,7 +107,7 @@ mod tests {
             id: UserId::new(1).expect("non zero"),
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: None,
+                communication_disabled_until: MemberTimeoutState(None),
                 deaf: false,
                 joined_at,
                 mute: true,

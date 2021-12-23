@@ -878,7 +878,7 @@ mod tests {
     use twilight_model::{
         datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
-        guild::{Member, Permissions, Role},
+        guild::{member::MemberTimeoutState, Member, Permissions, Role},
         id::{EmojiId, GuildId, RoleId, UserId},
     };
 
@@ -920,7 +920,7 @@ mod tests {
             guild_id,
             Member {
                 avatar: None,
-                communication_disabled_until: None,
+                communication_disabled_until: MemberTimeoutState(None),
                 deaf: false,
                 guild_id,
                 joined_at,

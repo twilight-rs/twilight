@@ -2,8 +2,16 @@ use serde::Serialize;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
     datetime::Timestamp,
+<<<<<<< HEAD
     guild::{Member, PartialMember},
     id::{GuildId, RoleId, UserId},
+=======
+    guild::{member::MemberTimeoutState, Member, PartialMember},
+    id::{
+        marker::{GuildMarker, RoleMarker, UserMarker},
+        Id,
+    },
+>>>>>>> 1cc199abd (migrate everything to membertimeoutstate structure)
 };
 
 /// Represents a cached [`Member`].
@@ -12,7 +20,7 @@ use twilight_model::{
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
     pub(crate) avatar: Option<String>,
-    pub(crate) communication_disabled_until: Option<Timestamp>,
+    pub(crate) communication_disabled_until: MemberTimeoutState,
     pub(crate) deaf: Option<bool>,
     pub(crate) guild_id: GuildId,
     pub(crate) joined_at: Timestamp,
@@ -31,8 +39,8 @@ impl CachedMember {
     }
 
     /// When the user can resume communication in a guild again.
-    pub const fn communication_disabled_until(&self) -> Option<Timestamp> {
-        self.communication_disabled_until
+    pub const fn communication_disabled_until(&self) -> &MemberTimeoutState {
+        &self.communication_disabled_until
     }
 
     /// Whether the member is deafened in a voice channel.
@@ -86,7 +94,7 @@ impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
         (
             &self.avatar,
-            self.communication_disabled_until,
+            &self.communication_disabled_until,
             self.deaf,
             self.joined_at,
             self.mute,
@@ -97,7 +105,7 @@ impl PartialEq<Member> for CachedMember {
             self.user_id,
         ) == (
             &other.avatar,
-            other.communication_disabled_until,
+            &other.communication_disabled_until,
             Some(other.deaf),
             other.joined_at,
             Some(other.mute),
@@ -113,7 +121,7 @@ impl PartialEq<Member> for CachedMember {
 impl PartialEq<PartialMember> for CachedMember {
     fn eq(&self, other: &PartialMember) -> bool {
         (
-            self.communication_disabled_until,
+            &self.communication_disabled_until,
             self.deaf,
             self.joined_at,
             self.mute,
@@ -121,7 +129,7 @@ impl PartialEq<PartialMember> for CachedMember {
             self.premium_since,
             &self.roles,
         ) == (
-            other.communication_disabled_until,
+            &other.communication_disabled_until,
             Some(other.deaf),
             other.joined_at,
             Some(other.mute),
@@ -150,8 +158,13 @@ mod tests {
     use static_assertions::assert_fields;
     use twilight_model::{
         datetime::Timestamp,
+<<<<<<< HEAD
         guild::{Member, PartialMember},
         id::{GuildId, UserId},
+=======
+        guild::{member::MemberTimeoutState, Member, PartialMember},
+        id::Id,
+>>>>>>> 1cc199abd (migrate everything to membertimeoutstate structure)
         user::User,
     };
 
@@ -172,7 +185,7 @@ mod tests {
 
         CachedMember {
             avatar: None,
-            communication_disabled_until: None,
+            communication_disabled_until: MemberTimeoutState(None),
             deaf: Some(false),
             guild_id: GuildId::new(3).expect("non zero"),
             joined_at,
@@ -211,7 +224,7 @@ mod tests {
 
         let member = Member {
             avatar: None,
-            communication_disabled_until: None,
+            communication_disabled_until: MemberTimeoutState(None),
             deaf: false,
             guild_id: GuildId::new(3).expect("non zero"),
             joined_at,
@@ -232,7 +245,7 @@ mod tests {
 
         let member = PartialMember {
             avatar: None,
-            communication_disabled_until: None,
+            communication_disabled_until: MemberTimeoutState(None),
             deaf: false,
             joined_at,
             mute: true,

@@ -290,6 +290,7 @@ mod tests {
     use super::{ChannelId, GuildId, Member, UserId, VoiceState};
     use crate::{
         datetime::{Timestamp, TimestampParseError},
+        guild::member::MemberTimeoutState,
         user::User,
     };
     use serde_test::Token;
@@ -365,7 +366,7 @@ mod tests {
             guild_id: Some(GuildId::new(2).expect("non zero")),
             member: Some(Member {
                 avatar: None,
-                communication_disabled_until: None,
+                communication_disabled_until: MemberTimeoutState(None),
                 deaf: false,
                 guild_id: GuildId::new(2).expect("non zero"),
                 joined_at,
@@ -424,7 +425,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),

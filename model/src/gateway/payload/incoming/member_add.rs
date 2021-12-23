@@ -24,6 +24,7 @@ mod tests {
     use super::{Member, MemberAdd};
     use crate::{
         datetime::Timestamp,
+        guild::member::MemberTimeoutState,
         id::{GuildId, UserId},
         user::User,
     };
@@ -35,7 +36,7 @@ mod tests {
 
         let value = MemberAdd(Member {
             avatar: None,
-            communication_disabled_until: None,
+            communication_disabled_until: MemberTimeoutState(None),
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             joined_at,
@@ -69,7 +70,7 @@ mod tests {
                 Token::NewtypeStruct { name: "MemberAdd" },
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
                 Token::Str("deaf"),
                 Token::Bool(false),

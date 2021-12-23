@@ -1,7 +1,7 @@
 use crate::{
     channel::{thread::ThreadMetadata, ChannelType, Message},
     datetime::Timestamp,
-    guild::{Permissions, Role},
+    guild::{member::MemberTimeoutState, Permissions, Role},
     id::{ChannelId, MessageId, RoleId, UserId},
     user::User,
 };
@@ -37,7 +37,10 @@ pub struct InteractionChannel {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionMember {
-    pub communication_disabled_until: Option<Timestamp>,
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
+    pub communication_disabled_until: MemberTimeoutState,
     pub joined_at: Timestamp,
     pub nick: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +61,7 @@ mod tests {
             ChannelType, Message,
         },
         datetime::{Timestamp, TimestampParseError},
-        guild::{PartialMember, Permissions, Role},
+        guild::{member::MemberTimeoutState, PartialMember, Permissions, Role},
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::{PremiumType, User, UserFlags},
     };
@@ -87,7 +90,8 @@ mod tests {
             members: IntoIterator::into_iter([(
                 UserId::new(300).expect("non zero"),
                 InteractionMember {
-                    communication_disabled_until: None,
+                    avatar: None,
+                    communication_disabled_until: MemberTimeoutState(None),
                     joined_at,
                     nick: None,
                     premium_since: None,
@@ -131,7 +135,7 @@ mod tests {
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
                         avatar: None,
-                        communication_disabled_until: None,
+                        communication_disabled_until: MemberTimeoutState(None),
                         deaf: false,
                         joined_at,
                         mute: false,
