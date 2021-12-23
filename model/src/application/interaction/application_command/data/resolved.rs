@@ -43,6 +43,11 @@ pub struct InteractionMember {
     pub communication_disabled_until: MemberTimeoutState,
     pub joined_at: Timestamp,
     pub nick: Option<String>,
+    /// Whether the user has yet to pass the guild's Membership Screening
+    /// requirements.
+    pub pending: bool,
+    /// Total permissions of the member in this channel including overwrites
+    pub permissions: Permissions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
     #[serde(default)]
@@ -94,6 +99,8 @@ mod tests {
                     communication_disabled_until: MemberTimeoutState(None),
                     joined_at,
                     nick: None,
+                    pending: false,
+                    permissions: Permissions::empty(),
                     premium_since: None,
                     roles: Vec::new(),
                 },
@@ -247,6 +254,10 @@ mod tests {
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("nick"),
                 Token::None,
+                Token::Str("pending"),
+                Token::Bool(false),
+                Token::Str("permissions"),
+                Token::Str("0"),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

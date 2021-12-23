@@ -476,7 +476,7 @@ impl EmbedBuilder {
     ///
     /// Create an embed author:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::{EmbedAuthorBuilder, EmbedBuilder};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -507,7 +507,7 @@ impl EmbedBuilder {
     ///
     /// Set the color of an embed to `0xfd69b3`:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::EmbedBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -532,7 +532,7 @@ impl EmbedBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::EmbedBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -555,7 +555,7 @@ impl EmbedBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -579,7 +579,7 @@ impl EmbedBuilder {
     ///
     /// # Examples
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::{EmbedBuilder, EmbedFooterBuilder};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -605,7 +605,7 @@ impl EmbedBuilder {
     ///
     /// Set the image source to a URL:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::{EmbedBuilder, EmbedFooterBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -634,7 +634,7 @@ impl EmbedBuilder {
     /// Set the thumbnail to an image attachment with the filename
     /// `"twilight.png"`:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::{EmbedBuilder, ImageSource};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -671,7 +671,7 @@ impl EmbedBuilder {
     ///
     /// Set the title to "twilight":
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::EmbedBuilder;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -699,7 +699,7 @@ impl EmbedBuilder {
     ///
     /// Set the URL to [twilight's repository]:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_embed_builder::{EmbedBuilder, EmbedFooterBuilder};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {

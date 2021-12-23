@@ -107,6 +107,8 @@ mod tests {
                                 communication_disabled_until: MemberTimeoutState(None),
                                 joined_at: timestamp,
                                 nick: None,
+                                pending: false,
+                                permissions: Permissions::empty(),
                                 premium_since: None,
                                 roles: vec![RoleId::new(8).expect("non zero")],
                             },

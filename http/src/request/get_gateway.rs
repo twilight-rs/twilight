@@ -13,7 +13,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 ///
 /// Get the gateway connection URL without bot information:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
@@ -27,7 +27,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// Get the gateway connection URL with additional shard and session information, which
 /// requires specifying a bot token:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]

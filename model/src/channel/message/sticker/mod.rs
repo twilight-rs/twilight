@@ -2,7 +2,7 @@
 //!
 //! See the [Discord documentation] for more information.
 //!
-//! [Discord documentation]: https://discord.com/developers/docs/resources/channel#message-object-message-sticker-structure
+//! [Discord documentation]: https://discord.com/developers/docs/resources/sticker#sticker-object-sticker-structure
 
 mod format_type;
 mod id;
