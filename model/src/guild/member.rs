@@ -472,7 +472,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "Id" },
+                Token::NewtypeStruct { name: "UserId" },
                 Token::Str("3"),
                 Token::Str("username"),
                 Token::Str("twilight"),
