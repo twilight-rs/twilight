@@ -72,6 +72,8 @@ mod tests {
                     name: "Member",
                     len: 9,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),

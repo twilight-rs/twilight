@@ -327,6 +327,8 @@ mod tests {
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("guild avatar"),
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
