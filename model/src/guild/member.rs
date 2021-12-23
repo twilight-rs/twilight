@@ -118,7 +118,7 @@ impl MemberTimeoutState {
 
 impl<'de> Deserialize<'de> for MemberTimeoutState {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer.deserialize_tuple_struct("MemberTimeoutState", 1, MemberTimeoutStateVisitor)
+        deserializer.deserialize_option(MemberTimeoutStateVisitor)
     }
 }
 
