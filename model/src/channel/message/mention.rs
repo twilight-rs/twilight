@@ -44,17 +44,13 @@ impl Mention {
 
 #[cfg(test)]
 mod tests {
-    use super::{Mention, PartialMember, UserFlags};
+    use std::str::FromStr;
+
+    use super::{Mention, PartialMember, UserFlags, UserId};
     use crate::{
         datetime::{Timestamp, TimestampParseError},
         guild::member::MemberTimeoutState,
     };
-    use serde_test::Token;
-    use std::str::FromStr;
-
-    use crate::datetime::{Timestamp, TimestampParseError};
-
-    use super::{Mention, PartialMember, UserFlags, UserId};
     use serde_test::Token;
 
     #[test]
