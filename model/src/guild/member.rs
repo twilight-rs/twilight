@@ -81,6 +81,12 @@ impl MemberIntermediary {
 }
 
 /// The state of a member's guild timeout.
+///
+/// This wraps an [`Option<Timestamp>`], as no corresponding `GUILD_MEMBER_UPDATE` events are
+/// sent by Discord when the timeout of members have expired. Therefore, simply relying on whether
+/// the `communication_disabled_until` field has a value does not facilitate the use case of
+/// knowing whether a specified member is actually timed out (especially when using cached data);
+/// and provides convenience methods to determine whether a member is timed out or not.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct MemberTimeoutState(pub Option<Timestamp>);
 
@@ -102,6 +108,8 @@ impl MemberTimeoutState {
         now < until
     }
 
+    /// Returns the inner raw timestamp. `Some` if the timeout is still active,
+    /// otherwise `None`.
     pub fn until(&self) -> Option<&Timestamp> {
         if !self.timed_out() {
             return None;
@@ -111,6 +119,9 @@ impl MemberTimeoutState {
     }
 
     /// Returns the inner raw timestamp.
+    ///
+    /// Unlike [`until`](MemberTimeoutState::until), the timestamp is returned
+    /// without checking if it is not expired.
     pub const fn inner(&self) -> Option<&Timestamp> {
         self.0.as_ref()
     }

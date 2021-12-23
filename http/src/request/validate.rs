@@ -1181,6 +1181,8 @@ pub fn communication_disabled_until(timestamp: Timestamp) -> bool {
     _communication_disabled_until(timestamp)
 }
 
+const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
+
 #[allow(clippy::cast_possible_wrap)] // casting of unix timestamp should never wrap
 fn _communication_disabled_until(timestamp: Timestamp) -> bool {
     let now = SystemTime::now()
@@ -1189,7 +1191,7 @@ fn _communication_disabled_until(timestamp: Timestamp) -> bool {
         .as_secs();
     let end = timestamp.as_secs();
 
-    end - now as i64 <= 28 * 24 * 60 * 60
+    end - now as i64 <= COMMUNICATION_DISABLED_MAX_DURATION
 }
 
 /// Validate the number of guild command permission overwrites.
