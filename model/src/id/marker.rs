@@ -154,6 +154,24 @@ pub struct OauthTeamMarker;
 #[non_exhaustive]
 pub struct RoleMarker;
 
+/// Marker for scheduled event IDs.
+///
+/// Types such as [`GuildScheduledEvent`] use this ID marker.
+///
+/// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+#[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
+pub struct ScheduledEventMarker;
+
+/// Marker for scheduled event entity IDs.
+///
+/// Types such as [`GuildScheduledEvent`] use this ID marker.
+///
+/// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+#[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
+pub struct ScheduledEventEntityMarker;
+
 /// Marker for stage IDs.
 ///
 /// Types such as [`StageInstance`] use this ID marker.
@@ -254,6 +272,10 @@ impl Snowflake for MessageMarker {}
 
 impl Snowflake for RoleMarker {}
 
+impl Snowflake for ScheduledEventMarker {}
+
+impl Snowflake for ScheduledEventEntityMarker {}
+
 impl Snowflake for StageMarker {}
 
 impl Snowflake for UserMarker {}
@@ -264,7 +286,8 @@ mod private {
     use super::{
         ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
         CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
-        InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
+        InteractionMarker, MessageMarker, RoleMarker, ScheduledEventEntityMarker,
+        ScheduledEventMarker, StageMarker, UserMarker, WebhookMarker,
     };
 
     pub trait Sealed {}
@@ -294,6 +317,10 @@ mod private {
     impl Sealed for MessageMarker {}
 
     impl Sealed for RoleMarker {}
+
+    impl Sealed for ScheduledEventMarker {}
+
+    impl Sealed for ScheduledEventEntityMarker {}
 
     impl Sealed for StageMarker {}
 
