@@ -439,7 +439,7 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "Id" },
+                Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
