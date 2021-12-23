@@ -1182,7 +1182,10 @@ pub fn communication_disabled_until(timestamp: Timestamp) -> bool {
 }
 
 fn _communication_disabled_until(timestamp: Timestamp) -> bool {
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
     let end = timestamp.as_secs();
 
     end - now as i64 <= 28 * 24 * 60 * 60

@@ -4,10 +4,13 @@ use crate::{
     user::User,
 };
 
-use serde::{de::{
-    value::MapAccessDeserializer, DeserializeSeed, Deserializer, Error as DeError, MapAccess,
-    SeqAccess, Visitor,
-}, Deserialize, Serialize, Serializer};
+use serde::{
+    de::{
+        value::MapAccessDeserializer, DeserializeSeed, Deserializer, Error as DeError, MapAccess,
+        SeqAccess, Visitor,
+    },
+    Deserialize, Serialize, Serializer,
+};
 use std::{
     fmt::{Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
@@ -83,13 +86,18 @@ pub struct MemberTimeoutState(pub Option<Timestamp>);
 
 impl MemberTimeoutState {
     /// Returns whether a member is currently timed out.
+    #[allow(clippy::cast_possible_wrap)] // casting of a unix timestamp should never wrap
+    #[allow(clippy::missing_panics_doc)] // this function never panics, false positive
     pub fn timed_out(&self) -> bool {
         if self.inner().is_none() {
             return false;
         }
 
         let until = self.inner().unwrap().as_secs();
-        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64;
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
 
         now < until
     }
@@ -103,7 +111,7 @@ impl MemberTimeoutState {
     }
 
     /// Returns the inner raw timestamp.
-    pub fn inner(&self) -> Option<&Timestamp> {
+    pub const fn inner(&self) -> Option<&Timestamp> {
         self.0.as_ref()
     }
 }
@@ -191,7 +199,9 @@ impl<'de> Visitor<'de> for MemberTimeoutStateVisitor {
     }
 
     fn visit_some<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        Ok(MemberTimeoutState(Some(Timestamp::deserialize(deserializer)?)))
+        Ok(MemberTimeoutState(Some(Timestamp::deserialize(
+            deserializer,
+        )?)))
     }
 }
 

@@ -395,7 +395,7 @@ mod test {
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until:MemberTimeoutState(None),
+                communication_disabled_until: MemberTimeoutState(None),
                 deaf: false,
                 joined_at,
                 mute: false,
