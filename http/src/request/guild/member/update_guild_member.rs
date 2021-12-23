@@ -53,6 +53,9 @@ impl Display for UpdateGuildMemberError {
             UpdateGuildMemberErrorType::NicknameInvalid => {
                 f.write_str("the nickname length is invalid")
             }
+            UpdateGuildMemberErrorType::TimeoutExpiryTimestampInvalid => {
+                f.write_str("the timeout expiry is more than 28 days from the current time")
+            }
         }
     }
 }

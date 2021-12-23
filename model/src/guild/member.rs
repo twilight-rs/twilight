@@ -11,15 +11,18 @@ use serde::{
     },
     Deserialize, Serialize,
 };
-use std::fmt::{Formatter, Result as FmtResult};
+use std::{
+    fmt::{Formatter, Result as FmtResult},
+    time::{SystemTime, UNIX_EPOCH},
+};
+use serde::de::EnumAccess;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Member {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub communication_disabled_until: Option<Timestamp>,
+    pub communication_disabled_until: MemberTimeoutState,
     pub deaf: bool,
     pub guild_id: GuildId,
     pub joined_at: Timestamp,
@@ -45,8 +48,7 @@ pub struct MemberIntermediary {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub communication_disabled_until: Option<Timestamp>,
+    pub communication_disabled_until: MemberTimeoutState,
     pub deaf: bool,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -76,6 +78,42 @@ impl MemberIntermediary {
             roles: self.roles,
             user: self.user,
         }
+    }
+}
+
+/// The state of a member's guild timeout.
+pub struct MemberTimeoutState(Option<Timestamp>);
+
+impl MemberTimeoutState {
+    /// Returns whether a member is currently timed out.
+    pub fn timed_out(&self) -> bool {
+        if self.inner().is_none() {
+            return false;
+        }
+
+        let until = self.inner().unwrap().as_secs();
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64;
+
+        now < until
+    }
+
+    pub fn until(&self) -> Option<&Timestamp> {
+        if !self.timed_out() {
+            return None;
+        }
+
+        self.inner()
+    }
+
+    /// Returns the inner raw timestamp.
+    pub fn inner(&self) -> Option<&Timestamp> {
+        self.0.as_ref()
+    }
+}
+
+impl<'de> Deserialize<'de> for MemberTimeoutState {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        deserializer.deserialize_tuple_struct("MemberTimeoutState", 1, MemberTimeoutStateVisitor)
     }
 }
 
@@ -129,6 +167,24 @@ impl<'de> Visitor<'de> for MemberVisitor {
             roles: member.roles,
             user: member.user,
         })
+    }
+}
+
+pub(crate) struct MemberTimeoutStateVisitor;
+
+impl<'de> Visitor<'de> for MemberTimeoutStateVisitor {
+    type Value = MemberTimeoutState;
+
+    fn expecting(&self, f: &mut Formatter) -> FmtResult {
+        f.write_str("a member timeout state")
+    }
+
+    fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
+        Ok(MemberTimeoutState(None))
+    }
+
+    fn visit_some<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        Ok(MemberTimeoutState(Some(Timestamp::deserialize(deserializer)?)))
     }
 }
 

@@ -9,7 +9,6 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
-use time::PrimitiveDateTime;
 use twilight_model::{
     application::component::{select_menu::SelectMenuOption, Component, ComponentType},
     channel::{embed::Embed, ChannelType},
@@ -1186,7 +1185,7 @@ fn _communication_disabled_until(timestamp: Timestamp) -> bool {
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
     let end = timestamp.as_secs();
 
-    end - now <= 28 * 24 * 60 * 60
+    end - now as i64 <= 28 * 24 * 60 * 60
 }
 
 /// Validate the number of guild command permission overwrites.
