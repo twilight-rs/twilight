@@ -1181,6 +1181,7 @@ pub fn communication_disabled_until(timestamp: Timestamp) -> bool {
     _communication_disabled_until(timestamp)
 }
 
+#[allow(clippy::cast_possible_wrap)] // casting of unix timestamp should never wrap
 fn _communication_disabled_until(timestamp: Timestamp) -> bool {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)

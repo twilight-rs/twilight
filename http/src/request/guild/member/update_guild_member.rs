@@ -139,7 +139,7 @@ impl<'a> UpdateGuildMember<'a> {
 
     pub fn communication_disabled_until(
         mut self,
-        timestamp: Option<Timestamp>
+        timestamp: Option<Timestamp>,
     ) -> Result<Self, UpdateGuildMemberError> {
         if let Some(timestamp) = timestamp {
             if !validate_inner::communication_disabled_until(timestamp) {
