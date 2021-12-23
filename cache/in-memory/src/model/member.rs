@@ -2,16 +2,8 @@ use serde::Serialize;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
     datetime::Timestamp,
-<<<<<<< HEAD
-    guild::{Member, PartialMember},
-    id::{GuildId, RoleId, UserId},
-=======
     guild::{member::MemberTimeoutState, Member, PartialMember},
-    id::{
-        marker::{GuildMarker, RoleMarker, UserMarker},
-        Id,
-    },
->>>>>>> 1cc199abd (migrate everything to membertimeoutstate structure)
+    id::{GuildId, RoleId, UserId},
 };
 
 /// Represents a cached [`Member`].
@@ -158,13 +150,8 @@ mod tests {
     use static_assertions::assert_fields;
     use twilight_model::{
         datetime::Timestamp,
-<<<<<<< HEAD
-        guild::{Member, PartialMember},
-        id::{GuildId, UserId},
-=======
         guild::{member::MemberTimeoutState, Member, PartialMember},
-        id::Id,
->>>>>>> 1cc199abd (migrate everything to membertimeoutstate structure)
+        id::{GuildId, UserId},
         user::User,
     };
 
