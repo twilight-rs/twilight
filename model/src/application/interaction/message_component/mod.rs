@@ -80,13 +80,8 @@ mod tests {
         application::{component::ComponentType, interaction::InteractionType},
         channel::message::{Message, MessageType},
         datetime::{Timestamp, TimestampParseError},
-<<<<<<< HEAD
-        guild::PartialMember,
-        id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, UserId},
-=======
         guild::{member::MemberTimeoutState, PartialMember},
-        id::{marker::UserMarker, Id},
->>>>>>> 1cc199abd (migrate everything to membertimeoutstate structure)
+        id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, UserId},
         user::User,
     };
     use serde::Serialize;
