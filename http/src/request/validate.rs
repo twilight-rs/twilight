@@ -1185,8 +1185,7 @@ const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
 
 #[allow(clippy::cast_possible_wrap)] // casting of unix timestamp should never wrap
 fn _communication_disabled_until(timestamp: Timestamp) -> bool {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH);
+    let now = SystemTime::now().duration_since(UNIX_EPOCH);
 
     if now.is_err() {
         return false;

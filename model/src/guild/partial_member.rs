@@ -1,9 +1,4 @@
-use crate::{
-    datetime::Timestamp,
-    guild::Permissions,
-    id::RoleId,
-    user::User,
-};
+use crate::{datetime::Timestamp, guild::Permissions, id::RoleId, user::User};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
