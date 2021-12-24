@@ -85,7 +85,7 @@ impl<'a> GetCurrentUserGuilds<'a> {
     /// Returns an error of type [`GetCurrentUserGuilds`] if the name length is
     /// too short or too long.
     ///
-    /// [`GetCurrentUserGuilds`]: twilight_validate::misc::ValidationErrorType::GetCurrentUserGuilds
+    /// [`GetCurrentUserGuilds`]: twilight_validate::request::ValidationErrorType::GetCurrentUserGuilds
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_current_user_guilds_limit(limit) {

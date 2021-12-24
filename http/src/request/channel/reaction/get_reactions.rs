@@ -71,7 +71,7 @@ impl<'a> GetReactions<'a> {
     /// Returns an error of type [`GetReactions`] if the amount is greater than
     /// 100.
     ///
-    /// [`GetReactions`]: twilight_validate::misc::ValidationErrorType::GetReactions
+    /// [`GetReactions`]: twilight_validate::request::ValidationErrorType::GetReactions
     pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_reactions_limit(limit) {
             return Err(source);

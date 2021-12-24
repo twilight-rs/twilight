@@ -77,7 +77,7 @@ impl<'a> GetGuildMembers<'a> {
     /// Returns an error of type [`GetGuildMembers`] if the limit is 0 or
     /// greater than 1000.
     ///
-    /// [`GetGuildMembers`]: twilight_validate::misc::ValidationErrorType::GetGuildMembers
+    /// [`GetGuildMembers`]: twilight_validate::request::ValidationErrorType::GetGuildMembers
     pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_guild_members_limit(limit) {
             return Err(source);

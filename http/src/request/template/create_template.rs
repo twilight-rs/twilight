@@ -31,7 +31,7 @@ struct CreateTemplateFields<'a> {
 /// Returns an error of type [`TemplateName`] if the name length is too short or
 /// too long.
 ///
-/// [`TemplateName`]: twilight_validate::misc::ValidationErrorType::TemplateName
+/// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
     fields: CreateTemplateFields<'a>,
@@ -66,7 +66,7 @@ impl<'a> CreateTemplate<'a> {
     /// Returns an error of type [`TemplateDescription`] if the name length is
     /// too short or too long.
     ///
-    /// [`TemplateDescription`]: twilight_validate::misc::ValidationErrorType::TemplateDescription
+    /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
     pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
         validate_template_description(description)?;
 

@@ -489,7 +489,7 @@ impl Client {
     /// the amount is less than 1 or greater than 100.
     ///
     /// [`GetChannelMessagesConfigured`]: crate::request::channel::message::GetChannelMessagesConfigured
-    /// [`ValidationErrorType::GetChannelMessages`]: twilight_validate::misc::ValidationErrorType::GetChannelMessages
+    /// [`ValidationErrorType::GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
     /// [`after`]: GetChannelMessages::after
     /// [`around`]: GetChannelMessages::around
     /// [`before`]: GetChannelMessages::before
@@ -899,7 +899,7 @@ impl Client {
     /// Returns an error of type [`ValidationErrorType::GetGuildMembers`] if the
     /// limit is invalid.
     ///
-    /// [`ValidationErrorType::GetGuildMembers`]: twilight_validate::misc::ValidationErrorType::GetGuildMembers
+    /// [`ValidationErrorType::GetGuildMembers`]: twilight_validate::request::ValidationErrorType::GetGuildMembers
     pub const fn guild_members(&self, guild_id: Id<GuildMarker>) -> GetGuildMembers<'_> {
         GetGuildMembers::new(self, guild_id)
     }
@@ -934,7 +934,7 @@ impl Client {
     /// the limit is invalid.
     ///
     /// [`GUILD_MEMBERS`]: twilight_model::gateway::Intents::GUILD_MEMBERS
-    /// [`ValidationErrorType::SearchGuildMembers`]: twilight_validate::misc::ValidationErrorType::SearchGuildMembers
+    /// [`ValidationErrorType::SearchGuildMembers`]: twilight_validate::request::ValidationErrorType::SearchGuildMembers
     pub const fn search_guild_members<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
@@ -963,7 +963,7 @@ impl Client {
     /// Returns an error of type [`ValidationErrorType::Nickname`] if the
     /// nickname is too short or too long.
     ///
-    /// [`ValidationErrorType::Nickname`]: twilight_validate::misc::ValidationErrorType::Nickname
+    /// [`ValidationErrorType::Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub const fn add_guild_member<'a>(
         &'a self,
@@ -1015,7 +1015,7 @@ impl Client {
     /// Returns an error of type [`ValidationErrorType::Nickname`] if the
     /// nickname length is too short or too long.
     ///
-    /// [`ValidationErrorType::Nickname`]: twilight_validate::misc::ValidationErrorType::Nickname
+    /// [`ValidationErrorType::Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub const fn update_guild_member(
         &self,
@@ -1525,7 +1525,7 @@ impl Client {
     /// Returns an error of type [`ValidationError::StageTopic`] when the topic
     /// is not between 1 and 120 characters in length.
     ///
-    /// [`ValidationError::StageTopic`]: twilight_validate::misc::ValidationErrorType::StageTopic
+    /// [`ValidationError::StageTopic`]: twilight_validate::request::ValidationErrorType::StageTopic
     pub fn create_stage_instance<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
@@ -1568,7 +1568,7 @@ impl Client {
     /// Returns an error of type [`ValidationErrorType::TemplateName`] if the
     /// name is invalid.
     ///
-    /// [`ValidationErrorType::TemplateName`]: twilight_validate::misc::ValidationErrorType::TemplateName
+    /// [`ValidationErrorType::TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
     pub fn create_guild_from_template<'a>(
         &'a self,
         template_code: &'a str,
@@ -1587,7 +1587,7 @@ impl Client {
     /// Returns an error of type [`ValidationErrorType::TemplateName`] if the
     /// name is invalid.
     ///
-    /// [`ValidationErrorType::TemplateName`]: twilight_validate::misc::ValidationErrorType::TemplateName
+    /// [`ValidationErrorType::TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
     pub fn create_template<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,

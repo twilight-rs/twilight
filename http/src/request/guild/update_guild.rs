@@ -186,7 +186,7 @@ impl<'a> UpdateGuild<'a> {
     /// Returns an error of type [`GuildName`] if the name length is too short
     /// or too long.
     ///
-    /// [`GuildName`]: twilight_validate::misc::ValidationErrorType::GuildName
+    /// [`GuildName`]: twilight_validate::request::ValidationErrorType::GuildName
     pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
         validate_guild_name(name)?;
 

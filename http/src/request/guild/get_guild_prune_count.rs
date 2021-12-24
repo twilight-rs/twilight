@@ -49,7 +49,7 @@ impl<'a> GetGuildPruneCount<'a> {
     /// Returns an error of type [`GuildPruneDays`] if the number of days is 0
     /// or more than 30.
     ///
-    /// [`GuildPruneDays`]: twilight_validate::misc::ValidationErrorType::GuildPruneDays
+    /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
     pub const fn days(mut self, days: u64) -> Result<Self, ValidationError> {
         if let Err(source) = validate_guild_prune_days(days) {
             return Err(source);

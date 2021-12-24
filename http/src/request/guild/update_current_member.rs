@@ -45,7 +45,7 @@ impl<'a> UpdateCurrentMember<'a> {
     /// Returns an error of type [`Nickname`] if the nickname length is too
     /// short or too long.
     ///
-    /// [`Nickname`]: twilight_validate::misc::ValidationErrorType::Nickname
+    /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
     pub fn nick(mut self, nick: Option<&'a str>) -> Result<Self, ValidationError> {
         if let Some(nick) = nick {
             validate_nickname(nick)?;

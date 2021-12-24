@@ -88,7 +88,7 @@ impl<'a> AddGuildMember<'a> {
     /// Returns an error of type [`Nickname`] if the nickname length is too
     /// short or too long.
     ///
-    /// [`Nickname`]: twilight_validate::misc::ValidationErrorType::Nickname
+    /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
     pub fn nick(mut self, nick: &'a str) -> Result<Self, ValidationError> {
         validate_nickname(nick)?;
 

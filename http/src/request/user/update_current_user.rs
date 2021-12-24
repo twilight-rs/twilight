@@ -62,7 +62,7 @@ impl<'a> UpdateCurrentUser<'a> {
     /// Returns an error of type [`Username`] if the username length is too
     /// short or too long.
     ///
-    /// [`Username`]: twilight_validate::misc::ValidationErrorType::Username
+    /// [`Username`]: twilight_validate::request::ValidationErrorType::Username
     pub fn username(mut self, username: &'a str) -> Result<Self, ValidationError> {
         validate_username(username)?;
 

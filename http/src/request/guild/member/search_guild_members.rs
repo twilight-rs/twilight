@@ -44,7 +44,7 @@ struct SearchGuildMembersFields<'a> {
 /// Returns an error of type [`SearchGuildMembers`] if the limit is 0 or greater
 /// than 1000.
 ///
-/// [`SearchGuildMembers`]: twilight_validate::misc::ValidationErrorType::SearchGuildMembers
+/// [`SearchGuildMembers`]: twilight_validate::request::ValidationErrorType::SearchGuildMembers
 #[must_use = "requests must be configured and executed"]
 pub struct SearchGuildMembers<'a> {
     fields: SearchGuildMembersFields<'a>,
@@ -70,7 +70,7 @@ impl<'a> SearchGuildMembers<'a> {
     /// Returns an error of type [`SearchGuildMembers`] if the limit is 0 or
     /// greater than 1000.
     ///
-    /// [`SearchGuildMembers`]: twilight_validate::misc::ValidationErrorType::SearchGuildMembers
+    /// [`SearchGuildMembers`]: twilight_validate::request::ValidationErrorType::SearchGuildMembers
     pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
         if let Err(source) = validate_search_guild_members_limit(limit) {
             return Err(source);

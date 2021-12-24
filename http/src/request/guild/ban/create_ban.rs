@@ -78,7 +78,7 @@ impl<'a> CreateBan<'a> {
     /// Returns an error of type [`CreateGuildBanDeleteMessageDays`] if the
     /// number of days is greater than 7.
     ///
-    /// [`CreateGuildBanDeleteMessageDays`]: twilight_validate::misc::ValidationErrorType::CreateGuildBanDeleteMessageDays
+    /// [`CreateGuildBanDeleteMessageDays`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageDays
     pub const fn delete_message_days(mut self, days: u64) -> Result<Self, ValidationError> {
         if let Err(source) = validate_create_guild_ban_delete_message_days(days) {
             return Err(source);

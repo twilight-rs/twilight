@@ -24,7 +24,7 @@ struct CreateGuildFromTemplateFields<'a> {
 /// Returns an error of type [`GuildName`] if the name length is too short or
 /// too long.
 ///
-/// [`GuildName`]: twilight_validate::misc::ValidationErrorType::GuildName
+/// [`GuildName`]: twilight_validate::request::ValidationErrorType::GuildName
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildFromTemplate<'a> {
     fields: CreateGuildFromTemplateFields<'a>,

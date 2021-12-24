@@ -56,7 +56,7 @@ impl<'a> UpdateTemplate<'a> {
     /// Returns an error of type [`TemplateDescription`] if the name length is
     /// too short or too long.
     ///
-    /// [`TemplateDescription`]: twilight_validate::misc::ValidationErrorType::TemplateDescription
+    /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
     pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
         validate_template_description(description)?;
 
@@ -74,7 +74,7 @@ impl<'a> UpdateTemplate<'a> {
     /// Returns an error of type [`TemplateName`] if the name length is too
     /// short or too long.
     ///
-    /// [`TemplateName`]: twilight_validate::misc::ValidationErrorType::TemplateName
+    /// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
     pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
         validate_template_name(name)?;
 

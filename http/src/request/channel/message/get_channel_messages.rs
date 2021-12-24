@@ -113,7 +113,7 @@ impl<'a> GetChannelMessages<'a> {
     /// Returns an error of type [`GetChannelMessages`] error type if the amount
     /// is less than 1 or greater than 100.
     ///
-    /// [`GetChannelMessages`]: twilight_validate::misc::ValidationErrorType::GetChannelMessages
+    /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
     pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_channel_messages_limit(limit) {
             return Err(source);
