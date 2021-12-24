@@ -213,9 +213,6 @@ pub enum ClusterStartErrorType {
 
 /// A manager for multiple shards.
 ///
-/// The Cluster can be cloned and will point to the same cluster, so you can
-/// pass it around as needed.
-///
 /// # Using a cluster in multiple tasks
 ///
 /// To use a cluster instance in multiple tasks, consider wrapping it in an
