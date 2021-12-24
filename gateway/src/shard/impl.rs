@@ -578,7 +578,7 @@ impl Shard {
     /// use twilight_gateway::{shard::Shard, Intents};
     /// use twilight_model::{
     ///     gateway::payload::outgoing::RequestGuildMembers,
-    ///     id::GuildId,
+    ///     id::Id,
     /// };
     ///
     /// let intents = Intents::GUILD_VOICE_STATES;
@@ -590,7 +590,7 @@ impl Shard {
     /// // Query members whose names start with "tw" and limit the results to
     /// // 10 members.
     /// let request =
-    ///     RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
+    ///     RequestGuildMembers::builder(Id::new(1).expect("non zero"))
     ///         .query("tw", Some(10));
     ///
     /// // Send the request over the shard.

@@ -14,7 +14,10 @@ pub use self::{
 use crate::{
     channel::Message,
     guild::PartialMember,
-    id::{ApplicationId, ChannelId, GuildId, InteractionId},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker},
+        Id,
+    },
     user::User,
 };
 use serde::{
@@ -45,7 +48,7 @@ pub enum Interaction {
 }
 
 impl Interaction {
-    pub const fn guild_id(&self) -> Option<GuildId> {
+    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
             Self::ApplicationCommand(inner) | Self::ApplicationCommandAutocomplete(inner) => {
@@ -56,7 +59,7 @@ impl Interaction {
     }
 
     /// Return the ID of the inner interaction.
-    pub const fn id(&self) -> InteractionId {
+    pub const fn id(&self) -> Id<InteractionMarker> {
         match self {
             Self::Ping(ping) => ping.id,
             Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
@@ -99,11 +102,11 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut application_id: Option<ApplicationId> = None;
-        let mut channel_id: Option<ChannelId> = None;
+        let mut application_id: Option<Id<ApplicationMarker>> = None;
+        let mut channel_id: Option<Id<ChannelMarker>> = None;
         let mut data: Option<Value> = None;
-        let mut guild_id: Option<Option<GuildId>> = None;
-        let mut id: Option<InteractionId> = None;
+        let mut guild_id: Option<Option<Id<GuildMarker>>> = None;
+        let mut id: Option<Id<InteractionMarker>> = None;
         let mut member: Option<Option<PartialMember>> = None;
         let mut message: Option<Message> = None;
         let mut token: Option<String> = None;
@@ -329,7 +332,7 @@ mod test {
         },
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
-        id::{ApplicationId, ChannelId, CommandId, GuildId, InteractionId, UserId},
+        id::Id,
         user::User,
     };
     use serde_test::Token;
@@ -341,23 +344,26 @@ mod test {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
-            application_id: ApplicationId::new(100).expect("non zero"),
-            channel_id: ChannelId::new(200).expect("non zero"),
+            application_id: Id::new(100).expect("non zero"),
+            channel_id: Id::new(200).expect("non zero"),
             data: CommandData {
-                id: CommandId::new(300).expect("non zero"),
+                id: Id::new(300).expect("non zero"),
                 name: "command name".into(),
                 options: Vec::from([CommandDataOption {
                     focused: false,
                     name: "member".into(),
-                    value: CommandOptionValue::User(UserId::new(600).expect("non zero")),
+                    value: CommandOptionValue::User(Id::new(600).expect("non zero")),
                 }]),
                 resolved: Some(CommandInteractionDataResolved {
                     channels: HashMap::new(),
                     members: IntoIterator::into_iter([(
-                        UserId::new(600).expect("non zero"),
+                        Id::new(600).expect("non zero"),
                         InteractionMember {
+                            avatar: None,
                             joined_at,
                             nick: Some("nickname".into()),
+                            pending: false,
+                            permissions: Permissions::empty(),
                             premium_since: None,
                             roles: Vec::new(),
                         },
@@ -366,7 +372,7 @@ mod test {
                     messages: HashMap::new(),
                     roles: HashMap::new(),
                     users: IntoIterator::into_iter([(
-                        UserId::new(600).expect("non zero"),
+                        Id::new(600).expect("non zero"),
                         User {
                             accent_color: None,
                             avatar: Some("avatar string".into()),
@@ -375,7 +381,7 @@ mod test {
                             discriminator: 1111,
                             email: None,
                             flags: None,
-                            id: UserId::new(600).expect("non zero"),
+                            id: Id::new(600).expect("non zero"),
                             locale: None,
                             mfa_enabled: None,
                             name: "username".into(),
@@ -388,8 +394,8 @@ mod test {
                     .collect(),
                 }),
             },
-            guild_id: Some(GuildId::new(400).expect("non zero")),
-            id: InteractionId::new(500).expect("non zero"),
+            guild_id: Some(Id::new(400).expect("non zero")),
+            id: Id::new(500).expect("non zero"),
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 avatar: None,
@@ -408,7 +414,7 @@ mod test {
                     discriminator: 1111,
                     email: None,
                     flags: None,
-                    id: UserId::new(600).expect("non zero"),
+                    id: Id::new(600).expect("non zero"),
                     locale: None,
                     mfa_enabled: None,
                     name: "username".into(),
@@ -430,12 +436,10 @@ mod test {
                     len: 8,
                 },
                 Token::Str("application_id"),
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("200"),
                 Token::Str("data"),
                 Token::Struct {
@@ -443,7 +447,7 @@ mod test {
                     len: 4,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "CommandId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
                 Token::Str("name"),
                 Token::Str("command name"),
@@ -458,7 +462,7 @@ mod test {
                 Token::Str("type"),
                 Token::U8(CommandOptionType::User as u8),
                 Token::Str("value"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("600"),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -470,17 +474,21 @@ mod test {
                 },
                 Token::Str("members"),
                 Token::Map { len: Some(1) },
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("600"),
                 Token::Struct {
                     name: "InteractionMember",
-                    len: 3,
+                    len: 5,
                 },
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("nickname"),
+                Token::Str("pending"),
+                Token::Bool(false),
+                Token::Str("permissions"),
+                Token::Str("0"),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -488,7 +496,7 @@ mod test {
                 Token::MapEnd,
                 Token::Str("users"),
                 Token::Map { len: Some(1) },
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("600"),
                 Token::Struct {
                     name: "User",
@@ -506,7 +514,7 @@ mod test {
                 Token::Str("discriminator"),
                 Token::Str("1111"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("600"),
                 Token::Str("username"),
                 Token::Str("username"),
@@ -516,12 +524,10 @@ mod test {
                 Token::StructEnd,
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("400"),
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "InteractionId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("500"),
                 Token::Str("type"),
                 Token::U8(2),
@@ -564,7 +570,7 @@ mod test {
                 Token::Str("discriminator"),
                 Token::Str("1111"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("600"),
                 Token::Str("username"),
                 Token::Str("username"),

@@ -143,7 +143,7 @@ pub enum ShardIdErrorType {
 /// Create a new shard, setting the [`large_threshold`] to 100 and the
 /// [`shard`] ID to 5 out of 10:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use std::env;
 /// use twilight_gateway::{Intents, Shard};
 ///
@@ -189,6 +189,7 @@ impl ShardBuilder {
             token: token.into_boxed_str(),
             session_id: None,
             sequence: None,
+            tls: None,
         })
     }
 

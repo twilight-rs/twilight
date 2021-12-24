@@ -1,16 +1,25 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use serde::Serialize;
-use twilight_model::{channel::FollowedChannel, id::ChannelId};
+use twilight_model::{
+    channel::FollowedChannel,
+    id::{marker::ChannelMarker, Id},
+};
 
 #[derive(Serialize)]
 struct FollowNewsChannelFields {
-    webhook_channel_id: ChannelId,
+    webhook_channel_id: Id<ChannelMarker>,
 }
 
-/// Follow a news channel by [`ChannelId`]s.
+/// Follow a news channel by [`Id<ChannelMarker>`]s.
 #[must_use = "requests must be configured and executed"]
 pub struct FollowNewsChannel<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: FollowNewsChannelFields,
     http: &'a Client,
 }
@@ -18,8 +27,8 @@ pub struct FollowNewsChannel<'a> {
 impl<'a> FollowNewsChannel<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        webhook_channel_id: ChannelId,
+        channel_id: Id<ChannelMarker>,
+        webhook_channel_id: Id<ChannelMarker>,
     ) -> Self {
         Self {
             channel_id,
@@ -32,15 +41,23 @@ impl<'a> FollowNewsChannel<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<FollowedChannel> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for FollowNewsChannel<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::FollowNewsChannel {
             channel_id: self.channel_id.get(),
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

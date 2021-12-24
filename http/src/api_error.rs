@@ -106,6 +106,9 @@ pub enum ErrorCode {
     AnnouncementRateLimitReached,
     /// The channel you are writing has hit the write rate limit
     ChannelRateLimitReached,
+    /// The write action you are performing on the server has hit the write
+    /// rate limit
+    WriteActionsReached,
     /// Your Stage topic, server name, server description, or channel names contain words that are not allowed
     UnallowedWords,
     /// Guild premium subscription level too low
@@ -237,6 +240,8 @@ pub enum ErrorCode {
     InvalidFileUploaded,
     /// Cannot self-redeem this gift
     CannotSelfRedeemGift,
+    /// Invalid Guild
+    InvalidGuild,
     /// Payment source required to redeem gift
     PaymentRequiredForGift,
     /// Cannot delete a channel required for Community guilds
@@ -256,6 +261,8 @@ pub enum ErrorCode {
     ServerNeedsMonetiazation,
     /// This server needs more boosts to perform this action
     ServerNeedsBoosts,
+    /// The request body contains invalid JSON.
+    RequestInvalidJson,
     /// Two factor is required for this operation.
     TwoFactorRequired,
     /// No users with DiscordTag exist
@@ -353,6 +360,7 @@ impl ErrorCode {
             Self::NotAccountOwner => 20018,
             Self::AnnouncementRateLimitReached => 20022,
             Self::ChannelRateLimitReached => 20028,
+            Self::WriteActionsReached => 20029,
             Self::UnallowedWords => 20031,
             Self::GuildPremiumTooLow => 20035,
             Self::MaximumGuildsReached => 30001,
@@ -418,6 +426,7 @@ impl ErrorCode {
             Self::FileTooLarge => 50045,
             Self::InvalidFileUploaded => 50046,
             Self::CannotSelfRedeemGift => 50054,
+            Self::InvalidGuild => 50055,
             Self::PaymentRequiredForGift => 50070,
             Self::CommunityGuildRequired => 50074,
             Self::InvalidStickerSent => 50081,
@@ -427,6 +436,7 @@ impl ErrorCode {
             Self::ServerNotAvailableLocation => 50095,
             Self::ServerNeedsMonetiazation => 50097,
             Self::ServerNeedsBoosts => 50101,
+            Self::RequestInvalidJson => 50109,
             Self::TwoFactorRequired => 60003,
             Self::NoSuchUser => 80004,
             Self::ReactionBlocked => 90001,
@@ -504,6 +514,7 @@ impl From<u64> for ErrorCode {
             20016 => Self::SlowModeRateLimitReached,
             20018 => Self::NotAccountOwner,
             20028 => Self::ChannelRateLimitReached,
+            20029 => Self::WriteActionsReached,
             20031 => Self::UnallowedWords,
             20035 => Self::GuildPremiumTooLow,
             30001 => Self::MaximumGuildsReached,
@@ -569,6 +580,7 @@ impl From<u64> for ErrorCode {
             50045 => Self::FileTooLarge,
             50046 => Self::InvalidFileUploaded,
             50054 => Self::CannotSelfRedeemGift,
+            50055 => Self::InvalidGuild,
             50070 => Self::PaymentRequiredForGift,
             50074 => Self::CommunityGuildRequired,
             50081 => Self::InvalidStickerSent,
@@ -578,6 +590,7 @@ impl From<u64> for ErrorCode {
             50095 => Self::ServerNotAvailableLocation,
             50097 => Self::ServerNeedsMonetiazation,
             50101 => Self::ServerNeedsBoosts,
+            50109 => Self::RequestInvalidJson,
             60003 => Self::TwoFactorRequired,
             80004 => Self::NoSuchUser,
             90001 => Self::ReactionBlocked,
@@ -655,6 +668,7 @@ impl Display for ErrorCode {
             Self::NotAccountOwner => f.write_str("Only the owner of this account can perform this action"),
             Self::AnnouncementRateLimitReached => f.write_str("Message cannot be edited due to announcement rate limits"),
             Self::ChannelRateLimitReached => f.write_str("The channel you are writing has hit the write rate limit"),
+            Self::WriteActionsReached => f.write_str("The write action you are performing on the server has hit the write rate limit"),
             Self::UnallowedWords => f.write_str("Your Stage topic, server name, server description, or channel names contain words that are not allowed"),
             Self::GuildPremiumTooLow => f.write_str("Guild premium subscription level too low"),
             Self::MaximumGuildsReached => f.write_str("Maximum number of guilds reached (100)"),
@@ -720,6 +734,7 @@ impl Display for ErrorCode {
             Self::FileTooLarge => f.write_str("File uploaded exceeds the maximum size"),
             Self::InvalidFileUploaded => f.write_str("Invalid file uploaded"),
             Self::CannotSelfRedeemGift => f.write_str("Cannot self-redeem this gift"),
+            Self::InvalidGuild => f.write_str("Invalid Guild"),
             Self::PaymentRequiredForGift => f.write_str("Payment source required to redeem gift"),
             Self::CommunityGuildRequired => f.write_str("Cannot delete a channel required for Community guilds"),
             Self::InvalidStickerSent => f.write_str("Invalid sticker sent"),
@@ -729,6 +744,7 @@ impl Display for ErrorCode {
             Self::ServerNotAvailableLocation => f.write_str("This server is not available in your location"),
             Self::ServerNeedsMonetiazation => f.write_str("This server needs monetization enabled in order to perform this action"),
             Self::ServerNeedsBoosts => f.write_str("This server needs more boosts to perform this action"),
+            Self::RequestInvalidJson => f.write_str("The request body contains invalid JSON"),
             Self::TwoFactorRequired => f.write_str("Two factor is required for this operation"),
             Self::NoSuchUser => f.write_str("No users with DiscordTag exist"),
             Self::ReactionBlocked => f.write_str("Reaction was blocked"),
@@ -800,9 +816,10 @@ impl Serialize for ErrorCode {
 #[serde(untagged)]
 pub enum ApiError {
     General(GeneralApiError),
+    /// Request has been ratelimited.
+    Ratelimited(RatelimitedApiError),
     /// Something was wrong with the input when sending a message.
     Message(MessageApiError),
-    Ratelimited(RatelimitedApiError),
 }
 
 impl Display for ApiError {
@@ -1010,7 +1027,7 @@ mod tests {
     }
 
     #[test]
-    fn test_api_error_ratelimited() {
+    fn test_ratelimited_api_error() {
         let expected = RatelimitedApiError {
             global: true,
             message: "You are being rate limited.".to_owned(),
@@ -1030,6 +1047,39 @@ mod tests {
                 Token::Str("You are being rate limited."),
                 Token::Str("retry_after"),
                 Token::F64(6.457),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    /// Assert that deserializing an [`ApiError::Ratelimited`] variant uses
+    /// the correct variant.
+    ///
+    /// Tests for [#1302], which was due to a previously ordered variant having
+    /// higher priority for untagged deserialization.
+    ///
+    /// [#1302]: https://github.com/twilight-rs/twilight/issues/1302
+    #[test]
+    fn test_api_error_variant_ratelimited() {
+        let expected = ApiError::Ratelimited(RatelimitedApiError {
+            global: false,
+            message: "You are being rate limited.".to_owned(),
+            retry_after: 0.362,
+        });
+
+        serde_test::assert_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "RatelimitedApiError",
+                    len: 3,
+                },
+                Token::Str("global"),
+                Token::Bool(false),
+                Token::Str("message"),
+                Token::Str("You are being rate limited."),
+                Token::Str("retry_after"),
+                Token::F64(0.362),
                 Token::StructEnd,
             ],
         );
@@ -1059,6 +1109,12 @@ mod tests {
             num: 10069,
         });
         assert_error_code(AssertErrorCode {
+            code: ErrorCode::WriteActionsReached,
+            display:
+                "The write action you are performing on the server has hit the write rate limit",
+            num: 20029,
+        });
+        assert_error_code(AssertErrorCode {
             code: ErrorCode::MaximumServerCategoriesReached,
             display: "Maximum number of server categories has been reached",
             num: 30030,
@@ -1073,5 +1129,15 @@ mod tests {
             display: "Maximum number of prune requests has been reached. Try again later",
             num: 30040,
         });
+        assert_error_code(AssertErrorCode {
+            code: ErrorCode::InvalidGuild,
+            display: "Invalid Guild",
+            num: 50055,
+        });
+        assert_error_code(AssertErrorCode {
+            code: ErrorCode::RequestInvalidJson,
+            display: "The request body contains invalid JSON",
+            num: 50109,
+        })
     }
 }

@@ -2,6 +2,12 @@
 
 Changelog for `twilight-mention`.
 
+## [0.8.0] - 2021-12-03
+
+This major version bump of the Mention crate is done to match all of the
+other crates in the ecosystem receiving a major version bump. There are
+no changes.
+
 ## [0.7.0] - 2021-10-21
 
 ### Changes
@@ -128,6 +134,7 @@ Initial release.
 
 [#513]: https://github.com/twilight-rs/twilight/pull/513
 
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.7.0
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.6.0
 [0.5.1]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.5.1

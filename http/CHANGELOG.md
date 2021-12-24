@@ -2,6 +2,78 @@
 
 Changelog for `twilight-http`.
 
+## [0.8.1] - 2021-12-15
+
+### Additions
+
+Add the API error codes `20029 WriteActionsReached` and `50055 InvalidGuild`
+([#1326] - [@zeylahellyer]).
+
+### Changes
+
+Only send the interaction authorization token when responding to interactions
+([#1317] - [@zeylahellyer]).
+
+### Fixes
+
+Fix an issue where interaction and webhook tokens were invalidating the entire
+client ([#1318] - [@zeylahellyer]). The client now only invalidates a token if
+the request that failed was actually using it.
+
+`CommandBorrowed::kind` is now properly serialized as `type` ([#1323] -
+[@7596ff]).
+
+Fix a variety of routes in `RouteDisplay` after adding tests ([#1327] -
+[@zeylahellyer]). The fixed routes are `CreateGuildPrune`,
+`SyncGuildIntegration`, and `UpdateUserVoiceState`.
+
+[#1317]: https://github.com/twilight-rs/twilight/pull/1317
+[#1318]: https://github.com/twilight-rs/twilight/pull/1318
+[#1323]: https://github.com/twilight-rs/twilight/pull/1323
+[#1326]: https://github.com/twilight-rs/twilight/pull/1326
+[#1327]: https://github.com/twilight-rs/twilight/pull/1327
+
+## [0.8.0] - 2021-12-03
+
+### Additions
+
+Add a feature, `trust-dns`, which uses `hyper-trust-dns` to use a fully
+async and featured DNS resolver ([#1310] - [@Gelbpunkt]).
+
+Add the `ErrorType::RatelimiterTicket` variant ([#1191] - [@Gelbpunkt]).
+
+### Changes
+
+`ClientBuilder::ratelimiter` now accepts an `Option<Box<dyn
+Ratelimiter>>`, which is a trait provided by the `http-ratelimiting`
+crate ([#1191] - [@Gelbpunkt]). Additionally, `routing::{Path,
+PathParseError, PathParseErrorType}` and `request::Method` have been
+moved to `http-ratelimiting`, with a re-export that will remain for one
+major version.
+
+`tracing` is now enabled by default ([#1203] - [@Gelbpunkt]).
+
+`CreateThread` and `CreateThreadFromMessage` no longer accept an
+`AutoArchiveDuration` as a default parameter ([#1256] - [@7596ff]). This
+can still be set with a method on the request builder.
+
+`http::prelude` has been removed ([#1273] - [@7596ff]).
+
+`CreateFollowupMessage::{avatar_url, username}` have been removed
+([#1287] - [@itohatweb]).
+
+### Dependency Updates
+
+`hyper-rustls` has been updated to `0.23` ([#1276] - [@Gelbpunkt]).
+
+[#1191]: https://github.com/twilight-rs/twilight/pull/1191
+[#1203]: https://github.com/twilight-rs/twilight/pull/1203
+[#1256]: https://github.com/twilight-rs/twilight/pull/1256
+[#1273]: https://github.com/twilight-rs/twilight/pull/1273
+[#1276]: https://github.com/twilight-rs/twilight/pull/1276
+[#1287]: https://github.com/twilight-rs/twilight/pull/1287
+[#1310]: https://github.com/twilight-rs/twilight/pull/1310
+
 ## [0.7.3] - 2021-12-03
 
 ### Additions
@@ -1392,6 +1464,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.1
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.0
 [0.7.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.3
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.1

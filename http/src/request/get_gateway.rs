@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{GetGatewayAuthed, Request},
+    error::Error,
+    request::{GetGatewayAuthed, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -13,7 +14,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 ///
 /// Get the gateway connection URL without bot information:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
@@ -27,7 +28,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// Get the gateway connection URL with additional shard and session information, which
 /// requires specifying a bot token:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
@@ -62,8 +63,17 @@ impl<'a> GetGateway<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ConnectionInfo> {
-        let request = Request::from_route(&Route::GetGateway);
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetGateway<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetGateway))
     }
 }

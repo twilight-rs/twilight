@@ -1,15 +1,19 @@
 use crate::{
     client::Client,
-    request::{NullableField, Request},
+    error::Error,
+    request::{NullableField, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::id::{ChannelId, GuildId};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 
 #[derive(Serialize)]
 struct UpdateCurrentUserVoiceStateFields<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suppress: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -20,12 +24,16 @@ struct UpdateCurrentUserVoiceStateFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentUserVoiceState<'a> {
     fields: UpdateCurrentUserVoiceStateFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> UpdateCurrentUserVoiceState<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        channel_id: Id<ChannelMarker>,
+    ) -> Self {
         Self {
             fields: UpdateCurrentUserVoiceStateFields {
                 channel_id,
@@ -72,15 +80,23 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateCurrentUserVoiceState<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateCurrentUserVoiceState {
             guild_id: self.guild_id.get(),
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

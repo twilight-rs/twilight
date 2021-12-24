@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -11,7 +12,10 @@ use std::{
 };
 use twilight_model::{
     guild::PartialMember,
-    id::{GuildId, RoleId, UserId},
+    id::{
+        marker::{GuildMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
 
 /// Member cannot be added as configured.
@@ -74,15 +78,15 @@ struct AddGuildMemberFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nick: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub roles: Option<&'a [RoleId]>,
+    pub roles: Option<&'a [Id<RoleMarker>]>,
 }
 
 #[must_use = "requests must be configured and executed"]
 pub struct AddGuildMember<'a> {
     fields: AddGuildMemberFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    user_id: UserId,
+    user_id: Id<UserMarker>,
 }
 
 /// Add a user to a guild.
@@ -94,8 +98,8 @@ pub struct AddGuildMember<'a> {
 impl<'a> AddGuildMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: GuildId,
-        user_id: UserId,
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
         access_token: &'a str,
     ) -> Self {
         Self {
@@ -149,7 +153,7 @@ impl<'a> AddGuildMember<'a> {
     }
 
     /// List of roles to assign the new member.
-    pub const fn roles(mut self, roles: &'a [RoleId]) -> Self {
+    pub const fn roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields.roles = Some(roles);
 
         self
@@ -159,16 +163,24 @@ impl<'a> AddGuildMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<PartialMember> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for AddGuildMember<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::AddGuildMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

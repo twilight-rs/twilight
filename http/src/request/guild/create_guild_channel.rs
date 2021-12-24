@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    error::Error as HttpError,
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -11,7 +12,10 @@ use std::{
 };
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType, GuildChannel},
-    id::{ChannelId, GuildId},
+    id::{
+        marker::{ChannelMarker, GuildMarker},
+        Id,
+    },
 };
 
 /// Returned when the channel can not be created as configured.
@@ -85,7 +89,7 @@ struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     nsfw: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<ChannelId>,
+    parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permission_overwrites: Option<&'a [PermissionOverwrite]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -105,7 +109,7 @@ struct CreateGuildChannelFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChannel<'a> {
     fields: CreateGuildChannelFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
@@ -113,7 +117,7 @@ pub struct CreateGuildChannel<'a> {
 impl<'a> CreateGuildChannel<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
     ) -> Result<Self, CreateGuildChannelError> {
         if !validate_inner::channel_name(name) {
@@ -164,7 +168,7 @@ impl<'a> CreateGuildChannel<'a> {
 
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, create this
     /// channel as a child of the category channel.
-    pub const fn parent_id(mut self, parent_id: ChannelId) -> Self {
+    pub const fn parent_id(mut self, parent_id: Id<ChannelMarker>) -> Self {
         self.fields.parent_id = Some(parent_id);
 
         self
@@ -255,25 +259,12 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildChannel> {
-        let mut request = Request::builder(&Route::CreateChannel {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = self.reason.as_ref() {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -282,5 +273,23 @@ impl<'a> AuditLogReason<'a> for CreateGuildChannel<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateGuildChannel<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::CreateChannel {
+            guild_id: self.guild_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

@@ -33,6 +33,9 @@ jobs:
       - name: Output processor info
         run: cat /proc/cpuinfo
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       - run: cargo check --workspace --all-features --all-targets
 
   # Check documentation
@@ -52,6 +55,9 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs -D broken_intra_doc_links
@@ -69,7 +75,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install cargo-sync-readme
-        uses: actions-rs/install@v0.1
+        uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-sync-readme
 
@@ -111,11 +117,11 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       - name: Run clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --all-features --all-targets
+        run: cargo clippy --workspace --all-features --all-targets
 
   codespell:
     name: Spelling
@@ -138,6 +144,9 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
@@ -157,7 +166,7 @@ jobs:
           profile: minimal
 
       - name: Install cargo-hack
-        uses: actions-rs/install@v0.1
+        uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-hack
 
@@ -170,6 +179,9 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+    
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
 
       - name: Check minimal versions
         run: cargo check --all-features
@@ -186,6 +198,9 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
 
       - name: Run cargo test
         run: cargo test
@@ -237,35 +252,10 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
         run: |
           cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
-
-  coverage:
-    name: Coverage
-    runs-on: ubuntu-latest
-    # Don't collect coverage if tests failed
-    needs: [test]
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Set excluded examples
-        id: excluded-examples
-        run: echo "::set-output name=out::$(grep -h '^name' examples/*/Cargo.toml | cut -d \" -f2 | xargs -I '{}' printf '--exclude {} ')"
-
-      - name: Collect coverage
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          args: "--ignore-tests --workspace --all-features ${{ steps.excluded-examples.outputs.out }}"
-
-      - name: Upload coverage to codecov.io
-        uses: codecov/codecov-action@v2
-
-      - name: Upload coverage to GitHub
-        uses: actions/upload-artifact@v2
-        with:
-          name: code-coverage-report
-          path: cobertura.xml

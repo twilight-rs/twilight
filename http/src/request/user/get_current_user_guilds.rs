@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -8,7 +9,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{id::GuildId, user::CurrentUserGuild};
+use twilight_model::{
+    id::{marker::GuildMarker, Id},
+    user::CurrentUserGuild,
+};
 
 /// The error created when the current guilds can not be retrieved as configured.
 #[derive(Debug)]
@@ -61,8 +65,8 @@ pub enum GetCurrentUserGuildsErrorType {
 }
 
 struct GetCurrentUserGuildsFields {
-    after: Option<GuildId>,
-    before: Option<GuildId>,
+    after: Option<Id<GuildMarker>>,
+    before: Option<Id<GuildMarker>>,
     limit: Option<u64>,
 }
 
@@ -73,16 +77,16 @@ struct GetCurrentUserGuildsFields {
 /// Get the first 25 guilds with an ID after `300` and before
 /// `400`:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let after = GuildId::new(300).expect("non zero");
-/// let before = GuildId::new(400).expect("non zero");
+/// let after = Id::new(300).expect("non zero");
+/// let before = Id::new(400).expect("non zero");
 /// let guilds = client.current_user_guilds()
 ///     .after(after)
 ///     .before(before)
@@ -110,14 +114,14 @@ impl<'a> GetCurrentUserGuilds<'a> {
     }
 
     /// Get guilds after this guild id.
-    pub const fn after(mut self, guild_id: GuildId) -> Self {
+    pub const fn after(mut self, guild_id: Id<GuildMarker>) -> Self {
         self.fields.after = Some(guild_id);
 
         self
     }
 
     /// Get guilds before this guild id.
-    pub const fn before(mut self, guild_id: GuildId) -> Self {
+    pub const fn before(mut self, guild_id: Id<GuildMarker>) -> Self {
         self.fields.before = Some(guild_id);
 
         self
@@ -149,12 +153,21 @@ impl<'a> GetCurrentUserGuilds<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<CurrentUserGuild>> {
-        let request = Request::from_route(&Route::GetGuilds {
-            after: self.fields.after.map(GuildId::get),
-            before: self.fields.before.map(GuildId::get),
-            limit: self.fields.limit,
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetCurrentUserGuilds<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        Ok(Request::from_route(&Route::GetGuilds {
+            after: self.fields.after.map(Id::get),
+            before: self.fields.before.map(Id::get),
+            limit: self.fields.limit,
+        }))
     }
 }

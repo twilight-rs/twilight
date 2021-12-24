@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -15,7 +16,10 @@ use twilight_model::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions,
         SystemChannelFlags, VerificationLevel,
     },
-    id::{ChannelId, RoleId},
+    id::{
+        marker::{ChannelMarker, RoleMarker},
+        Id,
+    },
 };
 
 mod builder;
@@ -94,7 +98,7 @@ pub enum CreateGuildErrorType {
 #[derive(Serialize)]
 struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    afk_channel_id: Option<ChannelId>,
+    afk_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_timeout: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -109,7 +113,7 @@ struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system_channel_id: Option<ChannelId>,
+    system_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     system_channel_flags: Option<SystemChannelFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -125,7 +129,7 @@ pub struct RoleFields {
     pub color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hoist: Option<bool>,
-    pub id: RoleId,
+    pub id: Id<RoleMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mentionable: Option<bool>,
     pub name: String,
@@ -148,7 +152,7 @@ pub enum GuildChannelFields {
 }
 
 impl GuildChannelFields {
-    pub const fn id(&self) -> ChannelId {
+    pub const fn id(&self) -> Id<ChannelMarker> {
         match self {
             Self::Category(c) => c.id,
             Self::Text(t) => t.id,
@@ -162,7 +166,7 @@ impl GuildChannelFields {
 /// Use [`CategoryFieldsBuilder`] to build one.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CategoryFields {
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
@@ -175,7 +179,7 @@ pub struct CategoryFields {
 /// Use [`TextFieldsBuilder`] to build one.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct TextFields {
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
@@ -184,7 +188,7 @@ pub struct TextFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<ChannelId>,
+    pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -198,14 +202,14 @@ pub struct TextFields {
 pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bitrate: Option<u64>,
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<ChannelId>,
+    pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u64>,
 }
@@ -265,7 +269,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub const fn afk_channel_id(mut self, afk_channel_id: ChannelId) -> Self {
+    pub const fn afk_channel_id(mut self, afk_channel_id: Id<ChannelMarker>) -> Self {
         self.fields.afk_channel_id = Some(afk_channel_id);
 
         self
@@ -284,7 +288,7 @@ impl<'a> CreateGuild<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::{
     ///     Client,
     ///     request::guild::create_guild::{
@@ -394,7 +398,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub const fn system_channel_id(mut self, system_channel_id: ChannelId) -> Self {
+    pub const fn system_channel_id(mut self, system_channel_id: Id<ChannelMarker>) -> Self {
         self.fields.system_channel_id = Some(system_channel_id);
 
         self
@@ -413,7 +417,7 @@ impl<'a> CreateGuild<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use twilight_http::{Client, request::guild::create_guild::RoleFieldsBuilder};
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
@@ -450,13 +454,21 @@ impl<'a> CreateGuild<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<PartialGuild> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateGuild<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateGuild);
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

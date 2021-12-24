@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    error::Error as HttpError,
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,7 +11,10 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    id::{ApplicationId, ChannelId, UserId},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, UserMarker},
+        Id,
+    },
     invite::{Invite, TargetType},
 };
 
@@ -71,9 +75,9 @@ struct CreateInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     temporary: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    target_application_id: Option<ApplicationId>,
+    target_application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    target_user_id: Option<UserId>,
+    target_user_id: Option<Id<UserMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     target_type: Option<TargetType>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,15 +90,15 @@ struct CreateInviteFields {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::ChannelId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId::new(123).expect("non zero");
+/// let channel_id = Id::new(123).expect("non zero");
 /// let invite = client
 ///     .create_invite(channel_id)
 ///     .max_uses(3)?
@@ -106,14 +110,14 @@ struct CreateInviteFields {
 /// [`CREATE_INVITE`]: twilight_model::guild::Permissions::CREATE_INVITE
 #[must_use = "requests must be configured and executed"]
 pub struct CreateInvite<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: CreateInviteFields,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateInvite<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: CreateInviteFields {
@@ -140,15 +144,15 @@ impl<'a> CreateInvite<'a> {
     /// Create an invite for a channel with a maximum of 1 use and an age of 1
     /// hour:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::ChannelId;
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let invite = client.create_invite(ChannelId::new(1).expect("non zero"))
+    /// let invite = client.create_invite(Id::new(1).expect("non zero"))
     ///     .max_age(60 * 60)?
     ///     .exec()
     ///     .await?
@@ -178,15 +182,15 @@ impl<'a> CreateInvite<'a> {
     ///
     /// Create an invite for a channel with a maximum of 5 uses:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::ChannelId;
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let invite = client.create_invite(ChannelId::new(1).expect("non zero"))
+    /// let invite = client.create_invite(Id::new(1).expect("non zero"))
     ///     .max_uses(5)?
     ///     .exec()
     ///     .await?
@@ -213,14 +217,17 @@ impl<'a> CreateInvite<'a> {
     /// This only works if [`target_type`] is set to [`TargetType::EmbeddedApplication`].
     ///
     /// [`target_type`]: Self::target_type
-    pub const fn target_application_id(mut self, target_application_id: ApplicationId) -> Self {
+    pub const fn target_application_id(
+        mut self,
+        target_application_id: Id<ApplicationMarker>,
+    ) -> Self {
         self.fields.target_application_id = Some(target_application_id);
 
         self
     }
 
     /// Set the target user id for this invite.
-    pub const fn target_user_id(mut self, target_user_id: UserId) -> Self {
+    pub const fn target_user_id(mut self, target_user_id: Id<UserMarker>) -> Self {
         self.fields.target_user_id = Some(target_user_id);
 
         self
@@ -258,25 +265,12 @@ impl<'a> CreateInvite<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Invite> {
-        let mut request = Request::builder(&Route::CreateInvite {
-            channel_id: self.channel_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = &self.reason {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -288,18 +282,35 @@ impl<'a> AuditLogReason<'a> for CreateInvite<'a> {
     }
 }
 
+impl TryIntoRequest for CreateInvite<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::CreateInvite {
+            channel_id: self.channel_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::CreateInvite;
     use crate::Client;
     use std::error::Error;
-    use twilight_model::id::ChannelId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder =
-            CreateInvite::new(&client, ChannelId::new(1).expect("non zero")).max_age(0)?;
+        let mut builder = CreateInvite::new(&client, Id::new(1).expect("non zero")).max_age(0)?;
         assert_eq!(Some(0), builder.fields.max_age);
         builder = builder.max_age(604_800)?;
         assert_eq!(Some(604_800), builder.fields.max_age);
@@ -311,8 +322,7 @@ mod tests {
     #[test]
     fn test_max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder =
-            CreateInvite::new(&client, ChannelId::new(1).expect("non zero")).max_uses(0)?;
+        let mut builder = CreateInvite::new(&client, Id::new(1).expect("non zero")).max_uses(0)?;
         assert_eq!(Some(0), builder.fields.max_uses);
         builder = builder.max_uses(100)?;
         assert_eq!(Some(100), builder.fields.max_uses);

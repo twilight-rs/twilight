@@ -3,9 +3,10 @@ use super::{
     event::Events,
     r#impl::{Cluster, ClusterStartError},
     scheme::ShardScheme,
+    ClusterStartErrorType,
 };
 use crate::{
-    shard::{LargeThresholdError, ResumeSession, ShardBuilder},
+    shard::{tls::TlsContainer, LargeThresholdError, ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
 use std::{collections::HashMap, sync::Arc};
@@ -23,7 +24,7 @@ use twilight_model::gateway::{
 /// Create a cluster with only the `GUILD_MESSAGES` intents with a
 /// [`large_threshold`] of 100.
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use std::env;
 /// use twilight_gateway::{Cluster, Intents};
 ///
@@ -63,6 +64,13 @@ impl ClusterBuilder {
     ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
+        let tls = TlsContainer::new().map_err(|err| ClusterStartError {
+            kind: ClusterStartErrorType::Tls,
+            source: Some(Box::new(err)),
+        })?;
+
+        (self.1).0.tls = Some(tls);
+
         if (self.1).0.gateway_url.is_none() {
             let maybe_response = (self.1).0.http_client.gateway().authed().exec().await;
 

@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -9,7 +10,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{id::GuildId, template::Template};
+use twilight_model::{
+    id::{marker::GuildMarker, Id},
+    template::Template,
+};
 
 /// Error emitted when the template can not be updated as configured.
 #[derive(Debug)]
@@ -78,13 +82,17 @@ struct UpdateTemplateFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
     fields: UpdateTemplateFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     template_code: &'a str,
 }
 
 impl<'a> UpdateTemplate<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, template_code: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        template_code: &'a str,
+    ) -> Self {
         Self {
             fields: UpdateTemplateFields {
                 name: None,
@@ -140,16 +148,24 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Template> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateTemplate<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateTemplate {
             guild_id: self.guild_id.get(),
             template_code: self.template_code,
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

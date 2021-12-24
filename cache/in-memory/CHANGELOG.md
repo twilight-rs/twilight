@@ -2,6 +2,28 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.8.1] - 2021-12-15
+
+### Fixes
+
+The documentation for `CachedEmoji::available` and `animated` have been
+corrected. ([#1329] - [@Purpzie]).
+
+[#1329]: https://github.com/twilight-rs/twilight/pull/1329
+
+## [0.8.0] - 2021-12-03
+
+### Changes
+
+`CachedMember::joined_at` no longer returns an `Option` ([#1278] -
+[@vilgotf]).
+
+The `PartialEq` implementation for CachedMember has been normalized to
+use owned variants ([#1279] - [@vilgotf]).
+
+[#1278]: https://github.com/twilight-rs/twilight/pull/1278
+[#1279]: https://github.com/twilight-rs/twilight/pull/1279
+
 ## [0.7.2] - 2021-11-20
 
 ### Additions
@@ -494,6 +516,7 @@ Initial release.
 [@james7132]: https://github.com/james7132
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
+[@Purpzie]: https://github.com/Purpzie
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vilgotf]: https://github.com/vilgotf
@@ -513,6 +536,8 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.1
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.0
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.0

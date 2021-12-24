@@ -36,6 +36,9 @@ jobs:
           profile: minimal
           override: true
 
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs -D broken_intra_doc_links

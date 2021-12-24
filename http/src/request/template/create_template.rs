@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -9,7 +10,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{id::GuildId, template::Template};
+use twilight_model::{
+    id::{marker::GuildMarker, Id},
+    template::Template,
+};
 
 /// Error returned when the template can not be created as configured.
 #[derive(Debug)]
@@ -86,14 +90,14 @@ struct CreateTemplateFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateTemplate<'a> {
     fields: CreateTemplateFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> CreateTemplate<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
     ) -> Result<Self, CreateTemplateError> {
         if !validate_inner::template_name(&name) {
@@ -136,15 +140,23 @@ impl<'a> CreateTemplate<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Template> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateTemplate<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateTemplate {
             guild_id: self.guild_id.get(),
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

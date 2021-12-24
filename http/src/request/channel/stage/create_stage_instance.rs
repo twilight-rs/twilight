@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -9,7 +10,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::{channel::stage_instance::PrivacyLevel, id::ChannelId};
+use twilight_model::{
+    channel::stage_instance::PrivacyLevel,
+    id::{marker::ChannelMarker, Id},
+};
 
 /// The request can not be created as configured.
 #[derive(Debug)]
@@ -67,7 +71,7 @@ pub enum CreateStageInstanceErrorType {
 
 #[derive(Serialize)]
 struct CreateStageInstanceFields<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
     topic: &'a str,
@@ -85,7 +89,7 @@ pub struct CreateStageInstance<'a> {
 impl<'a> CreateStageInstance<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        channel_id: ChannelId,
+        channel_id: Id<ChannelMarker>,
         topic: &'a str,
     ) -> Result<Self, CreateStageInstanceError> {
         if !validate_inner::stage_topic(topic) {
@@ -116,13 +120,21 @@ impl<'a> CreateStageInstance<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateStageInstance<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateStageInstance);
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

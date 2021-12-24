@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    error::Error as HttpError,
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -9,7 +10,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::GuildId;
+use twilight_model::id::{marker::GuildMarker, Id};
 
 /// Error emitted when the member can not be updated as configured.
 #[derive(Debug)]
@@ -73,13 +74,13 @@ struct UpdateCurrentMemberFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCurrentMember<'a> {
     fields: UpdateCurrentMemberFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateCurrentMember<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: UpdateCurrentMemberFields { nick: None },
             guild_id,
@@ -116,25 +117,12 @@ impl<'a> UpdateCurrentMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let mut request = Request::builder(&Route::UpdateCurrentMember {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = &self.reason {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -143,5 +131,23 @@ impl<'a> AuditLogReason<'a> for UpdateCurrentMember<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for UpdateCurrentMember<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateCurrentMember {
+            guild_id: self.guild_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

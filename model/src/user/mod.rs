@@ -12,7 +12,7 @@ pub use self::{
     profile::UserProfile,
 };
 
-use crate::id::UserId;
+use crate::id::{marker::UserMarker, Id};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -142,7 +142,7 @@ pub struct User {
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
-    pub id: UserId,
+    pub id: Id<UserMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -170,7 +170,8 @@ impl User {
 
 #[cfg(test)]
 mod tests {
-    use super::{DiscriminatorDisplay, PremiumType, User, UserFlags, UserId};
+    use super::{DiscriminatorDisplay, PremiumType, User, UserFlags};
+    use crate::id::Id;
     use serde_test::Token;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};
@@ -211,7 +212,7 @@ mod tests {
             Token::Some,
             Token::U64(131_584),
             Token::Str("id"),
-            Token::NewtypeStruct { name: "UserId" },
+            Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
@@ -259,7 +260,7 @@ mod tests {
             Token::Some,
             Token::U64(131_584),
             Token::Str("id"),
-            Token::NewtypeStruct { name: "UserId" },
+            Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
@@ -304,7 +305,7 @@ mod tests {
             discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
             name: "test".to_owned(),
@@ -334,7 +335,7 @@ mod tests {
             discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
             name: "test".to_owned(),

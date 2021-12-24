@@ -5,13 +5,13 @@ use super::super::{
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, RequestBuilder},
+    request::{validate_inner, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// Create a new chat input global command.
@@ -23,7 +23,7 @@ use twilight_model::{
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalChatInputCommand<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     default_permission: Option<bool>,
     description: &'a str,
     http: &'a Client,
@@ -34,7 +34,7 @@ pub struct CreateGlobalChatInputCommand<'a> {
 impl<'a> CreateGlobalChatInputCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, InteractionError> {
@@ -98,7 +98,21 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateGlobalChatInputCommand<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Request::builder(&Route::CreateGlobalCommand {
             application_id: self.application_id.get(),
         })
@@ -111,15 +125,5 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
             options: self.options,
         })
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{validate_inner, Request, TryIntoRequest},
     response::{marker::MemberListBody, ResponseFuture},
     routing::Route,
 };
@@ -8,7 +9,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::GuildId;
+use twilight_model::id::{marker::GuildMarker, Id};
 
 /// The error created when the members can not be queried as configured.
 #[derive(Debug)]
@@ -76,15 +77,15 @@ struct SearchGuildMembersFields<'a> {
 ///
 /// Get the first 10 members of guild `100` matching `Wumpus`:
 ///
-/// ```rust,no_run
+/// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(100).expect("non zero");
+/// let guild_id = Id::new(100).expect("non zero");
 /// let members = client.search_guild_members(guild_id, "Wumpus")
 ///     .limit(10)?
 ///     .exec()
@@ -101,12 +102,12 @@ struct SearchGuildMembersFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct SearchGuildMembers<'a> {
     fields: SearchGuildMembersFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> SearchGuildMembers<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, query: &'a str) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, query: &'a str) -> Self {
         Self {
             fields: SearchGuildMembersFields { query, limit: None },
             guild_id,
@@ -140,15 +141,27 @@ impl<'a> SearchGuildMembers<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<MemberListBody> {
-        let request = Request::from_route(&Route::SearchGuildMembers {
+        let guild_id = self.guild_id;
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => {
+                let mut future = http.request(request);
+                future.set_guild_id(guild_id);
+
+                future
+            }
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for SearchGuildMembers<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        Ok(Request::from_route(&Route::SearchGuildMembers {
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,
             query: self.fields.query,
-        });
-
-        let mut future = self.http.request(request);
-        future.set_guild_id(self.guild_id);
-
-        future
+        }))
     }
 }

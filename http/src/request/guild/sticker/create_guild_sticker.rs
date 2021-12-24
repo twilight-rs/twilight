@@ -1,10 +1,17 @@
 use crate::{
     client::Client,
-    request::{multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    error::Error,
+    request::{
+        multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, Request,
+        TryIntoRequest,
+    },
     response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::{channel::message::Sticker, id::GuildId};
+use twilight_model::{
+    channel::message::Sticker,
+    id::{marker::GuildMarker, Id},
+};
 
 use super::{StickerValidationError, StickerValidationErrorType};
 
@@ -21,16 +28,13 @@ struct CreateGuildStickerFields<'a> {
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::{
-///     channel::message::sticker::StickerId,
-///     id::GuildId,
-/// };
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(1).expect("non zero");
+/// let guild_id = Id::new(1).expect("non zero");
 /// let sticker = client
 ///     .create_guild_sticker(
 ///         guild_id,
@@ -49,7 +53,7 @@ struct CreateGuildStickerFields<'a> {
 /// ```
 pub struct CreateGuildSticker<'a> {
     fields: CreateGuildStickerFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
@@ -57,7 +61,7 @@ pub struct CreateGuildSticker<'a> {
 impl<'a> CreateGuildSticker<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
         description: &'a str,
         tags: &'a str,
@@ -98,6 +102,25 @@ impl<'a> CreateGuildSticker<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Sticker> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
+        self.reason.replace(AuditLogReasonError::validate(reason)?);
+
+        Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateGuildSticker<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateGuildSticker {
             guild_id: self.guild_id.get(),
         });
@@ -114,14 +137,6 @@ impl<'a> CreateGuildSticker<'a> {
 
         request = request.form(form);
 
-        self.http.request(request.build())
-    }
-}
-
-impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
+        Ok(request.build())
     }
 }

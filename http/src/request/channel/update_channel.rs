@@ -1,7 +1,10 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request},
+    request::{
+        self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request,
+        TryIntoRequest,
+    },
     response::ResponseFuture,
     routing::Route,
 };
@@ -12,7 +15,7 @@ use std::{
 };
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, VideoQualityMode},
-    id::ChannelId,
+    id::{marker::ChannelMarker, Id},
 };
 
 /// Returned when the channel can not be updated as configured.
@@ -79,7 +82,7 @@ struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     nsfw: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<NullableField<ChannelId>>,
+    parent_id: Option<NullableField<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permission_overwrites: Option<&'a [PermissionOverwrite]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -103,14 +106,14 @@ struct UpdateChannelFields<'a> {
 /// and the maximum is 100 UTF-16 characters.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateChannel<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateChannelFields<'a>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateChannel<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: UpdateChannelFields {
@@ -168,7 +171,7 @@ impl<'a> UpdateChannel<'a> {
 
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, move this
     /// channel to a child of the category channel.
-    pub const fn parent_id(mut self, parent_id: Option<ChannelId>) -> Self {
+    pub const fn parent_id(mut self, parent_id: Option<Id<ChannelMarker>>) -> Self {
         self.fields.parent_id = Some(NullableField(parent_id));
 
         self
@@ -276,25 +279,14 @@ impl<'a> UpdateChannel<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
-        let mut request = Request::builder(&Route::UpdateChannel {
-            channel_id: self.channel_id.get(),
-        })
-        .json(&self.fields)?;
-
-        if let Some(reason) = &self.reason {
-            request = request.headers(request::audit_header(reason)?);
-        }
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
@@ -305,5 +297,20 @@ impl<'a> AuditLogReason<'a> for UpdateChannel<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for UpdateChannel<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateChannel {
+            channel_id: self.channel_id.get(),
+        })
+        .json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        Ok(request.build())
     }
 }

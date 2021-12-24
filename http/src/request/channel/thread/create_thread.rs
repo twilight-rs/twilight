@@ -1,15 +1,15 @@
 use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
-    error::Error as HttpError,
-    request::{validate_inner, Request},
+    error::Error,
+    request::{validate_inner, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel, ChannelType},
-    id::ChannelId,
+    id::{marker::ChannelMarker, Id},
 };
 
 #[derive(Serialize)]
@@ -36,7 +36,7 @@ struct CreateThreadFields<'a> {
 /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThread<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: CreateThreadFields<'a>,
     http: &'a Client,
 }
@@ -44,7 +44,7 @@ pub struct CreateThread<'a> {
 impl<'a> CreateThread<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        channel_id: ChannelId,
+        channel_id: Id<ChannelMarker>,
         name: &'a str,
         kind: ChannelType,
     ) -> Result<Self, ThreadValidationError> {
@@ -96,22 +96,25 @@ impl<'a> CreateThread<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
-        let request = Request::builder(&Route::CreateThread {
-            channel_id: self.channel_id.get(),
-        })
-        .json(&self.fields)?;
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+impl TryIntoRequest for CreateThread<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Request::builder(&Route::CreateThread {
+            channel_id: self.channel_id.get(),
+        })
+        .json(&self.fields)
+        .map(RequestBuilder::build)
     }
 }

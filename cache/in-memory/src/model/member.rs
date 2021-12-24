@@ -3,7 +3,10 @@ use twilight_model::{
     application::interaction::application_command::InteractionMember,
     datetime::Timestamp,
     guild::{Member, PartialMember},
-    id::{GuildId, RoleId, UserId},
+    id::{
+        marker::{GuildMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
 
 /// Represents a cached [`Member`].
@@ -13,20 +16,20 @@ use twilight_model::{
 pub struct CachedMember {
     pub(crate) avatar: Option<String>,
     pub(crate) deaf: Option<bool>,
-    pub(crate) guild_id: GuildId,
+    pub(crate) guild_id: Id<GuildMarker>,
     pub(crate) joined_at: Timestamp,
     pub(crate) mute: Option<bool>,
     pub(crate) nick: Option<String>,
     pub(crate) pending: bool,
     pub(crate) premium_since: Option<Timestamp>,
-    pub(crate) roles: Vec<RoleId>,
-    pub(crate) user_id: UserId,
+    pub(crate) roles: Vec<Id<RoleMarker>>,
+    pub(crate) user_id: Id<UserMarker>,
 }
 
 impl CachedMember {
     /// Member's guild avatar.
     pub fn avatar(&self) -> Option<&str> {
-        self.nick.as_deref()
+        self.avatar.as_deref()
     }
 
     /// Whether the member is deafened in a voice channel.
@@ -35,7 +38,7 @@ impl CachedMember {
     }
 
     /// ID of the guild this member is a part of.
-    pub const fn guild_id(&self) -> GuildId {
+    pub const fn guild_id(&self) -> Id<GuildMarker> {
         self.guild_id
     }
 
@@ -66,12 +69,12 @@ impl CachedMember {
     }
 
     /// List of role IDs this member has.
-    pub fn roles(&self) -> &[RoleId] {
+    pub fn roles(&self) -> &[Id<RoleMarker>] {
         &self.roles
     }
 
     /// ID of the user relating to the member.
-    pub const fn user_id(&self) -> UserId {
+    pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
     }
 }
@@ -141,7 +144,7 @@ mod tests {
     use twilight_model::{
         datetime::Timestamp,
         guild::{Member, PartialMember},
-        id::{GuildId, UserId},
+        id::Id,
         user::User,
     };
 
@@ -163,7 +166,7 @@ mod tests {
         CachedMember {
             avatar: None,
             deaf: Some(false),
-            guild_id: GuildId::new(3).expect("non zero"),
+            guild_id: Id::new(3).expect("non zero"),
             joined_at,
             mute: Some(true),
             nick: Some("member nick".to_owned()),
@@ -183,7 +186,7 @@ mod tests {
             discriminator: 1,
             email: None,
             flags: None,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             locale: None,
             mfa_enabled: None,
             name: "bar".to_owned(),
@@ -201,7 +204,7 @@ mod tests {
         let member = Member {
             avatar: None,
             deaf: false,
-            guild_id: GuildId::new(3).expect("non zero"),
+            guild_id: Id::new(3).expect("non zero"),
             joined_at,
             mute: true,
             nick: Some("member nick".to_owned()),

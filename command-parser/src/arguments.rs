@@ -30,7 +30,7 @@ impl<'a> Arguments<'a> {
     /// When the command is `"!echo foo bar baz"` and the command is `"echo"`,
     /// then this returns `"foo bar baz"`.
     ///
-    /// ```rust
+    /// ```
     /// use twilight_command_parser::{Command, CommandParserConfig, Parser};
     ///
     /// let mut config = CommandParserConfig::new();
@@ -54,7 +54,7 @@ impl<'a> Arguments<'a> {
     /// If you have extracted two arguments already, then you can consume the
     /// rest of the arguments:
     ///
-    /// ```rust
+    /// ```
     /// use twilight_command_parser::Arguments;
     ///
     /// let mut args = Arguments::new("1 2 3 4 5");

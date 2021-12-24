@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    error::Error as HttpError,
+    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,7 +11,10 @@ use std::{
 };
 use twilight_model::{
     guild::GuildPrune,
-    id::{GuildId, RoleId},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
 };
 
 /// The error created when the guild prune can not be created as configured.
@@ -68,7 +72,7 @@ pub enum CreateGuildPruneErrorType {
 struct CreateGuildPruneFields<'a> {
     compute_prune_count: Option<bool>,
     days: Option<u64>,
-    include_roles: &'a [RoleId],
+    include_roles: &'a [Id<RoleMarker>],
 }
 
 /// Begin a guild prune.
@@ -79,13 +83,13 @@ struct CreateGuildPruneFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {
     fields: CreateGuildPruneFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateGuildPrune<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: CreateGuildPruneFields {
                 compute_prune_count: None,
@@ -99,7 +103,7 @@ impl<'a> CreateGuildPrune<'a> {
     }
 
     /// List of roles to include when pruning.
-    pub const fn include_roles(mut self, roles: &'a [RoleId]) -> Self {
+    pub const fn include_roles(mut self, roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields.include_roles = roles;
 
         self
@@ -136,23 +140,12 @@ impl<'a> CreateGuildPrune<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
-        let mut request = Request::builder(&Route::CreateGuildPrune {
-            compute_prune_count: self.fields.compute_prune_count,
-            days: self.fields.days,
-            guild_id: self.guild_id.get(),
-            include_roles: self.fields.include_roles,
-        });
+        let http = self.http;
 
-        if let Some(reason) = self.reason.as_ref() {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -161,5 +154,24 @@ impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateGuildPrune<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::CreateGuildPrune {
+            compute_prune_count: self.fields.compute_prune_count,
+            days: self.fields.days,
+            guild_id: self.guild_id.get(),
+            include_roles: self.fields.include_roles,
+        });
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

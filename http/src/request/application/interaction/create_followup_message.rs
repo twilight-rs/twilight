@@ -3,7 +3,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, PartialAttachment, Request,
+        AttachmentFile, Form, PartialAttachment, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -21,7 +21,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Message,
     },
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// A followup message can not be created as configured.
@@ -122,17 +122,18 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```no_run
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::id::ApplicationId;
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = Id::new(1).expect("non zero");
 ///
 /// client
-///     .create_followup_message("webhook token")?
+///     .interaction(application_id)
+///     .create_followup_message("webhook token")
 ///     .content("Pinkie...")
 ///     .exec()
 ///     .await?;
@@ -144,7 +145,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     http: &'a Client,
@@ -154,7 +155,7 @@ pub struct CreateFollowupMessage<'a> {
 impl<'a> CreateFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
     ) -> Self {
         Self {
@@ -275,18 +276,20 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// Without [`payload_json`]:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// let application_id = Id::new(1).expect("non zero");
     ///
-    /// let message = client.create_followup_message("token here")?
+    /// let message = client
+    ///     .interaction(application_id)
+    ///     .create_followup_message("token here")
     ///     .content("some content")
     ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
     ///     .exec()
@@ -300,17 +303,19 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// With [`payload_json`]:
     ///
-    /// ```rust,no_run
+    /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// let application_id = Id::new(1).expect("non zero");
     ///
-    /// let message = client.create_followup_message("token here")?
+    /// let message = client
+    ///     .interaction(application_id)
+    ///     .create_followup_message("token here")
     ///     .content("some content")
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .exec()
@@ -338,9 +343,21 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateFollowupMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.token,
@@ -378,16 +395,35 @@ impl<'a> CreateFollowupMessage<'a> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.build())
+        Ok(request.use_authorization_token(false).build())
     }
+}
 
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<Message> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+#[cfg(test)]
+mod tests {
+    use crate::{client::Client, request::TryIntoRequest};
+    use std::error::Error;
+    use twilight_http_ratelimiting::Path;
+    use twilight_model::id::Id;
+
+    #[test]
+    fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
+        let application_id = Id::new(1).expect("non zero id");
+        let token = "foo".to_owned().into_boxed_str();
+
+        let client = Client::new(String::new());
+        let req = client
+            .interaction(application_id)
+            .create_followup_message(&token)
+            .content("test")
+            .try_into_request()?;
+
+        assert!(!req.use_authorization_token());
+        assert_eq!(
+            &Path::WebhooksIdToken(application_id.get(), token),
+            req.ratelimit_path()
+        );
+
+        Ok(())
     }
 }

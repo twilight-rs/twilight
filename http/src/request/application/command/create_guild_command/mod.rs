@@ -9,7 +9,10 @@ pub use self::{
 
 use super::super::{InteractionError, InteractionErrorType};
 use crate::{request::validate_inner, Client};
-use twilight_model::id::{ApplicationId, GuildId};
+use twilight_model::id::{
+    marker::{ApplicationMarker, GuildMarker},
+    Id,
+};
 
 /// Create a new command in a guild.
 ///
@@ -21,8 +24,8 @@ use twilight_model::id::{ApplicationId, GuildId};
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "the command must have a type"]
 pub struct CreateGuildCommand<'a> {
-    application_id: ApplicationId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
 }
@@ -30,8 +33,8 @@ pub struct CreateGuildCommand<'a> {
 impl<'a> CreateGuildCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
     ) -> Result<Self, InteractionError> {
         if !validate_inner::command_name(name) {

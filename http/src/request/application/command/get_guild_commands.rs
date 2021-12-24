@@ -1,27 +1,31 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
 use twilight_model::{
     application::command::Command,
-    id::{ApplicationId, GuildId},
+    id::{
+        marker::{ApplicationMarker, GuildMarker},
+        Id,
+    },
 };
 
 /// Fetch all commands for a guild, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildCommands<'a> {
-    application_id: ApplicationId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildCommands<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
     ) -> Self {
         Self {
             application_id,
@@ -34,11 +38,20 @@ impl<'a> GetGuildCommands<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Command>> {
-        let request = Request::from_route(&Route::GetGuildCommands {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetGuildCommands<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetGuildCommands {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }
