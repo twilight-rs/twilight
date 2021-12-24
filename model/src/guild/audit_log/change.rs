@@ -318,7 +318,7 @@ pub enum AuditLogChange {
     },
     /// Location for a scheduled event changed.
     ///
-    /// Can be a [`ChannelId`] or a [`String`].
+    /// Can be an [`Id<ChannelMarker>`] or a [`String`].
     Location {
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
         new: Option<String>,
