@@ -215,8 +215,7 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
     map.insert(k, v);
 }
 
-/// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
-/// sent to other threads.
+/// An in-memory cache of Discord data.
 ///
 /// This is an implementation of a cache designed to be used by only the
 /// current process.
