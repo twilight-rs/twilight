@@ -328,7 +328,7 @@ mod test {
             },
         },
         datetime::{Timestamp, TimestampParseError},
-        guild::{member::MemberTimeoutState, PartialMember, Permissions},
+        guild::{PartialMember, Permissions},
         id::{ApplicationId, ChannelId, CommandId, GuildId, InteractionId, UserId},
         user::User,
     };
@@ -357,7 +357,7 @@ mod test {
                         UserId::new(600).expect("non zero"),
                         InteractionMember {
                             avatar: None,
-                            communication_disabled_until: MemberTimeoutState(None),
+                            communication_disabled_until: None,
                             joined_at,
                             nick: Some("nickname".into()),
                             pending: false,
@@ -397,7 +397,7 @@ mod test {
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: MemberTimeoutState(None),
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: false,

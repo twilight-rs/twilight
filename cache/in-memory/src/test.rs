@@ -6,7 +6,7 @@ use twilight_model::{
     },
     datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
-    guild::{member::MemberTimeoutState, Emoji, Member, PartialMember, Permissions, Role},
+    guild::{Emoji, Member, PartialMember, Permissions, Role},
     id::{ChannelId, EmojiId, GuildId, MessageId, RoleId, UserId},
     user::{CurrentUser, User},
     voice::VoiceState,
@@ -50,7 +50,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         kind: MessageType::Regular,
         member: Some(PartialMember {
             avatar: None,
-            communication_disabled_until: MemberTimeoutState(None),
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: false,
@@ -85,7 +85,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         guild_id: Some(GuildId::new(1).expect("non zero")),
         member: Some(Member {
             avatar: None,
-            communication_disabled_until: MemberTimeoutState(None),
+            communication_disabled_until: None,
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             joined_at,
@@ -120,7 +120,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
     reaction.member.replace(Member {
         avatar: None,
-        communication_disabled_until: MemberTimeoutState(None),
+        communication_disabled_until: None,
         deaf: false,
         guild_id: GuildId::new(1).expect("non zero"),
         joined_at,
@@ -218,7 +218,7 @@ pub fn member(id: UserId, guild_id: GuildId) -> Member {
 
     Member {
         avatar: None,
-        communication_disabled_until: MemberTimeoutState(None),
+        communication_disabled_until: None,
         deaf: false,
         guild_id,
         joined_at,

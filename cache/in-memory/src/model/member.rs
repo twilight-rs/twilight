@@ -2,7 +2,7 @@ use serde::Serialize;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
     datetime::Timestamp,
-    guild::{member::MemberTimeoutState, Member, PartialMember},
+    guild::{Member, PartialMember},
     id::{GuildId, RoleId, UserId},
 };
 
@@ -12,7 +12,7 @@ use twilight_model::{
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
     pub(crate) avatar: Option<String>,
-    pub(crate) communication_disabled_until: MemberTimeoutState,
+    pub(crate) communication_disabled_until: Option<Timestamp>,
     pub(crate) deaf: Option<bool>,
     pub(crate) guild_id: GuildId,
     pub(crate) joined_at: Timestamp,
@@ -31,8 +31,8 @@ impl CachedMember {
     }
 
     /// When the user can resume communication in a guild again.
-    pub const fn communication_disabled_until(&self) -> &MemberTimeoutState {
-        &self.communication_disabled_until
+    pub const fn communication_disabled_until(&self) -> Option<Timestamp> {
+        self.communication_disabled_until
     }
 
     /// Whether the member is deafened in a voice channel.
@@ -150,7 +150,7 @@ mod tests {
     use static_assertions::assert_fields;
     use twilight_model::{
         datetime::Timestamp,
-        guild::{member::MemberTimeoutState, Member, PartialMember},
+        guild::{Member, PartialMember},
         id::{GuildId, UserId},
         user::User,
     };
@@ -172,7 +172,7 @@ mod tests {
 
         CachedMember {
             avatar: None,
-            communication_disabled_until: MemberTimeoutState(None),
+            communication_disabled_until: None,
             deaf: Some(false),
             guild_id: GuildId::new(3).expect("non zero"),
             joined_at,
@@ -211,7 +211,7 @@ mod tests {
 
         let member = Member {
             avatar: None,
-            communication_disabled_until: MemberTimeoutState(None),
+            communication_disabled_until: None,
             deaf: false,
             guild_id: GuildId::new(3).expect("non zero"),
             joined_at,
@@ -232,7 +232,7 @@ mod tests {
 
         let member = PartialMember {
             avatar: None,
-            communication_disabled_until: MemberTimeoutState(None),
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: true,

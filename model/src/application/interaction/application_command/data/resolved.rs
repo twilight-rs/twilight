@@ -1,7 +1,7 @@
 use crate::{
     channel::{thread::ThreadMetadata, ChannelType, Message},
     datetime::Timestamp,
-    guild::{member::MemberTimeoutState, Permissions, Role},
+    guild::{Permissions, Role},
     id::{ChannelId, MessageId, RoleId, UserId},
     user::User,
 };
@@ -40,7 +40,7 @@ pub struct InteractionMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub communication_disabled_until: MemberTimeoutState,
+    pub communication_disabled_until: Option<Timestamp>,
     pub joined_at: Timestamp,
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's Membership Screening
@@ -66,7 +66,7 @@ mod tests {
             ChannelType, Message,
         },
         datetime::{Timestamp, TimestampParseError},
-        guild::{member::MemberTimeoutState, PartialMember, Permissions, Role},
+        guild::{PartialMember, Permissions, Role},
         id::{ChannelId, GuildId, MessageId, RoleId, UserId},
         user::{PremiumType, User, UserFlags},
     };
@@ -96,7 +96,7 @@ mod tests {
                 UserId::new(300).expect("non zero"),
                 InteractionMember {
                     avatar: None,
-                    communication_disabled_until: MemberTimeoutState(None),
+                    communication_disabled_until: None,
                     joined_at,
                     nick: None,
                     pending: false,
@@ -142,7 +142,7 @@ mod tests {
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
                         avatar: None,
-                        communication_disabled_until: MemberTimeoutState(None),
+                        communication_disabled_until: None,
                         deaf: false,
                         joined_at,
                         mute: false,

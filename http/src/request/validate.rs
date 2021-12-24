@@ -1186,12 +1186,15 @@ const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
 #[allow(clippy::cast_possible_wrap)] // casting of unix timestamp should never wrap
 fn _communication_disabled_until(timestamp: Timestamp) -> bool {
     let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
+        .duration_since(UNIX_EPOCH);
+
+    if now.is_err() {
+        return false;
+    }
+
     let end = timestamp.as_secs();
 
-    end - now as i64 <= COMMUNICATION_DISABLED_MAX_DURATION
+    end - now.unwrap().as_secs() as i64 <= COMMUNICATION_DISABLED_MAX_DURATION
 }
 
 /// Validate the number of guild command permission overwrites.

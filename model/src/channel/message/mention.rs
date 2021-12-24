@@ -47,10 +47,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::{Mention, PartialMember, UserFlags, UserId};
-    use crate::{
-        datetime::{Timestamp, TimestampParseError},
-        guild::member::MemberTimeoutState,
-    };
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
 
     #[test]
@@ -103,7 +100,7 @@ mod tests {
             id: UserId::new(1).expect("non zero"),
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: MemberTimeoutState(None),
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: true,

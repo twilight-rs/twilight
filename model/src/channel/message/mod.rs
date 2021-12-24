@@ -98,7 +98,7 @@ mod tests {
     use crate::{
         channel::{ChannelType, ReactionType},
         datetime::{Timestamp, TimestampParseError},
-        guild::{member::MemberTimeoutState, PartialMember},
+        guild::PartialMember,
         id::{ApplicationId, ChannelId, GuildId, MessageId, UserId},
         user::User,
     };
@@ -145,7 +145,7 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: MemberTimeoutState(None),
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: false,
@@ -339,7 +339,7 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: MemberTimeoutState(None),
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: false,

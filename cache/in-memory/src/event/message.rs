@@ -134,7 +134,7 @@ mod tests {
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
         datetime::Timestamp,
-        guild::{member::MemberTimeoutState, PartialMember},
+        guild::PartialMember,
         id::{ChannelId, GuildId, MessageId, UserId},
         user::User,
     };
@@ -180,7 +180,7 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: MemberTimeoutState(None),
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: false,

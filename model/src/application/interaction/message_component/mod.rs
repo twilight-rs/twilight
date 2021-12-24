@@ -80,7 +80,7 @@ mod tests {
         application::{component::ComponentType, interaction::InteractionType},
         channel::message::{Message, MessageType},
         datetime::{Timestamp, TimestampParseError},
-        guild::{member::MemberTimeoutState, PartialMember},
+        guild::PartialMember,
         id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, UserId},
         user::User,
     };
@@ -152,7 +152,7 @@ mod tests {
             kind: InteractionType::MessageComponent,
             member: Some(PartialMember {
                 avatar: None,
-                communication_disabled_until: MemberTimeoutState(None),
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at: timestamp,
                 mute: false,

@@ -1,6 +1,6 @@
 use crate::{
     datetime::Timestamp,
-    guild::{member::MemberTimeoutState, Permissions},
+    guild::Permissions,
     id::RoleId,
     user::User,
 };
@@ -11,7 +11,7 @@ pub struct PartialMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub communication_disabled_until: MemberTimeoutState,
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -31,10 +31,7 @@ pub struct PartialMember {
 #[cfg(test)]
 mod tests {
     use super::{PartialMember, RoleId};
-    use crate::{
-        datetime::{Timestamp, TimestampParseError},
-        guild::member::MemberTimeoutState,
-    };
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
     use std::str::FromStr;
 
@@ -44,7 +41,7 @@ mod tests {
 
         let value = PartialMember {
             avatar: None,
-            communication_disabled_until: MemberTimeoutState(None),
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: true,

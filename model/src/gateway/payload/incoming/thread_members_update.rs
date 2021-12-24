@@ -89,7 +89,7 @@ mod tests {
         gateway::presence::{
             Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId,
         },
-        guild::{member::MemberTimeoutState, Member},
+        guild::Member,
         id::{ChannelId, GuildId, UserId},
         user::User,
     };
@@ -107,7 +107,7 @@ mod tests {
 
         let member = Member {
             avatar: Some("guild avatar".to_owned()),
-            communication_disabled_until: MemberTimeoutState(None),
+            communication_disabled_until: None,
             deaf: false,
             guild_id: GuildId::new(2).expect("non zero"),
             joined_at,

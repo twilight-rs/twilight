@@ -9,19 +9,16 @@ use serde::{
         value::MapAccessDeserializer, DeserializeSeed, Deserializer, Error as DeError, MapAccess,
         SeqAccess, Visitor,
     },
-    Deserialize, Serialize, Serializer,
+    Deserialize, Serialize,
 };
-use std::{
-    fmt::{Formatter, Result as FmtResult},
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Member {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub communication_disabled_until: MemberTimeoutState,
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub guild_id: GuildId,
     pub joined_at: Timestamp,
@@ -47,7 +44,7 @@ pub struct MemberIntermediary {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub communication_disabled_until: MemberTimeoutState,
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -77,69 +74,6 @@ impl MemberIntermediary {
             roles: self.roles,
             user: self.user,
         }
-    }
-}
-
-/// The state of a member's guild timeout.
-///
-/// This wraps an [`Option<Timestamp>`], as no corresponding `GUILD_MEMBER_UPDATE` events are
-/// sent by Discord when the timeout of members have expired. Therefore, simply relying on whether
-/// the `communication_disabled_until` field has a value does not facilitate the use case of
-/// knowing whether a specified member is actually timed out (especially when using cached data);
-/// and provides convenience methods to determine whether a member is timed out or not.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct MemberTimeoutState(pub Option<Timestamp>);
-
-impl MemberTimeoutState {
-    /// Returns whether a member is currently timed out.
-    #[allow(clippy::cast_possible_wrap)] // casting of a unix timestamp should never wrap
-    #[allow(clippy::missing_panics_doc)] // this function never panics, false positive
-    pub fn timed_out(&self) -> bool {
-        if self.inner().is_none() {
-            return false;
-        }
-
-        let until = self.inner().unwrap().as_secs();
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as i64;
-
-        now < until
-    }
-
-    /// Returns the inner raw timestamp. `Some` if the timeout is still active,
-    /// otherwise `None`.
-    pub fn until(&self) -> Option<&Timestamp> {
-        if !self.timed_out() {
-            return None;
-        }
-
-        self.inner()
-    }
-
-    /// Returns the inner raw timestamp.
-    ///
-    /// Unlike [`until`](MemberTimeoutState::until), the timestamp is returned
-    /// without checking if it is not expired.
-    pub const fn inner(&self) -> Option<&Timestamp> {
-        self.0.as_ref()
-    }
-}
-
-impl<'de> Deserialize<'de> for MemberTimeoutState {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer.deserialize_option(MemberTimeoutStateVisitor)
-    }
-}
-
-impl Serialize for MemberTimeoutState {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        if self.inner().is_none() {
-            return serializer.serialize_none();
-        }
-
-        serializer.serialize_some(self.inner().unwrap())
     }
 }
 
@@ -193,26 +127,6 @@ impl<'de> Visitor<'de> for MemberVisitor {
             roles: member.roles,
             user: member.user,
         })
-    }
-}
-
-pub(crate) struct MemberTimeoutStateVisitor;
-
-impl<'de> Visitor<'de> for MemberTimeoutStateVisitor {
-    type Value = MemberTimeoutState;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("a member timeout state")
-    }
-
-    fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
-        Ok(MemberTimeoutState(None))
-    }
-
-    fn visit_some<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        Ok(MemberTimeoutState(Some(Timestamp::deserialize(
-            deserializer,
-        )?)))
     }
 }
 
@@ -294,7 +208,7 @@ impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
 
 #[cfg(test)]
 mod tests {
-    use super::{Member, MemberTimeoutState};
+    use super::Member;
     use crate::{
         datetime::{Timestamp, TimestampParseError},
         id::{GuildId, UserId},
@@ -310,7 +224,7 @@ mod tests {
 
         let value = Member {
             avatar: Some("guild avatar".to_owned()),
-            communication_disabled_until: MemberTimeoutState(None),
+            communication_disabled_until: None,
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             joined_at,
@@ -406,7 +320,7 @@ mod tests {
 
         let value = Member {
             avatar: Some("guild avatar".to_owned()),
-            communication_disabled_until: MemberTimeoutState(Some(communication_disabled_until)),
+            communication_disabled_until: Some(communication_disabled_until),
             deaf: false,
             guild_id: GuildId::new(1).expect("non zero"),
             joined_at,
