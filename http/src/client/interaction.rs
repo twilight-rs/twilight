@@ -241,8 +241,8 @@ impl<'a> InteractionClient<'a> {
     /// command with the same name as an already-existing global command will
     /// overwrite the old command. See [the discord docs] for more information.
     ///
-    /// Returns an [`NameInvalid`] error type if the command name is not between
-    /// 1 and 32 characters.
+    /// Returns an error of type [`NameInvalid`] if the command name is not
+    /// between 1 and 32 characters.
     ///
     /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command

@@ -10,7 +10,7 @@ use twilight_model::id::{
     marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
     Id,
 };
-use twilight_validate::misc::{nickname as validate_nickname, ValidationError};
+use twilight_validate::request::{nickname as validate_nickname, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateGuildMemberFields<'a> {

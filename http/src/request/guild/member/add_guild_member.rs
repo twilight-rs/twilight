@@ -13,7 +13,7 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::misc::{nickname as validate_nickname, ValidationError};
+use twilight_validate::request::{nickname as validate_nickname, ValidationError};
 
 #[derive(Serialize)]
 struct AddGuildMemberFields<'a> {

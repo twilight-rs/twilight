@@ -9,7 +9,7 @@ use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
     Id,
 };
-use twilight_validate::misc::{
+use twilight_validate::request::{
     create_guild_ban_delete_message_days as validate_create_guild_ban_delete_message_days,
     ValidationError,
 };

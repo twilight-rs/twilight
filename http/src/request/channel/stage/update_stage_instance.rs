@@ -10,7 +10,7 @@ use twilight_model::{
     channel::stage_instance::PrivacyLevel,
     id::{marker::ChannelMarker, Id},
 };
-use twilight_validate::misc::{stage_topic as validate_stage_topic, ValidationError};
+use twilight_validate::request::{stage_topic as validate_stage_topic, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateStageInstanceFields<'a> {

@@ -16,7 +16,7 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::misc::{guild_name as validate_guild_name, ValidationError};
+use twilight_validate::request::{guild_name as validate_guild_name, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateGuildFields<'a> {

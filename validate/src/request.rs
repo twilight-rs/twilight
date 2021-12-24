@@ -1,6 +1,6 @@
 //! Contains all other input validation functions.
 //!
-//! These functions do not quite fit into a specific validation concern.
+//! These functions are generally not related to a specific Discord model.
 
 use std::{
     error::Error,

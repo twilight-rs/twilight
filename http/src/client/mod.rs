@@ -97,7 +97,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::{
-    channel::ChannelValidationError, misc::ValidationError, sticker::StickerValidationError,
+    channel::ChannelValidationError, request::ValidationError, sticker::StickerValidationError,
 };
 
 #[cfg(feature = "hyper-rustls")]

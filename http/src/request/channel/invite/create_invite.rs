@@ -13,7 +13,7 @@ use twilight_model::{
     },
     invite::{Invite, TargetType},
 };
-use twilight_validate::misc::{
+use twilight_validate::request::{
     invite_max_age as validate_invite_max_age, invite_max_uses as validate_invite_max_uses,
     ValidationError,
 };

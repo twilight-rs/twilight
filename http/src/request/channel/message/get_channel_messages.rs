@@ -13,7 +13,7 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::misc::{
+use twilight_validate::request::{
     get_channel_messages_limit as validate_get_channel_messages_limit, ValidationError,
 };
 

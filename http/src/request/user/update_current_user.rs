@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::user::User;
-use twilight_validate::misc::{username as validate_username, ValidationError};
+use twilight_validate::request::{username as validate_username, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateCurrentUserFields<'a> {

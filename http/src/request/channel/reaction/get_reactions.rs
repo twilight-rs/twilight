@@ -13,7 +13,7 @@ use twilight_model::{
     },
     user::User,
 };
-use twilight_validate::misc::{
+use twilight_validate::request::{
     get_reactions_limit as validate_get_reactions_limit, ValidationError,
 };
 

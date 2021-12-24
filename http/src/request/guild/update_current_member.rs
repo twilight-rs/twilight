@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::id::{marker::GuildMarker, Id};
-use twilight_validate::misc::{nickname as validate_nickname, ValidationError};
+use twilight_validate::request::{nickname as validate_nickname, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateCurrentMemberFields<'a> {

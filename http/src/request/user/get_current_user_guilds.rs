@@ -9,7 +9,7 @@ use twilight_model::{
     id::{marker::GuildMarker, Id},
     user::CurrentUserGuild,
 };
-use twilight_validate::misc::{
+use twilight_validate::request::{
     get_current_user_guilds_limit as validate_get_current_user_guilds_limit, ValidationError,
 };
 

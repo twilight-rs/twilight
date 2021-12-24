@@ -6,7 +6,7 @@ use crate::{
     routing::Route,
 };
 use twilight_model::id::{marker::GuildMarker, Id};
-use twilight_validate::misc::{
+use twilight_validate::request::{
     search_guild_members_limit as validate_search_guild_members_limit, ValidationError,
 };
 

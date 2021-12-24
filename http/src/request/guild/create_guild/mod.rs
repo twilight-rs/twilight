@@ -21,7 +21,7 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::misc::guild_name as validate_guild_name;
+use twilight_validate::request::guild_name as validate_guild_name;
 
 mod builder;
 

@@ -26,5 +26,5 @@ pub mod command;
 pub mod component;
 pub mod embed;
 pub mod message;
-pub mod misc;
+pub mod request;
 pub mod sticker;

@@ -12,7 +12,7 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::misc::{guild_prune_days as validate_guild_prune_days, ValidationError};
+use twilight_validate::request::{guild_prune_days as validate_guild_prune_days, ValidationError};
 
 struct CreateGuildPruneFields<'a> {
     compute_prune_count: Option<bool>,

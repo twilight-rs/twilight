@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::guild::Guild;
-use twilight_validate::misc::{guild_name as validate_guild_name, ValidationError};
+use twilight_validate::request::{guild_name as validate_guild_name, ValidationError};
 
 #[derive(Serialize)]
 struct CreateGuildFromTemplateFields<'a> {

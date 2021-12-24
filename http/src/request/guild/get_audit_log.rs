@@ -12,7 +12,7 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::misc::{
+use twilight_validate::request::{
     get_guild_audit_log_limit as validate_get_guild_audit_log_limit, ValidationError,
 };
 
