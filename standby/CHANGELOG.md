@@ -2,6 +2,14 @@
 
 Changelog for `twilight-standby`.
 
+## [0.8.1] - 2021-12-24
+
+### Changes
+
+Upgrade `dashmap` to 5.0 ([#1336] - [@vilgotf]). `dashmap` 4.0 is still allowed.
+
+[#1336]: https://github.com/twilight-rs/twilight/pull/1336
+
 ## [0.8.0] - 2021-12-03
 
 ### Additions
@@ -153,12 +161,14 @@ Initial release.
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
 [@PyroTechniac]: https://github.com/PyroTechniac
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.8.0
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.7.0

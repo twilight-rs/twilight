@@ -2,6 +2,14 @@
 
 Changelog for `twilight-http`.
 
+## [0.8.2] - 2021-12-24
+
+### Additions
+
+Add the API error code `50109 RequestInvalidJson` ([#1338] - [@vilgotf]).
+
+[#1326]: https://github.com/twilight-rs/twilight/pull/1326
+
 ## [0.8.1] - 2021-12-15
 
 ### Additions
