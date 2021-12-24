@@ -288,7 +288,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -313,7 +313,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -345,7 +345,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
-    /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -376,7 +376,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -404,7 +404,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::ChannelMarker, Id};
+    /// # use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -464,7 +464,7 @@ impl Client {
     ///
     /// ```no_run
     /// use twilight_http::Client;
-    /// use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -514,7 +514,7 @@ impl Client {
     /// ```no_run
     /// # use twilight_http::Client;
     /// use twilight_model::guild::Permissions;
-    /// use twilight_model::id::{marker::{ChannelMarker, RoleMarker}, Id};
+    /// use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -595,7 +595,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -634,7 +634,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::GuildMarker, Id};
+    /// # use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -882,7 +882,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -914,7 +914,7 @@ impl Client {
     ///
     /// ```no_run
     /// use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -994,7 +994,7 @@ impl Client {
     /// ```no_run
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{marker::{GuildMarker, UserMarker}, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
@@ -1041,7 +1041,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
-    /// use twilight_model::id::{marker::{GuildMarker, RoleMarker, UserMarker}, Id};
+    /// use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1171,7 +1171,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::ChannelMarker, Id};
+    /// # use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1217,7 +1217,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::ChannelMarker, Id};
+    /// # use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1286,7 +1286,7 @@ impl Client {
     ///
     /// ```no_run
     /// use twilight_http::Client;
-    /// use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1302,7 +1302,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
+    /// # use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1375,9 +1375,7 @@ impl Client {
     /// # Examples
     /// ```no_run
     /// # use twilight_http::{Client, request::channel::reaction::RequestReactionType};
-    /// # use twilight_model::{
-    /// #     id::{marker::{ChannelMarker, MessageMarker}, Id},
-    /// # };
+    /// # use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1471,7 +1469,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::GuildMarker, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1845,7 +1843,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::ChannelMarker, Id};
+    /// # use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1893,7 +1891,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// # use twilight_model::id::{marker::WebhookMarker, Id};
+    /// # use twilight_model::id::Id;
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1935,7 +1933,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::{MessageMarker, WebhookMarker}, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1961,7 +1959,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{marker::{MessageMarker, WebhookMarker}, Id};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {

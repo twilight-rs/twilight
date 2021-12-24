@@ -142,10 +142,7 @@ impl RequestGuildMembersBuilder {
     /// their presences:
     ///
     /// ```
-    /// use twilight_model::{
-    ///     gateway::payload::outgoing::RequestGuildMembers,
-    ///     id::{marker::GuildMarker, Id},
-    /// };
+    /// use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
     ///
     /// let request = RequestGuildMembers::builder(Id::new(1).expect("non zero"))
     ///     .presences(true)

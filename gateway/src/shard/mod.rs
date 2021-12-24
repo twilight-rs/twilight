@@ -30,6 +30,7 @@ mod event;
 mod r#impl;
 mod json;
 mod processor;
+pub(crate) mod tls;
 
 pub use self::{
     builder::{

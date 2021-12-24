@@ -2,6 +2,45 @@
 
 Changelog for `twilight-http`.
 
+## [0.8.2] - 2021-12-24
+
+### Additions
+
+Add the API error code `50109 RequestInvalidJson` ([#1338] - [@vilgotf]).
+
+[#1326]: https://github.com/twilight-rs/twilight/pull/1326
+
+## [0.8.1] - 2021-12-15
+
+### Additions
+
+Add the API error codes `20029 WriteActionsReached` and `50055 InvalidGuild`
+([#1326] - [@zeylahellyer]).
+
+### Changes
+
+Only send the interaction authorization token when responding to interactions
+([#1317] - [@zeylahellyer]).
+
+### Fixes
+
+Fix an issue where interaction and webhook tokens were invalidating the entire
+client ([#1318] - [@zeylahellyer]). The client now only invalidates a token if
+the request that failed was actually using it.
+
+`CommandBorrowed::kind` is now properly serialized as `type` ([#1323] -
+[@7596ff]).
+
+Fix a variety of routes in `RouteDisplay` after adding tests ([#1327] -
+[@zeylahellyer]). The fixed routes are `CreateGuildPrune`,
+`SyncGuildIntegration`, and `UpdateUserVoiceState`.
+
+[#1317]: https://github.com/twilight-rs/twilight/pull/1317
+[#1318]: https://github.com/twilight-rs/twilight/pull/1318
+[#1323]: https://github.com/twilight-rs/twilight/pull/1323
+[#1326]: https://github.com/twilight-rs/twilight/pull/1326
+[#1327]: https://github.com/twilight-rs/twilight/pull/1327
+
 ## [0.8.0] - 2021-12-03
 
 ### Additions
@@ -1433,6 +1472,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.1
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.0
 [0.7.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.3
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.1
