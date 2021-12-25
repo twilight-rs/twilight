@@ -600,12 +600,11 @@ fn header_str(name: HeaderName, value: &[u8]) -> Result<&str, HeaderParsingError
 
 #[cfg(test)]
 mod tests {
-    use crate::headers::RatelimitScope;
-
     use super::{
         GlobalLimited, HeaderName, HeaderParsingError, HeaderParsingErrorType, HeaderType, Present,
         RatelimitHeaders,
     };
+    use crate::headers::RatelimitScope;
     use http::header::{HeaderMap, HeaderName as HttpHeaderName, HeaderValue};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
