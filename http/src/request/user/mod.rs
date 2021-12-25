@@ -11,8 +11,7 @@ mod leave_guild;
 pub use self::{
     create_private_channel::CreatePrivateChannel, get_current_user::GetCurrentUser,
     get_current_user_connections::GetCurrentUserConnections,
-    get_current_user_guilds::GetCurrentUserGuilds,
     get_current_user_guild_member::GetCurrentUserGuildMember,
-    get_user::GetUser, leave_guild::LeaveGuild,
+    get_current_user_guilds::GetCurrentUserGuilds, get_user::GetUser, leave_guild::LeaveGuild,
     update_current_user::UpdateCurrentUser,
 };

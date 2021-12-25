@@ -79,8 +79,9 @@ use crate::{
             DeleteTemplate, GetTemplate, GetTemplates, SyncTemplate, UpdateTemplate,
         },
         user::{
-            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
-            GetCurrentUserGuildMember, GetUser, LeaveGuild, UpdateCurrentUser,
+            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections,
+            GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
+            UpdateCurrentUser,
         },
         GetGateway, GetUserApplicationInfo, GetVoiceRegions, Method, Request,
     },
@@ -537,7 +538,10 @@ impl Client {
     }
 
     /// Get information about the current user in a guild.
-    pub const fn current_user_guild_member(&self, guild_id: GuildId) -> GetCurrentUserGuildMember<'_> {
+    pub const fn current_user_guild_member(
+        &self,
+        guild_id: GuildId,
+    ) -> GetCurrentUserGuildMember<'_> {
         GetCurrentUserGuildMember::new(self, guild_id)
     }
 

@@ -15,10 +15,7 @@ pub struct GetCurrentUserGuildMember<'a> {
 
 impl<'a> GetCurrentUserGuildMember<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
-        Self {
-            http,
-            guild_id
-        }
+        Self { guild_id, http }
     }
 
     pub fn exec(self) -> ResponseFuture<MemberBody> {
