@@ -670,6 +670,12 @@ impl Display for RouteDisplay<'_> {
             }
             Route::GetCurrentUserApplicationInfo => f.write_str("/oauth2/applications/@me"),
             Route::GetCurrentUser | Route::UpdateCurrentUser => f.write_str("users/@me"),
+            Route::GetCurrentUserGuildMember { guild_id } => {
+                f.write_str("users/@me/guilds")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/member")
+            }
             Route::GetGateway => f.write_str("gateway"),
             Route::GetGuild {
                 guild_id,
