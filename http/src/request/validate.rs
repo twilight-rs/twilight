@@ -1191,7 +1191,7 @@ fn _communication_disabled_until(timestamp: Timestamp) -> bool {
         Ok(now) => {
             let end = timestamp.as_secs();
 
-            end - now.unwrap().as_secs() as i64 <= COMMUNICATION_DISABLED_MAX_DURATION
+            end - now.as_secs() as i64 <= COMMUNICATION_DISABLED_MAX_DURATION
         }
         Err(_) => false,
     }
