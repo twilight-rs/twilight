@@ -387,6 +387,10 @@ pub enum Route<'a> {
     GetCurrentUserApplicationInfo,
     /// Route information to get the current user.
     GetCurrentUser,
+    /// Route information to get the current user as a member object within a guild.
+    GetCurrentUserGuildMember {
+        guild_id: u64,
+    },
     /// Route information to get an emoji by ID within a guild.
     GetEmoji {
         /// The ID of the emoji.
@@ -1074,6 +1078,7 @@ impl<'a> Route<'a> {
             | Self::GetCommandPermissions { .. }
             | Self::GetCurrentUserApplicationInfo
             | Self::GetCurrentUser
+            | Self::GetCurrentUserGuildMember { .. }
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetGateway
@@ -1466,7 +1471,7 @@ impl<'a> Route<'a> {
             Self::InteractionCallback { interaction_id, .. } => {
                 Path::InteractionCallback(*interaction_id)
             }
-            Self::LeaveGuild { .. } => Path::UsersIdGuildsId,
+            Self::GetCurrentUserGuildMember { .. } | Self::LeaveGuild { .. } => Path::UsersIdGuildsId,
             Self::SearchGuildMembers { guild_id, .. } => Path::GuildsIdMembersSearch(*guild_id),
             Self::SyncGuildIntegration { guild_id, .. } => {
                 Path::GuildsIdIntegrationsIdSync(*guild_id)

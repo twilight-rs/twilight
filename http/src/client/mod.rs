@@ -80,7 +80,7 @@ use crate::{
         },
         user::{
             CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
-            GetUser, LeaveGuild, UpdateCurrentUser,
+            GetCurrentUserGuildMember, GetUser, LeaveGuild, UpdateCurrentUser,
         },
         GetGateway, GetUserApplicationInfo, GetVoiceRegions, Method, Request,
     },
@@ -534,6 +534,11 @@ impl Client {
     /// Get information about the current user.
     pub const fn current_user(&self) -> GetCurrentUser<'_> {
         GetCurrentUser::new(self)
+    }
+
+    /// Get information about the current user in a guild.
+    pub const fn current_user_guild_member(&self, guild_id: GuildId) -> GetCurrentUserGuildMember<'_> {
+        GetCurrentUserGuildMember::new(self, guild_id)
     }
 
     /// Get information about the current bot application.
