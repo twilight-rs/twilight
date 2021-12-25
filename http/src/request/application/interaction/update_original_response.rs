@@ -4,9 +4,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self,
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, NullableField, Request, TryIntoRequest,
+        AttachmentFile, FormBuilder, NullableField, PartialAttachment, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -19,8 +18,11 @@ use std::{
 };
 use twilight_model::{
     application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions, Attachment, Message},
-    id::{marker::ApplicationMarker, Id},
+    channel::{embed::Embed, message::AllowedMentions, Message},
+    id::{
+        marker::{ApplicationMarker, AttachmentMarker},
+        Id,
+    },
 };
 
 /// A original response can not be updated as configured.
@@ -123,8 +125,9 @@ pub enum UpdateOriginalResponseErrorType {
 struct UpdateOriginalResponseFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<AllowedMentions>,
-    #[serde(skip_serializing_if = "request::slice_is_empty")]
-    attachments: &'a [Attachment],
+    /// List of attachments to keep, and new attachments to add.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    attachments: Vec<PartialAttachment<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     components: Option<NullableField<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -176,7 +179,8 @@ struct UpdateOriginalResponseFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateOriginalResponse<'a> {
     application_id: Id<ApplicationMarker>,
-    attachments: Cow<'a, [AttachmentFile<'a>]>,
+    /// List of new attachments to add to the message.
+    attachments: Option<&'a [AttachmentFile<'a>]>,
     fields: UpdateOriginalResponseFields<'a>,
     http: &'a Client,
     token: &'a str,
@@ -193,15 +197,15 @@ impl<'a> UpdateOriginalResponse<'a> {
     ) -> Self {
         Self {
             application_id,
+            attachments: None,
             fields: UpdateOriginalResponseFields {
                 allowed_mentions: None,
-                attachments: &[],
+                attachments: Vec::new(),
                 components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
             },
-            attachments: Cow::Borrowed(&[]),
             http,
             token: interaction_token,
         }
@@ -214,12 +218,47 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    /// Specify multiple attachments already present in the target message to keep.
+    /// Attach multiple files to the message.
     ///
-    /// If called, all unspecified attachments will be removed from the message.
-    /// If not called, all attachments will be kept.
-    pub const fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        self.fields.attachments = attachments;
+    /// This no longer clears previous calls.
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        for (index, attachment) in attachments.iter().enumerate() {
+            self.fields.attachments.push(PartialAttachment {
+                description: attachment.description,
+                filename: Some(attachment.filename),
+                id: index as u64,
+            })
+        }
+
+        // Sort and deduplicate the list of partial attachments.
+        self.fields.attachments.sort_by(|a, b| a.id.cmp(&b.id));
+        self.fields.attachments.dedup();
+
+        self.attachments = Some(attachments);
+
+        self
+    }
+
+    /// Specify multiple [`Id<AttachmentMarker>`]s already present in the target
+    /// message to keep.
+    ///
+    /// If called, all unspecified attachments (except ones added with
+    /// [`attach`]) will be removed from the message. If not called, all
+    /// attachments will be kept.
+    ///
+    /// [`attach`]: Self::attach
+    pub fn attachment_ids(mut self, attachment_ids: &[Id<AttachmentMarker>]) -> Self {
+        self.fields
+            .attachments
+            .extend(attachment_ids.iter().map(|id| PartialAttachment {
+                description: None,
+                filename: None,
+                id: id.get(),
+            }));
+
+        // Sort and deduplicate the list of partial attachments.
+        self.fields.attachments.sort_by(|a, b| a.id.cmp(&b.id));
+        self.fields.attachments.dedup();
 
         self
     }
@@ -376,26 +415,6 @@ impl<'a> UpdateOriginalResponse<'a> {
         Ok(self)
     }
 
-    /// Attach multiple files to the message.
-    ///
-    /// Calling this method will clear any previous calls.
-    #[allow(clippy::missing_const_for_fn)] // False positive
-    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachments = Cow::Borrowed(attachments);
-
-        self
-    }
-
-    /// Attach multiple files to the message.
-    ///
-    /// Calling this method will clear any previous calls.
-    #[deprecated(since = "0.7.2", note = "Use attach instead")]
-    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
-
-        self
-    }
-
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
@@ -428,31 +447,23 @@ impl TryIntoRequest for UpdateOriginalResponse<'_> {
             interaction_token: self.token,
         });
 
-        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
-            let mut form = Form::new();
-
-            if !self.attachments.is_empty() {
-                for (index, attachment) in self.attachments.iter().enumerate() {
-                    form.attach(
-                        index as u64,
-                        attachment.filename.as_bytes(),
-                        attachment.file,
-                    );
-                }
-            }
-
-            if let Some(payload_json) = &self.fields.payload_json {
-                form.payload_json(payload_json);
+        // Determine whether we need to use a multipart/form-data body or a JSON
+        // body.
+        if self.attachments.is_some() || self.fields.payload_json.is_some() {
+            let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
+                FormBuilder::new(Cow::Borrowed(payload_json))
             } else {
-                if self.fields.allowed_mentions.is_none() {
-                    self.fields.allowed_mentions = self.http.default_allowed_mentions();
-                }
+                crate::json::to_vec(&self.fields)
+                    .map(Cow::Owned)
+                    .map(FormBuilder::new)
+                    .map_err(HttpError::json)?
+            };
 
-                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
-                form.payload_json(&body);
+            if let Some(attachments) = self.attachments {
+                form_builder = form_builder.attachments(attachments);
             }
 
-            request = request.form(form);
+            request = request.form(form_builder.build());
         } else {
             if self.fields.allowed_mentions.is_none() {
                 self.fields.allowed_mentions = self.http.default_allowed_mentions();

@@ -4,7 +4,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, PartialAttachment, Request, TryIntoRequest,
+        AttachmentFile, FormBuilder, PartialAttachment, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -147,7 +147,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhook<'a> {
-    attachments: Cow<'a, [AttachmentFile<'a>]>,
+    attachments: Option<&'a [AttachmentFile<'a>]>,
     pub(crate) fields: ExecuteWebhookFields<'a>,
     pub(super) http: &'a Client,
     thread_id: Option<Id<ChannelMarker>>,
@@ -162,6 +162,7 @@ impl<'a> ExecuteWebhook<'a> {
         token: &'a str,
     ) -> Self {
         Self {
+            attachments: None,
             fields: ExecuteWebhookFields {
                 attachments: Vec::new(),
                 avatar_url: None,
@@ -173,7 +174,6 @@ impl<'a> ExecuteWebhook<'a> {
                 username: None,
                 allowed_mentions: None,
             },
-            attachments: Cow::Borrowed(&[]),
             http,
             thread_id: None,
             token,
@@ -184,6 +184,25 @@ impl<'a> ExecuteWebhook<'a> {
     /// Specify the [`AllowedMentions`] for the webhook message.
     pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
         self.fields.allowed_mentions.replace(allowed_mentions);
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.fields.attachments = attachments
+            .iter()
+            .enumerate()
+            .map(|(index, attachment)| PartialAttachment {
+                description: attachment.description,
+                filename: Some(attachment.filename),
+                id: index as u64,
+            })
+            .collect();
+
+        self.attachments = Some(attachments);
 
         self
     }
@@ -239,26 +258,6 @@ impl<'a> ExecuteWebhook<'a> {
     /// Set the list of embeds of the webhook's message.
     pub const fn embeds(mut self, embeds: &'a [Embed]) -> Self {
         self.fields.embeds = Some(embeds);
-
-        self
-    }
-
-    /// Attach multiple files to the message.
-    ///
-    /// Calling this method will clear any previous calls.
-    #[allow(clippy::missing_const_for_fn)] // False positive
-    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachments = Cow::Borrowed(attachments);
-
-        self
-    }
-
-    /// Attach multiple files to the message.
-    ///
-    /// Calling this method will clear any previous calls.
-    #[deprecated(since = "0.7.2", note = "Use attach instead")]
-    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -356,9 +355,7 @@ impl<'a> ExecuteWebhook<'a> {
         ExecuteWebhookAndWait::new(self)
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    pub(super) fn request(&mut self, wait: bool) -> Result<Request, HttpError> {
+    pub(super) fn request(self, wait: bool) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
@@ -370,33 +367,23 @@ impl<'a> ExecuteWebhook<'a> {
         // webhook token.
         request = request.use_authorization_token(false);
 
-        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
-            let mut form = Form::new();
-
-            if !self.attachments.is_empty() {
-                for (index, attachment) in self.attachments.iter().enumerate() {
-                    form.attach(
-                        index as u64,
-                        attachment.filename.as_bytes(),
-                        attachment.file,
-                    );
-                    self.fields.attachments.push(PartialAttachment {
-                        id: index as u64,
-                        filename: attachment.filename,
-                        description: attachment.description,
-                    })
-                }
-            }
-
-            if let Some(payload_json) = &self.fields.payload_json {
-                form.payload_json(payload_json);
+        // Determine whether we need to use a multipart/form-data body or a JSON
+        // body.
+        if self.attachments.is_some() || self.fields.payload_json.is_some() {
+            let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
+                FormBuilder::new(Cow::Borrowed(payload_json))
             } else {
-                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                crate::json::to_vec(&self.fields)
+                    .map(Cow::Owned)
+                    .map(FormBuilder::new)
+                    .map_err(HttpError::json)?
+            };
 
-                form.payload_json(&body);
+            if let Some(attachments) = self.attachments {
+                form_builder = form_builder.attachments(attachments);
             }
 
-            request = request.form(form);
+            request = request.form(form_builder.build());
         } else {
             request = request.json(&self.fields)?;
         }
@@ -418,7 +405,7 @@ impl<'a> ExecuteWebhook<'a> {
 }
 
 impl TryIntoRequest for ExecuteWebhook<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         self.request(false)
     }
 }

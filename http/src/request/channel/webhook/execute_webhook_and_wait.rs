@@ -60,7 +60,7 @@ impl<'a> ExecuteWebhookAndWait<'a> {
 }
 
 impl TryIntoRequest for ExecuteWebhookAndWait<'_> {
-    fn try_into_request(mut self) -> Result<Request, Error> {
+    fn try_into_request(self) -> Result<Request, Error> {
         self.inner.request(true)
     }
 }

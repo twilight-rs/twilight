@@ -10,6 +10,7 @@ use crate::{
 };
 use serde::Serialize;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -158,6 +159,8 @@ impl<'a> CreateFollowupMessage<'a> {
         token: &'a str,
     ) -> Self {
         Self {
+            application_id,
+            attachments: None,
             fields: CreateFollowupMessageFields {
                 attachments: Vec::new(),
                 components: None,
@@ -168,10 +171,8 @@ impl<'a> CreateFollowupMessage<'a> {
                 flags: None,
                 allowed_mentions: None,
             },
-            attachments: None,
             http,
             token,
-            application_id,
         }
     }
 
@@ -186,13 +187,15 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// Calling this method will clear any previous calls.
     pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        for (index, attachment) in attachments.iter().enumerate() {
-            self.fields.attachments.push(PartialAttachment {
+        self.fields.attachments = attachments
+            .iter()
+            .enumerate()
+            .map(|(index, attachment)| PartialAttachment {
                 description: attachment.description,
-                filename: attachment.filename,
+                filename: Some(attachment.filename),
                 id: index as u64,
             })
-        }
+            .collect();
 
         self.attachments = Some(attachments);
 
@@ -361,17 +364,20 @@ impl TryIntoRequest for CreateFollowupMessage<'_> {
             webhook_id: self.application_id.get(),
         });
 
+        // Determine whether we need to use a multipart/form-data body or a JSON
+        // body.
         if self.attachments.is_some() || self.fields.payload_json.is_some() {
-            let mut form_builder = if let Some(payload_json) = &self.fields.payload_json {
-                FormBuilder::new(payload_json)
+            let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
+                FormBuilder::new(Cow::Borrowed(payload_json))
             } else {
-                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
-
-                FormBuilder::new(&body)
+                crate::json::to_vec(&self.fields)
+                    .map(Cow::Owned)
+                    .map(FormBuilder::new)
+                    .map_err(HttpError::json)?
             };
 
             if let Some(attachments) = self.attachments {
-                form_builder.attachments(attachments);
+                form_builder = form_builder.attachments(attachments);
             }
 
             request = request.form(form_builder.build());

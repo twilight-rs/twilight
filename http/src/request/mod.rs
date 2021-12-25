@@ -60,10 +60,12 @@ impl<T: Serialize> Serialize for NullableField<T> {
     }
 }
 
-#[derive(Serialize)]
+#[derive(PartialEq, Eq, Serialize)]
 pub(crate) struct PartialAttachment<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<&'a str>,
-    pub filename: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<&'a str>,
     pub id: u64,
 }
 
