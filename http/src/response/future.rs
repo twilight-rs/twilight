@@ -205,7 +205,7 @@ impl InFlight {
 struct RatelimitQueue {
     guild_id: Option<GuildId>,
     invalid_token: InvalidToken,
-    pre_flight_check: Option<Box<dyn FnOnce() -> bool + 'static>>,
+    pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
     wait_for_sender: WaitForTicketFuture,
@@ -375,7 +375,10 @@ impl<T> ResponseFuture<T> {
     /// ));
     /// # Ok(()) }
     /// ```
-    pub fn set_pre_flight(&mut self, pre_flight: Box<dyn FnOnce() -> bool + 'static>) -> bool {
+    pub fn set_pre_flight(
+        &mut self,
+        pre_flight: Box<dyn FnOnce() -> bool + Send + 'static>,
+    ) -> bool {
         if let ResponseFutureStage::RatelimitQueue(ref mut queue) = &mut self.stage {
             queue.pre_flight_check = Some(pre_flight);
 
