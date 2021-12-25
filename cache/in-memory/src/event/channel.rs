@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, rule::Entity, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::{Channel, Group, GuildChannel, PrivateChannel},
     gateway::payload::incoming::{ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate},
@@ -79,6 +79,10 @@ impl UpdateCache for ChannelCreate {
             return;
         }
 
+        if !cache.resolve(Entity::Channel(&self.0)) {
+            return;
+        }
+
         match &self.0 {
             Channel::Group(c) => {
                 crate::upsert_item(&cache.groups, c.id, c.clone());
@@ -98,6 +102,10 @@ impl UpdateCache for ChannelCreate {
 impl UpdateCache for ChannelDelete {
     fn update(&self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
+            return;
+        }
+
+        if !cache.resolve(Entity::Channel(&self.0)) {
             return;
         }
 
@@ -146,6 +154,10 @@ impl UpdateCache for ChannelPinsUpdate {
 impl UpdateCache for ChannelUpdate {
     fn update(&self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
+            return;
+        }
+
+        if !cache.resolve(Entity::Channel(&self.0)) {
             return;
         }
 

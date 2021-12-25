@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, rule::Entity, InMemoryCache, UpdateCache};
 use twilight_model::{
     gateway::payload::incoming::{IntegrationCreate, IntegrationDelete, IntegrationUpdate},
     guild::GuildIntegration,
@@ -39,6 +39,10 @@ impl UpdateCache for IntegrationCreate {
             return;
         }
 
+        if !cache.resolve(Entity::Integration(&self.0)) {
+            return;
+        }
+
         if let Some(guild_id) = self.guild_id {
             crate::upsert_guild_item(
                 &cache.integrations,
@@ -63,6 +67,10 @@ impl UpdateCache for IntegrationDelete {
 impl UpdateCache for IntegrationUpdate {
     fn update(&self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::INTEGRATION) {
+            return;
+        }
+
+        if !cache.resolve(Entity::Integration(&self.0)) {
             return;
         }
 

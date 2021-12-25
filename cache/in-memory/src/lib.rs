@@ -74,6 +74,7 @@
 
 pub mod iter;
 pub mod model;
+pub mod rule;
 
 #[cfg(feature = "permission-calculator")]
 #[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
@@ -97,7 +98,7 @@ pub use self::{
 #[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub use self::permission::InMemoryCachePermissions;
 
-use self::{iter::InMemoryCacheIter, model::*};
+use self::{iter::InMemoryCacheIter, model::*, rule::Entity};
 use dashmap::{
     mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
@@ -297,7 +298,7 @@ impl InMemoryCache {
     }
 
     /// Create a new builder to configure and construct an in-memory cache.
-    pub const fn builder() -> InMemoryCacheBuilder {
+    pub fn builder() -> InMemoryCacheBuilder {
         InMemoryCacheBuilder::new()
     }
 
@@ -757,6 +758,17 @@ impl InMemoryCache {
             config,
             ..Default::default()
         }
+    }
+
+    fn resolve(&self, entity: Entity<'_>) -> bool {
+        rule::resolve_entity(self, entity, &self.config.rules)
+    }
+
+    fn resolve_entities<'a>(
+        &'a self,
+        entities: impl Iterator<Item = Entity<'a>> + 'a,
+    ) -> impl Iterator<Item = Entity<'a>> + 'a {
+        rule::resolve_entities(self, entities, &self.config.rules)
     }
 
     /// Determine whether the configured cache wants a specific resource to be

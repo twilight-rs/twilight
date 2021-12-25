@@ -1,4 +1,8 @@
+//! Configuration for caches.
+
+use crate::rule::Rule;
 use bitflags::bitflags;
+use std::fmt::Debug;
 
 bitflags! {
     /// A set of bitflags which can be used to specify what resource to process
@@ -42,20 +46,22 @@ bitflags! {
 /// Configuration for an [`InMemoryCache`].
 ///
 /// [`InMemoryCache`]: crate::InMemoryCache
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub struct Config {
-    pub(super) resource_types: ResourceType,
     pub(super) message_cache_size: usize,
+    pub(super) resource_types: ResourceType,
+    pub(super) rules: Vec<Box<dyn Rule>>,
 }
 
 impl Config {
     /// Create a new default configuration.
     ///
     /// Refer to individual getters for their defaults.
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self {
-            resource_types: ResourceType::all(),
             message_cache_size: 100,
+            resource_types: ResourceType::all(),
+            rules: Vec::new(),
         }
     }
 
@@ -70,6 +76,19 @@ impl Config {
     pub fn message_cache_size_mut(&mut self) -> &mut usize {
         &mut self.message_cache_size
     }
+
+    /// Returns an immutable reference to the resource types enabled.
+    ///
+    /// Defaults to all resource types.
+    pub fn rules(&self) -> &[Box<dyn Rule>] {
+        &self.rules
+    }
+
+    /// Returns a mutable reference to the rules associated with the cache.
+    pub fn rules_mut(&mut self) -> &mut Vec<Box<dyn Rule>> {
+        &mut self.rules
+    }
+
     /// Returns an immutable reference to the resource types enabled.
     ///
     /// Defaults to all resource types.
@@ -99,11 +118,13 @@ mod tests {
     #[test]
     fn test_defaults() {
         let conf = Config {
-            resource_types: ResourceType::all(),
             message_cache_size: 100,
+            resource_types: ResourceType::all(),
+            rules: Vec::new(),
         };
         let default = Config::default();
-        assert_eq!(conf.resource_types, default.resource_types);
         assert_eq!(conf.message_cache_size, default.message_cache_size);
+        assert_eq!(conf.resource_types, default.resource_types);
+        assert!(conf.rules.is_empty());
     }
 }

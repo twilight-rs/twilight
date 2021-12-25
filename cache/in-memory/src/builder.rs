@@ -1,5 +1,6 @@
 use super::{
     config::{Config, ResourceType},
+    rule::Rule,
     InMemoryCache,
 };
 
@@ -9,7 +10,7 @@ pub struct InMemoryCacheBuilder(Config);
 
 impl InMemoryCacheBuilder {
     /// Creates a builder to configure and construct an [`InMemoryCache`].
-    pub const fn new() -> Self {
+    pub fn new() -> Self {
         Self(Config::new())
     }
 
@@ -23,6 +24,43 @@ impl InMemoryCacheBuilder {
     /// Defaults to all types.
     pub const fn resource_types(mut self, resource_types: ResourceType) -> Self {
         self.0.resource_types = resource_types;
+
+        self
+    }
+
+    /// Sets the list of rules associated with the cache.
+    ///
+    /// Defaults to none.
+    ///
+    /// # Examples
+    ///
+    /// Add a rule to the cache:
+    ///
+    /// ```
+    /// use twilight_cache_inmemory::{config::{Entity, Rule}, InMemoryCache};
+    ///
+    /// #[derive(Clone, Debug, Eq, PartialEq)]
+    /// pub struct HyphenatedRoleFilter;
+    ///
+    /// impl Rule for HyphenatedRoleFilter {
+    ///     fn accept(&self, cache: &InMemoryCache, entity: &Entity) -> bool {
+    ///         let role = if let Entity::Role(role) = entity {
+    ///             role
+    ///         } else {
+    ///             return true;
+    ///         };
+    ///
+    ///         role.name.starts_with('-')
+    ///     }
+    /// }
+    ///
+    /// let rules = Vec::from([Box::new(HyphenatedRoleFilter) as Box<dyn Rule>]);
+    ///
+    /// let cache = InMemoryCache::builder().rules(rules).build();
+    /// assert_eq!(1, cache.config().rules().len());
+    /// ```
+    pub fn rules(mut self, rules: Vec<Box<dyn Rule>>) -> Self {
+        self.0.rules = rules;
 
         self
     }

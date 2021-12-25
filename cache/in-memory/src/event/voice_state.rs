@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{rule::Entity, InMemoryCache, ResourceType, UpdateCache};
 use twilight_model::{gateway::payload::incoming::VoiceStateUpdate, voice::VoiceState};
 
 impl InMemoryCache {
@@ -79,6 +79,10 @@ impl InMemoryCache {
 impl UpdateCache for VoiceStateUpdate {
     fn update(&self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::VOICE_STATE) {
+            return;
+        }
+
+        if !cache.resolve(Entity::VoiceState(&self.0)) {
             return;
         }
 
