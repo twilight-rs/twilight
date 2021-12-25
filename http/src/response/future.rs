@@ -205,6 +205,7 @@ impl InFlight {
 struct RatelimitQueue {
     guild_id: Option<GuildId>,
     invalid_token: InvalidToken,
+    pre_flight_check: Option<Box<dyn FnOnce() -> bool + 'static>>,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
     wait_for_sender: WaitForTicketFuture,
@@ -224,12 +225,24 @@ impl RatelimitQueue {
                 return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(Self {
                     guild_id: self.guild_id,
                     invalid_token: self.invalid_token,
+                    pre_flight_check: self.pre_flight_check,
                     request_timeout: self.request_timeout,
                     response_future: self.response_future,
                     wait_for_sender: self.wait_for_sender,
                 }))
             }
         };
+
+        if let Some(pre_flight_check) = self.pre_flight_check {
+            if !pre_flight_check() {
+                return InnerPoll::Advance(ResponseFutureStage::Failed(Failed {
+                    source: Error {
+                        kind: ErrorType::RequestCanceled,
+                        source: None,
+                    },
+                }));
+            }
+        }
 
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
             future: Box::pin(time::timeout(self.request_timeout, self.response_future)),
@@ -250,8 +263,15 @@ enum ResponseFutureStage {
 
 /// Future that will resolve to a [`Response`].
 ///
-/// # Errors
+/// # Canceling a response future pre-flight
 ///
+/// Response futures can be canceled pre-flight via
+/// [`ResponseFuture::set_pre_flight`]. This allows you to cancel requests that
+/// are no longer necessary once they have been cleared by the ratelimit queue,
+/// which may be necessary in scenarios where requests are being spammed. Refer
+/// to its documentation for more information.
+///
+/// # Errors
 ///
 /// Returns an [`ErrorType::Json`] error type if serializing the response body
 /// of the request failed.
@@ -305,6 +325,66 @@ impl<T> ResponseFuture<T> {
         }
     }
 
+    /// Set a function to call after clearing the ratelimiter but prior to
+    /// sending the request to determine if the request is still valid.
+    ///
+    /// This function will be a no-op if the request has failed, has already
+    /// passed the ratelimiter, or if there is no ratelimiter configured.
+    ///
+    /// Returns whether the pre flight function was set.
+    ///
+    /// # Examples
+    ///
+    /// Delete a message, but immediately before sending the request check if
+    /// the request should still be sent:
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::{collections::HashSet, env, sync::{Arc, Mutex}};
+    /// use twilight_http::{error::ErrorType, Client};
+    /// use twilight_model::id::{ChannelId, MessageId};
+    ///
+    /// let channel_id = ChannelId::new(1).expect("non zero id");
+    /// let message_id = MessageId::new(2).expect("non zero id");
+    ///
+    /// let channels_ignored = {
+    ///     let mut map = HashSet::new();
+    ///     map.insert(channel_id);
+    ///
+    ///     Arc::new(Mutex::new(map))
+    /// };
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let mut req = client.delete_message(channel_id, message_id).exec();
+    ///
+    /// let channels_ignored_clone = channels_ignored.clone();
+    /// req.set_pre_flight(Box::new(move || {
+    ///     // imagine you have some logic here to external state that checks
+    ///     // whether the request should still be performed
+    ///     let channels_ignored = channels_ignored_clone
+    ///         .lock()
+    ///         .expect("channels poisoned");
+    ///
+    ///     !channels_ignored.contains(&channel_id)
+    /// }));
+    ///
+    /// // the pre-flight check will cancel the request
+    /// assert!(matches!(
+    ///     req.await.unwrap_err().kind(),
+    ///     ErrorType::RequestCanceled,
+    /// ));
+    /// # Ok(()) }
+    /// ```
+    pub fn set_pre_flight(&mut self, pre_flight: Box<dyn FnOnce() -> bool + 'static>) -> bool {
+        if let ResponseFutureStage::RatelimitQueue(ref mut queue) = &mut self.stage {
+            queue.pre_flight_check = Some(pre_flight);
+
+            true
+        } else {
+            false
+        }
+    }
+
     pub(crate) const fn error(source: Error) -> Self {
         Self {
             phantom: PhantomData,
@@ -324,6 +404,7 @@ impl<T> ResponseFuture<T> {
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
                 guild_id,
                 invalid_token,
+                pre_flight_check: None,
                 request_timeout,
                 response_future,
                 wait_for_sender,
