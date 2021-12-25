@@ -83,18 +83,17 @@ impl Bucket {
 
     /// Time remaining until this bucket will reset.
     pub fn time_remaining(&self) -> TimeRemaining {
-        let reset_after = self.reset_after();
-        let started_at = match *self.started_at.lock().expect("bucket poisoned") {
-            Some(v) => v,
+        let reset_after = Duration::from_millis(self.reset_after());
+        let elapsed = match *self.started_at.lock().expect("bucket poisoned") {
+            Some(started_at) => started_at.elapsed(),
             None => return TimeRemaining::NotStarted,
         };
-        let elapsed = started_at.elapsed();
 
-        if elapsed > Duration::from_millis(reset_after) {
-            return TimeRemaining::Finished;
+        if let Some(duration) = reset_after.checked_sub(elapsed) {
+            TimeRemaining::Some(duration)
+        } else {
+            TimeRemaining::Finished
         }
-
-        TimeRemaining::Some(Duration::from_millis(reset_after) - elapsed)
     }
 
     /// Try to reset this bucket's [`started_at`] value if it has finished.
@@ -279,7 +278,8 @@ impl BucketQueueTask {
 
         self.wait_if_needed().await;
 
-        let wait = Duration::from_millis(self.bucket.reset_after()) + Self::REMOVAL_DELAY;
+        let wait =
+            Duration::from_millis(self.bucket.reset_after()).saturating_add(Self::REMOVAL_DELAY);
 
         self.bucket.queue.pop(wait).await
     }
