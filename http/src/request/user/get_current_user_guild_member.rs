@@ -4,7 +4,7 @@ use crate::{
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{GuildId, UserId};
+use twilight_model::id::GuildId;
 
 /// Get the current user in a guild, by id.
 #[must_use = "requests must be configured and executed"]
