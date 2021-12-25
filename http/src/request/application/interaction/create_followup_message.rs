@@ -3,14 +3,13 @@ use crate::{
     error::Error as HttpError,
     request::{
         validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, PartialAttachment, Request, TryIntoRequest,
+        AttachmentFile, FormBuilder, PartialAttachment, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use std::{
-    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -146,7 +145,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
     application_id: Id<ApplicationMarker>,
-    attachments: Cow<'a, [AttachmentFile<'a>]>,
+    attachments: Option<&'a [AttachmentFile<'a>]>,
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     http: &'a Client,
     token: &'a str,
@@ -169,7 +168,7 @@ impl<'a> CreateFollowupMessage<'a> {
                 flags: None,
                 allowed_mentions: None,
             },
-            attachments: Cow::Borrowed(&[]),
+            attachments: None,
             http,
             token,
             application_id,
@@ -179,6 +178,23 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Specify the [`AllowedMentions`] for the webhook message.
     pub const fn allowed_mentions(mut self, allowed_mentions: &'a AllowedMentions) -> Self {
         self.fields.allowed_mentions = Some(allowed_mentions);
+
+        self
+    }
+
+    /// Attach multiple files to the message.
+    ///
+    /// Calling this method will clear any previous calls.
+    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        for (index, attachment) in attachments.iter().enumerate() {
+            self.fields.attachments.push(PartialAttachment {
+                description: attachment.description,
+                filename: attachment.filename,
+                id: index as u64,
+            })
+        }
+
+        self.attachments = Some(attachments);
 
         self
     }
@@ -243,26 +259,6 @@ impl<'a> CreateFollowupMessage<'a> {
         } else {
             self.fields.flags = None;
         }
-
-        self
-    }
-
-    /// Attach multiple files to the message.
-    ///
-    /// Calling this method will clear any previous calls.
-    #[allow(clippy::missing_const_for_fn)] // False positive
-    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachments = Cow::Borrowed(attachments);
-
-        self
-    }
-
-    /// Attach multiple files to the message.
-    ///
-    /// Calling this method will clear any previous calls.
-    #[deprecated(since = "0.7.2", note = "Use attach instead")]
-    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
 
         self
     }
@@ -357,7 +353,7 @@ impl<'a> CreateFollowupMessage<'a> {
 }
 
 impl TryIntoRequest for CreateFollowupMessage<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.token,
@@ -365,32 +361,20 @@ impl TryIntoRequest for CreateFollowupMessage<'_> {
             webhook_id: self.application_id.get(),
         });
 
-        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
-            let mut form = Form::new();
-
-            if !self.attachments.is_empty() {
-                for (index, attachment) in self.attachments.iter().enumerate() {
-                    form.attach(
-                        index as u64,
-                        attachment.filename.as_bytes(),
-                        attachment.file,
-                    );
-                    self.fields.attachments.push(PartialAttachment {
-                        id: index as u64,
-                        filename: attachment.filename,
-                        description: attachment.description,
-                    })
-                }
-            }
-
-            if let Some(payload_json) = &self.fields.payload_json {
-                form.payload_json(payload_json);
+        if self.attachments.is_some() || self.fields.payload_json.is_some() {
+            let mut form_builder = if let Some(payload_json) = &self.fields.payload_json {
+                FormBuilder::new(payload_json)
             } else {
                 let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
-                form.payload_json(&body);
+
+                FormBuilder::new(&body)
+            };
+
+            if let Some(attachments) = self.attachments {
+                form_builder.attachments(attachments);
             }
 
-            request = request.form(form);
+            request = request.form(form_builder.build());
         } else {
             request = request.json(&self.fields)?;
         }

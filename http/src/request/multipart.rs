@@ -1,3 +1,4 @@
+use crate::request::AttachmentFile;
 use rand::{distributions::Alphanumeric, Rng};
 
 #[derive(Debug)]
@@ -7,28 +8,7 @@ pub struct Form {
 }
 
 impl Form {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Write the data needed to attach a multipart file to the buffer.
-    pub fn attach(&mut self, id: u64, filename: &[u8], data: &[u8]) -> &mut Self {
-        self.start();
-        self.name_id(id);
-        self.filename(filename);
-        self.data(data);
-
-        self
-    }
-
-    pub fn build(mut self) -> Vec<u8> {
-        self.buffer.extend(b"\r\n");
-        self.boundary();
-        self.buffer.extend(b"--");
-
-        self.buffer
-    }
-
+    /// Get the form's appropriate content type for requests.
     pub fn content_type(&self) -> Vec<u8> {
         const NAME: &str = "multipart/form-data; boundary=";
 
@@ -39,70 +19,20 @@ impl Form {
         content_type
     }
 
-    #[deprecated(since = "0.7.2", note = "use attach instead")]
-    pub fn file(&mut self, name: &[u8], filename: &[u8], data: &[u8]) -> &mut Self {
-        self.start();
-        self.name(name);
-        self.filename(filename);
-        self.data(data);
-
-        self
-    }
-
-    pub fn part(&mut self, name: &[u8], data: &[u8]) -> &mut Self {
-        self.start();
-        self.name(name);
-        self.data(data);
-
-        self
-    }
-
-    pub fn payload_json(&mut self, json: &[u8]) -> &mut Self {
-        self.start();
-        self.name(b"payload_json");
-        self.buffer.extend(b"\r\nContent-Type: application/json");
-        self.data(json);
-
-        self
-    }
-
-    fn start(&mut self) {
-        self.buffer.extend(b"\r\n");
-        self.boundary();
-        self.buffer.extend(b"\r\nContent-Disposition: form-data");
-    }
-
-    fn boundary(&mut self) {
-        self.buffer.extend(b"--");
-        self.buffer.extend(&self.boundary);
-    }
-
-    fn filename(&mut self, filename: &[u8]) {
-        self.buffer.extend(br#"; filename=""#);
-        self.buffer.extend(filename);
-        self.buffer.push(b'"');
-    }
-
-    fn name(&mut self, name: &[u8]) {
-        self.buffer.extend(br#"; name=""#);
-        self.buffer.extend(name);
-        self.buffer.push(b'"');
-    }
-
-    fn name_id(&mut self, id: u64) {
-        self.buffer.extend(br#"; name="files["#);
-        push_digits(id, &mut self.buffer);
-        self.buffer.extend(br#"]""#);
-    }
-
-    fn data(&mut self, data: &[u8]) {
-        self.buffer.extend(b"\r\n\r\n");
-        self.buffer.extend(data);
+    /// Return the form's contents.
+    pub fn buffer(mut self) -> Vec<u8> {
+        self.buffer
     }
 }
 
-impl Default for Form {
-    fn default() -> Self {
+pub struct FormBuilder<'a> {
+    attachments: &'a [AttachmentFile<'a>],
+    boundary: [u8; 15],
+    payload_json: &'a [u8],
+}
+
+impl<'a> FormBuilder<'a> {
+    pub fn new(payload_json: &'a [u8]) -> Self {
         let mut boundary = [0; 15];
         let mut rng = rand::thread_rng();
 
@@ -111,17 +41,88 @@ impl Default for Form {
         }
 
         Self {
+            attachments: &[],
             boundary,
-            buffer: Vec::new(),
+            payload_json,
         }
+    }
+
+    pub const fn attachments(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachments = attachments;
+
+        self
+    }
+
+    pub fn build(self) -> Form {
+        let FormBuilder {
+            attachments,
+            boundary,
+            payload_json,
+        } = self;
+
+        let mut buffer = Vec::new();
+
+        // Write the first boundary.
+        buffer.extend(br#"--"#);
+        buffer.extend(&boundary);
+        buffer.extend(br#"\r\n"#);
+
+        // Write the JSON payload.
+        buffer.extend(br#"Content-Disposition: form-data; name="payload_json"\r\n"#);
+        buffer.extend(br#"Content-Type: application/json\r\n"#);
+        buffer.extend(br#"\r\n"#);
+        buffer.extend(payload_json);
+
+        if attachments.is_empty() {
+            // Write the last boundary.
+            buffer.extend(br#"--"#);
+            buffer.extend(&boundary);
+            buffer.extend(br#"--"#);
+        } else {
+            // Write a boundary between the JSON and the attachments.
+            buffer.extend(br#"--"#);
+            buffer.extend(&boundary);
+            buffer.extend(br#"\r\n"#);
+
+            for (index, attachment) in attachments.iter().enumerate() {
+                // Write the Content Disposition, name, and filename.
+                //
+                // Example:
+                // `Content-Disposition: form-data; name="files[0]"; filename="horse.jpg"`
+                buffer.extend(br#"Content-Disposition: form-data; name="files["#);
+                push_digits(index as u64, &mut buffer);
+                buffer.extend(br#"]; filename=""#);
+                buffer.extend(attachment.filename.as_bytes());
+                buffer.extend(br#""\r\n"#);
+
+                // Write a blank line between the headers and the data.
+                buffer.extend(b"\r\n");
+
+                // Write the image data.
+                buffer.extend(attachment.file);
+
+                // Write a boundary between attachments, or part of the last
+                // boundary.
+                buffer.extend(br#"--"#);
+                buffer.extend(&boundary);
+            }
+
+            // Since the attachments loop has ended and we have nothing left to
+            // add to the form, write the final boundary marker.
+            buffer.extend(b"--");
+        }
+
+        // Return the completed form, and its boundary, to be used in requests.
+        Form { boundary, buffer }
     }
 }
 
 /// Value of '0' in ascii
 const ASCII_NUMBER: u8 = 0x30;
 
-/// Extend the buffer with the digits of the integer `id`, the reason
-/// for this is to get around a allocation by for example using
+/// Extend the buffer with the digits of the integer `id`.
+///
+/// The reason for this is to get around a allocation by for example using
 /// `format!("files[{}]", id)`.
 fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
     // The largest 64 bit integer is 20 digits.
@@ -129,31 +130,28 @@ fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
     // Amount of digits written to the inner buffer.
     let mut i = 0;
 
-    // While the number have more than one digit we print the last
-    // digit by taking the rest after modulo 10. We then divide with
-    // 10 to truncate the number from the right and then loop
+    // While the number have more than one digit we print the last digit by
+    // taking the rest after modulo 10. We then divide with 10 to truncate the
+    // number from the right and then loop
     while id >= 10 {
-        // To go from the integer to the ascii value we add the
-        // ascii value of '0'.
+        // To go from the integer to the ascii value we add the ascii value of
+        // '0'.
         //
-        // (id % 10) will always be less than 10 so trunccation cannot
-        // happen.
+        // (id % 10) will always be less than 10 so truncation cannot happen.
         #[allow(clippy::cast_possible_truncation)]
         let ascii = (id % 10) as u8 + ASCII_NUMBER;
         inner_buf[i] = ascii;
         id /= 10;
         i += 1;
     }
-    // (id % 10) will always be less than 10 so trunccation cannot
-    // happen.
+    // (id % 10) will always be less than 10 so truncation cannot happen.
     #[allow(clippy::cast_possible_truncation)]
     let ascii = (id % 10) as u8 + ASCII_NUMBER;
     inner_buf[i] = ascii;
     i += 1;
 
-    // As we have written the digits in reverse we reverse the area of
-    // the array we have been using to get the characters in the
-    // correct order.
+    // As we have written the digits in reverse we reverse the area of the array
+    // we have been using to get the characters in the correct order.
     inner_buf[..i].reverse();
 
     buf.extend_from_slice(&inner_buf[..i])
