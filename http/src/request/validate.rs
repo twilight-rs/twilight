@@ -1187,13 +1187,14 @@ const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
 fn _communication_disabled_until(timestamp: Timestamp) -> bool {
     let now = SystemTime::now().duration_since(UNIX_EPOCH);
 
-    if now.is_err() {
-        return false;
+    match now {
+        Ok(now) => {
+            let end = timestamp.as_secs();
+
+            end - now.unwrap().as_secs() as i64 <= COMMUNICATION_DISABLED_MAX_DURATION
+        }
+        Err(_) => false,
     }
-
-    let end = timestamp.as_secs();
-
-    end - now.unwrap().as_secs() as i64 <= COMMUNICATION_DISABLED_MAX_DURATION
 }
 
 /// Validate the number of guild command permission overwrites.
