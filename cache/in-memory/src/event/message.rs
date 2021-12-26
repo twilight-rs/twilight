@@ -206,7 +206,7 @@ mod tests {
 
         cache.update(&MessageCreate(msg.clone()));
         msg.id = MessageId::new(5).expect("non zero");
-        cache.update(&MessageCreate(msg.clone()));
+        cache.update(&MessageCreate(msg));
 
         {
             let entry = cache
