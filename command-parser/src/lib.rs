@@ -5,8 +5,6 @@
 //! **This crate has been deprecated. Please use [Discord interactions] via the
 //! [`twilight-gateway`] or [`twilight-http`] crates.**
 //!
-//! **This crate has been deprecated. Please see the above notice.**
-//!
 //! `twilight-command-parser` is a command parser for the [`twilight-rs`]
 //! ecosystem.
 //!
