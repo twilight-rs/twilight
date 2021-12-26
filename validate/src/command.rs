@@ -4,7 +4,10 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::application::command::Command;
+use twilight_model::application::command::{Command, CommandOption};
+
+/// Maximum number of choices an option can have.
+pub const CHOICES_LIMIT: usize = 25;
 
 /// Maximum length of a command's description.
 pub const DESCRIPTION_LENGTH_MAX: usize = 100;
@@ -20,6 +23,18 @@ pub const NAME_LENGTH_MIN: usize = 1;
 
 /// Maximum amount of options a command may have.
 pub const OPTIONS_LIMIT: usize = 25;
+
+/// Maximum length of a command's description.
+pub const OPTION_DESCRIPTION_LENGTH_MAX: usize = 100;
+
+/// Minimum length of a command's description.
+pub const OPTION_DESCRIPTION_LENGTH_MIN: usize = 1;
+
+/// Maximum length of a command's name.
+pub const OPTION_NAME_LENGTH_MAX: usize = 32;
+
+/// Minimum length of a command's name.
+pub const OPTION_NAME_LENGTH_MIN: usize = 1;
 
 /// Maximum number of commands an application may have in an individual
 /// guild.
@@ -42,7 +57,7 @@ impl CommandValidationError {
     ///
     /// [`CommandCountInvalid`]: CommandValidationErrorType::CommandCountInvalid
     pub const COMMAND_COUNT_INVALID: CommandValidationError = CommandValidationError {
-        kind: CommandValidationErrorType::CommandCountInvalid,
+        kind: CommandValidationErrorType::CountInvalid,
     };
 
     /// Immutable reference to the type of error that occurred.
@@ -74,9 +89,9 @@ impl CommandValidationError {
     ///
     /// [`CommandOptionsRequiredFirst`]: CommandValidationErrorType::CommandOptionsRequiredFirst
     #[must_use = "creating an error has no effect if left unused"]
-    pub const fn command_option_required_first(index: usize) -> Self {
+    pub const fn option_required_first(index: usize) -> Self {
         Self {
-            kind: CommandValidationErrorType::CommandOptionsRequiredFirst { index },
+            kind: CommandValidationErrorType::OptionsRequiredFirst { index },
         }
     }
 }
@@ -84,14 +99,11 @@ impl CommandValidationError {
 impl Display for CommandValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
-            CommandValidationErrorType::CommandCountInvalid => {
+            CommandValidationErrorType::CountInvalid => {
                 f.write_str("more than ")?;
                 Display::fmt(&GUILD_COMMAND_LIMIT, f)?;
 
                 f.write_str(" commands were set")
-            }
-            CommandValidationErrorType::CommandOptionsRequiredFirst { .. } => {
-                f.write_str("optional command options must be added after required")
             }
             CommandValidationErrorType::DescriptionInvalid => {
                 f.write_str("command description must be between ")?;
@@ -108,6 +120,31 @@ impl Display for CommandValidationError {
                 Display::fmt(&NAME_LENGTH_MAX, f)?;
 
                 f.write_str(" characters")
+            }
+            CommandValidationErrorType::OptionDescriptionInvalid => {
+                f.write_str("command option description must be between ")?;
+                Display::fmt(&OPTION_DESCRIPTION_LENGTH_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&OPTION_DESCRIPTION_LENGTH_MAX, f)?;
+
+                f.write_str(" characters")
+            }
+            CommandValidationErrorType::OptionNameInvalid => {
+                f.write_str("command option name must be between ")?;
+                Display::fmt(&OPTION_NAME_LENGTH_MIN, f)?;
+                f.write_str(" and ")?;
+                Display::fmt(&OPTION_NAME_LENGTH_MAX, f)?;
+
+                f.write_str(" characters")
+            }
+            CommandValidationErrorType::OptionsCountInvalid => {
+                f.write_str("more than ")?;
+                Display::fmt(&OPTIONS_LIMIT, f)?;
+
+                f.write_str(" options were set")
+            }
+            CommandValidationErrorType::OptionsRequiredFirst { .. } => {
+                f.write_str("optional command options must be added after required")
             }
             CommandValidationErrorType::PermissionsCountInvalid => {
                 f.write_str("more than ")?;
@@ -129,16 +166,22 @@ pub enum CommandValidationErrorType {
     ///
     /// The maximum number of commands is defined by
     /// [`GUILD_COMMAND_LIMIT`].
-    CommandCountInvalid,
-    /// Required command options have to be passed before optional ones.
-    CommandOptionsRequiredFirst {
-        /// Index of the option that failed validation.
-        index: usize,
-    },
+    CountInvalid,
     /// Command description is invalid.
     DescriptionInvalid,
     /// Command name is invalid.
     NameInvalid,
+    /// Command option description is invalid.
+    OptionDescriptionInvalid,
+    /// Command option name is invalid.
+    OptionNameInvalid,
+    /// Command options count invalid.
+    OptionsCountInvalid,
+    /// Required command options have to be passed before optional ones.
+    OptionsRequiredFirst {
+        /// Index of the option that failed validation.
+        index: usize,
+    },
     /// More than 10 permission overwrites were set.
     PermissionsCountInvalid,
 }
@@ -147,10 +190,10 @@ pub enum CommandValidationErrorType {
 ///
 /// # Errors
 ///
-/// Returns an error with type [`DescriptionInvalid`] if the description is
+/// Returns an error of type [`DescriptionInvalid`] if the description is
 /// invalid.
 ///
-/// Returns an error with type [`NameInvalid`] if the name is invalid.
+/// Returns an error of type [`NameInvalid`] if the name is invalid.
 ///
 /// [`DescriptionInvalid`]: CommandValidationErrorType::DescriptionInvalid
 /// [`NameInvalid`]: CommandValidationErrorType::NameInvalid
@@ -173,7 +216,7 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
 ///
 /// # Errors
 ///
-/// Returns an error with type [`DescriptionInvalid`] if the description is
+/// Returns an error of type [`DescriptionInvalid`] if the description is
 /// invalid.
 ///
 /// [`DescriptionInvalid`]: CommandValidationErrorType::DescriptionInvalid
@@ -197,7 +240,7 @@ pub fn description(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 ///
 /// # Errors
 ///
-/// Returns an error with type [`NameInvalid`] if the name is invalid.
+/// Returns an error of type [`NameInvalid`] if the name is invalid.
 ///
 /// [`NameInvalid`]: CommandValidationErrorType::NameInvalid
 pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
@@ -213,6 +256,96 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     }
 }
 
+/// Validate a single [`CommandOption`].
+///
+/// # Errors
+///
+/// Returns an error of type [`OptionDescriptionInvalid`] if the description is
+/// invalid.
+///
+/// Returns an error of type [`OptionNameInvalid`] if the name is invalid.
+///
+/// [`OptionDescriptionInvalid`]: CommandValidationErrorType::OptionDescriptionInvalid
+/// [`OptionNameInvalid`]: CommandValidationErrorType::OptionNameInvalid
+pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
+    let (description, name) = match option {
+        CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => return Ok(()),
+        CommandOption::String(data) => (&data.description, &data.name),
+        CommandOption::Integer(data) | CommandOption::Number(data) => {
+            (&data.description, &data.name)
+        }
+        CommandOption::Channel(data) => (&data.description, &data.name),
+        CommandOption::Boolean(data)
+        | CommandOption::User(data)
+        | CommandOption::Role(data)
+        | CommandOption::Mentionable(data) => (&data.description, &data.name),
+    };
+
+    let description_len = description.len();
+    if description_len > OPTION_DESCRIPTION_LENGTH_MAX
+        && description_len < OPTION_DESCRIPTION_LENGTH_MIN
+    {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::OptionDescriptionInvalid,
+        });
+    }
+
+    let name_len = name.len();
+    if name_len > OPTION_DESCRIPTION_LENGTH_MAX && name_len < OPTION_DESCRIPTION_LENGTH_MIN {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::OptionNameInvalid,
+        });
+    }
+
+    Ok(())
+}
+
+/// Validate a list of command options for count, order, and internal validity.
+///
+/// # Errors
+///
+/// Returns an error of type [`OptionsRequiredFirst`] if a required option is
+/// listed before an optional option.
+///
+/// Returns an error of type [`OptionsCountInvalid`] if the list of options or
+/// any sub-list of options is too long.
+///
+/// [`OptionsRequiredFirst`]: CommandValidationErrorType::OptionsRequiredFirst
+/// [`OptionsCountInvalid`]: CommandValidationErrorType::OptionsCountInvalid
+pub fn options(options: &[CommandOption]) -> Result<(), CommandValidationError> {
+    // https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-structure
+    if options.len() > OPTIONS_LIMIT {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::OptionsCountInvalid,
+        });
+    }
+
+    // Validate that there are no required options listed after optional ones.
+    options
+        .iter()
+        .zip(options.iter().skip(1))
+        .enumerate()
+        .try_for_each(|(index, (first, second))| {
+            if !first.is_required() && second.is_required() {
+                Err(CommandValidationError {
+                    kind: CommandValidationErrorType::OptionsRequiredFirst { index },
+                })
+            } else {
+                Ok(())
+            }
+        })?;
+
+    // Validate that each option is correct.
+    options.iter().try_for_each(|option| match option {
+        CommandOption::SubCommandGroup(data) | CommandOption::SubCommand(data) => {
+            self::options(data.options.as_ref())
+        }
+        other => self::option(other),
+    })?;
+
+    Ok(())
+}
+
 /// Validate the number of guild command permission overwrites.
 ///
 /// The maximum number of commands allowed in a guild is defined by
@@ -220,8 +353,8 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
 ///
 /// # Errors
 ///
-/// Returns an error with type [`PermissionsCountInvalid`] if the permissions
-/// are invalid.
+/// Returns an error of type [`PermissionsCountInvalid`] if the permissions are
+/// invalid.
 ///
 /// [`PermissionsCountInvalid`]: CommandValidationErrorType::PermissionsCountInvalid
 pub const fn guild_permissions(count: usize) -> Result<(), CommandValidationError> {

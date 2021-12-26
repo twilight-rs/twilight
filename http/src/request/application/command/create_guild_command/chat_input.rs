@@ -13,7 +13,9 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::command::{description as validate_description, CommandValidationError};
+use twilight_validate::command::{
+    description as validate_description, options as validate_options, CommandValidationError,
+};
 
 /// Create a chat input command in a guild.
 ///
@@ -74,26 +76,11 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// provided.
     ///
     /// [`CommandOptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::CommandOptionsRequiredFirst
-    pub const fn command_options(
+    pub fn command_options(
         mut self,
         options: &'a [CommandOption],
     ) -> Result<Self, CommandValidationError> {
-        let mut optional_option_added = false;
-        let mut idx = 0;
-
-        while idx < options.len() {
-            let option = &options[idx];
-
-            if !optional_option_added && !option.is_required() {
-                optional_option_added = true;
-            }
-
-            if option.is_required() && optional_option_added {
-                return Err(CommandValidationError::command_option_required_first(idx));
-            }
-
-            idx += 1;
-        }
+        validate_options(options)?;
 
         self.options = Some(options);
 

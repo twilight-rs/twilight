@@ -368,7 +368,7 @@ mod tests {
             SetCommandPermissions::new(&http, application_id(), guild_id(), &command_permissions);
         assert!(matches!(
             request.unwrap_err().kind(),
-            CommandValidationErrorType::CommandCountInvalid
+            CommandValidationErrorType::CountInvalid
         ));
     }
 
