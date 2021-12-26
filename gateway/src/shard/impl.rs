@@ -707,11 +707,11 @@ impl Shard {
     /// # Errors
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    pub fn rate_limit_left(&self) -> Result<f64, SessionInactiveError> {
+    pub fn rate_limit_left(&self) -> Result<u64, SessionInactiveError> {
         let session = self.session().map_err(|_| SessionInactiveError)?;
 
         match session.ratelimit.get() {
-            Some(limiter) => Ok(limiter.tokens()),
+            Some(limiter) => Ok(limiter.tokens() as u64),
             None => Err(SessionInactiveError),
         }
     }
