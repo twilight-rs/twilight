@@ -1891,7 +1891,7 @@ impl Client {
 
     /// Executes a webhook, sending a message to its channel.
     ///
-    /// You can only specify one of [`content`], [`embeds`], or [`files`].
+    /// You must provide at least one of `content`, `embeds`, or an attachment.
     ///
     /// # Examples
     ///
@@ -1911,10 +1911,6 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    ///
-    /// [`content`]: crate::request::channel::webhook::ExecuteWebhook::content
-    /// [`embeds`]: crate::request::channel::webhook::ExecuteWebhook::embeds
-    /// [`files`]: crate::request::channel::webhook::ExecuteWebhook::files
     pub const fn execute_webhook<'a>(
         &'a self,
         webhook_id: Id<WebhookMarker>,

@@ -121,7 +121,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 
 /// Execute a webhook, sending a message to its channel.
 ///
-/// You can only specify one of [`content`], [`embeds`], or [`files`].
+/// You must specify at least one of `content`, `embeds`, or an attachment.
 ///
 /// # Examples
 ///
@@ -141,10 +141,6 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
-///
-/// [`content`]: Self::content
-/// [`embeds`]: Self::embeds
-/// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhook<'a> {
     attachments: Option<&'a [AttachmentFile<'a>]>,

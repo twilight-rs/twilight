@@ -417,10 +417,10 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`attachments`]. See [Discord Docs/Create Message] and
+    /// [`attachment_ids`]. See [Discord Docs/Create Message] and
     /// [`CreateFollowupMessage::payload_json`].
     ///
-    /// [`attachments`]: Self::attachments
+    /// [`attachment_ids`]: Self::attachment_ids
     /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {

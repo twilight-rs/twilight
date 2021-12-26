@@ -118,7 +118,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 
 /// Create a followup message to an interaction.
 ///
-/// You must specify at least one of [`content`], [`embeds`], or [`files`].
+/// You must specify at least one of `content`, `embeds`, or an attachment.
 ///
 /// # Examples
 ///
@@ -139,10 +139,6 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
-///
-/// [`content`]: Self::content
-/// [`embeds`]: Self::embeds
-/// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
     application_id: Id<ApplicationMarker>,

@@ -413,10 +413,10 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`files`]. See [Discord Docs/Create Message] and
+    /// [`attach`]. See [Discord Docs/Create Message] and
     /// [`ExecuteWebhook::payload_json`].
     ///
-    /// [`files`]: Self::files
+    /// [`attach`]: Self::attach
     /// [`ExecuteWebhook::payload_json`]: super::ExecuteWebhook::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
