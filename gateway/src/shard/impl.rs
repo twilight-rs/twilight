@@ -182,7 +182,10 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
-    #[deprecated(since = "0.9.0", note = "ratelimiter.acquire_one() does not return an error anymore")]
+    #[deprecated(
+        since = "0.9.0",
+        note = "ratelimiter.acquire_one() does not return an error anymore"
+    )]
     /// Runtime executor has been shutdown, causing the ratelimiting
     /// actor to stop.
     ExecutorShutDown,
