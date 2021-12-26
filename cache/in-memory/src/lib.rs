@@ -949,13 +949,16 @@ impl UpdateCache for Event {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, InMemoryCache};
+    use crate::{test, ChannelMessages, InMemoryCache};
+    use static_assertions::assert_impl_all;
     use twilight_model::{
         datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::{EmojiId, GuildId, RoleId, UserId},
     };
+
+    assert_impl_all!(ChannelMessages<'_>: Iterator, Send, Sync);
 
     #[test]
     fn test_syntax_update() {
