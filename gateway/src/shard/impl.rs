@@ -57,6 +57,7 @@ impl CommandError {
         let (kind, source) = error.into_parts();
 
         let new_kind = match kind {
+            #[allow(deprecated)]
             SendErrorType::ExecutorShutDown => CommandErrorType::ExecutorShutDown,
             SendErrorType::HeartbeaterNotStarted => CommandErrorType::HeartbeaterNotStarted,
             SendErrorType::Sending => CommandErrorType::Sending,
@@ -156,6 +157,7 @@ impl SendError {
 impl Display for SendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            #[allow(deprecated)]
             SendErrorType::ExecutorShutDown { .. } => f.write_str("runtime executor has shut down"),
             SendErrorType::HeartbeaterNotStarted { .. } => {
                 f.write_str("heartbeater task hasn't been started yet")
@@ -180,6 +182,7 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
+    #[deprecated(since = "0.9.0", note = "ratelimiter.acquire_one() does not return an error anymore")]
     /// Runtime executor has been shutdown, causing the ratelimiting
     /// actor to stop.
     ExecutorShutDown,
@@ -707,11 +710,11 @@ impl Shard {
     /// # Errors
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    pub fn rate_limit_left(&self) -> Result<u64, SessionInactiveError> {
+    pub fn rate_limit_left(&self) -> Result<u32, SessionInactiveError> {
         let session = self.session().map_err(|_| SessionInactiveError)?;
 
         match session.ratelimit.get() {
-            Some(limiter) => Ok(limiter.tokens() as u64),
+            Some(limiter) => Ok(limiter.tokens()),
             None => Err(SessionInactiveError),
         }
     }
