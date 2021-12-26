@@ -1,7 +1,7 @@
 #[cfg(not(feature = "simd-json"))]
-pub use serde_json::{from_slice, from_str, to_string, to_vec, Deserializer, Error as JsonError};
+pub use serde_json::{from_slice, to_vec};
 #[cfg(feature = "simd-json")]
-pub use simd_json::{from_slice, from_str, to_string, to_vec, Deserializer, Error as JsonError};
+pub use simd_json::{from_slice, to_vec};
 
 use serde::de::DeserializeSeed;
 use std::{
@@ -68,10 +68,10 @@ pub fn parse_gateway_event(
 ) -> Result<GatewayEvent, GatewayEventParsingError> {
     let gateway_deserializer = GatewayEventDeserializer::new(op, sequence, event_type);
     #[cfg(not(feature = "simd-json"))]
-    let mut json_deserializer = Deserializer::from_slice(json);
+    let mut json_deserializer = serde_json::Deserializer::from_slice(json);
     #[cfg(feature = "simd-json")]
     let mut json_deserializer =
-        Deserializer::from_slice(json).map_err(|_| GatewayEventParsingError {
+        simd_json::Deserializer::from_slice(json).map_err(|_| GatewayEventParsingError {
             kind: GatewayEventParsingErrorType::PayloadInvalid,
             source: None,
         })?;
