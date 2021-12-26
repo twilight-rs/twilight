@@ -687,15 +687,18 @@ impl Shard {
         })?;
 
         if let Some(ratelimiter) = session.ratelimit.get() {
-            ratelimiter.acquire_one().await.map_err(|source| SendError {
-                kind: SendErrorType::ExecutorShutDown,
-                source: Some(Box::new(source)),
-            })
+            ratelimiter
+                .acquire_one()
+                .await
+                .map_err(|source| SendError {
+                    kind: SendErrorType::ExecutorShutDown,
+                    source: Some(Box::new(source)),
+                })?;
         } else {
-            Err(SendError {
+            return Err(SendError {
                 kind: SendErrorType::HeartbeaterNotStarted,
                 source: None,
-            })
+            });
         }
 
         session
