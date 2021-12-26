@@ -26,7 +26,7 @@ pub struct CachedMember {
 impl CachedMember {
     /// Member's guild avatar.
     pub fn avatar(&self) -> Option<&str> {
-        self.nick.as_deref()
+        self.avatar.as_deref()
     }
 
     /// Whether the member is deafened in a voice channel.

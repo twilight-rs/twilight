@@ -189,6 +189,7 @@ impl ShardBuilder {
             token: token.into_boxed_str(),
             session_id: None,
             sequence: None,
+            tls: None,
         })
     }
 
