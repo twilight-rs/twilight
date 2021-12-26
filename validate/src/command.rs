@@ -53,9 +53,9 @@ pub struct CommandValidationError {
 
 impl CommandValidationError {
     /// Constant instance of a [`CommandValidationError`] with type
-    /// [`CommandCountInvalid`].
+    /// [`CountInvalid`].
     ///
-    /// [`CommandCountInvalid`]: CommandValidationErrorType::CommandCountInvalid
+    /// [`CountInvalid`]: CommandValidationErrorType::CountInvalid
     pub const COMMAND_COUNT_INVALID: CommandValidationError = CommandValidationError {
         kind: CommandValidationErrorType::CountInvalid,
     };
@@ -84,10 +84,9 @@ impl CommandValidationError {
         (self.kind, None)
     }
 
-    /// Create an error of type [`CommandOptionsRequiredFirst`] with a provided
-    /// index.
+    /// Create an error of type [`OptionsRequiredFirst`] with a provided index.
     ///
-    /// [`CommandOptionsRequiredFirst`]: CommandValidationErrorType::CommandOptionsRequiredFirst
+    /// [`OptionsRequiredFirst`]: CommandValidationErrorType::OptionsRequiredFirst
     #[must_use = "creating an error has no effect if left unused"]
     pub const fn option_required_first(index: usize) -> Self {
         Self {
@@ -327,9 +326,7 @@ pub fn options(options: &[CommandOption]) -> Result<(), CommandValidationError> 
         .enumerate()
         .try_for_each(|(index, (first, second))| {
             if !first.is_required() && second.is_required() {
-                Err(CommandValidationError {
-                    kind: CommandValidationErrorType::OptionsRequiredFirst { index },
-                })
+                Err(CommandValidationError::option_required_first(index))
             } else {
                 Ok(())
             }
