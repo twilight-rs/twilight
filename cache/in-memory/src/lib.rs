@@ -102,6 +102,7 @@ use dashmap::{
     mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
 };
+use iter::ChannelMessages;
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -449,10 +450,7 @@ impl InMemoryCache {
     pub fn channel_messages(&self, channel_id: ChannelId) -> Option<ChannelMessages<'_>> {
         let channel = self.channel_messages.get(&channel_id)?;
 
-        Some(ChannelMessages {
-            index: 0,
-            message_ids: channel,
-        })
+        Some(ChannelMessages::new(channel))
     }
 
     /// Gets an emoji by ID.
@@ -795,61 +793,6 @@ pub trait UpdateCache {
     fn update(&self, cache: &InMemoryCache) {}
 }
 
-/// Iterator over a channel's list of recent message IDs.
-///
-/// The iterator is descending: the first is the most recent ID, the second is
-/// the second most recent ID, and so on.
-///
-/// # Examples
-///
-/// Iterate over the messages in a channel:
-///
-/// ```no_run
-/// # fn try_main() -> Option<()> {
-/// use twilight_cache_inmemory::InMemoryCache;
-/// use twilight_model::id::{ChannelId, MessageId};
-///
-/// let channel_id = ChannelId::new(1).expect("non zero id");
-///
-/// let cache = InMemoryCache::new();
-/// let message_ids = cache.channel_messages(channel_id)?;
-///
-/// for message_id in message_ids {
-///     if let Some(message) = cache.message(message_id) {
-///         println!(
-///             "message {} content: {}",
-///             message_id,
-///             message.content(),
-///         );
-///     }
-/// }
-/// # Some(()) }
-/// ```
-pub struct ChannelMessages<'a> {
-    index: usize,
-    message_ids: Ref<'a, ChannelId, VecDeque<MessageId>>,
-}
-
-impl<'a> Iterator for ChannelMessages<'a> {
-    type Item = MessageId;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(message_id) = self.message_ids.iter().nth(self.index) {
-            self.index += 1;
-
-            return Some(*message_id);
-        }
-
-        None
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.index = self.index.saturating_add(n);
-
-        self.next()
-    }
-}
-
 /// Iterator over a voice channel's list of voice states.
 pub struct VoiceChannelStates<'a> {
     index: usize,
@@ -949,16 +892,13 @@ impl UpdateCache for Event {
 
 #[cfg(test)]
 mod tests {
-    use crate::{test, ChannelMessages, InMemoryCache};
-    use static_assertions::assert_impl_all;
+    use crate::{test, InMemoryCache};
     use twilight_model::{
         datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::{EmojiId, GuildId, RoleId, UserId},
     };
-
-    assert_impl_all!(ChannelMessages<'_>: Iterator, Send, Sync);
 
     #[test]
     fn test_syntax_update() {
