@@ -405,6 +405,7 @@ impl FromStr for Path {
             ["users", _, "channels"] => UsersIdChannels,
             ["users", _, "guilds"] => UsersIdGuilds,
             ["users", _, "guilds", _] => UsersIdGuildsId,
+            ["users", _, "guilds", _, "member"] => UsersIdGuildsIdMember,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] => WebhooksId(parse_id(id)?),
             ["webhooks", id, token] => {

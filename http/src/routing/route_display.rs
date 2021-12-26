@@ -671,7 +671,7 @@ impl Display for RouteDisplay<'_> {
             Route::GetCurrentUserApplicationInfo => f.write_str("/oauth2/applications/@me"),
             Route::GetCurrentUser | Route::UpdateCurrentUser => f.write_str("users/@me"),
             Route::GetCurrentUserGuildMember { guild_id } => {
-                f.write_str("users/@me/guilds")?;
+                f.write_str("users/@me/guilds/")?;
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/member")
@@ -2422,9 +2422,7 @@ mod tests {
 
     #[test]
     fn test_get_current_user_guild_member() {
-        let route = Route::GetCurrentUserGuildMember {
-            guild_id: GUILD_ID
-        };
+        let route = Route::GetCurrentUserGuildMember { guild_id: GUILD_ID };
 
         assert_eq!(
             route.display().to_string(),
