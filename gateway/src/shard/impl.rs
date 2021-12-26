@@ -100,11 +100,11 @@ impl Error for CommandError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CommandErrorType {
+    /// The runtime executor shut down, causing the ratelimiting actor to stop.
     #[deprecated(
         since = "0.8.2",
         note = "Ratelimiting no longer uses an actor, therefore cannot fail"
     )]
-    /// The runtime executor shut down, causing the ratelimiting actor to stop.
     ExecutorShutDown,
     /// Heartbeater task has not been started yet.
     HeartbeaterNotStarted,
@@ -187,12 +187,12 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
+    /// Runtime executor has been shutdown, causing the ratelimiting
+    /// actor to stop.
     #[deprecated(
         since = "0.8.2",
         note = "Ratelimiting no longer uses an actor, therefore cannot fail"
     )]
-    /// Runtime executor has been shutdown, causing the ratelimiting
-    /// actor to stop.
     ExecutorShutDown,
     /// Heartbeater task has not been started yet.
     HeartbeaterNotStarted,
