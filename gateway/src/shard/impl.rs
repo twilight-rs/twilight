@@ -285,6 +285,7 @@ pub enum ShardStartErrorType {
 pub struct Information {
     id: u64,
     latency: Latency,
+    ratelimit: u32,
     session_id: Option<Box<str>>,
     seq: u64,
     stage: Stage,
@@ -567,9 +568,15 @@ impl Shard {
     pub fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
+        let ratelimit = match session.ratelimit.get() {
+            Some(limiter) => limiter.tokens(),
+            None => return Err(SessionInactiveError),
+        };
+
         Ok(Information {
             id: self.config().shard()[0],
             latency: session.heartbeats.latency(),
+            ratelimit,
             session_id: session.id(),
             seq: session.seq(),
             stage: session.stage(),
@@ -709,21 +716,6 @@ impl Shard {
                 source: Some(Box::new(source)),
                 kind: SendErrorType::Sending,
             }),
-        }
-    }
-
-    /// Get the current number of websocket messages allowed until the next rate limit reset,
-    /// excluding the number of heartbeats it takes for the shard to live.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    pub fn ratelimiter_tokens_left(&self) -> Result<u32, SessionInactiveError> {
-        let session = self.session().map_err(|_| SessionInactiveError)?;
-
-        match session.ratelimit.get() {
-            Some(limiter) => Ok(limiter.tokens()),
-            None => Err(SessionInactiveError),
         }
     }
 
