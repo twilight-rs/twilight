@@ -6,7 +6,7 @@ use crate::{
 };
 use twilight_model::id::GuildId;
 
-/// Get the current user in a guild, by id.
+/// Get information about the current user in a guild.
 #[must_use = "requests must be configured and executed"]
 pub struct GetCurrentUserGuildMember<'a> {
     guild_id: GuildId,

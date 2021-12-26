@@ -253,6 +253,8 @@ pub enum Path {
     UsersIdGuilds,
     /// Operating on the state of a guild that the user is in.
     UsersIdGuildsId,
+    /// Operating on the state of a guild that the user, as a member, is in.
+    UsersIdGuildsIdMember,
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
     /// Operating on a webhook as a bot.

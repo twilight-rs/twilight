@@ -1434,6 +1434,7 @@ impl<'a> Route<'a> {
             }
             Self::GetCurrentUserApplicationInfo => Path::OauthApplicationsMe,
             Self::GetCurrentUser | Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
+            Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
             Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
                 Path::GuildsIdEmojisId(*guild_id)
             }
@@ -1469,9 +1470,7 @@ impl<'a> Route<'a> {
             Self::InteractionCallback { interaction_id, .. } => {
                 Path::InteractionCallback(*interaction_id)
             }
-            Self::GetCurrentUserGuildMember { .. } | Self::LeaveGuild { .. } => {
-                Path::UsersIdGuildsId
-            }
+            Self::LeaveGuild { .. } => Path::UsersIdGuildsId,
             Self::SearchGuildMembers { guild_id, .. } => Path::GuildsIdMembersSearch(*guild_id),
             Self::SyncGuildIntegration { guild_id, .. } => {
                 Path::GuildsIdIntegrationsIdSync(*guild_id)
