@@ -703,6 +703,21 @@ impl Shard {
         }
     }
 
+    /// Get the current number of websocket messages allowed until the next rate limit reset.
+    /// Excluding the number of heartbeats it takes for the shard to live.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
+    pub async fn rate_limit_left(&self) -> Result<f64, SessionInactiveError> {
+        let session = self.session().map_err(|_| SessionInactiveError)?;
+
+        match session.ratelimit.get() {
+            Some(limiter) => limiter.tokens().await.map_err(|_| SessionInactiveError),
+            None => Err(SessionInactiveError),
+        }
+    }
+
     /// Shut down the shard.
     ///
     /// The shard will cleanly close the connection by sending a normal close
