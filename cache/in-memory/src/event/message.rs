@@ -146,7 +146,7 @@ mod tests {
             .resource_types(ResourceType::MESSAGE | ResourceType::MEMBER | ResourceType::USER)
             .message_cache_size(1)
             .build();
-        let msg = Message {
+        let mut msg = Message {
             activity: None,
             application: None,
             application_id: None,
@@ -204,7 +204,9 @@ mod tests {
             webhook_id: None,
         };
 
-        cache.update(&MessageCreate(msg));
+        cache.update(&MessageCreate(msg.clone()));
+        msg.id = MessageId::new(5).expect("non zero");
+        cache.update(&MessageCreate(msg.clone()));
 
         {
             let entry = cache
@@ -228,12 +230,15 @@ mod tests {
                 .channel_messages
                 .get(&ChannelId::new(2).expect("non zero"))
                 .unwrap();
-            assert_eq!(entry.value().len(), 1);
+            assert_eq!(entry.value().len(), 2);
         }
 
         let mut iter = cache
             .channel_messages(ChannelId::new(2).expect("non zero"))
             .expect("channel is in cache");
+
+        // messages are iterated over in descending order from insertion
+        assert_eq!(Some(5), iter.next().map(MessageId::get));
         assert_eq!(Some(4), iter.next().map(MessageId::get));
         assert!(iter.next().is_none());
     }
