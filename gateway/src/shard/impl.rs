@@ -101,7 +101,7 @@ impl Error for CommandError {
 #[non_exhaustive]
 pub enum CommandErrorType {
     #[deprecated(
-        since = "0.9.0",
+        since = "0.8.2",
         note = "Ratelimiting no longer uses an actor, therefore cannot fail"
     )]
     /// The runtime executor shut down, causing the ratelimiting actor to stop.
@@ -188,7 +188,7 @@ impl Error for SendError {
 #[non_exhaustive]
 pub enum SendErrorType {
     #[deprecated(
-        since = "0.9.0",
+        since = "0.8.2",
         note = "Ratelimiting no longer uses an actor, therefore cannot fail"
     )]
     /// Runtime executor has been shutdown, causing the ratelimiting
@@ -712,13 +712,13 @@ impl Shard {
         }
     }
 
-    /// Get the current number of websocket messages allowed until the next rate limit reset.
-    /// Excluding the number of heartbeats it takes for the shard to live.
+    /// Get the current number of websocket messages allowed until the next rate limit reset,
+    /// excluding the number of heartbeats it takes for the shard to live.
     ///
     /// # Errors
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    pub fn rate_limit_left(&self) -> Result<u32, SessionInactiveError> {
+    pub fn ratelimiter_tokens_left(&self) -> Result<u32, SessionInactiveError> {
         let session = self.session().map_err(|_| SessionInactiveError)?;
 
         match session.ratelimit.get() {
