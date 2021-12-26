@@ -434,6 +434,27 @@ impl InMemoryCache {
             .clone()
     }
 
+    /// Gets the set of messages in a channel.
+    ///
+    /// This requires the [`DIRECT_MESSAGES`] or [`GUILD_MESSAGES`] intents.
+    ///
+    /// Returns `None` if the channel is not cached.
+    ///
+    /// # Examples
+    ///
+    /// Refer to [`ChannelMessages`].
+    ///
+    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
+    /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
+    pub fn channel_messages(&self, channel_id: ChannelId) -> Option<ChannelMessages<'_>> {
+        let channel = self.channel_messages.get(&channel_id)?;
+
+        Some(ChannelMessages {
+            index: 0,
+            message_ids: channel,
+        })
+    }
+
     /// Gets an emoji by ID.
     ///
     /// This requires the [`GUILD_EMOJIS`] intent.
@@ -772,6 +793,61 @@ pub trait UpdateCache {
     // Allow this for presentation purposes in documentation.
     #[allow(unused_variables)]
     fn update(&self, cache: &InMemoryCache) {}
+}
+
+/// Iterator over a channel's list of recent message IDs.
+///
+/// The iterator is descending: the first is the most recent ID, the second is
+/// the second most recent ID, and so on.
+///
+/// # Examples
+///
+/// Iterate over the messages in a channel:
+///
+/// ```no_run
+/// # fn try_main() -> Option<()> {
+/// use twilight_cache_inmemory::InMemoryCache;
+/// use twilight_model::id::{ChannelId, MessageId};
+///
+/// let channel_id = ChannelId::new(1).expect("non zero id");
+///
+/// let cache = InMemoryCache::new();
+/// let message_ids = cache.channel_messages(channel_id)?;
+///
+/// for message_id in message_ids {
+///     if let Some(message) = cache.message(message_id) {
+///         println!(
+///             "message {} content: {}",
+///             message_id,
+///             message.content(),
+///         );
+///     }
+/// }
+/// # Some(()) }
+/// ```
+pub struct ChannelMessages<'a> {
+    index: usize,
+    message_ids: Ref<'a, ChannelId, VecDeque<MessageId>>,
+}
+
+impl<'a> Iterator for ChannelMessages<'a> {
+    type Item = MessageId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(message_id) = self.message_ids.iter().nth(self.index) {
+            self.index += 1;
+
+            return Some(*message_id);
+        }
+
+        None
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        self.index = self.index.saturating_add(n);
+
+        self.next()
+    }
 }
 
 /// Iterator over a voice channel's list of voice states.

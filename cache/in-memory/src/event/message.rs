@@ -230,5 +230,11 @@ mod tests {
                 .unwrap();
             assert_eq!(entry.value().len(), 1);
         }
+
+        let mut iter = cache
+            .channel_messages(ChannelId::new(2).expect("non zero"))
+            .expect("channel is in cache");
+        assert_eq!(Some(4), iter.next().map(MessageId::get));
+        assert!(iter.next().is_none());
     }
 }
