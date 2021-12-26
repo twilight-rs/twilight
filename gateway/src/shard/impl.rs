@@ -74,6 +74,7 @@ impl CommandError {
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            #[allow(deprecated)]
             CommandErrorType::ExecutorShutDown => f.write_str("runtime executor has shut down"),
             CommandErrorType::HeartbeaterNotStarted => {
                 f.write_str("heartbeater task hasn't been started yet")
@@ -99,6 +100,10 @@ impl Error for CommandError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CommandErrorType {
+    #[deprecated(
+        since = "0.9.0",
+        note = "Ratelimiting no longer uses an actor, therefore cannot fail"
+    )]
     /// The runtime executor shut down, causing the ratelimiting actor to stop.
     ExecutorShutDown,
     /// Heartbeater task has not been started yet.
@@ -184,7 +189,7 @@ impl Error for SendError {
 pub enum SendErrorType {
     #[deprecated(
         since = "0.9.0",
-        note = "ratelimiter.acquire_one() does not return an error anymore"
+        note = "Ratelimiting no longer uses an actor, therefore cannot fail"
     )]
     /// Runtime executor has been shutdown, causing the ratelimiting
     /// actor to stop.
