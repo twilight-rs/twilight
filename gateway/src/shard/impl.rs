@@ -685,10 +685,8 @@ impl Shard {
             Ok(()) => {
                 // Tick ratelimiter.
                 if let Some(limiter) = session.ratelimit.get() {
-                    limiter.acquire_one().await.map_err(|source| SendError {
-                        kind: SendErrorType::ExecutorShutDown,
-                        source: Some(Box::new(source)),
-                    })
+                    limiter.acquire_one().await;
+                    Ok(())
                 } else {
                     Err(SendError {
                         kind: SendErrorType::HeartbeaterNotStarted,
@@ -709,11 +707,11 @@ impl Shard {
     /// # Errors
     ///
     /// Returns a [`SessionInactiveError`] if the shard's session is inactive.
-    pub async fn rate_limit_left(&self) -> Result<f64, SessionInactiveError> {
+    pub fn rate_limit_left(&self) -> Result<f64, SessionInactiveError> {
         let session = self.session().map_err(|_| SessionInactiveError)?;
 
         match session.ratelimit.get() {
-            Some(limiter) => limiter.tokens().await.map_err(|_| SessionInactiveError),
+            Some(limiter) => Ok(limiter.tokens()),
             None => Err(SessionInactiveError),
         }
     }
