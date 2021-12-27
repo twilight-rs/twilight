@@ -145,6 +145,7 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: false,
@@ -231,8 +232,10 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
@@ -336,6 +339,7 @@ mod tests {
             kind: MessageType::Regular,
             member: Some(PartialMember {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: false,
@@ -476,8 +480,10 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),

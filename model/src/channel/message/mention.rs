@@ -46,9 +46,8 @@ impl Mention {
 mod tests {
     use std::str::FromStr;
 
-    use crate::datetime::{Timestamp, TimestampParseError};
-
     use super::{Mention, PartialMember, UserFlags, UserId};
+    use crate::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
 
     #[test]
@@ -101,6 +100,7 @@ mod tests {
             id: UserId::new(1).expect("non zero"),
             member: Some(PartialMember {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: true,
@@ -134,8 +134,10 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
