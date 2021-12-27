@@ -56,11 +56,11 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     ///
     /// Errors
     ///
-    /// Returns an error of type [`CommandOptionsRequiredFirst`] if a required
-    /// option was added after an optional option. The problem option's index is
+    /// Returns an error of type [`OptionsRequiredFirst`] if a required option
+    /// was added after an optional option. The problem option's index is
     /// provided.
     ///
-    /// [`CommandOptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::CommandOptionsRequiredFirst
+    /// [`OptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::OptionsRequiredFirst
     pub fn command_options(
         mut self,
         options: &'a [CommandOption],

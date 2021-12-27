@@ -341,11 +341,10 @@ impl<'a> InteractionClient<'a> {
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.
     ///
-    /// Returns an error of type [`CommandCountInvalid`] if too many commands
-    /// have been provided. The maximum amount is defined by
-    /// [`GUILD_COMMAND_LIMIT`].
+    /// Returns an error of type [`CountInvalid`] if too many commands have been
+    /// provided. The maximum amount is defined by [`GUILD_COMMAND_LIMIT`].
     ///
-    /// [`CommandCountInvalid`]: twilight_validate::command::CommandValidationErrorType::CommandCountInvalid
+    /// [`CountInvalid`]: twilight_validate::command::CommandValidationErrorType::CountInvalid
     /// [`GUILD_COMMAND_LIMIT`]: twilight_validate::command::GUILD_COMMAND_LIMIT
     pub fn set_command_permissions(
         &'a self,
