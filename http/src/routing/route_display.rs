@@ -2405,7 +2405,7 @@ mod tests {
     #[test]
     fn test_get_current_user_application_info() {
         let route = Route::GetCurrentUserApplicationInfo;
-        assert_eq!(route.display().to_string(), "/oauth2/applications/@me");
+        assert_eq!(route.display().to_string(), "oauth2/applications/@me");
     }
 
     #[test]
