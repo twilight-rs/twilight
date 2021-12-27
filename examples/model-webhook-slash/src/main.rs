@@ -126,8 +126,8 @@ where
 /// Interaction handler that matches on the name of the interaction that
 /// have been dispatched from Discord.
 async fn handler(i: Interaction) -> Result<InteractionResponse, GenericError> {
-    match i {
-        Interaction::ApplicationCommand(ref cmd) => match cmd.data.name.as_ref() {
+    match &i {
+        Interaction::ApplicationCommand(cmd) => match cmd.data.name.as_ref() {
             "vroom" => vroom(i).await,
             "debug" => debug(i).await,
             _ => debug(i).await,
