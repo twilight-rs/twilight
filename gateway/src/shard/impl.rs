@@ -20,6 +20,7 @@ use std::{
 use tokio::{
     sync::{watch::Receiver as WatchReceiver, OnceCell},
     task::JoinHandle,
+    time::Instant,
 };
 use tokio_tungstenite::tungstenite::protocol::{
     frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
@@ -57,8 +58,6 @@ impl CommandError {
         let (kind, source) = error.into_parts();
 
         let new_kind = match kind {
-            #[allow(deprecated)]
-            SendErrorType::ExecutorShutDown => CommandErrorType::ExecutorShutDown,
             SendErrorType::HeartbeaterNotStarted => CommandErrorType::HeartbeaterNotStarted,
             SendErrorType::Sending => CommandErrorType::Sending,
             SendErrorType::SessionInactive => CommandErrorType::SessionInactive,
@@ -74,8 +73,6 @@ impl CommandError {
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            #[allow(deprecated)]
-            CommandErrorType::ExecutorShutDown => f.write_str("runtime executor has shut down"),
             CommandErrorType::HeartbeaterNotStarted => {
                 f.write_str("heartbeater task hasn't been started yet")
             }
@@ -100,12 +97,6 @@ impl Error for CommandError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CommandErrorType {
-    /// The runtime executor shut down, causing the ratelimiting actor to stop.
-    #[deprecated(
-        since = "0.8.2",
-        note = "Ratelimiting no longer uses an actor, therefore cannot fail"
-    )]
-    ExecutorShutDown,
     /// Heartbeater task has not been started yet.
     HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
@@ -162,8 +153,6 @@ impl SendError {
 impl Display for SendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            #[allow(deprecated)]
-            SendErrorType::ExecutorShutDown { .. } => f.write_str("runtime executor has shut down"),
             SendErrorType::HeartbeaterNotStarted { .. } => {
                 f.write_str("heartbeater task hasn't been started yet")
             }
@@ -187,13 +176,6 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
-    /// Runtime executor has been shutdown, causing the ratelimiting
-    /// actor to stop.
-    #[deprecated(
-        since = "0.8.2",
-        note = "Ratelimiting no longer uses an actor, therefore cannot fail"
-    )]
-    ExecutorShutDown,
     /// Heartbeater task has not been started yet.
     HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
@@ -281,11 +263,12 @@ pub enum ShardStartErrorType {
 
 /// Information about a shard, including its latency, current session sequence,
 /// and connection stage.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 pub struct Information {
     id: u64,
     latency: Latency,
     ratelimit: u32,
+    ratelimit_refill: Instant,
     session_id: Option<Box<str>>,
     seq: u64,
     stage: Stage,
@@ -568,8 +551,8 @@ impl Shard {
     pub fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
-        let ratelimit = match session.ratelimit.get() {
-            Some(limiter) => limiter.tokens(),
+        let (ratelimit, ratelimit_refill) = match session.ratelimit.get() {
+            Some(limiter) => (limiter.tokens(), limiter.next_refill()),
             None => return Err(SessionInactiveError),
         };
 
@@ -577,6 +560,7 @@ impl Shard {
             id: self.config().shard()[0],
             latency: session.heartbeats.latency(),
             ratelimit,
+            ratelimit_refill,
             session_id: session.id(),
             seq: session.seq(),
             stage: session.stage(),
