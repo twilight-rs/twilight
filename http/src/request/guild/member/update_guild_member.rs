@@ -84,13 +84,14 @@ impl<'a> UpdateGuildMember<'a> {
     /// It can be up to 28 days in the future. Set to [`None`] to remove the
     /// timeout. Requires the [`MODERATE_MEMBERS`] permission.
     ///
-    /// [Guild Timeout]: https://support.discord.com/hc/en-us/articles/4413305239191-Time-Out-FAQ
-    /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
-    ///
     /// # Errors
-    /// Returns an [`UpdateGuildMemberErrorType::TimeoutExpiryTimestampInvalid`]
-    /// error type if the expiry timestamp is more than 28 days from the current time.
     ///
+    /// Returns an error of type [`CommunicationDisabledUntil`] if the expiry
+    /// timestamp is more than 28 days from the current time.
+    ///
+    /// [Guild Timeout]: https://support.discord.com/hc/en-us/articles/4413305239191-Time-Out-FAQ
+    /// [`CommunicationDisabledUntil`]: twilight_validate::request::ValidationErrorType::CommunicationDisabledUntil
+    /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
     pub fn communication_disabled_until(
         mut self,
         timestamp: Option<Timestamp>,
