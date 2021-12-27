@@ -2,6 +2,16 @@
 
 Changelog for `twilight-model`.
 
+## [0.8.3] - 2021-12-27
+
+### Additions
+
+Support guild member timeouts via
+`Member::communication_disabled_until` and `Permissions::MODERATE_MEMBERS`
+([#1342] - [@HTG-YT]).
+
+[#1342]: https://github.com/twilight-rs/twilight/pull/1342
+
 ## [0.8.2] - 2021-12-24
 
 ### Changes
@@ -67,7 +77,7 @@ Mark some `old` fields as `Option`s to fix a case where they weren't present
 
 Add the `UserOrId::id` function ([#1219] - [@vilgotf]).
 
-Support `ApplicationCommand` autocomplete ([#1228] - [@vilgotf]). 
+Support `ApplicationCommand` autocomplete ([#1228] - [@vilgotf]).
 
 New struct(s):
 - `application::callback::Autocomplete`
@@ -1135,6 +1145,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.0
