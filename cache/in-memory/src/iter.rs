@@ -302,7 +302,7 @@ impl<'a> Iterator for ChannelMessages<'a> {
     type Item = MessageId;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(message_id) = self.message_ids.iter().nth(self.index) {
+        if let Some(message_id) = self.message_ids.get(self.index) {
             self.index += 1;
 
             return Some(*message_id);
