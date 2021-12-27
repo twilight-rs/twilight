@@ -44,7 +44,7 @@ jobs:
           RUSTDOCFLAGS: --cfg docsrs -D broken_intra_doc_links
         run: |
           exclude_examples=($(grep -h '^name' examples/**/Cargo.toml | cut -d'"' -f2 | xargs -I '{}' echo '--exclude {}'))
-          cargo doc --workspace --no-deps --features=permission-calculator "${exclude_examples[@]}"
+          cargo doc --no-deps --features=permission-calculator "${exclude_examples[@]}"
           cargo doc -p twilight-util --no-deps --all-features
 
       - name: Prepare docs
