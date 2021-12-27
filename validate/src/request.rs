@@ -5,10 +5,15 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    time::{SystemTime, UNIX_EPOCH},
 };
+use twilight_model::datetime::Timestamp;
 
 /// Maximum amount of days for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u64 = 7;
+
+/// Maximum amount of time a member can be timed out for.
+pub const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
 
 /// Maximum amount of messages to get.
 pub const GET_CHANNEL_MESSAGES_LIMIT_MAX: u64 = 100;
@@ -131,6 +136,9 @@ impl Display for ValidationError {
                 f.write_str(", but it must be at most ")?;
 
                 Display::fmt(&CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX, f)
+            }
+            ValidationErrorType::CommunicationDisabledUntil { .. } => {
+                f.write_str("provided timestamp is too far in the future")
             }
             ValidationErrorType::GetChannelMessages { limit } => {
                 f.write_str("provided get guild members limit is ")?;
@@ -275,6 +283,11 @@ pub enum ValidationErrorType {
         /// Invalid days.
         days: u64,
     },
+    /// Provided timestamp is too far in the future.
+    CommunicationDisabledUntil {
+        /// Invalid timestamp.
+        timestamp: Timestamp,
+    },
     /// Provided get channel messages limit was invalid.
     GetChannelMessages {
         /// Invalid limit.
@@ -371,6 +384,32 @@ pub const fn create_guild_ban_delete_message_days(days: u64) -> Result<(), Valid
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::CreateGuildBanDeleteMessageDays { days },
+        })
+    }
+}
+
+/// Validate that a timeout time is not too far in the future.
+///
+/// The time must not be farther than 28 days in the future.
+///
+/// # Errors
+///
+///
+#[allow(clippy::cast_possible_wrap)] // casting of unix timestamp should never wrap
+pub fn communication_disabled_until(timestamp: Timestamp) -> Result<(), ValidationError> {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|_| ValidationError {
+            kind: ValidationErrorType::CommunicationDisabledUntil { timestamp },
+        })?;
+
+    let end = timestamp.as_secs();
+
+    if end - now.as_secs() as i64 <= COMMUNICATION_DISABLED_MAX_DURATION {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::CommunicationDisabledUntil { timestamp },
         })
     }
 }
@@ -718,6 +757,23 @@ mod tests {
         assert!(create_guild_ban_delete_message_days(7).is_ok());
 
         assert!(create_guild_ban_delete_message_days(8).is_err());
+    }
+
+    #[test]
+    fn test_communication_disabled_until() {
+        #[allow(clippy::cast_possible_wrap)]
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+
+        let ok_timestamp =
+            Timestamp::from_secs(now + COMMUNICATION_DISABLED_MAX_DURATION - 1000).unwrap();
+        assert!(communication_disabled_until(ok_timestamp).is_ok());
+
+        let err_timestamp =
+            Timestamp::from_secs(now + COMMUNICATION_DISABLED_MAX_DURATION + 1000).unwrap();
+        assert!(communication_disabled_until(err_timestamp).is_err());
     }
 
     #[test]

@@ -37,6 +37,7 @@
 //! [ISC][LICENSE.md]
 //!
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+//! [`tracing`]: https://crates.io/crates/tracing
 //! [`twilight-util`]: https://docs.rs/twilight-util
 //! [`twilight`]: https://docs.rs/twilight
 //! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
