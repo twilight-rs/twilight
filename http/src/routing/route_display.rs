@@ -604,7 +604,7 @@ impl Display for RouteDisplay<'_> {
                 f.write_str("/followers")
             }
             Route::GetActiveThreads { guild_id } => {
-                f.write_str("guild_id/")?;
+                f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/threads/active")
@@ -2347,7 +2347,7 @@ mod tests {
         let route = Route::GetActiveThreads { guild_id: GUILD_ID };
         assert_eq!(
             route.display().to_string(),
-            format!("guild_id/{guild_id}/threads/active", guild_id = GUILD_ID)
+            format!("guilds/{guild_id}/threads/active", guild_id = GUILD_ID)
         );
     }
 
