@@ -76,7 +76,6 @@ pub mod iter;
 pub mod model;
 
 #[cfg(feature = "permission-calculator")]
-#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub mod permission;
 
 mod builder;
@@ -94,7 +93,6 @@ pub use self::{
 };
 
 #[cfg(feature = "permission-calculator")]
-#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub use self::permission::InMemoryCachePermissions;
 
 use self::{iter::InMemoryCacheIter, model::*};
@@ -416,7 +414,6 @@ impl InMemoryCache {
     /// # Ok(()) }
     /// ```
     #[cfg(feature = "permission-calculator")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
     pub const fn permissions(&self) -> InMemoryCachePermissions<'_> {
         InMemoryCachePermissions::new(self)
     }
