@@ -51,7 +51,7 @@
     warnings
 )]
 #![allow(clippy::semicolon_if_nothing_returned)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature = "builder")]
 pub mod builder;
