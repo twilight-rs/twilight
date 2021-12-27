@@ -13,9 +13,12 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::id::{
-    marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
-    Id,
+use twilight_model::{
+    datetime::Timestamp,
+    id::{
+        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
 
 /// The error created when the member can not be updated as configured.
@@ -56,6 +59,9 @@ impl Display for UpdateGuildMemberError {
             UpdateGuildMemberErrorType::NicknameInvalid => {
                 f.write_str("the nickname length is invalid")
             }
+            UpdateGuildMemberErrorType::TimeoutExpiryTimestampInvalid => {
+                f.write_str("the timeout expiry is more than 28 days from the current time")
+            }
         }
     }
 }
@@ -68,6 +74,8 @@ impl Error for UpdateGuildMemberError {}
 pub enum UpdateGuildMemberErrorType {
     /// The nickname is either empty or the length is more than 32 UTF-16 characters.
     NicknameInvalid,
+    /// The timeout expiry timestamp is more than 28 days from the current timestamp
+    TimeoutExpiryTimestampInvalid,
 }
 
 #[derive(Serialize)]
@@ -75,6 +83,8 @@ struct UpdateGuildMemberFields<'a> {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    communication_disabled_util: Option<NullableField<Timestamp>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -108,6 +118,7 @@ impl<'a> UpdateGuildMember<'a> {
         Self {
             fields: UpdateGuildMemberFields {
                 channel_id: None,
+                communication_disabled_util: None,
                 deaf: None,
                 mute: None,
                 nick: None,
@@ -125,6 +136,36 @@ impl<'a> UpdateGuildMember<'a> {
         self.fields.channel_id = Some(NullableField(channel_id));
 
         self
+    }
+
+    /// Set the member's [Guild Timeout].
+    ///
+    /// The timestamp indicates when the user will be able to communicate again.
+    /// It can be up to 28 days in the future. Set to [`None`] to remove the
+    /// timeout. Requires the [`MODERATE_MEMBERS`] permission.
+    ///
+    /// [Guild Timeout]: https://support.discord.com/hc/en-us/articles/4413305239191-Time-Out-FAQ
+    /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
+    ///
+    /// # Errors
+    /// Returns an [`UpdateGuildMemberErrorType::TimeoutExpiryTimestampInvalid`]
+    /// error type if the expiry timestamp is more than 28 days from the current time.
+    ///
+    pub fn communication_disabled_until(
+        mut self,
+        timestamp: Option<Timestamp>,
+    ) -> Result<Self, UpdateGuildMemberError> {
+        if let Some(timestamp) = timestamp {
+            if !validate_inner::communication_disabled_until(timestamp) {
+                return Err(UpdateGuildMemberError {
+                    kind: UpdateGuildMemberErrorType::TimeoutExpiryTimestampInvalid,
+                });
+            }
+        }
+
+        self.fields.communication_disabled_util = Some(NullableField(timestamp));
+
+        Ok(self)
     }
 
     /// If true, restrict the member's ability to hear sound from a voice channel.
@@ -245,6 +286,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: Some(true),
             mute: Some(true),
             nick: None,
@@ -270,6 +312,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: None,
             mute: None,
             nick: Some(NullableField(None)),
@@ -294,6 +337,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: None,
             mute: None,
             nick: Some(NullableField(Some("foo"))),
