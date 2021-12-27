@@ -668,7 +668,7 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("/permissions")
             }
-            Route::GetCurrentUserApplicationInfo => f.write_str("/oauth2/applications/@me"),
+            Route::GetCurrentUserApplicationInfo => f.write_str("oauth2/applications/@me"),
             Route::GetCurrentUser | Route::UpdateCurrentUser => f.write_str("users/@me"),
             Route::GetGateway => f.write_str("gateway"),
             Route::GetGuild {
