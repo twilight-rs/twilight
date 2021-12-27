@@ -16,8 +16,11 @@ use crate::{
     model::{CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence, CachedSticker},
     GuildResource, InMemoryCache,
 };
-use dashmap::{iter::Iter, mapref::multiple::RefMulti};
-use std::{hash::Hash, ops::Deref};
+use dashmap::{
+    iter::Iter,
+    mapref::{multiple::RefMulti, one::Ref},
+};
+use std::{collections::VecDeque, hash::Hash, ops::Deref};
 use twilight_model::{
     channel::{message::sticker::StickerId, Group, GuildChannel, PrivateChannel, StageInstance},
     guild::{GuildIntegration, Role},
@@ -251,9 +254,73 @@ impl<'a, K: Eq + Hash, V> Iterator for ResourceIter<'a, K, V> {
     }
 }
 
+/// Iterator over a channel's list of recent message IDs.
+///
+/// The iterator is descending: the first is the most recent ID, the second is
+/// the second most recent ID, and so on.
+///
+/// # Examples
+///
+/// Iterate over the messages in a channel:
+///
+/// ```no_run
+/// # fn try_main() -> Option<()> {
+/// use twilight_cache_inmemory::InMemoryCache;
+/// use twilight_model::id::{ChannelId, MessageId};
+///
+/// let channel_id = ChannelId::new(1).expect("non zero id");
+///
+/// let cache = InMemoryCache::new();
+/// let message_ids = cache.channel_messages(channel_id)?;
+///
+/// for message_id in message_ids {
+///     if let Some(message) = cache.message(message_id) {
+///         println!(
+///             "message {} content: {}",
+///             message_id,
+///             message.content(),
+///         );
+///     }
+/// }
+/// # Some(()) }
+/// ```
+pub struct ChannelMessages<'a> {
+    index: usize,
+    message_ids: Ref<'a, ChannelId, VecDeque<MessageId>>,
+}
+
+impl<'a> ChannelMessages<'a> {
+    pub(super) const fn new(message_ids: Ref<'a, ChannelId, VecDeque<MessageId>>) -> Self {
+        Self {
+            index: 0,
+            message_ids,
+        }
+    }
+}
+
+impl<'a> Iterator for ChannelMessages<'a> {
+    type Item = MessageId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(message_id) = self.message_ids.get(self.index) {
+            self.index += 1;
+
+            return Some(*message_id);
+        }
+
+        None
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        self.index = self.index.saturating_add(n);
+
+        self.next()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{InMemoryCacheIter, IterReference, ResourceIter};
+    use super::{ChannelMessages, InMemoryCacheIter, IterReference, ResourceIter};
     use crate::{test, InMemoryCache};
     use static_assertions::assert_impl_all;
     use std::{borrow::Cow, fmt::Debug};
@@ -262,6 +329,7 @@ mod tests {
         user::User,
     };
 
+    assert_impl_all!(ChannelMessages<'_>: Iterator, Send, Sync);
     assert_impl_all!(InMemoryCacheIter<'_>: Debug, Send, Sync);
     assert_impl_all!(IterReference<'_, UserId, User>: Send, Sync);
     assert_impl_all!(ResourceIter<'_, UserId, User>: Iterator, Send, Sync);

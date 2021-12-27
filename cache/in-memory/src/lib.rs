@@ -103,6 +103,7 @@ use dashmap::{
     mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
 };
+use iter::ChannelMessages;
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -433,6 +434,24 @@ impl InMemoryCache {
             .lock()
             .expect("current user poisoned")
             .clone()
+    }
+
+    /// Gets the set of messages in a channel.
+    ///
+    /// This requires the [`DIRECT_MESSAGES`] or [`GUILD_MESSAGES`] intents.
+    ///
+    /// Returns `None` if the channel is not cached.
+    ///
+    /// # Examples
+    ///
+    /// Refer to [`ChannelMessages`].
+    ///
+    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
+    /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
+    pub fn channel_messages(&self, channel_id: ChannelId) -> Option<ChannelMessages<'_>> {
+        let channel = self.channel_messages.get(&channel_id)?;
+
+        Some(ChannelMessages::new(channel))
     }
 
     /// Gets an emoji by ID.
