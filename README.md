@@ -10,8 +10,8 @@
 for the Discord API.
 
 The ecosystem of first-class crates includes [`twilight-cache-inmemory`],
-[`twilight-command-parser`], [`twilight-gateway`], [`twilight-http`],
-[`twilight-model`], and more. These are explained in detail below.
+[`twilight-gateway`], [`twilight-http`], [`twilight-model`], and more. These
+are explained in detail below.
 
 The main `twilight` crate is purely an advertisement crate: it has *no*
 functionality. Please use the individual crates listed below instead!
@@ -34,7 +34,7 @@ that dependency in.
 
 These are essential crates that most users will use together for a full
 development experience. You may not need all of these - such as
-[`twilight-command-parser`] - but they are often used together to accomplish
+[`twilight-cache-inmemory`] - but they are often used together to accomplish
 most of what you need.
 
 ### [`twilight-model`]
@@ -61,11 +61,6 @@ from Discord.
 Implementation of Discord's sharding gateway sessions. This is responsible
 for receiving stateful events in real-time from Discord and sending *some*
 stateful information.
-
-### [`twilight-command-parser`]
-
-Helpful crate for parsing commands out of messages received over the
-gateway. It finds messages commanding your bot and parses the arguments out.
 
 ### [`twilight-http`]
 
@@ -238,7 +233,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
 [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
-[`twilight-command-parser`]: https://twilight.rs/chapter_1_crates/section_5_command_parser.html
 [`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_1_embed_builder.html
 [`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html
 [`twilight-gateway`]: https://twilight.rs/chapter_1_crates/section_3_gateway.html
