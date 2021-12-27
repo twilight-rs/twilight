@@ -357,6 +357,7 @@ mod test {
                         UserId::new(600).expect("non zero"),
                         InteractionMember {
                             avatar: None,
+                            communication_disabled_until: None,
                             joined_at,
                             nick: Some("nickname".into()),
                             pending: false,
@@ -396,6 +397,7 @@ mod test {
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at,
                 mute: false,
@@ -477,8 +479,10 @@ mod test {
                 Token::Str("600"),
                 Token::Struct {
                     name: "InteractionMember",
-                    len: 5,
+                    len: 6,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
                 Token::Str("nick"),
@@ -536,8 +540,10 @@ mod test {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),

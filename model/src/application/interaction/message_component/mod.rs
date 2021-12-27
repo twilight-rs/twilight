@@ -152,6 +152,7 @@ mod tests {
             kind: InteractionType::MessageComponent,
             member: Some(PartialMember {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at: timestamp,
                 mute: false,

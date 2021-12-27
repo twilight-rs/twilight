@@ -20,11 +20,6 @@ use tokio::time::{self, Timeout};
 use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
 use twilight_model::id::GuildId;
 
-pub enum InvalidToken {
-    Forget,
-    Remember(Arc<AtomicBool>),
-}
-
 type Output<T> = Result<Response<T>, Error>;
 
 enum InnerPoll<T> {
@@ -94,7 +89,7 @@ impl Failed {
 struct InFlight {
     future: Pin<Box<Timeout<HyperResponseFuture>>>,
     guild_id: Option<GuildId>,
-    invalid_token: InvalidToken,
+    invalid_token: Option<Arc<AtomicBool>>,
     tx: Option<TicketSender>,
 }
 
@@ -128,8 +123,8 @@ impl InFlight {
         // configured token is permanently invalid and future requests must be
         // ignored to avoid API bans.
         if resp.status() == HyperStatusCode::UNAUTHORIZED {
-            if let InvalidToken::Remember(state) = self.invalid_token {
-                state.store(true, Ordering::Relaxed);
+            if let Some(invalid_token) = self.invalid_token {
+                invalid_token.store(true, Ordering::Relaxed);
             }
         }
 
@@ -204,7 +199,7 @@ impl InFlight {
 
 struct RatelimitQueue {
     guild_id: Option<GuildId>,
-    invalid_token: InvalidToken,
+    invalid_token: Option<Arc<AtomicBool>>,
     pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
     request_timeout: Duration,
     response_future: HyperResponseFuture,
@@ -310,7 +305,7 @@ pub struct ResponseFuture<T> {
 
 impl<T> ResponseFuture<T> {
     pub(crate) fn new(
-        invalid_token: InvalidToken,
+        invalid_token: Option<Arc<AtomicBool>>,
         future: Timeout<HyperResponseFuture>,
         ratelimit_tx: Option<TicketSender>,
     ) -> Self {
@@ -397,7 +392,7 @@ impl<T> ResponseFuture<T> {
 
     pub(crate) fn ratelimit(
         guild_id: Option<GuildId>,
-        invalid_token: InvalidToken,
+        invalid_token: Option<Arc<AtomicBool>>,
         wait_for_sender: WaitForTicketFuture,
         request_timeout: Duration,
         response_future: HyperResponseFuture,

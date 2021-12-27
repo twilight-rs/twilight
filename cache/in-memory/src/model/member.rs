@@ -12,6 +12,7 @@ use twilight_model::{
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
     pub(crate) avatar: Option<String>,
+    pub(crate) communication_disabled_until: Option<Timestamp>,
     pub(crate) deaf: Option<bool>,
     pub(crate) guild_id: GuildId,
     pub(crate) joined_at: Timestamp,
@@ -27,6 +28,19 @@ impl CachedMember {
     /// Member's guild avatar.
     pub fn avatar(&self) -> Option<&str> {
         self.avatar.as_deref()
+    }
+
+    /// When the user can resume communication in a guild again.
+    ///
+    /// Checking if this value is [`Some`] is not enough to know if a used is currently
+    /// timed out as Discord doesn't send any events when the timeout expires, and
+    /// therefore the cache is not updated accordingly. You should ensure that the
+    /// provided [`Timestamp`] is not in the past. See [discord-api-docs#4269] for
+    /// more information.
+    ///
+    /// [discord-api-docs#4269]: https://github.com/discord/discord-api-docs/issues/4269
+    pub const fn communication_disabled_until(&self) -> Option<Timestamp> {
+        self.communication_disabled_until
     }
 
     /// Whether the member is deafened in a voice channel.
@@ -80,6 +94,7 @@ impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
         (
             &self.avatar,
+            &self.communication_disabled_until,
             self.deaf,
             self.joined_at,
             self.mute,
@@ -90,6 +105,7 @@ impl PartialEq<Member> for CachedMember {
             self.user_id,
         ) == (
             &other.avatar,
+            &other.communication_disabled_until,
             Some(other.deaf),
             other.joined_at,
             Some(other.mute),
@@ -105,6 +121,7 @@ impl PartialEq<Member> for CachedMember {
 impl PartialEq<PartialMember> for CachedMember {
     fn eq(&self, other: &PartialMember) -> bool {
         (
+            &self.communication_disabled_until,
             self.deaf,
             self.joined_at,
             self.mute,
@@ -112,6 +129,7 @@ impl PartialEq<PartialMember> for CachedMember {
             self.premium_since,
             &self.roles,
         ) == (
+            &other.communication_disabled_until,
             Some(other.deaf),
             other.joined_at,
             Some(other.mute),
@@ -162,6 +180,7 @@ mod tests {
 
         CachedMember {
             avatar: None,
+            communication_disabled_until: None,
             deaf: Some(false),
             guild_id: GuildId::new(3).expect("non zero"),
             joined_at,
@@ -200,6 +219,7 @@ mod tests {
 
         let member = Member {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             guild_id: GuildId::new(3).expect("non zero"),
             joined_at,
@@ -220,6 +240,7 @@ mod tests {
 
         let member = PartialMember {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: true,

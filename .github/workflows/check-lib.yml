@@ -36,7 +36,7 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - run: cargo check --workspace --all-features --all-targets
+      - run: cargo check --all-features --all-targets
 
   # Check documentation
   build-docs:
@@ -60,9 +60,9 @@ jobs:
 
       - name: Build docs
         env:
-          RUSTDOCFLAGS: --cfg docsrs -D broken_intra_doc_links
+          RUSTDOCFLAGS: --cfg docsrs
         run: |
-          cargo doc --workspace --no-deps --features=permission-calculator
+          cargo doc --no-deps --features=permission-calculator
           cargo doc -p twilight-util --no-deps --all-features
 
   sync-readme:
@@ -121,7 +121,7 @@ jobs:
         run: echo "::add-matcher::.github/rust.json"
 
       - name: Run clippy
-        run: cargo clippy --workspace --all-features --all-targets
+        run: cargo clippy --all-features --all-targets
 
   codespell:
     name: Spelling
@@ -179,7 +179,7 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
-    
+
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
