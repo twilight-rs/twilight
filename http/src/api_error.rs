@@ -77,276 +77,521 @@ error_code![
         UnknownPermissionOverwrite,
         10009
     ),
-    ("Unknown provider",
-    UnknownProvider , 10010),
-    ("Unknown role",
-    UnknownRole , 10011),
-    ("Unknown token",
-    UnknownToken , 10012),
-    ("Unknown user",
-    UnknownUser , 10013),
-    ("Unknown emoji",
-    UnknownEmoji , 10014),
-    ("Unknown webhook",
-    UnknownWebhook , 10015),
-    ("Unknown webhook service",
-    UnknownWebhookService , 10016),
-    ("Unknown session",
-    UnknownSession , 10020),
-    ("Unknown ban",
-    UnknownBan , 10026),
-    ("Unknown SKU",
-    UnknownSKU , 10027),
-    ("Unknown Store Listing",
-    UnknownStoreListing , 10028),
-    ("Unknown entitlement",
-    UnknownEntitlement , 10029),
-    ("Unknown build",
-    UnknownBuild , 10030),
-    ("Unknown lobby",
-    UnknownLobby , 10031),
-    ("Unknown branch",
-    UnknownBranch , 10032),
-    ("Unknown store directory layout",
-    UnknownStoreDirectoryLayout , 10033),
-    ("Unknown redistributable",
-    UnknownRedistributable , 10036),
-    ("Unknown gift code",
-    UnknownGiftCode , 10038),
-    ("Unknown stream",
-    UnknownStream , 10049),
-    ("Unknown premium server subscribe cooldown",
-    UnknownPremiumServerSubscribeCooldown , 10050),
-    ("Unknown guild template",
-    UnknownGuildTemplate , 10057),
-    ("Unknown discoverable server category",
-    UnknownDiscoverableServerCategory , 10059),
-    ("Unknown sticker",
-    UnknownSticker , 10060),
-    ("Unknown interaction",
-    UnknownInteraction , 10062),
-    ("Unknown application command",
-    UnknownApplicationCommand , 10063),
-    ("Unknown application command permissions",
-    UnknownApplicationCommandPermissions , 10066),
-    ("Unknown Stage Instance",
-    UnknownStageInstance , 10067),
-    ("Unknown Guild Member Verification Form",
-    UnknownGuildMemberVerificationForm , 10068),
-    ("Unknown Guild Welcome Screen",
-    UnknownGuildWelcomeScreen , 10069),
-    ("Unknown guild scheduled event",
-    UnknownGuildScheduledEvent , 10070),
-    ("Unknown guild scheduled event user",
-    UnknownGuildScheduledEventUser , 10071),
-    ("Bots cannot use this endpoint",
-    BotsCannotUseEndpoint , 20001),
-    ("Only bots can use this endpoint",
-    OnlyBotsCanUseEndpoint , 20002),
-    ("Explicit content cannot be sent to the desired recipient(s)",
-    ExplicitContentSendingBlocked , 20009),
-    ("You are not authorized to perform this action on this application",
-    UnauthorizedApplicationAction , 20012),
-    ("This action cannot be performed due to slowmode rate limit",
-    SlowModeRateLimitReached , 20016),
-    ("Only the owner of this account can perform this action",
-    NotAccountOwner , 20018),
-    ("Message cannot be edited due to announcement rate limits",
-    AnnouncementRateLimitReached , 20022),
-    ("The channel you are writing has hit the write rate limit",
-    ChannelRateLimitReached , 20028),
-    ("The write action you are performing on the server has hit the write rate limit",
-    WriteActionsReached , 20029),
-    ("Your Stage topic, server name, server description, or channel names contain words that are not allowed",
-    UnallowedWords , 20031),
-    ("Guild premium subscription level too low",
-    GuildPremiumTooLow , 20035),
-    ("Maximum number of guilds reached (100)",
-    MaximumGuildsReached , 30001),
-    ("Maximum number of friends reached (1000)",
-    MaximumFriendsReached , 30002),
-    ("Maximum number of pins reached for the channel (50)",
-    MaximumPinsReached , 30003),
-    ("Maximum number of recipients reached (10)",
-    MaximumRecipientsReached , 30004),
-    ("Maximum number of guild roles reached (250)",
-    MaximumRolesReached , 30005),
-    ("Maximum number of webhooks reached (10)",
-    MaximumWebhooksReached , 30007),
-    ("Maximum number of emojis reached",
-    MaximumEmojisReached , 30008),
-    ("Maximum number of reactions reached (20)",
-    MaximumReactionsReached , 30010),
-    ("Maximum number of guild channels reached (500)",
-    MaximumGuildChannelsReached , 30013),
-    ("Maximum number of attachments in a message reached (10)",
-    MaximumAttachmentsReached , 30015),
-    ("Maximum number of invites reached (1000)",
-    MaximumInvitesReached , 30016),
-    ("Maximum number of animated emojis reached",
-    MaximumAnimatedEmojisReached , 30018),
-    ("Maximum number of server members reached",
-    MaximumGuildMembersReached , 30019),
-    ("Maximum number of server categories has been reached",
-    MaximumServerCategoriesReached , 30030),
-    ("Guild already has a template",
-    GuildTemplateAlreadyExist , 30031),
-    ("Max number of thread participants has been reached (1000)",
-    ThreadMaxParticipants , 30033),
-    ("Maximum number of bans for non-guild members have been exceeded",
-    MaximumNonGuildBansReached , 30035),
-    ("Maximum number of bans fetches has been reached",
-    MaximumGuildBansFetchesReached , 30037),
-    ("Maximum number of uncompleted guild scheduled events reached (100)",
-    MaximumUncompletedEventsReached , 30038),
-    ("Maximum number of stickers reached",
-    MaximumStickersReached , 30039),
-    ("Maximum number of prune requests has been reached. Try again later",
-    MaximumPruneRequestsReached , 30040),
-    ("Maximum number of guild widget settings updates has been reached. Try again later",
-    MaximumGuildWidgets , 30042),
-    ("Unauthorized. Provide a valid token and try again",
-    Unauthorized , 40001),
-    ("You need to verify your account in order to perform this action",
-    AccountNeedsVerification , 40002),
-    ("You are opening direct messages too fast",
-    OpeningDirectMessageRateLimitReached , 40003),
-    ("Request entity too large. Try sending something smaller in size",
-    RequestEntityTooLarge , 40005),
-    ("This feature has been temporarily disabled server-side",
-    FeatureTemporarilyDisabled , 40006),
-    ("The user is banned from this guild",
-    UserBannedFromGuild , 40007),
-    ("Target user is not connected to voice",
-    UserNotInVoice , 40032),
-    ("This message has already been crossposted",
-    MessageAlreadyCrossposted , 40033),
-    ("An application command with that name already exists",
-    CommandNameAlreadyExists , 40041),
-    ("Missing access",
-    Missingaccess , 50001),
-    ("Invalid account type",
-    InvalidAccountType , 50002),
-    ("Cannot execute action on a DM channel",
-    InvalidDMChannelAction , 50003),
-    ("Guild widget disabled",
-    GuildWidgetDisabled , 50004),
-    ("Cannot edit a message authored by another user",
-    MessageNotAuthoredByUser , 50005),
-    ("Cannot send an empty message",
-    EmptyMessage , 50006),
-    ("Cannot send messages to this user",
-    CannotSendMessageToUser , 50007),
-    ("Cannot send messages in a voice channel",
-    CannotSendMessagesInVoiceChannel , 50008),
-    ("Channel verification level is too high for you to gain access",
-    VerificationLevelTooHigh , 50009),
-    ("OAuth2 application does not have a bot",
-    OAuthApplicationHasNoBot , 50010),
-    ("OAuth2 application limit reached",
-    OAuthApplicationLimitReached , 50011),
-    ("Invalid OAuth2 state",
-    InvalidOAuthSstate , 50012),
-    ("You lack permissions to perform that action",
-    PermissionsLacking , 50013),
-    ("Invalid authentication token provided",
-    InvalidAuthenticationTokenProvided , 50014),
-    ("Note was too long",
-    NoteTooLong , 50015),
-    ("Provided too few or too many messages to delete. Must provide at least 2 and fewer than 100 messages to delete",
-    InvalidMessageDeleteRange , 50016),
-    ("A message can only be pinned to the channel it was sent in",
-    MessagePinnedInWrongChannel , 50019),
-    ("Invite code was either invalid or taken",
-    InviteCodeInvalidOrTaken , 50020),
-    ("Cannot execute action on a system message",
-    InvalidActionOnSystemMessage , 50021),
-    ("Cannot execute action on this channel type",
-    CannotExecuteActionOnChannelType , 50024),
-    ("Invalid OAuth2 access token provided",
-    InvalidOAuthAccessToken , 50025),
-    ("Missing required OAuth2 scope",
-    MissingOAuthScope , 50026),
-    ("Invalid webhook token provided",
-    InvalidWebhookToken , 50027),
-    ("Invalid role",
-    InvalidRole , 50028),
-    ("Invalid recipient(s)",
-    InvalidRecipient , 50033),
-    ("A message provided was too old to bulk delete",
-    MessageTooOldToBulkDelete , 50034),
-    ("Invalid form body (returned for both application/json and multipart/form-data bodies), or invalid Content-Type provided",
-    InvalidFormBodyOrContentType , 50035),
-    ("An invite was accepted to a guild the application's bot is not in",
-    InviteAcceptedToGuildBotNotIn , 50036),
-    ("Invalid API version provided",
-    InvalidApiVersion , 50041),
-    ("File uploaded exceeds the maximum size",
-    FileTooLarge , 50045),
-    ("Invalid file uploaded",
-    InvalidFileUploaded , 50046),
-    ("Cannot self-redeem this gift",
-    CannotSelfRedeemGift , 50054),
-    ("Invalid Guild",
-    InvalidGuild , 50055),
-    ("Payment source required to redeem gift",
-    PaymentRequiredForGift , 50070),
-    ("Cannot delete a channel required for Community guilds",
-    CommunityGuildRequired , 50074),
-    ("Invalid sticker sent",
-    InvalidStickerSent , 50081),
-    ("Tried to perform an operation on an archived thread, such as editing a message or adding a user to the thread",
-    ThreadArchived , 50083),
-    ("Invalid thread notification settings",
-    ThreadInvalidNotificationSettings , 50084),
-    ("`before` value is earlier than the thread creation date",
-    ThreadInvalidBeforeValue , 50085),
-    ("This server is not available in your location",
-    ServerNotAvailableLocation , 50095),
-    ("This server needs monetization enabled in order to perform this action",
-    ServerNeedsMonetiazation , 50097),
-    ("This server needs more boosts to perform this action",
-    ServerNeedsBoosts , 50101),
-    ("The request body contains invalid JSON",
-    RequestInvalidJson , 50109),
-    ("Two factor is required for this operation",
-    TwoFactorRequired , 60003),
-    ("No users with DiscordTag exist",
-    NoSuchUser , 80004),
-    ("Reaction was blocked",
-    ReactionBlocked , 90001),
-    ("API resource is currently overloaded. Try again a little later",
-    ApiResourceOverloaded , 130_000),
-    ("The Stage is already open",
-    StageAlreadyOpen , 150_006),
-    ("Cannot reply without permission to read message history",
-    CannotReplyWithoutMessageHistory , 160_002),
-    ("A thread has already been created for this message",
-    ThreadAlreadyCreated , 160_004),
-    ("Thread is locked",
-    ThreadLocked , 160_005),
-    ("Maximum number of active threads reached",
-    MaxActiveThreads , 160_006),
-    ("Maximum number of active announcement threads reached",
-    MaxActiveAnnouncementThreads , 160_007),
-    ("Invalid JSON for uploaded Lottie file",
-    InvalidLottieJson , 170_001),
-    ("Uploaded Lotties cannot contain rasterized images such as PNG or JPEG",
-    InvalidLottieContent , 170_002),
-    ("Sticker maximum framerate exceeded",
-    StickerMaximumFramerateExceeded , 170_003),
-    ("Sticker frame count exceeds maximum of 1000 frames",
-    StickerFrameCountExceedsMaximum , 170_004),
-    ("Lottie animation maximum dimensions exceeded",
-    LottieDimensionsTooLarge , 170_005),
-    ("Sticker frame rate is either too small or too large",
-    InvalidStickerFrameRate , 170_006),
-    ("Sticker animation duration exceeds maximum of 5 seconds",
-    StickerAnimationDurationExceedsMaximum , 170_007),
-    ("Cannot update a finished event",
-    CannotUpdateFinishedEvent , 180_000),
-    ("Failed to create stage needed for stage event",
-    FailedToCreateStage , 180_002)
+    ("Unknown provider", UnknownProvider, 10010),
+    ("Unknown role", UnknownRole, 10011),
+    ("Unknown token", UnknownToken, 10012),
+    ("Unknown user", UnknownUser, 10013),
+    ("Unknown emoji", UnknownEmoji, 10014),
+    ("Unknown webhook", UnknownWebhook, 10015),
+    ("Unknown webhook service", UnknownWebhookService, 10016),
+    ("Unknown session", UnknownSession, 10020),
+    ("Unknown ban", UnknownBan, 10026),
+    ("Unknown SKU", UnknownSKU, 10027),
+    ("Unknown Store Listing", UnknownStoreListing, 10028),
+    ("Unknown entitlement", UnknownEntitlement, 10029),
+    ("Unknown build", UnknownBuild, 10030),
+    ("Unknown lobby", UnknownLobby, 10031),
+    ("Unknown branch", UnknownBranch, 10032),
+    (
+        "Unknown store directory layout",
+        UnknownStoreDirectoryLayout,
+        10033
+    ),
+    ("Unknown redistributable", UnknownRedistributable, 10036),
+    ("Unknown gift code", UnknownGiftCode, 10038),
+    ("Unknown stream", UnknownStream, 10049),
+    (
+        "Unknown premium server subscribe cooldown",
+        UnknownPremiumServerSubscribeCooldown,
+        10050
+    ),
+    ("Unknown guild template", UnknownGuildTemplate, 10057),
+    (
+        "Unknown discoverable server category",
+        UnknownDiscoverableServerCategory,
+        10059
+    ),
+    ("Unknown sticker", UnknownSticker, 10060),
+    ("Unknown interaction", UnknownInteraction, 10062),
+    (
+        "Unknown application command",
+        UnknownApplicationCommand,
+        10063
+    ),
+    (
+        "Unknown application command permissions",
+        UnknownApplicationCommandPermissions,
+        10066
+    ),
+    ("Unknown Stage Instance", UnknownStageInstance, 10067),
+    (
+        "Unknown Guild Member Verification Form",
+        UnknownGuildMemberVerificationForm,
+        10068
+    ),
+    (
+        "Unknown Guild Welcome Screen",
+        UnknownGuildWelcomeScreen,
+        10069
+    ),
+    (
+        "Unknown guild scheduled event",
+        UnknownGuildScheduledEvent,
+        10070
+    ),
+    (
+        "Unknown guild scheduled event user",
+        UnknownGuildScheduledEventUser,
+        10071
+    ),
+    (
+        "Bots cannot use this endpoint",
+        BotsCannotUseEndpoint,
+        20001
+    ),
+    (
+        "Only bots can use this endpoint",
+        OnlyBotsCanUseEndpoint,
+        20002
+    ),
+    (
+        "Explicit content cannot be sent to the desired recipient(s)",
+        ExplicitContentSendingBlocked,
+        20009
+    ),
+    (
+        "You are not authorized to perform this action on this application",
+        UnauthorizedApplicationAction,
+        20012
+    ),
+    (
+        "This action cannot be performed due to slowmode rate limit",
+        SlowModeRateLimitReached,
+        20016
+    ),
+    (
+        "Only the owner of this account can perform this action",
+        NotAccountOwner,
+        20018
+    ),
+    (
+        "Message cannot be edited due to announcement rate limits",
+        AnnouncementRateLimitReached,
+        20022
+    ),
+    (
+        "The channel you are writing has hit the write rate limit",
+        ChannelRateLimitReached,
+        20028
+    ),
+    (
+        "The write action you are performing on the server has hit the write rate limit",
+        WriteActionsReached,
+        20029
+    ),
+    (
+        "Your Stage topic, server name, server description, or channel names contain words that \
+         are not allowed",
+        UnallowedWords,
+        20031
+    ),
+    (
+        "Guild premium subscription level too low",
+        GuildPremiumTooLow,
+        20035
+    ),
+    (
+        "Maximum number of guilds reached (100)",
+        MaximumGuildsReached,
+        30001
+    ),
+    (
+        "Maximum number of friends reached (1000)",
+        MaximumFriendsReached,
+        30002
+    ),
+    (
+        "Maximum number of pins reached for the channel (50)",
+        MaximumPinsReached,
+        30003
+    ),
+    (
+        "Maximum number of recipients reached (10)",
+        MaximumRecipientsReached,
+        30004
+    ),
+    (
+        "Maximum number of guild roles reached (250)",
+        MaximumRolesReached,
+        30005
+    ),
+    (
+        "Maximum number of webhooks reached (10)",
+        MaximumWebhooksReached,
+        30007
+    ),
+    (
+        "Maximum number of emojis reached",
+        MaximumEmojisReached,
+        30008
+    ),
+    (
+        "Maximum number of reactions reached (20)",
+        MaximumReactionsReached,
+        30010
+    ),
+    (
+        "Maximum number of guild channels reached (500)",
+        MaximumGuildChannelsReached,
+        30013
+    ),
+    (
+        "Maximum number of attachments in a message reached (10)",
+        MaximumAttachmentsReached,
+        30015
+    ),
+    (
+        "Maximum number of invites reached (1000)",
+        MaximumInvitesReached,
+        30016
+    ),
+    (
+        "Maximum number of animated emojis reached",
+        MaximumAnimatedEmojisReached,
+        30018
+    ),
+    (
+        "Maximum number of server members reached",
+        MaximumGuildMembersReached,
+        30019
+    ),
+    (
+        "Maximum number of server categories has been reached",
+        MaximumServerCategoriesReached,
+        30030
+    ),
+    (
+        "Guild already has a template",
+        GuildTemplateAlreadyExist,
+        30031
+    ),
+    (
+        "Max number of thread participants has been reached (1000)",
+        ThreadMaxParticipants,
+        30033
+    ),
+    (
+        "Maximum number of bans for non-guild members have been exceeded",
+        MaximumNonGuildBansReached,
+        30035
+    ),
+    (
+        "Maximum number of bans fetches has been reached",
+        MaximumGuildBansFetchesReached,
+        30037
+    ),
+    (
+        "Maximum number of uncompleted guild scheduled events reached (100)",
+        MaximumUncompletedEventsReached,
+        30038
+    ),
+    (
+        "Maximum number of stickers reached",
+        MaximumStickersReached,
+        30039
+    ),
+    (
+        "Maximum number of prune requests has been reached. Try again later",
+        MaximumPruneRequestsReached,
+        30040
+    ),
+    (
+        "Maximum number of guild widget settings updates has been reached. Try again later",
+        MaximumGuildWidgets,
+        30042
+    ),
+    (
+        "Unauthorized. Provide a valid token and try again",
+        Unauthorized,
+        40001
+    ),
+    (
+        "You need to verify your account in order to perform this action",
+        AccountNeedsVerification,
+        40002
+    ),
+    (
+        "You are opening direct messages too fast",
+        OpeningDirectMessageRateLimitReached,
+        40003
+    ),
+    (
+        "Request entity too large. Try sending something smaller in size",
+        RequestEntityTooLarge,
+        40005
+    ),
+    (
+        "This feature has been temporarily disabled server-side",
+        FeatureTemporarilyDisabled,
+        40006
+    ),
+    (
+        "The user is banned from this guild",
+        UserBannedFromGuild,
+        40007
+    ),
+    (
+        "Target user is not connected to voice",
+        UserNotInVoice,
+        40032
+    ),
+    (
+        "This message has already been crossposted",
+        MessageAlreadyCrossposted,
+        40033
+    ),
+    (
+        "An application command with that name already exists",
+        CommandNameAlreadyExists,
+        40041
+    ),
+    ("Missing access", Missingaccess, 50001),
+    ("Invalid account type", InvalidAccountType, 50002),
+    (
+        "Cannot execute action on a DM channel",
+        InvalidDMChannelAction,
+        50003
+    ),
+    ("Guild widget disabled", GuildWidgetDisabled, 50004),
+    (
+        "Cannot edit a message authored by another user",
+        MessageNotAuthoredByUser,
+        50005
+    ),
+    ("Cannot send an empty message", EmptyMessage, 50006),
+    (
+        "Cannot send messages to this user",
+        CannotSendMessageToUser,
+        50007
+    ),
+    (
+        "Cannot send messages in a voice channel",
+        CannotSendMessagesInVoiceChannel,
+        50008
+    ),
+    (
+        "Channel verification level is too high for you to gain access",
+        VerificationLevelTooHigh,
+        50009
+    ),
+    (
+        "OAuth2 application does not have a bot",
+        OAuthApplicationHasNoBot,
+        50010
+    ),
+    (
+        "OAuth2 application limit reached",
+        OAuthApplicationLimitReached,
+        50011
+    ),
+    ("Invalid OAuth2 state", InvalidOAuthSstate, 50012),
+    (
+        "You lack permissions to perform that action",
+        PermissionsLacking,
+        50013
+    ),
+    (
+        "Invalid authentication token provided",
+        InvalidAuthenticationTokenProvided,
+        50014
+    ),
+    ("Note was too long", NoteTooLong, 50015),
+    (
+        "Provided too few or too many messages to delete. Must provide at least 2 and fewer than \
+         100 messages to delete",
+        InvalidMessageDeleteRange,
+        50016
+    ),
+    (
+        "A message can only be pinned to the channel it was sent in",
+        MessagePinnedInWrongChannel,
+        50019
+    ),
+    (
+        "Invite code was either invalid or taken",
+        InviteCodeInvalidOrTaken,
+        50020
+    ),
+    (
+        "Cannot execute action on a system message",
+        InvalidActionOnSystemMessage,
+        50021
+    ),
+    (
+        "Cannot execute action on this channel type",
+        CannotExecuteActionOnChannelType,
+        50024
+    ),
+    (
+        "Invalid OAuth2 access token provided",
+        InvalidOAuthAccessToken,
+        50025
+    ),
+    ("Missing required OAuth2 scope", MissingOAuthScope, 50026),
+    ("Invalid webhook token provided", InvalidWebhookToken, 50027),
+    ("Invalid role", InvalidRole, 50028),
+    ("Invalid recipient(s)", InvalidRecipient, 50033),
+    (
+        "A message provided was too old to bulk delete",
+        MessageTooOldToBulkDelete,
+        50034
+    ),
+    (
+        "Invalid form body (returned for both application/json and multipart/form-data bodies), \
+         or invalid Content-Type provided",
+        InvalidFormBodyOrContentType,
+        50035
+    ),
+    (
+        "An invite was accepted to a guild the application's bot is not in",
+        InviteAcceptedToGuildBotNotIn,
+        50036
+    ),
+    ("Invalid API version provided", InvalidApiVersion, 50041),
+    (
+        "File uploaded exceeds the maximum size",
+        FileTooLarge,
+        50045
+    ),
+    ("Invalid file uploaded", InvalidFileUploaded, 50046),
+    ("Cannot self-redeem this gift", CannotSelfRedeemGift, 50054),
+    ("Invalid Guild", InvalidGuild, 50055),
+    (
+        "Payment source required to redeem gift",
+        PaymentRequiredForGift,
+        50070
+    ),
+    (
+        "Cannot delete a channel required for Community guilds",
+        CommunityGuildRequired,
+        50074
+    ),
+    ("Invalid sticker sent", InvalidStickerSent, 50081),
+    (
+        "Tried to perform an operation on an archived thread, such as editing a message or adding \
+         a user to the thread",
+        ThreadArchived,
+        50083
+    ),
+    (
+        "Invalid thread notification settings",
+        ThreadInvalidNotificationSettings,
+        50084
+    ),
+    (
+        "`before` value is earlier than the thread creation date",
+        ThreadInvalidBeforeValue,
+        50085
+    ),
+    (
+        "This server is not available in your location",
+        ServerNotAvailableLocation,
+        50095
+    ),
+    (
+        "This server needs monetization enabled in order to perform this action",
+        ServerNeedsMonetiazation,
+        50097
+    ),
+    (
+        "This server needs more boosts to perform this action",
+        ServerNeedsBoosts,
+        50101
+    ),
+    (
+        "The request body contains invalid JSON",
+        RequestInvalidJson,
+        50109
+    ),
+    (
+        "Two factor is required for this operation",
+        TwoFactorRequired,
+        60003
+    ),
+    ("No users with DiscordTag exist", NoSuchUser, 80004),
+    ("Reaction was blocked", ReactionBlocked, 90001),
+    (
+        "API resource is currently overloaded. Try again a little later",
+        ApiResourceOverloaded,
+        130_000
+    ),
+    ("The Stage is already open", StageAlreadyOpen, 150_006),
+    (
+        "Cannot reply without permission to read message history",
+        CannotReplyWithoutMessageHistory,
+        160_002
+    ),
+    (
+        "A thread has already been created for this message",
+        ThreadAlreadyCreated,
+        160_004
+    ),
+    ("Thread is locked", ThreadLocked, 160_005),
+    (
+        "Maximum number of active threads reached",
+        MaxActiveThreads,
+        160_006
+    ),
+    (
+        "Maximum number of active announcement threads reached",
+        MaxActiveAnnouncementThreads,
+        160_007
+    ),
+    (
+        "Invalid JSON for uploaded Lottie file",
+        InvalidLottieJson,
+        170_001
+    ),
+    (
+        "Uploaded Lotties cannot contain rasterized images such as PNG or JPEG",
+        InvalidLottieContent,
+        170_002
+    ),
+    (
+        "Sticker maximum framerate exceeded",
+        StickerMaximumFramerateExceeded,
+        170_003
+    ),
+    (
+        "Sticker frame count exceeds maximum of 1000 frames",
+        StickerFrameCountExceedsMaximum,
+        170_004
+    ),
+    (
+        "Lottie animation maximum dimensions exceeded",
+        LottieDimensionsTooLarge,
+        170_005
+    ),
+    (
+        "Sticker frame rate is either too small or too large",
+        InvalidStickerFrameRate,
+        170_006
+    ),
+    (
+        "Sticker animation duration exceeds maximum of 5 seconds",
+        StickerAnimationDurationExceedsMaximum,
+        170_007
+    ),
+    (
+        "Cannot update a finished event",
+        CannotUpdateFinishedEvent,
+        180_000
+    ),
+    (
+        "Failed to create stage needed for stage event",
+        FailedToCreateStage,
+        180_002
+    )
 ];
 
 impl<'de> Deserialize<'de> for ErrorCode {
