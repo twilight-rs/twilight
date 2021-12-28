@@ -103,6 +103,8 @@ jobs:
         run: cd twilight && cargo sync-readme --check
       - name: Run in util
         run: cd util && cargo sync-readme --check
+      - name: Run in validate
+        run: cd validate && cargo sync-readme --check
 
   # Lints
   clippy:

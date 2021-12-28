@@ -26,6 +26,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
 twilight-model = { default-features = false, path = "../model" }
+twilight-validate = { default-features = false, path = "../validate" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }

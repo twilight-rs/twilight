@@ -1,13 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
-};
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
     channel::Message,
@@ -16,58 +12,9 @@ use twilight_model::{
         Id,
     },
 };
-
-/// The error returned if the request can not be created as configured.
-#[derive(Debug)]
-pub struct GetChannelMessagesConfiguredError {
-    kind: GetChannelMessagesConfiguredErrorType,
-}
-
-impl GetChannelMessagesConfiguredError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &GetChannelMessagesConfiguredErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        GetChannelMessagesConfiguredErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for GetChannelMessagesConfiguredError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            GetChannelMessagesConfiguredErrorType::LimitInvalid { .. } => {
-                f.write_str("the limit is invalid")
-            }
-        }
-    }
-}
-
-impl Error for GetChannelMessagesConfiguredError {}
-
-/// Type of [`GetChannelMessagesConfiguredError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum GetChannelMessagesConfiguredErrorType {
-    /// The maximum number of messages to retrieve is either 0 or more than 100.
-    LimitInvalid,
-}
+use twilight_validate::request::{
+    get_channel_messages_limit as validate_get_channel_messages_limit, ValidationError,
+};
 
 struct GetChannelMessagesConfiguredFields {
     limit: Option<u64>,
@@ -115,13 +62,13 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`GetChannelMessagesConfiguredErrorType::LimitInvalid`] error
-    /// type if the amount is greater than 21600.
-    pub const fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesConfiguredError> {
-        if !validate_inner::get_channel_messages_limit(limit) {
-            return Err(GetChannelMessagesConfiguredError {
-                kind: GetChannelMessagesConfiguredErrorType::LimitInvalid,
-            });
+    /// Returns an error of type [`GetChannelMessages`] error type if the amount
+    /// is less than 1 or greater than 100.
+    ///
+    /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
+    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+        if let Err(source) = validate_get_channel_messages_limit(limit) {
+            return Err(source);
         }
 
         self.fields.limit = Some(limit);
