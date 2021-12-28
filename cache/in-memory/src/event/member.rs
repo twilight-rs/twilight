@@ -36,6 +36,7 @@ impl InMemoryCache {
         self.cache_user(Cow::Owned(member.user), Some(guild_id));
         let cached = CachedMember {
             avatar: member.avatar,
+            communication_disabled_until: member.communication_disabled_until,
             deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at,
@@ -74,6 +75,7 @@ impl InMemoryCache {
 
         let cached = CachedMember {
             avatar: member.avatar.to_owned(),
+            communication_disabled_until: member.communication_disabled_until.to_owned(),
             deaf: Some(member.deaf),
             guild_id,
             joined_at: member.joined_at,
@@ -108,6 +110,7 @@ impl InMemoryCache {
 
         let cached = CachedMember {
             avatar,
+            communication_disabled_until: member.communication_disabled_until.to_owned(),
             deaf,
             guild_id,
             joined_at: member.joined_at,

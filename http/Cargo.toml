@@ -12,7 +12,7 @@ name = "twilight-http"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.2"
+version = "0.8.3"
 
 [dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
@@ -26,6 +26,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
 twilight-model = { default-features = false, path = "../model" }
+twilight-validate = { default-features = false, path = "../validate" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
@@ -33,10 +34,9 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [features]
-default = ["decompression", "rustls", "tracing"]
+default = ["decompression", "rustls-native-roots", "tracing"]
 decompression = ["brotli"]
 native = ["hyper-tls"]
-rustls = ["rustls-native-roots"]
 rustls-native-roots = ["hyper-rustls/native-tokio"]
 rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
 trust-dns = ["hyper-trust-dns"]

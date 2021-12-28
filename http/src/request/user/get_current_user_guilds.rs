@@ -1,68 +1,17 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
-};
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
     id::{marker::GuildMarker, Id},
     user::CurrentUserGuild,
 };
-
-/// The error created when the current guilds can not be retrieved as configured.
-#[derive(Debug)]
-pub struct GetCurrentUserGuildsError {
-    kind: GetCurrentUserGuildsErrorType,
-}
-
-impl GetCurrentUserGuildsError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &GetCurrentUserGuildsErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        GetCurrentUserGuildsErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for GetCurrentUserGuildsError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            GetCurrentUserGuildsErrorType::LimitInvalid => f.write_str("the limit is invalid"),
-        }
-    }
-}
-
-impl Error for GetCurrentUserGuildsError {}
-
-/// Type of [`GetCurrentUserGuildsError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum GetCurrentUserGuildsErrorType {
-    /// The maximum number of guilds to retrieve is 0 or more than 200.
-    LimitInvalid,
-}
+use twilight_validate::request::{
+    get_current_user_guilds_limit as validate_get_current_user_guilds_limit, ValidationError,
+};
 
 struct GetCurrentUserGuildsFields {
     after: Option<Id<GuildMarker>>,
@@ -133,15 +82,14 @@ impl<'a> GetCurrentUserGuilds<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`GetCurrentUserGuildsErrorType::LimitInvalid`] error type if
-    /// the amount is greater than 200.
+    /// Returns an error of type [`GetCurrentUserGuilds`] if the name length is
+    /// too short or too long.
     ///
+    /// [`GetCurrentUserGuilds`]: twilight_validate::request::ValidationErrorType::GetCurrentUserGuilds
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
-    pub const fn limit(mut self, limit: u64) -> Result<Self, GetCurrentUserGuildsError> {
-        if !validate_inner::get_current_user_guilds_limit(limit) {
-            return Err(GetCurrentUserGuildsError {
-                kind: GetCurrentUserGuildsErrorType::LimitInvalid,
-            });
+    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+        if let Err(source) = validate_get_current_user_guilds_limit(limit) {
+            return Err(source);
         }
 
         self.fields.limit = Some(limit);

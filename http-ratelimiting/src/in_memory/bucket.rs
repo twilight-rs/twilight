@@ -47,7 +47,7 @@ pub struct Bucket {
     pub remaining: AtomicU64,
     /// Duration after the [`Self::started_at`] time the bucket will refresh.
     pub reset_after: AtomicU64,
-    /// When the bucket last had its headers updated.
+    /// When the bucket's ratelimit refresh countdown started.
     pub started_at: Mutex<Option<Instant>>,
 }
 
@@ -74,7 +74,7 @@ impl Bucket {
         self.remaining.load(Ordering::Relaxed)
     }
 
-    /// Duration after the last response that the bucket will refresh.
+    /// Duration after the [`started_at`] time the bucket will refresh.
     ///
     /// [`started_at`]: Self::started_at
     pub fn reset_after(&self) -> u64 {
@@ -119,15 +119,26 @@ impl Bucket {
 
     /// Update this bucket's ratelimit data after a request has been made.
     pub fn update(&self, ratelimits: Option<(u64, u64, u64)>) {
+        let bucket_limit = self.limit();
+
+        {
+            let mut started_at = self.started_at.lock().expect("bucket poisoned");
+
+            if started_at.is_none() {
+                started_at.replace(Instant::now());
+            }
+        }
+
         if let Some((limit, remaining, reset_after)) = ratelimits {
+            if bucket_limit != limit && bucket_limit == u64::max_value() {
+                self.reset_after.store(reset_after, Ordering::SeqCst);
+                self.limit.store(limit, Ordering::SeqCst);
+            }
+
             self.remaining.store(remaining, Ordering::Relaxed);
-            self.reset_after.store(reset_after, Ordering::SeqCst);
-            self.limit.store(limit, Ordering::SeqCst);
         } else {
             self.remaining.fetch_sub(1, Ordering::Relaxed);
-        };
-
-        *self.started_at.lock().expect("bucket poisoned") = Some(Instant::now());
+        }
     }
 }
 
@@ -180,8 +191,8 @@ pub(super) struct BucketQueueTask {
 }
 
 impl BucketQueueTask {
-    /// Timeout to wait for a new request before removing the bucket.
-    const REMOVAL_DELAY: Duration = Duration::from_secs(2);
+    /// Timeout to wait for response headers after initiating a request.
+    const WAIT: Duration = Duration::from_secs(10);
 
     /// Create a new task to manage the ratelimit for a [`Bucket`].
     pub fn new(
@@ -218,11 +229,15 @@ impl BucketQueueTask {
             #[cfg(feature = "tracing")]
             tracing::debug!(parent: &span, "starting to wait for response headers",);
 
-            match ticket_headers.await {
-                Ok(Some(headers)) => self.handle_headers(&headers).await,
-                Ok(None) => {
+            match timeout(Self::WAIT, ticket_headers).await {
+                Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
+                Ok(Ok(None)) => {
                     #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "request aborted");
+                }
+                Ok(Err(_)) => {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!(parent: &span, "ticket channel closed");
                 }
                 Err(_) => {
                     #[cfg(feature = "tracing")]
@@ -279,9 +294,7 @@ impl BucketQueueTask {
 
         self.wait_if_needed().await;
 
-        let wait = Duration::from_millis(self.bucket.reset_after()) + Self::REMOVAL_DELAY;
-
-        self.bucket.queue.pop(wait).await
+        self.bucket.queue.pop(Self::WAIT).await
     }
 
     /// Wait for this bucket to refresh if it isn't ready yet.

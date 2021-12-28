@@ -2,6 +2,13 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.8.1] - 2021-12-27
+
+The Command Parser crate has been deprecated in favor of Gateway or HTTP
+interactions and will be in critical bugfixing mode ([#1352] - [@zeylahellyer]).
+
+[#1352]: https://github.com/twilight-rs/twilight/pull/1352
+
 ## [0.8.0] - 2021-12-03
 
 This major version bump of the Command Parser crate is done to match all
@@ -164,6 +171,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.7.0
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.6.0

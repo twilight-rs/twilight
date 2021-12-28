@@ -604,7 +604,7 @@ impl Display for RouteDisplay<'_> {
                 f.write_str("/followers")
             }
             Route::GetActiveThreads { guild_id } => {
-                f.write_str("guild_id/")?;
+                f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/threads/active")
@@ -668,7 +668,7 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("/permissions")
             }
-            Route::GetCurrentUserApplicationInfo => f.write_str("/oauth2/applications/@me"),
+            Route::GetCurrentUserApplicationInfo => f.write_str("oauth2/applications/@me"),
             Route::GetCurrentUser | Route::UpdateCurrentUser => f.write_str("users/@me"),
             Route::GetGateway => f.write_str("gateway"),
             Route::GetGuild {
@@ -2347,7 +2347,7 @@ mod tests {
         let route = Route::GetActiveThreads { guild_id: GUILD_ID };
         assert_eq!(
             route.display().to_string(),
-            format!("guild_id/{guild_id}/threads/active", guild_id = GUILD_ID)
+            format!("guilds/{guild_id}/threads/active", guild_id = GUILD_ID)
         );
     }
 
@@ -2405,7 +2405,7 @@ mod tests {
     #[test]
     fn test_get_current_user_application_info() {
         let route = Route::GetCurrentUserApplicationInfo;
-        assert_eq!(route.display().to_string(), "/oauth2/applications/@me");
+        assert_eq!(route.display().to_string(), "oauth2/applications/@me");
     }
 
     #[test]
