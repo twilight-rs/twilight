@@ -77,24 +77,24 @@ labels:
 
   - label: "m-breaking change"
     matcher:
-      title: "^[a-z]+(\\(.+\\))!: .*"
+      title: "^[a-z]+(\\(.+\\))?!: .*"
 
   - label: "t-chore"
     matcher:
-      title: "^chore(\\(.+\\))!?: .*"
+      title: "^chore(\\(.+\\))?!?: .*"
 
   - label: "t-docs"
     matcher:
-      title: "^docs(\\(.+\\))!?: .*"
+      title: "^docs(\\(.+\\))?!?: .*"
 
   - label: "t-feature"
     matcher:
-      title: "^feat(\\(.+\\))!?: .*"
+      title: "^feat(\\(.+\\))?!?: .*"
 
   - label: "t-fix"
     matcher:
-      title: "^fix(\\(.+\\))!?: .*"
+      title: "^fix(\\(.+\\))?!?: .*"
 
   - label: "t-refactor"
     matcher:
-      title: "^refactor(\\(.+\\))!?: .*"
+      title: "^refactor(\\(.+\\))?!?: .*"
