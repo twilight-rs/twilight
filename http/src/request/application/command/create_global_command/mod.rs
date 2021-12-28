@@ -9,7 +9,7 @@ pub use self::{
 
 use crate::Client;
 use twilight_model::id::{marker::ApplicationMarker, Id};
-use twilight_validate::command::{name as validate_name, CommandValidationError};
+use twilight_validate::command::CommandValidationError;
 
 /// Create a new global command.
 ///
@@ -26,21 +26,23 @@ pub struct CreateGlobalCommand<'a> {
 }
 
 impl<'a> CreateGlobalCommand<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
         name: &'a str,
-    ) -> Result<Self, CommandValidationError> {
-        validate_name(name)?;
-
-        Ok(Self {
+    ) -> Self {
+        Self {
             application_id,
             http,
             name,
-        })
+        }
     }
 
     /// Create a new chat input global command.
+    ///
+    /// The command name must only contain alphanumeric characters and lowercase
+    /// variants must be used where possible. Special characters `-` and `_` are
+    /// allowed.
     ///
     /// The description must be between 1 and 100 characters in length. Creating
     /// a command with the same name as an already-existing global command will
@@ -48,9 +50,12 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`DescriptionInvalid`] error type if the
+    /// Returns an error of type [`NameInvalid`] if the command name is invalid.
+    ///
+    /// Returns an error of type [`DescriptionInvalid`] if the
     /// command description is not between 1 and 100 characters.
     ///
+    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn chat_input(
@@ -66,8 +71,14 @@ impl<'a> CreateGlobalCommand<'a> {
     /// command will overwrite the old command. See [the discord docs] for more
     /// information.
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the command name is
+    /// not between 1 and 32 characters.
+    ///
+    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub const fn message(self) -> CreateGlobalMessageCommand<'a> {
+    pub fn message(self) -> Result<CreateGlobalMessageCommand<'a>, CommandValidationError> {
         CreateGlobalMessageCommand::new(self.http, self.application_id, self.name)
     }
 
@@ -77,8 +88,14 @@ impl<'a> CreateGlobalCommand<'a> {
     /// command will overwrite the old command. See [the discord docs] for more
     /// information.
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the command name is
+    /// not between 1 and 32 characters.
+    ///
+    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub const fn user(self) -> CreateGlobalUserCommand<'a> {
+    pub fn user(self) -> Result<CreateGlobalUserCommand<'a>, CommandValidationError> {
         CreateGlobalUserCommand::new(self.http, self.application_id, self.name)
     }
 }

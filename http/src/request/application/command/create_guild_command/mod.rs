@@ -12,7 +12,7 @@ use twilight_model::id::{
     marker::{ApplicationMarker, GuildMarker},
     Id,
 };
-use twilight_validate::command::{name as validate_name, CommandValidationError};
+use twilight_validate::command::CommandValidationError;
 
 /// Create a new command in a guild.
 ///
@@ -31,23 +31,25 @@ pub struct CreateGuildCommand<'a> {
 }
 
 impl<'a> CreateGuildCommand<'a> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-    ) -> Result<Self, CommandValidationError> {
-        validate_name(name)?;
-
-        Ok(Self {
+    ) -> Self {
+        Self {
             application_id,
             guild_id,
             http,
             name,
-        })
+        }
     }
 
     /// Create a chat input command in a guild.
+    ///
+    /// The command name must only contain alphanumeric characters and lowercase
+    /// variants must be used where possible. Special characters `-` and `_` are
+    /// allowed.
     ///
     /// The description must be between 1 and 100 characters in length. Creating
     /// a guild command with the same name as an already-existing guild command
@@ -56,9 +58,12 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`NameInvalid`] if the command name is invalid.
+    ///
     /// Returns an error of type [`DescriptionInvalid`] error type if the
     /// command description is not between 1 and 100 characters.
     ///
+    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn chat_input(
@@ -80,8 +85,14 @@ impl<'a> CreateGuildCommand<'a> {
     /// command in the same guild will overwrite the old command. See [the
     /// discord docs] for more information.
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the command name is
+    /// not between 1 and 32 characters.
+    ///
+    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub const fn message(self) -> CreateGuildMessageCommand<'a> {
+    pub fn message(self) -> Result<CreateGuildMessageCommand<'a>, CommandValidationError> {
         CreateGuildMessageCommand::new(self.http, self.application_id, self.guild_id, self.name)
     }
 
@@ -91,8 +102,14 @@ impl<'a> CreateGuildCommand<'a> {
     /// command in the same guild will overwrite the old command. See [the
     /// discord docs] for more information.
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the command name is
+    /// not between 1 and 32 characters.
+    ///
+    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub const fn user(self) -> CreateGuildUserCommand<'a> {
+    pub fn user(self) -> Result<CreateGuildUserCommand<'a>, CommandValidationError> {
         CreateGuildUserCommand::new(self.http, self.application_id, self.guild_id, self.name)
     }
 }
