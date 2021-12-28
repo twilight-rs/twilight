@@ -35,7 +35,6 @@ pub use twilight_http_ratelimiting::request::Method;
 
 use crate::error::{Error, ErrorType};
 use hyper::header::{HeaderName, HeaderValue};
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Serialize, Serializer};
 use std::iter;
 
@@ -69,10 +68,10 @@ pub(crate) fn audit_header(
     reason: &str,
 ) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>, Error> {
     let header_name = HeaderName::from_static("x-audit-log-reason");
-    let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC).to_string();
-    let header_value = HeaderValue::from_str(&encoded_reason).map_err(|e| Error {
+    let encoded_reason = urlencoding::encode(reason);
+    let header_value = encoded_reason.parse().map_err(|e| Error {
         kind: ErrorType::CreatingHeader {
-            name: encoded_reason.clone(),
+            name: encoded_reason.into_owned(),
         },
         source: Some(Box::new(e)),
     })?;

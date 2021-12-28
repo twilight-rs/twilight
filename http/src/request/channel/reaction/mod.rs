@@ -11,9 +11,9 @@ pub use self::{
     delete_all_reactions::DeleteAllReactions, delete_reaction::DeleteReaction,
     get_reactions::GetReactions,
 };
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::EmojiId;
+use urlencoding::Encoded;
 
 /// Handle a reaction of either a custom or unicode emoji.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -102,9 +102,7 @@ impl Display for RequestReactionTypeDisplay<'_> {
 
                 Display::fmt(id, f)
             }
-            RequestReactionType::Unicode { name } => {
-                Display::fmt(&utf8_percent_encode(name, NON_ALPHANUMERIC), f)
-            }
+            RequestReactionType::Unicode { name } => Display::fmt(&Encoded::new(name), f),
         }
     }
 }

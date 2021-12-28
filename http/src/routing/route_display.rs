@@ -1,5 +1,6 @@
+use urlencoding::Encoded;
+
 use super::route::Route;
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -110,7 +111,7 @@ impl Display for RouteDisplay<'_> {
 
                 if let Some(reason) = reason {
                     f.write_str("reason=")?;
-                    let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC);
+                    let encoded_reason = Encoded::new(reason);
 
                     Display::fmt(&encoded_reason, f)?;
                 }
