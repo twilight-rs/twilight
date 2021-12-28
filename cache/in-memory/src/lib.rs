@@ -456,7 +456,7 @@ impl InMemoryCache {
     ///
     /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
     /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
-    pub fn channel_messages(&self, channel_id: ChannelId) -> Option<ChannelMessages<'_>> {
+    pub fn channel_messages(&self, channel_id: Id<ChannelMarker>) -> Option<ChannelMessages<'_>> {
         let channel = self.channel_messages.get(&channel_id)?;
 
         Some(ChannelMessages::new(channel))

@@ -206,7 +206,7 @@ mod tests {
         };
 
         cache.update(&MessageCreate(msg.clone()));
-        msg.id = MessageId::new(5).expect("non zero");
+        msg.id = Id::new(5).expect("non zero");
         cache.update(&MessageCreate(msg));
 
         {
@@ -232,12 +232,12 @@ mod tests {
         }
 
         let mut iter = cache
-            .channel_messages(ChannelId::new(2).expect("non zero"))
+            .channel_messages(Id::new(2).expect("non zero"))
             .expect("channel is in cache");
 
         // messages are iterated over in descending order from insertion
-        assert_eq!(Some(5), iter.next().map(MessageId::get));
-        assert_eq!(Some(4), iter.next().map(MessageId::get));
+        assert_eq!(Some(5), iter.next().map(Id::get));
+        assert_eq!(Some(4), iter.next().map(Id::get));
         assert!(iter.next().is_none());
     }
 }

@@ -297,11 +297,13 @@ impl<'a, K: Eq + Hash, V> Iterator for ResourceIter<'a, K, V> {
 /// ```
 pub struct ChannelMessages<'a> {
     index: usize,
-    message_ids: Ref<'a, ChannelId, VecDeque<MessageId>>,
+    message_ids: Ref<'a, Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>,
 }
 
 impl<'a> ChannelMessages<'a> {
-    pub(super) const fn new(message_ids: Ref<'a, ChannelId, VecDeque<MessageId>>) -> Self {
+    pub(super) const fn new(
+        message_ids: Ref<'a, Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>,
+    ) -> Self {
         Self {
             index: 0,
             message_ids,
@@ -310,7 +312,7 @@ impl<'a> ChannelMessages<'a> {
 }
 
 impl<'a> Iterator for ChannelMessages<'a> {
-    type Item = MessageId;
+    type Item = Id<MessageMarker>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(message_id) = self.message_ids.get(self.index) {
