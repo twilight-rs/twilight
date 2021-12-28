@@ -200,7 +200,18 @@ pub struct Client {
     pub(crate) application_id: AtomicU64,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
-    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
+    #[cfg(any(
+        feature = "native",
+        feature = "rustls-native-roots",
+        feature = "rustls-webpki-roots"
+    ))]
+    http: HyperClient<HttpsConnector<HttpConnector>>,
+    #[cfg(not(any(
+        feature = "native",
+        feature = "rustls-native-roots",
+        feature = "rustls-webpki-roots"
+    )))]
+    http: HyperClient<HttpConnector>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Box<dyn Ratelimiter>>,
     timeout: Duration,
@@ -215,7 +226,6 @@ pub struct Client {
 
 impl Client {
     /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
-    #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
     pub fn new(token: String) -> Self {
         ClientBuilder::default().token(token).build()
     }

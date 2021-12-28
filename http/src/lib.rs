@@ -121,7 +121,6 @@
     clippy::semicolon_if_nothing_returned,
     clippy::unnecessary_wraps
 )]
-#![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod api_error;
 pub mod client;
@@ -136,12 +135,3 @@ mod json;
 pub const API_VERSION: u8 = 9;
 
 pub use crate::{client::Client, error::Error, response::Response};
-
-#[cfg(not(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-)))]
-compile_error!(
-    "Either the `native`, `rustls-native-roots` or `rustls-webpki-roots` feature must be enabled."
-);
