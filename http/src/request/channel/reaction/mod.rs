@@ -35,62 +35,9 @@ pub enum RequestReactionType<'a> {
     },
 }
 
-impl<'a> RequestReactionType<'a> {
-    /// Create a display formatter for a reaction type resulting in a format
-    /// acceptable for use in URLs.
-    ///
-    /// # Examples
-    ///
-    /// Format the transgender flag for use in a URL:
-    ///
-    /// ```
-    /// use twilight_http::request::channel::reaction::RequestReactionType;
-    ///
-    /// let reaction = RequestReactionType::Unicode {
-    ///     name: "🏳️‍⚧️",
-    /// };
-    ///
-    /// // Retrieve the display formatter.
-    /// let display = reaction.display();
-    ///
-    /// // And now format it into a percent-encoded string and then check it.
-    /// assert_eq!(
-    ///     "%F0%9F%8F%B3%EF%B8%8F%E2%80%8D%E2%9A%A7%EF%B8%8F",
-    ///     display.to_string(),
-    /// );
-    /// ```
-    pub const fn display(&'a self) -> RequestReactionTypeDisplay<'a> {
-        RequestReactionTypeDisplay(self)
-    }
-}
-
-/// Format a [`RequestReactionType`] into a format acceptable for use in URLs.
-///
-/// # Examples
-///
-/// Format a custom reaction for use in a URL:
-///
-/// ```
-/// use twilight_http::request::channel::reaction::RequestReactionType;
-/// use twilight_model::id::Id;
-///
-/// let reaction = RequestReactionType::Custom {
-///     id: Id::new(123).expect("non zero"),
-///     name: Some("rarity"),
-/// };
-///
-/// // Retrieve the display formatter.
-/// let display = reaction.display();
-///
-/// // And now format it into an acceptable string and then check it.
-/// assert_eq!("rarity:123", display.to_string());
-/// ```
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RequestReactionTypeDisplay<'a>(&'a RequestReactionType<'a>);
-
-impl Display for RequestReactionTypeDisplay<'_> {
+impl Display for RequestReactionType<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self.0 {
+        match self {
             RequestReactionType::Custom { id, name } => {
                 if let Some(name) = name {
                     f.write_str(name)?;
@@ -115,7 +62,7 @@ mod tests {
     // only be enabled on a module level.
     #![allow(clippy::non_ascii_literal)]
 
-    use super::{RequestReactionType, RequestReactionTypeDisplay};
+    use super::RequestReactionType;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
         fmt::{Debug, Display},
@@ -125,8 +72,7 @@ mod tests {
 
     assert_fields!(RequestReactionType::Custom: id, name);
     assert_fields!(RequestReactionType::Unicode: name);
-    assert_impl_all!(RequestReactionTypeDisplay<'_>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(RequestReactionType<'_>: Clone, Copy, Debug, Eq, Hash, PartialEq, Send, Sync);
+    assert_impl_all!(RequestReactionType<'_>: Clone, Copy, Debug, Display, Eq, Hash, PartialEq, Send, Sync);
 
     #[test]
     fn test_display_custom_with_name() {
@@ -135,7 +81,7 @@ mod tests {
             name: Some("foo"),
         };
 
-        assert_eq!("foo:123", reaction.display().to_string());
+        assert_eq!("foo:123", reaction.to_string());
     }
 
     #[test]
@@ -145,7 +91,7 @@ mod tests {
             name: None,
         };
 
-        assert_eq!("e:123", reaction.display().to_string());
+        assert_eq!("e:123", reaction.to_string());
     }
 
     /// Test that unicode reactions format with percent encoding.
@@ -159,7 +105,7 @@ mod tests {
 
         assert_eq!(
             "%F0%9F%8F%B3%EF%B8%8F%E2%80%8D%F0%9F%8C%88",
-            reaction.display().to_string()
+            reaction.to_string()
         );
     }
 }
