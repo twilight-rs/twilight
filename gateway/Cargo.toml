@@ -54,10 +54,9 @@ tokio = { default-features = false, features = ["macros", "rt-multi-thread"], ve
 proc-macro-hack = { default-features = false, version = "0.5.7" }
 
 [features]
-default = ["compression", "rustls", "tracing", "flate2/zlib"]
+default = ["compression", "rustls-native-roots", "tracing", "flate2/zlib"]
 compression = ["flate2"]
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
-rustls = ["rustls-native-roots"]
 rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
 zlib-simd = ["compression", "flate2/zlib-ng-compat"]

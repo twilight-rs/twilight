@@ -25,8 +25,7 @@ tracing = { default-features = false, features = ["std", "attributes"], optional
 static_assertions = { default-features = false, version = "1" }
 
 [features]
-default = ["rustls", "tracing"]
+default = ["rustls-native-roots", "tracing"]
 native = ["twilight-http/native"]
-rustls = ["rustls-native-roots"]
 rustls-native-roots = ["twilight-http/rustls-native-roots"]
 rustls-webpki-roots = ["twilight-http/rustls-webpki-roots"]
