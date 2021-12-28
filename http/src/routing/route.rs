@@ -1251,7 +1251,7 @@ impl<'a> Route<'a> {
             Self::CreateGuild => Path::Guilds,
             Self::CreateGuildFromTemplate { template_code, .. }
             | Self::GetTemplate { template_code, .. } => {
-                Path::GuildsTemplatesCode(template_code.to_string().into_boxed_str())
+                Path::GuildsTemplatesCode(template_code.to_string())
             }
             Self::CreateGuildCommand { application_id, .. }
             | Self::DeleteGuildCommand { application_id, .. }
@@ -1336,10 +1336,7 @@ impl<'a> Route<'a> {
                 application_id,
                 interaction_token,
                 ..
-            } => Path::WebhooksIdTokenMessagesId(
-                application_id,
-                interaction_token.to_string().into_boxed_str(),
-            ),
+            } => Path::WebhooksIdTokenMessagesId(application_id, interaction_token.to_string()),
             Self::DeleteInvite { .. }
             | Self::GetInvite { .. }
             | Self::GetInviteWithExpiration { .. } => Path::InvitesCode,
@@ -1373,7 +1370,7 @@ impl<'a> Route<'a> {
                 guild_id,
                 template_code,
                 ..
-            } => Path::GuildsIdTemplatesCode(guild_id, template_code.to_string().into_boxed_str()),
+            } => Path::GuildsIdTemplatesCode(guild_id, template_code.to_string()),
             Self::DeleteWebhookMessage {
                 webhook_id, token, ..
             }
@@ -1382,7 +1379,7 @@ impl<'a> Route<'a> {
             }
             | Self::UpdateWebhookMessage {
                 webhook_id, token, ..
-            } => Path::WebhooksIdTokenMessagesId(webhook_id, token.to_string().into_boxed_str()),
+            } => Path::WebhooksIdTokenMessagesId(webhook_id, token.to_string()),
             Self::DeleteWebhook {
                 webhook_id,
                 token: Some(token),
@@ -1399,7 +1396,7 @@ impl<'a> Route<'a> {
             | Self::UpdateWebhook {
                 webhook_id,
                 token: Some(token),
-            } => Path::WebhooksIdToken(webhook_id, token.to_string().into_boxed_str()),
+            } => Path::WebhooksIdToken(webhook_id, token.to_string()),
             Self::DeleteWebhook { webhook_id, .. }
             | Self::GetWebhook { webhook_id, .. }
             | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(webhook_id)),
