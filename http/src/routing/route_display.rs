@@ -1,7 +1,6 @@
-use urlencoding::Encoded;
-
 use super::route::Route;
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use urlencoding::Encoded;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RouteDisplay<'a>(&'a Route<'a>);
