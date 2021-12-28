@@ -9,8 +9,8 @@ Changelog for `twilight-http`.
 Support guild member timeouts via
 `UpdateGuildMember::communication_disabled_until` ([#1342] - [@HTG-YT]).
 
-Support pre-flight cancelation to cancel requests after passing ratelimit queues
-but before sending ([#1353] - [@zeylahellyer]).
+Support pre-flight cancellation to cancel requests after passing ratelimit
+queues but before sending ([#1353] - [@zeylahellyer]).
 
 ### Fixes
 
