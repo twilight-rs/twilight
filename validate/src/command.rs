@@ -541,12 +541,12 @@ mod tests {
         assert!(chat_input_name("Hello").is_err()); // Latin language with uppercase
         assert!(chat_input_name("hello!").is_err()); // Latin language with non-alphanumeric
 
-        assert!(chat_input_name("здрасти").is_ok()); // Russian
-        assert!(chat_input_name("Здрасти").is_err()); // Russian with uppercase
-        assert!(chat_input_name("здрасти!").is_err()); // Russian with non-alphanumeric
+        assert!(chat_input_name("\u{437}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}").is_ok()); // Russian
+        assert!(chat_input_name("\u{417}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}").is_err()); // Russian with uppercase
+        assert!(chat_input_name("\u{437}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}!").is_err()); // Russian with non-alphanumeric
 
-        assert!(chat_input_name("你好").is_ok()); // Chinese (no upper and lowercase variants)
-        assert!(chat_input_name("你好。").is_err()); // Chinese with non-alphanumeric
+        assert!(chat_input_name("\u{4f60}\u{597d}").is_ok()); // Chinese (no upper and lowercase variants)
+        assert!(chat_input_name("\u{4f60}\u{597d}\u{3002}").is_err()); // Chinese with non-alphanumeric
     }
 
     #[test]
