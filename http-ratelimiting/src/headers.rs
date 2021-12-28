@@ -254,6 +254,7 @@ impl Present {
     /// Consume the present ratelimit headers, returning the owned bucket if
     /// available.
     #[must_use]
+    #[allow(clippy::missing_const_for_fn)]
     pub fn into_bucket(self) -> Option<String> {
         self.bucket
     }
