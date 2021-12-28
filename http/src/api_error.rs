@@ -15,8 +15,7 @@ macro_rules! error_code {
         #[non_exhaustive]
         pub enum ErrorCode {
             $(
-                // display + "." = rustdoc comment
-                #[doc = concat!($display, ".")]
+                #[doc = $display]
                 $name
             ),*,
             /// A status code that Twilight doesn't have registered.
