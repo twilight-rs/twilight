@@ -390,7 +390,7 @@ pub enum Route<'a> {
     /// Route information to get the current user as a member object within a guild.
     GetCurrentUserGuildMember {
         /// The ID of the guild.
-        guild_id: u64
+        guild_id: u64,
     },
     /// Route information to get an emoji by ID within a guild.
     GetEmoji {
