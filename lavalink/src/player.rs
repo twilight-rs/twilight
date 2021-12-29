@@ -147,9 +147,9 @@ impl Player {
             event
         );
 
-        match event {
-            OutgoingEvent::Pause(ref event) => self.paused.store(event.pause, Ordering::Release),
-            OutgoingEvent::Volume(ref event) => {
+        match &event {
+            OutgoingEvent::Pause(event) => self.paused.store(event.pause, Ordering::Release),
+            OutgoingEvent::Volume(event) => {
                 self.volume.store(event.volume as u16, Ordering::Release)
             }
             _ => {}

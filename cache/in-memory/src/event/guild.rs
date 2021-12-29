@@ -342,14 +342,14 @@ mod tests {
         // guild ID to it. So now, the channel's guild ID is present with the
         // correct value.
         match channel.resource() {
-            GuildChannel::Text(ref c) => {
+            GuildChannel::Text(c) => {
                 assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
 
         match thread.resource() {
-            GuildChannel::PublicThread(ref c) => {
+            GuildChannel::PublicThread(c) => {
                 assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
             }
             _ => panic!("{:?}", channel),

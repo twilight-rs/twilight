@@ -2744,7 +2744,7 @@ impl Client {
             .uri(&url);
 
         if use_authorization_token {
-            if let Some(ref token) = self.token {
+            if let Some(token) = &self.token {
                 let value = HeaderValue::from_str(token).map_err(|source| {
                     #[allow(clippy::borrow_interior_mutable_const)]
                     let name = AUTHORIZATION.to_string();

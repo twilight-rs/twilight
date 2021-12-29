@@ -57,7 +57,7 @@ impl Chunking {
         };
 
         #[cfg(feature = "tracing")]
-        if let ApiError::General(ref general) = error {
+        if let ApiError::General(general) = &error {
             use crate::api_error::ErrorCode;
 
             if let ErrorCode::Other(num) = general.code {
@@ -374,7 +374,7 @@ impl<T> ResponseFuture<T> {
         &mut self,
         pre_flight: Box<dyn FnOnce() -> bool + Send + 'static>,
     ) -> bool {
-        if let ResponseFutureStage::RatelimitQueue(ref mut queue) = &mut self.stage {
+        if let ResponseFutureStage::RatelimitQueue(queue) = &mut self.stage {
             queue.pre_flight_check = Some(pre_flight);
 
             true
@@ -415,10 +415,10 @@ impl<T> ResponseFuture<T> {
     /// Necessary for [`MemberBody`] and [`MemberListBody`] deserialization.
     pub(crate) fn set_guild_id(&mut self, guild_id: GuildId) {
         match &mut self.stage {
-            ResponseFutureStage::InFlight(ref mut stage) => {
+            ResponseFutureStage::InFlight(stage) => {
                 stage.guild_id.replace(guild_id);
             }
-            ResponseFutureStage::RatelimitQueue(ref mut stage) => {
+            ResponseFutureStage::RatelimitQueue(stage) => {
                 stage.guild_id.replace(guild_id);
             }
             _ => {}
