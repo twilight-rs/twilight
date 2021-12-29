@@ -33,7 +33,7 @@ pub enum Method {
 impl Method {
     /// Convert the method into the equivalent [`http::Method`].
     #[must_use]
-    pub const fn into_http(self) -> HttpMethod {
+    pub const fn to_http(self) -> HttpMethod {
         match self {
             Self::Delete => HttpMethod::DELETE,
             Self::Get => HttpMethod::GET,
@@ -484,10 +484,10 @@ mod tests {
 
     #[test]
     fn test_method_conversions() {
-        assert_eq!(HttpMethod::DELETE, Method::Delete.into_http());
-        assert_eq!(HttpMethod::GET, Method::Get.into_http());
-        assert_eq!(HttpMethod::PATCH, Method::Patch.into_http());
-        assert_eq!(HttpMethod::POST, Method::Post.into_http());
-        assert_eq!(HttpMethod::PUT, Method::Put.into_http());
+        assert_eq!(HttpMethod::DELETE, Method::Delete.to_http());
+        assert_eq!(HttpMethod::GET, Method::Get.to_http());
+        assert_eq!(HttpMethod::PATCH, Method::Patch.to_http());
+        assert_eq!(HttpMethod::POST, Method::Post.to_http());
+        assert_eq!(HttpMethod::PUT, Method::Put.to_http());
     }
 }

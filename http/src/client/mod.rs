@@ -2222,9 +2222,7 @@ impl Client {
         #[cfg(feature = "tracing")]
         tracing::debug!("URL: {:?}", url);
 
-        let mut builder = hyper::Request::builder()
-            .method(method.into_http())
-            .uri(&url);
+        let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);
 
         if use_authorization_token {
             if let Some(ref token) = self.token {
