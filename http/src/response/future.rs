@@ -56,15 +56,6 @@ impl Chunking {
             }
         };
 
-        #[cfg(feature = "tracing")]
-        if let ApiError::General(ref general) = error {
-            use crate::api_error::ErrorCode;
-
-            if let ErrorCode::Other(num) = general.code {
-                tracing::debug!("got unknown API error code variant: {}; {:?}", num, error);
-            }
-        }
-
         InnerPoll::Ready(Err(Error {
             kind: ErrorType::Response {
                 body: bytes,
