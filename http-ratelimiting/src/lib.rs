@@ -107,9 +107,8 @@ impl Bucket {
     #[must_use]
     pub fn time_remaining(&self) -> Option<Duration> {
         let reset_at = self.started_at? + self.reset_after;
-        let now = Instant::now();
 
-        (now < reset_at).then(|| reset_at.duration_since(now))
+        reset_at.checked_duration_since(Instant::now())
     }
 }
 
