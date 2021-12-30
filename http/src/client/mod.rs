@@ -454,7 +454,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     /// let channel_id = ChannelId::new(123).expect("non zero");
     /// let message_id = MessageId::new(234).expect("non zero");
-    /// let limit: u64 = 6;
+    /// let limit: u8 = 6;
     ///
     /// let messages = client
     ///     .channel_messages(channel_id)

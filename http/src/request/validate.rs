@@ -1010,7 +1010,7 @@ pub const fn get_audit_log_limit(value: u64) -> bool {
     value >= 1 && value <= 100
 }
 
-pub const fn get_channel_messages_limit(value: u64) -> bool {
+pub const fn get_channel_messages_limit(value: u8) -> bool {
     // <https://discordapp.com/developers/docs/resources/channel#get-channel-messages-query-string-params>
     value >= 1 && value <= 100
 }

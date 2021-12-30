@@ -66,7 +66,7 @@ pub enum GetChannelMessagesConfiguredErrorType {
 }
 
 struct GetChannelMessagesConfiguredFields {
-    limit: Option<u64>,
+    limit: Option<u8>,
 }
 
 /// This struct is returned when one of `after`, `around`, or `before` is specified in
@@ -93,7 +93,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
         after: Option<MessageId>,
         around: Option<MessageId>,
         before: Option<MessageId>,
-        limit: Option<u64>,
+        limit: Option<u8>,
     ) -> Self {
         Self {
             after,
@@ -112,8 +112,8 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     /// # Errors
     ///
     /// Returns a [`GetChannelMessagesConfiguredErrorType::LimitInvalid`] error
-    /// type if the amount is greater than 21600.
-    pub const fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesConfiguredError> {
+    /// type if the amount is greater than 100.
+    pub const fn limit(mut self, limit: u8) -> Result<Self, GetChannelMessagesConfiguredError> {
         if !validate_inner::get_channel_messages_limit(limit) {
             return Err(GetChannelMessagesConfiguredError {
                 kind: GetChannelMessagesConfiguredErrorType::LimitInvalid,

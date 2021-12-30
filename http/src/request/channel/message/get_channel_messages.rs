@@ -65,7 +65,7 @@ pub enum GetChannelMessagesErrorType {
 }
 
 struct GetChannelMessagesFields {
-    limit: Option<u64>,
+    limit: Option<u8>,
 }
 
 /// Get channel messages, by [`ChannelId`].
@@ -90,7 +90,7 @@ struct GetChannelMessagesFields {
 /// let messages = client
 ///     .channel_messages(channel_id)
 ///     .before(message_id)
-///     .limit(6u64)?
+///     .limit(6u8)?
 ///     .exec()
 ///     .await?;
 ///
@@ -159,7 +159,7 @@ impl<'a> GetChannelMessages<'a> {
     ///
     /// Returns a [`GetChannelMessagesErrorType::LimitInvalid`] error type if
     /// the amount is less than 1 or greater than 100.
-    pub const fn limit(mut self, limit: u64) -> Result<Self, GetChannelMessagesError> {
+    pub const fn limit(mut self, limit: u8) -> Result<Self, GetChannelMessagesError> {
         if !validate_inner::get_channel_messages_limit(limit) {
             return Err(GetChannelMessagesError {
                 kind: GetChannelMessagesErrorType::LimitInvalid,
