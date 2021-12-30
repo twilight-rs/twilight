@@ -103,27 +103,21 @@ mod tests {
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
+        const APPLICATION_ID: Id<ApplicationMarker> = Id::new(1);
+        const MESSAGE_ID: Id<MessageMarker> = Id::new(2);
         const TOKEN: &str = "token";
-
-        const fn application_id() -> Id<ApplicationMarker> {
-            Id::new(1)
-        }
-
-        const fn message_id() -> Id<MessageMarker> {
-            Id::new(2)
-        }
 
         let client = Client::new("token".to_owned());
 
         let actual = client
-            .interaction(application_id())
-            .followup_message(TOKEN, message_id())
+            .interaction(APPLICATION_ID)
+            .followup_message(TOKEN, MESSAGE_ID)
             .try_into_request()?;
         let expected = Request::builder(&Route::GetFollowupMessage {
-            application_id: application_id().get(),
+            application_id: APPLICATION_ID.get(),
             interaction_token: TOKEN,
             thread_id: None,
-            message_id: message_id().get(),
+            message_id: MESSAGE_ID.get(),
         })
         .use_authorization_token(false)
         .build();

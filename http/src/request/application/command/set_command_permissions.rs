@@ -230,13 +230,8 @@ mod tests {
         CommandValidationErrorType, GUILD_COMMAND_LIMIT, GUILD_COMMAND_PERMISSION_LIMIT,
     };
 
-    const fn application_id() -> Id<ApplicationMarker> {
-        Id::new(1)
-    }
-
-    const fn guild_id() -> Id<GuildMarker> {
-        Id::new(2)
-    }
+    const GUILD_ID: Id<GuildMarker> = Id::new(2);
+    const APPLICATION_ID: Id<ApplicationMarker> = Id::new(1);
 
     #[derive(Debug, Deserialize, Eq, PartialEq)]
     struct GuildCommandPermissionDeserializable {
@@ -285,7 +280,7 @@ mod tests {
         ];
 
         let builder =
-            SetCommandPermissions::new(&http, application_id(), guild_id(), command_permissions)?;
+            SetCommandPermissions::new(&http, APPLICATION_ID, GUILD_ID, command_permissions)?;
 
         let request = builder.try_into_request()?;
         let body = request.body().expect("body must be present");
@@ -327,7 +322,7 @@ mod tests {
             .collect::<Vec<_>>();
 
         let request =
-            SetCommandPermissions::new(&http, application_id(), guild_id(), &command_permissions);
+            SetCommandPermissions::new(&http, APPLICATION_ID, GUILD_ID, &command_permissions);
         assert!(matches!(
             request.unwrap_err().kind(),
             CommandValidationErrorType::PermissionsCountInvalid
@@ -345,13 +340,10 @@ mod tests {
             })
             .collect::<Vec<_>>();
 
-        assert!(SetCommandPermissions::new(
-            &http,
-            application_id(),
-            guild_id(),
-            &command_permissions
-        )
-        .is_ok());
+        assert!(
+            SetCommandPermissions::new(&http, APPLICATION_ID, GUILD_ID, &command_permissions)
+                .is_ok()
+        );
     }
 
     #[test]
@@ -364,7 +356,7 @@ mod tests {
             .collect::<Vec<_>>();
 
         let request =
-            SetCommandPermissions::new(&http, application_id(), guild_id(), &command_permissions);
+            SetCommandPermissions::new(&http, APPLICATION_ID, GUILD_ID, &command_permissions);
         assert!(matches!(
             request.unwrap_err().kind(),
             CommandValidationErrorType::CountInvalid
@@ -375,6 +367,6 @@ mod tests {
     fn test_no_permissions() {
         let http = Client::new("token".to_owned());
 
-        assert!(SetCommandPermissions::new(&http, application_id(), guild_id(), &[]).is_ok());
+        assert!(SetCommandPermissions::new(&http, APPLICATION_ID, GUILD_ID, &[]).is_ok());
     }
 }

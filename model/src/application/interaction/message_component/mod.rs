@@ -136,9 +136,7 @@ mod tests {
 
     #[test]
     fn test_author_id() -> Result<(), TimestampParseError> {
-        const fn user_id() -> Id<UserMarker> {
-            Id::new(7)
-        }
+        const USER_ID: Id<UserMarker> = Id::new(7);
 
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
@@ -163,14 +161,14 @@ mod tests {
                 permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
-                user: Some(user(user_id())),
+                user: Some(user(USER_ID)),
             }),
             message: Message {
                 activity: None,
                 application: None,
                 application_id: None,
                 attachments: Vec::new(),
-                author: user(user_id()),
+                author: user(USER_ID),
                 channel_id: Id::new(5),
                 components: Vec::new(),
                 content: String::new(),
@@ -200,7 +198,7 @@ mod tests {
             user: None,
         };
 
-        assert_eq!(Some(user_id()), in_guild.author_id());
+        assert_eq!(Some(USER_ID), in_guild.author_id());
 
         let in_dm = MessageComponentInteraction {
             member: None,
@@ -208,10 +206,10 @@ mod tests {
                 guild_id: None,
                 ..in_guild.message
             },
-            user: Some(user(user_id())),
+            user: Some(user(USER_ID)),
             ..in_guild
         };
-        assert_eq!(Some(user_id()), in_dm.author_id());
+        assert_eq!(Some(USER_ID), in_dm.author_id());
 
         Ok(())
     }

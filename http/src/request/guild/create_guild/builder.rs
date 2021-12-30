@@ -83,16 +83,14 @@ impl RoleFieldsBuilder {
     /// [`color`]: Self::color
     pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
 
-    const fn role_id() -> Id<RoleMarker> {
-        Id::new(1)
-    }
+    const ROLE_ID: Id<RoleMarker> = Id::new(1);
 
     /// Create a new default role field builder.
     pub const fn new(name: String) -> Self {
         Self(RoleFields {
             color: None,
             hoist: None,
-            id: Self::role_id(),
+            id: Self::ROLE_ID,
             mentionable: None,
             name,
             permissions: None,
@@ -140,7 +138,7 @@ impl RoleFieldsBuilder {
     /// Returns a [`RoleFieldsErrorType::IdInvalid`] error type if the ID is set
     /// to 1.
     pub fn id(mut self, id: Id<RoleMarker>) -> Result<Self, RoleFieldsError> {
-        if id == Self::role_id() {
+        if id == Self::ROLE_ID {
             return Err(RoleFieldsError {
                 kind: RoleFieldsErrorType::IdInvalid,
             });
