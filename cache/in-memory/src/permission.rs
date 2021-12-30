@@ -280,8 +280,8 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// // later on...
     ///
-    /// let channel_id = Id::new(4).expect("non zero");
-    /// let user_id = Id::new(5).expect("non zero");
+    /// let channel_id = Id::new_checked(4).expect("non zero");
+    /// let user_id = Id::new_checked(5).expect("non zero");
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
     /// println!(
@@ -367,8 +367,8 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// // later on...
     ///
-    /// let guild_id = Id::new(4).expect("non zero");
-    /// let user_id = Id::new(5).expect("non zero");
+    /// let guild_id = Id::new_checked(4).expect("non zero");
+    /// let user_id = Id::new_checked(5).expect("non zero");
     ///
     /// let permissions = cache.permissions().root(user_id, guild_id)?;
     /// println!(
@@ -539,7 +539,7 @@ mod tests {
 
     /// Guild ID used in tests.
     fn guild_id() -> Id<GuildMarker> {
-        Id::new(1).expect("non zero")
+        Id::new_checked(1).expect("non zero")
     }
 
     /// ID of the `@everyone` role.
@@ -549,17 +549,17 @@ mod tests {
 
     /// User ID used in tests.
     fn user_id() -> Id<UserMarker> {
-        Id::new(2).expect("non zero")
+        Id::new_checked(2).expect("non zero")
     }
 
     /// ID of another role.
     fn other_role_id() -> Id<RoleMarker> {
-        Id::new(3).expect("non zero")
+        Id::new_checked(3).expect("non zero")
     }
 
     /// ID of the user that owns the guild with the ID [`GUILD_ID`].
     fn owner_id() -> Id<UserMarker> {
-        Id::new(4).expect("non zero")
+        Id::new_checked(4).expect("non zero")
     }
 
     /// ID of the #general channel in the guild.

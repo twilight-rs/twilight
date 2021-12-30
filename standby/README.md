@@ -59,7 +59,7 @@ use twilight_standby::Standby;
 
 let standby = Standby::new();
 
-let channel_id = Id::new(123).expect("non zero");
+let channel_id = Id::new_checked(123).expect("non zero");
 
 let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
     event.author.id.get() == 456 && event.content == "test"

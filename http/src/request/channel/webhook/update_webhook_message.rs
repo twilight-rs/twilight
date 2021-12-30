@@ -63,7 +63,7 @@ struct UpdateWebhookMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
-/// client.update_webhook_message(Id::new(1).expect("non zero"), "token here", Id::new(2).expect("non zero"))
+/// client.update_webhook_message(Id::new_checked(1).expect("non zero"), "token here", Id::new_checked(2).expect("non zero"))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -211,7 +211,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_webhook_message(Id::new(1).expect("non zero"), "token", Id::new(2).expect("non zero"))
+    /// client.update_webhook_message(Id::new_checked(1).expect("non zero"), "token", Id::new_checked(2).expect("non zero"))
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -373,13 +373,13 @@ mod tests {
         let client = Client::new("token".to_owned());
         let builder = UpdateWebhookMessage::new(
             &client,
-            Id::new(1).expect("non zero"),
+            Id::new_checked(1).expect("non zero"),
             "token",
-            Id::new(2).expect("non zero"),
+            Id::new_checked(2).expect("non zero"),
         )
         .content(Some("test"))
         .expect("'test' content couldn't be set")
-        .thread_id(Id::new(3).expect("non zero"))
+        .thread_id(Id::new_checked(3).expect("non zero"))
         .reason("reason")
         .expect("'reason' is not a valid reason");
         let actual = builder

@@ -117,7 +117,7 @@ impl Player {
     /// use twilight_lavalink::{model::{Play, Pause}, Lavalink};
     /// # use twilight_model::id::Id;
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let (guild_id, user_id) = (Id::new(1).expect("non zero"), Id::new(2).expect("non zero"));
+    /// # let (guild_id, user_id) = (Id::new_checked(1).expect("non zero"), Id::new_checked(2).expect("non zero"));
     /// # let track = String::new();
     ///
     /// let lavalink = Lavalink::new(user_id, 10);
@@ -173,7 +173,7 @@ impl Player {
         if channel_id == 0 {
             None
         } else {
-            Some(Id::new(channel_id).expect("non zero"))
+            Some(Id::new_checked(channel_id).expect("non zero"))
         }
     }
 

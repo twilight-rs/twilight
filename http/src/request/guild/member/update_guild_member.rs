@@ -204,11 +204,11 @@ mod tests {
     };
 
     fn guild_id() -> Id<GuildMarker> {
-        Id::new(1).expect("non zero")
+        Id::new_checked(1).expect("non zero")
     }
 
     fn user_id() -> Id<UserMarker> {
-        Id::new(1).expect("non zero")
+        Id::new_checked(1).expect("non zero")
     }
 
     #[test]

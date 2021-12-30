@@ -144,11 +144,11 @@ impl RequestGuildMembersBuilder {
     /// ```
     /// use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
     ///
-    /// let request = RequestGuildMembers::builder(Id::new(1).expect("non zero"))
+    /// let request = RequestGuildMembers::builder(Id::new_checked(1).expect("non zero"))
     ///     .presences(true)
     ///     .query("a", None);
     ///
-    /// assert_eq!(Id::new(1).expect("non zero"), request.d.guild_id);
+    /// assert_eq!(Id::new_checked(1).expect("non zero"), request.d.guild_id);
     /// assert_eq!(Some(0), request.d.limit);
     /// assert_eq!(Some("a"), request.d.query.as_deref());
     /// assert_eq!(Some(true), request.d.presences);
@@ -187,11 +187,11 @@ impl RequestGuildMembersBuilder {
     ///     id::Id,
     /// };
     ///
-    /// let request = RequestGuildMembers::builder(Id::new(1).expect("non zero"))
+    /// let request = RequestGuildMembers::builder(Id::new_checked(1).expect("non zero"))
     ///     .nonce("test")
-    ///     .user_id(Id::new(2).expect("non zero"));
+    ///     .user_id(Id::new_checked(2).expect("non zero"));
     ///
-    /// assert_eq!(Some(RequestGuildMemberId::One(Id::new(2).expect("non zero"))), request.d.user_ids);
+    /// assert_eq!(Some(RequestGuildMemberId::One(Id::new_checked(2).expect("non zero"))), request.d.user_ids);
     /// ```
     #[allow(clippy::missing_const_for_fn)]
     pub fn user_id(self, user_id: Id<UserMarker>) -> RequestGuildMembers {
@@ -227,9 +227,9 @@ impl RequestGuildMembersBuilder {
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let request = RequestGuildMembers::builder(Id::new(1).expect("non zero"))
+    /// let request = RequestGuildMembers::builder(Id::new_checked(1).expect("non zero"))
     ///     .nonce("test")
-    ///     .user_ids(vec![Id::new(2).expect("non zero"), Id::new(2).expect("non zero")])?;
+    ///     .user_ids(vec![Id::new_checked(2).expect("non zero"), Id::new_checked(2).expect("non zero")])?;
     ///
     /// assert!(matches!(request.d.user_ids, Some(RequestGuildMemberId::Multiple(ids)) if ids.len() == 2));
     /// # Ok(()) }

@@ -210,10 +210,10 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: Id::new(2).expect("non zero"),
+            guild_id: Id::new_checked(2).expect("non zero"),
             status: Status::Online,
             user: UserOrId::UserId {
-                id: Id::new(1).expect("non zero"),
+                id: Id::new_checked(1).expect("non zero"),
             },
         };
 
@@ -314,15 +314,15 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: Id::new(2).expect("non zero"),
+            guild_id: Id::new_checked(2).expect("non zero"),
             status: Status::Online,
             user: UserOrId::UserId {
-                id: Id::new(1).expect("non zero"),
+                id: Id::new_checked(1).expect("non zero"),
             },
         }]);
 
         let mut json_deserializer = Deserializer::from_str(input);
-        let deserializer = PresenceListDeserializer::new(Id::new(2).expect("non zero"));
+        let deserializer = PresenceListDeserializer::new(Id::new_checked(2).expect("non zero"));
         let actual = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert_eq!(actual, expected);

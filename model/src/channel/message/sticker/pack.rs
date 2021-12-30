@@ -63,21 +63,21 @@ mod tests {
     #[test]
     fn test_full() {
         let value = StickerPack {
-            banner_asset_id: Some(Id::new(761_773_777_976_819_732).expect("non zero")),
-            cover_sticker_id: Some(Id::new(749_053_689_419_006_003).expect("non zero")),
+            banner_asset_id: Some(Id::new_checked(761_773_777_976_819_732).expect("non zero")),
+            cover_sticker_id: Some(Id::new_checked(749_053_689_419_006_003).expect("non zero")),
             description: "Say hello to Wumpus!".into(),
-            id: Id::new(847_199_849_233_514_549).expect("non zero"),
+            id: Id::new_checked(847_199_849_233_514_549).expect("non zero"),
             name: "Wumpus Beyond".into(),
-            sku_id: Id::new(847_199_849_233_514_547).expect("non zero"),
+            sku_id: Id::new_checked(847_199_849_233_514_547).expect("non zero"),
             stickers: Vec::from([Sticker {
                 available: true,
                 description: Some("Wumpus waves hello".into()),
                 format_type: StickerFormatType::Lottie,
                 guild_id: None,
-                id: Id::new(749_054_660_769_218_631).expect("non zero"),
+                id: Id::new_checked(749_054_660_769_218_631).expect("non zero"),
                 kind: StickerType::Standard,
                 name: "Wave".into(),
-                pack_id: Some(Id::new(847_199_849_233_514_549).expect("non zero")),
+                pack_id: Some(Id::new_checked(847_199_849_233_514_549).expect("non zero")),
                 sort_value: Some(12),
                 tags: "wumpus, hello, sup, hi, oi, heyo, heya, yo, wave".into(),
                 user: None,

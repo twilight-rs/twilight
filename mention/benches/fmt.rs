@@ -13,7 +13,7 @@ fn format_id<T: Display>(input: &mut String, formatter: &T) {
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("format channel id", |b| {
         let mut string = String::new();
-        let formatter = Id::<ChannelMarker>::new(999_999_999_999_999_999)
+        let formatter = Id::<ChannelMarker>::new_checked(999_999_999_999_999_999)
             .expect("non zero")
             .mention();
 
@@ -21,7 +21,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
     c.bench_function("format emoji id", |b| {
         let mut string = String::new();
-        let formatter = Id::<EmojiMarker>::new(999_999_999_999_999_999)
+        let formatter = Id::<EmojiMarker>::new_checked(999_999_999_999_999_999)
             .expect("non zero")
             .mention();
 
@@ -29,7 +29,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
     c.bench_function("format role id", |b| {
         let mut string = String::new();
-        let formatter = Id::<RoleMarker>::new(999_999_999_999_999_999)
+        let formatter = Id::<RoleMarker>::new_checked(999_999_999_999_999_999)
             .expect("non zero")
             .mention();
 
@@ -37,7 +37,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
     c.bench_function("format user id", |b| {
         let mut string = String::new();
-        let formatter = Id::<UserMarker>::new(999_999_999_999_999_999)
+        let formatter = Id::<UserMarker>::new_checked(999_999_999_999_999_999)
             .expect("non zero")
             .mention();
 

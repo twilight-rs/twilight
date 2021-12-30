@@ -109,7 +109,7 @@ mod tests {
             discriminator: 4,
             email: Some("email@example.com".to_owned()),
             flags: Some(UserFlags::VERIFIED_DEVELOPER),
-            id: Id::new(1).expect("non zero"),
+            id: Id::new_checked(1).expect("non zero"),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
             name: "user name".to_owned(),

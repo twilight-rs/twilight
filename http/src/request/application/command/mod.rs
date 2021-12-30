@@ -68,11 +68,11 @@ mod tests {
     #[test]
     fn test_command_borrowed_from_command() {
         let command = Command {
-            application_id: Some(Id::new(1).expect("non zero")),
+            application_id: Some(Id::new_checked(1).expect("non zero")),
             default_permission: Some(true),
             description: "command description".to_owned(),
-            guild_id: Some(Id::new(2).expect("non zero")),
-            id: Some(Id::new(3).expect("non zero")),
+            guild_id: Some(Id::new_checked(2).expect("non zero")),
+            id: Some(Id::new_checked(3).expect("non zero")),
             kind: CommandType::ChatInput,
             name: "command name".to_owned(),
             options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
@@ -80,7 +80,7 @@ mod tests {
                 name: "command name".to_owned(),
                 required: true,
             })]),
-            version: Id::new(1).expect("non zero"),
+            version: Id::new_checked(1).expect("non zero"),
         };
 
         let _ = CommandBorrowed {
