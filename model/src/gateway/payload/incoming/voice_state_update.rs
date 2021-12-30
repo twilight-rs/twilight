@@ -24,20 +24,20 @@ mod tests {
         let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
-            guild_id: Some(Id::new(1).expect("non zero")),
+            guild_id: Some(Id::new_checked(1)),
             member: Some(Member {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(1).expect("non zero"),
+                guild_id: Id::new_checked(1),
                 joined_at,
                 mute: false,
                 nick: None,
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new(4).expect("non zero")],
+                roles: vec![Id::new_checked(4)],
                 user: User {
-                    id: Id::new(1).expect("non zero"),
+                    id: Id::new_checked(1),
                     accent_color: None,
                     avatar: None,
                     banner: None,
@@ -61,7 +61,7 @@ mod tests {
             session_id: "a".to_owned(),
             suppress: false,
             token: None,
-            user_id: Id::new(1).expect("non zero"),
+            user_id: Id::new_checked(1),
             request_to_speak_timestamp: None,
         });
 
@@ -162,23 +162,23 @@ mod tests {
         let value = VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
-            guild_id: Some(Id::new(999_999).expect("non zero")),
+            guild_id: Some(Id::new_checked(999_999)),
             member: Some(Member {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(999_999).expect("non zero"),
+                guild_id: Id::new_checked(999_999),
                 joined_at,
                 mute: false,
                 nick: Some("Twilight".to_string()),
                 pending: false,
                 premium_since: None,
                 roles: vec![
-                    Id::new(123).expect("non zero"),
-                    Id::new(124).expect("non zero"),
+                    Id::new_checked(123),
+                    Id::new_checked(124),
                 ],
                 user: User {
-                    id: Id::new(1_234_123_123_123).expect("non zero"),
+                    id: Id::new_checked(1_234_123_123_123),
                     accent_color: None,
                     avatar: Some("a21312321231236060dfe562c".to_string()),
                     banner: None,
@@ -202,7 +202,7 @@ mod tests {
             session_id: "asdasdas1da98da2b3ab3a".to_owned(),
             suppress: false,
             token: None,
-            user_id: Id::new(123_213).expect("non zero"),
+            user_id: Id::new_checked(123_213),
             request_to_speak_timestamp: Some(request_to_speak_timestamp),
         });
 

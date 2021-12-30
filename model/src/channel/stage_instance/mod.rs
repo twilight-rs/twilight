@@ -27,10 +27,10 @@ mod test {
     #[test]
     fn test_stage_instance() {
         let value = StageInstance {
-            channel_id: Id::new(100).expect("non zero"),
+            channel_id: Id::new_checked(100),
             discoverable_disabled: false,
-            guild_id: Id::new(200).expect("non zero"),
-            id: Id::new(300).expect("non zero"),
+            guild_id: Id::new_checked(200),
+            id: Id::new_checked(300),
             privacy_level: PrivacyLevel::Public,
             topic: "a topic".into(),
         };

@@ -58,7 +58,7 @@ mod tests {
             avatar: None,
             bot: false,
             discriminator: 1,
-            id: Id::new(1).expect("non zero"),
+            id: Id::new_checked(1),
             member: None,
             name: "foo".to_owned(),
             public_flags: UserFlags::empty(),
@@ -99,7 +99,7 @@ mod tests {
             avatar: None,
             bot: false,
             discriminator: 1,
-            id: Id::new(1).expect("non zero"),
+            id: Id::new_checked(1),
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,

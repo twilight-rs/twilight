@@ -112,7 +112,7 @@ mod tests {
             avatar: Some("guild avatar".to_owned()),
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(2).expect("non zero"),
+            guild_id: Id::new_checked(2),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -127,7 +127,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(3).expect("non zero"),
+                id: Id::new_checked(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
@@ -167,10 +167,10 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: Id::new(2).expect("non zero"),
+            guild_id: Id::new_checked(2),
             status: Status::Online,
             user: UserOrId::UserId {
-                id: Id::new(3).expect("non zero"),
+                id: Id::new_checked(3),
             },
         };
 
@@ -179,14 +179,14 @@ mod tests {
         let value = ThreadMembersUpdate {
             added_members: vec![ThreadMember {
                 flags: 1,
-                id: Some(Id::new(123).expect("non zero")),
+                id: Some(Id::new_checked(123)),
                 join_timestamp,
                 member: Some(member),
                 presence: Some(presence),
-                user_id: Some(Id::new(3).expect("non zero")),
+                user_id: Some(Id::new_checked(3)),
             }],
-            guild_id: Id::new(2).expect("non zero"),
-            id: Id::new(4).expect("non zero"),
+            guild_id: Id::new_checked(2),
+            id: Id::new_checked(4),
             member_count: 8,
             removed_member_ids: vec![],
         };

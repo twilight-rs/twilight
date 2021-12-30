@@ -26,11 +26,11 @@ use twilight_model::{
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = Id::new(1).expect("non zero");
+/// let application_id = Id::new_checked(1);
 ///
 /// let response = client
 ///     .interaction(application_id)
-///     .followup_message("token here", Id::new(2).expect("non zero"))
+///     .followup_message("token here", Id::new_checked(2))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -106,11 +106,11 @@ mod tests {
         const TOKEN: &str = "token";
 
         fn application_id() -> Id<ApplicationMarker> {
-            Id::new(1).expect("non zero")
+            Id::new_checked(1)
         }
 
         fn message_id() -> Id<MessageMarker> {
-            Id::new(2).expect("non zero")
+            Id::new_checked(2)
         }
 
         let client = Client::new("token".to_owned());

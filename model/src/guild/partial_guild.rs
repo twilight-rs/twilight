@@ -68,10 +68,10 @@ mod tests {
     #[test]
     fn test_partial_guild() {
         let value = PartialGuild {
-            id: Id::new(1).expect("non zero"),
-            afk_channel_id: Some(Id::new(2).expect("non zero")),
+            id: Id::new_checked(1),
+            afk_channel_id: Some(Id::new_checked(2)),
             afk_timeout: 900,
-            application_id: Some(Id::new(3).expect("non zero")),
+            application_id: Some(Id::new_checked(3)),
             banner: Some("banner hash".to_owned()),
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: Some("a description".to_owned()),
@@ -86,20 +86,20 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: Id::new(5).expect("non zero"),
+            owner_id: Id::new_checked(5),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-us".to_owned(),
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
             roles: Vec::new(),
-            rules_channel_id: Some(Id::new(6).expect("non zero")),
+            rules_channel_id: Some(Id::new_checked(6)),
             splash: Some("splash hash".to_owned()),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
-            system_channel_id: Some(Id::new(7).expect("non zero")),
+            system_channel_id: Some(Id::new_checked(7)),
             verification_level: VerificationLevel::Medium,
             vanity_url_code: Some("twilight".to_owned()),
-            widget_channel_id: Some(Id::new(8).expect("non zero")),
+            widget_channel_id: Some(Id::new_checked(8)),
             widget_enabled: Some(true),
         };
 

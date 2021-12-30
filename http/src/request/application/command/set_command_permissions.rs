@@ -79,7 +79,7 @@ impl SortedCommand<'_> {
     fn new() -> Self {
         Self {
             count: 0,
-            id: Id::new(u64::MAX).expect("non zero"),
+            id: Id::new_checked(u64::MAX),
             permissions: OptionalCommandPermissions::new(),
         }
     }
@@ -231,11 +231,11 @@ mod tests {
     };
 
     fn application_id() -> Id<ApplicationMarker> {
-        Id::new(1).expect("non zero")
+        Id::new_checked(1)
     }
 
     fn guild_id() -> Id<GuildMarker> {
-        Id::new(2).expect("non zero")
+        Id::new_checked(2)
     }
 
     #[derive(Debug, Deserialize, Eq, PartialEq)]
@@ -250,7 +250,7 @@ mod tests {
         iter::repeat((
             id,
             CommandPermissions {
-                id: CommandPermissionsType::Role(Id::new(4).expect("non zero")),
+                id: CommandPermissionsType::Role(Id::new_checked(4)),
                 permission: true,
             },
         ))
@@ -262,23 +262,23 @@ mod tests {
         let http = Client::new("token".to_owned());
         let command_permissions = &[
             (
-                Id::new(1).expect("non zero"),
+                Id::new_checked(1),
                 CommandPermissions {
-                    id: CommandPermissionsType::Role(Id::new(3).expect("non zero")),
+                    id: CommandPermissionsType::Role(Id::new_checked(3)),
                     permission: true,
                 },
             ),
             (
-                Id::new(1).expect("non zero"),
+                Id::new_checked(1),
                 CommandPermissions {
-                    id: CommandPermissionsType::Role(Id::new(4).expect("non zero")),
+                    id: CommandPermissionsType::Role(Id::new_checked(4)),
                     permission: true,
                 },
             ),
             (
-                Id::new(2).expect("non zero"),
+                Id::new_checked(2),
                 CommandPermissions {
-                    id: CommandPermissionsType::Role(Id::new(5).expect("non zero")),
+                    id: CommandPermissionsType::Role(Id::new_checked(5)),
                     permission: true,
                 },
             ),
@@ -293,22 +293,22 @@ mod tests {
 
         let expected = &[
             GuildCommandPermissionDeserializable {
-                id: Id::new(1).expect("non zero"),
+                id: Id::new_checked(1),
                 permissions: Vec::from([
                     CommandPermissions {
-                        id: CommandPermissionsType::Role(Id::new(3).expect("non zero")),
+                        id: CommandPermissionsType::Role(Id::new_checked(3)),
                         permission: true,
                     },
                     CommandPermissions {
-                        id: CommandPermissionsType::Role(Id::new(4).expect("non zero")),
+                        id: CommandPermissionsType::Role(Id::new_checked(4)),
                         permission: true,
                     },
                 ]),
             },
             GuildCommandPermissionDeserializable {
-                id: Id::new(2).expect("non zero"),
+                id: Id::new_checked(2),
                 permissions: Vec::from([CommandPermissions {
-                    id: CommandPermissionsType::Role(Id::new(5).expect("non zero")),
+                    id: CommandPermissionsType::Role(Id::new_checked(5)),
                     permission: true,
                 }]),
             },
@@ -322,7 +322,7 @@ mod tests {
     #[test]
     fn test_incorrect_validation() {
         let http = Client::new("token".to_owned());
-        let command_permissions = command_permissions(Id::new(2).expect("non zero"))
+        let command_permissions = command_permissions(Id::new_checked(2))
             .take(GUILD_COMMAND_PERMISSION_LIMIT + 1)
             .collect::<Vec<_>>();
 
@@ -341,8 +341,7 @@ mod tests {
         let http = Client::new("token".to_owned());
         let command_permissions = (1..=SIZE)
             .flat_map(|id| {
-                command_permissions(Id::new(id as u64).expect("non zero"))
-                    .take(GUILD_COMMAND_PERMISSION_LIMIT)
+                command_permissions(Id::new_checked(id as u64)).take(GUILD_COMMAND_PERMISSION_LIMIT)
             })
             .collect::<Vec<_>>();
 
@@ -361,7 +360,7 @@ mod tests {
 
         let http = Client::new("token".to_owned());
         let command_permissions = (1..=SIZE)
-            .flat_map(|id| command_permissions(Id::new(id as u64).expect("non zero")).take(3))
+            .flat_map(|id| command_permissions(Id::new_checked(id as u64)).take(3))
             .collect::<Vec<_>>();
 
         let request =

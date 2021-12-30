@@ -137,21 +137,21 @@ mod tests {
     #[test]
     fn test_author_id() -> Result<(), TimestampParseError> {
         fn user_id() -> Id<UserMarker> {
-            Id::new(7).expect("non zero")
+            Id::new_checked(7)
         }
 
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = MessageComponentInteraction {
-            application_id: Id::new(1).expect("non zero"),
-            channel_id: Id::new(2).expect("non zero"),
+            application_id: Id::new_checked(1),
+            channel_id: Id::new_checked(2),
             data: MessageComponentInteractionData {
                 custom_id: "foo".to_owned(),
                 component_type: ComponentType::Button,
                 values: Vec::from(["bar".to_owned()]),
             },
-            guild_id: Some(Id::new(3).expect("non zero")),
-            id: Id::new(4).expect("non zero"),
+            guild_id: Some(Id::new_checked(3)),
+            id: Id::new_checked(4),
             kind: InteractionType::MessageComponent,
             member: Some(PartialMember {
                 avatar: None,
@@ -171,14 +171,14 @@ mod tests {
                 application_id: None,
                 attachments: Vec::new(),
                 author: user(user_id()),
-                channel_id: Id::new(5).expect("non zero"),
+                channel_id: Id::new_checked(5),
                 components: Vec::new(),
                 content: String::new(),
                 edited_timestamp: None,
                 embeds: Vec::new(),
                 flags: None,
-                guild_id: Some(Id::new(3).expect("non zero")),
-                id: Id::new(6).expect("non zero"),
+                guild_id: Some(Id::new_checked(3)),
+                id: Id::new_checked(6),
                 interaction: None,
                 kind: MessageType::Regular,
                 member: None,

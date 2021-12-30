@@ -57,7 +57,7 @@ impl Ord for Role {
     /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
-    ///     id: Id::new(123).expect("non zero"),
+    ///     id: Id::new_checked(123),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -71,7 +71,7 @@ impl Ord for Role {
     ///     // ...
     /// };
     /// let role_b = Role {
-    ///     id: Id::new(456).expect("non zero"),
+    ///     id: Id::new_checked(456),
     ///     position: 13,
     ///#    color: 0,
     ///#    hoist: true,
@@ -96,7 +96,7 @@ impl Ord for Role {
     /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
-    ///     id: Id::new(123).expect("non zero"),
+    ///     id: Id::new_checked(123),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -109,7 +109,7 @@ impl Ord for Role {
     ///#    unicode_emoji: None,
     /// };
     /// let role_b = Role {
-    ///     id: Id::new(456).expect("non zero"),
+    ///     id: Id::new_checked(456),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -178,7 +178,7 @@ mod tests {
             color: 0,
             hoist: true,
             icon: None,
-            id: Id::new(123).expect("non zero"),
+            id: Id::new_checked(123),
             managed: false,
             mentionable: true,
             name: "test".to_owned(),

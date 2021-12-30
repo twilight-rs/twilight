@@ -234,7 +234,7 @@ mod tests {
         let timestamp = Timestamp::from_str(DATETIME)?;
 
         let channels = Vec::from([GuildChannel::Text(TextChannel {
-            id: Id::new(111).expect("non zero"),
+            id: Id::new_checked(111),
             guild_id: None,
             kind: ChannelType::GuildText,
             last_message_id: None,
@@ -249,7 +249,7 @@ mod tests {
         })]);
 
         let threads = Vec::from([GuildChannel::PublicThread(PublicThread {
-            id: Id::new(222).expect("non zero"),
+            id: Id::new_checked(222),
             default_auto_archive_duration: None,
             guild_id: None,
             kind: ChannelType::GuildPublicThread,
@@ -269,16 +269,16 @@ mod tests {
             },
             member: Some(ThreadMember {
                 flags: 0,
-                id: Some(Id::new(1).expect("non zero")),
+                id: Some(Id::new_checked(1)),
                 join_timestamp: timestamp,
                 member: None,
                 presence: None,
-                user_id: Some(Id::new(2).expect("non zero")),
+                user_id: Some(Id::new_checked(2)),
             }),
         })]);
 
         let guild = Guild {
-            id: Id::new(123).expect("non zero"),
+            id: Id::new_checked(123),
             afk_channel_id: None,
             afk_timeout: 300,
             application_id: None,
@@ -301,7 +301,7 @@ mod tests {
             name: "this is a guild".to_owned(),
             nsfw_level: NSFWLevel::AgeRestricted,
             owner: Some(false),
-            owner_id: Id::new(456).expect("non zero"),
+            owner_id: Id::new_checked(456),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-GB".to_owned(),
             premium_subscription_count: Some(0),
@@ -329,13 +329,9 @@ mod tests {
         let cache = InMemoryCache::new();
         cache.cache_guild(guild);
 
-        let channel = cache
-            .guild_channel(Id::new(111).expect("non zero"))
-            .unwrap();
+        let channel = cache.guild_channel(Id::new_checked(111)).unwrap();
 
-        let thread = cache
-            .guild_channel(Id::new(222).expect("non zero"))
-            .unwrap();
+        let thread = cache.guild_channel(Id::new_checked(222)).unwrap();
 
         // The channel was given to the cache without a guild ID, but because
         // it's part of a guild create, the cache can automatically attach the
@@ -343,14 +339,14 @@ mod tests {
         // correct value.
         match channel.resource() {
             GuildChannel::Text(ref c) => {
-                assert_eq!(Some(Id::new(123).expect("non zero")), c.guild_id);
+                assert_eq!(Some(Id::new_checked(123)), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
 
         match thread.resource() {
             GuildChannel::PublicThread(ref c) => {
-                assert_eq!(Some(Id::new(123).expect("non zero")), c.guild_id);
+                assert_eq!(Some(Id::new_checked(123)), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
@@ -376,7 +372,7 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::None,
             features: Vec::new(),
             icon: None,
-            id: Id::new(1).expect("non zero"),
+            id: Id::new_checked(1),
             joined_at: None,
             large: false,
             max_members: None,
@@ -387,7 +383,7 @@ mod tests {
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: Id::new(1).expect("non zero"),
+            owner_id: Id::new_checked(1),
             owner: None,
             permissions: None,
             preferred_locale: "en_us".to_owned(),
@@ -431,7 +427,7 @@ mod tests {
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
             nsfw_level: guild.nsfw_level,
-            owner_id: Id::new(2).expect("non zero"),
+            owner_id: Id::new_checked(2),
             owner: guild.owner,
             permissions: guild.permissions,
             preferred_locale: guild.preferred_locale,

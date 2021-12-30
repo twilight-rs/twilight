@@ -32,7 +32,7 @@
 //! use twilight_model::id::{marker::{GuildMarker, RoleMarker}, Id};
 //!
 //! // Often Rust's type inference will be able to infer the type of ID.
-//! let guild_id = Id::<GuildMarker>::new(123).expect("non zero id");
+//! let guild_id = Id::<GuildMarker>::new_checked(123);
 //! let role_id = guild_id.cast::<RoleMarker>();
 //!
 //! assert_eq!(guild_id.get(), role_id.get());
@@ -167,7 +167,7 @@ impl<T> Id<T> {
     /// ```
     /// use twilight_model::id::{marker::{GuildMarker, RoleMarker}, Id};
     ///
-    /// let role_id: Id<RoleMarker> = Id::new(1).expect("non zero id");
+    /// let role_id: Id<RoleMarker> = Id::new_checked(1);
     ///
     /// let guild_id: Id<GuildMarker> = role_id.cast();
     /// assert_eq!(1, guild_id.get());
@@ -190,7 +190,7 @@ impl<T: Snowflake> Id<T> {
     ///     id::{marker::UserMarker, Id},
     /// };
     ///
-    /// let id = Id::<UserMarker>::new(105484726235607040).expect("non zero");
+    /// let id = Id::<UserMarker>::new_checked(105484726235607040);
     ///
     /// assert_eq!(id.timestamp(), 1445219918546);
     ///
@@ -543,14 +543,14 @@ mod tests {
     /// Test that casting IDs maintains the original value.
     #[test]
     fn test_cast() {
-        let id = Id::<GenericMarker>::new(123).expect("non zero");
+        let id = Id::<GenericMarker>::new_checked(123);
         assert_eq!(123_u64, id.cast::<RoleMarker>());
     }
 
     #[test]
     fn test_timestamp() {
         let expected: i64 = 1_445_219_918_546;
-        let id = Id::<GenericMarker>::new(105_484_726_235_607_040).expect("non zero");
+        let id = Id::<GenericMarker>::new_checked(105_484_726_235_607_040);
 
         assert_eq!(expected, id.timestamp())
     }
@@ -558,7 +558,7 @@ mod tests {
     #[test]
     fn test_worker_id() {
         let expected: u8 = 8;
-        let id = Id::<GenericMarker>::new(762_022_344_856_174_632).expect("non zero");
+        let id = Id::<GenericMarker>::new_checked(762_022_344_856_174_632);
 
         assert_eq!(expected, id.worker_id())
     }
@@ -566,7 +566,7 @@ mod tests {
     #[test]
     fn test_process_id() {
         let expected: u8 = 1;
-        let id = Id::<GenericMarker>::new(61_189_081_970_774_016).expect("non zero");
+        let id = Id::<GenericMarker>::new_checked(61_189_081_970_774_016);
 
         assert_eq!(expected, id.process_id())
     }
@@ -574,7 +574,7 @@ mod tests {
     #[test]
     fn test_increment() {
         let expected: u16 = 40;
-        let id = Id::<GenericMarker>::new(762_022_344_856_174_632).expect("non zero");
+        let id = Id::<GenericMarker>::new_checked(762_022_344_856_174_632);
 
         assert_eq!(expected, id.increment())
     }
@@ -582,7 +582,7 @@ mod tests {
     /// Test that debugging IDs formats the generic and value as a newtype.
     #[test]
     fn test_debug() {
-        let id = Id::<RoleMarker>::new(114_941_315_417_899_012).expect("non zero");
+        let id = Id::<RoleMarker>::new_checked(114_941_315_417_899_012);
 
         assert_eq!("Id<RoleMarker>(114941315417899012)", format!("{:?}", id));
     }
@@ -590,7 +590,7 @@ mod tests {
     /// Test that display formatting an ID formats the value.
     #[test]
     fn test_display() {
-        let id = Id::<GenericMarker>::new(114_941_315_417_899_012).expect("non zero");
+        let id = Id::<GenericMarker>::new_checked(114_941_315_417_899_012);
 
         assert_eq!("114941315417899012", id.to_string());
     }
@@ -598,7 +598,7 @@ mod tests {
     /// Test that hashing an ID is equivalent to hashing only its inner value.
     #[test]
     fn test_hash() {
-        let id = Id::<GenericMarker>::new(123).expect("non zero");
+        let id = Id::<GenericMarker>::new_checked(123);
 
         let mut id_hasher = DefaultHasher::new();
         id.hash(&mut id_hasher);
@@ -612,9 +612,9 @@ mod tests {
     /// Test that IDs are ordered exactly like their inner values.
     #[test]
     fn test_ordering() {
-        let lesser = Id::<GenericMarker>::new(911_638_235_594_244_096).expect("non zero");
-        let center = Id::<GenericMarker>::new(911_638_263_322_800_208).expect("non zero");
-        let greater = Id::<GenericMarker>::new(911_638_287_939_166_208).expect("non zero");
+        let lesser = Id::<GenericMarker>::new_checked(911_638_235_594_244_096);
+        let center = Id::<GenericMarker>::new_checked(911_638_263_322_800_208);
+        let greater = Id::<GenericMarker>::new_checked(911_638_287_939_166_208);
 
         assert!(center.cmp(&greater).is_lt());
         assert!(center.cmp(&center).is_eq());
@@ -625,224 +625,224 @@ mod tests {
     #[test]
     fn test_serde() {
         serde_test::assert_tokens(
-            &Id::<ApplicationMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<ApplicationMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<ApplicationMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<ApplicationMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<AttachmentMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<AttachmentMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<AttachmentMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<AttachmentMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<AuditLogEntryMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<AuditLogEntryMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<AuditLogEntryMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<AuditLogEntryMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<ChannelMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<ChannelMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<ChannelMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<ChannelMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<CommandMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<CommandMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<CommandMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<CommandMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<CommandVersionMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<CommandVersionMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<CommandVersionMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<CommandVersionMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<EmojiMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<EmojiMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<EmojiMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<EmojiMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<GenericMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<GenericMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<GenericMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<GenericMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<GuildMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<GuildMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<GuildMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<GuildMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<IntegrationMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<IntegrationMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<IntegrationMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<IntegrationMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<InteractionMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<InteractionMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<InteractionMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<InteractionMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<MessageMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<MessageMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<MessageMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<MessageMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<RoleMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<RoleMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<RoleMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<RoleMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<StageMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<StageMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<StageMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<StageMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<UserMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<UserMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<UserMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<UserMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
         serde_test::assert_tokens(
-            &Id::<WebhookMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<WebhookMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("114941315417899012"),
             ],
         );
         serde_test::assert_de_tokens(
-            &Id::<WebhookMarker>::new(114_941_315_417_899_012).expect("non zero"),
+            &Id::<WebhookMarker>::new_checked(114_941_315_417_899_012),
             &[
                 Token::NewtypeStruct { name: "Id" },
                 Token::U64(114_941_315_417_899_012),

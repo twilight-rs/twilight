@@ -218,28 +218,26 @@ mod tests {
 
         // Single inserts
         {
-            let guild_1_user_ids = (1..=10)
-                .map(|n| Id::new(n).expect("non zero"))
-                .collect::<Vec<_>>();
+            let guild_1_user_ids = (1..=10).map(Id::new_checked).collect::<Vec<_>>();
             let guild_1_members = guild_1_user_ids
                 .iter()
                 .copied()
-                .map(|id| test::member(id, Id::new(1).expect("non zero")))
+                .map(|id| test::member(id, Id::new_checked(1)))
                 .collect::<Vec<_>>();
 
             for member in guild_1_members {
-                cache.cache_member(Id::new(1).expect("non zero"), member);
+                cache.cache_member(Id::new_checked(1), member);
             }
 
             // Check for the cached guild members ids
-            let cached_roles = cache.guild_members(Id::new(1).expect("non zero")).unwrap();
+            let cached_roles = cache.guild_members(Id::new_checked(1)).unwrap();
             assert_eq!(cached_roles.len(), guild_1_user_ids.len());
             assert!(guild_1_user_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached members
             assert!(guild_1_user_ids
                 .iter()
-                .all(|id| cache.member(Id::new(1).expect("non zero"), *id).is_some()));
+                .all(|id| cache.member(Id::new_checked(1), *id).is_some()));
 
             // Check for the cached users
             assert!(guild_1_user_ids.iter().all(|id| cache.user(*id).is_some()));
@@ -247,18 +245,16 @@ mod tests {
 
         // Bulk inserts
         {
-            let guild_2_user_ids = (1..=10)
-                .map(|n| Id::new(n).expect("non zero"))
-                .collect::<Vec<_>>();
+            let guild_2_user_ids = (1..=10).map(Id::new_checked).collect::<Vec<_>>();
             let guild_2_members = guild_2_user_ids
                 .iter()
                 .copied()
-                .map(|id| test::member(id, Id::new(2).expect("non zero")))
+                .map(|id| test::member(id, Id::new_checked(2)))
                 .collect::<Vec<_>>();
-            cache.cache_members(Id::new(2).expect("non zero"), guild_2_members);
+            cache.cache_members(Id::new_checked(2), guild_2_members);
 
             // Check for the cached guild members ids
-            let cached_roles = cache.guild_members(Id::new(1).expect("non zero")).unwrap();
+            let cached_roles = cache.guild_members(Id::new_checked(1)).unwrap();
             assert_eq!(cached_roles.len(), guild_2_user_ids.len());
             assert!(guild_2_user_ids.iter().all(|id| cached_roles.contains(id)));
 
@@ -266,7 +262,7 @@ mod tests {
             assert!(guild_2_user_ids
                 .iter()
                 .copied()
-                .all(|id| cache.member(Id::new(1).expect("non zero"), id).is_some()));
+                .all(|id| cache.member(Id::new_checked(1), id).is_some()));
 
             // Check for the cached users
             assert!(guild_2_user_ids.iter().all(|id| cache.user(*id).is_some()));
@@ -275,49 +271,43 @@ mod tests {
 
     #[test]
     fn test_cache_user_guild_state() {
-        let user_id = Id::new(2).expect("non zero");
+        let user_id = Id::new_checked(2);
         let cache = InMemoryCache::new();
-        cache.cache_user(
-            Cow::Owned(test::user(user_id)),
-            Some(Id::new(1).expect("non zero")),
-        );
+        cache.cache_user(Cow::Owned(test::user(user_id)), Some(Id::new_checked(1)));
 
         // Test the guild's ID is the only one in the user's set of guilds.
         {
             let user_guilds = cache.user_guilds.get(&user_id).unwrap();
-            assert!(user_guilds.contains(&Id::new(1).expect("non zero")));
+            assert!(user_guilds.contains(&Id::new_checked(1)));
             assert_eq!(1, user_guilds.len());
         }
 
         // Test that a second guild will cause 2 in the set.
-        cache.cache_user(
-            Cow::Owned(test::user(user_id)),
-            Some(Id::new(3).expect("non zero")),
-        );
+        cache.cache_user(Cow::Owned(test::user(user_id)), Some(Id::new_checked(3)));
 
         {
             let user_guilds = cache.user_guilds.get(&user_id).unwrap();
-            assert!(user_guilds.contains(&Id::new(3).expect("non zero")));
+            assert!(user_guilds.contains(&Id::new_checked(3)));
             assert_eq!(2, user_guilds.len());
         }
 
         // Test that removing a user from a guild will cause the ID to be
         // removed from the set, leaving the other ID.
         cache.update(&MemberRemove {
-            guild_id: Id::new(3).expect("non zero"),
+            guild_id: Id::new_checked(3),
             user: test::user(user_id),
         });
 
         {
             let user_guilds = cache.user_guilds.get(&user_id).unwrap();
-            assert!(!user_guilds.contains(&Id::new(3).expect("non zero")));
+            assert!(!user_guilds.contains(&Id::new_checked(3)));
             assert_eq!(1, user_guilds.len());
         }
 
         // Test that removing the user from its last guild removes the user's
         // entry.
         cache.update(&MemberRemove {
-            guild_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new_checked(1),
             user: test::user(user_id),
         });
         assert!(!cache.users.contains_key(&user_id));
