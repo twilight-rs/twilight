@@ -255,13 +255,18 @@ mod tests {
         )));
 
         {
-            let guild_members = cache.guild_members(Id::new_checked(3).expect("non zero")).unwrap();
+            let guild_members = cache
+                .guild_members(Id::new_checked(3).expect("non zero"))
+                .unwrap();
             assert_eq!(guild_members.len(), 2);
         }
 
         {
             let member = cache
-                .member(Id::new_checked(3).expect("non zero"), Id::new_checked(6).expect("non zero"))
+                .member(
+                    Id::new_checked(3).expect("non zero"),
+                    Id::new_checked(6).expect("non zero"),
+                )
                 .unwrap();
             let user = cache.user(member.user_id).unwrap();
             assert_eq!(user.avatar.as_ref().unwrap(), "avatar string");
@@ -269,14 +274,19 @@ mod tests {
 
         {
             let member = cache
-                .member(Id::new_checked(3).expect("non zero"), Id::new_checked(7).expect("non zero"))
+                .member(
+                    Id::new_checked(3).expect("non zero"),
+                    Id::new_checked(7).expect("non zero"),
+                )
                 .unwrap();
             let user = cache.user(member.user_id).unwrap();
             assert_eq!(user.avatar.as_ref().unwrap(), "different avatar");
         }
 
         {
-            let guild_roles = cache.guild_roles(Id::new_checked(3).expect("non zero")).unwrap();
+            let guild_roles = cache
+                .guild_roles(Id::new_checked(3).expect("non zero"))
+                .unwrap();
             assert_eq!(guild_roles.len(), 1);
         }
     }

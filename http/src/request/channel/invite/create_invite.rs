@@ -258,7 +258,8 @@ mod tests {
     #[test]
     fn test_max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder = CreateInvite::new(&client, Id::new_checked(1).expect("non zero")).max_age(0)?;
+        let mut builder =
+            CreateInvite::new(&client, Id::new_checked(1).expect("non zero")).max_age(0)?;
         assert_eq!(Some(0), builder.fields.max_age);
         builder = builder.max_age(604_800)?;
         assert_eq!(Some(604_800), builder.fields.max_age);
@@ -270,7 +271,8 @@ mod tests {
     #[test]
     fn test_max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let mut builder = CreateInvite::new(&client, Id::new_checked(1).expect("non zero")).max_uses(0)?;
+        let mut builder =
+            CreateInvite::new(&client, Id::new_checked(1).expect("non zero")).max_uses(0)?;
         assert_eq!(Some(0), builder.fields.max_uses);
         builder = builder.max_uses(100)?;
         assert_eq!(Some(100), builder.fields.max_uses);

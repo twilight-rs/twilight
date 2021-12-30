@@ -232,14 +232,16 @@ mod tests {
             }
 
             // Check for the cached guild members ids
-            let cached_roles = cache.guild_members(Id::new_checked(1).expect("non zero")).unwrap();
+            let cached_roles = cache
+                .guild_members(Id::new_checked(1).expect("non zero"))
+                .unwrap();
             assert_eq!(cached_roles.len(), guild_1_user_ids.len());
             assert!(guild_1_user_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached members
-            assert!(guild_1_user_ids
-                .iter()
-                .all(|id| cache.member(Id::new_checked(1).expect("non zero"), *id).is_some()));
+            assert!(guild_1_user_ids.iter().all(|id| cache
+                .member(Id::new_checked(1).expect("non zero"), *id)
+                .is_some()));
 
             // Check for the cached users
             assert!(guild_1_user_ids.iter().all(|id| cache.user(*id).is_some()));
@@ -258,15 +260,16 @@ mod tests {
             cache.cache_members(Id::new_checked(2).expect("non zero"), guild_2_members);
 
             // Check for the cached guild members ids
-            let cached_roles = cache.guild_members(Id::new_checked(1).expect("non zero")).unwrap();
+            let cached_roles = cache
+                .guild_members(Id::new_checked(1).expect("non zero"))
+                .unwrap();
             assert_eq!(cached_roles.len(), guild_2_user_ids.len());
             assert!(guild_2_user_ids.iter().all(|id| cached_roles.contains(id)));
 
             // Check for the cached members
-            assert!(guild_2_user_ids
-                .iter()
-                .copied()
-                .all(|id| cache.member(Id::new_checked(1).expect("non zero"), id).is_some()));
+            assert!(guild_2_user_ids.iter().copied().all(|id| cache
+                .member(Id::new_checked(1).expect("non zero"), id)
+                .is_some()));
 
             // Check for the cached users
             assert!(guild_2_user_ids.iter().all(|id| cache.user(*id).is_some()));

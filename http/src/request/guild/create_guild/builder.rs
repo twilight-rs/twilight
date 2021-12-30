@@ -717,7 +717,10 @@ impl GuildChannelFieldsBuilder {
             .iter()
             .rev()
             .find(|c| matches!(c, GuildChannelFields::Category(_)))
-            .map_or(Id::new_checked(1).expect("non zero"), GuildChannelFields::id);
+            .map_or(
+                Id::new_checked(1).expect("non zero"),
+                GuildChannelFields::id,
+            );
 
         let mut channels = channel.build(Id::new_checked(last_id.get() + 1).expect("non zero"));
 

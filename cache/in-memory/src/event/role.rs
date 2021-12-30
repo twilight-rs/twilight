@@ -96,7 +96,10 @@ mod tests {
 
             assert_eq!(
                 "test".to_string(),
-                cache.role(Id::new_checked(2).expect("non zero")).unwrap().name
+                cache
+                    .role(Id::new_checked(2).expect("non zero"))
+                    .unwrap()
+                    .name
             );
         }
     }
@@ -123,7 +126,9 @@ mod tests {
             }
 
             // Check for the cached guild role ids
-            let cached_roles = cache.guild_roles(Id::new_checked(1).expect("non zero")).unwrap();
+            let cached_roles = cache
+                .guild_roles(Id::new_checked(1).expect("non zero"))
+                .unwrap();
             assert_eq!(cached_roles.len(), guild_1_role_ids.len());
             assert!(guild_1_role_ids.iter().all(|id| cached_roles.contains(id)));
 
@@ -151,7 +156,9 @@ mod tests {
             cache.cache_roles(Id::new_checked(2).expect("non zero"), guild_2_roles.clone());
 
             // Check for the cached guild role ids
-            let cached_roles = cache.guild_roles(Id::new_checked(2).expect("non zero")).unwrap();
+            let cached_roles = cache
+                .guild_roles(Id::new_checked(2).expect("non zero"))
+                .unwrap();
             assert_eq!(cached_roles.len(), guild_2_role_ids.len());
             assert!(guild_2_role_ids.iter().all(|id| cached_roles.contains(id)));
 

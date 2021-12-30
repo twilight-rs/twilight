@@ -218,7 +218,10 @@ mod tests {
         }
         assert_eq!(
             cache
-                .member(Id::new_checked(1).expect("non zero"), Id::new_checked(3).expect("non zero"))
+                .member(
+                    Id::new_checked(1).expect("non zero"),
+                    Id::new_checked(3).expect("non zero")
+                )
                 .unwrap()
                 .user_id,
             Id::new_checked(3).expect("non zero"),

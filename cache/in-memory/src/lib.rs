@@ -950,7 +950,10 @@ mod tests {
         );
         cache.cache_member(
             Id::new_checked(2).expect("non zero"),
-            test::member(Id::new_checked(4).expect("non zero"), Id::new_checked(2).expect("non zero")),
+            test::member(
+                Id::new_checked(4).expect("non zero"),
+                Id::new_checked(2).expect("non zero"),
+            ),
         );
         cache.clear();
         assert!(cache.emojis.is_empty());
@@ -975,7 +978,10 @@ mod tests {
                 nick: None,
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new_checked(1).expect("non zero"), Id::new_checked(2).expect("non zero")],
+                roles: vec![
+                    Id::new_checked(1).expect("non zero"),
+                    Id::new_checked(2).expect("non zero"),
+                ],
                 user,
             },
         );

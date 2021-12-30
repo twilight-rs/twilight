@@ -504,8 +504,9 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("presences"));
                             }
 
-                            let deserializer =
-                                PresenceListDeserializer::new(Id::new_checked(1).expect("non zero"));
+                            let deserializer = PresenceListDeserializer::new(
+                                Id::new_checked(1).expect("non zero"),
+                            );
 
                             presences = Some(map.next_value_seed(deserializer)?);
                         }

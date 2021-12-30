@@ -225,12 +225,16 @@ mod tests {
                             PermissionOverwrite {
                                 allow: Permissions::from_bits(0).unwrap(),
                                 deny: Permissions::from_bits(2048).unwrap(),
-                                kind: PermissionOverwriteType::Role(Id::new_checked(1).expect("non zero")),
+                                kind: PermissionOverwriteType::Role(
+                                    Id::new_checked(1).expect("non zero"),
+                                ),
                             },
                             PermissionOverwrite {
                                 allow: Permissions::from_bits(2048).unwrap(),
                                 deny: Permissions::from_bits(0).unwrap(),
-                                kind: PermissionOverwriteType::Role(Id::new_checked(2).expect("non zero")),
+                                kind: PermissionOverwriteType::Role(
+                                    Id::new_checked(2).expect("non zero"),
+                                ),
                             },
                         ],
                         position: 0,

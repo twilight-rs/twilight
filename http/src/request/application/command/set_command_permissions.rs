@@ -361,7 +361,9 @@ mod tests {
 
         let http = Client::new("token".to_owned());
         let command_permissions = (1..=SIZE)
-            .flat_map(|id| command_permissions(Id::new_checked(id as u64).expect("non zero")).take(3))
+            .flat_map(|id| {
+                command_permissions(Id::new_checked(id as u64).expect("non zero")).take(3)
+            })
             .collect::<Vec<_>>();
 
         let request =

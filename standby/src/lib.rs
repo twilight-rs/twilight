@@ -1538,10 +1538,10 @@ mod tests {
         let event = Event::MessageCreate(Box::new(MessageCreate(message)));
 
         let standby = Standby::new();
-        let wait = standby
-            .wait_for_message(Id::new_checked(1).expect("non zero"), |message: &MessageCreate| {
-                message.author.id.get() == 2
-            });
+        let wait = standby.wait_for_message(
+            Id::new_checked(1).expect("non zero"),
+            |message: &MessageCreate| message.author.id.get() == 2,
+        );
         standby.process(&event);
 
         assert_eq!(3, wait.await.map(|msg| msg.id.get()).unwrap());
@@ -1553,8 +1553,10 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_message_stream() {
         let standby = Standby::new();
-        let mut stream = standby
-            .wait_for_message_stream(Id::new_checked(1).expect("non zero"), |_: &MessageCreate| true);
+        let mut stream = standby.wait_for_message_stream(
+            Id::new_checked(1).expect("non zero"),
+            |_: &MessageCreate| true,
+        );
         standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
         standby.process(&Event::MessageCreate(Box::new(MessageCreate(message()))));
 
@@ -1572,10 +1574,10 @@ mod tests {
         let event = Event::ReactionAdd(Box::new(ReactionAdd(reaction())));
 
         let standby = Standby::new();
-        let wait = standby
-            .wait_for_reaction(Id::new_checked(4).expect("non zero"), |reaction: &ReactionAdd| {
-                reaction.user_id.get() == 3
-            });
+        let wait = standby.wait_for_reaction(
+            Id::new_checked(4).expect("non zero"),
+            |reaction: &ReactionAdd| reaction.user_id.get() == 3,
+        );
 
         standby.process(&event);
 
@@ -1591,8 +1593,10 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_reaction_stream() {
         let standby = Standby::new();
-        let mut stream =
-            standby.wait_for_reaction_stream(Id::new_checked(4).expect("non zero"), |_: &ReactionAdd| true);
+        let mut stream = standby
+            .wait_for_reaction_stream(Id::new_checked(4).expect("non zero"), |_: &ReactionAdd| {
+                true
+            });
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
         standby.process(&Event::ReactionAdd(Box::new(ReactionAdd(reaction()))));
 
