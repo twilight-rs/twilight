@@ -284,7 +284,7 @@ pub enum ReceivingEventErrorType {
         /// The id of the shard.
         shard_id: u64,
     },
-    /// Sharding is requied for the bot.
+    /// Sharding is required for the bot.
     ShardingRequired,
 }
 
