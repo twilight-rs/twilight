@@ -2423,7 +2423,6 @@ mod tests {
     #[test]
     fn test_get_current_user_guild_member() {
         let route = Route::GetCurrentUserGuildMember { guild_id: GUILD_ID };
-
         assert_eq!(
             route.display().to_string(),
             format!("users/@me/guilds/{guild_id}/member", guild_id = GUILD_ID)
