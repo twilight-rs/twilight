@@ -50,6 +50,7 @@
 //! All first-party crates are licensed under [ISC][LICENSE.md]
 //!
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+//! [`twilight-rs`]: https://github.com/twilight-rs/twilight
 //! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 //! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -102,6 +103,7 @@ use dashmap::{
     mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
 };
+use iter::ChannelMessages;
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -432,6 +434,24 @@ impl InMemoryCache {
             .lock()
             .expect("current user poisoned")
             .clone()
+    }
+
+    /// Gets the set of messages in a channel.
+    ///
+    /// This requires the [`DIRECT_MESSAGES`] or [`GUILD_MESSAGES`] intents.
+    ///
+    /// Returns `None` if the channel is not cached.
+    ///
+    /// # Examples
+    ///
+    /// Refer to [`ChannelMessages`].
+    ///
+    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
+    /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
+    pub fn channel_messages(&self, channel_id: ChannelId) -> Option<ChannelMessages<'_>> {
+        let channel = self.channel_messages.get(&channel_id)?;
+
+        Some(ChannelMessages::new(channel))
     }
 
     /// Gets an emoji by ID.
@@ -919,6 +939,7 @@ mod tests {
             guild_id,
             Member {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 guild_id,
                 joined_at,

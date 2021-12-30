@@ -2,6 +2,15 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.8.2] - 2021-12-27
+
+### Fixes
+
+Tick shard ratelimiter before sending command to gateway instead of after
+([#1360] - [@zeylahellyer]).
+
+[#1360]: https://github.com/twilight-rs/twilight/pull/1360
+
 ## [0.8.1] - 2021-12-24
 
 ### Additions
@@ -669,6 +678,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.0
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.7.1

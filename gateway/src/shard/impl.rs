@@ -664,12 +664,20 @@ impl Shard {
     ///
     /// # Errors
     ///
+    /// Returns a [`SendErrorType::ExecutorShutDown`] error type if the async
+    /// executor executing the shard's tasks has been shutdown.
+    ///
+    /// Returns a [`SendErrorType::HeartbeaterNotStarted`] error type if the
+    /// shard hasn't started the heartbeater. This is an implementation error
+    /// and shouldn't happen, but may also be indicative of
+    /// [`SendErrorType::ExecutorShutDown`].
+    ///
     /// Returns a [`SendErrorType::Sending`] error type if there is an issue
     /// with sending via the shard's session. This may occur when the shard is
     /// between sessions.
     ///
-    /// Returns [`SendErrorType::SessionInactive`] error type when the shard has
-    /// not been started.
+    /// Returns a [`SendErrorType::SessionInactive`] error type when the shard
+    /// has not been started.
     ///
     /// [`shutdown`]: Self::shutdown
     pub async fn send(&self, message: Message) -> Result<(), SendError> {
@@ -678,28 +686,28 @@ impl Shard {
             kind: SendErrorType::SessionInactive,
         })?;
 
-        // Only tick the ratelimiter if there wasn't an error sending it over
-        // the tx. If tx sending fails then the message couldn't be sent anyway,
-        // which does not affect ratelimiting of external sending.
-        if let Err(source) = session.tx.send(message.into_tungstenite()) {
-            Err(SendError {
-                source: Some(Box::new(source)),
-                kind: SendErrorType::Sending,
-            })
-        } else {
-            // Tick ratelimiter.
-            if let Some(limiter) = session.ratelimit.get() {
-                limiter.acquire_one().await.map_err(|source| SendError {
+        if let Some(ratelimiter) = session.ratelimit.get() {
+            ratelimiter
+                .acquire_one()
+                .await
+                .map_err(|source| SendError {
                     kind: SendErrorType::ExecutorShutDown,
                     source: Some(Box::new(source)),
-                })
-            } else {
-                Err(SendError {
-                    kind: SendErrorType::HeartbeaterNotStarted,
-                    source: None,
-                })
-            }
+                })?;
+        } else {
+            return Err(SendError {
+                kind: SendErrorType::HeartbeaterNotStarted,
+                source: None,
+            });
         }
+
+        session
+            .tx
+            .send(message.into_tungstenite())
+            .map_err(|source| SendError {
+                kind: SendErrorType::Sending,
+                source: Some(Box::new(source)),
+            })
     }
 
     /// Shut down the shard.

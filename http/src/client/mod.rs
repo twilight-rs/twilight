@@ -84,7 +84,7 @@ use crate::{
         },
         GetGateway, GetUserApplicationInfo, GetVoiceRegions, Method, Request,
     },
-    response::{future::InvalidToken, ResponseFuture},
+    response::ResponseFuture,
     API_VERSION,
 };
 use hyper::{
@@ -202,15 +202,12 @@ pub struct Client {
     http: HyperClient<HttpsConnector<HttpConnector>, Body>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Box<dyn Ratelimiter>>,
-    /// Whether to short-circuit when a 401 has been encountered with the client
-    /// authorization.
-    ///
-    /// This relates to [`token_invalid`].
-    ///
-    /// [`token_invalid`]: Self::token_invalid
-    remember_invalid_token: bool,
     timeout: Duration,
-    token_invalid: Arc<AtomicBool>,
+    /// Whether the token has been invalidated.
+    ///
+    /// Whether an invalid token is tracked can be configured via
+    /// [`ClientBuilder::remember_invalid_token`].
+    token_invalidated: Option<Arc<AtomicBool>>,
     token: Option<Box<str>>,
     use_http: bool,
 }
@@ -2716,11 +2713,13 @@ impl Client {
 
     #[allow(clippy::too_many_lines)]
     fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
-        if self.remember_invalid_token && self.token_invalid.load(Ordering::Relaxed) {
-            return Err(Error {
-                kind: ErrorType::Unauthorized,
-                source: None,
-            });
+        if let Some(token_invalidated) = self.token_invalidated.as_ref() {
+            if token_invalidated.load(Ordering::Relaxed) {
+                return Err(Error {
+                    kind: ErrorType::Unauthorized,
+                    source: None,
+                });
+            }
         }
 
         let Request {
@@ -2745,7 +2744,7 @@ impl Client {
             .uri(&url);
 
         if use_authorization_token {
-            if let Some(ref token) = self.token {
+            if let Some(token) = &self.token {
                 let value = HeaderValue::from_str(token).map_err(|source| {
                     #[allow(clippy::borrow_interior_mutable_const)]
                     let name = AUTHORIZATION.to_string();
@@ -2843,10 +2842,10 @@ impl Client {
         // For requests that don't use an authorization token we don't need to
         // remember whether the token is invalid. This may be for requests such
         // as webhooks and interactions.
-        let invalid_token = if self.remember_invalid_token && use_authorization_token {
-            InvalidToken::Remember(Arc::clone(&self.token_invalid))
+        let invalid_token = if use_authorization_token {
+            self.token_invalidated.as_ref().map(Arc::clone)
         } else {
-            InvalidToken::Forget
+            None
         };
 
         // Clippy suggests bad code; an `Option::map_or_else` won't work here

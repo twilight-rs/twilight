@@ -227,6 +227,7 @@ mod tests {
             "chunk_index": 0,
             "guild_id": "1",
             "members": [{
+                "communication_disabled_until": null,
                 "deaf": false,
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
@@ -242,6 +243,7 @@ mod tests {
                     "username": "test",
                 },
             }, {
+                "communication_disabled_until": null,
                 "deaf": false,
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
@@ -255,6 +257,7 @@ mod tests {
                     "username": "test",
                 },
             }, {
+                "communication_disabled_until": null,
                 "deaf": false,
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
@@ -269,6 +272,7 @@ mod tests {
                     "username": "test",
                 },
             }, {
+                "communication_disabled_until": null,
                 "deaf": false,
                 "hoisted_role": "6",
                 "joined_at": "2020-04-04T04:04:04.000000+00:00",
@@ -326,6 +330,7 @@ mod tests {
             members: Vec::from([
                 Member {
                     avatar: None,
+                    communication_disabled_until: None,
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     joined_at,
@@ -357,6 +362,7 @@ mod tests {
                 },
                 Member {
                     avatar: None,
+                    communication_disabled_until: None,
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     joined_at,
@@ -385,6 +391,7 @@ mod tests {
                 },
                 Member {
                     avatar: None,
+                    communication_disabled_until: None,
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     joined_at,
@@ -413,6 +420,7 @@ mod tests {
                 },
                 Member {
                     avatar: None,
+                    communication_disabled_until: None,
                     deaf: false,
                     guild_id: GuildId::new(1).expect("non zero"),
                     joined_at,

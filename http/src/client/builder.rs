@@ -64,14 +64,19 @@ impl ClientBuilder {
 
         let http = hyper::client::Builder::default().build(connector);
 
+        let token_invalidated = if self.remember_invalid_token {
+            Some(Arc::new(AtomicBool::new(false)))
+        } else {
+            None
+        };
+
         Client {
             http,
             default_headers: self.default_headers,
             proxy: self.proxy,
             ratelimiter: self.ratelimiter,
-            remember_invalid_token: self.remember_invalid_token,
             timeout: self.timeout,
-            token_invalid: Arc::new(AtomicBool::new(false)),
+            token_invalidated,
             token: self.token,
             application_id: self.application_id,
             default_allowed_mentions: self.default_allowed_mentions,

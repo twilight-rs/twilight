@@ -184,6 +184,7 @@ mod tests {
             guild_id: Some(GuildId::new(1).expect("non zero")),
             member: Some(Member {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 guild_id: GuildId::new(1).expect("non zero"),
                 joined_at,
@@ -232,8 +233,10 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
