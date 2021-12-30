@@ -36,6 +36,7 @@ pub struct PartialGuild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
+    /// Whether the premium progress bar is enabled in the guild.
     pub premium_progress_bar_enabled: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
