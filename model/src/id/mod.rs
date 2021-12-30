@@ -95,7 +95,9 @@ impl<T> Id<T> {
     /// # Examples
     ///
     /// ```
-    /// const ID: ApplicationId = ApplicationId::new_checked(123);
+    /// use twilight_model::id::{marker::GenericMarker, Id};
+    ///
+    /// const ID: Id<GenericMarker> = Id::new_checked(123);
     ///
     /// println!("id: {}", ID);
     /// ```
