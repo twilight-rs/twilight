@@ -100,7 +100,7 @@ struct UpdateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     preferred_locale: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_progress_bar_enabled: Option<bool>,
+    premium_progress_bar_enabled: Option<bool>,
 }
 
 /// Update a guild.
