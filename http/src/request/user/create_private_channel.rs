@@ -1,10 +1,19 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use serde::Serialize;
-use twilight_model::{channel::PrivateChannel, id::UserId};
+use twilight_model::{
+    channel::PrivateChannel,
+    id::{marker::UserMarker, Id},
+};
 
 #[derive(Serialize)]
 struct CreatePrivateChannelFields {
-    recipient_id: UserId,
+    recipient_id: Id<UserMarker>,
 }
 
 /// Create a group DM.
@@ -17,20 +26,28 @@ pub struct CreatePrivateChannel<'a> {
 }
 
 impl<'a> CreatePrivateChannel<'a> {
-    pub(crate) const fn new(http: &'a Client, recipient_id: UserId) -> Self {
+    pub(crate) const fn new(http: &'a Client, recipient_id: Id<UserMarker>) -> Self {
         Self {
             fields: CreatePrivateChannelFields { recipient_id },
             http,
         }
     }
     pub fn exec(self) -> ResponseFuture<PrivateChannel> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreatePrivateChannel<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let request = Request::builder(&Route::CreatePrivateChannel);
 
-        let request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        let request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

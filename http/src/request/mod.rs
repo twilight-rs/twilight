@@ -13,13 +13,7 @@ mod get_gateway_authed;
 mod get_user_application;
 mod get_voice_regions;
 mod multipart;
-
-// Rename this module so we can expose a select amount of validation types.
-//
-// Work to prepare the validation module will need to be done individually, so
-// for now only a select number of types are exposed until prepared.
-#[path = "validate.rs"]
-mod validate_inner;
+mod try_into_request;
 
 pub use self::{
     attachment::AttachmentFile,
@@ -30,6 +24,7 @@ pub use self::{
     get_user_application::GetUserApplicationInfo,
     get_voice_regions::GetVoiceRegions,
     multipart::Form,
+    try_into_request::TryIntoRequest,
 };
 pub use twilight_http_ratelimiting::request::Method;
 

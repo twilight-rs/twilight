@@ -1,4 +1,4 @@
-use crate::id::ApplicationId;
+use crate::id::{marker::ApplicationMarker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -7,13 +7,14 @@ pub struct MessageApplication {
     pub cover_image: Option<String>,
     pub description: String,
     pub icon: Option<String>,
-    pub id: ApplicationId,
+    pub id: Id<ApplicationMarker>,
     pub name: String,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ApplicationId, MessageApplication};
+    use super::MessageApplication;
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -22,7 +23,7 @@ mod tests {
             cover_image: Some("cover".to_owned()),
             description: "a description".to_owned(),
             icon: Some("an icon".to_owned()),
-            id: ApplicationId::new(1).expect("non zero"),
+            id: Id::new(1).expect("non zero"),
             name: "application".to_owned(),
         };
 
@@ -42,9 +43,7 @@ mod tests {
                 Token::Some,
                 Token::Str("an icon"),
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("application"),

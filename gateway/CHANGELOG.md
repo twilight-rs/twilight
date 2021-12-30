@@ -2,6 +2,31 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.8.2] - 2021-12-27
+
+### Fixes
+
+Tick shard ratelimiter before sending command to gateway instead of after
+([#1360] - [@zeylahellyer]).
+
+[#1360]: https://github.com/twilight-rs/twilight/pull/1360
+
+## [0.8.1] - 2021-12-24
+
+### Additions
+
+Reuse TLS connectors between shards when connecting a cluster ([#1058] -
+[@Erk]). This saves a large amount of memory when using `native-tls`, and a
+decent amount when using `rustls`.
+
+### Fixes
+
+Fix documentation on `Cluster` that implied it could be `clone`d ([#1349]
+- [@zeylahellyer]).
+
+[#1058]: https://github.com/twilight-rs/twilight/pull/1058
+[#1349]: https://github.com/twilight-rs/twilight/pull/1349
+
 ## [0.8.0] - 2021-12-03
 
 ### Changes
@@ -653,6 +678,8 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.2
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.0
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.7.0

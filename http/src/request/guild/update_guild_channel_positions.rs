@@ -1,25 +1,29 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::id::{ChannelId, GuildId};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 
 #[derive(Serialize)]
 pub struct Position {
-    id: ChannelId,
+    id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     lock_permissions: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<ChannelId>,
+    parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<u64>,
 }
 
-impl From<(ChannelId, u64)> for Position {
-    fn from((id, position): (ChannelId, u64)) -> Self {
+impl From<(Id<ChannelMarker>, u64)> for Position {
+    fn from((id, position): (Id<ChannelMarker>, u64)) -> Self {
         Self {
             id,
             lock_permissions: None,
@@ -33,11 +37,11 @@ impl From<(ChannelId, u64)> for Position {
 ///
 /// The minimum amount of channels to modify, is a swap between two channels.
 ///
-/// This function accepts an `Iterator` of `(ChannelId, u64)`. It also accepts
+/// This function accepts an `Iterator` of `(Id<ChannelMarker>, u64)`. It also accepts
 /// an `Iterator` of `Position`, which has extra fields.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildChannelPositions<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     positions: &'a [Position],
 }
@@ -45,7 +49,7 @@ pub struct UpdateGuildChannelPositions<'a> {
 impl<'a> UpdateGuildChannelPositions<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         channel_positions: &'a [Position],
     ) -> Self {
         Self {
@@ -59,15 +63,23 @@ impl<'a> UpdateGuildChannelPositions<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateGuildChannelPositions<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateGuildChannels {
             guild_id: self.guild_id.get(),
         });
 
-        request = match request.json(&self.positions) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.positions)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

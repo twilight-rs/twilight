@@ -6,7 +6,10 @@ use super::InteractionType;
 use crate::{
     channel::Message,
     guild::PartialMember,
-    id::{ApplicationId, ChannelId, GuildId, InteractionId, UserId},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
+        Id,
+    },
     user::User,
 };
 use serde::Serialize;
@@ -18,15 +21,15 @@ use serde::Serialize;
 #[serde(rename(serialize = "Interaction"))]
 pub struct MessageComponentInteraction {
     /// ID of the associated application.
-    pub application_id: ApplicationId,
+    pub application_id: Id<ApplicationMarker>,
     /// ID of the channel the interaction was triggered from.
-    pub channel_id: ChannelId,
+    pub channel_id: Id<ChannelMarker>,
     /// Data from the invoked command.
     pub data: MessageComponentInteractionData,
     /// ID of the guild the interaction was triggered from.
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the interaction.
-    pub id: InteractionId,
+    pub id: Id<InteractionMarker>,
     /// Type of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,
@@ -58,7 +61,7 @@ impl MessageComponentInteraction {
     ///
     /// [`member`]: Self::member
     /// [`user`]: Self::user
-    pub const fn author_id(&self) -> Option<UserId> {
+    pub const fn author_id(&self) -> Option<Id<UserMarker>> {
         if let Some(member) = &self.member {
             if let Some(user) = &member.user {
                 return Some(user.id);
@@ -81,7 +84,7 @@ mod tests {
         channel::message::{Message, MessageType},
         datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
-        id::{ApplicationId, ChannelId, GuildId, InteractionId, MessageId, UserId},
+        id::{marker::UserMarker, Id},
         user::User,
     };
     use serde::Serialize;
@@ -111,7 +114,7 @@ mod tests {
         Sync
     );
 
-    fn user(id: UserId) -> User {
+    fn user(id: Id<UserMarker>) -> User {
         User {
             accent_color: None,
             avatar: None,
@@ -133,25 +136,26 @@ mod tests {
 
     #[test]
     fn test_author_id() -> Result<(), TimestampParseError> {
-        fn user_id() -> UserId {
-            UserId::new(7).expect("non zero")
+        fn user_id() -> Id<UserMarker> {
+            Id::new(7).expect("non zero")
         }
 
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = MessageComponentInteraction {
-            application_id: ApplicationId::new(1).expect("non zero"),
-            channel_id: ChannelId::new(2).expect("non zero"),
+            application_id: Id::new(1).expect("non zero"),
+            channel_id: Id::new(2).expect("non zero"),
             data: MessageComponentInteractionData {
                 custom_id: "foo".to_owned(),
                 component_type: ComponentType::Button,
                 values: Vec::from(["bar".to_owned()]),
             },
-            guild_id: Some(GuildId::new(3).expect("non zero")),
-            id: InteractionId::new(4).expect("non zero"),
+            guild_id: Some(Id::new(3).expect("non zero")),
+            id: Id::new(4).expect("non zero"),
             kind: InteractionType::MessageComponent,
             member: Some(PartialMember {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 joined_at: timestamp,
                 mute: false,
@@ -167,14 +171,14 @@ mod tests {
                 application_id: None,
                 attachments: Vec::new(),
                 author: user(user_id()),
-                channel_id: ChannelId::new(5).expect("non zero"),
+                channel_id: Id::new(5).expect("non zero"),
                 components: Vec::new(),
                 content: String::new(),
                 edited_timestamp: None,
                 embeds: Vec::new(),
                 flags: None,
-                guild_id: Some(GuildId::new(3).expect("non zero")),
-                id: MessageId::new(6).expect("non zero"),
+                guild_id: Some(Id::new(3).expect("non zero")),
+                id: Id::new(6).expect("non zero"),
                 interaction: None,
                 kind: MessageType::Regular,
                 member: None,

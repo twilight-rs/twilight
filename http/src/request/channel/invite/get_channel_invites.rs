@@ -1,10 +1,14 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{id::ChannelId, invite::Invite};
+use twilight_model::{
+    id::{marker::ChannelMarker, Id},
+    invite::Invite,
+};
 
 /// Get the invites for a guild channel.
 ///
@@ -15,12 +19,12 @@ use twilight_model::{id::ChannelId, invite::Invite};
 /// [`GuildChannel`]: twilight_model::channel::GuildChannel
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelInvites<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetChannelInvites<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self { channel_id, http }
     }
 
@@ -28,10 +32,19 @@ impl<'a> GetChannelInvites<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Invite>> {
-        let request = Request::from_route(&Route::GetChannelInvites {
-            channel_id: self.channel_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetChannelInvites<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetChannelInvites {
+            channel_id: self.channel_id.get(),
+        }))
     }
 }

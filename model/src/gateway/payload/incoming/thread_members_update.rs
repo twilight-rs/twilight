@@ -1,6 +1,9 @@
 use crate::{
     channel::thread::{ThreadMember, ThreadMemberIntermediary},
-    id::{ChannelId, GuildId, UserId},
+    id::{
+        marker::{ChannelMarker, GuildMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{
     de::{value::MapAccessDeserializer, MapAccess, Visitor},
@@ -17,12 +20,12 @@ pub struct ThreadMembersUpdate {
     /// [`member`]: ThreadMember::member
     #[serde(default)]
     pub added_members: Vec<ThreadMember>,
-    pub guild_id: GuildId,
-    pub id: ChannelId,
+    pub guild_id: Id<GuildMarker>,
+    pub id: Id<ChannelMarker>,
     /// Max value of 50.
     pub member_count: u8,
     #[serde(default)]
-    pub removed_member_ids: Vec<UserId>,
+    pub removed_member_ids: Vec<Id<UserMarker>>,
 }
 
 impl<'de> Deserialize<'de> for ThreadMembersUpdate {
@@ -36,12 +39,12 @@ struct ThreadMembersUpdateIntermediary {
     /// ThreadMembers without the guild ID.
     #[serde(default)]
     pub added_members: Vec<ThreadMemberIntermediary>,
-    pub guild_id: GuildId,
-    pub id: ChannelId,
+    pub guild_id: Id<GuildMarker>,
+    pub id: Id<ChannelMarker>,
     /// Max value of 50.
     pub member_count: u8,
     #[serde(default)]
-    pub removed_member_ids: Vec<UserId>,
+    pub removed_member_ids: Vec<Id<UserMarker>>,
 }
 
 impl ThreadMembersUpdateIntermediary {
@@ -90,7 +93,7 @@ mod tests {
             Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId,
         },
         guild::Member,
-        id::{ChannelId, GuildId, UserId},
+        id::Id,
         user::User,
     };
     use serde_test::Token;
@@ -107,8 +110,9 @@ mod tests {
 
         let member = Member {
             avatar: Some("guild avatar".to_owned()),
+            communication_disabled_until: None,
             deaf: false,
-            guild_id: GuildId::new(2).expect("non zero"),
+            guild_id: Id::new(2).expect("non zero"),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -123,7 +127,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(3).expect("non zero"),
+                id: Id::new(3).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
@@ -163,10 +167,10 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: GuildId::new(2).expect("non zero"),
+            guild_id: Id::new(2).expect("non zero"),
             status: Status::Online,
             user: UserOrId::UserId {
-                id: UserId::new(3).expect("non zero"),
+                id: Id::new(3).expect("non zero"),
             },
         };
 
@@ -175,14 +179,14 @@ mod tests {
         let value = ThreadMembersUpdate {
             added_members: vec![ThreadMember {
                 flags: 1,
-                id: Some(ChannelId::new(123).expect("non zero")),
+                id: Some(Id::new(123).expect("non zero")),
                 join_timestamp,
                 member: Some(member),
                 presence: Some(presence),
-                user_id: Some(UserId::new(3).expect("non zero")),
+                user_id: Some(Id::new(3).expect("non zero")),
             }],
-            guild_id: GuildId::new(2).expect("non zero"),
-            id: ChannelId::new(4).expect("non zero"),
+            guild_id: Id::new(2).expect("non zero"),
+            id: Id::new(4).expect("non zero"),
             member_count: 8,
             removed_member_ids: vec![],
         };
@@ -212,11 +216,13 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "MemberIntermediary",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("guild avatar"),
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),

@@ -1,4 +1,9 @@
-use crate::{datetime::Timestamp, guild::IntegrationAccount, id::IntegrationId, user::User};
+use crate::{
+    datetime::Timestamp,
+    guild::IntegrationAccount,
+    id::{marker::IntegrationMarker, Id},
+    user::User,
+};
 use serde::{Deserialize, Serialize};
 
 /// Information about a [guild integration] provided in an [audit log].
@@ -21,7 +26,7 @@ pub struct AuditLogGuildIntegration {
     pub expire_grace_period: Option<u64>,
     /// ID of the integration.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<IntegrationId>,
+    pub id: Option<Id<IntegrationMarker>>,
     /// Type of integration.
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub kind: Option<String>,
@@ -30,7 +35,7 @@ pub struct AuditLogGuildIntegration {
     pub name: Option<String>,
     /// ID that the integration uses for subscribers.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub role_id: Option<IntegrationId>,
+    pub role_id: Option<Id<IntegrationMarker>>,
     /// When the integration was last synced.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub synced_at: Option<Timestamp>,

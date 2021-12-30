@@ -1,4 +1,7 @@
-use crate::{id::ApplicationId, user::User};
+use crate::{
+    id::{marker::ApplicationMarker, Id},
+    user::User,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +11,7 @@ pub struct IntegrationApplication {
     pub bot: Option<User>,
     pub description: String,
     pub icon: Option<String>,
-    pub id: ApplicationId,
+    pub id: Id<ApplicationMarker>,
     pub name: String,
     pub summary: String,
 }
@@ -16,7 +19,7 @@ pub struct IntegrationApplication {
 #[cfg(test)]
 mod tests {
     use super::{IntegrationApplication, User};
-    use crate::id::{ApplicationId, UserId};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -25,7 +28,7 @@ mod tests {
             bot: None,
             description: "Friendship is Magic".to_string(),
             icon: None,
-            id: ApplicationId::new(123).expect("non zero"),
+            id: Id::new(123).expect("non zero"),
             name: "Twilight".to_string(),
             summary: "A cool pony".to_string(),
         };
@@ -42,9 +45,7 @@ mod tests {
                 Token::Str("icon"),
                 Token::None,
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("name"),
                 Token::Str("Twilight"),
@@ -66,7 +67,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(2).expect("non zero"),
+                id: Id::new(2).expect("non zero"),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -77,7 +78,7 @@ mod tests {
             }),
             description: "Friendship is Magic".to_string(),
             icon: None,
-            id: ApplicationId::new(123).expect("non zero"),
+            id: Id::new(123).expect("non zero"),
             name: "Twilight".to_string(),
             summary: "A cool pony".to_string(),
         };
@@ -106,7 +107,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("username"),
                 Token::Str("test"),
@@ -116,9 +117,7 @@ mod tests {
                 Token::Str("icon"),
                 Token::None,
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("name"),
                 Token::Str("Twilight"),

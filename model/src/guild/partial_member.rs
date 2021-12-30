@@ -1,4 +1,9 @@
-use crate::{datetime::Timestamp, guild::Permissions, id::RoleId, user::User};
+use crate::{
+    datetime::Timestamp,
+    guild::Permissions,
+    id::{marker::RoleMarker, Id},
+    user::User,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -6,6 +11,7 @@ pub struct PartialMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -18,14 +24,17 @@ pub struct PartialMember {
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
     pub user: Option<User>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{PartialMember, RoleId};
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use super::PartialMember;
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::Id,
+    };
     use serde_test::Token;
     use std::str::FromStr;
 
@@ -35,13 +44,14 @@ mod tests {
 
         let value = PartialMember {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: true,
             nick: Some("a nickname".to_owned()),
             permissions: None,
             premium_since: None,
-            roles: vec![RoleId::new(1).expect("non zero")],
+            roles: vec![Id::new(1).expect("non zero")],
             user: None,
         };
 
@@ -50,8 +60,10 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
@@ -65,7 +77,7 @@ mod tests {
                 Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::SeqEnd,
                 Token::Str("user"),

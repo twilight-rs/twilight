@@ -2,6 +2,15 @@
 
 Changelog for `twilight-util`.
 
+## [0.8.1] - 2021-12-15
+
+### Fixes
+
+Add a missing implementation of `Snowflake` for `CommandVersionId` ([#1315] -
+[@vilgotf]).
+
+[#1315]: https://github.com/twilight-rs/twilight/pull/1315
+
 ## [0.8.0] - 2021-12-03
 
 ### Changes

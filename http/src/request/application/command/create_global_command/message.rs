@@ -2,13 +2,13 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use twilight_model::{
     application::command::{Command, CommandType},
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// Create a new message global command.
@@ -19,7 +19,7 @@ use twilight_model::{
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalMessageCommand<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     default_permission: Option<bool>,
     http: &'a Client,
     name: &'a str,
@@ -28,7 +28,7 @@ pub struct CreateGlobalMessageCommand<'a> {
 impl<'a> CreateGlobalMessageCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         name: &'a str,
     ) -> Self {
         Self {
@@ -46,7 +46,21 @@ impl<'a> CreateGlobalMessageCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateGlobalMessageCommand<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateGlobalCommand {
             application_id: self.application_id.get(),
         })
@@ -59,15 +73,5 @@ impl<'a> CreateGlobalMessageCommand<'a> {
             options: None,
         })
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

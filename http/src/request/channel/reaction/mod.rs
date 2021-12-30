@@ -13,7 +13,7 @@ pub use self::{
 };
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use twilight_model::id::EmojiId;
+use twilight_model::id::{marker::EmojiMarker, Id};
 
 /// Handle a reaction of either a custom or unicode emoji.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -21,7 +21,7 @@ pub enum RequestReactionType<'a> {
     /// Reaction of a custom emoji.
     Custom {
         /// ID of the custom emoji.
-        id: EmojiId,
+        id: Id<EmojiMarker>,
         /// Name of the custom emoji.
         ///
         /// This is not strictly required, but may be helpful for Discord to
@@ -72,10 +72,10 @@ impl<'a> RequestReactionType<'a> {
 ///
 /// ```
 /// use twilight_http::request::channel::reaction::RequestReactionType;
-/// use twilight_model::id::EmojiId;
+/// use twilight_model::id::Id;
 ///
 /// let reaction = RequestReactionType::Custom {
-///     id: EmojiId::new(123).expect("non zero"),
+///     id: Id::new(123).expect("non zero"),
 ///     name: Some("rarity"),
 /// };
 ///
@@ -121,7 +121,7 @@ mod tests {
         fmt::{Debug, Display},
         hash::Hash,
     };
-    use twilight_model::id::EmojiId;
+    use twilight_model::id::Id;
 
     assert_fields!(RequestReactionType::Custom: id, name);
     assert_fields!(RequestReactionType::Unicode: name);
@@ -131,7 +131,7 @@ mod tests {
     #[test]
     fn test_display_custom_with_name() {
         let reaction = RequestReactionType::Custom {
-            id: EmojiId::new(123).expect("non zero"),
+            id: Id::new(123).expect("non zero"),
             name: Some("foo"),
         };
 
@@ -141,7 +141,7 @@ mod tests {
     #[test]
     fn test_display_custom_without_name() {
         let reaction = RequestReactionType::Custom {
-            id: EmojiId::new(123).expect("non zero"),
+            id: Id::new(123).expect("non zero"),
             name: None,
         };
 

@@ -7,9 +7,9 @@ pub use self::{
     user::CreateGlobalUserCommand,
 };
 
-use super::super::{InteractionError, InteractionErrorType};
-use crate::{request::validate_inner, Client};
-use twilight_model::id::ApplicationId;
+use crate::Client;
+use twilight_model::id::{marker::ApplicationMarker, Id};
+use twilight_validate::command::{name as validate_name, CommandValidationError};
 
 /// Create a new global command.
 ///
@@ -20,7 +20,7 @@ use twilight_model::id::ApplicationId;
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "the command must have a type"]
 pub struct CreateGlobalCommand<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
     name: &'a str,
 }
@@ -28,14 +28,10 @@ pub struct CreateGlobalCommand<'a> {
 impl<'a> CreateGlobalCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         name: &'a str,
-    ) -> Result<Self, InteractionError> {
-        if !validate_inner::command_name(name) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::CommandNameValidationFailed,
-            });
-        }
+    ) -> Result<Self, CommandValidationError> {
+        validate_name(name)?;
 
         Ok(Self {
             application_id,
@@ -52,15 +48,15 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`InteractionErrorType::CommandDescriptionValidationFailed`]
-    /// error type if the command description is not between 1 and
-    /// 100 characters.
+    /// Returns an error of type [`DescriptionInvalid`] error type if the
+    /// command description is not between 1 and 100 characters.
     ///
+    /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn chat_input(
         self,
         description: &'a str,
-    ) -> Result<CreateGlobalChatInputCommand<'a>, InteractionError> {
+    ) -> Result<CreateGlobalChatInputCommand<'a>, CommandValidationError> {
         CreateGlobalChatInputCommand::new(self.http, self.application_id, self.name, description)
     }
 

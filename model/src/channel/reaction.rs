@@ -1,7 +1,10 @@
 use crate::{
     channel::ReactionType,
     guild::member::{Member, OptionalMemberDeserializer},
-    id::{ChannelId, GuildId, MessageId, UserId},
+    id::{
+        marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -11,12 +14,12 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct Reaction {
-    pub channel_id: ChannelId,
+    pub channel_id: Id<ChannelMarker>,
     pub emoji: ReactionType,
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     pub member: Option<Member>,
-    pub message_id: MessageId,
-    pub user_id: UserId,
+    pub message_id: Id<MessageMarker>,
+    pub user_id: Id<UserMarker>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -112,7 +115,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
                     }
 
                     let deserializer =
-                        OptionalMemberDeserializer::new(GuildId::new(1).expect("non zero"));
+                        OptionalMemberDeserializer::new(Id::new(1).expect("non zero"));
 
                     member = map.next_value_seed(deserializer)?;
                 }
@@ -180,7 +183,7 @@ mod tests {
     use crate::{
         datetime::{Timestamp, TimestampParseError},
         guild::Member,
-        id::{ChannelId, GuildId, MessageId, RoleId, UserId},
+        id::Id,
         user::User,
     };
     use serde_test::Token;
@@ -192,21 +195,22 @@ mod tests {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = Reaction {
-            channel_id: ChannelId::new(2).expect("non zero"),
+            channel_id: Id::new(2).expect("non zero"),
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
             },
-            guild_id: Some(GuildId::new(1).expect("non zero")),
+            guild_id: Some(Id::new(1).expect("non zero")),
             member: Some(Member {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
-                guild_id: GuildId::new(1).expect("non zero"),
+                guild_id: Id::new(1).expect("non zero"),
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
                 pending: false,
                 premium_since: None,
-                roles: vec![RoleId::new(5).expect("non zero")],
+                roles: vec![Id::new(5).expect("non zero")],
                 user: User {
                     accent_color: None,
                     avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
@@ -215,7 +219,7 @@ mod tests {
                     discriminator: 1,
                     email: None,
                     flags: None,
-                    id: UserId::new(4).expect("non zero"),
+                    id: Id::new(4).expect("non zero"),
                     locale: None,
                     mfa_enabled: None,
                     name: "test".to_owned(),
@@ -225,8 +229,8 @@ mod tests {
                     verified: None,
                 },
             }),
-            message_id: MessageId::new(3).expect("non zero"),
-            user_id: UserId::new(4).expect("non zero"),
+            message_id: Id::new(3).expect("non zero"),
+            user_id: Id::new(4).expect("non zero"),
         };
 
         serde_test::assert_tokens(
@@ -237,7 +241,7 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("emoji"),
                 Token::Struct {
@@ -249,18 +253,20 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("member"),
                 Token::Some,
                 Token::Struct {
                     name: "Member",
-                    len: 8,
+                    len: 9,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
@@ -273,7 +279,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("5"),
                 Token::SeqEnd,
                 Token::Str("user"),
@@ -293,17 +299,17 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("username"),
                 Token::Str("test"),
                 Token::StructEnd,
                 Token::StructEnd,
                 Token::Str("message_id"),
-                Token::NewtypeStruct { name: "MessageId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("user_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::StructEnd,
             ],
@@ -315,14 +321,14 @@ mod tests {
     #[test]
     fn test_reaction_without_member() {
         let value = Reaction {
-            channel_id: ChannelId::new(2).expect("non zero"),
+            channel_id: Id::new(2).expect("non zero"),
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
             },
             guild_id: None,
             member: None,
-            message_id: MessageId::new(3).expect("non zero"),
-            user_id: UserId::new(4).expect("non zero"),
+            message_id: Id::new(3).expect("non zero"),
+            user_id: Id::new(4).expect("non zero"),
         };
 
         serde_test::assert_tokens(
@@ -333,7 +339,7 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("emoji"),
                 Token::Struct {
@@ -348,10 +354,10 @@ mod tests {
                 Token::Str("member"),
                 Token::None,
                 Token::Str("message_id"),
-                Token::NewtypeStruct { name: "MessageId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("user_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::StructEnd,
             ],

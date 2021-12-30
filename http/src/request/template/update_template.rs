@@ -1,72 +1,19 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+use twilight_model::{
+    id::{marker::GuildMarker, Id},
+    template::Template,
 };
-use twilight_model::{id::GuildId, template::Template};
-
-/// Error emitted when the template can not be updated as configured.
-#[derive(Debug)]
-pub struct UpdateTemplateError {
-    kind: UpdateTemplateErrorType,
-}
-
-impl UpdateTemplateError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateTemplateErrorType {
-        &self.kind
-    }
-
-    /// Consumes the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type nad the source error.
-    #[must_use = "consuming the error int its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        UpdateTemplateErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for UpdateTemplateError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self.kind {
-            UpdateTemplateErrorType::NameInvalid { .. } => {
-                f.write_str("the template name is invalid")
-            }
-            UpdateTemplateErrorType::DescriptionTooLarge { .. } => {
-                f.write_str("the template description is too large")
-            }
-        }
-    }
-}
-
-impl Error for UpdateTemplateError {}
-
-/// Type of [`UpdateTemplateError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UpdateTemplateErrorType {
-    /// Name of the template is invalid.
-    NameInvalid,
-    /// Description of the template is invalid.
-    DescriptionTooLarge,
-}
+use twilight_validate::request::{
+    template_description as validate_template_description, template_name as validate_template_name,
+    ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateTemplateFields<'a> {
@@ -78,13 +25,17 @@ struct UpdateTemplateFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateTemplate<'a> {
     fields: UpdateTemplateFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     template_code: &'a str,
 }
 
 impl<'a> UpdateTemplate<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId, template_code: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        template_code: &'a str,
+    ) -> Self {
         Self {
             fields: UpdateTemplateFields {
                 name: None,
@@ -102,14 +53,12 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateTemplateErrorType::DescriptionTooLarge`] error type
-    /// if the description is too large.
-    pub fn description(mut self, description: &'a str) -> Result<Self, UpdateTemplateError> {
-        if !validate_inner::template_description(&description) {
-            return Err(UpdateTemplateError {
-                kind: UpdateTemplateErrorType::DescriptionTooLarge,
-            });
-        }
+    /// Returns an error of type [`TemplateDescription`] if the name length is
+    /// too short or too long.
+    ///
+    /// [`TemplateDescription`]: twilight_validate::request::ValidationErrorType::TemplateDescription
+    pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
+        validate_template_description(description)?;
 
         self.fields.description.replace(description);
 
@@ -122,14 +71,12 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateTemplateErrorType::NameInvalid`] error type when the
-    /// name is invalid.
-    pub fn name(mut self, name: &'a str) -> Result<Self, UpdateTemplateError> {
-        if !validate_inner::template_name(name) {
-            return Err(UpdateTemplateError {
-                kind: UpdateTemplateErrorType::NameInvalid,
-            });
-        }
+    /// Returns an error of type [`TemplateName`] if the name length is too
+    /// short or too long.
+    ///
+    /// [`TemplateName`]: twilight_validate::request::ValidationErrorType::TemplateName
+    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
+        validate_template_name(name)?;
 
         self.fields.name.replace(name);
 
@@ -140,16 +87,24 @@ impl<'a> UpdateTemplate<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Template> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateTemplate<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateTemplate {
             guild_id: self.guild_id.get(),
             template_code: self.template_code,
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

@@ -1,0 +1,38 @@
+name: "Code Coverage"
+
+on:
+  schedule:
+    - cron: 13 9 * * *
+  workflow_dispatch:
+
+env:
+  # Use `haswell` instead of `native` due to some GitHub Actions runners not
+  # supporting some `avx512` instructions.
+  RUSTFLAGS: -C target-cpu=haswell
+
+jobs:
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Set excluded examples
+        id: excluded-examples
+        run: echo "::set-output name=out::$(grep -h '^name' examples/*/Cargo.toml | cut -d \" -f2 | xargs -I '{}' printf '--exclude {} ')"
+
+      - name: Collect coverage
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: "--ignore-tests --all-features ${{ steps.excluded-examples.outputs.out }}"
+
+      - name: Upload coverage to codecov.io
+        uses: codecov/codecov-action@v2
+
+      - name: Upload coverage to GitHub
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: cobertura.xml

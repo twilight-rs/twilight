@@ -3,17 +3,17 @@ use crate::{
 };
 use std::borrow::Cow;
 use twilight_model::{
-    channel::message::sticker::{Sticker, StickerId},
+    channel::message::sticker::Sticker,
     gateway::payload::incoming::GuildStickersUpdate,
-    id::GuildId,
+    id::{marker::GuildMarker, Id},
 };
 
 impl InMemoryCache {
-    pub(crate) fn cache_stickers(&self, guild_id: GuildId, stickers: Vec<Sticker>) {
+    pub(crate) fn cache_stickers(&self, guild_id: Id<GuildMarker>, stickers: Vec<Sticker>) {
         if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
-            let incoming: Vec<StickerId> = stickers.iter().map(|s| s.id).collect();
+            let incoming: Vec<_> = stickers.iter().map(|s| s.id).collect();
 
-            let removal_filter: Vec<StickerId> = guild_stickers
+            let removal_filter: Vec<_> = guild_stickers
                 .iter()
                 .copied()
                 .filter(|s| !incoming.contains(s))
@@ -33,7 +33,7 @@ impl InMemoryCache {
         }
     }
 
-    pub(crate) fn cache_sticker(&self, guild_id: GuildId, sticker: Sticker) {
+    pub(crate) fn cache_sticker(&self, guild_id: Id<GuildMarker>, sticker: Sticker) {
         match self.stickers.get(&sticker.id) {
             Some(cached_sticker) if cached_sticker.value == sticker => return,
             Some(_) | None => {}

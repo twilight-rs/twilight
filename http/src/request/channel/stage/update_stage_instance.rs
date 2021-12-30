@@ -1,69 +1,16 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+use twilight_model::{
+    channel::stage_instance::PrivacyLevel,
+    id::{marker::ChannelMarker, Id},
 };
-use twilight_model::{channel::stage_instance::PrivacyLevel, id::ChannelId};
-
-/// The request can not be created as configured.
-#[derive(Debug)]
-pub struct UpdateStageInstanceError {
-    kind: UpdateStageInstanceErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl UpdateStageInstanceError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateStageInstanceErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        UpdateStageInstanceErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for UpdateStageInstanceError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateStageInstanceErrorType::InvalidTopic { .. } => f.write_str("invalid topic"),
-        }
-    }
-}
-
-impl Error for UpdateStageInstanceError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-#[derive(Debug)]
-pub enum UpdateStageInstanceErrorType {
-    /// Topic is not between 1 and 120 characters in length.
-    InvalidTopic,
-}
+use twilight_validate::request::{stage_topic as validate_stage_topic, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateStageInstanceFields<'a> {
@@ -78,13 +25,13 @@ struct UpdateStageInstanceFields<'a> {
 /// Requires the user to be a moderator of the stage channel.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateStageInstance<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateStageInstanceFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> UpdateStageInstance<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: UpdateStageInstanceFields {
@@ -103,13 +50,8 @@ impl<'a> UpdateStageInstance<'a> {
     }
 
     /// Set the new topic of the instance.
-    pub fn topic(mut self, topic: &'a str) -> Result<Self, UpdateStageInstanceError> {
-        if !validate_inner::stage_topic(&topic) {
-            return Err(UpdateStageInstanceError {
-                kind: UpdateStageInstanceErrorType::InvalidTopic,
-                source: None,
-            });
-        }
+    pub fn topic(mut self, topic: &'a str) -> Result<Self, ValidationError> {
+        validate_stage_topic(topic)?;
 
         self.fields.topic.replace(topic);
 
@@ -120,15 +62,23 @@ impl<'a> UpdateStageInstance<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateStageInstance<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateStageInstance {
             channel_id: self.channel_id.get(),
         });
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

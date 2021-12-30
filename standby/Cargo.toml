@@ -12,10 +12,10 @@ name = "twilight-standby"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.0"
+version = "0.8.1"
 
 [dependencies]
-dashmap = { default-features = false, version = "4.0" }
+dashmap = { default-features = false, version = ">=4.0, <6.0" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tokio = { default-features = false, features = ["sync"], version = "1.0" }
 twilight-model = { default-features = false, path = "../model" }
@@ -26,7 +26,7 @@ tracing = { default-features = false, features = ["std", "attributes"], optional
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-twilight-gateway = { default-features = false, features = ["rustls"], path = "../gateway" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
 
 [features]
 default = ["tracing"]

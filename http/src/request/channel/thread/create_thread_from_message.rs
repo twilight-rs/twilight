@@ -1,16 +1,19 @@
-use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
-    error::Error as HttpError,
-    request::{validate_inner, Request},
+    error::Error,
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
-    id::{ChannelId, MessageId},
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
 };
+use twilight_validate::channel::{name as validate_name, ChannelValidationError};
 
 #[derive(Serialize)]
 struct CreateThreadFromMessageFields<'a> {
@@ -40,24 +43,20 @@ struct CreateThreadFromMessageFields<'a> {
 /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: CreateThreadFromMessageFields<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
 }
 
 impl<'a> CreateThreadFromMessage<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
         name: &'a str,
-    ) -> Result<Self, ThreadValidationError> {
-        if !validate_inner::channel_name(name) {
-            return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::NameInvalid,
-            });
-        }
+    ) -> Result<Self, ChannelValidationError> {
+        validate_name(name)?;
 
         Ok(Self {
             channel_id,
@@ -87,23 +86,26 @@ impl<'a> CreateThreadFromMessage<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
-        let request = Request::builder(&Route::CreateThreadFromMessage {
-            channel_id: self.channel_id.get(),
-            message_id: self.message_id.get(),
-        })
-        .json(&self.fields)?;
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+impl TryIntoRequest for CreateThreadFromMessage<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Request::builder(&Route::CreateThreadFromMessage {
+            channel_id: self.channel_id.get(),
+            message_id: self.message_id.get(),
+        })
+        .json(&self.fields)
+        .map(RequestBuilder::build)
     }
 }
