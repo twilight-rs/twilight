@@ -770,7 +770,7 @@ mod tests {
         }
     }
 
-    fn private() -> PrivateChannel {
+    const fn private() -> PrivateChannel {
         PrivateChannel {
             id: Id::new(234),
             last_message_id: None,

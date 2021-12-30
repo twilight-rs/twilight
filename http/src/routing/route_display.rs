@@ -1143,7 +1143,7 @@ mod tests {
     const TEMPLATE_CODE: &str = "templatecode";
     const USER_ID: u64 = 11;
 
-    fn emoji() -> RequestReactionType<'static> {
+    const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
             id: Id::new(EMOJI_ID),
             name: None,

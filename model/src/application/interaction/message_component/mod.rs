@@ -136,7 +136,7 @@ mod tests {
 
     #[test]
     fn test_author_id() -> Result<(), TimestampParseError> {
-        fn user_id() -> Id<UserMarker> {
+        const fn user_id() -> Id<UserMarker> {
             Id::new(7)
         }
 

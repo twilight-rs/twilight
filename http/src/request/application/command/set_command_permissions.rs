@@ -76,7 +76,7 @@ impl SortedCommand<'_> {
     /// Create a new default sorted command with no configured permissions.
     ///
     /// The ID of the command is `u64::MAX`.
-    fn new() -> Self {
+    const fn new() -> Self {
         Self {
             count: 0,
             id: Id::new(u64::MAX),
@@ -230,11 +230,11 @@ mod tests {
         CommandValidationErrorType, GUILD_COMMAND_LIMIT, GUILD_COMMAND_PERMISSION_LIMIT,
     };
 
-    fn application_id() -> Id<ApplicationMarker> {
+    const fn application_id() -> Id<ApplicationMarker> {
         Id::new(1)
     }
 
-    fn guild_id() -> Id<GuildMarker> {
+    const fn guild_id() -> Id<GuildMarker> {
         Id::new(2)
     }
 

@@ -203,11 +203,11 @@ mod tests {
         Id,
     };
 
-    fn guild_id() -> Id<GuildMarker> {
+    const fn guild_id() -> Id<GuildMarker> {
         Id::new(1)
     }
 
-    fn user_id() -> Id<UserMarker> {
+    const fn user_id() -> Id<UserMarker> {
         Id::new(1)
     }
 

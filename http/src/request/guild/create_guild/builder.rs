@@ -83,12 +83,12 @@ impl RoleFieldsBuilder {
     /// [`color`]: Self::color
     pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
 
-    fn role_id() -> Id<RoleMarker> {
+    const fn role_id() -> Id<RoleMarker> {
         Id::new(1)
     }
 
     /// Create a new default role field builder.
-    pub fn new(name: String) -> Self {
+    pub const fn new(name: String) -> Self {
         Self(RoleFields {
             color: None,
             hoist: None,

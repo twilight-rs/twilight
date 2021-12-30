@@ -105,11 +105,11 @@ mod tests {
     fn test_request() -> Result<(), Box<dyn Error>> {
         const TOKEN: &str = "token";
 
-        fn application_id() -> Id<ApplicationMarker> {
+        const fn application_id() -> Id<ApplicationMarker> {
             Id::new(1)
         }
 
-        fn message_id() -> Id<MessageMarker> {
+        const fn message_id() -> Id<MessageMarker> {
             Id::new(2)
         }
 
