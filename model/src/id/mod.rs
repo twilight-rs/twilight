@@ -113,7 +113,7 @@ impl<T> Id<T> {
         if let Some(id) = Self::new_checked(n) {
             id
         } else {
-            panic!("value passed to `Id::new` is zero");
+            panic!("value is zero");
         }
     }
 
