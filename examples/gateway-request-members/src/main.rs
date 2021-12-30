@@ -41,10 +41,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 // check to make sure you're requesting at most that many:
                 let request = RequestGuildMembers::builder(Id::new(1))
                     .nonce("requesting two member")
-                    .user_ids(vec![
-                        Id::new(2),
-                        Id::new(3),
-                    ])
+                    .user_ids(vec![Id::new(2), Id::new(3)])
                     .unwrap();
 
                 shard.command(&request).await?;

@@ -371,17 +371,12 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-        let builder = UpdateWebhookMessage::new(
-            &client,
-            Id::new(1),
-            "token",
-            Id::new(2),
-        )
-        .content(Some("test"))
-        .expect("'test' content couldn't be set")
-        .thread_id(Id::new(3))
-        .reason("reason")
-        .expect("'reason' is not a valid reason");
+        let builder = UpdateWebhookMessage::new(&client, Id::new(1), "token", Id::new(2))
+            .content(Some("test"))
+            .expect("'test' content couldn't be set")
+            .thread_id(Id::new(3))
+            .reason("reason")
+            .expect("'reason' is not a valid reason");
         let actual = builder
             .try_into_request()
             .expect("failed to create request");

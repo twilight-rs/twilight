@@ -105,8 +105,7 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer =
-                        OptionalMemberDeserializer::new(Id::new(1));
+                    let deserializer = OptionalMemberDeserializer::new(Id::new(1));
 
                     member = map.next_value_seed(deserializer)?;
                 }

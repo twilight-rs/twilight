@@ -123,8 +123,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                     // Since the guild ID may not be deserialized yet we'll use
                     // a temporary placeholder value and update it with the real
                     // guild ID after all the fields have been deserialized.
-                    let deserializer =
-                        MemberListDeserializer::new(Id::new(1));
+                    let deserializer = MemberListDeserializer::new(Id::new(1));
 
                     members = Some(map.next_value_seed(deserializer)?);
                 }
@@ -147,8 +146,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("presences"));
                     }
 
-                    let deserializer =
-                        PresenceListDeserializer::new(Id::new(1));
+                    let deserializer = PresenceListDeserializer::new(Id::new(1));
 
                     presences = Some(map.next_value_seed(deserializer)?);
                 }
@@ -341,10 +339,7 @@ mod tests {
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![
-                        Id::new(6),
-                        Id::new(7),
-                    ],
+                    roles: vec![Id::new(6), Id::new(7)],
                     user: User {
                         id: Id::new(2),
                         accent_color: None,
@@ -463,9 +458,7 @@ mod tests {
                     },
                     guild_id: Id::new(1),
                     status: Status::Online,
-                    user: UserOrId::UserId {
-                        id: Id::new(2),
-                    },
+                    user: UserOrId::UserId { id: Id::new(2) },
                 },
                 Presence {
                     activities: Vec::new(),
@@ -476,9 +469,7 @@ mod tests {
                     },
                     guild_id: Id::new(1),
                     status: Status::Online,
-                    user: UserOrId::UserId {
-                        id: Id::new(3),
-                    },
+                    user: UserOrId::UserId { id: Id::new(3) },
                 },
                 Presence {
                     activities: Vec::new(),
@@ -489,9 +480,7 @@ mod tests {
                     },
                     guild_id: Id::new(1),
                     status: Status::DoNotDisturb,
-                    user: UserOrId::UserId {
-                        id: Id::new(5),
-                    },
+                    user: UserOrId::UserId { id: Id::new(5) },
                 },
             ]),
         };

@@ -329,13 +329,9 @@ mod tests {
         let cache = InMemoryCache::new();
         cache.cache_guild(guild);
 
-        let channel = cache
-            .guild_channel(Id::new(111))
-            .unwrap();
+        let channel = cache.guild_channel(Id::new(111)).unwrap();
 
-        let thread = cache
-            .guild_channel(Id::new(222))
-            .unwrap();
+        let thread = cache.guild_channel(Id::new(222)).unwrap();
 
         // The channel was given to the cache without a guild ID, but because
         // it's part of a guild create, the cache can automatically attach the

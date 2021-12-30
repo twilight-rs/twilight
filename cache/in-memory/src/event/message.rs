@@ -210,27 +210,15 @@ mod tests {
         cache.update(&MessageCreate(msg));
 
         {
-            let entry = cache
-                .user_guilds
-                .get(&Id::new(3))
-                .unwrap();
+            let entry = cache.user_guilds.get(&Id::new(3)).unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(
-            cache
-                .member(
-                    Id::new(1),
-                    Id::new(3)
-                )
-                .unwrap()
-                .user_id,
+            cache.member(Id::new(1), Id::new(3)).unwrap().user_id,
             Id::new(3),
         );
         {
-            let entry = cache
-                .channel_messages
-                .get(&Id::new(2))
-                .unwrap();
+            let entry = cache.channel_messages.get(&Id::new(2)).unwrap();
             assert_eq!(entry.value().len(), 2);
         }
 

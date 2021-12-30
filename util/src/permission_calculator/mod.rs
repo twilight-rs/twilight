@@ -589,10 +589,7 @@ mod tests {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
-        let roles = &[(
-            Id::new(3),
-            Permissions::SEND_MESSAGES,
-        )];
+        let roles = &[(Id::new(3), Permissions::SEND_MESSAGES)];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
             .in_channel(ChannelType::GuildVoice, &[]);
@@ -605,10 +602,7 @@ mod tests {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
-        let roles = &[(
-            Id::new(3),
-            Permissions::SEND_MESSAGES,
-        )];
+        let roles = &[(Id::new(3), Permissions::SEND_MESSAGES)];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
             .in_channel(ChannelType::GuildText, &[]);
@@ -645,16 +639,9 @@ mod tests {
     /// has all denying overwrites ignored.
     #[test]
     fn test_admin() {
-        let member_roles = &[(
-            Id::new(3),
-            Permissions::ADMINISTRATOR,
-        )];
-        let calc = PermissionCalculator::new(
-            Id::new(1),
-            Id::new(2),
-            Permissions::empty(),
-            member_roles,
-        );
+        let member_roles = &[(Id::new(3), Permissions::ADMINISTRATOR)];
+        let calc =
+            PermissionCalculator::new(Id::new(1), Id::new(2), Permissions::empty(), member_roles);
         assert!(calc.root().is_all());
 
         // Ensure that the denial of "send messages" doesn't actually occur due
@@ -681,12 +668,7 @@ mod tests {
         everyone.remove(Permissions::ADMINISTRATOR);
 
         for kind in CHANNEL_TYPES {
-            let calc = PermissionCalculator::new(
-                Id::new(1),
-                Id::new(2),
-                everyone,
-                &[],
-            );
+            let calc = PermissionCalculator::new(Id::new(1), Id::new(2), everyone, &[]);
             let calculated = calc.in_channel(*kind, &[]);
 
             assert!(!calculated.intersects(PERMISSIONS_ROOT_ONLY));

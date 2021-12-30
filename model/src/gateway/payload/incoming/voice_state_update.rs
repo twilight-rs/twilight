@@ -173,10 +173,7 @@ mod tests {
                 nick: Some("Twilight".to_string()),
                 pending: false,
                 premium_since: None,
-                roles: vec![
-                    Id::new(123),
-                    Id::new(124),
-                ],
+                roles: vec![Id::new(123), Id::new(124)],
                 user: User {
                     id: Id::new(1_234_123_123_123),
                     accent_color: None,

@@ -255,38 +255,24 @@ mod tests {
         )));
 
         {
-            let guild_members = cache
-                .guild_members(Id::new(3))
-                .unwrap();
+            let guild_members = cache.guild_members(Id::new(3)).unwrap();
             assert_eq!(guild_members.len(), 2);
         }
 
         {
-            let member = cache
-                .member(
-                    Id::new(3),
-                    Id::new(6),
-                )
-                .unwrap();
+            let member = cache.member(Id::new(3), Id::new(6)).unwrap();
             let user = cache.user(member.user_id).unwrap();
             assert_eq!(user.avatar.as_ref().unwrap(), "avatar string");
         }
 
         {
-            let member = cache
-                .member(
-                    Id::new(3),
-                    Id::new(7),
-                )
-                .unwrap();
+            let member = cache.member(Id::new(3), Id::new(7)).unwrap();
             let user = cache.user(member.user_id).unwrap();
             assert_eq!(user.avatar.as_ref().unwrap(), "different avatar");
         }
 
         {
-            let guild_roles = cache
-                .guild_roles(Id::new(3))
-                .unwrap();
+            let guild_roles = cache.guild_roles(Id::new(3)).unwrap();
             assert_eq!(guild_roles.len(), 1);
         }
     }

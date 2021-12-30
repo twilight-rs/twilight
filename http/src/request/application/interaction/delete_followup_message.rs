@@ -94,12 +94,7 @@ mod tests {
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
 
-        let builder = DeleteFollowupMessage::new(
-            &client,
-            Id::new(1),
-            "token",
-            Id::new(2),
-        );
+        let builder = DeleteFollowupMessage::new(&client, Id::new(1), "token", Id::new(2));
         let actual = builder.try_into_request()?;
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {

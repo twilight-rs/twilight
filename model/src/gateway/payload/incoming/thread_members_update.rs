@@ -169,9 +169,7 @@ mod tests {
             },
             guild_id: Id::new(2),
             status: Status::Online,
-            user: UserOrId::UserId {
-                id: Id::new(3),
-            },
+            user: UserOrId::UserId { id: Id::new(3) },
         };
 
         let join_timestamp = Timestamp::from_str(JOIN_TIMESTAMP).expect("timestamp error");

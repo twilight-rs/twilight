@@ -101,12 +101,7 @@ mod tests {
 
         let emoji = RequestReactionType::Unicode { name: "🌃" };
 
-        let builder = CreateReaction::new(
-            &client,
-            Id::new(123),
-            Id::new(456),
-            &emoji,
-        );
+        let builder = CreateReaction::new(&client, Id::new(123), Id::new(456), &emoji);
         let actual = builder.try_into_request()?;
 
         let expected = Request::from_route(&Route::CreateReaction {

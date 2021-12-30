@@ -14,9 +14,7 @@ mod tests {
 
     #[test]
     fn test_unavailable_guild() {
-        let value = UnavailableGuild {
-            id: Id::new(1),
-        };
+        let value = UnavailableGuild { id: Id::new(1) };
 
         serde_test::assert_tokens(
             &value,

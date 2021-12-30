@@ -212,9 +212,7 @@ mod tests {
             },
             guild_id: Id::new(2),
             status: Status::Online,
-            user: UserOrId::UserId {
-                id: Id::new(1),
-            },
+            user: UserOrId::UserId { id: Id::new(1) },
         };
 
         serde_test::assert_de_tokens(
@@ -316,9 +314,7 @@ mod tests {
             },
             guild_id: Id::new(2),
             status: Status::Online,
-            user: UserOrId::UserId {
-                id: Id::new(1),
-            },
+            user: UserOrId::UserId { id: Id::new(1) },
         }]);
 
         let mut json_deserializer = Deserializer::from_str(input);

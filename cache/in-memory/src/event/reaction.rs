@@ -125,9 +125,7 @@ mod tests {
     #[test]
     fn test_reaction_add() {
         let cache = test::cache_with_message_and_reactions();
-        let msg = cache
-            .message(Id::new(4))
-            .unwrap();
+        let msg = cache.message(Id::new(4)).unwrap();
 
         assert_eq!(msg.reactions.len(), 2);
 
@@ -160,9 +158,7 @@ mod tests {
             user_id: Id::new(5),
         }));
 
-        let msg = cache
-            .message(Id::new(4))
-            .unwrap();
+        let msg = cache.message(Id::new(4)).unwrap();
 
         assert_eq!(msg.reactions.len(), 2);
 
@@ -190,9 +186,7 @@ mod tests {
             guild_id: Some(Id::new(1)),
         });
 
-        let msg = cache
-            .message(Id::new(4))
-            .unwrap();
+        let msg = cache.message(Id::new(4)).unwrap();
 
         assert_eq!(msg.reactions.len(), 0);
     }
@@ -209,9 +203,7 @@ mod tests {
             message_id: Id::new(4),
         });
 
-        let msg = cache
-            .message(Id::new(4))
-            .unwrap();
+        let msg = cache.message(Id::new(4)).unwrap();
 
         assert_eq!(msg.reactions.len(), 1);
 
