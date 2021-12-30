@@ -418,8 +418,8 @@ impl InMemoryCache {
     ///     .resource_types(resource_types)
     ///     .build();
     ///
-    /// let channel_id = Id::new_checked(4).expect("non zero");
-    /// let user_id = Id::new_checked(5).expect("non zero");
+    /// let channel_id = Id::new(4);
+    /// let user_id = Id::new(5);
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
     /// println!("member has these permissions: {:?}", permissions);
@@ -936,25 +936,16 @@ mod tests {
     fn test_syntax_update() {
         let cache = InMemoryCache::new();
         cache.update(&RoleDelete {
-            guild_id: Id::new_checked(1).expect("non zero"),
-            role_id: Id::new_checked(1).expect("non zero"),
+            guild_id: Id::new(1),
+            role_id: Id::new(1),
         });
     }
 
     #[test]
     fn test_clear() {
         let cache = InMemoryCache::new();
-        cache.cache_emoji(
-            Id::new_checked(1).expect("non zero"),
-            test::emoji(Id::new_checked(3).expect("non zero"), None),
-        );
-        cache.cache_member(
-            Id::new_checked(2).expect("non zero"),
-            test::member(
-                Id::new_checked(4).expect("non zero"),
-                Id::new_checked(2).expect("non zero"),
-            ),
-        );
+        cache.cache_emoji(Id::new(1), test::emoji(Id::new(3), None));
+        cache.cache_member(Id::new(2), test::member(Id::new(4), Id::new(2)));
         cache.clear();
         assert!(cache.emojis.is_empty());
         assert!(cache.members.is_empty());
@@ -964,8 +955,8 @@ mod tests {
     fn test_highest_role() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
-        let guild_id = Id::new_checked(1).expect("non zero");
-        let user = test::user(Id::new_checked(1).expect("non zero"));
+        let guild_id = Id::new(1);
+        let user = test::user(Id::new(1));
         cache.cache_member(
             guild_id,
             Member {
@@ -978,10 +969,7 @@ mod tests {
                 nick: None,
                 pending: false,
                 premium_since: None,
-                roles: vec![
-                    Id::new_checked(1).expect("non zero"),
-                    Id::new_checked(2).expect("non zero"),
-                ],
+                roles: vec![Id::new(1), Id::new(2)],
                 user,
             },
         );
@@ -993,7 +981,7 @@ mod tests {
                     color: 0,
                     hoist: false,
                     icon: None,
-                    id: Id::new_checked(1).expect("non zero"),
+                    id: Id::new(1),
                     managed: false,
                     mentionable: false,
                     name: "test".to_owned(),
@@ -1006,7 +994,7 @@ mod tests {
                     color: 0,
                     hoist: false,
                     icon: None,
-                    id: Id::new_checked(2).expect("non zero"),
+                    id: Id::new(2),
                     managed: false,
                     mentionable: false,
                     name: "test".to_owned(),
@@ -1019,8 +1007,8 @@ mod tests {
         );
 
         assert_eq!(
-            cache.member_highest_role(guild_id, Id::new_checked(1).expect("non zero")),
-            Some(Id::new_checked(2).expect("non zero"))
+            cache.member_highest_role(guild_id, Id::new(1)),
+            Some(Id::new(2))
         );
     }
 }

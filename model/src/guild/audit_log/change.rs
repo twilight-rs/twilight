@@ -856,7 +856,7 @@ mod tests {
     #[test]
     fn test_afk_channel_id() {
         let value = AuditLogChange::AfkChannelId {
-            new: Some(Id::new_checked(1).expect("non zero")),
+            new: Some(Id::new(1)),
             old: None,
         };
 

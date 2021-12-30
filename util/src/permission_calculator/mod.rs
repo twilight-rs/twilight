@@ -41,8 +41,8 @@
 //!     id::Id,
 //! };
 //!
-//! let guild_id = Id::new_checked(1).expect("non zero");
-//! let user_id = Id::new_checked(3).expect("non zero");
+//! let guild_id = Id::new(1);
+//! let user_id = Id::new(3);
 //!
 //! // Guild-level @everyone role that, by default, allows everyone to view
 //! // channels.
@@ -53,7 +53,7 @@
 //! let member_roles = &[
 //!     // Guild-level permission that grants members with the role the Send
 //!     // Messages permission.
-//!     (Id::new_checked(2).expect("non zero"), Permissions::SEND_MESSAGES),
+//!     (Id::new(2), Permissions::SEND_MESSAGES),
 //! ];
 //!
 //! let channel_overwrites = &[
@@ -62,7 +62,7 @@
 //!     PermissionOverwrite {
 //!         allow: Permissions::ADD_REACTIONS | Permissions::EMBED_LINKS,
 //!         deny: Permissions::empty(),
-//!         kind: PermissionOverwriteType::Role(Id::new_checked(1).expect("non zero")),
+//!         kind: PermissionOverwriteType::Role(Id::new(1)),
 //!     },
 //!     // Member is denied the Send Messages permission.
 //!     PermissionOverwrite {
@@ -534,8 +534,8 @@ mod tests {
 
     #[test]
     fn test_owner_is_admin() {
-        let guild_id = Id::new_checked(1).expect("non zero");
-        let user_id = Id::new_checked(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role = Permissions::SEND_MESSAGES;
         let roles = &[];
 
@@ -549,10 +549,10 @@ mod tests {
     // implicitly denies all other permissions.
     #[test]
     fn test_view_channel_deny_implicit() {
-        let guild_id = Id::new_checked(1).expect("non zero");
-        let user_id = Id::new_checked(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role = Permissions::MENTION_EVERYONE | Permissions::SEND_MESSAGES;
-        let roles = &[(Id::new_checked(3).expect("non zero"), Permissions::empty())];
+        let roles = &[(Id::new(3), Permissions::empty())];
 
         {
             // First, test when it's denied for an overwrite on a role the user
@@ -560,7 +560,7 @@ mod tests {
             let overwrites = &[PermissionOverwrite {
                 allow: Permissions::SEND_TTS_MESSAGES,
                 deny: Permissions::VIEW_CHANNEL,
-                kind: PermissionOverwriteType::Role(Id::new_checked(3).expect("non zero")),
+                kind: PermissionOverwriteType::Role(Id::new(3)),
             }];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -574,7 +574,7 @@ mod tests {
             let overwrites = &[PermissionOverwrite {
                 allow: Permissions::SEND_TTS_MESSAGES,
                 deny: Permissions::VIEW_CHANNEL,
-                kind: PermissionOverwriteType::Member(Id::new_checked(2).expect("non zero")),
+                kind: PermissionOverwriteType::Member(Id::new(2)),
             }];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -586,11 +586,11 @@ mod tests {
 
     #[test]
     fn test_remove_text_and_stage_perms_when_voice() {
-        let guild_id = Id::new_checked(1).expect("non zero");
-        let user_id = Id::new_checked(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
         let roles = &[(
-            Id::new_checked(3).expect("non zero"),
+            Id::new(3),
             Permissions::SEND_MESSAGES,
         )];
 
@@ -602,11 +602,11 @@ mod tests {
 
     #[test]
     fn test_remove_audio_perms_when_text() {
-        let guild_id = Id::new_checked(1).expect("non zero");
-        let user_id = Id::new_checked(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
         let roles = &[(
-            Id::new_checked(3).expect("non zero"),
+            Id::new(3),
             Permissions::SEND_MESSAGES,
         )];
 
@@ -622,17 +622,17 @@ mod tests {
     // send related permissions.
     #[test]
     fn test_deny_send_messages_removes_related() {
-        let guild_id = Id::new_checked(1).expect("non zero");
-        let user_id = Id::new_checked(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role =
             Permissions::MANAGE_MESSAGES | Permissions::EMBED_LINKS | Permissions::MENTION_EVERYONE;
-        let roles = &[(Id::new_checked(3).expect("non zero"), Permissions::empty())];
+        let roles = &[(Id::new(3), Permissions::empty())];
 
         // First, test when it's denied for an overwrite on a role the user has.
         let overwrites = &[PermissionOverwrite {
             allow: Permissions::ATTACH_FILES,
             deny: Permissions::SEND_MESSAGES,
-            kind: PermissionOverwriteType::Role(Id::new_checked(3).expect("non zero")),
+            kind: PermissionOverwriteType::Role(Id::new(3)),
         }];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -646,12 +646,12 @@ mod tests {
     #[test]
     fn test_admin() {
         let member_roles = &[(
-            Id::new_checked(3).expect("non zero"),
+            Id::new(3),
             Permissions::ADMINISTRATOR,
         )];
         let calc = PermissionCalculator::new(
-            Id::new_checked(1).expect("non zero"),
-            Id::new_checked(2).expect("non zero"),
+            Id::new(1),
+            Id::new(2),
             Permissions::empty(),
             member_roles,
         );
@@ -682,8 +682,8 @@ mod tests {
 
         for kind in CHANNEL_TYPES {
             let calc = PermissionCalculator::new(
-                Id::new_checked(1).expect("non zero"),
-                Id::new_checked(2).expect("non zero"),
+                Id::new(1),
+                Id::new(2),
                 everyone,
                 &[],
             );

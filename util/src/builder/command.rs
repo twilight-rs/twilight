@@ -55,7 +55,7 @@ impl CommandBuilder {
             kind,
             name,
             options: Vec::new(),
-            version: Id::new_checked(1).expect("non zero"),
+            version: Id::new(1),
         })
     }
 
@@ -817,7 +817,7 @@ mod tests {
                     ]),
                 }),
             ]),
-            version: Id::new_checked(1).expect("non zero"),
+            version: Id::new(1),
         };
 
         assert_eq!(command, command_manual);

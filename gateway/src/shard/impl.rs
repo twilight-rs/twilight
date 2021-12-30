@@ -590,7 +590,7 @@ impl Shard {
     /// // Query members whose names start with "tw" and limit the results to
     /// // 10 members.
     /// let request =
-    ///     RequestGuildMembers::builder(Id::new_checked(1).expect("non zero"))
+    ///     RequestGuildMembers::builder(Id::new(1))
     ///         .query("tw", Some(10));
     ///
     /// // Send the request over the shard.

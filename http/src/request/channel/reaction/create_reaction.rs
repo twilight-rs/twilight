@@ -26,8 +26,8 @@ use twilight_model::id::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = Id::new_checked(123).expect("non zero");
-/// let message_id = Id::new_checked(456).expect("non zero");
+/// let channel_id = Id::new(123);
+/// let message_id = Id::new(456);
 /// let emoji = RequestReactionType::Unicode { name: "🌃" };
 ///
 /// let reaction = client
@@ -103,8 +103,8 @@ mod tests {
 
         let builder = CreateReaction::new(
             &client,
-            Id::new_checked(123).expect("non zero"),
-            Id::new_checked(456).expect("non zero"),
+            Id::new(123),
+            Id::new(456),
             &emoji,
         );
         let actual = builder.try_into_request()?;

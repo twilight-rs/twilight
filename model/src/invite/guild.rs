@@ -43,7 +43,7 @@ mod tests {
             description: Some("a description".to_owned()),
             features: vec!["a feature".to_owned()],
             icon: Some("icon hash".to_owned()),
-            id: Id::new_checked(1).expect("non zero"),
+            id: Id::new(1),
             name: "guild name".to_owned(),
             splash: Some("splash hash".to_owned()),
             vanity_url_code: Some("twilight".to_owned()),
@@ -52,15 +52,15 @@ mod tests {
                 description: Some("welcome description".to_owned()),
                 welcome_channels: vec![
                     WelcomeScreenChannel {
-                        channel_id: Id::new_checked(123).expect("non zero"),
+                        channel_id: Id::new(123),
                         description: "channel description".to_owned(),
                         emoji_id: None,
                         emoji_name: Some("\u{1f352}".to_owned()),
                     },
                     WelcomeScreenChannel {
-                        channel_id: Id::new_checked(456).expect("non zero"),
+                        channel_id: Id::new(456),
                         description: "custom description".to_owned(),
-                        emoji_id: Some(Id::new_checked(789).expect("non zero")),
+                        emoji_id: Some(Id::new(789)),
                         emoji_name: Some("custom_name".to_owned()),
                     },
                 ],

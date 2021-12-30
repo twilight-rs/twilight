@@ -149,7 +149,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
                     }
 
                     let deserializer =
-                        OptionalMemberDeserializer::new(Id::new_checked(1).expect("non zero"));
+                        OptionalMemberDeserializer::new(Id::new(1));
 
                     member = map.next_value_seed(deserializer)?;
                 }
@@ -302,9 +302,9 @@ mod tests {
     #[test]
     fn test_voice_state() {
         let value = VoiceState {
-            channel_id: Some(Id::new_checked(1).expect("non zero")),
+            channel_id: Some(Id::new(1)),
             deaf: false,
-            guild_id: Some(Id::new_checked(2).expect("non zero")),
+            guild_id: Some(Id::new(2)),
             member: None,
             mute: true,
             self_deaf: false,
@@ -313,7 +313,7 @@ mod tests {
             session_id: "a".to_owned(),
             suppress: true,
             token: None,
-            user_id: Id::new_checked(3).expect("non zero"),
+            user_id: Id::new(3),
             request_to_speak_timestamp: None,
         };
 
@@ -364,14 +364,14 @@ mod tests {
         let request_to_speak_timestamp = Timestamp::from_str("2021-04-21T22:16:50.000000+00:00")?;
 
         let value = VoiceState {
-            channel_id: Some(Id::new_checked(1).expect("non zero")),
+            channel_id: Some(Id::new(1)),
             deaf: false,
-            guild_id: Some(Id::new_checked(2).expect("non zero")),
+            guild_id: Some(Id::new(2)),
             member: Some(Member {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new_checked(2).expect("non zero"),
+                guild_id: Id::new(2),
                 joined_at,
                 mute: true,
                 nick: Some("twilight".to_owned()),
@@ -386,7 +386,7 @@ mod tests {
                     discriminator: 1,
                     email: None,
                     flags: None,
-                    id: Id::new_checked(3).expect("non zero"),
+                    id: Id::new(3),
                     locale: None,
                     mfa_enabled: None,
                     name: "twilight".to_owned(),
@@ -403,7 +403,7 @@ mod tests {
             session_id: "a".to_owned(),
             suppress: true,
             token: Some("abc".to_owned()),
-            user_id: Id::new_checked(3).expect("non zero"),
+            user_id: Id::new(3),
             request_to_speak_timestamp: Some(request_to_speak_timestamp),
         };
 

@@ -159,7 +159,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new_checked(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -168,14 +168,14 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            channel_id: Id::new_checked(2).expect("non zero"),
+            channel_id: Id::new(2),
             components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
             flags: Some(MessageFlags::empty()),
-            guild_id: Some(Id::new_checked(1).expect("non zero")),
-            id: Id::new_checked(4).expect("non zero"),
+            guild_id: Some(Id::new(1)),
+            id: Id::new(4),
             interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
@@ -206,36 +206,36 @@ mod tests {
         };
 
         cache.update(&MessageCreate(msg.clone()));
-        msg.id = Id::new_checked(5).expect("non zero");
+        msg.id = Id::new(5);
         cache.update(&MessageCreate(msg));
 
         {
             let entry = cache
                 .user_guilds
-                .get(&Id::new_checked(3).expect("non zero"))
+                .get(&Id::new(3))
                 .unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(
             cache
                 .member(
-                    Id::new_checked(1).expect("non zero"),
-                    Id::new_checked(3).expect("non zero")
+                    Id::new(1),
+                    Id::new(3)
                 )
                 .unwrap()
                 .user_id,
-            Id::new_checked(3).expect("non zero"),
+            Id::new(3),
         );
         {
             let entry = cache
                 .channel_messages
-                .get(&Id::new_checked(2).expect("non zero"))
+                .get(&Id::new(2))
                 .unwrap();
             assert_eq!(entry.value().len(), 2);
         }
 
         let mut iter = cache
-            .channel_messages(Id::new_checked(2).expect("non zero"))
+            .channel_messages(Id::new(2))
             .expect("channel is in cache");
 
         // messages are iterated over in descending order from insertion

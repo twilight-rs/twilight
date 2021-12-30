@@ -126,7 +126,7 @@ mod tests {
     fn test_reaction_add() {
         let cache = test::cache_with_message_and_reactions();
         let msg = cache
-            .message(Id::new_checked(4).expect("non zero"))
+            .message(Id::new(4))
             .unwrap();
 
         assert_eq!(msg.reactions.len(), 2);
@@ -150,18 +150,18 @@ mod tests {
     fn test_reaction_remove() {
         let cache = test::cache_with_message_and_reactions();
         cache.update(&ReactionRemove(Reaction {
-            channel_id: Id::new_checked(2).expect("non zero"),
+            channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "😀".to_owned(),
             },
-            guild_id: Some(Id::new_checked(1).expect("non zero")),
+            guild_id: Some(Id::new(1)),
             member: None,
-            message_id: Id::new_checked(4).expect("non zero"),
-            user_id: Id::new_checked(5).expect("non zero"),
+            message_id: Id::new(4),
+            user_id: Id::new(5),
         }));
 
         let msg = cache
-            .message(Id::new_checked(4).expect("non zero"))
+            .message(Id::new(4))
             .unwrap();
 
         assert_eq!(msg.reactions.len(), 2);
@@ -185,13 +185,13 @@ mod tests {
     fn test_reaction_remove_all() {
         let cache = test::cache_with_message_and_reactions();
         cache.update(&ReactionRemoveAll {
-            channel_id: Id::new_checked(2).expect("non zero"),
-            message_id: Id::new_checked(4).expect("non zero"),
-            guild_id: Some(Id::new_checked(1).expect("non zero")),
+            channel_id: Id::new(2),
+            message_id: Id::new(4),
+            guild_id: Some(Id::new(1)),
         });
 
         let msg = cache
-            .message(Id::new_checked(4).expect("non zero"))
+            .message(Id::new(4))
             .unwrap();
 
         assert_eq!(msg.reactions.len(), 0);
@@ -201,16 +201,16 @@ mod tests {
     fn test_reaction_remove_emoji() {
         let cache = test::cache_with_message_and_reactions();
         cache.update(&ReactionRemoveEmoji {
-            channel_id: Id::new_checked(2).expect("non zero"),
+            channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "😀".to_owned(),
             },
-            guild_id: Id::new_checked(1).expect("non zero"),
-            message_id: Id::new_checked(4).expect("non zero"),
+            guild_id: Id::new(1),
+            message_id: Id::new(4),
         });
 
         let msg = cache
-            .message(Id::new_checked(4).expect("non zero"))
+            .message(Id::new(4))
             .unwrap();
 
         assert_eq!(msg.reactions.len(), 1);

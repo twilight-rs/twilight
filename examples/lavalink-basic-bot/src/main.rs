@@ -113,7 +113,7 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
             new_msg.author.id == author_id
         })
         .await?;
-    let channel_id = Id::new_checked(msg.content.parse::<u64>()?).expect("non zero");
+    let channel_id = Id::new(msg.content.parse::<u64>()?);
     let guild_id = msg.guild_id.expect("known to be present");
 
     state

@@ -146,11 +146,11 @@ mod tests {
         let value = AllowedMentionsBuilder::new()
             .users()
             .user_ids(vec![
-                Id::new_checked(100).expect("non zero"),
-                Id::new_checked(200).expect("non zero"),
+                Id::new(100),
+                Id::new(200),
             ])
             .roles()
-            .role_ids(vec![Id::new_checked(300).expect("non zero")])
+            .role_ids(vec![Id::new(300)])
             .build();
 
         assert_eq!(
@@ -158,10 +158,10 @@ mod tests {
             AllowedMentions {
                 parse: vec![],
                 users: vec![
-                    Id::new_checked(100).expect("non zero"),
-                    Id::new_checked(200).expect("non zero")
+                    Id::new(100),
+                    Id::new(200)
                 ],
-                roles: vec![Id::new_checked(300).expect("non zero")],
+                roles: vec![Id::new(300)],
                 replied_user: false,
             },
         );

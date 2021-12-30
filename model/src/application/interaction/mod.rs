@@ -344,20 +344,20 @@ mod test {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
-            application_id: Id::new_checked(100).expect("non zero"),
-            channel_id: Id::new_checked(200).expect("non zero"),
+            application_id: Id::new(100),
+            channel_id: Id::new(200),
             data: CommandData {
-                id: Id::new_checked(300).expect("non zero"),
+                id: Id::new(300),
                 name: "command name".into(),
                 options: Vec::from([CommandDataOption {
                     focused: false,
                     name: "member".into(),
-                    value: CommandOptionValue::User(Id::new_checked(600).expect("non zero")),
+                    value: CommandOptionValue::User(Id::new(600)),
                 }]),
                 resolved: Some(CommandInteractionDataResolved {
                     channels: HashMap::new(),
                     members: IntoIterator::into_iter([(
-                        Id::new_checked(600).expect("non zero"),
+                        Id::new(600),
                         InteractionMember {
                             avatar: None,
                             communication_disabled_until: None,
@@ -373,7 +373,7 @@ mod test {
                     messages: HashMap::new(),
                     roles: HashMap::new(),
                     users: IntoIterator::into_iter([(
-                        Id::new_checked(600).expect("non zero"),
+                        Id::new(600),
                         User {
                             accent_color: None,
                             avatar: Some("avatar string".into()),
@@ -382,7 +382,7 @@ mod test {
                             discriminator: 1111,
                             email: None,
                             flags: None,
-                            id: Id::new_checked(600).expect("non zero"),
+                            id: Id::new(600),
                             locale: None,
                             mfa_enabled: None,
                             name: "username".into(),
@@ -395,8 +395,8 @@ mod test {
                     .collect(),
                 }),
             },
-            guild_id: Some(Id::new_checked(400).expect("non zero")),
-            id: Id::new_checked(500).expect("non zero"),
+            guild_id: Some(Id::new(400)),
+            id: Id::new(500),
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 avatar: None,
@@ -416,7 +416,7 @@ mod test {
                     discriminator: 1111,
                     email: None,
                     flags: None,
-                    id: Id::new_checked(600).expect("non zero"),
+                    id: Id::new(600),
                     locale: None,
                     mfa_enabled: None,
                     name: "username".into(),

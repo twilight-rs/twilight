@@ -129,7 +129,7 @@ mod tests {
     fn test_iter_channel_id() {
         let mut iter = Id::<ChannelMarker>::iter("<#123>");
         assert_eq!(
-            Id::new_checked(123).expect("non zero"),
+            Id::new(123),
             iter.next().unwrap().0
         );
         assert!(iter.next().is_none());
@@ -140,11 +140,11 @@ mod tests {
         let buf = "one <@123>two<#456><@789> ----";
         let mut iter = Id::<UserMarker>::iter(buf);
         assert_eq!(
-            Id::new_checked(123).expect("non zero"),
+            Id::new(123),
             iter.next().unwrap().0
         );
         let (mention, start, end) = iter.next().unwrap();
-        assert_eq!(Id::new_checked(789).expect("non zero"), mention);
+        assert_eq!(Id::new(789), mention);
         assert_eq!(19, start);
         assert_eq!(24, end);
         assert!(iter.next().is_none());
@@ -154,11 +154,11 @@ mod tests {
     fn test_iter_emoji_ids() {
         let mut iter = Id::<EmojiMarker>::iter("some <:name:123> emojis <:emoji:456>");
         assert_eq!(
-            Id::new_checked(123).expect("non zero"),
+            Id::new(123),
             iter.next().unwrap().0
         );
         assert_eq!(
-            Id::new_checked(456).expect("non zero"),
+            Id::new(456),
             iter.next().unwrap().0
         );
         assert!(iter.next().is_none());
@@ -168,23 +168,23 @@ mod tests {
     fn test_iter_mention_type() {
         let mut iter = MentionType::iter("<#12><:name:34><@&56><@!78><@90>");
         assert_eq!(
-            MentionType::Channel(Id::new_checked(12).expect("non zero")),
+            MentionType::Channel(Id::new(12)),
             iter.next().unwrap().0
         );
         assert_eq!(
-            MentionType::Emoji(Id::new_checked(34).expect("non zero")),
+            MentionType::Emoji(Id::new(34)),
             iter.next().unwrap().0
         );
         assert_eq!(
-            MentionType::Role(Id::new_checked(56).expect("non zero")),
+            MentionType::Role(Id::new(56)),
             iter.next().unwrap().0
         );
         assert_eq!(
-            MentionType::User(Id::new_checked(78).expect("non zero")),
+            MentionType::User(Id::new(78)),
             iter.next().unwrap().0
         );
         assert_eq!(
-            MentionType::User(Id::new_checked(90).expect("non zero")),
+            MentionType::User(Id::new(90)),
             iter.next().unwrap().0
         );
         assert!(iter.next().is_none());
@@ -194,7 +194,7 @@ mod tests {
     fn test_iter_mention_type_with_timestamp() {
         let mut iter = MentionType::iter("<#12> <t:34> <t:56:d>");
         assert_eq!(
-            MentionType::Channel(Id::new_checked(12).expect("non zero")),
+            MentionType::Channel(Id::new(12)),
             iter.next().unwrap().0
         );
         assert_eq!(
@@ -212,11 +212,11 @@ mod tests {
     fn test_iter_role_ids() {
         let mut iter = Id::<RoleMarker>::iter("some <@&123> roles <@&456>");
         assert_eq!(
-            Id::new_checked(123).expect("non zero"),
+            Id::new(123),
             iter.next().unwrap().0
         );
         assert_eq!(
-            Id::new_checked(456).expect("non zero"),
+            Id::new(456),
             iter.next().unwrap().0
         );
         assert!(iter.next().is_none());
@@ -237,11 +237,11 @@ mod tests {
     fn test_iter_user_ids() {
         let mut iter = Id::<UserMarker>::iter("some <@123>users<@456>");
         assert_eq!(
-            Id::new_checked(123).expect("non zero"),
+            Id::new(123),
             iter.next().unwrap().0
         );
         assert_eq!(
-            Id::new_checked(456).expect("non zero"),
+            Id::new(456),
             iter.next().unwrap().0
         );
         assert!(iter.next().is_none());

@@ -21,11 +21,11 @@ use twilight_model::id::{
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = Id::new_checked(1).expect("non zero");
+/// let application_id = Id::new(1);
 ///
 /// client
 ///     .interaction(application_id)
-///     .delete_followup_message("token here", Id::new_checked(2).expect("non zero"))
+///     .delete_followup_message("token here", Id::new(2))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -96,9 +96,9 @@ mod tests {
 
         let builder = DeleteFollowupMessage::new(
             &client,
-            Id::new_checked(1).expect("non zero"),
+            Id::new(1),
             "token",
-            Id::new_checked(2).expect("non zero"),
+            Id::new(2),
         );
         let actual = builder.try_into_request()?;
 
