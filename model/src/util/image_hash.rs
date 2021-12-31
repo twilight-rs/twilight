@@ -29,8 +29,6 @@ const ANIMATED_KEY: &str = "a_";
 /// Length of an image hash.
 const HASH_LEN: usize = 32;
 
-type HashBytes = [u8; 16];
-
 /// Parsing an image hash into an efficient storage format via
 /// [`ImageHash::parse`] failed.
 #[derive(Debug)]
@@ -125,7 +123,7 @@ pub struct ImageHash {
     ///
     /// This is denoted in the input by a prefixed `a_`.
     animated: bool,
-    bytes: HashBytes,
+    bytes: [u8; 16],
 }
 
 impl ImageHash {
