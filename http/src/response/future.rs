@@ -330,8 +330,8 @@ impl<T> ResponseFuture<T> {
     /// use twilight_http::{error::ErrorType, Client};
     /// use twilight_model::id::{ChannelId, MessageId};
     ///
-    /// let channel_id = ChannelId::new(1).expect("non zero id");
-    /// let message_id = MessageId::new(2).expect("non zero id");
+    /// let channel_id = ChannelId::new(1);
+    /// let message_id = MessageId::new(2);
     ///
     /// let channels_ignored = {
     ///     let mut map = HashSet::new();

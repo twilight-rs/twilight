@@ -22,7 +22,7 @@ use twilight_model::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let id = Id::new(123).expect("non zero");
+/// let id = Id::new(123);
 /// let sticker = client.sticker(id).exec().await?.model().await?;
 /// # Ok(()) }
 /// ```

@@ -210,11 +210,9 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: Id::new(2).expect("non zero"),
+            guild_id: Id::new(2),
             status: Status::Online,
-            user: UserOrId::UserId {
-                id: Id::new(1).expect("non zero"),
-            },
+            user: UserOrId::UserId { id: Id::new(1) },
         };
 
         serde_test::assert_de_tokens(
@@ -314,15 +312,13 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: Id::new(2).expect("non zero"),
+            guild_id: Id::new(2),
             status: Status::Online,
-            user: UserOrId::UserId {
-                id: Id::new(1).expect("non zero"),
-            },
+            user: UserOrId::UserId { id: Id::new(1) },
         }]);
 
         let mut json_deserializer = Deserializer::from_str(input);
-        let deserializer = PresenceListDeserializer::new(Id::new(2).expect("non zero"));
+        let deserializer = PresenceListDeserializer::new(Id::new(2));
         let actual = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert_eq!(actual, expected);

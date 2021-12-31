@@ -24,7 +24,7 @@ use twilight_model::{
 /// use twilight_mention::Mention;
 /// use twilight_model::id::{marker::UserMarker, Id};
 ///
-/// assert_eq!("<@123>", Id::<UserMarker>::new(123).expect("non zero").mention().to_string());
+/// assert_eq!("<@123>", Id::<UserMarker>::new(123).mention().to_string());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct MentionFormat<T>(T);
@@ -99,7 +99,7 @@ impl Display for MentionFormat<Id<UserMarker>> {
 /// use twilight_mention::Mention;
 /// use twilight_model::id::{marker::ChannelMarker, Id};
 ///
-/// let id = Id::<ChannelMarker>::new(123).expect("non zero");
+/// let id = Id::<ChannelMarker>::new(123);
 /// assert_eq!("<#123>", id.mention().to_string());
 /// ```
 pub trait Mention<T> {
@@ -295,10 +295,7 @@ mod tests {
     fn test_mention_format_channel_id() {
         assert_eq!(
             "<#123>",
-            Id::<ChannelMarker>::new(123)
-                .expect("non zero")
-                .mention()
-                .to_string()
+            Id::<ChannelMarker>::new(123).mention().to_string()
         );
     }
 
@@ -306,22 +303,13 @@ mod tests {
     fn test_mention_format_emoji_id() {
         assert_eq!(
             "<:emoji:123>",
-            Id::<EmojiMarker>::new(123)
-                .expect("non zero")
-                .mention()
-                .to_string()
+            Id::<EmojiMarker>::new(123).mention().to_string()
         );
     }
 
     #[test]
     fn test_mention_format_role_id() {
-        assert_eq!(
-            "<@&123>",
-            Id::<RoleMarker>::new(123)
-                .expect("non zero")
-                .mention()
-                .to_string()
-        );
+        assert_eq!("<@&123>", Id::<RoleMarker>::new(123).mention().to_string());
     }
 
     /// Test that a timestamp with a style displays correctly.
@@ -342,12 +330,6 @@ mod tests {
 
     #[test]
     fn test_mention_format_user_id() {
-        assert_eq!(
-            "<@123>",
-            Id::<UserMarker>::new(123)
-                .expect("non zero")
-                .mention()
-                .to_string()
-        );
+        assert_eq!("<@123>", Id::<UserMarker>::new(123).mention().to_string());
     }
 }

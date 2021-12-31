@@ -53,7 +53,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = Id::new(1).expect("non zero");
+/// let application_id = Id::new(1);
 ///
 /// client
 ///     .interaction(application_id)
@@ -213,7 +213,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = Id::new(1).expect("non zero");
+    /// let application_id = Id::new(1);
     ///
     /// let message = client
     ///     .interaction(application_id)
@@ -239,7 +239,7 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = Id::new(1).expect("non zero");
+    /// let application_id = Id::new(1);
     ///
     /// let message = client
     ///     .interaction(application_id)
@@ -336,7 +336,7 @@ mod tests {
 
     #[test]
     fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = Id::new(1).expect("non zero id");
+        let application_id = Id::new(1);
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());

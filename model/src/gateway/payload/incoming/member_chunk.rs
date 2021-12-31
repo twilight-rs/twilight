@@ -123,7 +123,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                     // Since the guild ID may not be deserialized yet we'll use
                     // a temporary placeholder value and update it with the real
                     // guild ID after all the fields have been deserialized.
-                    let deserializer = MemberListDeserializer::new(Id::new(1).expect("non zero"));
+                    let deserializer = MemberListDeserializer::new(Id::new(1));
 
                     members = Some(map.next_value_seed(deserializer)?);
                 }
@@ -146,7 +146,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
                         return Err(DeError::duplicate_field("presences"));
                     }
 
-                    let deserializer = PresenceListDeserializer::new(Id::new(1).expect("non zero"));
+                    let deserializer = PresenceListDeserializer::new(Id::new(1));
 
                     presences = Some(map.next_value_seed(deserializer)?);
                 }
@@ -328,21 +328,21 @@ mod tests {
         let expected = MemberChunk {
             chunk_count: 1,
             chunk_index: 0,
-            guild_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new(1),
             members: Vec::from([
                 Member {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
-                    guild_id: Id::new(1).expect("non zero"),
+                    guild_id: Id::new(1),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![Id::new(6).expect("non zero"), Id::new(7).expect("non zero")],
+                    roles: vec![Id::new(6), Id::new(7)],
                     user: User {
-                        id: Id::new(2).expect("non zero"),
+                        id: Id::new(2),
                         accent_color: None,
                         avatar: Some(image_hash::AVATAR),
                         banner: None,
@@ -363,15 +363,15 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
-                    guild_id: Id::new(1).expect("non zero"),
+                    guild_id: Id::new(1),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![Id::new(6).expect("non zero")],
+                    roles: vec![Id::new(6)],
                     user: User {
-                        id: Id::new(3).expect("non zero"),
+                        id: Id::new(3),
                         accent_color: None,
                         avatar: Some(image_hash::AVATAR),
                         banner: None,
@@ -392,15 +392,15 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
-                    guild_id: Id::new(1).expect("non zero"),
+                    guild_id: Id::new(1),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: true,
                     premium_since: None,
-                    roles: vec![Id::new(6).expect("non zero")],
+                    roles: vec![Id::new(6)],
                     user: User {
-                        id: Id::new(5).expect("non zero"),
+                        id: Id::new(5),
                         accent_color: None,
                         avatar: Some(image_hash::AVATAR),
                         banner: None,
@@ -421,15 +421,15 @@ mod tests {
                     avatar: None,
                     communication_disabled_until: None,
                     deaf: false,
-                    guild_id: Id::new(1).expect("non zero"),
+                    guild_id: Id::new(1),
                     joined_at,
                     mute: false,
                     nick: Some("chunk".to_owned()),
                     pending: false,
                     premium_since: None,
-                    roles: vec![Id::new(6).expect("non zero")],
+                    roles: vec![Id::new(6)],
                     user: User {
-                        id: Id::new(6).expect("non zero"),
+                        id: Id::new(6),
                         accent_color: None,
                         avatar: Some(image_hash::AVATAR),
                         banner: None,
@@ -457,11 +457,9 @@ mod tests {
                         mobile: None,
                         web: Some(Status::Online),
                     },
-                    guild_id: Id::new(1).expect("non zero"),
+                    guild_id: Id::new(1),
                     status: Status::Online,
-                    user: UserOrId::UserId {
-                        id: Id::new(2).expect("non zero"),
-                    },
+                    user: UserOrId::UserId { id: Id::new(2) },
                 },
                 Presence {
                     activities: Vec::new(),
@@ -470,11 +468,9 @@ mod tests {
                         mobile: None,
                         web: Some(Status::Online),
                     },
-                    guild_id: Id::new(1).expect("non zero"),
+                    guild_id: Id::new(1),
                     status: Status::Online,
-                    user: UserOrId::UserId {
-                        id: Id::new(3).expect("non zero"),
-                    },
+                    user: UserOrId::UserId { id: Id::new(3) },
                 },
                 Presence {
                     activities: Vec::new(),
@@ -483,11 +479,9 @@ mod tests {
                         mobile: None,
                         web: None,
                     },
-                    guild_id: Id::new(1).expect("non zero"),
+                    guild_id: Id::new(1),
                     status: Status::DoNotDisturb,
-                    user: UserOrId::UserId {
-                        id: Id::new(5).expect("non zero"),
-                    },
+                    user: UserOrId::UserId { id: Id::new(5) },
                 },
             ]),
         };

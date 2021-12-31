@@ -81,11 +81,11 @@ mod tests {
     #[test]
     fn test_webhook() {
         let value = Webhook {
-            application_id: Some(Id::new(4).expect("non zero")),
+            application_id: Some(Id::new(4)),
             avatar: Some(image_hash::AVATAR),
-            channel_id: Id::new(1).expect("non zero"),
-            guild_id: Some(Id::new(2).expect("non zero")),
-            id: Id::new(3).expect("non zero"),
+            channel_id: Id::new(1),
+            guild_id: Some(Id::new(2)),
+            id: Id::new(3),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: None,
@@ -136,20 +136,20 @@ mod tests {
     #[test]
     fn test_webhook_complete() {
         let value = Webhook {
-            application_id: Some(Id::new(4).expect("non zero")),
+            application_id: Some(Id::new(4)),
             avatar: Some(image_hash::AVATAR),
-            channel_id: Id::new(1).expect("non zero"),
-            guild_id: Some(Id::new(2).expect("non zero")),
-            id: Id::new(3).expect("non zero"),
+            channel_id: Id::new(1),
+            guild_id: Some(Id::new(2)),
+            id: Id::new(3),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: Some(WebhookChannel {
-                id: Id::new(4).expect("non zero"),
+                id: Id::new(4),
                 name: "webhook channel".into(),
             }),
             source_guild: Some(WebhookGuild {
                 icon: Some(image_hash::ICON),
-                id: Id::new(5).expect("non zero"),
+                id: Id::new(5),
                 name: "webhook guild".into(),
             }),
             token: Some("a token".to_owned()),
@@ -162,7 +162,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(2).expect("non zero"),
+                id: Id::new(2),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),

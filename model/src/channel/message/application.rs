@@ -26,7 +26,7 @@ mod tests {
             cover_image: Some(image_hash::COVER),
             description: "a description".to_owned(),
             icon: Some(image_hash::ICON),
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             name: "application".to_owned(),
         };
 

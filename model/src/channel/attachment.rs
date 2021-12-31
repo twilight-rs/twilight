@@ -69,7 +69,7 @@ mod tests {
             filename: "a.png".to_owned(),
             description: Some("a image".to_owned()),
             height: Some(184),
-            id: Id::new(700_000_000_000_000_000).expect("non zero"),
+            id: Id::new(700_000_000_000_000_000),
             proxy_url: "https://cdn.example.com/1.png".to_owned(),
             size: 13_593,
             url: "https://example.com/1.png".to_owned(),

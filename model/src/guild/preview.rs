@@ -35,7 +35,7 @@ mod tests {
             emojis: vec![Emoji {
                 animated: false,
                 available: true,
-                id: Id::new(2).expect("non zero"),
+                id: Id::new(2),
                 managed: false,
                 name: "test".to_owned(),
                 require_colons: true,
@@ -43,7 +43,7 @@ mod tests {
                 user: None,
             }],
             features: vec!["a feature".to_owned()],
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             name: "guild name".to_owned(),
             icon: Some(image_hash::ICON),
             splash: Some(image_hash::SPLASH),

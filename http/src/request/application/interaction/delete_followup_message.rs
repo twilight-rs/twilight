@@ -21,11 +21,11 @@ use twilight_model::id::{
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = Id::new(1).expect("non zero");
+/// let application_id = Id::new(1);
 ///
 /// client
 ///     .interaction(application_id)
-///     .delete_followup_message("token here", Id::new(2).expect("non zero"))
+///     .delete_followup_message("token here", Id::new(2))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -94,12 +94,7 @@ mod tests {
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
 
-        let builder = DeleteFollowupMessage::new(
-            &client,
-            Id::new(1).expect("non zero"),
-            "token",
-            Id::new(2).expect("non zero"),
-        );
+        let builder = DeleteFollowupMessage::new(&client, Id::new(1), "token", Id::new(2));
         let actual = builder.try_into_request()?;
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {

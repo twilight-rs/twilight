@@ -85,9 +85,9 @@ mod tests {
 
         let value = CommandInteractionDataResolved {
             channels: IntoIterator::into_iter([(
-                Id::new(100).expect("non zero"),
+                Id::new(100),
                 InteractionChannel {
-                    id: Id::new(100).expect("non zero"),
+                    id: Id::new(100),
                     kind: ChannelType::GuildText,
                     name: "channel name".into(),
                     parent_id: None,
@@ -97,7 +97,7 @@ mod tests {
             )])
             .collect(),
             members: IntoIterator::into_iter([(
-                Id::new(300).expect("non zero"),
+                Id::new(300),
                 InteractionMember {
                     avatar: None,
                     communication_disabled_until: None,
@@ -111,7 +111,7 @@ mod tests {
             )])
             .collect(),
             messages: IntoIterator::into_iter([(
-                Id::new(4).expect("non zero"),
+                Id::new(4),
                 Message {
                     activity: None,
                     application: None,
@@ -125,7 +125,7 @@ mod tests {
                         discriminator: 1,
                         email: None,
                         flags: None,
-                        id: Id::new(3).expect("non zero"),
+                        id: Id::new(3),
                         locale: None,
                         mfa_enabled: None,
                         name: "test".to_owned(),
@@ -134,14 +134,14 @@ mod tests {
                         system: None,
                         verified: None,
                     },
-                    channel_id: Id::new(2).expect("non zero"),
+                    channel_id: Id::new(2),
                     components: Vec::new(),
                     content: "ping".to_owned(),
                     edited_timestamp: None,
                     embeds: Vec::new(),
                     flags: Some(MessageFlags::empty()),
-                    guild_id: Some(Id::new(1).expect("non zero")),
-                    id: Id::new(4).expect("non zero"),
+                    guild_id: Some(Id::new(1)),
+                    id: Id::new(4),
                     interaction: None,
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
@@ -165,7 +165,7 @@ mod tests {
                     reference: None,
                     sticker_items: vec![MessageSticker {
                         format_type: StickerFormatType::Png,
-                        id: Id::new(1).expect("non zero"),
+                        id: Id::new(1),
                         name: "sticker name".to_owned(),
                     }],
                     referenced_message: None,
@@ -177,12 +177,12 @@ mod tests {
             )])
             .collect(),
             roles: IntoIterator::into_iter([(
-                Id::new(400).expect("non zero"),
+                Id::new(400),
                 Role {
                     color: 0,
                     hoist: true,
                     icon: None,
-                    id: Id::new(400).expect("non zero"),
+                    id: Id::new(400),
                     managed: false,
                     mentionable: true,
                     name: "test".to_owned(),
@@ -194,7 +194,7 @@ mod tests {
             )])
             .collect(),
             users: IntoIterator::into_iter([(
-                Id::new(300).expect("non zero"),
+                Id::new(300),
                 User {
                     accent_color: None,
                     avatar: Some(image_hash::AVATAR),
@@ -203,7 +203,7 @@ mod tests {
                     discriminator: 1,
                     email: Some("address@example.com".to_owned()),
                     flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-                    id: Id::new(300).expect("non zero"),
+                    id: Id::new(300),
                     locale: Some("en-us".to_owned()),
                     mfa_enabled: Some(true),
                     name: "test".to_owned(),

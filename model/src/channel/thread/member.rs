@@ -75,11 +75,11 @@ mod tests {
 
         let value = ThreadMember {
             flags: 3,
-            id: Some(Id::new(1).expect("non zero")),
+            id: Some(Id::new(1)),
             member: None,
             presence: None,
             join_timestamp,
-            user_id: Some(Id::new(2).expect("non zero")),
+            user_id: Some(Id::new(2)),
         };
 
         serde_test::assert_tokens(

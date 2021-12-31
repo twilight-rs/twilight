@@ -859,8 +859,8 @@ mod tests {
     #[test]
     fn test_serialize_dispatch() {
         let role_delete = RoleDelete {
-            guild_id: Id::new(1).expect("non zero"),
-            role_id: Id::new(2).expect("non zero"),
+            guild_id: Id::new(1),
+            role_id: Id::new(2),
         };
         let dispatch = Box::new(DispatchEvent::RoleDelete(role_delete));
         let value = GatewayEvent::Dispatch(2_048, dispatch);

@@ -70,8 +70,8 @@ mod tests {
 
     #[test]
     fn test_interaction_callback() -> Result<(), Box<dyn Error>> {
-        let application_id = Id::new(1).expect("non zero id");
-        let interaction_id = Id::new(2).expect("non zero id");
+        let application_id = Id::new(1);
+        let interaction_id = Id::new(2);
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());

@@ -105,8 +105,7 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer =
-                        OptionalMemberDeserializer::new(Id::new(1).expect("non zero"));
+                    let deserializer = OptionalMemberDeserializer::new(Id::new(1));
 
                     member = map.next_value_seed(deserializer)?;
                 }
@@ -184,21 +183,21 @@ mod tests {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = TypingStart {
-            channel_id: Id::new(2).expect("non zero"),
-            guild_id: Some(Id::new(1).expect("non zero")),
+            channel_id: Id::new(2),
+            guild_id: Some(Id::new(1)),
             member: Some(Member {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(1).expect("non zero"),
+                guild_id: Id::new(1),
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new(4).expect("non zero")],
+                roles: vec![Id::new(4)],
                 user: User {
-                    id: Id::new(3).expect("non zero"),
+                    id: Id::new(3),
                     accent_color: None,
                     avatar: Some(image_hash::AVATAR),
                     banner: None,
@@ -216,7 +215,7 @@ mod tests {
                 },
             }),
             timestamp: 1_500_000_000,
-            user_id: Id::new(3).expect("non zero"),
+            user_id: Id::new(3),
         };
 
         serde_test::assert_tokens(
@@ -298,11 +297,11 @@ mod tests {
     #[test]
     fn test_typing_start_without_member() {
         let value = TypingStart {
-            channel_id: Id::new(2).expect("non zero"),
+            channel_id: Id::new(2),
             guild_id: None,
             member: None,
             timestamp: 1_500_000_000,
-            user_id: Id::new(3).expect("non zero"),
+            user_id: Id::new(3),
         };
 
         serde_test::assert_tokens(

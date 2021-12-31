@@ -40,7 +40,7 @@ use twilight_validate::command::CommandValidationError;
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = Id::new(123).expect("non zero id");
+/// let application_id = Id::new(123);
 ///
 /// let interaction_client = client.interaction(application_id);
 ///

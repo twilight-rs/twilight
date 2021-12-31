@@ -672,11 +672,11 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     fn test_command_option_full() {
         let value = Command {
-            application_id: Some(Id::new(100).expect("non zero")),
+            application_id: Some(Id::new(100)),
             default_permission: Some(true),
             description: "this command is a test".into(),
-            guild_id: Some(Id::new(300).expect("non zero")),
-            id: Some(Id::new(200).expect("non zero")),
+            guild_id: Some(Id::new(300)),
+            id: Some(Id::new(200)),
             kind: CommandType::ChatInput,
             name: "test command".into(),
             options: Vec::from([CommandOption::SubCommandGroup(OptionsCommandOptionData {
@@ -756,7 +756,7 @@ mod tests {
                     ]),
                 })]),
             })]),
-            version: Id::new(1).expect("non zero"),
+            version: Id::new(1),
         };
 
         serde_test::assert_tokens(
