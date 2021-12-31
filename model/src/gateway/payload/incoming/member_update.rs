@@ -5,13 +5,14 @@ use crate::{
         Id,
     },
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberUpdate {
     /// Member's guild avatar.
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     pub guild_id: Id<GuildMarker>,
     pub deaf: Option<bool>,
     pub joined_at: Timestamp,
@@ -36,7 +37,7 @@ pub struct MemberUpdate {
 #[cfg(test)]
 mod tests {
     use super::MemberUpdate;
-    use crate::{datetime::Timestamp, id::Id, user::User};
+    use crate::{datetime::Timestamp, id::Id, test::image_hash, user::User};
     use serde_test::Token;
 
     #[test]
@@ -61,7 +62,7 @@ mod tests {
                 public_flags: None,
                 id: Id::new(424_242).expect("non zero"),
                 discriminator: 1234,
-                avatar: Some("cool image".to_string()),
+                avatar: Some(image_hash::AVATAR),
                 bot: false,
                 email: None,
                 flags: None,
@@ -112,7 +113,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("cool image"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),

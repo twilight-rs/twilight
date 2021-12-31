@@ -1,6 +1,7 @@
 use crate::{
     id::{marker::ApplicationMarker, Id},
     user::User,
+    util::image_hash::ImageHash,
 };
 
 use serde::{Deserialize, Serialize};
@@ -10,7 +11,7 @@ pub struct IntegrationApplication {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot: Option<User>,
     pub description: String,
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     pub id: Id<ApplicationMarker>,
     pub name: String,
     pub summary: String,

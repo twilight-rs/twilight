@@ -7,6 +7,7 @@ use crate::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -16,14 +17,14 @@ pub struct PartialGuild {
     pub afk_channel_id: Option<Id<ChannelMarker>>,
     pub afk_timeout: u64,
     pub application_id: Option<Id<ApplicationMarker>>,
-    pub banner: Option<String>,
+    pub banner: Option<ImageHash>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
-    pub discovery_splash: Option<String>,
+    pub discovery_splash: Option<ImageHash>,
     pub emojis: Vec<Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_members: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,7 +45,7 @@ pub struct PartialGuild {
     pub premium_tier: PremiumTier,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<Id<ChannelMarker>>,
-    pub splash: Option<String>,
+    pub splash: Option<ImageHash>,
     pub system_channel_flags: SystemChannelFlags,
     pub system_channel_id: Option<Id<ChannelMarker>>,
     pub verification_level: VerificationLevel,
@@ -57,6 +58,8 @@ pub struct PartialGuild {
 
 #[cfg(test)]
 mod tests {
+    use crate::test::image_hash;
+
     use super::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, PartialGuild,
         Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
@@ -72,14 +75,14 @@ mod tests {
             afk_channel_id: Some(Id::new(2).expect("non zero")),
             afk_timeout: 900,
             application_id: Some(Id::new(3).expect("non zero")),
-            banner: Some("banner hash".to_owned()),
+            banner: Some(image_hash::BANNER),
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: Some("a description".to_owned()),
-            discovery_splash: Some("discovery splash hash".to_owned()),
+            discovery_splash: Some(image_hash::SPLASH),
             emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
             features: vec!["a feature".to_owned()],
-            icon: Some("icon hash".to_owned()),
+            icon: Some(image_hash::ICON),
             max_members: Some(25_000),
             max_presences: Some(10_000),
             member_count: Some(12_000),
@@ -94,7 +97,7 @@ mod tests {
             premium_tier: PremiumTier::Tier1,
             roles: Vec::new(),
             rules_channel_id: Some(Id::new(6).expect("non zero")),
-            splash: Some("splash hash".to_owned()),
+            splash: Some(image_hash::SPLASH),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
             system_channel_id: Some(Id::new(7).expect("non zero")),
             verification_level: VerificationLevel::Medium,
@@ -125,7 +128,7 @@ mod tests {
                 Token::Str("3"),
                 Token::Str("banner"),
                 Token::Some,
-                Token::Str("banner hash"),
+                Token::Str(image_hash::BANNER_INPUT),
                 Token::Str("default_message_notifications"),
                 Token::U8(1),
                 Token::Str("description"),
@@ -133,7 +136,7 @@ mod tests {
                 Token::Str("a description"),
                 Token::Str("discovery_splash"),
                 Token::Some,
-                Token::Str("discovery splash hash"),
+                Token::Str(image_hash::SPLASH_INPUT),
                 Token::Str("emojis"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -145,7 +148,7 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("max_members"),
                 Token::Some,
                 Token::U64(25_000),
@@ -186,7 +189,7 @@ mod tests {
                 Token::Str("6"),
                 Token::Str("splash"),
                 Token::Some,
-                Token::Str("splash hash"),
+                Token::Str(image_hash::SPLASH_INPUT),
                 Token::Str("system_channel_flags"),
                 Token::U64(2),
                 Token::Str("system_channel_id"),

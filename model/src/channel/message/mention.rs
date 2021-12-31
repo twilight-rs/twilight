@@ -2,6 +2,7 @@ use crate::{
     guild::PartialMember,
     id::{marker::UserMarker, Id},
     user::{self, DiscriminatorDisplay, UserFlags},
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Mention {
     /// Hash of the user's avatar, if any.
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// Whether the user is a bot.
     #[serde(default)]
     pub bot: bool,

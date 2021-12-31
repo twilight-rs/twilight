@@ -46,6 +46,7 @@ mod tests {
             SystemChannelFlags, VerificationLevel,
         },
         id::Id,
+        test::image_hash,
         user::{User, UserFlags},
     };
     use serde_test::Token;
@@ -57,27 +58,28 @@ mod tests {
         let created_at = Timestamp::from_str("2021-04-07T14:55:37+00:00")?;
         let updated_at = Timestamp::from_str("2021-04-07T14:55:37+00:00")?;
 
-        let raw = r#"{
+        let raw = format!(
+            r#"{{
     "code": "code",
     "created_at": "2021-04-07T14:55:37+00:00",
-    "creator": {
+    "creator": {{
         "accent_color": null,
-        "avatar": "avatar",
-        "banner": "06c16474723fe537c283b8efa61a30c8",
+        "avatar": "{avatar}",
+        "banner": "{banner}",
         "discriminator": "1111",
         "id": "100",
         "public_flags": 0,
         "username": "username"
-    },
+    }},
     "creator_id": "100",
     "description": "description",
     "is_dirty": null,
     "name": "name",
-    "serialized_source_guild": {
+    "serialized_source_guild": {{
         "afk_channel_id": null,
         "afk_timeout": 300,
         "channels": [
-            {
+            {{
                 "bitrate": 64000,
                 "id": 1,
                 "name": "Text Channels",
@@ -89,34 +91,34 @@ mod tests {
                 "topic": null,
                 "type": 4,
                 "user_limit": 0
-            },
-            {
+            }},
+            {{
                 "bitrate": 64000,
                 "id": 2,
                 "name": "general",
                 "nsfw": false,
                 "parent_id": 1,
                 "permission_overwrites": [
-                    {
+                    {{
                         "allow": "0",
                         "deny": "2048",
                         "id": 1,
                         "type": 0
-                    },
-                    {
+                    }},
+                    {{
                         "allow": "2048",
                         "deny": "0",
                         "id": 2,
                         "type": 0
-                    }
+                    }}
                 ],
                 "position": 0,
                 "rate_limit_per_user": 0,
                 "topic": null,
                 "type": 0,
                 "user_limit": 0
-            },
-            {
+            }},
+            {{
                 "bitrate": 64000,
                 "id": 3,
                 "name": "Voice Channels",
@@ -128,8 +130,8 @@ mod tests {
                 "topic": null,
                 "type": 4,
                 "user_limit": 0
-            },
-            {
+            }},
+            {{
                 "bitrate": 64000,
                 "id": 4,
                 "name": "General",
@@ -141,7 +143,7 @@ mod tests {
                 "topic": null,
                 "type": 2,
                 "user_limit": 0
-            }
+            }}
         ],
         "default_message_notifications": 0,
         "description": null,
@@ -150,39 +152,42 @@ mod tests {
         "name": "server name",
         "preferred_locale": "en-US",
         "roles": [
-            {
+            {{
                 "color": 0,
                 "hoist": false,
                 "id": 200,
                 "mentionable": false,
                 "name": "@everyone",
                 "permissions": "104320577"
-            },
-            {
+            }},
+            {{
                 "color": 0,
                 "hoist": false,
                 "id": 1,
                 "mentionable": false,
                 "name": "new role",
                 "permissions": "104320577"
-            }
+            }}
         ],
         "system_channel_flags": 0,
         "system_channel_id": 2,
         "verification_level": 0
-    },
+    }},
     "source_guild_id": "200",
     "updated_at": "2021-04-07T14:55:37+00:00",
     "usage_count": 0
-}"#;
+}}"#,
+            avatar = image_hash::AVATAR_INPUT,
+            banner = image_hash::BANNER_INPUT
+        );
 
         let value = Template {
             code: "code".into(),
             created_at,
             creator: User {
                 accent_color: None,
-                avatar: Some("avatar".into()),
-                banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
+                avatar: Some(image_hash::AVATAR),
+                banner: Some(image_hash::BANNER),
                 bot: false,
                 email: None,
                 discriminator: 1111,
@@ -320,7 +325,7 @@ mod tests {
             usage_count: 0,
         };
 
-        let deserialized = serde_json::from_str::<Template>(raw).unwrap();
+        let deserialized = serde_json::from_str::<Template>(&raw).unwrap();
 
         assert_eq!(deserialized, value);
 
@@ -344,10 +349,10 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::Some,
-                Token::Str("06c16474723fe537c283b8efa61a30c8"),
+                Token::Str(image_hash::BANNER_INPUT),
                 Token::Str("bot"),
                 Token::Bool(false),
                 Token::Str("discriminator"),
