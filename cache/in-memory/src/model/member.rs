@@ -30,7 +30,7 @@ pub struct CachedMember {
 
 impl CachedMember {
     /// Member's guild avatar.
-    pub fn avatar(&self) -> Option<ImageHash> {
+    pub const fn avatar(&self) -> Option<ImageHash> {
         self.avatar
     }
 
