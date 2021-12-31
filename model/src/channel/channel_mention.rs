@@ -25,8 +25,8 @@ mod tests {
     #[test]
     fn test_channel_mention() {
         let value = ChannelMention {
-            guild_id: Id::new(1).expect("non zero"),
-            id: Id::new(2).expect("non zero"),
+            guild_id: Id::new(1),
+            id: Id::new(2),
             kind: ChannelType::GuildText,
             name: "channel".to_owned(),
         };

@@ -25,8 +25,8 @@ use twilight_model::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(1).expect("non zero");
-/// let sticker_id = Id::new(2).expect("non zero");
+/// let guild_id = Id::new(1);
+/// let sticker_id = Id::new(2);
 /// let sticker = client
 ///     .guild_sticker(guild_id, sticker_id)
 ///     .exec()

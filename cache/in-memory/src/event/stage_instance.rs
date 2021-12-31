@@ -84,10 +84,10 @@ mod tests {
         let cache = InMemoryCache::new();
 
         let stage_instance = StageInstance {
-            channel_id: Id::new(1).expect("non zero"),
+            channel_id: Id::new(1),
             discoverable_disabled: true,
-            guild_id: Id::new(2).expect("non zero"),
-            id: Id::new(3).expect("non zero"),
+            guild_id: Id::new(2),
+            id: Id::new(3),
             privacy_level: PrivacyLevel::GuildOnly,
             topic: "topic".into(),
         };

@@ -24,10 +24,10 @@ use twilight_model::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = Id::new(123).expect("non zero");
+/// let channel_id = Id::new(123);
 /// let allow = Permissions::VIEW_CHANNEL;
 /// let deny = Permissions::SEND_MESSAGES;
-/// let role_id = Id::new(432).expect("non zero");
+/// let role_id = Id::new(432);
 ///
 /// client.update_channel_permission(channel_id, allow, deny)
 ///     .role(role_id)

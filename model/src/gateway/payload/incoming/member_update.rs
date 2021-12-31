@@ -45,7 +45,7 @@ mod tests {
 
         let value = MemberUpdate {
             avatar: None,
-            guild_id: Id::new(1_234).expect("non zero"),
+            guild_id: Id::new(1_234),
 
             deaf: Some(false),
             joined_at,
@@ -59,7 +59,7 @@ mod tests {
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
-                id: Id::new(424_242).expect("non zero"),
+                id: Id::new(424_242),
                 discriminator: 1234,
                 avatar: Some("cool image".to_string()),
                 bot: false,

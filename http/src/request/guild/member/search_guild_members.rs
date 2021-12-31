@@ -31,7 +31,7 @@ struct SearchGuildMembersFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(100).expect("non zero");
+/// let guild_id = Id::new(100);
 /// let members = client.search_guild_members(guild_id, "Wumpus")
 ///     .limit(10)?
 ///     .exec()

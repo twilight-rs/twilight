@@ -133,10 +133,10 @@ mod tests {
         let created_at = Timestamp::from_secs(1_609_459_200).expect("non zero");
 
         let value = InviteCreate {
-            channel_id: Id::new(1).expect("non zero"),
+            channel_id: Id::new(1),
             code: "a".repeat(7),
             created_at,
-            guild_id: Id::new(2).expect("non zero"),
+            guild_id: Id::new(2),
             inviter: None,
             max_age: 3600,
             max_uses: 5,
@@ -181,7 +181,7 @@ mod tests {
         let value = PartialUser {
             avatar: Some("a".repeat(32)),
             discriminator: 123,
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             username: "twilight".to_owned(),
         };
 

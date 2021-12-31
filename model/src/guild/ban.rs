@@ -25,7 +25,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(100_000_000_000_000_000).expect("non zero"),
+                id: Id::new(100_000_000_000_000_000),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),

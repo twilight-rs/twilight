@@ -374,15 +374,15 @@ mod tests {
     #[test]
     fn test_command() {
         let valid_command = Command {
-            application_id: Some(Id::new(1).expect("non zero")),
+            application_id: Some(Id::new(1)),
             default_permission: None,
             description: "a".repeat(100),
-            guild_id: Some(Id::new(2).expect("non zero")),
-            id: Some(Id::new(3).expect("non zero")),
+            guild_id: Some(Id::new(2)),
+            id: Some(Id::new(3)),
             kind: CommandType::ChatInput,
             name: "b".repeat(32),
             options: Vec::new(),
-            version: Id::new(4).expect("non zero"),
+            version: Id::new(4),
         };
 
         assert!(command(&valid_command).is_ok());

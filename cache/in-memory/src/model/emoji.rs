@@ -100,7 +100,7 @@ mod tests {
     #[test]
     fn test_eq_emoji() {
         let emoji = Emoji {
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             animated: true,
             name: "foo".to_owned(),
             managed: false,
@@ -110,7 +110,7 @@ mod tests {
             available: true,
         };
         let cached = CachedEmoji {
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             animated: true,
             name: "foo".to_owned(),
             managed: false,

@@ -115,7 +115,7 @@ impl<K: Eq + Hash, V> Deref for IterReference<'_, K, V> {
 /// let cache = InMemoryCache::new();
 ///
 /// // later in the application...
-/// let guild_id = Id::new(1).expect("non zero id");
+/// let guild_id = Id::new(1);
 /// let maybe_guild_members = cache.guild_members(guild_id);
 ///
 /// if let Some(guild_members) = maybe_guild_members {
@@ -279,7 +279,7 @@ impl<'a, K: Eq + Hash, V> Iterator for ResourceIter<'a, K, V> {
 /// use twilight_cache_inmemory::InMemoryCache;
 /// use twilight_model::id::{ChannelId, MessageId};
 ///
-/// let channel_id = ChannelId::new(1).expect("non zero id");
+/// let channel_id = ChannelId::new(1);
 ///
 /// let cache = InMemoryCache::new();
 /// let message_ids = cache.channel_messages(channel_id)?;
@@ -349,11 +349,11 @@ mod tests {
 
     #[test]
     fn test_iter() {
-        let guild_id = Id::new(1).expect("non zero");
+        let guild_id = Id::new(1);
         let users = &[
-            (Id::new(2).expect("non zero"), Some(guild_id)),
-            (Id::new(3).expect("non zero"), Some(guild_id)),
-            (Id::new(4).expect("non zero"), None),
+            (Id::new(2), Some(guild_id)),
+            (Id::new(3), Some(guild_id)),
+            (Id::new(4), None),
         ];
         let cache = InMemoryCache::new();
 

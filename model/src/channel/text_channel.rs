@@ -45,8 +45,8 @@ mod tests {
     #[test]
     fn test_text_channel() {
         let value = TextChannel {
-            id: Id::new(1).expect("non zero"),
-            guild_id: Some(Id::new(2).expect("non zero")),
+            id: Id::new(1),
+            guild_id: Some(Id::new(2)),
             kind: ChannelType::GuildText,
             last_message_id: None,
             last_pin_timestamp: None,
@@ -100,15 +100,15 @@ mod tests {
         let last_pin_timestamp = Timestamp::from_str("2021-08-10T12:34:00+00:00")?;
 
         let value = TextChannel {
-            id: Id::new(1).expect("non zero"),
-            guild_id: Some(Id::new(2).expect("non zero")),
+            id: Id::new(1),
+            guild_id: Some(Id::new(2)),
             kind: ChannelType::GuildText,
-            last_message_id: Some(Id::new(3).expect("non zero")),
+            last_message_id: Some(Id::new(3)),
             last_pin_timestamp: Some(last_pin_timestamp),
             name: "foo".to_owned(),
             nsfw: true,
             permission_overwrites: Vec::new(),
-            parent_id: Some(Id::new(4).expect("non zero")),
+            parent_id: Some(Id::new(4)),
             position: 3,
             rate_limit_per_user: Some(10),
             topic: Some("a topic".to_owned()),

@@ -24,7 +24,7 @@ use twilight_model::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = Id::new(100).expect("non zero");
+/// let channel_id = Id::new(100);
 ///
 /// let channel = client.channel(channel_id).exec().await?;
 /// # Ok(()) }
