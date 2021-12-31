@@ -1,0 +1,100 @@
+version: v1
+
+labels:
+  - label: "c-all"
+    matcher:
+      files: "*"
+
+  - label: "c-cache"
+    sync: true
+    matcher:
+      files: "cache/**/*"
+
+  - label: "c-command-parser"
+    sync: true
+    matcher:
+      files: "command-parser/**/*"
+
+  - label: "c-embed-builder"
+    sync: true
+    matcher:
+      files: "embed-builder/**/*"
+
+  - label: "c-gateway"
+    sync: true
+    matcher:
+      files: "gateway/**/*"
+
+  - label: "c-gateway-queue"
+    sync: true
+    matcher:
+      files: "gateway-queue/**/*"
+
+  - label: "c-http"
+    sync: true
+    matcher:
+      files: "http/**/*"
+
+  - label: "c-http-ratelimiting"
+    sync: true
+    matcher:
+      files: "http-ratelimiting/**/*"
+
+  - label: "c-lavalink"
+    sync: true
+    matcher:
+      files: "lavalink/**/*"
+
+  - label: "c-mention"
+    sync: true
+    matcher:
+      fiiles: "mention/**/*"
+
+  - label: "c-model"
+    sync: true
+    matcher:
+      files: "model/**/*"
+
+  - label: "c-standby"
+    sync: true
+    matcher:
+      files: "standby/**/*"
+
+  - label: "c-util"
+    sync: true
+    matcher:
+      files: "util/**/*"
+
+  - label: "c-validate"
+    sync: true
+    matcher:
+      files: "validate/**/*"
+
+  - label: "t-github-actions"
+    matcher:
+      files: ".github/workflows/*"
+      title: "^ci: .*"
+
+  - label: "m-breaking change"
+    matcher:
+      title: "^[a-z]+(\\(.+\\))?!: .*"
+
+  - label: "t-chore"
+    matcher:
+      title: "^chore(\\(.+\\))?!?: .*"
+
+  - label: "t-docs"
+    matcher:
+      title: "^docs(\\(.+\\))?!?: .*"
+
+  - label: "t-feature"
+    matcher:
+      title: "^feat(\\(.+\\))?!?: .*"
+
+  - label: "t-fix"
+    matcher:
+      title: "^fix(\\(.+\\))?!?: .*"
+
+  - label: "t-refactor"
+    matcher:
+      title: "^refactor(\\(.+\\))?!?: .*"

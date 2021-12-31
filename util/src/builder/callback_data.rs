@@ -44,7 +44,7 @@ impl CallbackDataBuilder {
             allowed_mentions: None,
             components: None,
             content: None,
-            embeds: Vec::new(),
+            embeds: None,
             flags: None,
             tts: None,
         })
@@ -90,7 +90,7 @@ impl CallbackDataBuilder {
     ///
     /// Defaults to an empty list.
     pub fn embeds(mut self, embeds: impl IntoIterator<Item = Embed>) -> Self {
-        self.0.embeds = embeds.into_iter().collect();
+        self.0.embeds = Some(embeds.into_iter().collect());
 
         self
     }
@@ -186,7 +186,7 @@ mod tests {
             allowed_mentions: Some(allowed_mentions),
             components: Some(vec![component]),
             content: Some("a content".to_owned()),
-            embeds: vec![embed],
+            embeds: Some(vec![embed]),
             flags: Some(MessageFlags::empty()),
             tts: Some(false),
         };
