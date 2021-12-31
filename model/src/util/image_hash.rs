@@ -196,6 +196,12 @@ impl ImageHash {
     /// hex values is outside of the accepted range. Refer to the variant's
     /// documentation for more details.
     pub const fn parse(value: &[u8]) -> Result<Self, ImageHashParseError> {
+        /// Number of digits allocated in the half-byte.
+        ///
+        /// In other words, the number of numerical representations before
+        /// reaching alphabetical representations in the half-byte.
+        const DIGITS_ALLOCATED: u8 = 10;
+
         let animated = Self::starts_with(value, ANIMATED_KEY.as_bytes());
 
         let mut seeking_idx = if animated { ANIMATED_KEY.len() } else { 0 };
@@ -210,7 +216,7 @@ impl ImageHash {
         while seeking_idx < value.len() {
             let byte = match value[seeking_idx] {
                 byte @ b'0'..=b'9' => byte - b'0',
-                byte @ b'a'..=b'f' => byte - b'0' - 39,
+                byte @ b'a'..=b'f' => byte - b'a' + DIGITS_ALLOCATED,
                 other => return Err(ImageHashParseError::range(seeking_idx, other)),
             };
 
