@@ -1,7 +1,3 @@
-#![feature(test)]
-
-extern crate test;
-
 use criterion::{criterion_group, criterion_main, Criterion};
 use twilight_model::util::image_hash::ImageHash;
 
@@ -13,23 +9,11 @@ const HASHES: &[&str] = &[
     "dcbcfe036f475287faabba053c21125a",
 ];
 
-fn simple_string_alloc(hash: &str) {
-    let _ = test::black_box(hash.to_owned());
-}
-
 fn parse_hash(hash: &str) {
     let _ = ImageHash::parse(hash.as_bytes()).unwrap();
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("imagehash string", |b| {
-        b.iter(|| {
-            for hash in HASHES {
-                simple_string_alloc(hash);
-            }
-        });
-    });
-
     c.bench_function("imagehash parse", |b| {
         b.iter(|| {
             for hash in HASHES {
