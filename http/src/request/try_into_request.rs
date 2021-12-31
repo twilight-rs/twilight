@@ -75,8 +75,9 @@ mod private {
             SyncTemplate, UpdateTemplate,
         },
         user::{
-            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
-            GetUser, LeaveGuild, UpdateCurrentUser,
+            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections,
+            GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
+            UpdateCurrentUser,
         },
         GetGateway, GetGatewayAuthed, GetUserApplicationInfo, GetVoiceRegions,
     };
@@ -154,6 +155,7 @@ mod private {
     impl Sealed for GetCommandPermissions<'_> {}
     impl Sealed for GetCurrentUser<'_> {}
     impl Sealed for GetCurrentUserConnections<'_> {}
+    impl Sealed for GetCurrentUserGuildMember<'_> {}
     impl Sealed for GetCurrentUserGuilds<'_> {}
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
@@ -194,8 +196,8 @@ mod private {
     impl Sealed for GetSticker<'_> {}
     impl Sealed for GetTemplate<'_> {}
     impl Sealed for GetTemplates<'_> {}
-    impl Sealed for GetThreadMembers<'_> {}
     impl Sealed for GetThreadMember<'_> {}
+    impl Sealed for GetThreadMembers<'_> {}
     impl Sealed for GetUser<'_> {}
     impl Sealed for GetUserApplicationInfo<'_> {}
     impl Sealed for GetVoiceRegions<'_> {}
