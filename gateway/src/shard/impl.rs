@@ -267,8 +267,8 @@ pub enum ShardStartErrorType {
 pub struct Information {
     id: u64,
     latency: Latency,
-    ratelimit: u32,
     ratelimit_refill: Instant,
+    ratelimit_requests: u32,
     session_id: Option<Box<str>>,
     seq: u64,
     stage: Stage,
@@ -286,6 +286,20 @@ impl Information {
     /// information for the 5 most recent heartbeats.
     pub const fn latency(&self) -> &Latency {
         &self.latency
+    }
+
+    /// When the ratelimiter will next refill the [`ratelimit_requests`].
+    ///
+    /// [`ratelimit_requests`]: Self::ratelimit_requests
+    pub const fn ratelimit_refill(&self) -> Instant {
+        self.ratelimit_refill
+    }
+
+    /// Number of requests remaining until the next [`ratelimit_refill`].
+    ///
+    /// [`ratelimit_refill`]: Self::ratelimit_refill
+    pub const fn ratelimit_requests(&self) -> u32 {
+        self.ratelimit_requests
     }
 
     /// Return an immutable reference to the session ID of the shard.
@@ -551,7 +565,7 @@ impl Shard {
     pub fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
-        let (ratelimit, ratelimit_refill) = match session.ratelimit.get() {
+        let (ratelimit_requests, ratelimit_refill) = match session.ratelimit.get() {
             Some(limiter) => (limiter.tokens(), limiter.next_refill()),
             None => return Err(SessionInactiveError),
         };
@@ -559,8 +573,8 @@ impl Shard {
         Ok(Information {
             id: self.config().shard()[0],
             latency: session.heartbeats.latency(),
-            ratelimit,
             ratelimit_refill,
+            ratelimit_requests,
             session_id: session.id(),
             seq: session.seq(),
             stage: session.stage(),
