@@ -710,7 +710,7 @@ mod tests {
     }
 
     #[test]
-    fn test_hex_iter() -> Result<(), ImageHashParseError> {
+    fn test_nibbles() -> Result<(), ImageHashParseError> {
         const INPUT: &[u8] = b"39eb706d6fbaeb22837c350993b97b42";
 
         let hash = ImageHash::parse(INPUT)?;
@@ -726,9 +726,9 @@ mod tests {
     }
 
     /// Test that the [`core::iter::DoubleEndedIterator`] implementation on
-    /// [`HexIter`] functions like a double ended iterator should.
+    /// [`Nibbles`] functions like a double ended iterator should.
     #[test]
-    fn test_hex_iter_double_ended() -> Result<(), ImageHashParseError> {
+    fn test_nibbles_double_ended() -> Result<(), ImageHashParseError> {
         const INPUT: &[u8] = b"e72bbdec903c420b7aa9c45fc7994ac8";
 
         let hash = ImageHash::parse(INPUT)?;
