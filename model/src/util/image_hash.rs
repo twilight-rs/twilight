@@ -217,7 +217,7 @@ impl ImageHash {
                 other => return Err(ImageHashParseError::range(seeking_idx, other)),
             };
 
-            bits |= (byte as u128) << 124_usize.saturating_sub(storage_idx * 4);
+            bits |= (byte as u128) << 0_usize.saturating_add(storage_idx * 4);
             seeking_idx += 1;
             storage_idx += 1;
         }
@@ -530,7 +530,7 @@ impl Nibbles {
         const BITS_IN_HALF_BYTE: u8 = 4;
         const RIGHT_MASK: u8 = (1 << BITS_IN_HALF_BYTE) - 1;
 
-        if self.idx == usize::MAX || self.idx >= HASH_LEN {
+        if self.idx >= HASH_LEN {
             return None;
         }
 
