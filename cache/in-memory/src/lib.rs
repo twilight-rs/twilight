@@ -599,6 +599,19 @@ impl InMemoryCache {
         self.guild_stickers.get(&guild_id).map(Reference::new)
     }
 
+    /// Gets the set of voice states in a guild.
+    ///
+    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
+    pub fn guild_voice_states(
+        &self,
+        guild_id: GuildId,
+    ) -> Option<Reference<'_, GuildId, HashSet<UserId>>> {
+        self.voice_state_guilds.get(&guild_id).map(Reference::new)
+    }
+
     /// Gets an integration by guild ID and integration ID.
     ///
     /// This requires the [`GUILD_INTEGRATIONS`] intent. The
