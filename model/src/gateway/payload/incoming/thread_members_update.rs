@@ -110,6 +110,7 @@ mod tests {
 
         let member = Member {
             avatar: Some("guild avatar".to_owned()),
+            communication_disabled_until: None,
             deaf: false,
             guild_id: Id::new(2).expect("non zero"),
             joined_at,
@@ -215,11 +216,13 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "MemberIntermediary",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
                 Token::Str("guild avatar"),
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),

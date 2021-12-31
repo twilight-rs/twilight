@@ -53,6 +53,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         kind: MessageType::Regular,
         member: Some(PartialMember {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: false,
@@ -87,6 +88,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         guild_id: Some(Id::new(1).expect("non zero")),
         member: Some(Member {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             guild_id: Id::new(1).expect("non zero"),
             joined_at,
@@ -121,6 +123,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
     reaction.member.replace(Member {
         avatar: None,
+        communication_disabled_until: None,
         deaf: false,
         guild_id: Id::new(1).expect("non zero"),
         joined_at,
@@ -218,6 +221,7 @@ pub fn member(id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> Member {
 
     Member {
         avatar: None,
+        communication_disabled_until: None,
         deaf: false,
         guild_id,
         joined_at,

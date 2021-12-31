@@ -1,8 +1,7 @@
-use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error,
-    request::{validate_inner, Request, RequestBuilder, TryIntoRequest},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -14,6 +13,7 @@ use twilight_model::{
         Id,
     },
 };
+use twilight_validate::channel::{name as validate_name, ChannelValidationError};
 
 #[derive(Serialize)]
 struct CreateThreadFromMessageFields<'a> {
@@ -55,12 +55,8 @@ impl<'a> CreateThreadFromMessage<'a> {
         channel_id: Id<ChannelMarker>,
         message_id: Id<MessageMarker>,
         name: &'a str,
-    ) -> Result<Self, ThreadValidationError> {
-        if !validate_inner::channel_name(name) {
-            return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::NameInvalid,
-            });
-        }
+    ) -> Result<Self, ChannelValidationError> {
+        validate_name(name)?;
 
         Ok(Self {
             channel_id,

@@ -11,6 +11,7 @@ pub struct PartialMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -43,6 +44,7 @@ mod tests {
 
         let value = PartialMember {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: true,
@@ -58,8 +60,10 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
