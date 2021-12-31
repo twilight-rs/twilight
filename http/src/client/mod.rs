@@ -62,8 +62,9 @@ use crate::{
             SyncTemplate, UpdateTemplate,
         },
         user::{
-            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
-            GetUser, LeaveGuild, UpdateCurrentUser,
+            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections,
+            GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
+            UpdateCurrentUser,
         },
         GetGateway, GetUserApplicationInfo, GetVoiceRegions, Method, Request,
     },
@@ -545,6 +546,14 @@ impl Client {
     /// Get information about the current user.
     pub const fn current_user(&self) -> GetCurrentUser<'_> {
         GetCurrentUser::new(self)
+    }
+
+    /// Get information about the current user in a guild.
+    pub const fn current_user_guild_member(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetCurrentUserGuildMember<'_> {
+        GetCurrentUserGuildMember::new(self, guild_id)
     }
 
     /// Get information about the current bot application.
@@ -2227,7 +2236,7 @@ impl Client {
             .uri(&url);
 
         if use_authorization_token {
-            if let Some(ref token) = self.token {
+            if let Some(token) = &self.token {
                 let value = HeaderValue::from_str(token).map_err(|source| {
                     #[allow(clippy::borrow_interior_mutable_const)]
                     let name = AUTHORIZATION.to_string();

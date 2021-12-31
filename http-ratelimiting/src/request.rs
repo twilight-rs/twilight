@@ -253,6 +253,8 @@ pub enum Path {
     UsersIdGuilds,
     /// Operating on the state of a guild that the user is in.
     UsersIdGuildsId,
+    /// Operating on the state of a guild that the user, as a member, is in.
+    UsersIdGuildsIdMember,
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
     /// Operating on a webhook as a bot.
@@ -403,6 +405,7 @@ impl FromStr for Path {
             ["users", _, "channels"] => UsersIdChannels,
             ["users", _, "guilds"] => UsersIdGuilds,
             ["users", _, "guilds", _] => UsersIdGuildsId,
+            ["users", _, "guilds", _, "member"] => UsersIdGuildsIdMember,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] => WebhooksId(parse_id(id)?),
             ["webhooks", id, token] => {
