@@ -230,6 +230,7 @@ impl Display for ReceivingEventError {
                 Debug::fmt(shard_id, f)?;
                 f.write_str(", ")?;
                 Debug::fmt(shard_count, f)?;
+
                 f.write_str("] is invalid")
             }
             ReceivingEventErrorType::ShardingRequired => {
@@ -279,9 +280,9 @@ pub enum ReceivingEventErrorType {
     InvalidApiVersion,
     /// Attempting to identify a invalid shard.
     InvalidShard {
-        /// The shard count.
+        /// Shard count.
         shard_count: u64,
-        /// The id of the shard.
+        /// ID of the shard.
         shard_id: u64,
     },
     /// Sharding is required for the bot.
