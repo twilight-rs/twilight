@@ -680,13 +680,8 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns a [`SendErrorType::ExecutorShutDown`] error type if the async
-    /// executor executing the shard's tasks has been shutdown.
-    ///
     /// Returns a [`SendErrorType::HeartbeaterNotStarted`] error type if the
-    /// shard hasn't started the heartbeater. This is an implementation error
-    /// and shouldn't happen, but may also be indicative of
-    /// [`SendErrorType::ExecutorShutDown`].
+    /// shard hasn't started the heartbeater.
     ///
     /// Returns a [`SendErrorType::Sending`] error type if there is an issue
     /// with sending via the shard's session. This may occur when the shard is
