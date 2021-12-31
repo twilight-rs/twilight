@@ -23,7 +23,10 @@ use std::{
     str::FromStr,
 };
 
+/// Key indicating an animated image hash.
 const ANIMATED_KEY: &str = "a_";
+
+/// Length of an image hash.
 const HASH_LEN: usize = 32;
 
 type HashBytes = [u8; 16];
@@ -552,8 +555,8 @@ impl Nibbles {
 
     /// Convert 4 bits in a byte integer to a nibble.
     ///
-    /// Values 0-9 correlate to the ASCII numbers '0' through '9', while values
-    /// 10-15 correlate to the ASCII letters 'a' through 'f'.
+    /// Values 0-9 correlate to representations '0' through '9', while values
+    /// 10-15 correlate to representations 'a' through 'f'.
     const fn nibble(value: u8) -> u8 {
         if value < 10 {
             b'0' + value
