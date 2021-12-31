@@ -36,6 +36,11 @@ pub struct ImageHashParseError {
 }
 
 impl ImageHashParseError {
+    /// Error with an [`ImageHashParseErrorType::Format`] error type.
+    const FORMAT: Self = ImageHashParseError {
+        kind: ImageHashParseErrorType::Format,
+    };
+
     /// Immutable reference to the type of error that occurred.
     #[must_use = "retrieving the type has no effect if left unused"]
     pub const fn kind(&self) -> &ImageHashParseErrorType {
@@ -58,14 +63,6 @@ impl ImageHashParseError {
         Option<Box<dyn Error + Send + Sync>>,
     ) {
         (self.kind, None)
-    }
-
-    /// Instantiate a new error with an [`ImageHashParseErrorType::Format`]
-    /// error type.
-    const fn format() -> Self {
-        Self {
-            kind: ImageHashParseErrorType::Format,
-        }
     }
 
     /// Instantiate a new error with an [`ImageHashParseErrorType::Range`] error
@@ -205,7 +202,7 @@ impl ImageHash {
         let mut storage_idx = 0;
 
         if value.len() - seeking_idx != HASH_LEN {
-            return Err(ImageHashParseError::format());
+            return Err(ImageHashParseError::FORMAT);
         }
 
         let mut bits = 0;
