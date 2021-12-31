@@ -14,7 +14,6 @@ use twilight_lavalink::{
 use twilight_model::{
     channel::Message,
     gateway::payload::{incoming::MessageCreate, outgoing::UpdateVoiceState},
-    id::Id,
 };
 use twilight_standby::Standby;
 
