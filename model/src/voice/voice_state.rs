@@ -15,30 +15,80 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceState {
-    pub channel_id: Option<Id<ChannelMarker>>,
-    pub deaf: bool,
+    pub(crate) channel_id: Option<Id<ChannelMarker>>,
+    pub(crate) deaf: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<Id<GuildMarker>>,
+    pub(crate) guild_id: Option<Id<GuildMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub member: Option<Member>,
-    pub mute: bool,
-    pub self_deaf: bool,
-    pub self_mute: bool,
-    /// Whether this user is streaming via "Go Live".
+    pub(crate) member: Option<Member>,
+    pub(crate) mute: bool,
+    pub(crate) self_deaf: bool,
+    pub(crate) self_mute: bool,
     #[serde(default)]
-    pub self_stream: bool,
-    pub session_id: String,
-    pub suppress: bool,
+    pub(crate) self_stream: bool,
+    pub(crate) session_id: String,
+    pub(crate) suppress: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub token: Option<String>,
-    pub user_id: Id<UserMarker>,
+    pub(crate) token: Option<String>,
+    pub(crate) user_id: Id<UserMarker>,
+    pub(crate) request_to_speak_timestamp: Option<Timestamp>,
+}
+
+impl VoiceState {
+    pub const fn channel_id(&self) -> Option<Id<ChannelMarker>> {
+        self.channel_id
+    }
+
+    pub const fn deaf(&self) -> bool {
+        self.deaf
+    }
+
+    pub const fn member(&self) -> Option<&Member> {
+        self.member.as_ref()
+    }
+
+    pub const fn mute(&self) -> bool {
+        self.mute
+    }
+
+    pub const fn self_deaf(&self) -> bool {
+        self.self_deaf
+    }
+
+    pub const fn self_mute(&self) -> bool {
+        self.self_mute
+    }
+
+    /// Whether this user is streaming via "Go Live".
+    pub const fn self_stream(&self) -> bool {
+        self.self_stream
+    }
+
+    pub fn session_id(&self) -> &str {
+        &self.session_id
+    }
+
+    pub const fn suppress(&self) -> bool {
+        self.suppress
+    }
+
+    pub fn token(&self) -> Option<&str> {
+        self.token.as_deref()
+    }
+
+    pub const fn user_id(&self) -> Id<UserMarker> {
+        self.user_id
+    }
+
     /// When the user requested to speak.
     ///
     /// # serde
     ///
     /// This is serialized as an ISO 8601 timestamp in the format of
     /// "2021-01-01T01-01-01.010000+00:00".
-    pub request_to_speak_timestamp: Option<Timestamp>,
+    pub const fn request_to_speak_timestamp(&self) -> Option<Timestamp> {
+        self.request_to_speak_timestamp
+    }
 }
 
 #[derive(Debug, Deserialize)]

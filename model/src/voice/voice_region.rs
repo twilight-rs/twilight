@@ -3,11 +3,33 @@ use serde::{Deserialize, Serialize};
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceRegion {
-    pub custom: bool,
-    pub deprecated: bool,
-    pub id: String,
-    pub name: String,
-    pub optimal: bool,
+    pub(crate) custom: bool,
+    pub(crate) deprecated: bool,
+    pub(crate) id: String,
+    pub(crate) name: String,
+    pub(crate) optimal: bool,
+}
+
+impl VoiceRegion {
+    pub const fn custom(&self) -> bool {
+        self.custom
+    }
+
+    pub const fn deprecated(&self) -> bool {
+        self.deprecated
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub const fn optimal(&self) -> bool {
+        self.optimal
+    }
 }
 
 #[cfg(test)]

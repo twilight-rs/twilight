@@ -10,26 +10,52 @@ use serde::{Deserialize, Serialize};
 /// [Discord documentation]: https://discord.com/developers/docs/resources/user#get-current-user-guilds-example-partial-guild
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CurrentUserGuild {
+    pub(crate) id: Id<GuildMarker>,
+    pub(crate) name: String,
+    pub(crate) icon: Option<String>,
+    pub(crate) owner: bool,
+    pub(crate) permissions: Permissions,
+    pub(crate) features: Vec<String>,
+}
+
+impl CurrentUserGuild {
     /// Unique ID.
-    pub id: Id<GuildMarker>,
+    pub const fn id(&self) -> Id<GuildMarker> {
+        self.id
+    }
+
     /// Name of the guild.
     ///
     /// The name must be at least 2 characters long and at most 100 characters
     /// long.
-    pub name: String,
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     /// Hash of the icon.
     ///
     /// Refer to the [Discord documentation] for more information.
     ///
     /// [Discord documentation]: https://discord.com/developers/docs/reference#image-formatting
-    pub icon: Option<String>,
+    pub fn icon(&self) -> Option<&str> {
+        self.icon.as_deref()
+    }
+
     /// Whether the current user is the owner.
-    pub owner: bool,
+    pub const fn owner(&self) -> bool {
+        self.owner
+    }
+
     /// Permissions of the current user in the guild. This excludes channels'
     /// permission overwrites.
-    pub permissions: Permissions,
-    /// List of enabled guild features.
-    pub features: Vec<String>,
+    pub const fn permissions(&self) -> Permissions {
+        self.permissions
+    }
+
+    /// Get a reference to the current user guild's features.
+    pub fn features(&self) -> &[String] {
+        &self.features
+    }
 }
 
 #[cfg(test)]

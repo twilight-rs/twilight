@@ -4,39 +4,35 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UserProfile {
-    /// Accent color of the user's banner.
-    ///
-    /// This is an integer representation of a hexadecimal color code.
-    pub accent_color: Option<u64>,
-    pub avatar: Option<String>,
-    /// Hash of the user's banner image.
-    pub banner: Option<String>,
+    pub(crate) accent_color: Option<u64>,
+    pub(crate) avatar: Option<String>,
+    pub(crate) banner: Option<String>,
     #[serde(default)]
-    pub bot: bool,
+    pub(crate) bot: bool,
+    // TODO: figure out how to fix this
     /// Discriminator used to differentiate people with the same username.
     ///
     /// # serde
     ///
     /// The discriminator field can be deserialized from either a string or an
-    /// integer. The field will always serialize into a string due to that being
-    /// the type Discord's API uses.
+    /// integer.
     #[serde(with = "super::discriminator")]
     pub discriminator: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub email: Option<String>,
+    pub(crate) email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub flags: Option<UserFlags>,
-    pub id: Id<UserMarker>,
+    pub(crate) flags: Option<UserFlags>,
+    pub(crate) id: Id<UserMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub locale: Option<String>,
+    pub(crate) locale: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub mfa_enabled: Option<bool>,
+    pub(crate) mfa_enabled: Option<bool>,
     #[serde(rename = "username")]
-    pub name: String,
+    pub(crate) name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub premium_type: Option<PremiumType>,
+    pub(crate) premium_type: Option<PremiumType>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub verified: Option<bool>,
+    pub(crate) verified: Option<bool>,
 }
 
 impl UserProfile {
@@ -45,6 +41,58 @@ impl UserProfile {
     /// [`Display`]: core::fmt::Display
     pub const fn discriminator(&self) -> DiscriminatorDisplay {
         DiscriminatorDisplay::new(self.discriminator)
+    }
+
+    /// Accent color of the user's banner.
+    ///
+    /// This is an integer representation of a hexadecimal color code.
+    pub const fn accent_color(&self) -> Option<u64> {
+        self.accent_color
+    }
+
+    pub fn avatar(&self) -> Option<&str> {
+        self.avatar.as_deref()
+    }
+
+    /// Hash of the user's banner image.
+    pub fn banner(&self) -> Option<&str> {
+        self.banner.as_deref()
+    }
+
+    pub const fn bot(&self) -> bool {
+        self.bot
+    }
+
+    pub fn email(&self) -> Option<&str> {
+        self.email.as_deref()
+    }
+
+    pub const fn flags(&self) -> Option<UserFlags> {
+        self.flags
+    }
+
+    pub const fn id(&self) -> Id<UserMarker> {
+        self.id
+    }
+
+    pub fn locale(&self) -> Option<&str> {
+        self.locale.as_deref()
+    }
+
+    pub const fn mfa_enabled(&self) -> Option<bool> {
+        self.mfa_enabled
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub const fn premium_type(&self) -> Option<PremiumType> {
+        self.premium_type
+    }
+
+    pub const fn verified(&self) -> Option<bool> {
+        self.verified
     }
 }
 

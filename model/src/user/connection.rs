@@ -4,18 +4,56 @@ use serde::{Deserialize, Serialize};
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Connection {
-    pub friend_sync: bool,
-    pub id: String,
+    pub (crate) friend_sync: bool,
+    pub (crate) id: String,
     #[serde(default)]
-    pub integrations: Vec<GuildIntegration>,
+    pub (crate) integrations: Vec<GuildIntegration>,
     #[serde(rename = "type")]
-    pub kind: String,
-    pub name: String,
+    pub (crate) kind: String,
+    pub (crate) name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub revoked: Option<bool>,
-    pub show_activity: bool,
-    pub verified: bool,
-    pub visibility: ConnectionVisibility,
+    pub (crate) revoked: Option<bool>,
+    pub (crate) show_activity: bool,
+    pub (crate) verified: bool,
+    pub (crate) visibility: ConnectionVisibility,
+}
+
+impl Connection {
+    pub const fn friend_sync(&self) -> bool {
+        self.friend_sync
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn integrations(&self) -> &[GuildIntegration] {
+        &self.integrations
+    }
+
+    pub fn kind(&self) -> &str {
+        &self.kind
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub const fn revoked(&self) -> Option<bool> {
+        self.revoked
+    }
+
+    pub const fn show_activity(&self) -> bool {
+        self.show_activity
+    }
+
+    pub const fn verified(&self) -> bool {
+        self.verified
+    }
+
+    pub const fn visibility(&self) -> ConnectionVisibility {
+        self.visibility
+    }
 }
 
 #[cfg(test)]
