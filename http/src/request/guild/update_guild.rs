@@ -324,7 +324,7 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    /// Set if the premium progress bar should be enabled
+    /// Set whether the premium progress bar is enabled.
     pub const fn premium_progress_bar_enabled(
         mut self,
         premium_progress_bar_enabled: bool,
