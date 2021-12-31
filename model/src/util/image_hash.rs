@@ -526,13 +526,6 @@ impl Nibbles {
     }
 
     /// Parse the byte at the stored index.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`idx`] is not within the range of `[0, 32)`. Callers must
-    /// ensure that [`idx`] is within that range.
-    ///
-    /// [`idx`]: Self::idx
     const fn byte(&self) -> Option<u8> {
         const BITS_IN_HALF_BYTE: u8 = 4;
         const RIGHT_MASK: u8 = (1 << BITS_IN_HALF_BYTE) - 1;
