@@ -1503,12 +1503,16 @@ impl<'a> Route<'a> {
                 Path::GuildsIdMembers(*guild_id)
             }
             Self::CreateGuildScheduledEvent { guild_id, .. }
-            | Self::DeleteGuildScheduledEvent { guild_id, .. }
-            | Self::GetGuildScheduledEvent { guild_id, .. }
-            | Self::GetGuildScheduledEventUsers { guild_id, .. }
-            | Self::GetGuildScheduledEvents { guild_id, .. }
-            | Self::UpdateGuildScheduledEvent { guild_id, .. } => {
+            | Self::GetGuildScheduledEvents { guild_id, .. } => {
                 Path::GuildsIdScheduledEvents(*guild_id)
+            }
+            Self::DeleteGuildScheduledEvent { guild_id, .. }
+            | Self::GetGuildScheduledEvent { guild_id, .. }
+            | Self::UpdateGuildScheduledEvent { guild_id, .. } => {
+                Path::GuildsIdScheduledEventsId(*guild_id)
+            }
+            Self::GetGuildScheduledEventUsers { guild_id, .. } => {
+                Path::GuildsIdScheduledEventsIdUsers(*guild_id)
             }
             Self::GetGuildPreview { guild_id } => Path::GuildsIdPreview(*guild_id),
             Self::GetGuildVanityUrl { guild_id } => Path::GuildsIdVanityUrl(*guild_id),
