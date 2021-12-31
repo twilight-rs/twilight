@@ -228,7 +228,7 @@ impl ImageHash {
 
         Ok(Self {
             animated,
-            bytes: bits.to_be_bytes(),
+            bytes: bits.to_le_bytes(),
         })
     }
 
@@ -249,11 +249,11 @@ impl ImageHash {
     /// let hash = ImageHash::parse(input)?;
     /// let bytes = hash.bytes();
     ///
-    /// // Byte correlates to 15 (`b'f'`) followed by 4 (`b'4'`), in total `f4`.
-    /// assert_eq!(0b1111_0100, bytes[0]);
+    /// // Byte correlates to 12 (c) followed by 7 (7).
+    /// assert_eq!(0b0111_1100, bytes[0]);
     ///
-    /// // Byte correlates to 7 (`b'7'`) followed by 12 (`b'c'`), in total `7c`.
-    /// assert_eq!(0b0111_1100, bytes[15]);
+    /// // Byte correlates to 4 (4) followed by 15 (f).
+    /// assert_eq!(0b1111_0100, bytes[15]);
     /// # Ok(()) }
     /// ```
     ///
@@ -532,13 +532,17 @@ impl Nibbles {
     /// Parse the byte at the stored index.
     const fn byte(&self) -> Option<u8> {
         const BITS_IN_HALF_BYTE: u8 = 4;
+
+        /// Greatest index that the hash byte array can be indexed into.
+        const BYTE_ARRAY_BOUNDARY: usize = HASH_LEN - 1;
+
         const RIGHT_MASK: u8 = (1 << BITS_IN_HALF_BYTE) - 1;
 
         if self.idx >= HASH_LEN {
             return None;
         }
 
-        let (byte, left) = (self.idx / 2, self.idx % 2 == 0);
+        let (byte, left) = ((BYTE_ARRAY_BOUNDARY - self.idx) / 2, self.idx % 2 == 0);
 
         let store = self.inner.bytes[byte];
 
@@ -650,7 +654,7 @@ mod tests {
     fn test_parse() -> Result<(), ImageHashParseError> {
         let actual = ImageHash::parse(b"77450a7713f093adaebab32b18dacc46")?;
         let expected = [
-            119, 69, 10, 119, 19, 240, 147, 173, 174, 186, 179, 43, 24, 218, 204, 70,
+            70, 204, 218, 24, 43, 179, 186, 174, 173, 147, 240, 19, 119, 10, 69, 119,
         ];
         assert_eq!(actual.bytes(), expected);
 
