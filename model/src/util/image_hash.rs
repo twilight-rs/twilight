@@ -214,7 +214,7 @@ impl ImageHash {
                 other => return Err(ImageHashParseError::range(seeking_idx, other)),
             };
 
-            bits |= (byte as u128) << 0_usize.saturating_add(storage_idx * 4);
+            bits |= (byte as u128) << 124_usize.saturating_sub(storage_idx * 4);
             seeking_idx += 1;
             storage_idx += 1;
         }
