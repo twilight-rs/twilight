@@ -245,7 +245,7 @@ impl ImageHash {
     /// let hash = ImageHash::parse(input)?;
     /// let bytes = hash.bytes();
     ///
-    /// // Byte correlates to 15 (`b'f'`) followed by 5 (`b'4'`), in total `f4`.
+    /// // Byte correlates to 15 (`b'f'`) followed by 4 (`b'4'`), in total `f4`.
     /// assert_eq!(0b1111_0100, bytes[0]);
     ///
     /// // Byte correlates to 7 (`b'7'`) followed by 12 (`b'c'`), in total `7c`.
