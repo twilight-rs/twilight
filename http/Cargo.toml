@@ -10,8 +10,8 @@ keywords = ["discord", "discord-api", "twilight"]
 license = "ISC"
 name = "twilight-http"
 publish = false
-readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
+rust-version = "1.57"
 version = "0.8.3"
 
 [dependencies]
