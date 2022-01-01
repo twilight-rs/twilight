@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 pub struct MemberUpdate {
     /// Member's guild avatar.
     pub avatar: Option<ImageHash>,
+    pub communication_disabled_until: Option<Timestamp>,
     pub guild_id: Id<GuildMarker>,
     pub deaf: Option<bool>,
     pub joined_at: Timestamp,
@@ -43,11 +44,13 @@ mod tests {
     #[test]
     fn test_member_update() {
         let joined_at = Timestamp::from_micros(1_488_234_110_121_000).expect("non zero");
+        let communication_disabled_until =
+            Timestamp::from_micros(1_641_027_600_000_000).expect("non zero");
 
         let value = MemberUpdate {
             avatar: None,
+            communication_disabled_until: Some(communication_disabled_until),
             guild_id: Id::new(1_234),
-
             deaf: Some(false),
             joined_at,
             mute: Some(false),
@@ -79,10 +82,13 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MemberUpdate",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::None,
+                Token::Str("communication_disabled_until"),
+                Token::Some,
+                Token::Str("2022-01-01T09:00:00.000000+00:00"),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1234"),
