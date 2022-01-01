@@ -8,6 +8,7 @@ use crate::{
     },
     invite::TargetType,
     user::{self, DiscriminatorDisplay, User},
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -55,7 +56,7 @@ pub struct InviteCreate {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PartialUser {
     /// Hash of the user's avatar.
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// Discriminator used to differentiate people with the same [`username`].
     ///
     /// [`username`]: Self::username
@@ -85,7 +86,7 @@ impl PartialUser {
 #[cfg(test)]
 mod tests {
     use super::{InviteCreate, PartialUser};
-    use crate::{datetime::Timestamp, id::Id};
+    use crate::{datetime::Timestamp, id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -179,7 +180,7 @@ mod tests {
     #[test]
     fn test_partial_user() {
         let value = PartialUser {
-            avatar: Some("a".repeat(32)),
+            avatar: Some(image_hash::AVATAR),
             discriminator: 123,
             id: Id::new(1),
             username: "twilight".to_owned(),
@@ -194,7 +195,7 @@ mod tests {
                 },
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("discriminator"),
                 Token::Str("0123"),
                 Token::Str("id"),

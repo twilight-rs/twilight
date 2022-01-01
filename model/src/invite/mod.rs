@@ -59,6 +59,7 @@ mod tests {
         datetime::{Timestamp, TimestampParseError},
         guild::VerificationLevel,
         id::Id,
+        test::image_hash,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -172,13 +173,13 @@ mod tests {
             created_at: Some(created_at),
             expires_at: Some(expires_at),
             guild: Some(InviteGuild {
-                banner: Some("banner hash".to_owned()),
+                banner: Some(image_hash::BANNER),
                 description: Some("a description".to_owned()),
                 features: vec!["a feature".to_owned()],
-                icon: Some("icon hash".to_owned()),
+                icon: Some(image_hash::ICON),
                 id: Id::new(1),
                 name: "guild name".to_owned(),
-                splash: Some("splash hash".to_owned()),
+                splash: Some(image_hash::SPLASH),
                 vanity_url_code: Some("twilight".to_owned()),
                 verification_level: VerificationLevel::Medium,
                 welcome_screen: Some(WelcomeScreen {
@@ -311,7 +312,7 @@ mod tests {
                 },
                 Token::Str("banner"),
                 Token::Some,
-                Token::Str("banner hash"),
+                Token::Str(image_hash::BANNER_INPUT),
                 Token::Str("description"),
                 Token::Some,
                 Token::Str("a description"),
@@ -321,7 +322,7 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -329,7 +330,7 @@ mod tests {
                 Token::Str("guild name"),
                 Token::Str("splash"),
                 Token::Some,
-                Token::Str("splash hash"),
+                Token::Str(image_hash::SPLASH_INPUT),
                 Token::Str("vanity_url_code"),
                 Token::Some,
                 Token::Str("twilight"),

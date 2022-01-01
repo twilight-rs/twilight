@@ -124,6 +124,7 @@ mod tests {
         },
         id::Id,
         user::{PremiumType, User, UserFlags},
+        util::{image_hash::ImageHashParseError, ImageHash},
     };
 
     assert_fields!(
@@ -142,7 +143,9 @@ mod tests {
     assert_impl_all!(CachedSticker: Clone, Debug, Eq, PartialEq);
 
     #[test]
-    fn test_eq_sticker() {
+    fn test_eq_sticker() -> Result<(), ImageHashParseError> {
+        let avatar = ImageHash::parse(b"5bf451026c107906b4dccea015320222")?;
+
         let sticker = Sticker {
             available: true,
             description: Some("sticker".into()),
@@ -156,7 +159,7 @@ mod tests {
             tags: "foo,bar,baz".into(),
             user: Some(User {
                 accent_color: None,
-                avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                avatar: Some(avatar),
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -190,5 +193,7 @@ mod tests {
         };
 
         assert_eq!(cached, sticker);
+
+        Ok(())
     }
 }

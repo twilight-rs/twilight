@@ -81,13 +81,18 @@ mod tests {
         guild::{PartialMember, Permissions, Role},
         id::Id,
         user::User,
+        util::{image_hash::ImageHashParseError, ImageHash},
     };
 
     #[test]
-    fn test_interaction_create() {
+    fn test_interaction_create() -> Result<(), ImageHashParseError> {
         let timestamp = Timestamp::from_secs(1_632_072_645).expect("non zero");
+        // let avatar1 = ImageHash::parse(b"1ef6bca4fddaa303a9cd32dd70fb395d")?;
+        let avatar2 = ImageHash::parse(b"3a43231a99f4dfcf0fd94d1d8defd301")?;
+        let avatar3 = ImageHash::parse(b"5e23c298295ad37936cfe24ad314774f")?;
 
         let cache = InMemoryCache::new();
+
         cache.update(&InteractionCreate(Interaction::ApplicationCommand(
             Box::new(ApplicationCommand {
                 application_id: Id::new(1),
@@ -121,7 +126,7 @@ mod tests {
                                 attachments: Vec::new(),
                                 author: User {
                                     accent_color: None,
-                                    avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                                    avatar: Some(avatar3),
                                     banner: None,
                                     bot: false,
                                     discriminator: 1,
@@ -199,7 +204,7 @@ mod tests {
                             Id::new(7),
                             User {
                                 accent_color: None,
-                                avatar: Some("different avatar".into()),
+                                avatar: Some(avatar2),
                                 banner: None,
                                 bot: false,
                                 discriminator: 5678,
@@ -233,7 +238,7 @@ mod tests {
                     roles: Vec::new(),
                     user: Some(User {
                         accent_color: None,
-                        avatar: Some("avatar string".into()),
+                        avatar: Some(avatar3),
                         banner: None,
                         bot: false,
                         discriminator: 1234,
@@ -262,18 +267,20 @@ mod tests {
         {
             let member = cache.member(Id::new(3), Id::new(6)).unwrap();
             let user = cache.user(member.user_id).unwrap();
-            assert_eq!(user.avatar.as_ref().unwrap(), "avatar string");
+            assert_eq!(user.avatar.as_ref().unwrap(), &avatar3);
         }
 
         {
             let member = cache.member(Id::new(3), Id::new(7)).unwrap();
             let user = cache.user(member.user_id).unwrap();
-            assert_eq!(user.avatar.as_ref().unwrap(), "different avatar");
+            assert_eq!(user.avatar.as_ref().unwrap(), &avatar2);
         }
 
         {
             let guild_roles = cache.guild_roles(Id::new(3)).unwrap();
             assert_eq!(guild_roles.len(), 1);
         }
+
+        Ok(())
     }
 }
