@@ -326,7 +326,7 @@ impl TryIntoRequest for UpdateFollowupMessage<'_> {
         {
             let mut attachments = Vec::new();
 
-            if let Some(attachment_files) = &self.attachment_files {
+            if let Some(attachment_files) = self.attachment_files {
                 attachments.extend(attachment_files.iter().enumerate().map(|(index, file)| {
                     PartialAttachment {
                         description: file.description,
@@ -356,7 +356,7 @@ impl TryIntoRequest for UpdateFollowupMessage<'_> {
                     .map_err(HttpError::json)?
             };
 
-            if let Some(attachment_files) = &self.attachment_files {
+            if let Some(attachment_files) = self.attachment_files {
                 form_builder = form_builder.attachments(attachment_files);
             }
 

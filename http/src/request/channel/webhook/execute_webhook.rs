@@ -330,15 +330,6 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if self.attachment_files.is_some() || self.fields.payload_json.is_some() {
-            let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
-                FormBuilder::new(Cow::Borrowed(payload_json))
-            } else {
-                crate::json::to_vec(&self.fields)
-                    .map(Cow::Owned)
-                    .map(FormBuilder::new)
-                    .map_err(HttpError::json)?
-            };
-
             if let Some(attachment_files) = self.attachment_files {
                 self.fields.attachments = Some(
                     attachment_files
@@ -351,7 +342,18 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
                         })
                         .collect(),
                 );
+            }
 
+            let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
+                FormBuilder::new(Cow::Borrowed(payload_json))
+            } else {
+                crate::json::to_vec(&self.fields)
+                    .map(Cow::Owned)
+                    .map(FormBuilder::new)
+                    .map_err(HttpError::json)?
+            };
+
+            if let Some(attachment_files) = self.attachment_files {
                 form_builder = form_builder.attachments(attachment_files);
             }
 

@@ -77,9 +77,9 @@ struct UpdateWebhookMessageFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookMessage<'a> {
     /// List of new attachments to add to the message.
-    attachment_files: Option<Vec<AttachmentFile<'a>>>,
+    attachment_files: Option<&'a [AttachmentFile<'a>]>,
     /// List of existing attachment IDs to keep.
-    attachment_ids: Option<Vec<Id<AttachmentMarker>>>,
+    attachment_ids: Option<&'a [Id<AttachmentMarker>]>,
     fields: UpdateWebhookMessageFields<'a>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
@@ -127,12 +127,8 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// Attach multiple new files to the message.
     ///
     /// This method clears previous calls.
-    pub fn attachments(
-        mut self,
-        attachments: impl IntoIterator<Item = AttachmentFile<'a>>,
-    ) -> Self {
-        self.attachment_files
-            .replace(attachments.into_iter().collect());
+    pub const fn attachments(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachment_files = Some(attachments);
 
         self
     }
@@ -265,12 +261,8 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// attachments will be kept.
     ///
     /// [`attachments`]: Self::attachments
-    pub fn keep_attachment_ids(
-        mut self,
-        attachment_ids: impl IntoIterator<Item = Id<AttachmentMarker>>,
-    ) -> Self {
-        self.attachment_ids
-            .replace(attachment_ids.into_iter().collect());
+    pub const fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {
+        self.attachment_ids = Some(attachment_ids);
 
         self
     }
@@ -340,7 +332,7 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
         {
             let mut attachments = Vec::new();
 
-            if let Some(attachment_files) = &self.attachment_files {
+            if let Some(attachment_files) = self.attachment_files {
                 attachments.extend(attachment_files.iter().enumerate().map(|(index, file)| {
                     PartialAttachment {
                         description: file.description,
@@ -351,7 +343,12 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
             }
 
             if let Some(attachment_ids) = self.attachment_ids {
-                attachments.extend(attachment_ids.into_iter().map(PartialAttachment::from_id))
+                attachments.extend(
+                    attachment_ids
+                        .iter()
+                        .copied()
+                        .map(PartialAttachment::from_id),
+                )
             }
 
             self.fields.attachments.replace(attachments);
@@ -365,7 +362,7 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
                     .map_err(HttpError::json)?
             };
 
-            if let Some(attachment_files) = &self.attachment_files {
+            if let Some(attachment_files) = self.attachment_files {
                 form_builder = form_builder.attachments(attachment_files);
             }
 

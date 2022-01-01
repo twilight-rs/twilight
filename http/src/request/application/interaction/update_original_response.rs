@@ -320,7 +320,7 @@ impl TryIntoRequest for UpdateOriginalResponse<'_> {
         {
             let mut attachments = Vec::new();
 
-            if let Some(attachment_files) = &self.attachment_files {
+            if let Some(attachment_files) = self.attachment_files {
                 attachments.extend(attachment_files.iter().enumerate().map(|(index, file)| {
                     PartialAttachment {
                         description: file.description,
