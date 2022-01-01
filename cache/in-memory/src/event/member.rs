@@ -201,6 +201,7 @@ impl UpdateCache for MemberUpdate {
         member.roles = self.roles.clone();
         member.joined_at = self.joined_at;
         member.pending = self.pending;
+        member.communication_disabled_until = self.communication_disabled_until;
     }
 }
 
