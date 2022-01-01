@@ -1,6 +1,6 @@
 [package]
 authors = ["Twilight Contributors"]
-edition = "2018"
+edition = "2021"
 name = "twilight-example-gateway-intents"
 version = "0.1.0"
 
