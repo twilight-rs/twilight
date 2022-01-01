@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-gateway-queue
 
 Ratelimiting functionality for queueing new gateway sessions.
@@ -49,5 +47,3 @@ The `tracing` feature enables logging via the [`tracing`] crate.
 This is enabled by default.
 
 [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
-
-<!-- cargo-sync-readme end -->

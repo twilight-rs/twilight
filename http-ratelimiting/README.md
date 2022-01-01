@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-http-ratelimiting
 
 Ratelimiting functionality for HTTP requests.
@@ -23,5 +21,3 @@ The `tracing` feature enables logging via the [`tracing`] crate.
 This is enabled by default.
 
 [Discord's documentation]: https://discord.com/developers/docs/topics/rate-limits
-
-<!-- cargo-sync-readme end -->

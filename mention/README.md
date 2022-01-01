@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-mention
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -32,5 +30,3 @@ let message = format!("Hey there, {}!", user_id.mention());
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->

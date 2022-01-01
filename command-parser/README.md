@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-command-parser
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -62,5 +60,3 @@ match parser.parse("!echo a message") {
 [`twilight-gateway`]: https://crates.io/crates/twilight-gateway
 [`twilight-http`]: https://crates.io/crates/twilight-http
 [`twilight-rs`]: https://github.com/twilight-rs/twilight
-
-<!-- cargo-sync-readme end -->
