@@ -33,6 +33,7 @@ use hyper::header::{HeaderName, HeaderValue};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Serialize, Serializer};
 use std::iter;
+use twilight_model::id::{marker::AttachmentMarker, Id};
 
 /// Field that either serializes to null or a value.
 ///
@@ -60,6 +61,16 @@ pub(crate) struct PartialAttachment<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filename: Option<&'a str>,
     pub id: u64,
+}
+
+impl PartialAttachment<'_> {
+    pub const fn from_id(id: Id<AttachmentMarker>) -> Self {
+        Self {
+            description: None,
+            filename: None,
+            id: id.get(),
+        }
+    }
 }
 
 pub(crate) fn audit_header(

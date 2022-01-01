@@ -1,7 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{AttachmentFile, FormBuilder, PartialAttachment, Request, TryIntoRequest},
+    request::{
+        AttachmentFile, FormBuilder, NullableField, PartialAttachment, Request, TryIntoRequest,
+    },
     response::ResponseFuture,
     routing::Route,
 };
@@ -23,8 +25,10 @@ use twilight_validate::message::{
 
 #[derive(Serialize)]
 pub(crate) struct CreateFollowupMessageFields<'a> {
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    attachments: Vec<PartialAttachment<'a>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    attachments: Option<Vec<PartialAttachment<'a>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     components: Option<&'a [Component]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -37,7 +41,6 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     flags: Option<MessageFlags>,
-    allowed_mentions: Option<&'a AllowedMentions>,
 }
 
 /// Create a followup message to an interaction.
@@ -66,8 +69,9 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
     application_id: Id<ApplicationMarker>,
-    attachments: Option<&'a [AttachmentFile<'a>]>,
-    pub(crate) fields: CreateFollowupMessageFields<'a>,
+    /// List of new attachments to add to the message.
+    attachment_files: Option<&'a [AttachmentFile<'a>]>,
+    fields: CreateFollowupMessageFields<'a>,
     http: &'a Client,
     token: &'a str,
 }
@@ -80,25 +84,28 @@ impl<'a> CreateFollowupMessage<'a> {
     ) -> Self {
         Self {
             application_id,
-            attachments: None,
+            attachment_files: None,
             fields: CreateFollowupMessageFields {
-                attachments: Vec::new(),
+                allowed_mentions: None,
+                attachments: None,
                 components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
                 tts: None,
                 flags: None,
-                allowed_mentions: None,
             },
             http,
             token,
         }
     }
 
-    /// Specify the [`AllowedMentions`] for the webhook message.
-    pub const fn allowed_mentions(mut self, allowed_mentions: &'a AllowedMentions) -> Self {
-        self.fields.allowed_mentions = Some(allowed_mentions);
+    /// Specify the [`AllowedMentions`] for the message.
+    ///
+    /// Unless otherwise called, the request will use the client's default
+    /// allowed mentions. Set to `None` to ignore this default.
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+        self.fields.allowed_mentions = Some(NullableField(allowed_mentions));
 
         self
     }
@@ -106,18 +113,8 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.fields.attachments = attachments
-            .iter()
-            .enumerate()
-            .map(|(index, attachment)| PartialAttachment {
-                description: attachment.description,
-                filename: Some(attachment.filename),
-                id: index as u64,
-            })
-            .collect();
-
-        self.attachments = Some(attachments);
+    pub const fn attachments(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachment_files = Some(attachments);
 
         self
     }
@@ -142,9 +139,9 @@ impl<'a> CreateFollowupMessage<'a> {
         Ok(self)
     }
 
-    /// The content of the webhook's message.
+    /// Set the message's content.
     ///
-    /// Up to 2000 UTF-16 codepoints.
+    /// The maximum length is 2000 UTF-16 characters.
     ///
     /// # Errors
     ///
@@ -160,17 +157,25 @@ impl<'a> CreateFollowupMessage<'a> {
         Ok(self)
     }
 
-    /// Set the list of embeds of the webhook's message.
+    /// Set the message's list of embeds.
+    ///
+    /// Calling this method will clear previous calls.
+    ///
+    /// The amount of embeds must not exceed [`EMBED_COUNT_LIMIT`]. The total
+    /// character length of each embed must not exceed 6000 characters.
+    /// Additionally, the internal fields also have character limits. Refer to
+    /// [Discord Docs/Embed Limits] for more information.
     ///
     /// # Errors
     ///
     /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
     ///
-    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
-    /// that may occur.
+    /// Otherwise, refer to the errors section of
+    /// [`twilight_validate::embed::embed`] for a list of errors that may occur.
     ///
+    /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
+    /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
-    /// [`embed`]: twilight_validate::embed::embed
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
         validate_embeds(embeds)?;
 
@@ -193,66 +198,15 @@ impl<'a> CreateFollowupMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`attach`]. See [Discord Docs/Create Message].
+    /// [`attachments`]. See [Discord Docs/Uploading Files].
     ///
     /// # Examples
     ///
-    /// Without [`payload_json`]:
+    /// See [`ExecuteWebhook::payload_json`] for examples.
     ///
-    /// ```no_run
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::env;
-    /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_http::Client;
-    /// use twilight_model::id::Id;
-    ///
-    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = Id::new(1).expect("non zero");
-    ///
-    /// let message = client
-    ///     .interaction(application_id)
-    ///     .create_followup_message("token here")
-    ///     .content("some content")?
-    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])?
-    ///     .exec()
-    ///     .await?
-    ///     .model()
-    ///     .await?;
-    ///
-    /// assert_eq!(message.content, "some content");
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// With [`payload_json`]:
-    ///
-    /// ```no_run
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::env;
-    /// use twilight_http::Client;
-    /// use twilight_model::id::Id;
-    ///
-    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = Id::new(1).expect("non zero");
-    ///
-    /// let message = client
-    ///     .interaction(application_id)
-    ///     .create_followup_message("token here")
-    ///     .content("some content")?
-    ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
-    ///     .exec()
-    ///     .await?
-    ///     .model()
-    ///     .await?;
-    ///
-    /// assert_eq!(message.content, "other content");
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// [`attach`]: Self::attach
-    /// [`payload_json`]: Self::payload_json
-    /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
+    /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
+    /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
+    /// [`attachments`]: Self::attachments
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
 
@@ -280,7 +234,7 @@ impl<'a> CreateFollowupMessage<'a> {
 }
 
 impl TryIntoRequest for CreateFollowupMessage<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.token,
@@ -288,9 +242,20 @@ impl TryIntoRequest for CreateFollowupMessage<'_> {
             webhook_id: self.application_id.get(),
         });
 
+        // Interaction executions don't need the authorization token, only the
+        // interaction token.
+        request = request.use_authorization_token(false);
+
+        // Set the default allowed mentions if required.
+        if self.fields.allowed_mentions.is_none() {
+            if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
+                self.fields.allowed_mentions = Some(NullableField(Some(allowed_mentions)));
+            }
+        }
+
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
-        if self.attachments.is_some() || self.fields.payload_json.is_some() {
+        if self.attachment_files.is_some() || self.fields.payload_json.is_some() {
             let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
                 FormBuilder::new(Cow::Borrowed(payload_json))
             } else {
@@ -300,8 +265,20 @@ impl TryIntoRequest for CreateFollowupMessage<'_> {
                     .map_err(HttpError::json)?
             };
 
-            if let Some(attachments) = self.attachments {
-                form_builder = form_builder.attachments(attachments);
+            if let Some(attachment_files) = self.attachment_files {
+                self.fields.attachments = Some(
+                    attachment_files
+                        .iter()
+                        .enumerate()
+                        .map(|(index, attachment)| PartialAttachment {
+                            description: attachment.description,
+                            filename: Some(attachment.filename),
+                            id: index as u64,
+                        })
+                        .collect(),
+                );
+
+                form_builder = form_builder.attachments(attachment_files);
             }
 
             request = request.form(form_builder.build());
@@ -309,7 +286,7 @@ impl TryIntoRequest for CreateFollowupMessage<'_> {
             request = request.json(&self.fields)?;
         }
 
-        Ok(request.use_authorization_token(false).build())
+        Ok(request.build())
     }
 }
 

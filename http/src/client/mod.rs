@@ -266,9 +266,9 @@ impl Client {
         InteractionClient::new(self, application_id)
     }
 
-    /// Get the default [`AllowedMentions`] for sent messages.
-    pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
-        self.default_allowed_mentions.clone()
+    /// Get a reference to the default [`AllowedMentions`] for sent messages.
+    pub const fn default_allowed_mentions(&self) -> Option<&AllowedMentions> {
+        self.default_allowed_mentions.as_ref()
     }
 
     /// Get the Ratelimiter used by the client internally.

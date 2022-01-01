@@ -1,7 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AttachmentFile, FormBuilder, PartialAttachment, Request, TryIntoRequest},
+    request::{
+        AttachmentFile, FormBuilder, NullableField, PartialAttachment, Request, TryIntoRequest,
+    },
     response::ResponseFuture,
     routing::Route,
 };
@@ -15,7 +17,7 @@ use twilight_model::{
         Message,
     },
     id::{
-        marker::{ChannelMarker, MessageMarker},
+        marker::{ChannelMarker, MessageMarker, StickerMarker},
         Id,
     },
 };
@@ -26,14 +28,16 @@ use twilight_validate::message::{
 
 #[derive(Serialize)]
 pub(crate) struct CreateMessageFields<'a> {
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    attachments: Vec<PartialAttachment<'a>>,
-    #[serde(skip_serializing_if = "request::slice_is_empty")]
-    components: &'a [Component],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    attachments: Option<Vec<PartialAttachment<'a>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    components: Option<&'a [Component]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<&'a str>,
-    #[serde(skip_serializing_if = "request::slice_is_empty")]
-    embeds: &'a [Embed],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    embeds: Option<&'a [Embed]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     message_reference: Option<MessageReference>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,12 +45,15 @@ pub(crate) struct CreateMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) allowed_mentions: Option<AllowedMentions>,
+    sticker_ids: Option<&'a [Id<StickerMarker>]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
 }
 
 /// Send a message to a channel.
+///
+/// The message must include at least one of content, attachments, embeds, or
+/// sticker IDs.
 ///
 /// # Example
 ///
@@ -69,26 +76,28 @@ pub(crate) struct CreateMessageFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateMessage<'a> {
-    attachments: Option<&'a [AttachmentFile<'a>]>,
+    /// List of new attachments to add to the message.
+    attachment_files: Option<&'a [AttachmentFile<'a>]>,
     channel_id: Id<ChannelMarker>,
-    pub(crate) fields: CreateMessageFields<'a>,
+    fields: CreateMessageFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> CreateMessage<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
-            attachments: None,
+            attachment_files: None,
             channel_id,
             fields: CreateMessageFields {
-                attachments: Vec::new(),
-                components: &[],
+                attachments: None,
+                components: None,
                 content: None,
-                embeds: &[],
+                embeds: None,
                 message_reference: None,
                 nonce: None,
                 payload_json: None,
                 allowed_mentions: None,
+                sticker_ids: None,
                 tts: None,
             },
             http,
@@ -96,34 +105,27 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Specify the [`AllowedMentions`] for the message.
-    pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
-        self.fields.allowed_mentions.replace(allowed_mentions);
+    ///
+    /// Unless otherwise called, the request will use the client's default
+    /// allowed mentions. Set to `None` to ignore this default.
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+        self.fields.allowed_mentions = Some(NullableField(allowed_mentions));
 
         self
     }
 
     /// Attach multiple files to the message.
     ///
-    /// Calling this method will clear any previous calls.
-    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.fields.attachments = attachments
-            .iter()
-            .enumerate()
-            .map(|(index, attachment)| PartialAttachment {
-                description: attachment.description,
-                filename: Some(attachment.filename),
-                id: index as u64,
-            })
-            .collect();
-
-        self.attachments = Some(attachments);
+    /// Calling this method will clear previous calls.
+    pub const fn attachments(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
+        self.attachment_files = Some(attachments);
 
         self
     }
 
-    /// Add multiple [`Component`]s to a message.
+    /// Set the message's list of [`Component`]s.
     ///
-    /// Calling this method multiple times will clear previous calls.
+    /// Calling this method will clear previous calls.
     ///
     /// # Errors
     ///
@@ -136,12 +138,12 @@ impl<'a> CreateMessage<'a> {
     ) -> Result<Self, MessageValidationError> {
         validate_components(components)?;
 
-        self.fields.components = components;
+        self.fields.components = Some(components);
 
         Ok(self)
     }
 
-    /// Set the content of the message.
+    /// Set the message's content.
     ///
     /// The maximum length is 2000 UTF-16 characters.
     ///
@@ -159,25 +161,29 @@ impl<'a> CreateMessage<'a> {
         Ok(self)
     }
 
-    /// Attach multiple embeds to the message.
+    /// Set the message's list of embeds.
     ///
-    /// Embed total character length must not exceed 6000 characters.
+    /// Calling this method will clear previous calls.
+    ///
+    /// The amount of embeds must not exceed [`EMBED_COUNT_LIMIT`]. The total
+    /// character length of each embed must not exceed 6000 characters.
     /// Additionally, the internal fields also have character limits. Refer to
-    /// [the discord docs] for more information.
+    /// [Discord Docs/Embed Limits] for more information.
     ///
     /// # Errors
     ///
     /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
     ///
-    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
-    /// that may occur.
+    /// Otherwise, refer to the errors section of
+    /// [`twilight_validate::embed::embed`] for a list of errors that may occur.
     ///
+    /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
+    /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
-    /// [`embed`]: twilight_validate::embed::embed
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
         validate_embeds(embeds)?;
 
-        self.fields.embeds = embeds;
+        self.fields.embeds = Some(embeds);
 
         Ok(self)
     }
@@ -204,6 +210,7 @@ impl<'a> CreateMessage<'a> {
 
         self
     }
+
     /// Attach a nonce to the message, for optimistic message sending.
     pub const fn nonce(mut self, nonce: u64) -> Self {
         self.fields.nonce = Some(nonce);
@@ -214,10 +221,15 @@ impl<'a> CreateMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`attach`]. See [Discord Docs/Create Message].
+    /// [`attachments`]. See [Discord Docs/Uploading Files].
     ///
-    /// [`attach`]: Self::attach
-    /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
+    /// # Examples
+    ///
+    /// See [`ExecuteWebhook::payload_json`] for examples.
+    ///
+    /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
+    /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
+    /// [`attachments`]: Self::attachments
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
 
@@ -250,6 +262,13 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
+    /// Set the IDs of up to 3 guild stickers.
+    pub const fn sticker_ids(mut self, sticker_ids: &'a [Id<StickerMarker>]) -> Self {
+        self.fields.sticker_ids = Some(sticker_ids);
+
+        self
+    }
+
     /// Specify true if the message is TTS.
     pub const fn tts(mut self, tts: bool) -> Self {
         self.fields.tts = Some(tts);
@@ -271,14 +290,21 @@ impl<'a> CreateMessage<'a> {
 }
 
 impl TryIntoRequest for CreateMessage<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.get(),
         });
 
+        // Set the default allowed mentions if required.
+        if self.fields.allowed_mentions.is_none() {
+            if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
+                self.fields.allowed_mentions = Some(NullableField(Some(allowed_mentions)));
+            }
+        }
+
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
-        if self.attachments.is_some() || self.fields.payload_json.is_some() {
+        if self.attachment_files.is_some() || self.fields.payload_json.is_some() {
             let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
                 FormBuilder::new(Cow::Borrowed(payload_json))
             } else {
@@ -288,8 +314,20 @@ impl TryIntoRequest for CreateMessage<'_> {
                     .map_err(HttpError::json)?
             };
 
-            if let Some(attachments) = self.attachments {
-                form_builder = form_builder.attachments(attachments);
+            if let Some(attachment_files) = self.attachment_files {
+                self.fields.attachments = Some(
+                    attachment_files
+                        .iter()
+                        .enumerate()
+                        .map(|(index, attachment)| PartialAttachment {
+                            description: attachment.description,
+                            filename: Some(attachment.filename),
+                            id: index as u64,
+                        })
+                        .collect(),
+                );
+
+                form_builder = form_builder.attachments(attachment_files);
             }
 
             request = request.form(form_builder.build());
