@@ -585,6 +585,7 @@ mod tests {
             owner_id: OWNER_ID,
             permissions: None,
             preferred_locale: "en-GB".to_owned(),
+            premium_progress_bar_enabled: false,
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::None,
             presences: Vec::new(),

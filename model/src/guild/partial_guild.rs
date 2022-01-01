@@ -40,6 +40,8 @@ pub struct PartialGuild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
+    /// Whether the premium progress bar is enabled in the guild.
+    pub premium_progress_bar_enabled: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     pub premium_tier: PremiumTier,
@@ -93,6 +95,7 @@ mod tests {
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-us".to_owned(),
+            premium_progress_bar_enabled: true,
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
             roles: Vec::new(),
@@ -111,7 +114,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialGuild",
-                    len: 33,
+                    len: 34,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -175,6 +178,8 @@ mod tests {
                 Token::Str("2048"),
                 Token::Str("preferred_locale"),
                 Token::Str("en-us"),
+                Token::Str("premium_progress_bar_enabled"),
+                Token::Bool(true),
                 Token::Str("premium_subscription_count"),
                 Token::Some,
                 Token::U64(3),
