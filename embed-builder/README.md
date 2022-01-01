@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-embed-builder
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -45,5 +43,3 @@ let embed = EmbedBuilder::new()
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 [the discord docs]: https://discord.com/developers/docs/resources/channel#create-message-using-attachments-within-embeds
-
-<!-- cargo-sync-readme end -->

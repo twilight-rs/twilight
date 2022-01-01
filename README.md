@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -242,5 +240,3 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [`twilight-model`]: https://twilight.rs/chapter_1_crates/section_1_model.html
 [`twilight-standby`]: https://twilight.rs/chapter_1_crates/section_6_standby.html
 [`twilight-util`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_4_util.html
-
-<!-- cargo-sync-readme end -->
