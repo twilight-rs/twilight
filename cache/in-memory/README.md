@@ -24,7 +24,7 @@ Refer to the `permission` module for more documentation.
 
 Update a cache with events that come in through the gateway:
 
-```rust,no_run
+```rust,ignore
 use std::env;
 use futures::stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;

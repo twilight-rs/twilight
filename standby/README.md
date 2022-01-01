@@ -48,7 +48,7 @@ This is enabled by default.
 
 Wait for a message in channel 123 by user 456 with the content "test":
 
-```rust,no_run
+```rust,ignore
 use twilight_model::{
     gateway::payload::incoming::MessageCreate,
     id::Id,
