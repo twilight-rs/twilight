@@ -64,11 +64,11 @@ struct UpdateFollowupMessageFields<'a> {
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = Id::new(1).expect("non zero");
+/// let application_id = Id::new(1);
 ///
 /// client
 ///     .interaction(application_id)
-///     .update_followup_message("token here", Id::new(2).expect("non zero"))
+///     .update_followup_message("token here", Id::new(2))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(Some(&AllowedMentions::default()))
@@ -217,8 +217,8 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let application_id = Id::new(1).expect("non zero");
-    /// let message_id = Id::new(2).expect("non zero");
+    /// let application_id = Id::new(1);
+    /// let message_id = Id::new(2);
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
@@ -378,8 +378,8 @@ mod tests {
 
     #[test]
     fn test_update_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = Id::new(1).expect("non zero id");
-        let message_id = Id::new(2).expect("non zero id");
+        let application_id = Id::new(1);
+        let message_id = Id::new(2);
         let token = "foo".to_owned().into_boxed_str();
 
         let client = Client::new(String::new());

@@ -24,9 +24,9 @@ use twilight_model::id::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(1).expect("non zero");
-/// let role_id = Id::new(2).expect("non zero");
-/// let user_id = Id::new(3).expect("non zero");
+/// let guild_id = Id::new(1);
+/// let role_id = Id::new(2);
+/// let user_id = Id::new(3);
 ///
 /// client.add_guild_member_role(guild_id, user_id, role_id)
 ///     .reason("test")?

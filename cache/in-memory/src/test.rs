@@ -32,7 +32,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             discriminator: 1,
             email: None,
             flags: None,
-            id: Id::new(3).expect("non zero"),
+            id: Id::new(3),
             locale: None,
             mfa_enabled: None,
             name: "test".to_owned(),
@@ -41,14 +41,14 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             system: None,
             verified: None,
         },
-        channel_id: Id::new(2).expect("non zero"),
+        channel_id: Id::new(2),
         components: Vec::new(),
         content: "ping".to_owned(),
         edited_timestamp: None,
         embeds: Vec::new(),
         flags: Some(MessageFlags::empty()),
-        guild_id: Some(Id::new(1).expect("non zero")),
-        id: Id::new(4).expect("non zero"),
+        guild_id: Some(Id::new(1)),
+        id: Id::new(4),
         interaction: None,
         kind: MessageType::Regular,
         member: Some(PartialMember {
@@ -81,16 +81,16 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
     cache.update(&MessageCreate(msg));
 
     let mut reaction = ReactionAdd(Reaction {
-        channel_id: Id::new(2).expect("non zero"),
+        channel_id: Id::new(2),
         emoji: ReactionType::Unicode {
             name: "😀".to_owned(),
         },
-        guild_id: Some(Id::new(1).expect("non zero")),
+        guild_id: Some(Id::new(1)),
         member: Some(Member {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new(1),
             joined_at,
             mute: false,
             nick: Some("member nick".to_owned()),
@@ -105,7 +105,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -115,8 +115,8 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
                 verified: None,
             },
         }),
-        message_id: Id::new(4).expect("non zero"),
-        user_id: Id::new(3).expect("non zero"),
+        message_id: Id::new(4),
+        user_id: Id::new(3),
     });
 
     cache.update(&reaction);
@@ -125,7 +125,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         avatar: None,
         communication_disabled_until: None,
         deaf: false,
-        guild_id: Id::new(1).expect("non zero"),
+        guild_id: Id::new(1),
         joined_at,
         mute: false,
         nick: None,
@@ -140,7 +140,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             discriminator: 2,
             email: None,
             flags: None,
-            id: Id::new(5).expect("non zero"),
+            id: Id::new(5),
             locale: None,
             mfa_enabled: None,
             name: "test".to_owned(),
@@ -150,7 +150,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             verified: None,
         },
     });
-    reaction.user_id = Id::new(5).expect("non zero");
+    reaction.user_id = Id::new(5);
 
     cache.update(&reaction);
 
@@ -171,7 +171,7 @@ pub fn current_user(id: u64) -> CurrentUser {
         bot: true,
         discriminator: 9876,
         email: None,
-        id: Id::new(id).expect("non zero"),
+        id: Id::new(id),
         mfa_enabled: true,
         name: "test".to_owned(),
         verified: Some(true),
@@ -196,8 +196,8 @@ pub fn emoji(id: Id<EmojiMarker>, user: Option<User>) -> Emoji {
 }
 
 pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, GuildChannel) {
-    let guild_id = Id::new(1).expect("non zero");
-    let channel_id = Id::new(2).expect("non zero");
+    let guild_id = Id::new(1);
+    let channel_id = Id::new(2);
     let channel = GuildChannel::Text(TextChannel {
         guild_id: Some(guild_id),
         id: channel_id,

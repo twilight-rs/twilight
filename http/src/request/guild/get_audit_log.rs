@@ -35,7 +35,7 @@ struct GetAuditLogFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("token".to_owned());
 ///
-/// let guild_id = Id::new(101).expect("non zero");
+/// let guild_id = Id::new(101);
 /// let audit_log = client
 ///     .audit_log(guild_id)
 ///     .exec()

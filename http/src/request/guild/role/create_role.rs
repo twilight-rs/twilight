@@ -40,7 +40,7 @@ struct CreateRoleFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let guild_id = Id::new(234).expect("non zero");
+/// let guild_id = Id::new(234);
 ///
 /// client.create_role(guild_id)
 ///     .color(0xd90083)

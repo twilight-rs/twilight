@@ -187,7 +187,7 @@ mod tests {
                 email: None,
                 discriminator: 1111,
                 flags: None,
-                id: Id::new(100).expect("non zero"),
+                id: Id::new(100),
                 locale: None,
                 mfa_enabled: None,
                 name: "username".into(),
@@ -196,7 +196,7 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            creator_id: Id::new(100).expect("non zero"),
+            creator_id: Id::new(100),
             description: Some("description".into()),
             is_dirty: None,
             name: "name".into(),
@@ -206,7 +206,7 @@ mod tests {
                 channels: vec![
                     GuildChannel::Category(CategoryChannel {
                         guild_id: None,
-                        id: Id::new(1).expect("non zero"),
+                        id: Id::new(1),
                         kind: ChannelType::GuildCategory,
                         name: "Text Channels".into(),
                         permission_overwrites: vec![],
@@ -214,23 +214,23 @@ mod tests {
                     }),
                     GuildChannel::Text(TextChannel {
                         guild_id: None,
-                        id: Id::new(2).expect("non zero"),
+                        id: Id::new(2),
                         kind: ChannelType::GuildText,
                         last_message_id: None,
                         last_pin_timestamp: None,
                         name: "general".into(),
                         nsfw: false,
-                        parent_id: Some(Id::new(1).expect("non zero")),
+                        parent_id: Some(Id::new(1)),
                         permission_overwrites: vec![
                             PermissionOverwrite {
                                 allow: Permissions::from_bits(0).unwrap(),
                                 deny: Permissions::from_bits(2048).unwrap(),
-                                kind: PermissionOverwriteType::Role(Id::new(1).expect("non zero")),
+                                kind: PermissionOverwriteType::Role(Id::new(1)),
                             },
                             PermissionOverwrite {
                                 allow: Permissions::from_bits(2048).unwrap(),
                                 deny: Permissions::from_bits(0).unwrap(),
-                                kind: PermissionOverwriteType::Role(Id::new(2).expect("non zero")),
+                                kind: PermissionOverwriteType::Role(Id::new(2)),
                             },
                         ],
                         position: 0,
@@ -239,7 +239,7 @@ mod tests {
                     }),
                     GuildChannel::Category(CategoryChannel {
                         guild_id: None,
-                        id: Id::new(3).expect("non zero"),
+                        id: Id::new(3),
                         kind: ChannelType::GuildCategory,
                         name: "Voice Channels".into(),
                         permission_overwrites: vec![],
@@ -248,10 +248,10 @@ mod tests {
                     GuildChannel::Voice(VoiceChannel {
                         bitrate: 64000,
                         guild_id: None,
-                        id: Id::new(4).expect("non zero"),
+                        id: Id::new(4),
                         kind: ChannelType::GuildVoice,
                         name: "General".into(),
-                        parent_id: Some(Id::new(3).expect("non zero")),
+                        parent_id: Some(Id::new(3)),
                         permission_overwrites: vec![],
                         rtc_region: None,
                         position: 0,
@@ -269,7 +269,7 @@ mod tests {
                     TemplateRole {
                         color: 0,
                         hoist: false,
-                        id: Id::new(200).expect("non zero"),
+                        id: Id::new(200),
                         mentionable: false,
                         name: "@everyone".into(),
                         permissions: Permissions::CREATE_INVITE
@@ -291,7 +291,7 @@ mod tests {
                     TemplateRole {
                         color: 0,
                         hoist: false,
-                        id: Id::new(1).expect("non zero"),
+                        id: Id::new(1),
                         mentionable: false,
                         name: "new role".into(),
                         permissions: Permissions::CREATE_INVITE
@@ -312,10 +312,10 @@ mod tests {
                     },
                 ],
                 system_channel_flags: SystemChannelFlags::empty(),
-                system_channel_id: Some(Id::new(2).expect("non zero")),
+                system_channel_id: Some(Id::new(2)),
                 verification_level: VerificationLevel::None,
             },
-            source_guild_id: Id::new(200).expect("non zero"),
+            source_guild_id: Id::new(200),
             updated_at,
             usage_count: 0,
         };

@@ -565,9 +565,9 @@ impl Connection {
             }
         };
 
-        match event {
-            IncomingEvent::PlayerUpdate(ref update) => self.player_update(update).await?,
-            IncomingEvent::Stats(ref stats) => self.stats(stats).await?,
+        match &event {
+            IncomingEvent::PlayerUpdate(update) => self.player_update(update).await?,
+            IncomingEvent::Stats(stats) => self.stats(stats).await?,
             _ => {}
         }
 
@@ -680,7 +680,7 @@ async fn backoff(
                 #[cfg(feature = "tracing")]
                 tracing::warn!("failed to connect to node {}: {:?}", source, config.address);
 
-                if matches!(source, TungsteniteError::Http(ref resp) if resp.status() == StatusCode::UNAUTHORIZED)
+                if matches!(&source, TungsteniteError::Http(resp) if resp.status() == StatusCode::UNAUTHORIZED)
                 {
                     return Err(NodeError {
                         kind: NodeErrorType::Unauthorized {

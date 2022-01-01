@@ -83,14 +83,14 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
 
         let kind = match data.kind {
             PermissionOverwriteTargetType::Member => {
-                let id = Id::new(data.id).expect("non zero");
+                let id = Id::new(data.id);
                 #[cfg(feature = "tracing")]
                 tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 PermissionOverwriteType::Member(id)
             }
             PermissionOverwriteTargetType::Role => {
-                let id = Id::new(data.id).expect("non zero");
+                let id = Id::new(data.id);
                 #[cfg(feature = "tracing")]
                 tracing::trace!(id = %id.get(), kind = ?data.kind);
 
@@ -180,7 +180,7 @@ mod tests {
         let overwrite = PermissionOverwrite {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
-            kind: PermissionOverwriteType::Member(Id::new(12_345_678).expect("non zero")),
+            kind: PermissionOverwriteType::Member(Id::new(12_345_678)),
         };
 
         // We can't use serde_test because it doesn't support 128 bit integers.
@@ -213,7 +213,7 @@ mod tests {
         let value = PermissionOverwrite {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
-            kind: PermissionOverwriteType::Member(Id::new(1).expect("non zero")),
+            kind: PermissionOverwriteType::Member(Id::new(1)),
         };
 
         let deserialized = serde_json::from_str::<PermissionOverwrite>(raw).unwrap();

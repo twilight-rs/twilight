@@ -58,7 +58,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let id = Id::new(432).expect("non zero");
+/// let id = Id::new(432);
 ///
 /// client
 ///     .execute_webhook(id, "webhook token")
@@ -207,21 +207,18 @@ impl<'a> ExecuteWebhook<'a> {
     /// Without [`payload_json`]:
     ///
     /// ```no_run
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::env;
-    /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_http::Client;
+    /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::Id;
     ///
-    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = Id::new(1).expect("non zero");
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("token".to_owned());
     ///
-    /// let message = client
-    ///     .interaction(application_id)
-    ///     .create_followup_message("token here")
+    /// let message = client.execute_webhook(Id::new(1), "token here")
     ///     .content("some content")?
     ///     .embeds(&[EmbedBuilder::new().title("title").build()?])?
+    ///     .wait()
     ///     .exec()
     ///     .await?
     ///     .model()
@@ -234,20 +231,18 @@ impl<'a> ExecuteWebhook<'a> {
     /// With [`payload_json`]:
     ///
     /// ```no_run
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::env;
     /// use twilight_http::Client;
+    /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::Id;
     ///
-    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let application_id = Id::new(1).expect("non zero");
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let client = Client::new("token".to_owned());
     ///
-    /// let message = client
-    ///     .interaction(application_id)
-    ///     .create_followup_message("token here")
+    /// let message = client.execute_webhook(Id::new(1), "token here")
     ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
+    ///     .wait()
     ///     .exec()
     ///     .await?
     ///     .model()

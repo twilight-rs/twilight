@@ -30,21 +30,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 // Additionally, you can pass in a "nonce" and get it back in
                 // the received member chunk. This can be used to help identify
                 // which request the member is from.
-                let request = RequestGuildMembers::builder(Id::new(1).expect("non zero"))
+                let request = RequestGuildMembers::builder(Id::new(1))
                     .nonce("requesting a single member")
-                    .user_id(Id::new(2).expect("non zero"));
+                    .user_id(Id::new(2));
 
                 shard.command(&request).await?;
 
                 // Similarly, you can also request multiple members. Only 100
                 // members by ID can be requested at a time, so the builder will
                 // check to make sure you're requesting at most that many:
-                let request = RequestGuildMembers::builder(Id::new(1).expect("non zero"))
+                let request = RequestGuildMembers::builder(Id::new(1))
                     .nonce("requesting two member")
-                    .user_ids(vec![
-                        Id::new(2).expect("non zero"),
-                        Id::new(3).expect("non zero"),
-                    ])
+                    .user_ids(vec![Id::new(2), Id::new(3)])
                     .unwrap();
 
                 shard.command(&request).await?;
@@ -55,7 +52,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 // number of members to retrieve can be specified. Here we'll
                 // request a list of up to 50 members and their current presence
                 // details whose names start with the letters "tw":
-                let request = RequestGuildMembers::builder(Id::new(1).expect("non zero"))
+                let request = RequestGuildMembers::builder(Id::new(1))
                     .nonce("querying for members")
                     .presences(true)
                     .query("tw", Some(50));

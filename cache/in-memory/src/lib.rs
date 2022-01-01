@@ -60,7 +60,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(
@@ -418,8 +418,8 @@ impl InMemoryCache {
     ///     .resource_types(resource_types)
     ///     .build();
     ///
-    /// let channel_id = Id::new(4).expect("non zero");
-    /// let user_id = Id::new(5).expect("non zero");
+    /// let channel_id = Id::new(4);
+    /// let user_id = Id::new(5);
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
     /// println!("member has these permissions: {:?}", permissions);
@@ -611,6 +611,19 @@ impl InMemoryCache {
         guild_id: Id<GuildMarker>,
     ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<StickerMarker>>>> {
         self.guild_stickers.get(&guild_id).map(Reference::new)
+    }
+
+    /// Gets the set of voice states in a guild.
+    ///
+    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
+    pub fn guild_voice_states(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<UserMarker>>>> {
+        self.voice_state_guilds.get(&guild_id).map(Reference::new)
     }
 
     /// Gets an integration by guild ID and integration ID.
@@ -936,22 +949,16 @@ mod tests {
     fn test_syntax_update() {
         let cache = InMemoryCache::new();
         cache.update(&RoleDelete {
-            guild_id: Id::new(1).expect("non zero"),
-            role_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new(1),
+            role_id: Id::new(1),
         });
     }
 
     #[test]
     fn test_clear() {
         let cache = InMemoryCache::new();
-        cache.cache_emoji(
-            Id::new(1).expect("non zero"),
-            test::emoji(Id::new(3).expect("non zero"), None),
-        );
-        cache.cache_member(
-            Id::new(2).expect("non zero"),
-            test::member(Id::new(4).expect("non zero"), Id::new(2).expect("non zero")),
-        );
+        cache.cache_emoji(Id::new(1), test::emoji(Id::new(3), None));
+        cache.cache_member(Id::new(2), test::member(Id::new(4), Id::new(2)));
         cache.clear();
         assert!(cache.emojis.is_empty());
         assert!(cache.members.is_empty());
@@ -961,8 +968,8 @@ mod tests {
     fn test_highest_role() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
-        let guild_id = Id::new(1).expect("non zero");
-        let user = test::user(Id::new(1).expect("non zero"));
+        let guild_id = Id::new(1);
+        let user = test::user(Id::new(1));
         cache.cache_member(
             guild_id,
             Member {
@@ -975,7 +982,7 @@ mod tests {
                 nick: None,
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new(1).expect("non zero"), Id::new(2).expect("non zero")],
+                roles: vec![Id::new(1), Id::new(2)],
                 user,
             },
         );
@@ -987,7 +994,7 @@ mod tests {
                     color: 0,
                     hoist: false,
                     icon: None,
-                    id: Id::new(1).expect("non zero"),
+                    id: Id::new(1),
                     managed: false,
                     mentionable: false,
                     name: "test".to_owned(),
@@ -1000,7 +1007,7 @@ mod tests {
                     color: 0,
                     hoist: false,
                     icon: None,
-                    id: Id::new(2).expect("non zero"),
+                    id: Id::new(2),
                     managed: false,
                     mentionable: false,
                     name: "test".to_owned(),
@@ -1013,8 +1020,8 @@ mod tests {
         );
 
         assert_eq!(
-            cache.member_highest_role(guild_id, Id::new(1).expect("non zero")),
-            Some(Id::new(2).expect("non zero"))
+            cache.member_highest_role(guild_id, Id::new(1)),
+            Some(Id::new(2))
         );
     }
 }

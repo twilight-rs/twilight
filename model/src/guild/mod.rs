@@ -98,6 +98,8 @@ pub struct Guild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
+    /// Whether the premium progress bar is enabled in the guild.
+    pub premium_progress_bar_enabled: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     #[serde(default)]
@@ -162,6 +164,7 @@ impl<'de> Deserialize<'de> for Guild {
             Owner,
             Permissions,
             PreferredLocale,
+            PremiumProgressBarEnabled,
             PremiumSubscriptionCount,
             PremiumTier,
             Presences,
@@ -221,6 +224,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut owner_id = None;
                 let mut permissions = None::<Option<_>>;
                 let mut preferred_locale = None;
+                let mut premium_progress_bar_enabled = None;
                 let mut premium_subscription_count = None::<Option<_>>;
                 let mut premium_tier = None;
                 let mut presences = None;
@@ -431,8 +435,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("members"));
                             }
 
-                            let deserializer =
-                                MemberListDeserializer::new(Id::new(1).expect("non zero"));
+                            let deserializer = MemberListDeserializer::new(Id::new(1));
 
                             members = Some(map.next_value_seed(deserializer)?);
                         }
@@ -485,6 +488,15 @@ impl<'de> Deserialize<'de> for Guild {
 
                             preferred_locale = Some(map.next_value()?);
                         }
+                        Field::PremiumProgressBarEnabled => {
+                            if premium_progress_bar_enabled.is_some() {
+                                return Err(DeError::duplicate_field(
+                                    "premium_progress_bar_enabled",
+                                ));
+                            }
+
+                            premium_progress_bar_enabled = Some(map.next_value()?);
+                        }
                         Field::PremiumSubscriptionCount => {
                             if premium_subscription_count.is_some() {
                                 return Err(DeError::duplicate_field("premium_subscription_count"));
@@ -504,8 +516,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("presences"));
                             }
 
-                            let deserializer =
-                                PresenceListDeserializer::new(Id::new(1).expect("non zero"));
+                            let deserializer = PresenceListDeserializer::new(Id::new(1));
 
                             presences = Some(map.next_value_seed(deserializer)?);
                         }
@@ -626,6 +637,8 @@ impl<'de> Deserialize<'de> for Guild {
                 let roles = roles.ok_or_else(|| DeError::missing_field("roles"))?;
                 let system_channel_flags = system_channel_flags
                     .ok_or_else(|| DeError::missing_field("system_channel_flags"))?;
+                let premium_progress_bar_enabled = premium_progress_bar_enabled
+                    .ok_or_else(|| DeError::missing_field("premium_progress_bar_enabled"))?;
                 let verification_level = verification_level
                     .ok_or_else(|| DeError::missing_field("verification_level"))?;
 
@@ -694,12 +707,13 @@ impl<'de> Deserialize<'de> for Guild {
                     ?owner,
                     ?permissions,
                     ?preferred_locale,
-                    ?premium_subscription_count,
+                    ?premium_progress_bar_enabled,
                 );
 
                 // Split in two due to generic impl only going up to 32.
                 #[cfg(feature = "tracing")]
                 tracing::trace!(
+                    ?premium_subscription_count,
                     ?premium_tier,
                     ?presences,
                     ?rules_channel_id,
@@ -802,6 +816,7 @@ impl<'de> Deserialize<'de> for Guild {
                     owner,
                     permissions,
                     preferred_locale,
+                    premium_progress_bar_enabled,
                     premium_subscription_count,
                     premium_tier,
                     presences,
@@ -853,6 +868,7 @@ impl<'de> Deserialize<'de> for Guild {
             "owner_id",
             "permissions",
             "preferred_locale",
+            "premium_progress_bar_enabled",
             "premium_subscription_count",
             "premium_tier",
             "presences",
@@ -894,9 +910,9 @@ mod tests {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value = Guild {
-            afk_channel_id: Some(Id::new(2).expect("non zero")),
+            afk_channel_id: Some(Id::new(2)),
             afk_timeout: 900,
-            application_id: Some(Id::new(3).expect("non zero")),
+            application_id: Some(Id::new(3)),
             approximate_member_count: Some(1_200),
             approximate_presence_count: Some(900),
             banner: Some("banner hash".to_owned()),
@@ -908,7 +924,7 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
             features: vec!["a feature".to_owned()],
             icon: Some("icon hash".to_owned()),
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             joined_at: Some(joined_at),
             large: true,
             max_members: Some(25_000),
@@ -919,26 +935,27 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: Id::new(5).expect("non zero"),
+            owner_id: Id::new(5),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-us".to_owned(),
+            premium_progress_bar_enabled: false,
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
             presences: Vec::new(),
             roles: Vec::new(),
-            rules_channel_id: Some(Id::new(6).expect("non zero")),
+            rules_channel_id: Some(Id::new(6)),
             splash: Some("splash hash".to_owned()),
             stage_instances: Vec::new(),
             stickers: Vec::new(),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
-            system_channel_id: Some(Id::new(7).expect("non zero")),
+            system_channel_id: Some(Id::new(7)),
             threads: Vec::new(),
             unavailable: false,
             vanity_url_code: Some("twilight".to_owned()),
             verification_level: VerificationLevel::Medium,
             voice_states: Vec::new(),
-            widget_channel_id: Some(Id::new(8).expect("non zero")),
+            widget_channel_id: Some(Id::new(8)),
             widget_enabled: Some(true),
         };
 
@@ -947,7 +964,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 44,
+                    len: 45,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -1031,6 +1048,8 @@ mod tests {
                 Token::Str("2048"),
                 Token::Str("preferred_locale"),
                 Token::Str("en-us"),
+                Token::Str("premium_progress_bar_enabled"),
+                Token::Bool(false),
                 Token::Str("premium_subscription_count"),
                 Token::Some,
                 Token::U64(3),

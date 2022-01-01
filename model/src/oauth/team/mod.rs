@@ -43,10 +43,10 @@ mod tests {
     fn test_team() {
         let value = Team {
             icon: Some("hash".to_owned()),
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             members: Vec::new(),
             name: "team name".into(),
-            owner_user_id: Id::new(2).expect("non zero"),
+            owner_user_id: Id::new(2),
         };
 
         serde_test::assert_tokens(

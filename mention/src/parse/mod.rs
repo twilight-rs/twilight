@@ -22,8 +22,8 @@
 //! };
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! assert_eq!(Id::<EmojiMarker>::new(123).expect("non zero"), Id::parse("<:name:123>")?);
-//! assert_eq!(Id::<RoleMarker>::new(456).expect("non zero"), Id::parse("<@&456>")?);
+//! assert_eq!(Id::<EmojiMarker>::new(123), Id::parse("<:name:123>")?);
+//! assert_eq!(Id::<RoleMarker>::new(456), Id::parse("<@&456>")?);
 //! assert!(Id::<ChannelMarker>::parse("<#notamention>").is_err());
 //! # Ok(()) }
 //! ```
@@ -98,15 +98,15 @@ use twilight_model::id::{
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(
-///     MentionType::Channel(Id::<ChannelMarker>::new(123).expect("non zero")),
+///     MentionType::Channel(Id::<ChannelMarker>::new(123)),
 ///     MentionType::parse("<#123>")?,
 /// );
 /// assert_eq!(
-///     MentionType::Role(Id::<RoleMarker>::new(123).expect("non zero")),
+///     MentionType::Role(Id::<RoleMarker>::new(123)),
 ///     MentionType::parse("<@&123>")?,
 /// );
 /// assert_eq!(
-///     MentionType::User(Id::<UserMarker>::new(123).expect("non zero")),
+///     MentionType::User(Id::<UserMarker>::new(123)),
 ///     MentionType::parse("<@!123>")?,
 /// );
 ///

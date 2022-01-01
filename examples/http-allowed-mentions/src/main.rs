@@ -17,8 +17,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .default_allowed_mentions(AllowedMentions::default())
         .build();
 
-    let channel_id = Id::new(381_926_291_785_383_946).expect("non zero");
-    let user_id = Id::new(77_469_400_222_932_992).expect("non zero");
+    let channel_id = Id::new(381_926_291_785_383_946);
+    let user_id = Id::new(77_469_400_222_932_992);
 
     // Since we wish to warn a user that they attempted to ping @everyone, we
     // allow the user ID to be pinged with allowed mentions.

@@ -202,7 +202,7 @@ mod tests {
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_string());
-        let channel_id = Id::new(123).expect("non zero");
+        let channel_id = Id::new(123);
 
         let actual = UpdateThread::new(&client, channel_id)
             .rate_limit_per_user(60)?

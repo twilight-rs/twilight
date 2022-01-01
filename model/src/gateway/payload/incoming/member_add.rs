@@ -33,7 +33,7 @@ mod tests {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new(1),
             joined_at,
             mute: false,
             nick: None,
@@ -41,7 +41,7 @@ mod tests {
             premium_since: None,
             roles: vec![],
             user: User {
-                id: Id::new(2).expect("non zero"),
+                id: Id::new(2),
                 accent_color: None,
                 avatar: None,
                 banner: None,

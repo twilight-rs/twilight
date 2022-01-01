@@ -63,7 +63,7 @@ struct UpdateWebhookMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
-/// client.update_webhook_message(Id::new(1).expect("non zero"), "token here", Id::new(2).expect("non zero"))
+/// client.update_webhook_message(Id::new(1), "token here", Id::new(2))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(Some(&AllowedMentions::default()))
@@ -220,8 +220,8 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let webhook_id = Id::new(1).expect("non zero");
-    /// let message_id = Id::new(2).expect("non zero");
+    /// let webhook_id = Id::new(1);
+    /// let message_id = Id::new(2);
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
@@ -391,16 +391,10 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-
-        let builder = UpdateWebhookMessage::new(
-            &client,
-            Id::new(1).expect("non zero"),
-            "token",
-            Id::new(2).expect("non zero"),
-        )
-        .content(Some("test"))
-        .expect("'test' content couldn't be set")
-        .thread_id(Id::new(3).expect("non zero"));
+        let builder = UpdateWebhookMessage::new(&client, Id::new(1), "token", Id::new(2))
+            .content(Some("test"))
+            .expect("'test' content couldn't be set")
+            .thread_id(Id::new(3));
 
         let actual = builder
             .try_into_request()

@@ -36,8 +36,8 @@ mod tests {
         let last_pin_timestamp = Timestamp::from_str("2021-08-10T12:34:00+00:00")?;
 
         let value = PrivateChannel {
-            id: Id::new(1).expect("non zero"),
-            last_message_id: Some(Id::new(2).expect("non zero")),
+            id: Id::new(1),
+            last_message_id: Some(Id::new(2)),
             last_pin_timestamp: Some(last_pin_timestamp),
             kind: ChannelType::Private,
             recipients: Vec::new(),
