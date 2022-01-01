@@ -214,6 +214,7 @@ mod tests {
         gateway::presence::{ClientStatus, Presence, Status, UserOrId},
         guild::Member,
         id::Id,
+        test::image_hash,
         user::{User, UserFlags},
     };
     use std::str::FromStr;
@@ -237,7 +238,7 @@ mod tests {
                 "pending": true,
                 "roles": ["6"],
                 "user": {
-                    "avatar": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "avatar": image_hash::AVATAR_INPUT,
                     "discriminator": "0001",
                     "id": "5",
                     "public_flags": 131_072,
@@ -252,7 +253,7 @@ mod tests {
                 "nick": "chunk",
                 "roles": ["6"],
                 "user": {
-                    "avatar": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "avatar": image_hash::AVATAR_INPUT,
                     "discriminator": "0001",
                     "id": "6",
                     "username": "test",
@@ -266,7 +267,7 @@ mod tests {
                 "nick": "chunk",
                 "roles": ["6"],
                 "user": {
-                    "avatar": "cccccccccccccccccccccccccccccccc",
+                    "avatar": image_hash::AVATAR_INPUT,
                     "bot": true,
                     "discriminator": "0001",
                     "id": "3",
@@ -284,7 +285,7 @@ mod tests {
                     "7",
                 ],
                 "user": {
-                    "avatar": "dddddddddddddddddddddddddddddddd",
+                    "avatar": image_hash::AVATAR_INPUT,
                     "bot": true,
                     "discriminator": "0001",
                     "id": "2",
@@ -343,7 +344,7 @@ mod tests {
                     user: User {
                         id: Id::new(2),
                         accent_color: None,
-                        avatar: Some("dddddddddddddddddddddddddddddddd".to_owned()),
+                        avatar: Some(image_hash::AVATAR),
                         banner: None,
                         bot: true,
                         discriminator: 1,
@@ -372,7 +373,7 @@ mod tests {
                     user: User {
                         id: Id::new(3),
                         accent_color: None,
-                        avatar: Some("cccccccccccccccccccccccccccccccc".to_owned()),
+                        avatar: Some(image_hash::AVATAR),
                         banner: None,
                         bot: true,
                         discriminator: 1,
@@ -401,7 +402,7 @@ mod tests {
                     user: User {
                         id: Id::new(5),
                         accent_color: None,
-                        avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                        avatar: Some(image_hash::AVATAR),
                         banner: None,
                         bot: false,
                         discriminator: 1,
@@ -430,7 +431,7 @@ mod tests {
                     user: User {
                         id: Id::new(6),
                         accent_color: None,
-                        avatar: Some("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".to_owned()),
+                        avatar: Some(image_hash::AVATAR),
                         banner: None,
                         bot: false,
                         discriminator: 1,

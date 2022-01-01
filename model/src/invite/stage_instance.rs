@@ -2,6 +2,7 @@ use crate::{
     datetime::Timestamp,
     id::{marker::RoleMarker, Id},
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -23,7 +24,7 @@ pub struct InviteStageInstance {
 pub struct InviteStageInstanceMember {
     /// Guild specific avatar hash.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// When the member joined the guild.
     pub joined_at: Timestamp,
     /// Member's nickname, if there is one.

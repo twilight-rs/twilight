@@ -11,6 +11,7 @@ use twilight_model::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
+    util::image_hash::ImageHash,
 };
 
 /// Represents a cached [`Guild`].
@@ -21,13 +22,13 @@ pub struct CachedGuild {
     pub(crate) afk_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) afk_timeout: u64,
     pub(crate) application_id: Option<Id<ApplicationMarker>>,
-    pub(crate) banner: Option<String>,
+    pub(crate) banner: Option<ImageHash>,
     pub(crate) default_message_notifications: DefaultMessageNotificationLevel,
     pub(crate) description: Option<String>,
-    pub(crate) discovery_splash: Option<String>,
+    pub(crate) discovery_splash: Option<ImageHash>,
     pub(crate) explicit_content_filter: ExplicitContentFilter,
     pub(crate) features: Vec<String>,
-    pub(crate) icon: Option<String>,
+    pub(crate) icon: Option<ImageHash>,
     pub(crate) id: Id<GuildMarker>,
     pub(crate) joined_at: Option<Timestamp>,
     pub(crate) large: bool,
@@ -45,7 +46,7 @@ pub struct CachedGuild {
     pub(crate) premium_subscription_count: Option<u64>,
     pub(crate) premium_tier: PremiumTier,
     pub(crate) rules_channel_id: Option<Id<ChannelMarker>>,
-    pub(crate) splash: Option<String>,
+    pub(crate) splash: Option<ImageHash>,
     pub(crate) system_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) system_channel_flags: SystemChannelFlags,
     pub(crate) unavailable: bool,
@@ -76,8 +77,8 @@ impl CachedGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub fn banner(&self) -> Option<&str> {
-        self.banner.as_deref()
+    pub const fn banner(&self) -> Option<&ImageHash> {
+        self.banner.as_ref()
     }
 
     /// Default message notification level.
@@ -95,8 +96,8 @@ impl CachedGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub fn discovery_splash(&self) -> Option<&str> {
-        self.discovery_splash.as_deref()
+    pub const fn discovery_splash(&self) -> Option<&ImageHash> {
+        self.discovery_splash.as_ref()
     }
 
     /// Explicit content filter level.
@@ -118,8 +119,8 @@ impl CachedGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub fn icon(&self) -> Option<&str> {
-        self.icon.as_deref()
+    pub const fn icon(&self) -> Option<&ImageHash> {
+        self.icon.as_ref()
     }
 
     /// ID of the guild.
@@ -214,8 +215,8 @@ impl CachedGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub fn splash(&self) -> Option<&str> {
-        self.splash.as_deref()
+    pub const fn splash(&self) -> Option<&ImageHash> {
+        self.splash.as_ref()
     }
 
     /// ID of the channel where notices are posted.
