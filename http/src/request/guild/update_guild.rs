@@ -54,6 +54,8 @@ struct UpdateGuildFields<'a> {
     public_updates_channel_id: Option<NullableField<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     preferred_locale: Option<NullableField<&'a str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    premium_progress_bar_enabled: Option<bool>,
 }
 
 /// Update a guild.
@@ -90,6 +92,7 @@ impl<'a> UpdateGuild<'a> {
                 rules_channel_id: None,
                 public_updates_channel_id: None,
                 preferred_locale: None,
+                premium_progress_bar_enabled: None,
             },
             guild_id,
             http,
@@ -270,6 +273,16 @@ impl<'a> UpdateGuild<'a> {
         verification_level: Option<VerificationLevel>,
     ) -> Self {
         self.fields.verification_level = Some(NullableField(verification_level));
+
+        self
+    }
+
+    /// Set whether the premium progress bar is enabled.
+    pub const fn premium_progress_bar_enabled(
+        mut self,
+        premium_progress_bar_enabled: bool,
+    ) -> Self {
+        self.fields.premium_progress_bar_enabled = Some(premium_progress_bar_enabled);
 
         self
     }

@@ -98,6 +98,8 @@ pub struct Guild {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     pub preferred_locale: String,
+    /// Whether the premium progress bar is enabled in the guild.
+    pub premium_progress_bar_enabled: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
     #[serde(default)]
@@ -162,6 +164,7 @@ impl<'de> Deserialize<'de> for Guild {
             Owner,
             Permissions,
             PreferredLocale,
+            PremiumProgressBarEnabled,
             PremiumSubscriptionCount,
             PremiumTier,
             Presences,
@@ -221,6 +224,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut owner_id = None;
                 let mut permissions = None::<Option<_>>;
                 let mut preferred_locale = None;
+                let mut premium_progress_bar_enabled = None;
                 let mut premium_subscription_count = None::<Option<_>>;
                 let mut premium_tier = None;
                 let mut presences = None;
@@ -484,6 +488,15 @@ impl<'de> Deserialize<'de> for Guild {
 
                             preferred_locale = Some(map.next_value()?);
                         }
+                        Field::PremiumProgressBarEnabled => {
+                            if premium_progress_bar_enabled.is_some() {
+                                return Err(DeError::duplicate_field(
+                                    "premium_progress_bar_enabled",
+                                ));
+                            }
+
+                            premium_progress_bar_enabled = Some(map.next_value()?);
+                        }
                         Field::PremiumSubscriptionCount => {
                             if premium_subscription_count.is_some() {
                                 return Err(DeError::duplicate_field("premium_subscription_count"));
@@ -624,6 +637,8 @@ impl<'de> Deserialize<'de> for Guild {
                 let roles = roles.ok_or_else(|| DeError::missing_field("roles"))?;
                 let system_channel_flags = system_channel_flags
                     .ok_or_else(|| DeError::missing_field("system_channel_flags"))?;
+                let premium_progress_bar_enabled = premium_progress_bar_enabled
+                    .ok_or_else(|| DeError::missing_field("premium_progress_bar_enabled"))?;
                 let verification_level = verification_level
                     .ok_or_else(|| DeError::missing_field("verification_level"))?;
 
@@ -692,12 +707,13 @@ impl<'de> Deserialize<'de> for Guild {
                     ?owner,
                     ?permissions,
                     ?preferred_locale,
-                    ?premium_subscription_count,
+                    ?premium_progress_bar_enabled,
                 );
 
                 // Split in two due to generic impl only going up to 32.
                 #[cfg(feature = "tracing")]
                 tracing::trace!(
+                    ?premium_subscription_count,
                     ?premium_tier,
                     ?presences,
                     ?rules_channel_id,
@@ -800,6 +816,7 @@ impl<'de> Deserialize<'de> for Guild {
                     owner,
                     permissions,
                     preferred_locale,
+                    premium_progress_bar_enabled,
                     premium_subscription_count,
                     premium_tier,
                     presences,
@@ -851,6 +868,7 @@ impl<'de> Deserialize<'de> for Guild {
             "owner_id",
             "permissions",
             "preferred_locale",
+            "premium_progress_bar_enabled",
             "premium_subscription_count",
             "premium_tier",
             "presences",
@@ -921,6 +939,7 @@ mod tests {
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-us".to_owned(),
+            premium_progress_bar_enabled: false,
             premium_subscription_count: Some(3),
             premium_tier: PremiumTier::Tier1,
             presences: Vec::new(),
@@ -945,7 +964,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 44,
+                    len: 45,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -1029,6 +1048,8 @@ mod tests {
                 Token::Str("2048"),
                 Token::Str("preferred_locale"),
                 Token::Str("en-us"),
+                Token::Str("premium_progress_bar_enabled"),
+                Token::Bool(false),
                 Token::Str("premium_subscription_count"),
                 Token::Some,
                 Token::U64(3),
