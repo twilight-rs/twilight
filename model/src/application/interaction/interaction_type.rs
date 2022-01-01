@@ -1,6 +1,4 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Type of interaction.
@@ -66,7 +64,7 @@ mod tests {
     use super::{InteractionType, UnknownInteractionTypeError};
     use serde::{Deserialize, Serialize};
     use static_assertions::{assert_impl_all, const_assert_eq};
-    use std::{convert::TryFrom, fmt::Debug, hash::Hash};
+    use std::{fmt::Debug, hash::Hash};
 
     assert_impl_all!(
         InteractionType: Clone,

@@ -1,5 +1,5 @@
 use flate2::{Decompress, DecompressError, FlushDecompress};
-use std::{convert::TryInto, mem, time::Instant};
+use std::{mem, time::Instant};
 
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;

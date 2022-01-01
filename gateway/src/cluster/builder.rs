@@ -200,10 +200,7 @@ impl ClusterBuilder {
     ///
     /// ```no_run
     /// use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
-    /// use std::{
-    ///     convert::TryFrom,
-    ///     env,
-    /// };
+    /// use std::env;
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;

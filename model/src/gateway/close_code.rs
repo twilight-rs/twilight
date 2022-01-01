@@ -1,5 +1,4 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::convert::TryFrom;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -97,7 +96,6 @@ impl TryFrom<u16> for CloseCode {
 mod tests {
     use super::CloseCode;
     use serde_test::Token;
-    use std::convert::TryFrom;
 
     #[test]
     fn test_variants() {

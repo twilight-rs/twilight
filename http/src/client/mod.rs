@@ -77,7 +77,7 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::{AsRef, TryFrom},
+    convert::AsRef,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,

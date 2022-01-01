@@ -11,7 +11,7 @@ use std::{
     collections::{hash_map::Values, HashMap},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    iter::{FromIterator, FusedIterator},
+    iter::FusedIterator,
 };
 use twilight_http::Client as HttpClient;
 
@@ -406,10 +406,7 @@ impl Cluster {
     ///
     /// ```no_run
     /// use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
-    /// use std::{
-    ///     convert::TryFrom,
-    ///     env,
-    /// };
+    /// use std::env;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {

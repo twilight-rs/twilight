@@ -1,7 +1,6 @@
 //! Schemes for instantiating a cluster of shards.
 
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     iter::StepBy,
@@ -207,7 +206,6 @@ pub enum ShardScheme {
     ///
     /// ```
     /// use twilight_gateway::cluster::ShardScheme;
-    /// use std::convert::TryFrom;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let range = ShardScheme::try_from((0..24, 50))?;
@@ -331,7 +329,6 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 ///
 /// ```
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// use std::convert::TryFrom;
 /// use twilight_gateway::cluster::ShardScheme;
 ///
 /// let scheme = ShardScheme::try_from((7u64, 16, 320))?;
@@ -373,7 +370,7 @@ impl TryFrom<(u64, u64, u64)> for ShardScheme {
 mod tests {
     use super::{ShardScheme, ShardSchemeIter, ShardSchemeRangeError, ShardSchemeRangeErrorType};
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash};
+    use std::{error::Error, fmt::Debug, hash::Hash};
 
     assert_impl_all!(ShardSchemeIter: Clone, Debug, Send, Sync);
     assert_fields!(ShardSchemeRangeErrorType::IdTooLarge: end, start, total);

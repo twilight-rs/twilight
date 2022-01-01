@@ -5,7 +5,6 @@ use super::{
 use leaky_bucket_lite::LeakyBucket;
 use serde::ser::Serialize;
 use std::{
-    convert::{TryFrom, TryInto},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{

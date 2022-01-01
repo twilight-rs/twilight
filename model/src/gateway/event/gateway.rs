@@ -10,7 +10,7 @@ use serde::{
     Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
-use std::{convert::TryFrom, str::FromStr};
+use std::str::FromStr;
 
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
