@@ -333,6 +333,7 @@ mod test {
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
         id::Id,
+        test::image_hash,
         user::User,
     };
     use serde_test::Token;
@@ -376,7 +377,7 @@ mod test {
                         Id::new(600),
                         User {
                             accent_color: None,
-                            avatar: Some("avatar string".into()),
+                            avatar: Some(image_hash::AVATAR),
                             banner: None,
                             bot: false,
                             discriminator: 1111,
@@ -410,7 +411,7 @@ mod test {
                 roles: Vec::new(),
                 user: Some(User {
                     accent_color: None,
-                    avatar: Some("avatar string".into()),
+                    avatar: Some(image_hash::AVATAR),
                     banner: None,
                     bot: false,
                     discriminator: 1111,
@@ -510,7 +511,7 @@ mod test {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar string"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -568,7 +569,7 @@ mod test {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar string"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),

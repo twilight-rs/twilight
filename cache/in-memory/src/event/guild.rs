@@ -182,11 +182,11 @@ impl UpdateCache for GuildUpdate {
         if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
-            guild.banner = self.banner.clone();
+            guild.banner = self.banner;
             guild.default_message_notifications = self.default_message_notifications;
             guild.description = self.description.clone();
             guild.features = self.features.clone();
-            guild.icon = self.icon.clone();
+            guild.icon = self.icon;
             guild.max_members = self.max_members;
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
             guild.mfa_level = self.mfa_level;
@@ -200,7 +200,7 @@ impl UpdateCache for GuildUpdate {
             guild
                 .premium_subscription_count
                 .replace(self.premium_subscription_count.unwrap_or_default());
-            guild.splash = self.splash.clone();
+            guild.splash = self.splash;
             guild.system_channel_id = self.system_channel_id;
             guild.verification_level = self.verification_level;
             guild.vanity_url_code = self.vanity_url_code.clone();
