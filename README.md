@@ -203,7 +203,7 @@ When using the `tracing` crate you won't, by default, see logs from any
 libraries that use the `log` crate. You can add that back by using the
 [`tracing-log`] crate and initializing it like this:
 
-```rust
+```rust,ignore
 tracing_log::LogTracer::init()?;
 ```
 
