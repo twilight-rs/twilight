@@ -407,7 +407,7 @@ impl ShardProcessor {
 
             if let Err(source) = self.process().await {
                 #[cfg(feature = "tracing")]
-                tracing::warn!(
+                tracing::debug!(
                     shard_id = self.config.shard()[0],
                     shard_total = self.config.shard()[1],
                     "processing incoming event failed: {:?}",
