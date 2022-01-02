@@ -5,7 +5,6 @@ use super::{
 use serde::{Deserialize, Serialize};
 use std::{
     collections::VecDeque,
-    convert::TryInto,
     sync::{
         atomic::{AtomicU32, AtomicU64, Ordering},
         Arc, Mutex,

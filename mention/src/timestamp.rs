@@ -31,7 +31,6 @@
 
 use std::{
     cmp::Ordering,
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -283,7 +282,7 @@ mod tests {
         Timestamp, TimestampStyle, TimestampStyleConversionError, TimestampStyleConversionErrorType,
     };
     use static_assertions::assert_impl_all;
-    use std::{cmp::Ordering, convert::TryFrom, error::Error, fmt::Debug, hash::Hash};
+    use std::{cmp::Ordering, error::Error, fmt::Debug, hash::Hash};
 
     assert_impl_all!(TimestampStyleConversionErrorType: Debug, Send, Sync);
     assert_impl_all!(TimestampStyleConversionError: Debug, Error, Send, Sync);

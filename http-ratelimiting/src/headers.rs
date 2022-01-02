@@ -6,7 +6,6 @@
 //! [`Ratelimiter`]: super::Ratelimiter
 
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     str::{self, FromStr, Utf8Error},

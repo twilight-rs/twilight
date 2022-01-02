@@ -8,7 +8,6 @@
 
 use http::Method as HttpMethod;
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
@@ -447,7 +446,7 @@ mod tests {
     use crate::request::Method;
     use http::Method as HttpMethod;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash, str::FromStr};
+    use std::{error::Error, fmt::Debug, hash::Hash, str::FromStr};
 
     assert_fields!(PathParseErrorType::MessageIdWithoutMethod: channel_id);
     assert_impl_all!(PathParseErrorType: Debug, Send, Sync);

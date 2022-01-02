@@ -25,10 +25,7 @@ pub(crate) mod discriminator {
         de::{Deserializer, Error as DeError, Visitor},
         ser::Serializer,
     };
-    use std::{
-        convert::TryInto,
-        fmt::{Formatter, Result as FmtResult},
-    };
+    use std::fmt::{Formatter, Result as FmtResult};
 
     struct DiscriminatorVisitor;
 

@@ -1,6 +1,5 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -64,7 +63,6 @@ impl Error for StickerFormatTypeConversionError {}
 mod tests {
     use super::StickerFormatType;
     use serde_test::Token;
-    use std::convert::TryFrom;
 
     #[test]
     fn test_variants() {
