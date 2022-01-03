@@ -24,7 +24,7 @@ pub struct VoiceState {
     /// Whether this user is streaming via "Go Live".
     #[serde(default)]
     pub self_stream: bool,
-    /// Whether this user's camera is enabled
+    /// Whether this user's camera is enabled.
     pub self_video: bool,
     pub session_id: String,
     pub suppress: bool,
