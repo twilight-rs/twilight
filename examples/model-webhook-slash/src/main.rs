@@ -145,7 +145,7 @@ async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
             flags: None,
             tts: None,
             content: Some(format!("```rust\n{:?}\n```", i)),
-            embeds: Default::default(),
+            embeds: None,
         },
     ))
 }
@@ -159,7 +159,7 @@ async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
             flags: None,
             tts: None,
             content: Some("Vroom vroom".to_owned()),
-            embeds: Default::default(),
+            embeds: None,
         },
     ))
 }
