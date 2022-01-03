@@ -38,7 +38,7 @@ impl<'a> CreateGuildMessageCommand<'a> {
         guild_id: Id<GuildMarker>,
         name: &'a str,
     ) -> Result<Self, CommandValidationError> {
-        validate_name(name).map_err(CommandValidationError::name_invalid)?;
+        validate_name(name)?;
 
         Ok(Self {
             application_id,

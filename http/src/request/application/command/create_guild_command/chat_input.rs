@@ -45,7 +45,7 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, CommandValidationError> {
-        validate_name(name).map_err(CommandValidationError::name_invalid)?;
+        validate_name(name)?;
         validate_description(&description)?;
 
         Ok(Self {
