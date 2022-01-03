@@ -50,12 +50,13 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`NameInvalid`] if the command name is invalid.
+    /// Returns an error of type [`NameLengthInvalid`] or [`NameCharacterInvalid`] if the command name is invalid.
     ///
     /// Returns an error of type [`DescriptionInvalid`] if the
     /// command description is not between 1 and 100 characters.
     ///
-    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
+    /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
+    /// [`NameCharacterInvalid`]: twilight_validate::command::CommandValidationErrorType::NameCharacterInvalid
     /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn chat_input(
@@ -73,10 +74,10 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`NameInvalid`] if the command name is
+    /// Returns an error of type [`NameLengthInvalid`] if the command name is
     /// not between 1 and 32 characters.
     ///
-    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
+    /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn message(self) -> Result<CreateGlobalMessageCommand<'a>, CommandValidationError> {
         CreateGlobalMessageCommand::new(self.http, self.application_id, self.name)
@@ -90,10 +91,10 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`NameInvalid`] if the command name is
+    /// Returns an error of type [`NameLengthInvalid`] if the command name is
     /// not between 1 and 32 characters.
     ///
-    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
+    /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn user(self) -> Result<CreateGlobalUserCommand<'a>, CommandValidationError> {
         CreateGlobalUserCommand::new(self.http, self.application_id, self.name)

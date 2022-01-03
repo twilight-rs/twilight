@@ -210,10 +210,12 @@ pub enum CommandValidationErrorType {
 /// Returns an error of type [`DescriptionInvalid`] if the description is
 /// invalid.
 ///
-/// Returns an error of type [`NameInvalid`] if the name is invalid.
+/// Returns an error of type [`NameLengthInvalid`] or [`NameCharacterInvalid`]
+/// if the name is invalid.
 ///
 /// [`DescriptionInvalid`]: CommandValidationErrorType::DescriptionInvalid
-/// [`NameInvalid`]: CommandValidationErrorType::NameInvalid
+/// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
+/// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 pub fn command(value: &Command) -> Result<(), CommandValidationError> {
     let Command {
         description,
@@ -263,12 +265,12 @@ pub fn description(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 ///
 /// # Errors
 ///
-/// Returns an error of type [`NameInvalid`] if the name is invalid.
+/// Returns an error of type [`NameLengthInvalid`] if the name is invalid.
 ///
 /// [`User`]: CommandType::User
 /// [`Message`]: CommandType::Message
 /// [`ChatInput`]: CommandType::ChatInput
-/// [`NameInvalid`]: CommandValidationErrorType::NameInvalid
+/// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let len = value.as_ref().chars().count();
 
@@ -291,18 +293,15 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
 ///
 /// # Errors
 ///
-/// Returns an error of type [`LengthInvalid`] if the length is invalid.
+/// Returns an error of type [`NameLengthInvalid`] if the length is invalid.
 ///
-/// Returns an error of type [`CharacterNotAlphanumeric`] if the name contains
-/// a non-alphanumeric character.
-///
-/// Returns an error of type [`CharacterUppercase`] if the name contains an
-/// uppercase character for which a lowercase variant exists.
+/// Returns an error of type [`NameCharacterInvalid`] if the name contains
+/// a non-alphanumeric character or an uppercase character for which a
+/// lowercase variant exists.
 ///
 /// [`ChatInput`]: CommandType::ChatInput
-/// [`LengthInvalid`]: NameValidationErrorType::LengthInvalid
-/// [`CharacterNotAlphanumeric`]: NameValidationErrorType::CharacterNotAlphanumeric
-/// [`CharacterUppercase`]: NameValidationErrorType::CharacterUppercase
+/// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
+/// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 pub fn chat_input_name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let len = value.as_ref().chars().count();
 
@@ -338,10 +337,12 @@ pub fn chat_input_name(value: impl AsRef<str>) -> Result<(), CommandValidationEr
 /// Returns an error of type [`OptionDescriptionInvalid`] if the description is
 /// invalid.
 ///
-/// Returns an error of type [`OptionNameInvalid`] if the name is invalid.
+/// Returns an error of type [`OptionNameLengthInvalid`] or [`OptionNameCharacterInvalid`]
+/// if the name is invalid.
 ///
 /// [`OptionDescriptionInvalid`]: CommandValidationErrorType::OptionDescriptionInvalid
-/// [`OptionNameInvalid`]: CommandValidationErrorType::OptionNameInvalid
+/// [`OptionNameLengthInvalid`]: CommandValidationErrorType::OptionNameLengthInvalid
+/// [`OptionNameCharacterInvalid`]: CommandValidationErrorType::OptionNameCharacterInvalid
 pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
     let (description, name) = match option {
         CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => return Ok(()),
