@@ -1,5 +1,9 @@
 use super::super::ShardStream;
-use futures_util::{sink::SinkExt, stream::StreamExt};
+use futures_util::{
+    future::{self, Either},
+    sink::SinkExt,
+    stream::StreamExt,
+};
 use std::time::Duration;
 use tokio::{
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
@@ -38,10 +42,17 @@ impl SocketForwarder {
         tracing::debug!("starting driving loop");
 
         loop {
-            let timeout = sleep(Self::TIMEOUT);
+            tokio::pin! {
+                let timeout = sleep(Self::TIMEOUT);
+                let rx = self.rx.recv();
+                let tx = self.stream.next();
+            }
 
-            tokio::select! {
-                maybe_msg = self.rx.recv() => {
+            let select_message = future::select(rx, tx);
+
+            match future::select(select_message, timeout).await {
+                // `rx` future finished first.
+                Either::Left((Either::Left((maybe_msg, _)), _)) => {
                     if let Some(msg) = maybe_msg {
                         #[cfg(feature = "tracing")]
                         tracing::trace!("sending message: {}", msg);
@@ -61,7 +72,8 @@ impl SocketForwarder {
                         break;
                     }
                 }
-                try_msg = self.stream.next() => match try_msg {
+                // `tx` future finished first.
+                Either::Left((Either::Right((try_msg, _)), _)) => match try_msg {
                     Some(Ok(msg)) => {
                         if self.tx.send(msg).is_err() {
                             break;
@@ -80,7 +92,8 @@ impl SocketForwarder {
                         break;
                     }
                 },
-                _ = timeout => {
+                // Timeout future finished first.
+                Either::Right(_) => {
                     #[cfg(feature = "tracing")]
                     tracing::warn!("socket timed out");
 
