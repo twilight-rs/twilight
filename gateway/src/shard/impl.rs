@@ -533,7 +533,7 @@ impl Shard {
                     }
                 })?;
 
-        let handle = tokio::spawn(async move {
+        let handle = tokio::spawn(async {
             processor.run().await;
 
             #[cfg(feature = "tracing")]
