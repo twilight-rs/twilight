@@ -38,6 +38,7 @@ pub struct CachedGuild {
     pub(crate) owner: Option<bool>,
     pub(crate) permissions: Option<Permissions>,
     pub(crate) preferred_locale: String,
+    pub(crate) premium_progress_bar_enabled: bool,
     pub(crate) premium_subscription_count: Option<u64>,
     pub(crate) premium_tier: PremiumTier,
     pub(crate) rules_channel_id: Option<ChannelId>,
@@ -183,6 +184,11 @@ impl CachedGuild {
     /// Used in server discovery and notices from Discord. Defaults to "en-US".
     pub fn preferred_locale(&self) -> &str {
         &self.preferred_locale
+    }
+
+    /// Whether the premium progress bar is enabled.
+    pub const fn premium_progress_bar_enabled(&self) -> bool {
+        self.premium_progress_bar_enabled
     }
 
     /// Number of boosts this guild currently has.

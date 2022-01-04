@@ -587,6 +587,7 @@ mod tests {
             owner_id: owner_id(),
             permissions: None,
             preferred_locale: "en-GB".to_owned(),
+            premium_progress_bar_enabled: false,
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::None,
             presences: Vec::new(),
@@ -697,6 +698,7 @@ mod tests {
         cache.update(&MemberAdd(test::member(user_id(), guild_id())));
         cache.update(&MemberUpdate {
             avatar: None,
+            communication_disabled_until: None,
             guild_id: guild_id(),
             deaf: None,
             joined_at,
