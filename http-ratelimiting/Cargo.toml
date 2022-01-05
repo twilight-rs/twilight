@@ -17,7 +17,7 @@ version = "0.8.2"
 [dependencies]
 futures-util = { version = "0.3", default-features = false }
 http = { version = "0.2", default-features = false }
-tokio = { version = "1", default-features = false, features = ["sync", "time"] }
+tokio = { version = "1", default-features = false, features = ["rt", "sync", "time"] }
 
 # optional
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
