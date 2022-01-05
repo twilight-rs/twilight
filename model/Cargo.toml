@@ -22,7 +22,7 @@ serde_repr = { default-features = false, version = "0.1.5" }
 time = { default-features = false, features = ["parsing", "std"], version = "0.3" }
 
 # Optional dependencies.
-tracing = { default-features = false, optional = true, version = "0.1" }
+tracing = { default-features = false, optional = true, version = "0.1.16" }
 
 [features]
 default = ["tracing"]
