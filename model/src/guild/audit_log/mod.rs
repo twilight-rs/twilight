@@ -61,7 +61,13 @@ mod tests {
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
 
-    assert_fields!(AuditLog: entries, integrations, users, webhooks);
+    assert_fields!(
+        AuditLog: entries,
+        guild_scheduled_events,
+        integrations,
+        users,
+        webhooks
+    );
     assert_impl_all!(
         AuditLog: Clone,
         Debug,
@@ -95,7 +101,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "AuditLog",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("audit_log_entries"),
                 Token::Seq { len: Some(0) },
