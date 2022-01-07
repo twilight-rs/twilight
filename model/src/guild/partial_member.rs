@@ -3,6 +3,7 @@ use crate::{
     guild::Permissions,
     id::{marker::RoleMarker, Id},
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +11,8 @@ use serde::{Deserialize, Serialize};
 pub struct PartialMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -43,13 +45,14 @@ mod tests {
 
         let value = PartialMember {
             avatar: None,
+            communication_disabled_until: None,
             deaf: false,
             joined_at,
             mute: true,
             nick: Some("a nickname".to_owned()),
             permissions: None,
             premium_since: None,
-            roles: vec![Id::new(1).expect("non zero")],
+            roles: vec![Id::new(1)],
             user: None,
         };
 
@@ -58,8 +61,10 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),

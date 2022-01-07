@@ -399,6 +399,11 @@ pub enum Route<'a> {
     GetCurrentUserApplicationInfo,
     /// Route information to get the current user.
     GetCurrentUser,
+    /// Route information to get the current user as a member object within a guild.
+    GetCurrentUserGuildMember {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get an emoji by ID within a guild.
     GetEmoji {
         /// The ID of the emoji.
@@ -1125,6 +1130,7 @@ impl<'a> Route<'a> {
             | Self::GetCommandPermissions { .. }
             | Self::GetCurrentUserApplicationInfo
             | Self::GetCurrentUser
+            | Self::GetCurrentUserGuildMember { .. }
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetGateway
@@ -1487,6 +1493,7 @@ impl<'a> Route<'a> {
             }
             Self::GetCurrentUserApplicationInfo => Path::OauthApplicationsMe,
             Self::GetCurrentUser | Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
+            Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
             Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
                 Path::GuildsIdEmojisId(*guild_id)
             }

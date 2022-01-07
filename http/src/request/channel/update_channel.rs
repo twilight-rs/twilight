@@ -1,75 +1,18 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request,
-        TryIntoRequest,
-    },
+    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, VideoQualityMode},
     id::{marker::ChannelMarker, Id},
 };
-
-/// Returned when the channel can not be updated as configured.
-#[derive(Debug)]
-pub struct UpdateChannelError {
-    kind: UpdateChannelErrorType,
-}
-
-impl UpdateChannelError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateChannelErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (UpdateChannelErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, None)
-    }
-}
-
-impl Display for UpdateChannelError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateChannelErrorType::NameInvalid => f.write_str("the length of the name is invalid"),
-            UpdateChannelErrorType::RateLimitPerUserInvalid => {
-                f.write_str("the rate limit per user is invalid")
-            }
-            UpdateChannelErrorType::TopicInvalid => f.write_str("the topic is invalid"),
-        }
-    }
-}
-
-impl Error for UpdateChannelError {}
-
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UpdateChannelErrorType {
-    /// The length of the name is either fewer than 1 UTF-16 characters or
-    /// more than 100 UTF-16 characters.
-    NameInvalid,
-    /// The seconds of the rate limit per user is more than 21600.
-    RateLimitPerUserInvalid,
-    /// The length of the topic is more than 1024 UTF-16 characters.
-    TopicInvalid,
-}
+use twilight_validate::channel::{
+    name as validate_name, topic as validate_topic, ChannelValidationError,
+};
 
 // The Discord API doesn't require the `name` and `kind` fields to be present,
 // but it does require them to be non-null.
@@ -146,16 +89,11 @@ impl<'a> UpdateChannel<'a> {
     /// The minimum length is 1 UTF-16 character and the maximum is 100 UTF-16
     /// characters.
     ///
-    /// # Errors
+    /// Returns an error of type [`NameInvalid`] if the name is invalid.
     ///
-    /// Returns an [`UpdateChannelErrorType::NameInvalid`] error type if the name
-    /// length is too short or too long.
-    pub fn name(mut self, name: &'a str) -> Result<Self, UpdateChannelError> {
-        if !validate_inner::channel_name(name) {
-            return Err(UpdateChannelError {
-                kind: UpdateChannelErrorType::NameInvalid,
-            });
-        }
+    /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    pub fn name(mut self, name: &'a str) -> Result<Self, ChannelValidationError> {
+        validate_name(name)?;
 
         self.fields.name = Some(name);
 
@@ -206,18 +144,17 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateChannelErrorType::RateLimitPerUserInvalid`] error
-    /// type if the amount is greater than 21600.
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the name is
+    /// invalid.
     ///
+    /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     pub const fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,
-    ) -> Result<Self, UpdateChannelError> {
-        if rate_limit_per_user > 21600 {
-            return Err(UpdateChannelError {
-                kind: UpdateChannelErrorType::RateLimitPerUserInvalid,
-            });
+    ) -> Result<Self, ChannelValidationError> {
+        if let Err(source) = twilight_validate::channel::rate_limit_per_user(rate_limit_per_user) {
+            return Err(source);
         }
 
         self.fields.rate_limit_per_user = Some(rate_limit_per_user);
@@ -231,16 +168,13 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateChannelErrorType::TopicInvalid`] error type if the topic
-    /// length is too long.
+    /// Returns an error of type [`TopicInvalid`] if the name is
+    /// invalid.
     ///
+    /// [`TopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TopicInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    pub fn topic(mut self, topic: &'a str) -> Result<Self, UpdateChannelError> {
-        if topic.chars().count() > 1024 {
-            return Err(UpdateChannelError {
-                kind: UpdateChannelErrorType::TopicInvalid,
-            });
-        }
+    pub fn topic(mut self, topic: &'a str) -> Result<Self, ChannelValidationError> {
+        validate_topic(topic)?;
 
         self.fields.topic.replace(topic);
 

@@ -1,18 +1,11 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request,
-        TryIntoRequest,
-    },
+    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::{
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, SystemChannelFlags,
@@ -23,52 +16,7 @@ use twilight_model::{
         Id,
     },
 };
-
-/// The error returned when the guild can not be updated as configured.
-#[derive(Debug)]
-pub struct UpdateGuildError {
-    kind: UpdateGuildErrorType,
-}
-
-impl UpdateGuildError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateGuildErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (UpdateGuildErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, None)
-    }
-}
-
-impl Display for UpdateGuildError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateGuildErrorType::NameInvalid => f.write_str("the name's length is invalid"),
-        }
-    }
-}
-
-impl Error for UpdateGuildError {}
-
-/// Type of [`UpdateGuildError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UpdateGuildErrorType {
-    /// The name length is either fewer than 2 UTF-16 characters or more than 100 UTF-16
-    /// characters.
-    NameInvalid,
-}
+use twilight_validate::request::{guild_name as validate_guild_name, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateGuildFields<'a> {
@@ -106,6 +54,8 @@ struct UpdateGuildFields<'a> {
     public_updates_channel_id: Option<NullableField<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     preferred_locale: Option<NullableField<&'a str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    premium_progress_bar_enabled: Option<bool>,
 }
 
 /// Update a guild.
@@ -142,6 +92,7 @@ impl<'a> UpdateGuild<'a> {
                 rules_channel_id: None,
                 public_updates_channel_id: None,
                 preferred_locale: None,
+                premium_progress_bar_enabled: None,
             },
             guild_id,
             http,
@@ -235,14 +186,12 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateGuildErrorType::NameInvalid`] error type if the name
-    /// length is too short or too long.
-    pub fn name(mut self, name: &'a str) -> Result<Self, UpdateGuildError> {
-        if !validate_inner::guild_name(name) {
-            return Err(UpdateGuildError {
-                kind: UpdateGuildErrorType::NameInvalid,
-            });
-        }
+    /// Returns an error of type [`GuildName`] if the name length is too short
+    /// or too long.
+    ///
+    /// [`GuildName`]: twilight_validate::request::ValidationErrorType::GuildName
+    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
+        validate_guild_name(name)?;
 
         self.fields.name.replace(name);
 
@@ -324,6 +273,16 @@ impl<'a> UpdateGuild<'a> {
         verification_level: Option<VerificationLevel>,
     ) -> Self {
         self.fields.verification_level = Some(NullableField(verification_level));
+
+        self
+    }
+
+    /// Set whether the premium progress bar is enabled.
+    pub const fn premium_progress_bar_enabled(
+        mut self,
+        premium_progress_bar_enabled: bool,
+    ) -> Self {
+        self.fields.premium_progress_bar_enabled = Some(premium_progress_bar_enabled);
 
         self
     }

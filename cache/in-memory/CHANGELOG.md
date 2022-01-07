@@ -2,6 +2,36 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.8.3] - 2021-12-27
+
+### Additions
+
+Support guild member timeouts ([#1342] - [@HTG-YT]).
+
+Support iterating over a channel's list of cached messages via
+`InMemoryCache::channel_messages` ([#1362] - [@zeylahellyer]).
+
+[#1362]: https://github.com/twilight-rs/twilight/pull/1362
+[#1342]: https://github.com/twilight-rs/twilight/pull/1342
+
+## [0.8.2] - 2021-12-24
+
+### Changes
+
+Upgrade `dashmap` to 5.0 ([#1336] - [@vilgotf]). `dashmap` 4.0 is still allowed.
+
+### Fixes
+
+Correctly return a `CachedMember`'s avatar instead of nickname ([#1341] -
+[@Ratismal]).
+
+Fix documentation on `InMemoryCache` that implied it could be `clone`d ([#1349]
+- [@zeylahellyer]).
+
+[#1336]: https://github.com/twilight-rs/twilight/pull/1336
+[#1341]: https://github.com/twilight-rs/twilight/pull/1341
+[#1349]: https://github.com/twilight-rs/twilight/pull/1336
+
 ## [0.8.1] - 2021-12-15
 
 ### Fixes
@@ -513,10 +543,12 @@ Initial release.
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@HTG-YT]: https://github.com/HTG-YT
 [@james7132]: https://github.com/james7132
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@Purpzie]: https://github.com/Purpzie
+[@Ratismal]: https://github.com/Ratismal
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
 [@vilgotf]: https://github.com/vilgotf
@@ -536,6 +568,8 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.3
+[0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.0
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.7.2

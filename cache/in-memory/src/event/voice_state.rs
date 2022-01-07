@@ -99,6 +99,7 @@ mod tests {
     use twilight_model::{
         datetime::Timestamp,
         id::{marker::ChannelMarker, Id},
+        util::{image_hash::ImageHashParseError, ImageHash},
     };
 
     #[test]
@@ -112,11 +113,7 @@ mod tests {
         // User 1 joins guild 1's channel 11 (1 channel, 1 guild)
         {
             // Ids for this insert
-            let (guild_id, channel_id, user_id) = (
-                Id::new(1).expect("non zero"),
-                Id::new(11).expect("non zero"),
-                Id::new(1).expect("non zero"),
-            );
+            let (guild_id, channel_id, user_id) = (Id::new(1), Id::new(11), Id::new(1));
             cache.cache_voice_state(test::voice_state(guild_id, Some(channel_id), user_id));
 
             // The new user should show up in the global voice states
@@ -136,11 +133,7 @@ mod tests {
         // User 2 joins guild 2's channel 21 (2 channels, 2 guilds)
         {
             // Ids for this insert
-            let (guild_id, channel_id, user_id) = (
-                Id::new(2).expect("non zero"),
-                Id::new(21).expect("non zero"),
-                Id::new(2).expect("non zero"),
-            );
+            let (guild_id, channel_id, user_id) = (Id::new(2), Id::new(21), Id::new(2));
             cache.cache_voice_state(test::voice_state(guild_id, Some(channel_id), user_id));
 
             // The new voice state should show up in the global voice states
@@ -160,11 +153,7 @@ mod tests {
         // User 3 joins guild 1's channel 12  (3 channels, 2 guilds)
         {
             // Ids for this insert
-            let (guild_id, channel_id, user_id) = (
-                Id::new(1).expect("non zero"),
-                Id::new(12).expect("non zero"),
-                Id::new(3).expect("non zero"),
-            );
+            let (guild_id, channel_id, user_id) = (Id::new(1), Id::new(12), Id::new(3));
             cache.cache_voice_state(test::voice_state(guild_id, Some(channel_id), user_id));
 
             // The new voice state should show up in the global voice states
@@ -185,11 +174,7 @@ mod tests {
         // User 3 moves to guild 1's channel 11 (2 channels, 2 guilds)
         {
             // Ids for this insert
-            let (guild_id, channel_id, user_id) = (
-                Id::new(1).expect("non zero"),
-                Id::new(11).expect("non zero"),
-                Id::new(3).expect("non zero"),
-            );
+            let (guild_id, channel_id, user_id) = (Id::new(1), Id::new(11), Id::new(3));
             cache.cache_voice_state(test::voice_state(guild_id, Some(channel_id), user_id));
 
             // The new voice state should show up in the global voice states
@@ -209,11 +194,7 @@ mod tests {
 
         // User 3 dcs (2 channels, 2 guilds)
         {
-            let (guild_id, channel_id, user_id) = (
-                Id::new(1).expect("non zero"),
-                Id::new(11).expect("non zero"),
-                Id::new(3).expect("non zero"),
-            );
+            let (guild_id, channel_id, user_id) = (Id::new(1), Id::new(11), Id::new(3));
             cache.cache_voice_state(test::voice_state(guild_id, None, user_id));
 
             // Now that the user left, they should not show up in the voice states
@@ -229,11 +210,7 @@ mod tests {
 
         // User 2 dcs (1 channel, 1 guild)
         {
-            let (guild_id, channel_id, user_id) = (
-                Id::new(2).expect("non zero"),
-                Id::new(21).expect("non zero"),
-                Id::new(2).expect("non zero"),
-            );
+            let (guild_id, channel_id, user_id) = (Id::new(2), Id::new(21), Id::new(2));
             cache.cache_voice_state(test::voice_state(guild_id, None, user_id));
 
             // Now that the user left, they should not show up in the voice states
@@ -251,11 +228,8 @@ mod tests {
 
         // User 1 dcs (0 channels, 0 guilds)
         {
-            let (guild_id, _channel_id, user_id) = (
-                Id::new(1).expect("non zero"),
-                Id::<ChannelMarker>::new(11).expect("non zero"),
-                Id::new(1).expect("non zero"),
-            );
+            let (guild_id, _channel_id, user_id) =
+                (Id::new(1), Id::<ChannelMarker>::new(11), Id::new(1));
             cache.cache_voice_state(test::voice_state(guild_id, None, user_id));
 
             // Since the last person has disconnected, the global voice states, guilds, and channels should all be gone
@@ -268,30 +242,14 @@ mod tests {
     #[test]
     fn test_voice_states() {
         let cache = InMemoryCache::new();
-        cache.cache_voice_state(test::voice_state(
-            Id::new(1).expect("non zero"),
-            Some(Id::new(2).expect("non zero")),
-            Id::new(3).expect("non zero"),
-        ));
-        cache.cache_voice_state(test::voice_state(
-            Id::new(1).expect("non zero"),
-            Some(Id::new(2).expect("non zero")),
-            Id::new(4).expect("non zero"),
-        ));
+        cache.cache_voice_state(test::voice_state(Id::new(1), Some(Id::new(2)), Id::new(3)));
+        cache.cache_voice_state(test::voice_state(Id::new(1), Some(Id::new(2)), Id::new(4)));
 
         // Returns both voice states for the channel that exists.
-        assert_eq!(
-            2,
-            cache
-                .voice_channel_states(Id::new(2).expect("non zero"))
-                .unwrap()
-                .count()
-        );
+        assert_eq!(2, cache.voice_channel_states(Id::new(2)).unwrap().count());
 
         // Returns None if the channel does not exist.
-        assert!(cache
-            .voice_channel_states(Id::new(1).expect("non zero"))
-            .is_none());
+        assert!(cache.voice_channel_states(Id::new(1)).is_none());
     }
 
     #[test]
@@ -303,16 +261,17 @@ mod tests {
         cache.update(&VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
-            guild_id: Some(Id::new(1).expect("non zero")),
+            guild_id: Some(Id::new(1)),
             member: None,
             mute: false,
             self_deaf: false,
             self_mute: false,
             self_stream: false,
+            self_video: false,
             session_id: "38fj3jfkh3pfho3prh2".to_string(),
             suppress: false,
             token: None,
-            user_id: Id::new(1).expect("non zero"),
+            user_id: Id::new(1),
             request_to_speak_timestamp: Some(
                 Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
             ),
@@ -320,20 +279,23 @@ mod tests {
     }
 
     #[test]
-    fn test_voice_states_members() {
+    fn test_voice_states_members() -> Result<(), ImageHashParseError> {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         use twilight_model::{guild::member::Member, user::User};
 
         let cache = InMemoryCache::new();
 
+        let avatar = ImageHash::parse(b"169280485ba78d541a9090e7ea35a14e")?;
+
         let mutation = VoiceStateUpdate(VoiceState {
-            channel_id: Some(Id::new(4).expect("non zero")),
+            channel_id: Some(Id::new(4)),
             deaf: false,
-            guild_id: Some(Id::new(2).expect("non zero")),
+            guild_id: Some(Id::new(2)),
             member: Some(Member {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(2).expect("non zero"),
+                guild_id: Id::new(2),
                 joined_at,
                 mute: false,
                 nick: None,
@@ -342,13 +304,13 @@ mod tests {
                 roles: Vec::new(),
                 user: User {
                     accent_color: None,
-                    avatar: Some("".to_owned()),
+                    avatar: Some(avatar),
                     banner: None,
                     bot: false,
                     discriminator: 1,
                     email: None,
                     flags: None,
-                    id: Id::new(3).expect("non zero"),
+                    id: Id::new(3),
                     locale: None,
                     mfa_enabled: None,
                     name: "test".to_owned(),
@@ -362,10 +324,11 @@ mod tests {
             self_deaf: false,
             self_mute: false,
             self_stream: false,
+            self_video: false,
             session_id: "".to_owned(),
             suppress: false,
             token: None,
-            user_id: Id::new(3).expect("non zero"),
+            user_id: Id::new(3),
             request_to_speak_timestamp: Some(
                 Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
             ),
@@ -375,18 +338,14 @@ mod tests {
 
         assert_eq!(cache.members.len(), 1);
         {
-            let entry = cache
-                .user_guilds
-                .get(&Id::new(3).expect("non zero"))
-                .unwrap();
+            let entry = cache.user_guilds.get(&Id::new(3)).unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(
-            cache
-                .member(Id::new(2).expect("non zero"), Id::new(3).expect("non zero"))
-                .unwrap()
-                .user_id,
-            Id::new(3).expect("non zero"),
+            cache.member(Id::new(2), Id::new(3)).unwrap().user_id,
+            Id::new(3),
         );
+
+        Ok(())
     }
 }

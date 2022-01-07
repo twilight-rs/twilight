@@ -145,23 +145,17 @@ mod tests {
     fn test_validation() {
         let value = AllowedMentionsBuilder::new()
             .users()
-            .user_ids(vec![
-                Id::new(100).expect("non zero"),
-                Id::new(200).expect("non zero"),
-            ])
+            .user_ids(vec![Id::new(100), Id::new(200)])
             .roles()
-            .role_ids(vec![Id::new(300).expect("non zero")])
+            .role_ids(vec![Id::new(300)])
             .build();
 
         assert_eq!(
             value,
             AllowedMentions {
                 parse: vec![],
-                users: vec![
-                    Id::new(100).expect("non zero"),
-                    Id::new(200).expect("non zero")
-                ],
-                roles: vec![Id::new(300).expect("non zero")],
+                users: vec![Id::new(100), Id::new(200)],
+                roles: vec![Id::new(300)],
                 replied_user: false,
             },
         );

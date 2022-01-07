@@ -1,10 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{
-        application::{InteractionError, InteractionErrorType},
-        validate_inner, Request, RequestBuilder, TryIntoRequest,
-    },
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
@@ -15,6 +12,9 @@ use twilight_model::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker},
         Id,
     },
+};
+use twilight_validate::command::{
+    guild_permissions as validate_guild_permissions, CommandValidationError,
 };
 
 #[derive(Serialize)]
@@ -38,18 +38,14 @@ pub struct UpdateCommandPermissions<'a> {
 }
 
 impl<'a> UpdateCommandPermissions<'a> {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
         guild_id: Id<GuildMarker>,
         command_id: Id<CommandMarker>,
         permissions: &'a [CommandPermissions],
-    ) -> Result<Self, InteractionError> {
-        if !validate_inner::command_permissions(permissions.len()) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::TooManyCommandPermissions,
-            });
-        }
+    ) -> Result<Self, CommandValidationError> {
+        validate_guild_permissions(permissions.len())?;
 
         Ok(Self {
             application_id,

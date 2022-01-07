@@ -23,7 +23,7 @@ mod tests {
     #[test]
     fn test_guild_delete_available() {
         let expected = GuildDelete {
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             unavailable: true,
         };
 
@@ -62,7 +62,7 @@ mod tests {
     #[test]
     fn test_guild_delete_unavailable() {
         let expected = GuildDelete {
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             unavailable: false,
         };
 
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn test_guild_delete_unavailable_null_default() {
         let expected = GuildDelete {
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             unavailable: false,
         };
 

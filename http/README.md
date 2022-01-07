@@ -46,18 +46,17 @@ To enable `simd-json`, do something like this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-twilight-http = { default-features = false, features = ["rustls", "simd-json"], version = "0.2" }
+twilight-http = { default-features = false, features = ["rustls-native-roots", "simd-json"], version = "0.2" }
 ```
 
 ### TLS
 
-`twilight-http` has features to enable [`hyper`]'s TLS features. These
-features are mutually exclusive. `rustls` is enabled by default.
+`twilight-http` has features to enable HTTPS connectivity with [`hyper`]. These
+features are mutually exclusive. `rustls-native-roots` is enabled by default.
 
 #### `native`
 
-The `native` feature enables [`hyper`]'s `default-tls`
-feature, which is mostly equivalent to using [`native-tls`].
+The `native` feature uses a HTTPS connector provided by [`hyper-tls`].
 
 To enable `native`, do something like this in your `Cargo.toml`:
 
@@ -66,12 +65,21 @@ To enable `native`, do something like this in your `Cargo.toml`:
 twilight-http = { default-features = false, features = ["native"], version = "0.2" }
 ```
 
-#### `rustls`
+#### `rustls-native-roots`
 
-The `rustls` feature enables [`hyper`]'s `rustls` feature, which uses
-[`rustls`] as the TLS backend.
+The `rustls-native-roots` feature uses a HTTPS connector provided by [`hyper-rustls`], which uses
+[`rustls`] as the TLS backend, and enables its `native-tokio` feature, which uses [`rustls-native-certs`]
+for root certificates.
 
 This is enabled by default.
+
+#### `rustls-webpki-roots`
+
+The `rustls-webpki-roots` feature uses a HTTPS connector provided by [`hyper-rustls`], which uses
+[`rustls`] as the TLS backend, and enables its `webpki-tokio` feature, which uses [`webpki-roots`]
+for root certificates.
+
+This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
 ### Tracing
 
@@ -86,13 +94,16 @@ The `trust-dns` enables [`hyper-trust-dns`], which replaces the default
 async DNS resolver on the application level.
 
 [`brotli`]: https://github.com/dropbox/rust-brotli
-[`native-tls`]: https://crates.io/crates/native-tls
 [`hyper`]: https://crates.io/crates/hyper
+[`hyper-rustls`]: https://crates.io/crates/hyper-rustls
+[`hyper-tls`]: https://crates.io/crates/hyper-tls
 [`rustls`]: https://crates.io/crates/rustls
+[`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`tracing`]: https://crates.io/crates/tracing
 [`hyper-trust-dns`]: https://crates.io/crates/hyper-trust-dns
+[`webpki-roots`]: https://crates.io/crates/webpki-roots
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -102,6 +113,6 @@ async DNS resolver on the application level.
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

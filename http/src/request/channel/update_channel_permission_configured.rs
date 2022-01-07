@@ -116,10 +116,10 @@ mod tests {
         let client = Client::new("foo".to_owned());
         let builder = UpdateChannelPermissionConfigured::new(
             &client,
-            Id::new(1).expect("non zero"),
+            Id::new(1),
             Permissions::empty(),
             Permissions::SEND_MESSAGES,
-            PermissionOverwriteType::Member(Id::new(2).expect("non zero")),
+            PermissionOverwriteType::Member(Id::new(2)),
         );
         let actual = builder
             .try_into_request()

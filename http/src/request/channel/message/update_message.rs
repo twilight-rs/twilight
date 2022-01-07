@@ -1,21 +1,11 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        self,
-        validate_inner::{
-            self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
-        },
-        NullableField, Request, TryIntoRequest,
-    },
+    request::{self, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::{
     application::component::Component,
     channel::{
@@ -28,97 +18,10 @@ use twilight_model::{
         Id,
     },
 };
-
-/// The error created when a message can not be updated as configured.
-#[derive(Debug)]
-pub struct UpdateMessageError {
-    kind: UpdateMessageErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl UpdateMessageError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateMessageErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (UpdateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.source)
-    }
-
-    fn embed(source: EmbedValidationError, idx: usize) -> Self {
-        Self {
-            kind: UpdateMessageErrorType::EmbedTooLarge { idx },
-            source: Some(Box::new(source)),
-        }
-    }
-}
-
-impl Display for UpdateMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateMessageErrorType::ComponentCount { count } => {
-                Display::fmt(count, f)?;
-                f.write_str(" components were provided, but only ")?;
-                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
-
-                f.write_str(" root components are allowed")
-            }
-            UpdateMessageErrorType::ComponentInvalid { .. } => {
-                f.write_str("a provided component is invalid")
-            }
-            UpdateMessageErrorType::ContentInvalid { .. } => {
-                f.write_str("the message content is invalid")
-            }
-            UpdateMessageErrorType::EmbedTooLarge { idx, .. } => {
-                f.write_str("the embed at index ")?;
-                Display::fmt(idx, f)?;
-
-                f.write_str("'s contents are too long")
-            }
-        }
-    }
-}
-
-impl Error for UpdateMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`UpdateMessageError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UpdateMessageErrorType {
-    /// Too many message components were provided.
-    ComponentCount {
-        /// Number of components that were provided.
-        count: usize,
-    },
-    /// An invalid message component was provided.
-    ComponentInvalid {
-        /// Additional details about the validation failure type.
-        kind: ComponentValidationErrorType,
-    },
-    /// Returned when the content is over 2000 UTF-16 characters.
-    ContentInvalid,
-    /// Returned when the length of the embed is over 6000 characters.
-    EmbedTooLarge {
-        /// Index of the embed.
-        idx: usize,
-    },
-}
+use twilight_validate::message::{
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateMessageFields<'a> {
@@ -153,7 +56,7 @@ struct UpdateMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// client.update_message(Id::new(1).expect("non zero"), Id::new(2).expect("non zero"))
+/// client.update_message(Id::new(1), Id::new(2))
 ///     .content(Some("test update"))?
 ///     .exec()
 ///     .await?;
@@ -169,7 +72,7 @@ struct UpdateMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("my token".to_owned());
-/// client.update_message(Id::new(1).expect("non zero"), Id::new(2).expect("non zero"))
+/// client.update_message(Id::new(1), Id::new(2))
 ///     .content(None)?
 ///     .exec()
 ///     .await?;
@@ -225,30 +128,15 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateMessageErrorType::ComponentCount`] error type if
-    /// too many components are provided.
-    ///
-    /// Returns an [`UpdateMessageErrorType::ComponentInvalid`] error type if
-    /// one of the provided components is invalid.
+    /// Refer to the errors section of
+    /// [`twilight_validate::component::component`] for a list of errors that
+    /// may be returned as a result of validating each provided component.
     pub fn components(
         mut self,
         components: Option<&'a [Component]>,
-    ) -> Result<Self, UpdateMessageError> {
-        if let Some(components) = components.as_ref() {
-            validate_inner::components(components).map_err(|source| {
-                let (kind, inner_source) = source.into_parts();
-
-                match kind {
-                    ComponentValidationErrorType::ComponentCount { count } => UpdateMessageError {
-                        kind: UpdateMessageErrorType::ComponentCount { count },
-                        source: inner_source,
-                    },
-                    other => UpdateMessageError {
-                        kind: UpdateMessageErrorType::ComponentInvalid { kind: other },
-                        source: inner_source,
-                    },
-                }
-            })?;
+    ) -> Result<Self, MessageValidationError> {
+        if let Some(components) = components {
+            validate_components(components)?;
         }
 
         self.fields.components = Some(NullableField(components));
@@ -267,16 +155,13 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateMessageErrorType::ContentInvalid`] error type if the
-    /// content length is too long.
-    pub fn content(mut self, content: Option<&'a str>) -> Result<Self, UpdateMessageError> {
+    /// Returns an error of type [`ContentInvalid`] if the content length is too
+    /// long.
+    ///
+    /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    pub fn content(mut self, content: Option<&'a str>) -> Result<Self, MessageValidationError> {
         if let Some(content_ref) = content.as_ref() {
-            if !validate_inner::content_limit(content_ref) {
-                return Err(UpdateMessageError {
-                    kind: UpdateMessageErrorType::ContentInvalid,
-                    source: None,
-                });
-            }
+            validate_content(content_ref)?;
         }
 
         self.fields.content = Some(NullableField(content));
@@ -301,13 +186,15 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateMessageErrorType::EmbedTooLarge`] error type if an
-    /// embed is too large.
-    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, UpdateMessageError> {
-        for (idx, embed) in embeds.iter().enumerate() {
-            validate_inner::embed(embed)
-                .map_err(|source| UpdateMessageError::embed(source, idx))?;
-        }
+    /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
+    ///
+    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
+    /// that may occur.
+    ///
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [`embed`]: twilight_validate::embed::embed
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
+        validate_embeds(embeds)?;
 
         self.fields.embeds = Some(embeds);
 

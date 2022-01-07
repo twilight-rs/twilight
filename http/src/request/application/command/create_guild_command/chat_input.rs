@@ -1,11 +1,8 @@
-use super::super::{
-    super::{InteractionError, InteractionErrorType},
-    CommandBorrowed,
-};
+use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, RequestBuilder, TryIntoRequest},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -15,6 +12,9 @@ use twilight_model::{
         marker::{ApplicationMarker, GuildMarker},
         Id,
     },
+};
+use twilight_validate::command::{
+    description as validate_description, options as validate_options, CommandValidationError,
 };
 
 /// Create a chat input command in a guild.
@@ -43,12 +43,8 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         guild_id: Id<GuildMarker>,
         name: &'a str,
         description: &'a str,
-    ) -> Result<Self, InteractionError> {
-        if !validate_inner::command_description(&description) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::CommandDescriptionValidationFailed,
-            });
-        }
+    ) -> Result<Self, CommandValidationError> {
+        validate_description(&description)?;
 
         Ok(Self {
             application_id,
@@ -75,31 +71,16 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     ///
     /// Errors
     ///
-    /// Returns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
-    /// if a required option was added after an optional option. The problem
-    /// option's index is provided.
-    pub const fn command_options(
+    /// Returns an error of type [`OptionsRequiredFirst`] if a required option
+    /// was added after an optional option. The problem option's index is
+    /// provided.
+    ///
+    /// [`OptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::OptionsRequiredFirst
+    pub fn command_options(
         mut self,
         options: &'a [CommandOption],
-    ) -> Result<Self, InteractionError> {
-        let mut optional_option_added = false;
-        let mut idx = 0;
-
-        while idx < options.len() {
-            let option = &options[idx];
-
-            if !optional_option_added && !option.is_required() {
-                optional_option_added = true;
-            }
-
-            if option.is_required() && optional_option_added {
-                return Err(InteractionError {
-                    kind: InteractionErrorType::CommandOptionsRequiredFirst { index: idx },
-                });
-            }
-
-            idx += 1;
-        }
+    ) -> Result<Self, CommandValidationError> {
+        validate_options(options)?;
 
         self.options = Some(options);
 

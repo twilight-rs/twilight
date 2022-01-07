@@ -2,6 +2,14 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.8.1] - 2021-12-24
+
+### Changes
+
+Upgrade `dashmap` to 5.0 ([#1336] - [@vilgotf]). `dashmap` 4.0 is still allowed.
+
+[#1336]: https://github.com/twilight-rs/twilight/pull/1336
+
 ## [0.8.0] - 2021-12-03
 
 ### Changes
@@ -258,6 +266,7 @@ Initial release.
 [@james7132]: https://github.com/james7132
 [@MOZGIII]: https://github.com/MOZGIII
 [@nickelc]: https://github.com/nickelc
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
@@ -266,6 +275,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.0
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.2
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.1

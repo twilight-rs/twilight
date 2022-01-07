@@ -16,7 +16,7 @@
 //! use twilight_mention::Mention;
 //! use twilight_model::id::{marker::UserMarker, Id};
 //!
-//! let user_id = Id::<UserMarker>::new(123).expect("non zero");
+//! let user_id = Id::<UserMarker>::new(123);
 //! let message = format!("Hey there, {}!", user_id.mention());
 //! ```
 //!
@@ -29,7 +29,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,

@@ -3,9 +3,10 @@ use super::{
     event::Events,
     r#impl::{Cluster, ClusterStartError},
     scheme::ShardScheme,
+    ClusterStartErrorType,
 };
 use crate::{
-    shard::{LargeThresholdError, ResumeSession, ShardBuilder},
+    shard::{tls::TlsContainer, LargeThresholdError, ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
 use std::{collections::HashMap, sync::Arc};
@@ -63,6 +64,13 @@ impl ClusterBuilder {
     ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
+        let tls = TlsContainer::new().map_err(|err| ClusterStartError {
+            kind: ClusterStartErrorType::Tls,
+            source: Some(Box::new(err)),
+        })?;
+
+        (self.1).0.tls = Some(tls);
+
         if (self.1).0.gateway_url.is_none() {
             let maybe_response = (self.1).0.http_client.gateway().authed().exec().await;
 
@@ -192,10 +200,7 @@ impl ClusterBuilder {
     ///
     /// ```no_run
     /// use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
-    /// use std::{
-    ///     convert::TryFrom,
-    ///     env,
-    /// };
+    /// use std::env;
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;

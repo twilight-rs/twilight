@@ -41,7 +41,7 @@ jobs:
 
       - name: Build docs
         env:
-          RUSTDOCFLAGS: --cfg docsrs -D broken_intra_doc_links
+          RUSTDOCFLAGS: --cfg docsrs
         run: |
           exclude_examples=($(grep -h '^name' examples/**/Cargo.toml | cut -d'"' -f2 | xargs -I '{}' echo '--exclude {}'))
           cargo doc --workspace --no-deps --features=permission-calculator "${exclude_examples[@]}"

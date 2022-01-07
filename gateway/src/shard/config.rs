@@ -1,4 +1,4 @@
-use crate::EventTypeFlags;
+use crate::{shard::tls::TlsContainer, EventTypeFlags};
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
@@ -27,6 +27,7 @@ pub struct Config {
     pub(super) token: Box<str>,
     pub(crate) session_id: Option<Box<str>>,
     pub(crate) sequence: Option<u64>,
+    pub(crate) tls: Option<TlsContainer>,
 }
 
 impl Config {

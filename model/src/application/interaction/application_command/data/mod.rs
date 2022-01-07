@@ -370,7 +370,7 @@ mod tests {
     #[test]
     fn no_options() {
         let value = CommandData {
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             name: "permissions".to_owned(),
             options: Vec::new(),
             resolved: None,
@@ -395,7 +395,7 @@ mod tests {
     #[test]
     fn subcommand_without_option() {
         let value = CommandData {
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             name: "photo".to_owned(),
             options: Vec::from([CommandDataOption {
                 focused: false,

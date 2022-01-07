@@ -50,6 +50,7 @@ while let Some(event) = events.next().await {
 All first-party crates are licensed under [ISC][LICENSE.md]
 
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+[`twilight-rs`]: https://github.com/twilight-rs/twilight
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -59,6 +60,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

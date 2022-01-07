@@ -1,8 +1,7 @@
-use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,6 +9,10 @@ use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
     id::{marker::ChannelMarker, Id},
+};
+use twilight_validate::channel::{
+    name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
+    ChannelValidationError,
 };
 
 #[derive(Serialize)]
@@ -112,14 +115,11 @@ impl<'a> UpdateThread<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`ThreadValidationErrorType::NameInvalid`] error type if the
-    /// name is invalid.
-    pub fn name(mut self, name: &'a str) -> Result<Self, ThreadValidationError> {
-        if !validate_inner::channel_name(name) {
-            return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::NameInvalid,
-            });
-        }
+    /// Returns an error of type [`NameInvalid`] if the name is invalid.
+    ///
+    /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    pub fn name(mut self, name: &'a str) -> Result<Self, ChannelValidationError> {
+        validate_name(name)?;
 
         self.fields.name = Some(name);
 
@@ -134,20 +134,17 @@ impl<'a> UpdateThread<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`ThreadValidationErrorType::RateLimitPerUserInvalid`] error type
-    /// if the amount is greater than 21600.
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the name is
+    /// invalid.
     ///
+    /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     pub const fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,
-    ) -> Result<Self, ThreadValidationError> {
-        if rate_limit_per_user > 21600 {
-            return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::RateLimitPerUserInvalid {
-                    rate_limit_per_user,
-                },
-            });
+    ) -> Result<Self, ChannelValidationError> {
+        if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
+            return Err(source);
         }
 
         self.fields.rate_limit_per_user = Some(rate_limit_per_user);
@@ -205,7 +202,7 @@ mod tests {
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_string());
-        let channel_id = Id::new(123).expect("non zero");
+        let channel_id = Id::new(123);
 
         let actual = UpdateThread::new(&client, channel_id)
             .rate_limit_per_user(60)?

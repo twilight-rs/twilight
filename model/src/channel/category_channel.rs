@@ -28,8 +28,8 @@ mod tests {
     #[test]
     fn test_category_channel() {
         let value = CategoryChannel {
-            guild_id: Some(Id::new(1).expect("non zero")),
-            id: Id::new(2).expect("non zero"),
+            guild_id: Some(Id::new(1)),
+            id: Id::new(2),
             kind: ChannelType::GuildCategory,
             name: "category".to_owned(),
             permission_overwrites: Vec::new(),

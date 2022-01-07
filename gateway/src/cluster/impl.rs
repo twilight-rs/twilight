@@ -11,15 +11,15 @@ use std::{
     collections::{hash_map::Values, HashMap},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
-    iter::{FromIterator, FusedIterator},
+    iter::FusedIterator,
 };
 use twilight_http::Client as HttpClient;
 
 /// Sending a command to a shard failed.
 #[derive(Debug)]
 pub struct ClusterCommandError {
-    kind: ClusterCommandErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
+    pub(super) kind: ClusterCommandErrorType,
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ClusterCommandError {
@@ -150,8 +150,8 @@ pub enum ClusterSendErrorType {
 /// Starting a cluster failed.
 #[derive(Debug)]
 pub struct ClusterStartError {
-    kind: ClusterStartErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
+    pub(super) kind: ClusterStartErrorType,
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ClusterStartError {
@@ -180,6 +180,9 @@ impl Display for ClusterStartError {
             ClusterStartErrorType::RetrievingGatewayInfo { .. } => {
                 f.write_str("getting the bot's gateway info failed")
             }
+            ClusterStartErrorType::Tls => {
+                f.write_str("creating the TLS connector resulted in a error")
+            }
         }
     }
 }
@@ -204,12 +207,11 @@ pub enum ClusterStartErrorType {
     ///
     /// [automatic sharding]: ShardScheme::Auto
     RetrievingGatewayInfo,
+    /// Creating the TLS connector resulted in a error.
+    Tls,
 }
 
 /// A manager for multiple shards.
-///
-/// The Cluster can be cloned and will point to the same cluster, so you can
-/// pass it around as needed.
 ///
 /// # Using a cluster in multiple tasks
 ///
@@ -404,10 +406,7 @@ impl Cluster {
     ///
     /// ```no_run
     /// use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
-    /// use std::{
-    ///     convert::TryFrom,
-    ///     env,
-    /// };
+    /// use std::env;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {

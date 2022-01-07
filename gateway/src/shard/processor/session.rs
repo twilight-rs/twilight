@@ -5,7 +5,6 @@ use super::{
 use leaky_bucket_lite::LeakyBucket;
 use serde::ser::Serialize;
 use std::{
-    convert::{TryFrom, TryInto},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{
@@ -137,7 +136,7 @@ impl Session {
             .store(new_heartbeat_interval, Ordering::Release);
 
         // Number of commands allotted to the user per reset period.
-        let commands_allotted = f64::from(heartbeats_per_reset(new_heartbeat_interval));
+        let commands_allotted = u32::from(heartbeats_per_reset(new_heartbeat_interval));
 
         // We can ignore an error if the ratelimiter has already been set.
         let _result = self.ratelimit.set(

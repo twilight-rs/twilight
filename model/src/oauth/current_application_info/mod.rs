@@ -9,6 +9,7 @@ use crate::{
     },
     oauth::team::Team,
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -16,12 +17,12 @@ use serde::{Deserialize, Serialize};
 pub struct CurrentApplicationInfo {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
-    pub cover_image: Option<String>,
+    pub cover_image: Option<ImageHash>,
     pub description: String,
     pub guild_id: Option<Id<GuildMarker>>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     pub id: Id<ApplicationMarker>,
     pub name: String,
     pub owner: User,
@@ -43,7 +44,7 @@ pub struct CurrentApplicationInfo {
 #[cfg(test)]
 mod tests {
     use super::{ApplicationFlags, CurrentApplicationInfo, Team, User};
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -86,12 +87,12 @@ mod tests {
         let value = CurrentApplicationInfo {
             bot_public: true,
             bot_require_code_grant: false,
-            cover_image: Some("cover image hash".to_owned()),
+            cover_image: Some(image_hash::COVER),
             description: "a pretty cool application".to_owned(),
-            guild_id: Some(Id::new(1).expect("non zero")),
+            guild_id: Some(Id::new(1)),
             flags: Some(ApplicationFlags::EMBEDDED),
-            icon: Some("icon hash".to_owned()),
-            id: Id::new(2).expect("non zero"),
+            icon: Some(image_hash::ICON),
+            id: Id::new(2),
             name: "cool application".to_owned(),
             owner: User {
                 accent_color: None,
@@ -101,7 +102,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "app dev".to_owned(),
@@ -110,17 +111,17 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            primary_sku_id: Some(Id::new(4).expect("non zero")),
+            primary_sku_id: Some(Id::new(4)),
             privacy_policy_url: Some("https://privacypolicy".into()),
             rpc_origins: vec!["one".to_owned()],
             slug: Some("app slug".to_owned()),
             summary: "a summary".to_owned(),
             team: Some(Team {
                 icon: None,
-                id: Id::new(5).expect("non zero"),
+                id: Id::new(5),
                 members: Vec::new(),
                 name: "team name".into(),
-                owner_user_id: Id::new(6).expect("non zero"),
+                owner_user_id: Id::new(6),
             }),
             terms_of_service_url: Some("https://termsofservice".into()),
             verify_key: "key".to_owned(),
@@ -139,7 +140,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("cover_image"),
                 Token::Some,
-                Token::Str("cover image hash"),
+                Token::Str(image_hash::COVER_INPUT),
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
                 Token::Str("guild_id"),
@@ -151,7 +152,7 @@ mod tests {
                 Token::U64(131_072),
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),

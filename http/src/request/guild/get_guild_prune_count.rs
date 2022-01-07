@@ -1,13 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
-};
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
     guild::GuildPrune,
@@ -16,58 +12,7 @@ use twilight_model::{
         Id,
     },
 };
-
-/// The error created when the guild prune count can not be requested as configured.
-#[derive(Debug)]
-pub struct GetGuildPruneCountError {
-    kind: GetGuildPruneCountErrorType,
-}
-
-impl GetGuildPruneCountError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &GetGuildPruneCountErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        GetGuildPruneCountErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for GetGuildPruneCountError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            GetGuildPruneCountErrorType::DaysInvalid => {
-                f.write_str("the number of days is invalid")
-            }
-        }
-    }
-}
-
-impl Error for GetGuildPruneCountError {}
-
-/// Type of [`GetGuildPruneCountError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum GetGuildPruneCountErrorType {
-    /// The number of days is 0.
-    DaysInvalid,
-}
+use twilight_validate::request::{guild_prune_days as validate_guild_prune_days, ValidationError};
 
 struct GetGuildPruneCountFields<'a> {
     days: Option<u64>,
@@ -101,13 +46,13 @@ impl<'a> GetGuildPruneCount<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`GetGuildPruneCountErrorType::DaysInvalid`] error type if the
-    /// number of days is 0.
-    pub const fn days(mut self, days: u64) -> Result<Self, GetGuildPruneCountError> {
-        if !validate_inner::guild_prune_days(days) {
-            return Err(GetGuildPruneCountError {
-                kind: GetGuildPruneCountErrorType::DaysInvalid,
-            });
+    /// Returns an error of type [`GuildPruneDays`] if the number of days is 0
+    /// or more than 30.
+    ///
+    /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
+    pub const fn days(mut self, days: u64) -> Result<Self, ValidationError> {
+        if let Err(source) = validate_guild_prune_days(days) {
+            return Err(source);
         }
 
         self.fields.days = Some(days);
@@ -155,7 +100,7 @@ mod test {
     fn test_days() {
         fn days_valid(days: u64) -> bool {
             let client = Client::new("".to_owned());
-            let count = GetGuildPruneCount::new(&client, Id::new(1).expect("non zero"));
+            let count = GetGuildPruneCount::new(&client, Id::new(1));
             let days_result = count.days(days);
             days_result.is_ok()
         }

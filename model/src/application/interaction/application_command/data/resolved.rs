@@ -40,8 +40,17 @@ pub struct InteractionChannel {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionMember {
+    /// Member's guild avatar.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
+    pub communication_disabled_until: Option<Timestamp>,
     pub joined_at: Timestamp,
     pub nick: Option<String>,
+    /// Whether the user has yet to pass the guild's Membership Screening
+    /// requirements.
+    pub pending: bool,
+    /// Total permissions of the member in this channel including overwrites
+    pub permissions: Permissions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
     #[serde(default)]
@@ -62,6 +71,7 @@ mod tests {
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions, Role},
         id::Id,
+        test::image_hash,
         user::{PremiumType, User, UserFlags},
     };
     use serde_test::Token;
@@ -75,9 +85,9 @@ mod tests {
 
         let value = CommandInteractionDataResolved {
             channels: IntoIterator::into_iter([(
-                Id::new(100).expect("non zero"),
+                Id::new(100),
                 InteractionChannel {
-                    id: Id::new(100).expect("non zero"),
+                    id: Id::new(100),
                     kind: ChannelType::GuildText,
                     name: "channel name".into(),
                     parent_id: None,
@@ -87,17 +97,21 @@ mod tests {
             )])
             .collect(),
             members: IntoIterator::into_iter([(
-                Id::new(300).expect("non zero"),
+                Id::new(300),
                 InteractionMember {
+                    avatar: None,
+                    communication_disabled_until: None,
                     joined_at,
                     nick: None,
+                    pending: false,
+                    permissions: Permissions::empty(),
                     premium_since: None,
                     roles: Vec::new(),
                 },
             )])
             .collect(),
             messages: IntoIterator::into_iter([(
-                Id::new(4).expect("non zero"),
+                Id::new(4),
                 Message {
                     activity: None,
                     application: None,
@@ -105,13 +119,13 @@ mod tests {
                     attachments: Vec::new(),
                     author: User {
                         accent_color: None,
-                        avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                        avatar: Some(image_hash::AVATAR),
                         banner: None,
                         bot: false,
                         discriminator: 1,
                         email: None,
                         flags: None,
-                        id: Id::new(3).expect("non zero"),
+                        id: Id::new(3),
                         locale: None,
                         mfa_enabled: None,
                         name: "test".to_owned(),
@@ -120,18 +134,19 @@ mod tests {
                         system: None,
                         verified: None,
                     },
-                    channel_id: Id::new(2).expect("non zero"),
+                    channel_id: Id::new(2),
                     components: Vec::new(),
                     content: "ping".to_owned(),
                     edited_timestamp: None,
                     embeds: Vec::new(),
                     flags: Some(MessageFlags::empty()),
-                    guild_id: Some(Id::new(1).expect("non zero")),
-                    id: Id::new(4).expect("non zero"),
+                    guild_id: Some(Id::new(1)),
+                    id: Id::new(4),
                     interaction: None,
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
                         avatar: None,
+                        communication_disabled_until: None,
                         deaf: false,
                         joined_at,
                         mute: false,
@@ -150,7 +165,7 @@ mod tests {
                     reference: None,
                     sticker_items: vec![MessageSticker {
                         format_type: StickerFormatType::Png,
-                        id: Id::new(1).expect("non zero"),
+                        id: Id::new(1),
                         name: "sticker name".to_owned(),
                     }],
                     referenced_message: None,
@@ -162,12 +177,12 @@ mod tests {
             )])
             .collect(),
             roles: IntoIterator::into_iter([(
-                Id::new(400).expect("non zero"),
+                Id::new(400),
                 Role {
                     color: 0,
                     hoist: true,
                     icon: None,
-                    id: Id::new(400).expect("non zero"),
+                    id: Id::new(400),
                     managed: false,
                     mentionable: true,
                     name: "test".to_owned(),
@@ -179,16 +194,16 @@ mod tests {
             )])
             .collect(),
             users: IntoIterator::into_iter([(
-                Id::new(300).expect("non zero"),
+                Id::new(300),
                 User {
                     accent_color: None,
-                    avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                    avatar: Some(image_hash::AVATAR),
                     banner: None,
                     bot: false,
                     discriminator: 1,
                     email: Some("address@example.com".to_owned()),
                     flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-                    id: Id::new(300).expect("non zero"),
+                    id: Id::new(300),
                     locale: Some("en-us".to_owned()),
                     mfa_enabled: Some(true),
                     name: "test".to_owned(),
@@ -235,12 +250,18 @@ mod tests {
                 Token::Str("300"),
                 Token::Struct {
                     name: "InteractionMember",
-                    len: 3,
+                    len: 6,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("joined_at"),
                 Token::Str("2021-08-10T12:18:37.000000+00:00"),
                 Token::Str("nick"),
                 Token::None,
+                Token::Str("pending"),
+                Token::Bool(false),
+                Token::Str("permissions"),
+                Token::Str("0"),
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -266,7 +287,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -305,8 +326,10 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("communication_disabled_until"),
+                Token::None,
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("joined_at"),
@@ -394,7 +417,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),

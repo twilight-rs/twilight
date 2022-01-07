@@ -16,7 +16,7 @@ mod tests {
     #[test]
     fn test_unavailable_guild() {
         let value = UnavailableGuild {
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             unavailable: true,
         };
 

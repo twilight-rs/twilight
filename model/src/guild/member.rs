@@ -5,6 +5,7 @@ use crate::{
         Id,
     },
     user::User,
+    util::image_hash::ImageHash,
 };
 
 use serde::{
@@ -20,7 +21,8 @@ use std::fmt::{Formatter, Result as FmtResult};
 pub struct Member {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub guild_id: Id<GuildMarker>,
     pub joined_at: Timestamp,
@@ -45,7 +47,8 @@ pub struct Member {
 pub struct MemberIntermediary {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
+    pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,
     pub mute: bool,
@@ -64,6 +67,7 @@ impl MemberIntermediary {
     pub fn into_member(self, guild_id: Id<GuildMarker>) -> Member {
         Member {
             avatar: self.avatar,
+            communication_disabled_until: self.communication_disabled_until,
             deaf: self.deaf,
             guild_id,
             joined_at: self.joined_at,
@@ -116,6 +120,7 @@ impl<'de> Visitor<'de> for MemberVisitor {
 
         Ok(Member {
             avatar: member.avatar,
+            communication_disabled_until: member.communication_disabled_until,
             deaf: member.deaf,
             guild_id: self.0,
             joined_at: member.joined_at,
@@ -211,6 +216,7 @@ mod tests {
     use crate::{
         datetime::{Timestamp, TimestampParseError},
         id::Id,
+        test::image_hash,
         user::User,
     };
     use serde_test::Token;
@@ -222,9 +228,10 @@ mod tests {
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
 
         let value = Member {
-            avatar: Some("guild avatar".to_owned()),
+            avatar: Some(image_hash::AVATAR),
+            communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new(1),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -239,7 +246,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
@@ -255,11 +262,110 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Member",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("guild avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
+                Token::Str("communication_disabled_until"),
+                Token::None,
+                Token::Str("deaf"),
+                Token::Bool(false),
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("joined_at"),
+                Token::Str("2015-04-26T06:26:56.936000+00:00"),
+                Token::Str("mute"),
+                Token::Bool(true),
+                Token::Str("nick"),
+                Token::Some,
+                Token::Str("twilight"),
+                Token::Str("pending"),
+                Token::Bool(false),
+                Token::Str("premium_since"),
+                Token::Some,
+                Token::Str("2021-03-16T14:29:19.046000+00:00"),
+                Token::Str("roles"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("user"),
+                Token::Struct {
+                    name: "User",
+                    len: 7,
+                },
+                Token::Str("accent_color"),
+                Token::None,
+                Token::Str("avatar"),
+                Token::None,
+                Token::Str("banner"),
+                Token::None,
+                Token::Str("bot"),
+                Token::Bool(false),
+                Token::Str("discriminator"),
+                Token::Str("0001"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("3"),
+                Token::Str("username"),
+                Token::Str("twilight"),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_guild_member_communication_disabled_until() -> Result<(), TimestampParseError> {
+        let communication_disabled_until = Timestamp::from_str("2021-12-23T14:29:19.046000+00:00")?;
+        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
+        let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
+
+        let value = Member {
+            avatar: Some(image_hash::AVATAR),
+            communication_disabled_until: Some(communication_disabled_until),
+            deaf: false,
+            guild_id: Id::new(1),
+            joined_at,
+            mute: true,
+            nick: Some("twilight".to_owned()),
+            pending: false,
+            premium_since: Some(premium_since),
+            roles: Vec::new(),
+            user: User {
+                accent_color: None,
+                avatar: None,
+                banner: None,
+                bot: false,
+                discriminator: 1,
+                email: None,
+                flags: None,
+                id: Id::new(3),
+                locale: None,
+                mfa_enabled: None,
+                name: "twilight".to_owned(),
+                premium_type: None,
+                public_flags: None,
+                system: None,
+                verified: None,
+            },
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Member",
+                    len: 11,
+                },
+                Token::Str("avatar"),
+                Token::Some,
+                Token::Str(image_hash::AVATAR_INPUT),
+                Token::Str("communication_disabled_until"),
+                Token::Some,
+                Token::Str("2021-12-23T14:29:19.046000+00:00"),
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),

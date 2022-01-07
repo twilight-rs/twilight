@@ -1,73 +1,16 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::{
     channel::stage_instance::PrivacyLevel,
     id::{marker::ChannelMarker, Id},
 };
-
-/// The request can not be created as configured.
-#[derive(Debug)]
-pub struct UpdateStageInstanceError {
-    kind: UpdateStageInstanceErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl UpdateStageInstanceError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateStageInstanceErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        UpdateStageInstanceErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for UpdateStageInstanceError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateStageInstanceErrorType::InvalidTopic { .. } => f.write_str("invalid topic"),
-        }
-    }
-}
-
-impl Error for UpdateStageInstanceError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-#[derive(Debug)]
-pub enum UpdateStageInstanceErrorType {
-    /// Topic is not between 1 and 120 characters in length.
-    InvalidTopic,
-}
+use twilight_validate::request::{stage_topic as validate_stage_topic, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateStageInstanceFields<'a> {
@@ -107,13 +50,8 @@ impl<'a> UpdateStageInstance<'a> {
     }
 
     /// Set the new topic of the instance.
-    pub fn topic(mut self, topic: &'a str) -> Result<Self, UpdateStageInstanceError> {
-        if !validate_inner::stage_topic(&topic) {
-            return Err(UpdateStageInstanceError {
-                kind: UpdateStageInstanceErrorType::InvalidTopic,
-                source: None,
-            });
-        }
+    pub fn topic(mut self, topic: &'a str) -> Result<Self, ValidationError> {
+        validate_stage_topic(topic)?;
 
         self.fields.topic.replace(topic);
 

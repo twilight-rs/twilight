@@ -1,15 +1,11 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType, GuildChannel},
     id::{
@@ -17,67 +13,10 @@ use twilight_model::{
         Id,
     },
 };
-
-/// Returned when the channel can not be created as configured.
-#[derive(Debug)]
-pub struct CreateGuildChannelError {
-    kind: CreateGuildChannelErrorType,
-}
-
-impl CreateGuildChannelError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &CreateGuildChannelErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        CreateGuildChannelErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-/// Type of [`CreateGuildChannelError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum CreateGuildChannelErrorType {
-    /// The length of the name is either fewer than 1 UTF-16 characters or
-    /// more than 100 UTF-16 characters.
-    NameInvalid,
-    /// The seconds of the rate limit per user is more than 21600.
-    RateLimitPerUserInvalid,
-    /// The length of the topic is more than 1024 UTF-16 characters.
-    TopicInvalid,
-}
-
-impl Display for CreateGuildChannelError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            CreateGuildChannelErrorType::NameInvalid => {
-                f.write_str("the length of the name is invalid")
-            }
-            CreateGuildChannelErrorType::RateLimitPerUserInvalid => {
-                f.write_str("the rate limit per user is invalid")
-            }
-            CreateGuildChannelErrorType::TopicInvalid => f.write_str("the topic is invalid"),
-        }
-    }
-}
-
-impl Error for CreateGuildChannelError {}
+use twilight_validate::channel::{
+    name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
+    topic as validate_topic, ChannelValidationError,
+};
 
 #[derive(Serialize)]
 struct CreateGuildChannelFields<'a> {
@@ -119,12 +58,8 @@ impl<'a> CreateGuildChannel<'a> {
         http: &'a Client,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-    ) -> Result<Self, CreateGuildChannelError> {
-        if !validate_inner::channel_name(name) {
-            return Err(CreateGuildChannelError {
-                kind: CreateGuildChannelErrorType::NameInvalid,
-            });
-        }
+    ) -> Result<Self, ChannelValidationError> {
+        validate_name(name)?;
 
         Ok(Self {
             fields: CreateGuildChannelFields {
@@ -202,18 +137,17 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateGuildChannelErrorType::RateLimitPerUserInvalid`] error
-    /// type if the amount is greater than 21600.
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the name is
+    /// invalid.
     ///
+    /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub const fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,
-    ) -> Result<Self, CreateGuildChannelError> {
-        if rate_limit_per_user > 21600 {
-            return Err(CreateGuildChannelError {
-                kind: CreateGuildChannelErrorType::RateLimitPerUserInvalid,
-            });
+    ) -> Result<Self, ChannelValidationError> {
+        if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
+            return Err(source);
         }
 
         self.fields.rate_limit_per_user = Some(rate_limit_per_user);
@@ -227,16 +161,13 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateGuildChannelErrorType::TopicInvalid`] error type if
-    /// the topic length is too long.
+    /// Returns an error of type [`TopicInvalid`] if the name is
+    /// invalid.
     ///
+    /// [`TopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TopicInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    pub fn topic(mut self, topic: &'a str) -> Result<Self, CreateGuildChannelError> {
-        if topic.chars().count() > 1024 {
-            return Err(CreateGuildChannelError {
-                kind: CreateGuildChannelErrorType::TopicInvalid,
-            });
-        }
+    pub fn topic(mut self, topic: &'a str) -> Result<Self, ChannelValidationError> {
+        validate_topic(topic)?;
 
         self.fields.topic.replace(topic);
 

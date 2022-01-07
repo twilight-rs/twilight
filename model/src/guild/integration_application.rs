@@ -1,6 +1,7 @@
 use crate::{
     id::{marker::ApplicationMarker, Id},
     user::User,
+    util::image_hash::ImageHash,
 };
 
 use serde::{Deserialize, Serialize};
@@ -10,7 +11,7 @@ pub struct IntegrationApplication {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot: Option<User>,
     pub description: String,
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     pub id: Id<ApplicationMarker>,
     pub name: String,
     pub summary: String,
@@ -28,7 +29,7 @@ mod tests {
             bot: None,
             description: "Friendship is Magic".to_string(),
             icon: None,
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             name: "Twilight".to_string(),
             summary: "A cool pony".to_string(),
         };
@@ -67,7 +68,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(2).expect("non zero"),
+                id: Id::new(2),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -78,7 +79,7 @@ mod tests {
             }),
             description: "Friendship is Magic".to_string(),
             icon: None,
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             name: "Twilight".to_string(),
             summary: "A cool pony".to_string(),
         };

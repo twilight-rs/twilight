@@ -1,18 +1,19 @@
-use crate::request::application::{
-    command::{
-        CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
-        GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
-        GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions, SetGlobalCommands,
-        SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
+use crate::{
+    request::application::{
+        command::{
+            CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
+            GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
+            GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions, SetGlobalCommands,
+            SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
+        },
+        interaction::{
+            CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse,
+            GetFollowupMessage, GetOriginalResponse, InteractionCallback, UpdateFollowupMessage,
+            UpdateOriginalResponse,
+        },
     },
-    interaction::{
-        CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse, GetFollowupMessage,
-        GetOriginalResponse, InteractionCallback, UpdateFollowupMessage, UpdateOriginalResponse,
-    },
-    InteractionError,
+    Client,
 };
-
-use super::Client;
 use twilight_model::{
     application::{
         callback::InteractionResponse,
@@ -23,6 +24,7 @@ use twilight_model::{
         Id,
     },
 };
+use twilight_validate::command::CommandValidationError;
 
 /// Client interface for using interactions.
 ///
@@ -32,13 +34,13 @@ use twilight_model::{
 ///
 /// ```no_run
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<std::error::Error>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = Id::new(123).expect("non zero id");
+/// let application_id = Id::new(123);
 ///
 /// let interaction_client = client.interaction(application_id);
 ///
@@ -165,17 +167,16 @@ impl<'a> InteractionClient<'a> {
     /// the same guild will overwrite the old command. See [the discord docs]
     /// for more information.
     ///
-    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 1 and 32 characters.
+    /// Returns an error of type [`NameInvalid`] error type if the command name
+    /// is not between 1 and 32 characters.
     ///
-    ///
-    /// [`InteractionErrorType::CommandNameValidationFailed`]: crate::request::application::InteractionErrorType::CommandNameValidationFailed
+    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn create_guild_command(
         &'a self,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-    ) -> Result<CreateGuildCommand<'a>, InteractionError> {
+    ) -> Result<CreateGuildCommand<'a>, CommandValidationError> {
         CreateGuildCommand::new(self.client, self.application_id, guild_id, name)
     }
 
@@ -240,15 +241,15 @@ impl<'a> InteractionClient<'a> {
     /// command with the same name as an already-existing global command will
     /// overwrite the old command. See [the discord docs] for more information.
     ///
-    /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
-    /// error type if the command name is not between 1 and 32 characters.
+    /// Returns an error of type [`NameInvalid`] if the command name is not
+    /// between 1 and 32 characters.
     ///
-    /// [`InteractionErrorType::CommandNameValidationFailed`]: crate::request::application::InteractionErrorType::CommandNameValidationFailed
+    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn create_global_command(
         &'a self,
         name: &'a str,
-    ) -> Result<CreateGlobalCommand<'a>, InteractionError> {
+    ) -> Result<CreateGlobalCommand<'a>, CommandValidationError> {
         CreateGlobalCommand::new(self.client, self.application_id, name)
     }
 
@@ -320,12 +321,12 @@ impl<'a> InteractionClient<'a> {
     ///
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.
-    pub const fn update_command_permissions(
+    pub fn update_command_permissions(
         &'a self,
         guild_id: Id<GuildMarker>,
         command_id: Id<CommandMarker>,
         permissions: &'a [CommandPermissions],
-    ) -> Result<UpdateCommandPermissions<'a>, InteractionError> {
+    ) -> Result<UpdateCommandPermissions<'a>, CommandValidationError> {
         UpdateCommandPermissions::new(
             self.client,
             self.application_id,
@@ -340,17 +341,16 @@ impl<'a> InteractionClient<'a> {
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.
     ///
-    /// Returns an [`InteractionErrorType::TooManyCommands`] error type if too
-    /// many commands have been provided. The maximum amount is defined by
-    /// [`InteractionError::GUILD_COMMAND_LIMIT`].
+    /// Returns an error of type [`CountInvalid`] if too many commands have been
+    /// provided. The maximum amount is defined by [`GUILD_COMMAND_LIMIT`].
     ///
-    /// [`InteractionErrorType::TooManyCommands`]: crate::request::application::InteractionErrorType::TooManyCommands
-    /// [`InteractionError::GUILD_COMMAND_LIMIT`]: crate::request::application::InteractionError::GUILD_COMMAND_LIMIT
+    /// [`CountInvalid`]: twilight_validate::command::CommandValidationErrorType::CountInvalid
+    /// [`GUILD_COMMAND_LIMIT`]: twilight_validate::command::GUILD_COMMAND_LIMIT
     pub fn set_command_permissions(
         &'a self,
         guild_id: Id<GuildMarker>,
         permissions: &'a [(Id<CommandMarker>, CommandPermissions)],
-    ) -> Result<SetCommandPermissions<'a>, InteractionError> {
+    ) -> Result<SetCommandPermissions<'a>, CommandValidationError> {
         SetCommandPermissions::new(self.client, self.application_id, guild_id, permissions)
     }
 }

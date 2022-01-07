@@ -81,8 +81,9 @@ mod private {
             SyncTemplate, UpdateTemplate,
         },
         user::{
-            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections, GetCurrentUserGuilds,
-            GetUser, LeaveGuild, UpdateCurrentUser,
+            CreatePrivateChannel, GetCurrentUser, GetCurrentUserConnections,
+            GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
+            UpdateCurrentUser,
         },
         GetGateway, GetGatewayAuthed, GetUserApplicationInfo, GetVoiceRegions,
     };
@@ -165,6 +166,7 @@ mod private {
     impl Sealed for GetCommandPermissions<'_> {}
     impl Sealed for GetCurrentUser<'_> {}
     impl Sealed for GetCurrentUserConnections<'_> {}
+    impl Sealed for GetCurrentUserGuildMember<'_> {}
     impl Sealed for GetCurrentUserGuilds<'_> {}
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
@@ -282,7 +284,7 @@ use crate::error::Error;
 /// use twilight_model::{channel::Message, id::Id};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let channel_id = Id::new(1).expect("non zero");
+/// let channel_id = Id::new(1);
 /// let builder = client.create_message(channel_id)
 ///     .content("This is a test message!")?
 ///     .tts(false);
@@ -336,7 +338,7 @@ mod tests {
     #[test]
     fn test_conversion() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
-        let channel_id = Id::new(1).expect("non zero");
+        let channel_id = Id::new(1);
         let builder = client.create_message(channel_id).content("test")?;
         let request = builder.try_into_request()?;
 

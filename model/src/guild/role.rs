@@ -2,6 +2,7 @@ use super::RoleTags;
 use crate::{
     guild::Permissions,
     id::{marker::RoleMarker, Id},
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 use std::cmp::{Ord, Ordering, PartialOrd};
@@ -19,7 +20,7 @@ pub struct Role {
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     pub id: Id<RoleMarker>,
     pub managed: bool,
     pub mentionable: bool,
@@ -57,7 +58,7 @@ impl Ord for Role {
     /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
-    ///     id: Id::new(123).expect("non zero"),
+    ///     id: Id::new(123),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -71,7 +72,7 @@ impl Ord for Role {
     ///     // ...
     /// };
     /// let role_b = Role {
-    ///     id: Id::new(456).expect("non zero"),
+    ///     id: Id::new(456),
     ///     position: 13,
     ///#    color: 0,
     ///#    hoist: true,
@@ -96,7 +97,7 @@ impl Ord for Role {
     /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
-    ///     id: Id::new(123).expect("non zero"),
+    ///     id: Id::new(123),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -109,7 +110,7 @@ impl Ord for Role {
     ///#    unicode_emoji: None,
     /// };
     /// let role_b = Role {
-    ///     id: Id::new(456).expect("non zero"),
+    ///     id: Id::new(456),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -178,7 +179,7 @@ mod tests {
             color: 0,
             hoist: true,
             icon: None,
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             managed: false,
             mentionable: true,
             name: "test".to_owned(),

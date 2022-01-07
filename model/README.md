@@ -39,6 +39,7 @@ This is enabled by default.
 [ISC][LICENSE.md]
 
 [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+[`tracing`]: https://crates.io/crates/tracing
 [`twilight-util`]: https://docs.rs/twilight-util
 [`twilight`]: https://docs.rs/twilight
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
@@ -49,6 +50,6 @@ This is enabled by default.
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

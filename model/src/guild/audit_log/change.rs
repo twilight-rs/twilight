@@ -1,6 +1,10 @@
 use super::change_key::AuditLogChangeKey;
 use crate::{
-    channel::{message::sticker::StickerFormatType, stage_instance::PrivacyLevel},
+    channel::{
+        message::sticker::StickerFormatType, permission_overwrite::PermissionOverwrite,
+        stage_instance::PrivacyLevel, thread::AutoArchiveDuration,
+    },
+    datetime::Timestamp,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         VerificationLevel,
@@ -58,29 +62,55 @@ pub enum AuditLogChange {
     /// Allowed permissions of a permission overwrite target.
     Allow {
         /// New allowed permissions value.
-        #[serde(rename = "new_value")]
-        new: Permissions,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Permissions>,
+        /// Old allowed permissions value.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Permissions>,
     },
     /// ID of an application.
     ApplicationId {
         /// Application's ID.
-        #[serde(rename = "new_value")]
-        new: Id<ApplicationMarker>,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Id<ApplicationMarker>>,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Id<ApplicationMarker>>,
+    },
+    /// Thread is now archived/unarchived.
+    Archived {
+        /// Whether the thread is archived.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
     },
     /// Asset of a sticker.
     Asset {
         /// Empty string.
-        #[serde(rename = "new_value")]
-        new: String,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<String>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<String>,
+    },
+    /// Auto archive duration of a thread changed.
+    AutoArchiveDuration {
+        /// New auto archive duration.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<AutoArchiveDuration>,
+        /// Old auto archive duration.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<AutoArchiveDuration>,
     },
     /// Availability of a sticker.
     Available {
         /// New availability.
-        #[serde(rename = "new_value")]
-        new: bool,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
         /// Old availability.
-        #[serde(rename = "old_value")]
-        old: bool,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
     },
     /// Hash of an avatar.
     AvatarHash {
@@ -103,8 +133,8 @@ pub enum AuditLogChange {
     /// Bitrate of an audio channel.
     Bitrate {
         /// New bitrate.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
         /// Old bitrate.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
@@ -114,45 +144,72 @@ pub enum AuditLogChange {
         /// New invite's channel.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
         new: Option<Id<ChannelMarker>>,
+        /// Old invite's channel.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Id<ChannelMarker>>,
     },
     /// Code of an invite.
     Code {
         /// New invite's code.
-        #[serde(rename = "new_value")]
-        new: String,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<String>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<String>,
     },
     /// Color of a role.
     Color {
         /// New role color.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
         /// Old role color.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
     },
+    /// Member timeout state changed.
+    CommunicationDisabledUntil {
+        /// New timeout timestamp.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Timestamp>,
+        /// Old timeout timestamp.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Timestamp>,
+    },
     /// Whether a member is guild deafened.
     Deaf {
         /// Whether a member is now guild deafened.
-        #[serde(rename = "new_value")]
-        new: bool,
-        /// Whether a member was now guild deafened.
-        #[serde(rename = "old_value")]
-        old: bool,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
+    },
+    /// default auto archive duration for newly created threads changed.
+    DefaultAutoArchiveDuration {
+        /// New auto archive duration.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<AutoArchiveDuration>,
+        /// Old auto archive duration.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<AutoArchiveDuration>,
     },
     /// Default message notification level for a guild.
     DefaultMessageNotifications {
         /// New default message notification level.
-        #[serde(rename = "new_value")]
-        new: DefaultMessageNotificationLevel,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<DefaultMessageNotificationLevel>,
         /// Old default message notification level.
-        #[serde(rename = "old_value")]
-        old: DefaultMessageNotificationLevel,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<DefaultMessageNotificationLevel>,
     },
     /// Denied permissions of a permission overwrite target.
     Deny {
         /// New denied permissions level.
-        #[serde(rename = "new_value")]
-        new: Permissions,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Permissions>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Permissions>,
     },
     /// Description of a guild or sticker.
     Description {
@@ -175,56 +232,71 @@ pub enum AuditLogChange {
     /// Whether emoticons are enabled.
     EnableEmoticons {
         /// Whether emoticons are now enabled.
-        #[serde(rename = "new_value")]
-        new: bool,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
         /// Whether emoticons were enabled.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<bool>,
     },
+    /// Entity type of guild scheduled event was changed.
+    EntityType {
+        /// New entity type.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
+    },
     /// Behavior of the expiration of an integration.
     ExpireBehavior {
         /// New expiration behavior.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// Grace period of the expiration of an integration.
     ExpireGracePeriod {
         /// New expiration grace period.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// Explicit content filter level of a guild.
     ExplicitContentFilter {
         /// New explicit content filter level.
-        #[serde(rename = "new_value")]
-        new: ExplicitContentFilter,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<ExplicitContentFilter>,
         /// Old explicit content filter level.
-        #[serde(rename = "old_value")]
-        old: ExplicitContentFilter,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<ExplicitContentFilter>,
     },
     /// Format type of a sticker.
     FormatType {
         /// New format type of a sticker.
-        #[serde(rename = "new_value")]
-        new: StickerFormatType,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<StickerFormatType>,
         /// Old format type of a sticker.
-        #[serde(rename = "old_value")]
-        old: StickerFormatType,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<StickerFormatType>,
     },
     /// Guild that a sticker is in.
     GuildId {
         /// New guild that a sticker is in.
-        #[serde(rename = "new_value")]
-        new: Id<GuildMarker>,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Id<GuildMarker>>,
         /// Old guild that a sticker is in.
-        #[serde(rename = "old_value")]
-        old: Id<GuildMarker>,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Id<GuildMarker>>,
     },
     /// Whether a role is hoisted.
     Hoist {
         /// Whether a role is now hoisted.
-        #[serde(rename = "new_value")]
-        new: bool,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
         /// Whether a role was hoisted.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<bool>,
@@ -241,32 +313,60 @@ pub enum AuditLogChange {
     /// ID of an entity.
     Id {
         /// New entity's ID.
-        #[serde(rename = "new_value")]
-        new: Id<GenericMarker>,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Id<GenericMarker>>,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Id<GenericMarker>>,
     },
     /// ID of the user who created an invite.
     InviterId {
         /// User ID.
-        #[serde(rename = "new_value")]
-        new: Id<UserMarker>,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Id<UserMarker>>,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Id<UserMarker>>,
+    },
+    /// Location for a scheduled event changed.
+    ///
+    /// Can be an [`Id<ChannelMarker>`] or a [`String`].
+    Location {
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<String>,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<String>,
+    },
+    /// Thread was locked or unlocked.
+    Locked {
+        /// Whether the thread is now locked.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
     },
     /// Maximum age of an invite.
     MaxAge {
         /// New maximum age.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// Maximum uses of an invite.
     MaxUses {
         /// New maximum uses.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// Whether a role can be mentioned in a message.
     Mentionable {
         /// Whether a role is now mentionable.
-        #[serde(rename = "new_value")]
-        new: bool,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
         /// Whether a role was mentionable.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<bool>,
@@ -274,20 +374,20 @@ pub enum AuditLogChange {
     /// Multi-Factor Authentication level required of a guild's moderators.
     MfaLevel {
         /// New MFA level of a guild.
-        #[serde(rename = "new_value")]
-        new: MfaLevel,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<MfaLevel>,
         /// Old MFA level of a guild.
-        #[serde(rename = "old_value")]
-        old: MfaLevel,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<MfaLevel>,
     },
     /// Whether a user is guild muted.
     Mute {
         /// Whether a member is now muted.
-        #[serde(rename = "new_value")]
-        new: bool,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
         /// Whether a member was muted.
-        #[serde(rename = "old_value")]
-        old: bool,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
     },
     /// Name of an entity such as a channel or role.
     Name {
@@ -307,29 +407,47 @@ pub enum AuditLogChange {
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<String>,
     },
+    /// Whether a channel is NSFW.
+    Nsfw {
+        /// New state.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
+    },
     /// NSFW level of a guild.
     NsfwLevel {
         /// New NSFW level.
-        #[serde(rename = "new_value")]
-        new: NSFWLevel,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<NSFWLevel>,
         /// Old NSFW level.
-        #[serde(rename = "old_value")]
-        old: NSFWLevel,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<NSFWLevel>,
     },
     /// ID of the owner of a guild.
     OwnerId {
         /// New owner's ID.
-        #[serde(rename = "new_value")]
-        new: Id<UserMarker>,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Id<UserMarker>>,
         /// Old owner's ID.
-        #[serde(rename = "old_value")]
-        old: Id<UserMarker>,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Id<UserMarker>>,
+    },
+    /// Permission overwrites on a channel changed.
+    PermissionOverwrites {
+        /// New set of overwrites.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Vec<PermissionOverwrite>>,
+        /// Old set of overwrites.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Vec<PermissionOverwrite>>,
     },
     /// Default permissions of a role.
     Permissions {
         /// New set of permissions.
-        #[serde(rename = "new_value")]
-        new: Permissions,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Permissions>,
         /// Old set of permissions.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<Permissions>,
@@ -337,8 +455,8 @@ pub enum AuditLogChange {
     /// Position of an entity such as a channel or role.
     Position {
         /// New position value.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
         /// Old position value.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
@@ -355,17 +473,19 @@ pub enum AuditLogChange {
     /// Privacy level of a stage instance.
     PrivacyLevel {
         /// New privacy level.
-        #[serde(rename = "new_value")]
-        new: PrivacyLevel,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<PrivacyLevel>,
         /// Old privacy level.
-        #[serde(rename = "old_value")]
-        old: PrivacyLevel,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<PrivacyLevel>,
     },
     /// Number of days' worth of inactivity for a guild prune.
     PruneDeleteDays {
         /// Number of days.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// ID of a guild's public updates channel.
     PublicUpdatesChannelId {
@@ -379,23 +499,40 @@ pub enum AuditLogChange {
     /// Ratelimit per user in a textual channel.
     RateLimitPerUser {
         /// New ratelimit, in seconds.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
         /// Old ratelimit, in seconds.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
     },
+    /// Region of a guild changed.
+    Region {
+        /// New region.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<String>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<String>,
+    },
     /// Role was added to a user.
+    #[serde(rename = "$add")]
     RoleAdded {
         /// Minimal information about a added role.
-        #[serde(rename = "new_value")]
+        #[serde(default, rename = "new_value", skip_serializing_if = "Vec::is_empty")]
         new: Vec<AffectedRole>,
+        /// Previous state, if any.
+        #[serde(default, rename = "old_value", skip_serializing_if = "Vec::is_empty")]
+        old: Vec<AffectedRole>,
     },
     /// Role was removed from a user.
+    #[serde(rename = "$remove")]
     RoleRemoved {
         /// Minimal information about a removed role.
-        #[serde(rename = "new_value")]
+        #[serde(default, rename = "new_value", skip_serializing_if = "Vec::is_empty")]
         new: Vec<AffectedRole>,
+        /// Previous state, if any.
+        #[serde(default, rename = "old_value", skip_serializing_if = "Vec::is_empty")]
+        old: Vec<AffectedRole>,
     },
     /// Guild's rules channel.
     RulesChannelId {
@@ -414,6 +551,15 @@ pub enum AuditLogChange {
         /// New hash of a guild's splash.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<String>,
+    },
+    /// Status of guild scheduled event was changed.
+    Status {
+        /// New status.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// ID of guild's system channel.
     SystemChannelId {
@@ -436,8 +582,11 @@ pub enum AuditLogChange {
     /// Whether an invite is temporary.
     Temporary {
         /// New temporary state.
-        #[serde(rename = "new_value")]
-        new: bool,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
     },
     /// Topic of a textual channel.
     Topic {
@@ -451,26 +600,38 @@ pub enum AuditLogChange {
     /// Type of a created entity.
     Type {
         /// New target type.
-        #[serde(rename = "new_value")]
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
         new: Option<u64>,
         /// Old target type.
-        #[serde(rename = "old_value")]
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
+    },
+    /// Unicode emoji of a role icon changed.
+    UnicodeEmoji {
+        /// New unicode emoji.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<String>,
+        /// Old target type.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<String>,
     },
     /// Maximum number of users in a voice channel.
     UserLimit {
         /// New limit.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
         /// Old limit.
-        #[serde(rename = "old_value")]
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
     },
     /// Number of uses of an invite.
     Uses {
         /// Number of uses.
-        #[serde(rename = "new_value")]
-        new: u64,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<u64>,
+        /// Previous state, if any.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<u64>,
     },
     /// Code of a guild's vanity invite.
     VanityUrlCode {
@@ -484,11 +645,11 @@ pub enum AuditLogChange {
     /// Required verification level of new members in a guild.
     VerificationLevel {
         /// New verification level.
-        #[serde(rename = "new_value")]
-        new: VerificationLevel,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<VerificationLevel>,
         /// Old verification level.
-        #[serde(rename = "old_value")]
-        old: VerificationLevel,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<VerificationLevel>,
     },
     /// Channel ID of a widget.
     WidgetChannelId {
@@ -502,11 +663,11 @@ pub enum AuditLogChange {
     /// Whether a widget is enabled.
     WidgetEnabled {
         /// New state of a widget being enabled.
-        #[serde(rename = "new_value")]
-        new: bool,
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
         /// Old state of a widget being enabled.
-        #[serde(rename = "old_value")]
-        old: bool,
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
     },
     /// Other type of change not covered by other variants.
     #[serde(other)]
@@ -529,7 +690,7 @@ impl AuditLogChange {
     /// };
     ///
     /// let change = AuditLogChange::UserLimit {
-    ///     new: 6,
+    ///     new: Some(6),
     ///     old: Some(3),
     /// };
     ///
@@ -544,7 +705,9 @@ impl AuditLogChange {
             Self::AfkTimeout { .. } => AuditLogChangeKey::AfkTimeout,
             Self::Allow { .. } => AuditLogChangeKey::Allow,
             Self::ApplicationId { .. } => AuditLogChangeKey::ApplicationId,
+            Self::Archived { .. } => AuditLogChangeKey::Archived,
             Self::Asset { .. } => AuditLogChangeKey::Asset,
+            Self::AutoArchiveDuration { .. } => AuditLogChangeKey::AutoArchiveDuration,
             Self::Available { .. } => AuditLogChangeKey::Available,
             Self::AvatarHash { .. } => AuditLogChangeKey::AvatarHash,
             Self::BannerHash { .. } => AuditLogChangeKey::BannerHash,
@@ -552,7 +715,13 @@ impl AuditLogChange {
             Self::ChannelId { .. } => AuditLogChangeKey::ChannelId,
             Self::Code { .. } => AuditLogChangeKey::Code,
             Self::Color { .. } => AuditLogChangeKey::Color,
+            Self::CommunicationDisabledUntil { .. } => {
+                AuditLogChangeKey::CommunicationDisabledUntil
+            }
             Self::Deaf { .. } => AuditLogChangeKey::Deaf,
+            Self::DefaultAutoArchiveDuration { .. } => {
+                AuditLogChangeKey::DefaultAutoArchiveDuration
+            }
             Self::DefaultMessageNotifications { .. } => {
                 AuditLogChangeKey::DefaultMessageNotifications
             }
@@ -560,6 +729,7 @@ impl AuditLogChange {
             Self::Description { .. } => AuditLogChangeKey::Description,
             Self::DiscoverySplashHash { .. } => AuditLogChangeKey::DiscoverySplashHash,
             Self::EnableEmoticons { .. } => AuditLogChangeKey::EnableEmoticons,
+            Self::EntityType { .. } => AuditLogChangeKey::EntityType,
             Self::ExpireBehavior { .. } => AuditLogChangeKey::ExpireBehavior,
             Self::ExpireGracePeriod { .. } => AuditLogChangeKey::ExpireGracePeriod,
             Self::ExplicitContentFilter { .. } => AuditLogChangeKey::ExplicitContentFilter,
@@ -569,6 +739,8 @@ impl AuditLogChange {
             Self::IconHash { .. } => AuditLogChangeKey::IconHash,
             Self::Id { .. } => AuditLogChangeKey::Id,
             Self::InviterId { .. } => AuditLogChangeKey::InviterId,
+            Self::Location { .. } => AuditLogChangeKey::Location,
+            Self::Locked { .. } => AuditLogChangeKey::Locked,
             Self::MaxAge { .. } => AuditLogChangeKey::MaxAge,
             Self::MaxUses { .. } => AuditLogChangeKey::MaxUses,
             Self::Mentionable { .. } => AuditLogChangeKey::Mentionable,
@@ -576,8 +748,10 @@ impl AuditLogChange {
             Self::Mute { .. } => AuditLogChangeKey::Mute,
             Self::Name { .. } => AuditLogChangeKey::Name,
             Self::Nick { .. } => AuditLogChangeKey::Nick,
+            Self::Nsfw { .. } => AuditLogChangeKey::Nsfw,
             Self::NsfwLevel { .. } => AuditLogChangeKey::NsfwLevel,
             Self::OwnerId { .. } => AuditLogChangeKey::OwnerId,
+            Self::PermissionOverwrites { .. } => AuditLogChangeKey::PermissionOverwrites,
             Self::Permissions { .. } => AuditLogChangeKey::Permissions,
             Self::Position { .. } => AuditLogChangeKey::Position,
             Self::PreferredLocale { .. } => AuditLogChangeKey::PreferredLocale,
@@ -585,17 +759,20 @@ impl AuditLogChange {
             Self::PruneDeleteDays { .. } => AuditLogChangeKey::PruneDeleteDays,
             Self::PublicUpdatesChannelId { .. } => AuditLogChangeKey::PublicUpdatesChannelId,
             Self::RateLimitPerUser { .. } => AuditLogChangeKey::RateLimitPerUser,
+            Self::Region { .. } => AuditLogChangeKey::Region,
             Self::RoleAdded { .. } => AuditLogChangeKey::RoleAdded,
             Self::RoleRemoved { .. } => AuditLogChangeKey::RoleRemoved,
             Self::RulesChannelId { .. } => AuditLogChangeKey::RulesChannelId,
             Self::SplashHash { .. } => AuditLogChangeKey::SplashHash,
+            Self::Status { .. } => AuditLogChangeKey::Status,
             Self::SystemChannelId { .. } => AuditLogChangeKey::SystemChannelId,
             Self::Tags { .. } => AuditLogChangeKey::Tags,
             Self::Temporary { .. } => AuditLogChangeKey::Temporary,
             Self::Topic { .. } => AuditLogChangeKey::Topic,
             Self::Type { .. } => AuditLogChangeKey::Type,
-            Self::Uses { .. } => AuditLogChangeKey::Uses,
+            Self::UnicodeEmoji { .. } => AuditLogChangeKey::UnicodeEmoji,
             Self::UserLimit { .. } => AuditLogChangeKey::UserLimit,
+            Self::Uses { .. } => AuditLogChangeKey::Uses,
             Self::VanityUrlCode { .. } => AuditLogChangeKey::VanityUrlCode,
             Self::VerificationLevel { .. } => AuditLogChangeKey::VerificationLevel,
             Self::WidgetChannelId { .. } => AuditLogChangeKey::WidgetChannelId,
@@ -625,6 +802,7 @@ mod tests {
     assert_fields!(AuditLogChange::ChannelId: new);
     assert_fields!(AuditLogChange::Code: new);
     assert_fields!(AuditLogChange::Color: new, old);
+    assert_fields!(AuditLogChange::CommunicationDisabledUntil: new, old);
     assert_fields!(AuditLogChange::Deaf: new, old);
     assert_fields!(AuditLogChange::DefaultMessageNotifications: new, old);
     assert_fields!(AuditLogChange::Deny: new);
@@ -694,7 +872,7 @@ mod tests {
     #[test]
     fn test_afk_channel_id() {
         let value = AuditLogChange::AfkChannelId {
-            new: Some(Id::new(1).expect("non zero")),
+            new: Some(Id::new(1)),
             old: None,
         };
 
@@ -724,7 +902,7 @@ mod tests {
         let new: Permissions = old | Permissions::EMBED_LINKS;
 
         let value = AuditLogChange::Permissions {
-            new,
+            new: Some(new),
             old: Some(old),
         };
 
@@ -740,6 +918,7 @@ mod tests {
                 Token::String("key"),
                 Token::String("permissions"),
                 Token::String("new_value"),
+                Token::Some,
                 Token::Str("18432"),
                 Token::String("old_value"),
                 Token::Some,

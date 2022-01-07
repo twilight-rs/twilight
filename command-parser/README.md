@@ -4,6 +4,9 @@
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
+**This crate has been deprecated. Please use [Discord interactions] via the
+[`twilight-gateway`] or [`twilight-http`] crates.**
+
 `twilight-command-parser` is a command parser for the [`twilight-rs`]
 ecosystem.
 
@@ -46,6 +49,7 @@ match parser.parse("!echo a message") {
 }
 ```
 
+[Discord interactions]: https://discord.com/developers/docs/interactions/application-commands
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -54,7 +58,9 @@ match parser.parse("!echo a message") {
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+[`twilight-gateway`]: https://crates.io/crates/twilight-gateway
+[`twilight-http`]: https://crates.io/crates/twilight-http
 [`twilight-rs`]: https://github.com/twilight-rs/twilight
 
 <!-- cargo-sync-readme end -->

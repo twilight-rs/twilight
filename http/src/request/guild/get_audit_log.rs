@@ -1,13 +1,9 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
-};
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
     guild::audit_log::{AuditLog, AuditLogEventType},
@@ -16,51 +12,9 @@ use twilight_model::{
         Id,
     },
 };
-
-/// The error returned when the audit log can not be requested as configured.
-#[derive(Debug)]
-pub struct GetAuditLogError {
-    kind: GetAuditLogErrorType,
-}
-
-impl GetAuditLogError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &GetAuditLogErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (GetAuditLogErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, None)
-    }
-}
-
-impl Display for GetAuditLogError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            GetAuditLogErrorType::LimitInvalid => f.write_str("the limit is invalid"),
-        }
-    }
-}
-
-impl Error for GetAuditLogError {}
-
-/// Type of [`GetAuditLogError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum GetAuditLogErrorType {
-    /// The limit is either 0 or more than 100.
-    LimitInvalid,
-}
+use twilight_validate::request::{
+    get_guild_audit_log_limit as validate_get_guild_audit_log_limit, ValidationError,
+};
 
 struct GetAuditLogFields {
     action_type: Option<AuditLogEventType>,
@@ -81,7 +35,7 @@ struct GetAuditLogFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("token".to_owned());
 ///
-/// let guild_id = Id::new(101).expect("non zero");
+/// let guild_id = Id::new(101);
 /// let audit_log = client
 ///     .audit_log(guild_id)
 ///     .exec()
@@ -141,13 +95,13 @@ impl<'a> GetAuditLog<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`GetAuditLogErrorType::LimitInvalid`] error type if the
-    /// `limit` is 0 or greater than 100.
-    pub const fn limit(mut self, limit: u64) -> Result<Self, GetAuditLogError> {
-        if !validate_inner::get_audit_log_limit(limit) {
-            return Err(GetAuditLogError {
-                kind: GetAuditLogErrorType::LimitInvalid,
-            });
+    /// Returns an error of type [`GetGuildAuditLog`] if the `limit` is 0 or
+    /// greater than 100.
+    ///
+    /// [`GetGuildAuditLog`]: twilight_validate::request::ValidationErrorType::GetGuildAuditLog
+    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+        if let Err(source) = validate_get_guild_audit_log_limit(limit) {
+            return Err(source);
         }
 
         self.fields.limit = Some(limit);

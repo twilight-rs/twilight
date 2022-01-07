@@ -1,5 +1,4 @@
 use bitflags::bitflags;
-use std::convert::TryFrom;
 use twilight_model::gateway::event::EventType;
 
 bitflags! {
@@ -373,7 +372,7 @@ impl Default for EventTypeFlags {
 mod tests {
     use super::{EventType, EventTypeFlags};
     use static_assertions::assert_impl_all;
-    use std::{convert::TryFrom, fmt::Debug, hash::Hash};
+    use std::{fmt::Debug, hash::Hash};
 
     assert_impl_all!(
         EventTypeFlags: Copy,

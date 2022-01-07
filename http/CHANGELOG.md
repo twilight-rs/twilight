@@ -2,6 +2,37 @@
 
 Changelog for `twilight-http`.
 
+## [0.8.3] - 2021-12-27
+
+### Additions
+
+Support guild member timeouts via
+`UpdateGuildMember::communication_disabled_until` ([#1342] - [@HTG-YT]).
+
+Support pre-flight cancellation to cancel requests after passing ratelimit
+queues but before sending ([#1353] - [@zeylahellyer]).
+
+### Fixes
+
+Fix display implementation for Get Active Threads route
+([#1386] - [@zeylahellyer]).
+
+Fix display implementation for Get Current User Application Info route
+([#1389] - [@Erk-]).
+
+[#1389]: https://github.com/twilight-rs/twilight/pull/1389
+[#1386]: https://github.com/twilight-rs/twilight/pull/1386
+[#1353]: https://github.com/twilight-rs/twilight/pull/1353
+[#1342]: https://github.com/twilight-rs/twilight/pull/1342
+
+## [0.8.2] - 2021-12-24
+
+### Additions
+
+Add the API error code `50109 RequestInvalidJson` ([#1338] - [@vilgotf]).
+
+[#1326]: https://github.com/twilight-rs/twilight/pull/1326
+
 ## [0.8.1] - 2021-12-15
 
 ### Additions
@@ -1414,6 +1445,7 @@ Initial release.
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@HTG-YT]: https://github.com/HTG-YT
 [@itohatweb]: https://github.com/itohatweb
 [@jazevedo620]: https://github.com/jazevedo620
 [@Learath2]: https://github.com/Learath2
@@ -1464,6 +1496,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.3
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.0
 [0.7.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.7.3

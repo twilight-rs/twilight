@@ -1,10 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{
-        multipart::Form, validate_inner, AuditLogReason, AuditLogReasonError, Request,
-        TryIntoRequest,
-    },
+    request::{multipart::Form, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -12,8 +9,10 @@ use twilight_model::{
     channel::message::Sticker,
     id::{marker::GuildMarker, Id},
 };
-
-use super::{StickerValidationError, StickerValidationErrorType};
+use twilight_validate::sticker::{
+    description as validate_description, name as validate_name, tags as validate_tags,
+    StickerValidationError,
+};
 
 struct CreateGuildStickerFields<'a> {
     description: &'a str,
@@ -34,7 +33,7 @@ struct CreateGuildStickerFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(1).expect("non zero");
+/// let guild_id = Id::new(1);
 /// let sticker = client
 ///     .create_guild_sticker(
 ///         guild_id,
@@ -67,23 +66,11 @@ impl<'a> CreateGuildSticker<'a> {
         tags: &'a str,
         file: &'a [u8],
     ) -> Result<Self, StickerValidationError> {
-        if !validate_inner::sticker_description(description) {
-            return Err(StickerValidationError {
-                kind: StickerValidationErrorType::DescriptionInvalid,
-            });
-        }
+        validate_description(description)?;
 
-        if !validate_inner::sticker_name(name) {
-            return Err(StickerValidationError {
-                kind: StickerValidationErrorType::NameInvalid,
-            });
-        }
+        validate_name(name)?;
 
-        if !validate_inner::sticker_tags(tags) {
-            return Err(StickerValidationError {
-                kind: StickerValidationErrorType::TagsInvalid,
-            });
-        }
+        validate_tags(tags)?;
 
         Ok(Self {
             fields: CreateGuildStickerFields {

@@ -3,15 +3,18 @@ mod membership_state;
 
 pub use self::{member::TeamMember, membership_state::TeamMembershipState};
 
-use crate::id::{
-    marker::{OauthTeamMarker, UserMarker},
-    Id,
+use crate::{
+    id::{
+        marker::{OauthTeamMarker, UserMarker},
+        Id,
+    },
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Team {
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     pub id: Id<OauthTeamMarker>,
     pub members: Vec<TeamMember>,
     pub name: String,
@@ -21,7 +24,7 @@ pub struct Team {
 #[cfg(test)]
 mod tests {
     use super::Team;
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -42,11 +45,11 @@ mod tests {
     #[test]
     fn test_team() {
         let value = Team {
-            icon: Some("hash".to_owned()),
-            id: Id::new(1).expect("non zero"),
+            icon: Some(image_hash::ICON),
+            id: Id::new(1),
             members: Vec::new(),
             name: "team name".into(),
-            owner_user_id: Id::new(2).expect("non zero"),
+            owner_user_id: Id::new(2),
         };
 
         serde_test::assert_tokens(
@@ -58,7 +61,7 @@ mod tests {
                 },
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),

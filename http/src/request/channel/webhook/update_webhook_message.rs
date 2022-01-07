@@ -4,20 +4,14 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self,
-        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, AuditLogReason, AuditLogReasonError, Form, NullableField, Request,
+        self, AttachmentFile, AuditLogReason, AuditLogReasonError, Form, NullableField, Request,
         TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
@@ -26,102 +20,10 @@ use twilight_model::{
         Id,
     },
 };
-
-/// A webhook's message can not be updated as configured.
-#[derive(Debug)]
-pub struct UpdateWebhookMessageError {
-    kind: UpdateWebhookMessageErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl UpdateWebhookMessageError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateWebhookMessageErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        UpdateWebhookMessageErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, self.source)
-    }
-}
-
-impl Display for UpdateWebhookMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateWebhookMessageErrorType::ComponentCount { count } => {
-                Display::fmt(count, f)?;
-                f.write_str(" components were provided, but only ")?;
-                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
-
-                f.write_str(" root components are allowed")
-            }
-            UpdateWebhookMessageErrorType::ComponentInvalid { .. } => {
-                f.write_str("a provided component is invalid")
-            }
-            UpdateWebhookMessageErrorType::ContentInvalid => {
-                f.write_str("message content is invalid")
-            }
-            UpdateWebhookMessageErrorType::EmbedTooLarge { .. } => {
-                f.write_str("length of one of the embeds is too large")
-            }
-            UpdateWebhookMessageErrorType::TooManyEmbeds => {
-                f.write_str("only 10 embeds may be provided")
-            }
-        }
-    }
-}
-
-impl Error for UpdateWebhookMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`UpdateWebhookMessageError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UpdateWebhookMessageErrorType {
-    /// Content is over 2000 UTF-16 characters.
-    ContentInvalid,
-    /// Length of one of the embeds is over 6000 characters.
-    EmbedTooLarge {
-        /// Index of the embed that was too large.
-        ///
-        /// This can be used to index into the provided embeds to retrieve the
-        /// invalid embed.
-        index: usize,
-    },
-    /// An invalid message component was provided.
-    ComponentInvalid {
-        /// Additional details about the validation failure type.
-        kind: ComponentValidationErrorType,
-    },
-    /// Too many message components were provided.
-    ComponentCount {
-        /// Number of components that were provided.
-        count: usize,
-    },
-    /// Too many embeds were provided.
-    ///
-    /// A webhook can have up to 10 embeds.
-    TooManyEmbeds,
-}
+use twilight_validate::message::{
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateWebhookMessageFields<'a> {
@@ -161,7 +63,7 @@ struct UpdateWebhookMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
-/// client.update_webhook_message(Id::new(1).expect("non zero"), "token here", Id::new(2).expect("non zero"))
+/// client.update_webhook_message(Id::new(1), "token here", Id::new(2))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -238,32 +140,15 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateWebhookMessageErrorType::ComponentCount`] error
-    /// type if too many components are provided.
-    ///
-    /// Returns an [`UpdateWebhookMessageErrorType::ComponentInvalid`] error
-    /// type if one of the provided components is invalid.
+    /// Refer to the errors section of
+    /// [`twilight_validate::component::component`] for a list of errors that
+    /// may be returned as a result of validating each provided component.
     pub fn components(
         mut self,
         components: Option<&'a [Component]>,
-    ) -> Result<Self, UpdateWebhookMessageError> {
-        if let Some(components) = components.as_ref() {
-            validate_inner::components(components).map_err(|source| {
-                let (kind, inner_source) = source.into_parts();
-
-                match kind {
-                    ComponentValidationErrorType::ComponentCount { count } => {
-                        UpdateWebhookMessageError {
-                            kind: UpdateWebhookMessageErrorType::ComponentCount { count },
-                            source: inner_source,
-                        }
-                    }
-                    other => UpdateWebhookMessageError {
-                        kind: UpdateWebhookMessageErrorType::ComponentInvalid { kind: other },
-                        source: inner_source,
-                    },
-                }
-            })?;
+    ) -> Result<Self, MessageValidationError> {
+        if let Some(components) = components {
+            validate_components(components)?;
         }
 
         self.fields.components = Some(NullableField(components));
@@ -282,16 +167,13 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateWebhookMessageErrorType::ContentInvalid`] error type if
-    /// the content length is too long.
-    pub fn content(mut self, content: Option<&'a str>) -> Result<Self, UpdateWebhookMessageError> {
+    /// Returns an error of type [`ContentInvalid`] if the content length is too
+    /// long.
+    ///
+    /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    pub fn content(mut self, content: Option<&'a str>) -> Result<Self, MessageValidationError> {
         if let Some(content_ref) = content {
-            if !validate_inner::content_limit(content_ref) {
-                return Err(UpdateWebhookMessageError {
-                    kind: UpdateWebhookMessageErrorType::ContentInvalid,
-                    source: None,
-                });
-            }
+            validate_content(content_ref)?;
         }
 
         self.fields.content = Some(NullableField(content));
@@ -329,7 +211,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_webhook_message(Id::new(1).expect("non zero"), "token", Id::new(2).expect("non zero"))
+    /// client.update_webhook_message(Id::new(1), "token", Id::new(2))
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -338,34 +220,18 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateWebhookMessageErrorType::EmbedTooLarge`] error type
-    /// if one of the embeds are too large.
+    /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
     ///
-    /// Returns an [`UpdateWebhookMessageErrorType::TooManyEmbeds`] error type
-    /// if more than 10 embeds are provided.
+    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
+    /// that may occur.
     ///
+    /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [`embed`]: twilight_validate::embed::embed
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
-    /// [`EMBED_COUNT_LIMIT`]: Self::EMBED_COUNT_LIMIT
-    pub fn embeds(
-        mut self,
-        embeds: Option<&'a [Embed]>,
-    ) -> Result<Self, UpdateWebhookMessageError> {
-        if let Some(embeds_present) = embeds {
-            if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
-                return Err(UpdateWebhookMessageError {
-                    kind: UpdateWebhookMessageErrorType::TooManyEmbeds,
-                    source: None,
-                });
-            }
-
-            for (idx, embed) in embeds_present.iter().enumerate() {
-                if let Err(source) = validate_inner::embed(embed) {
-                    return Err(UpdateWebhookMessageError {
-                        kind: UpdateWebhookMessageErrorType::EmbedTooLarge { index: idx },
-                        source: Some(Box::new(source)),
-                    });
-                }
-            }
+    pub fn embeds(mut self, embeds: Option<&'a [Embed]>) -> Result<Self, MessageValidationError> {
+        if let Some(embeds) = embeds {
+            validate_embeds(embeds)?;
         }
 
         self.fields.embeds = Some(NullableField(embeds));
@@ -505,17 +371,12 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-        let builder = UpdateWebhookMessage::new(
-            &client,
-            Id::new(1).expect("non zero"),
-            "token",
-            Id::new(2).expect("non zero"),
-        )
-        .content(Some("test"))
-        .expect("'test' content couldn't be set")
-        .thread_id(Id::new(3).expect("non zero"))
-        .reason("reason")
-        .expect("'reason' is not a valid reason");
+        let builder = UpdateWebhookMessage::new(&client, Id::new(1), "token", Id::new(2))
+            .content(Some("test"))
+            .expect("'test' content couldn't be set")
+            .thread_id(Id::new(3))
+            .reason("reason")
+            .expect("'reason' is not a valid reason");
         let actual = builder
             .try_into_request()
             .expect("failed to create request");

@@ -1,8 +1,7 @@
-use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error,
-    request::{validate_inner, Request, RequestBuilder, TryIntoRequest},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,6 +9,9 @@ use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel, ChannelType},
     id::{marker::ChannelMarker, Id},
+};
+use twilight_validate::channel::{
+    is_thread as validate_is_thread, name as validate_name, ChannelValidationError,
 };
 
 #[derive(Serialize)]
@@ -47,18 +49,10 @@ impl<'a> CreateThread<'a> {
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         kind: ChannelType,
-    ) -> Result<Self, ThreadValidationError> {
-        if !validate_inner::channel_name(name) {
-            return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::NameInvalid,
-            });
-        }
+    ) -> Result<Self, ChannelValidationError> {
+        validate_name(name)?;
 
-        if !validate_inner::is_thread(kind) {
-            return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::TypeInvalid { kind },
-            });
-        }
+        validate_is_thread(kind)?;
 
         Ok(Self {
             channel_id,

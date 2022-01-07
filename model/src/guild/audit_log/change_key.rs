@@ -17,18 +17,18 @@ pub enum AuditLogChangeKey {
     AfkTimeout,
     /// Allowed permissions of a permission overwrite target.
     Allow,
-    /// Thread was archived or unarchived.
-    Archived,
     /// ID of an application.
     ApplicationId,
+    /// Thread was archived or unarchived.
+    Archived,
     /// Asset of a sticker.
     ///
     /// Empty string.
     Asset,
-    /// Availability of a sticker.
-    Available,
     /// Auto archive duration of a thread.
     AutoArchiveDuration,
+    /// Availability of a sticker.
+    Available,
     /// Hash of an avatar.
     AvatarHash,
     /// Hash of a guild banner.
@@ -41,6 +41,8 @@ pub enum AuditLogChangeKey {
     Code,
     /// Color of a role.
     Color,
+    /// Member timeout state changed.
+    CommunicationDisabledUntil,
     /// Whether a user is guild deafened.
     Deaf,
     /// Default auto archive duration for new threads.
@@ -55,6 +57,8 @@ pub enum AuditLogChangeKey {
     DiscoverySplashHash,
     /// Whether emoticons are enabled.
     EnableEmoticons,
+    /// Entity type of guild scheduled event was changed.
+    EntityType,
     /// Behavior of the expiration of an integration.
     ExpireBehavior,
     /// Grace period of the expiration of an integration.
@@ -73,6 +77,8 @@ pub enum AuditLogChangeKey {
     Id,
     /// ID of the user who created an invite.
     InviterId,
+    /// Channel ID for a scheduled event changed.
+    Location,
     /// Thread was locked or unlocked.
     Locked,
     /// Maximum age of an invite.
@@ -89,10 +95,14 @@ pub enum AuditLogChangeKey {
     Name,
     /// Nickname of a member.
     Nick,
+    /// Whether a channel is NSFW.
+    Nsfw,
     /// NSFW level of a guild.
     NsfwLevel,
     /// ID of the owner of a guild.
     OwnerId,
+    /// Permission overwrites on a channel changed.
+    PermissionOverwrites,
     /// Default permissions of a role.
     Permissions,
     /// Position of an entity such as a channel or role.
@@ -107,6 +117,8 @@ pub enum AuditLogChangeKey {
     PublicUpdatesChannelId,
     /// Ratelimit per user in a textual channel.
     RateLimitPerUser,
+    /// Region of a guild changed.
+    Region,
     /// Role added to a user.
     #[serde(rename = "$add")]
     RoleAdded,
@@ -117,6 +129,8 @@ pub enum AuditLogChangeKey {
     RulesChannelId,
     /// Hash of a guild's splash.
     SplashHash,
+    /// Status of guild scheduled event was changed.
+    Status,
     /// ID of a guild's system channel.
     SystemChannelId,
     /// Related emoji of a sticker.
@@ -177,6 +191,7 @@ impl AuditLogChangeKey {
             Self::ChannelId => "channel_id",
             Self::Code => "code",
             Self::Color => "color",
+            Self::CommunicationDisabledUntil => "communication_disabled_until",
             Self::Deaf => "deaf",
             Self::DefaultAutoArchiveDuration => "default_auto_archive_duration",
             Self::DefaultMessageNotifications => "default_message_notifications",
@@ -184,6 +199,7 @@ impl AuditLogChangeKey {
             Self::Description => "description",
             Self::DiscoverySplashHash => "discovery_splash_hash",
             Self::EnableEmoticons => "enable_emoticons",
+            Self::EntityType => "entity_type",
             Self::ExpireBehavior => "expire_behavior",
             Self::ExpireGracePeriod => "expire_grace_period",
             Self::ExplicitContentFilter => "explicit_content_filter",
@@ -193,6 +209,7 @@ impl AuditLogChangeKey {
             Self::IconHash => "icon_hash",
             Self::Id => "id",
             Self::InviterId => "inviter_id",
+            Self::Location => "location",
             Self::Locked => "locked",
             Self::MaxAge => "max_age",
             Self::MaxUses => "max_uses",
@@ -201,8 +218,10 @@ impl AuditLogChangeKey {
             Self::Mute => "mute",
             Self::Name => "name",
             Self::Nick => "nick",
+            Self::Nsfw => "nsfw",
             Self::NsfwLevel => "nsfw_level",
             Self::OwnerId => "owner_id",
+            Self::PermissionOverwrites => "permission_overwrites",
             Self::Permissions => "permissions",
             Self::Position => "position",
             Self::PreferredLocale => "preferred_locale",
@@ -210,10 +229,12 @@ impl AuditLogChangeKey {
             Self::PruneDeleteDays => "prune_delete_days",
             Self::PublicUpdatesChannelId => "public_updates_channel_id",
             Self::RateLimitPerUser => "rate_limit_per_user",
+            Self::Region => "region",
             Self::RoleAdded => "$add",
             Self::RoleRemoved => "$remove",
             Self::RulesChannelId => "rules_channel_id",
             Self::SplashHash => "splash_hash",
+            Self::Status => "status",
             Self::SystemChannelId => "system_channel_id",
             Self::Tags => "tags",
             Self::Temporary => "temporary",
@@ -273,6 +294,10 @@ mod tests {
         assert_eq!("channel_id", AuditLogChangeKey::ChannelId.name());
         assert_eq!("code", AuditLogChangeKey::Code.name());
         assert_eq!("color", AuditLogChangeKey::Color.name());
+        assert_eq!(
+            "communication_disabled_until",
+            AuditLogChangeKey::CommunicationDisabledUntil.name()
+        );
         assert_eq!("deaf", AuditLogChangeKey::Deaf.name());
         assert_eq!(
             "default_message_notifications",
@@ -425,6 +450,13 @@ mod tests {
             &[Token::UnitVariant {
                 name: "AuditLogChangeKey",
                 variant: "color",
+            }],
+        );
+        serde_test::assert_tokens(
+            &AuditLogChangeKey::CommunicationDisabledUntil,
+            &[Token::UnitVariant {
+                name: "AuditLogChangeKey",
+                variant: "communication_disabled_until",
             }],
         );
         serde_test::assert_tokens(

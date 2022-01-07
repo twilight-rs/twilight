@@ -10,7 +10,7 @@ use super::{
     session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
 };
-use crate::event::EventTypeFlags;
+use crate::{event::EventTypeFlags, shard::tls::TlsContainer};
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -173,6 +173,9 @@ impl ReceivingEventError {
             ReceivingEventErrorType::AuthorizationInvalid { .. }
                 | ReceivingEventErrorType::IntentsDisallowed { .. }
                 | ReceivingEventErrorType::IntentsInvalid { .. }
+                | ReceivingEventErrorType::InvalidApiVersion
+                | ReceivingEventErrorType::InvalidShard { .. }
+                | ReceivingEventErrorType::ShardingRequired
         )
     }
 
@@ -216,6 +219,23 @@ impl Display for ReceivingEventError {
             ReceivingEventErrorType::EventStreamEnded => {
                 f.write_str("event stream from gateway ended")
             }
+            ReceivingEventErrorType::InvalidApiVersion => {
+                f.write_str("invalid api version was used for identifying")
+            }
+            ReceivingEventErrorType::InvalidShard {
+                shard_count,
+                shard_id,
+            } => {
+                f.write_str("The shard [")?;
+                Debug::fmt(shard_id, f)?;
+                f.write_str(", ")?;
+                Debug::fmt(shard_count, f)?;
+
+                f.write_str("] is invalid")
+            }
+            ReceivingEventErrorType::ShardingRequired => {
+                f.write_str("session handles too many guilds, sharding required")
+            }
         }
     }
 }
@@ -256,6 +276,17 @@ pub enum ReceivingEventErrorType {
         /// ID of the shard.
         shard_id: u64,
     },
+    /// Invalid API version was used for identify.
+    InvalidApiVersion,
+    /// Attempting to identify a invalid shard.
+    InvalidShard {
+        /// Shard count.
+        shard_count: u64,
+        /// ID of the shard.
+        shard_id: u64,
+    },
+    /// Sharding is required for the bot.
+    ShardingRequired,
 }
 
 #[derive(Deserialize)]
@@ -314,7 +345,7 @@ impl ShardProcessor {
             gateway: url.clone(),
             shard_id: config.shard()[0],
         }));
-        let stream = Self::connect(&url).await?;
+        let stream = Self::connect(&url, config.tls.as_ref()).await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(async move {
             forwarder.run().await;
@@ -815,6 +846,27 @@ impl ShardProcessor {
                         source: None,
                     });
                 }
+                CloseCode::Library(4010) => {
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::InvalidShard {
+                            shard_count: self.config.shard()[1],
+                            shard_id: self.config.shard()[0],
+                        },
+                        source: None,
+                    });
+                }
+                CloseCode::Library(4011) => {
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::ShardingRequired,
+                        source: None,
+                    });
+                }
+                CloseCode::Library(4012) => {
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::InvalidApiVersion,
+                        source: None,
+                    });
+                }
                 CloseCode::Library(4013) => {
                     return Err(ReceivingEventError {
                         kind: ReceivingEventErrorType::IntentsInvalid {
@@ -842,7 +894,10 @@ impl ShardProcessor {
         Ok(())
     }
 
-    async fn connect(url: &str) -> Result<ShardStream, ConnectingError> {
+    async fn connect(
+        url: &str,
+        tls: Option<&TlsContainer>,
+    ) -> Result<ShardStream, ConnectingError> {
         let url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),
@@ -862,12 +917,16 @@ impl ShardProcessor {
             max_send_queue: None,
         };
 
-        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config))
-            .await
-            .map_err(|source| ConnectingError {
-                kind: ConnectingErrorType::Establishing,
-                source: Some(Box::new(source)),
-            })?;
+        let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(
+            url,
+            Some(config),
+            tls.map(TlsContainer::connector),
+        )
+        .await
+        .map_err(|source| ConnectingError {
+            kind: ConnectingErrorType::Establishing,
+            source: Some(Box::new(source)),
+        })?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!("Shook hands with remote");
@@ -927,7 +986,7 @@ impl ShardProcessor {
                 shard_id: self.config.shard()[0],
             }));
 
-            let stream = match Self::connect(&self.url).await {
+            let stream = match Self::connect(&self.url, self.config.tls.as_ref()).await {
                 Ok(s) => s,
                 Err(_source) => {
                     #[cfg(feature = "tracing")]
@@ -996,7 +1055,7 @@ impl ShardProcessor {
             shard_id: self.config.shard()[0],
         }));
 
-        let stream = Self::connect(&self.url).await?;
+        let stream = Self::connect(&self.url, self.config.tls.as_ref()).await?;
 
         self.set_session(stream, Stage::Resuming);
 

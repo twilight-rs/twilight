@@ -2,23 +2,14 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self,
-        attachment::AttachmentFile,
-        multipart::Form,
-        validate_inner::{
-            self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
-        },
-        PartialAttachment, Request, TryIntoRequest,
+        self, attachment::AttachmentFile, multipart::Form, PartialAttachment, Request,
+        TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{
@@ -31,95 +22,10 @@ use twilight_model::{
         Id,
     },
 };
-
-/// The error created when a message can not be created as configured.
-#[derive(Debug)]
-pub struct CreateMessageError {
-    kind: CreateMessageErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl CreateMessageError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &CreateMessageErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (CreateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.source)
-    }
-
-    fn embed(source: EmbedValidationError, idx: usize) -> Self {
-        Self {
-            kind: CreateMessageErrorType::EmbedTooLarge { idx },
-            source: Some(Box::new(source)),
-        }
-    }
-}
-
-impl Display for CreateMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            CreateMessageErrorType::ComponentCount { count } => {
-                Display::fmt(count, f)?;
-                f.write_str(" components were provided, but only ")?;
-                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
-
-                f.write_str(" root components are allowed")
-            }
-            CreateMessageErrorType::ComponentInvalid { .. } => {
-                f.write_str("a provided component is invalid")
-            }
-            CreateMessageErrorType::ContentInvalid => f.write_str("the message content is invalid"),
-            CreateMessageErrorType::EmbedTooLarge { idx } => {
-                f.write_str("the embed at index ")?;
-                Display::fmt(&idx, f)?;
-
-                f.write_str("'s contents are too long")
-            }
-        }
-    }
-}
-
-impl Error for CreateMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`CreateMessageError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum CreateMessageErrorType {
-    /// Too many message components were provided.
-    ComponentCount {
-        /// Number of components that were provided.
-        count: usize,
-    },
-    /// An invalid message component was provided.
-    ComponentInvalid {
-        /// Additional details about the validation failure type.
-        kind: ComponentValidationErrorType,
-    },
-    /// Returned when the content is over 2000 UTF-16 characters.
-    ContentInvalid,
-    /// Returned when the length of the embed is over 6000 characters.
-    EmbedTooLarge {
-        /// Index of the embed.
-        idx: usize,
-    },
-}
+use twilight_validate::message::{
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
+};
 
 #[derive(Serialize)]
 pub(crate) struct CreateMessageFields<'a> {
@@ -155,7 +61,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = Id::new(123).expect("non zero");
+/// let channel_id = Id::new(123);
 /// let message = client
 ///     .create_message(channel_id)
 ///     .content("Twilight is best pony")?
@@ -205,26 +111,14 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`CreateMessageErrorType::ComponentCount`] error type if
-    /// too many components are provided.
-    ///
-    /// Returns an [`CreateMessageErrorType::ComponentInvalid`] error type if
-    /// one of the provided components is invalid.
-    pub fn components(mut self, components: &'a [Component]) -> Result<Self, CreateMessageError> {
-        validate_inner::components(components).map_err(|source| {
-            let (kind, inner_source) = source.into_parts();
-
-            match kind {
-                ComponentValidationErrorType::ComponentCount { count } => CreateMessageError {
-                    kind: CreateMessageErrorType::ComponentCount { count },
-                    source: inner_source,
-                },
-                other => CreateMessageError {
-                    kind: CreateMessageErrorType::ComponentInvalid { kind: other },
-                    source: inner_source,
-                },
-            }
-        })?;
+    /// Refer to the errors section of
+    /// [`twilight_validate::component::component`] for a list of errors that
+    /// may be returned as a result of validating each provided component.
+    pub fn components(
+        mut self,
+        components: &'a [Component],
+    ) -> Result<Self, MessageValidationError> {
+        validate_components(components)?;
 
         self.fields.components = components;
 
@@ -237,15 +131,12 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateMessageErrorType::ContentInvalid`] error type if the
-    /// content length is too long.
-    pub fn content(mut self, content: &'a str) -> Result<Self, CreateMessageError> {
-        if !validate_inner::content_limit(content) {
-            return Err(CreateMessageError {
-                kind: CreateMessageErrorType::ContentInvalid,
-                source: None,
-            });
-        }
+    /// Returns an error of type [`ContentInvalid`] if the content length is too
+    /// long.
+    ///
+    /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    pub fn content(mut self, content: &'a str) -> Result<Self, MessageValidationError> {
+        validate_content(content)?;
 
         self.fields.content.replace(content);
 
@@ -260,15 +151,15 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateMessageErrorType::EmbedTooLarge`] error type if an
-    /// embed is too large.
+    /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
-    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, CreateMessageError> {
-        for (idx, embed) in embeds.iter().enumerate() {
-            validate_inner::embed(embed)
-                .map_err(|source| CreateMessageError::embed(source, idx))?;
-        }
+    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
+    /// that may occur.
+    ///
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [`embed`]: twilight_validate::embed::embed
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
+        validate_embeds(embeds)?;
 
         self.fields.embeds = embeds;
 

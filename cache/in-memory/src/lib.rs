@@ -50,6 +50,7 @@
 //! All first-party crates are licensed under [ISC][LICENSE.md]
 //!
 //! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
+//! [`twilight-rs`]: https://github.com/twilight-rs/twilight
 //! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 //! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 //! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -59,9 +60,9 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
     clippy::missing_const_for_fn,
     missing_docs,
@@ -76,7 +77,6 @@ pub mod iter;
 pub mod model;
 
 #[cfg(feature = "permission-calculator")]
-#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub mod permission;
 
 mod builder;
@@ -94,7 +94,6 @@ pub use self::{
 };
 
 #[cfg(feature = "permission-calculator")]
-#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub use self::permission::InMemoryCachePermissions;
 
 use self::{iter::InMemoryCacheIter, model::*};
@@ -102,6 +101,7 @@ use dashmap::{
     mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
 };
+use iter::ChannelMessages;
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -215,8 +215,7 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
     map.insert(k, v);
 }
 
-/// A thread-safe, in-memory-process cache of Discord data. It can be cloned and
-/// sent to other threads.
+/// An in-memory cache of Discord data.
 ///
 /// This is an implementation of a cache designed to be used by only the
 /// current process.
@@ -417,15 +416,14 @@ impl InMemoryCache {
     ///     .resource_types(resource_types)
     ///     .build();
     ///
-    /// let channel_id = Id::new(4).expect("non zero");
-    /// let user_id = Id::new(5).expect("non zero");
+    /// let channel_id = Id::new(4);
+    /// let user_id = Id::new(5);
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
     /// println!("member has these permissions: {:?}", permissions);
     /// # Ok(()) }
     /// ```
     #[cfg(feature = "permission-calculator")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
     pub const fn permissions(&self) -> InMemoryCachePermissions<'_> {
         InMemoryCachePermissions::new(self)
     }
@@ -441,6 +439,24 @@ impl InMemoryCache {
             .lock()
             .expect("current user poisoned")
             .clone()
+    }
+
+    /// Gets the set of messages in a channel.
+    ///
+    /// This requires the [`DIRECT_MESSAGES`] or [`GUILD_MESSAGES`] intents.
+    ///
+    /// Returns `None` if the channel is not cached.
+    ///
+    /// # Examples
+    ///
+    /// Refer to [`ChannelMessages`].
+    ///
+    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
+    /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
+    pub fn channel_messages(&self, channel_id: Id<ChannelMarker>) -> Option<ChannelMessages<'_>> {
+        let channel = self.channel_messages.get(&channel_id)?;
+
+        Some(ChannelMessages::new(channel))
     }
 
     /// Gets an emoji by ID.
@@ -592,6 +608,19 @@ impl InMemoryCache {
         guild_id: Id<GuildMarker>,
     ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<StickerMarker>>>> {
         self.guild_stickers.get(&guild_id).map(Reference::new)
+    }
+
+    /// Gets the set of voice states in a guild.
+    ///
+    /// This requires both the [`GUILDS`] and [`GUILD_VOICE_STATES`] intents.
+    ///
+    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_VOICE_STATES`]: ::twilight_model::gateway::Intents::GUILD_VOICE_STATES
+    pub fn guild_voice_states(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<UserMarker>>>> {
+        self.voice_state_guilds.get(&guild_id).map(Reference::new)
     }
 
     /// Gets an integration by guild ID and integration ID.
@@ -917,22 +946,16 @@ mod tests {
     fn test_syntax_update() {
         let cache = InMemoryCache::new();
         cache.update(&RoleDelete {
-            guild_id: Id::new(1).expect("non zero"),
-            role_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new(1),
+            role_id: Id::new(1),
         });
     }
 
     #[test]
     fn test_clear() {
         let cache = InMemoryCache::new();
-        cache.cache_emoji(
-            Id::new(1).expect("non zero"),
-            test::emoji(Id::new(3).expect("non zero"), None),
-        );
-        cache.cache_member(
-            Id::new(2).expect("non zero"),
-            test::member(Id::new(4).expect("non zero"), Id::new(2).expect("non zero")),
-        );
+        cache.cache_emoji(Id::new(1), test::emoji(Id::new(3), None));
+        cache.cache_member(Id::new(2), test::member(Id::new(4), Id::new(2)));
         cache.clear();
         assert!(cache.emojis.is_empty());
         assert!(cache.members.is_empty());
@@ -942,12 +965,13 @@ mod tests {
     fn test_highest_role() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
-        let guild_id = Id::new(1).expect("non zero");
-        let user = test::user(Id::new(1).expect("non zero"));
+        let guild_id = Id::new(1);
+        let user = test::user(Id::new(1));
         cache.cache_member(
             guild_id,
             Member {
                 avatar: None,
+                communication_disabled_until: None,
                 deaf: false,
                 guild_id,
                 joined_at,
@@ -955,7 +979,7 @@ mod tests {
                 nick: None,
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new(1).expect("non zero"), Id::new(2).expect("non zero")],
+                roles: vec![Id::new(1), Id::new(2)],
                 user,
             },
         );
@@ -967,7 +991,7 @@ mod tests {
                     color: 0,
                     hoist: false,
                     icon: None,
-                    id: Id::new(1).expect("non zero"),
+                    id: Id::new(1),
                     managed: false,
                     mentionable: false,
                     name: "test".to_owned(),
@@ -980,7 +1004,7 @@ mod tests {
                     color: 0,
                     hoist: false,
                     icon: None,
-                    id: Id::new(2).expect("non zero"),
+                    id: Id::new(2),
                     managed: false,
                     mentionable: false,
                     name: "test".to_owned(),
@@ -993,8 +1017,8 @@ mod tests {
         );
 
         assert_eq!(
-            cache.member_highest_role(guild_id, Id::new(1).expect("non zero")),
-            Some(Id::new(2).expect("non zero"))
+            cache.member_highest_role(guild_id, Id::new(1)),
+            Some(Id::new(2))
         );
     }
 }

@@ -1,80 +1,30 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        self, validate_inner, AuditLogReason, AuditLogReasonError, NullableField, Request,
-        TryIntoRequest,
-    },
+    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+use twilight_model::{
+    datetime::Timestamp,
+    id::{
+        marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
-use twilight_model::id::{
-    marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
-    Id,
+use twilight_validate::request::{
+    communication_disabled_until as validate_communication_disabled_until,
+    nickname as validate_nickname, ValidationError,
 };
-
-/// The error created when the member can not be updated as configured.
-#[derive(Debug)]
-pub struct UpdateGuildMemberError {
-    kind: UpdateGuildMemberErrorType,
-}
-
-impl UpdateGuildMemberError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateGuildMemberErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        UpdateGuildMemberErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for UpdateGuildMemberError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateGuildMemberErrorType::NicknameInvalid => {
-                f.write_str("the nickname length is invalid")
-            }
-        }
-    }
-}
-
-impl Error for UpdateGuildMemberError {}
-
-/// Type of [`UpdateGuildMemberError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UpdateGuildMemberErrorType {
-    /// The nickname is either empty or the length is more than 32 UTF-16 characters.
-    NicknameInvalid,
-}
 
 #[derive(Serialize)]
 struct UpdateGuildMemberFields<'a> {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    communication_disabled_util: Option<NullableField<Timestamp>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -108,6 +58,7 @@ impl<'a> UpdateGuildMember<'a> {
         Self {
             fields: UpdateGuildMemberFields {
                 channel_id: None,
+                communication_disabled_util: None,
                 deaf: None,
                 mute: None,
                 nick: None,
@@ -125,6 +76,33 @@ impl<'a> UpdateGuildMember<'a> {
         self.fields.channel_id = Some(NullableField(channel_id));
 
         self
+    }
+
+    /// Set the member's [Guild Timeout].
+    ///
+    /// The timestamp indicates when the user will be able to communicate again.
+    /// It can be up to 28 days in the future. Set to [`None`] to remove the
+    /// timeout. Requires the [`MODERATE_MEMBERS`] permission.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`CommunicationDisabledUntil`] if the expiry
+    /// timestamp is more than 28 days from the current time.
+    ///
+    /// [Guild Timeout]: https://support.discord.com/hc/en-us/articles/4413305239191-Time-Out-FAQ
+    /// [`CommunicationDisabledUntil`]: twilight_validate::request::ValidationErrorType::CommunicationDisabledUntil
+    /// [`MODERATE_MEMBERS`]: twilight_model::guild::Permissions::MODERATE_MEMBERS
+    pub fn communication_disabled_until(
+        mut self,
+        timestamp: Option<Timestamp>,
+    ) -> Result<Self, ValidationError> {
+        if let Some(timestamp) = timestamp {
+            validate_communication_disabled_until(timestamp)?;
+        }
+
+        self.fields.communication_disabled_util = Some(NullableField(timestamp));
+
+        Ok(self)
     }
 
     /// If true, restrict the member's ability to hear sound from a voice channel.
@@ -147,15 +125,13 @@ impl<'a> UpdateGuildMember<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateGuildMemberErrorType::NicknameInvalid`] error type if
-    /// the nickname length is too short or too long.
-    pub fn nick(mut self, nick: Option<&'a str>) -> Result<Self, UpdateGuildMemberError> {
+    /// Returns an error of type [`Nickname`] if the nickname length is too
+    /// short or too long.
+    ///
+    /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
+    pub fn nick(mut self, nick: Option<&'a str>) -> Result<Self, ValidationError> {
         if let Some(nick) = nick {
-            if !validate_inner::nickname(&nick) {
-                return Err(UpdateGuildMemberError {
-                    kind: UpdateGuildMemberErrorType::NicknameInvalid,
-                });
-            }
+            validate_nickname(nick)?;
         }
 
         self.fields.nick = Some(NullableField(nick));
@@ -227,32 +203,28 @@ mod tests {
         Id,
     };
 
-    fn guild_id() -> Id<GuildMarker> {
-        Id::new(1).expect("non zero")
-    }
-
-    fn user_id() -> Id<UserMarker> {
-        Id::new(1).expect("non zero")
-    }
+    const GUILD_ID: Id<GuildMarker> = Id::new(1);
+    const USER_ID: Id<UserMarker> = Id::new(1);
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, guild_id(), user_id())
+        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID)
             .deaf(true)
             .mute(true);
         let actual = builder.try_into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: Some(true),
             mute: Some(true),
             nick: None,
             roles: None,
         };
         let route = Route::UpdateMember {
-            guild_id: guild_id().get(),
-            user_id: user_id().get(),
+            guild_id: GUILD_ID.get(),
+            user_id: USER_ID.get(),
         };
         let expected = Request::builder(&route).json(&body)?.build();
 
@@ -265,19 +237,20 @@ mod tests {
     #[test]
     fn test_nick_set_null() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(None)?;
+        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(None)?;
         let actual = builder.try_into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: None,
             mute: None,
             nick: Some(NullableField(None)),
             roles: None,
         };
         let route = Route::UpdateMember {
-            guild_id: guild_id().get(),
-            user_id: user_id().get(),
+            guild_id: GUILD_ID.get(),
+            user_id: USER_ID.get(),
         };
         let expected = Request::builder(&route).json(&body)?.build();
 
@@ -289,19 +262,20 @@ mod tests {
     #[test]
     fn test_nick_set_value() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
-        let builder = UpdateGuildMember::new(&client, guild_id(), user_id()).nick(Some("foo"))?;
+        let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(Some("foo"))?;
         let actual = builder.try_into_request()?;
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
+            communication_disabled_util: None,
             deaf: None,
             mute: None,
             nick: Some(NullableField(Some("foo"))),
             roles: None,
         };
         let route = Route::UpdateMember {
-            guild_id: guild_id().get(),
-            user_id: user_id().get(),
+            guild_id: GUILD_ID.get(),
+            user_id: USER_ID.get(),
         };
         let expected = Request::builder(&route).json(&body)?.build();
 

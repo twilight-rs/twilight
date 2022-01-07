@@ -1,8 +1,7 @@
-use super::{StickerValidationError, StickerValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -13,6 +12,10 @@ use twilight_model::{
         marker::{GuildMarker, StickerMarker},
         Id,
     },
+};
+use twilight_validate::sticker::{
+    description as validate_description, name as validate_name, tags as validate_tags,
+    StickerValidationError,
 };
 
 #[derive(Serialize)]
@@ -34,8 +37,8 @@ struct UpdateGuildStickerFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(1).expect("non zero");
-/// let sticker_id = Id::new(2).expect("non zero");
+/// let guild_id = Id::new(1);
+/// let sticker_id = Id::new(2);
 /// let sticker = client
 ///     .update_guild_sticker(guild_id, sticker_id)
 ///     .description("new description")?
@@ -75,11 +78,7 @@ impl<'a> UpdateGuildSticker<'a> {
     }
 
     pub fn description(mut self, description: &'a str) -> Result<Self, StickerValidationError> {
-        if !validate_inner::sticker_description(description) {
-            return Err(StickerValidationError {
-                kind: StickerValidationErrorType::DescriptionInvalid,
-            });
-        }
+        validate_description(description)?;
 
         self.fields.description = Some(description);
 
@@ -87,11 +86,7 @@ impl<'a> UpdateGuildSticker<'a> {
     }
 
     pub fn name(mut self, name: &'a str) -> Result<Self, StickerValidationError> {
-        if !validate_inner::sticker_name(name) {
-            return Err(StickerValidationError {
-                kind: StickerValidationErrorType::NameInvalid,
-            });
-        }
+        validate_name(name)?;
 
         self.fields.name = Some(name);
 
@@ -99,11 +94,7 @@ impl<'a> UpdateGuildSticker<'a> {
     }
 
     pub fn tags(mut self, tags: &'a str) -> Result<Self, StickerValidationError> {
-        if !validate_inner::sticker_tags(tags) {
-            return Err(StickerValidationError {
-                kind: StickerValidationErrorType::TagsInvalid,
-            });
-        }
+        validate_tags(tags)?;
 
         self.fields.tags = Some(tags);
 

@@ -1,71 +1,17 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::{marker::MemberListBody, ResponseFuture},
     routing::Route,
-};
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
     Id,
 };
-
-/// The error created when the members can not be fetched as configured.
-#[derive(Debug)]
-pub struct GetGuildMembersError {
-    kind: GetGuildMembersErrorType,
-}
-
-impl GetGuildMembersError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &GetGuildMembersErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        GetGuildMembersErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for GetGuildMembersError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            GetGuildMembersErrorType::LimitInvalid { .. } => f.write_str("the limit is invalid"),
-        }
-    }
-}
-
-impl Error for GetGuildMembersError {}
-
-/// Type of [`GetGuildMembersError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum GetGuildMembersErrorType {
-    /// The limit is either 0 or more than 1000.
-    LimitInvalid {
-        /// Provided limit.
-        limit: u64,
-    },
-}
+use twilight_validate::request::{
+    get_guild_members_limit as validate_get_guild_members_limit, ValidationError,
+};
 
 struct GetGuildMembersFields {
     after: Option<Id<UserMarker>>,
@@ -90,8 +36,8 @@ struct GetGuildMembersFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(100).expect("non zero");
-/// let user_id = Id::new(3000).expect("non zero");
+/// let guild_id = Id::new(100);
+/// let user_id = Id::new(3000);
 /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
 /// # Ok(()) }
 /// ```
@@ -128,13 +74,13 @@ impl<'a> GetGuildMembers<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`GetGuildMembersErrorType::LimitInvalid`] error type if the
-    /// limit is 0 or greater than 1000.
-    pub const fn limit(mut self, limit: u64) -> Result<Self, GetGuildMembersError> {
-        if !validate_inner::get_guild_members_limit(limit) {
-            return Err(GetGuildMembersError {
-                kind: GetGuildMembersErrorType::LimitInvalid { limit },
-            });
+    /// Returns an error of type [`GetGuildMembers`] if the limit is 0 or
+    /// greater than 1000.
+    ///
+    /// [`GetGuildMembers`]: twilight_validate::request::ValidationErrorType::GetGuildMembers
+    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+        if let Err(source) = validate_get_guild_members_limit(limit) {
+            return Err(source);
         }
 
         self.fields.limit = Some(limit);

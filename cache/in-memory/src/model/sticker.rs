@@ -124,6 +124,7 @@ mod tests {
         },
         id::Id,
         user::{PremiumType, User, UserFlags},
+        util::{image_hash::ImageHashParseError, ImageHash},
     };
 
     assert_fields!(
@@ -142,27 +143,29 @@ mod tests {
     assert_impl_all!(CachedSticker: Clone, Debug, Eq, PartialEq);
 
     #[test]
-    fn test_eq_sticker() {
+    fn test_eq_sticker() -> Result<(), ImageHashParseError> {
+        let avatar = ImageHash::parse(b"5bf451026c107906b4dccea015320222")?;
+
         let sticker = Sticker {
             available: true,
             description: Some("sticker".into()),
             format_type: StickerFormatType::Png,
-            guild_id: Some(Id::new(1).expect("non zero")),
-            id: Id::new(2).expect("non zero"),
+            guild_id: Some(Id::new(1)),
+            id: Id::new(2),
             kind: StickerType::Guild,
             name: "stick".into(),
-            pack_id: Some(Id::new(3).expect("non zero")),
+            pack_id: Some(Id::new(3)),
             sort_value: Some(1),
             tags: "foo,bar,baz".into(),
             user: Some(User {
                 accent_color: None,
-                avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                avatar: Some(avatar),
                 banner: None,
                 bot: false,
                 discriminator: 1,
                 email: Some("address@example.com".to_owned()),
                 flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-                id: Id::new(1).expect("non zero"),
+                id: Id::new(1),
                 locale: Some("en-us".to_owned()),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
@@ -179,16 +182,18 @@ mod tests {
             available: true,
             description: "sticker".into(),
             format_type: StickerFormatType::Png,
-            guild_id: Some(Id::new(1).expect("non zero")),
-            id: Id::new(2).expect("non zero"),
+            guild_id: Some(Id::new(1)),
+            id: Id::new(2),
             kind: StickerType::Guild,
             name: "stick".into(),
-            pack_id: Some(Id::new(3).expect("non zero")),
+            pack_id: Some(Id::new(3)),
             sort_value: Some(1),
             tags: "foo,bar,baz".into(),
-            user_id: Some(Id::new(1).expect("non zero")),
+            user_id: Some(Id::new(1)),
         };
 
         assert_eq!(cached, sticker);
+
+        Ok(())
     }
 }

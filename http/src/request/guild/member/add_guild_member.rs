@@ -1,15 +1,11 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
 use twilight_model::{
     guild::PartialMember,
     id::{
@@ -17,56 +13,7 @@ use twilight_model::{
         Id,
     },
 };
-
-/// Member cannot be added as configured.
-#[derive(Debug)]
-pub struct AddGuildMemberError {
-    kind: AddGuildMemberErrorType,
-}
-
-impl AddGuildMemberError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &AddGuildMemberErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        AddGuildMemberErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for AddGuildMemberError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            AddGuildMemberErrorType::NicknameInvalid => f.write_str("nickname length is invalid"),
-        }
-    }
-}
-
-impl Error for AddGuildMemberError {}
-
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum AddGuildMemberErrorType {
-    /// Nickname is either empty or the length is more than 32 UTF-16
-    /// characters.
-    NicknameInvalid,
-}
+use twilight_validate::request::{nickname as validate_nickname, ValidationError};
 
 #[derive(Serialize)]
 struct AddGuildMemberFields<'a> {
@@ -138,14 +85,12 @@ impl<'a> AddGuildMember<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`AddGuildMemberErrorType::NicknameInvalid`] error type if
-    /// the nickname is too short or too long.
-    pub fn nick(mut self, nick: &'a str) -> Result<Self, AddGuildMemberError> {
-        if !validate_inner::nickname(&nick) {
-            return Err(AddGuildMemberError {
-                kind: AddGuildMemberErrorType::NicknameInvalid,
-            });
-        }
+    /// Returns an error of type [`Nickname`] if the nickname length is too
+    /// short or too long.
+    ///
+    /// [`Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
+    pub fn nick(mut self, nick: &'a str) -> Result<Self, ValidationError> {
+        validate_nickname(nick)?;
 
         self.fields.nick.replace(nick);
 

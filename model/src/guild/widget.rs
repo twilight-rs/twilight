@@ -16,7 +16,7 @@ mod tests {
     #[test]
     fn test_guild_widget() {
         let value = GuildWidget {
-            channel_id: Id::new(111_111_111_111_111_111).expect("non zero"),
+            channel_id: Id::new(111_111_111_111_111_111),
             enabled: true,
         };
 

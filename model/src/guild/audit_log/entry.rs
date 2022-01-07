@@ -76,11 +76,11 @@ mod tests {
                 new: None,
                 old: Some(OLD.to_owned()),
             }]),
-            id: Id::new(3).expect("non zero"),
+            id: Id::new(3),
             options: None,
             reason: Some("some reason".to_owned()),
-            target_id: Some(Id::new(2).expect("non zero")),
-            user_id: Some(Id::new(1).expect("non zero")),
+            target_id: Some(Id::new(2)),
+            user_id: Some(Id::new(1)),
         };
 
         serde_test::assert_tokens(

@@ -10,9 +10,9 @@ fn commands(commands: usize, permissions: usize) -> Vec<(Id<CommandMarker>, Comm
         .map(|id| {
             (0..permissions).map(move |_| {
                 (
-                    Id::new(id as u64).expect("non zero"),
+                    Id::new(id as u64),
                     CommandPermissions {
-                        id: CommandPermissionsType::Role(Id::new(4).expect("non zero")),
+                        id: CommandPermissionsType::Role(Id::new(4)),
                         permission: true,
                     },
                 )
@@ -24,7 +24,7 @@ fn commands(commands: usize, permissions: usize) -> Vec<(Id<CommandMarker>, Comm
 
 fn criterion_benchmark(c: &mut Criterion) {
     let client = Client::new(String::new());
-    let application_id = Id::new(1).expect("non zero");
+    let application_id = Id::new(1);
 
     let command_counts = [5usize, 10, 50, 100];
     let permission_counts = [2usize, 5, 10];
@@ -39,7 +39,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                 b.iter(|| {
                     assert!(client
                         .interaction(application_id)
-                        .set_command_permissions(Id::new(2).expect("non zero"), &list)
+                        .set_command_permissions(Id::new(2), &list)
                         .is_ok());
                 });
             });
