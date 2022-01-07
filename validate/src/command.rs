@@ -521,7 +521,7 @@ mod tests {
         assert!(name_characters("Hello").is_err()); // Latin language with uppercase
         assert!(name_characters("hello!").is_err()); // Latin language with non-alphanumeric
 
-        assert!(chat_input_name("\u{437}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}").is_ok()); // Russian
+        assert!(name_characters("\u{437}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}").is_ok()); // Russian
         assert!(name_characters("\u{417}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}").is_err()); // Russian with uppercase
         assert!(name_characters("\u{437}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}!").is_err()); // Russian with non-alphanumeric
 
