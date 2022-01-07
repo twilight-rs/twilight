@@ -23,6 +23,7 @@ pub use self::{
 
 use crate::{
     channel::{GuildChannel, Webhook},
+    scheduled_event::GuildScheduledEvent,
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -37,6 +38,8 @@ pub struct AuditLog {
     /// Paginated entries in a guild's audit log.
     #[serde(rename = "audit_log_entries")]
     pub entries: Vec<AuditLogEntry>,
+    /// Information about mentioned scheduled events.
+    pub guild_scheduled_events: Vec<GuildScheduledEvent>,
     /// Information about mentioned integrations.
     pub integrations: Vec<AuditLogGuildIntegration>,
     /// Information about mentioned threads.
@@ -80,6 +83,7 @@ mod tests {
     fn test_serde() {
         let value = AuditLog {
             entries: Vec::new(),
+            guild_scheduled_events: Vec::new(),
             integrations: Vec::new(),
             threads: Vec::new(),
             users: Vec::new(),
@@ -94,6 +98,9 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("audit_log_entries"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("guild_scheduled_events"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
                 Token::Str("integrations"),
