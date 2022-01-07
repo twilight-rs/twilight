@@ -2000,8 +2000,8 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let guild_id = Id::new(1).expect("non zero");
-    /// let scheduled_event_id = Id::new(2).expect("non zero");
+    /// let guild_id = Id::new(1);
+    /// let scheduled_event_id = Id::new(2);
     ///
     /// client
     ///     .delete_guild_scheduled_event(guild_id, scheduled_event_id)
@@ -2037,8 +2037,8 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let guild_id = Id::new(1).expect("non zero");
-    /// let channel_id = Id::new(2).expect("non zero");
+    /// let guild_id = Id::new(1);
+    /// let channel_id = Id::new(2);
     /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00+00:00")?;
     ///
     /// client
@@ -2047,8 +2047,8 @@ impl Client {
     ///         channel_id,
     ///         "Garfield Appreciation Hour",
     ///         &garfield_start_time
-    ///     )
-    ///     .description("Discuss: How important is Garfield to You?")
+    ///     )?
+    ///     .description("Discuss: How important is Garfield to You?")?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
@@ -2062,7 +2062,7 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let guild_id = Id::new(1).expect("non zero");
+    /// let guild_id = Id::new(1);
     /// let garfield_con_start_time = Timestamp::parse("2022-01-04T08:00:00+00:00")?;
     /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00+00:00")?;
     ///
@@ -2073,9 +2073,9 @@ impl Client {
     ///         "Baltimore Convention Center",
     ///         &garfield_con_start_time,
     ///         &garfield_con_end_time
-    ///     )
+    ///     )?
     ///     .description("In a spiritual successor to BronyCon, Garfield fans \
-    /// from around the globe celebrate all things related to the loveable cat.")
+    /// from around the globe celebrate all things related to the loveable cat.")?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }

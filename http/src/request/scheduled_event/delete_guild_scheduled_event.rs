@@ -23,8 +23,8 @@ use twilight_model::{
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
-/// let guild_id = Id::new(1).expect("non zero");
-/// let scheduled_event_id = Id::new(2).expect("non zero");
+/// let guild_id = Id::new(1);
+/// let scheduled_event_id = Id::new(2);
 ///
 /// client
 ///     .delete_guild_scheduled_event(guild_id, scheduled_event_id)
