@@ -24,7 +24,7 @@ impl UpdateCache for ThreadDelete {
             return;
         }
 
-        cache.delete_guild_channel(self.0.id());
+        cache.delete_guild_channel(self.id);
     }
 }
 
