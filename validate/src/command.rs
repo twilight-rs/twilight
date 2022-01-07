@@ -486,6 +486,8 @@ pub const fn guild_permissions(count: usize) -> Result<(), CommandValidationErro
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::non_ascii_literal)]
+
     use super::*;
     use twilight_model::{application::command::CommandType, id::Id};
 
@@ -521,12 +523,12 @@ mod tests {
         assert!(name_characters("Hello").is_err()); // Latin language with uppercase
         assert!(name_characters("hello!").is_err()); // Latin language with non-alphanumeric
 
-        assert!(name_characters("\u{437}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}").is_ok()); // Russian
-        assert!(name_characters("\u{417}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}").is_err()); // Russian with uppercase
-        assert!(name_characters("\u{437}\u{434}\u{440}\u{430}\u{441}\u{442}\u{438}!").is_err()); // Russian with non-alphanumeric
+        assert!(name_characters("здрасти").is_ok()); // Russian
+        assert!(name_characters("Здрасти").is_err()); // Russian with uppercase
+        assert!(name_characters("здрасти!").is_err()); // Russian with non-alphanumeric
 
-        assert!(name_characters("\u{4f60}\u{597d}").is_ok()); // Chinese (no upper and lowercase variants)
-        assert!(name_characters("\u{4f60}\u{597d}\u{3002}").is_err()); // Chinese with non-alphanumeric
+        assert!(name_characters("你好").is_ok()); // Chinese (no upper and lowercase variants)
+        assert!(name_characters("你好。").is_err()); // Chinese with non-alphanumeric
     }
 
     #[test]
