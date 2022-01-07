@@ -52,8 +52,8 @@ pub(crate) struct CreateMessageFields<'a> {
 
 /// Send a message to a channel.
 ///
-/// The message must include at least one of content, attachments, embeds, or
-/// sticker IDs.
+/// The message must include at least one of `attachments`, `content`, `embeds`,
+/// or `sticker_ids`.
 ///
 /// # Example
 ///

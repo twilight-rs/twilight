@@ -124,7 +124,30 @@ impl<'a> InteractionClient<'a> {
         DeleteOriginalResponse::new(self.client, self.application_id, interaction_token)
     }
 
-    /// Create a followup message, by an interaction token.
+    /// Create a followup message to an interaction.
+    ///
+    /// The message must include at least one of `attachments`, `content`, or
+    /// `embeds`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let application_id = Id::new(1);
+    ///
+    /// client
+    ///     .interaction(application_id)
+    ///     .create_followup_message("webhook token")
+    ///     .content("Pinkie...")?
+    ///     .exec()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub const fn create_followup_message(
         &'a self,
         interaction_token: &'a str,

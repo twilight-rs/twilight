@@ -1219,6 +1219,9 @@ impl Client {
 
     /// Send a message to a channel.
     ///
+    /// The message must include at least one of `attachments`, `content`,
+    /// `embeds`, or `sticker_ids`.
+    ///
     /// # Example
     ///
     /// ```no_run
@@ -1238,20 +1241,6 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    ///
-    /// # Errors
-    ///
-    /// The method [`content`] returns an error of type
-    /// [`MessageValidationErrorType::ContentInvalid`] if the content is over 2000
-    /// UTF-16 characters.
-    ///
-    /// The method [`embeds`] returns an error of type
-    /// [`MessageValidationErrorType::EmbedInvalid`] if the embed is invalid.
-    ///
-    /// [`MessageValidationErrorType::ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
-    /// [`MessageValidationErrorType::EmbedInvalid`]: twilight_validate::message::MessageValidationErrorType::EmbedInvalid
-    /// [`content`]: crate::request::channel::message::create_message::CreateMessage::content
-    /// [`embeds`]: crate::request::channel::message::create_message::CreateMessage::embeds
     pub const fn create_message(&self, channel_id: Id<ChannelMarker>) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
@@ -1282,9 +1271,11 @@ impl Client {
 
     /// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
     ///
-    /// You can pass `None` to any of the methods to remove the associated field.
-    /// For example, if you have a message with an embed you want to remove, you can
-    /// use `.[embed](None)` to remove the embed.
+    /// You can pass [`None`] or an empty slice to any of the methods to remove
+    /// the associated field. For example, to remove the content, use
+    /// `.content(None)`, and to remove all embeds from a message, use
+    /// `.embeds(&[])`. You must ensure that the message still contains at least
+    /// one of content, attachments, embeds, or sticker IDs.
     ///
     /// # Examples
     ///
@@ -1319,8 +1310,6 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    ///
-    /// [embed]: Self::embed
     pub const fn update_message(
         &self,
         channel_id: Id<ChannelMarker>,
@@ -1889,9 +1878,10 @@ impl Client {
         UpdateWebhookWithToken::new(self, webhook_id, token)
     }
 
-    /// Executes a webhook, sending a message to its channel.
+    /// Execute a webhook, sending a message to its channel.
     ///
-    /// You must provide at least one of `content`, `embeds`, or an attachment.
+    /// The message must include at least one of `attachments`, `content`, or
+    /// `embeds`.
     ///
     /// # Examples
     ///

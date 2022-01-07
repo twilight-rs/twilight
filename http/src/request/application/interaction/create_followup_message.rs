@@ -45,7 +45,8 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 
 /// Create a followup message to an interaction.
 ///
-/// You must specify at least one of `content`, `embeds`, or an attachment.
+/// The message must include at least one of `attachments`, `content`, or
+/// `embeds`.
 ///
 /// # Examples
 ///

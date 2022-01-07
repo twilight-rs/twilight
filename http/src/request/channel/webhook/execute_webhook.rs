@@ -47,7 +47,8 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 
 /// Execute a webhook, sending a message to its channel.
 ///
-/// You must specify at least one of `content`, `embeds`, or an attachment.
+/// The message must include at least one of `attachments`, `content`, or
+/// `embeds`.
 ///
 /// # Examples
 ///

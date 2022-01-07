@@ -43,15 +43,17 @@ struct UpdateOriginalResponseFields<'a> {
 
 /// Update the original response created by a interaction.
 ///
-/// A response must always have at least one embed or some amount of
-/// content. If you wish to delete a original response refer to
-/// [`DeleteOriginalResponse`].
+/// You can pass [`None`] or an empty slice to any of the methods to remove the
+/// associated field. For example, to remove the content, use `.content(None)`,
+/// and to remove all embeds from a message, use `.embeds(&[])`. You must ensure
+/// that the message still contains at least one of `attachments`, `content`, or
+/// `embeds`.
 ///
 /// # Examples
 ///
 /// Update the original response by setting the content to `test <@3>` -
-/// attempting to mention user ID 3 - and specifying that only that the user may
-/// not be mentioned.
+/// attempting to mention user ID 3 - while specifying that no entities can be
+/// mentioned.
 ///
 /// ```no_run
 /// # #[tokio::main]
@@ -77,8 +79,6 @@ struct UpdateOriginalResponseFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
-///
-/// [`DeleteOriginalResponse`]: super::DeleteOriginalResponse
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateOriginalResponse<'a> {
     application_id: Id<ApplicationMarker>,
@@ -166,7 +166,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// # Editing
     ///
     /// Pass [`None`] to remove the message content. This is impossible if it
-    /// would leave the message empty of attachments, content, or embeds.
+    /// would leave the message empty of `attachments`, `content`, or `embeds`.
     ///
     /// # Errors
     ///
@@ -199,7 +199,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// embeds in the message, acquire them from the previous message, mutate
     /// them in place, then pass that list to this method. To remove all embeds,
     /// pass [`None`]. This is impossible if it would leave the message empty of
-    /// attachments, content, or embeds.
+    /// `attachments`, `content`, or `embeds`.
     ///
     /// # Examples
     ///
@@ -256,8 +256,9 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// message to keep.
     ///
     /// If called, all unspecified attachments (except ones added with
-    /// [`attachments`]) will be removed from the message. If not called, all
-    /// attachments will be kept.
+    /// [`attachments`]) will be removed from the message. This is impossible if
+    /// it would leave the message empty of `attachments`, `content`, or
+    /// `embeds`. If not called, all attachments will be kept.
     ///
     /// [`attachments`]: Self::attachments
     pub const fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {

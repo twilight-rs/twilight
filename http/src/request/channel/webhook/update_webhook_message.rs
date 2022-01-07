@@ -43,15 +43,17 @@ struct UpdateWebhookMessageFields<'a> {
 
 /// Update a message created by a webhook.
 ///
-/// A webhook's message must always have at least one embed or some amount of
-/// content. If you wish to delete a webhook's message refer to
-/// [`DeleteWebhookMessage`].
+/// You can pass [`None`] or an empty slice to any of the methods to remove the
+/// associated field. For example, to remove the content, use `.content(None)`,
+/// and to remove all embeds from a message, use `.embeds(&[])`. You must ensure
+/// that the message still contains at least one of `attachments`, `content`, or
+/// `embeds`.
 ///
 /// # Examples
 ///
 /// Update a webhook's message by setting the content to `test <@3>` -
-/// attempting to mention user ID 3 - and specifying that only that the user may
-/// not be mentioned.
+/// attempting to mention user ID 3 - while specifying that no entities can be
+/// mentioned.
 ///
 /// ```no_run
 /// # use twilight_http::Client;
@@ -72,8 +74,6 @@ struct UpdateWebhookMessageFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
-///
-/// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookMessage<'a> {
     /// List of new attachments to add to the message.
@@ -168,7 +168,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// # Editing
     ///
     /// Pass [`None`] to remove the message content. This is impossible if it
-    /// would leave the message empty of attachments, content, or embeds.
+    /// would leave the message empty of `attachments`, `content`, or `embeds`.
     ///
     /// # Errors
     ///

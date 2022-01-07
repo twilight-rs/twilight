@@ -48,8 +48,10 @@ struct UpdateMessageFields<'a> {
 /// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
 ///
 /// You can pass [`None`] or an empty slice to any of the methods to remove the
-/// associated field. For example, to remove all embeds from a message, use
-/// `.embeds(&[])`. To remove the content, use `.content(None)`.
+/// associated field. For example, to remove the content, use `.content(None)`,
+/// and to remove all embeds from a message, use `.embeds(&[])`. You must ensure
+/// that the message still contains at least one of `attachments`, `content`,
+/// `embeds`, or `sticker_ids`.
 ///
 /// # Examples
 ///
@@ -172,8 +174,8 @@ impl<'a> UpdateMessage<'a> {
     /// # Editing
     ///
     /// Pass [`None`] to remove the message content. This is impossible if it
-    /// would leave the message empty of attachments, content, embeds, or
-    /// stickers.
+    /// would leave the message empty of `attachments`, `content`, `embeds`, or
+    /// `sticker_ids`.
     ///
     /// # Errors
     ///
@@ -206,7 +208,7 @@ impl<'a> UpdateMessage<'a> {
     /// embeds in the message, acquire them from the previous message, mutate
     /// them in place, then pass that list to this method. To remove all embeds,
     /// pass [`None`]. This is impossible if it would leave the message empty of
-    /// attachments, content, embeds, or stickers.
+    /// `attachments`, `content`, `embeds`, or `sticker_ids`.
     ///
     /// # Errors
     ///
@@ -232,8 +234,9 @@ impl<'a> UpdateMessage<'a> {
     /// message to keep.
     ///
     /// If called, all unspecified attachments (except ones added with
-    /// [`attachments`]) will be removed from the message. If not called, all
-    /// attachments will be kept.
+    /// [`attachments`]) will be removed from the message. This is impossible if
+    /// it would leave the message empty of `attachments`, `content`, `embeds`,
+    /// or `sticker_ids`. If not called, all attachments will be kept.
     ///
     /// [`attachments`]: Self::attachments
     pub const fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {

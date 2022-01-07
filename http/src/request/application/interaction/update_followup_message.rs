@@ -43,15 +43,17 @@ struct UpdateFollowupMessageFields<'a> {
 
 /// Update a followup message.
 ///
-/// A followup message must always have at least one embed or some amount of
-/// content. If you wish to delete a followup message refer to
-/// [`DeleteFollowupMessage`].
+/// You can pass [`None`] or an empty slice to any of the methods to remove the
+/// associated field. For example, to remove the content, use `.content(None)`,
+/// and to remove all embeds from a message, use `.embeds(&[])`. You must ensure
+/// that the message still contains at least one of `attachments`, `content`, or
+/// `embeds`.
 ///
 /// # Examples
 ///
 /// Update a followup message by setting the content to `test <@3>` -
-/// attempting to mention user ID 3 - and specifying that only that the user may
-/// not be mentioned.
+/// attempting to mention user ID 3 - while specifying that no entities can be
+/// mentioned.
 ///
 /// ```no_run
 /// # #[tokio::main]
@@ -77,8 +79,6 @@ struct UpdateFollowupMessageFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
-///
-/// [`DeleteFollowupMessage`]: super::DeleteFollowupMessage
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateFollowupMessage<'a> {
     application_id: Id<ApplicationMarker>,
@@ -169,7 +169,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// # Editing
     ///
     /// Pass [`None`] to remove the message content. This is impossible if it
-    /// would leave the message empty of attachments, content, or embeds.
+    /// would leave the message empty of `attachments`, `content`, or `embeds`.
     ///
     /// # Errors
     ///
@@ -202,7 +202,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// embeds in the message, acquire them from the previous message, mutate
     /// them in place, then pass that list to this method. To remove all embeds,
     /// pass [`None`]. This is impossible if it would leave the message empty of
-    /// attachments, content, or embeds.
+    /// `attachments`, `content`, or `embeds`.
     ///
     /// # Examples
     ///
@@ -260,8 +260,9 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// message to keep.
     ///
     /// If called, all unspecified attachments (except ones added with
-    /// [`attachments`]) will be removed from the message. If not called, all
-    /// attachments will be kept.
+    /// [`attachments`]) will be removed from the message. This is impossible if
+    /// it would leave the message empty of `attachments`, `content`, or
+    /// `embeds`. If not called, all attachments will be kept.
     ///
     /// [`attachments`]: Self::attachments
     pub const fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {
