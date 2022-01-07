@@ -407,12 +407,21 @@ impl ShardProcessor {
 
             if let Err(source) = self.process().await {
                 #[cfg(feature = "tracing")]
-                tracing::warn!(
-                    shard_id = self.config.shard()[0],
-                    shard_total = self.config.shard()[1],
-                    "processing incoming event failed: {:?}",
-                    source,
-                );
+                if matches!(&source.kind, ProcessErrorType::EventTypeUnknown { .. }) {
+                    tracing::debug!(
+                        shard_id = self.config.shard()[0],
+                        shard_total = self.config.shard()[1],
+                        "processing incoming event failed: {:?}",
+                        source,
+                    );
+                } else {
+                    tracing::warn!(
+                        shard_id = self.config.shard()[0],
+                        shard_total = self.config.shard()[1],
+                        "processing incoming event failed: {:?}",
+                        source,
+                    );
+                }
 
                 if source.fatal() {
                     #[cfg(feature = "tracing")]
