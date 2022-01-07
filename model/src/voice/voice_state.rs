@@ -24,6 +24,8 @@ pub struct VoiceState {
     /// Whether this user is streaming via "Go Live".
     #[serde(default)]
     pub self_stream: bool,
+    /// Whether this user's camera is enabled.
+    pub self_video: bool,
     pub session_id: String,
     pub suppress: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,6 +51,7 @@ enum Field {
     SelfDeaf,
     SelfMute,
     SelfStream,
+    SelfVideo,
     SessionId,
     Suppress,
     Token,
@@ -75,6 +78,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mut self_deaf = None;
         let mut self_mute = None;
         let mut self_stream = None;
+        let mut self_video = None;
         let mut session_id = None;
         let mut suppress = None;
         let mut token = None;
@@ -178,6 +182,13 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
 
                     self_stream = Some(map.next_value()?);
                 }
+                Field::SelfVideo => {
+                    if self_video.is_some() {
+                        return Err(DeError::duplicate_field("self_video"));
+                    }
+
+                    self_video = Some(map.next_value()?);
+                }
                 Field::SessionId => {
                     if session_id.is_some() {
                         return Err(DeError::duplicate_field("session_id"));
@@ -220,6 +231,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mute = mute.ok_or_else(|| DeError::missing_field("mute"))?;
         let self_deaf = self_deaf.ok_or_else(|| DeError::missing_field("self_deaf"))?;
         let self_mute = self_mute.ok_or_else(|| DeError::missing_field("self_mute"))?;
+        let self_video = self_video.ok_or_else(|| DeError::missing_field("self_video"))?;
         let session_id = session_id.ok_or_else(|| DeError::missing_field("session_id"))?;
         let suppress = suppress.ok_or_else(|| DeError::missing_field("suppress"))?;
         let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
@@ -233,6 +245,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
             %self_deaf,
             %self_mute,
             %self_stream,
+            %self_video,
             ?session_id,
             %suppress,
             %user_id,
@@ -254,6 +267,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
             self_deaf,
             self_mute,
             self_stream,
+            self_video,
             session_id,
             suppress,
             token,
@@ -306,6 +320,7 @@ mod tests {
             self_deaf: false,
             self_mute: true,
             self_stream: false,
+            self_video: false,
             session_id: "a".to_owned(),
             suppress: true,
             token: None,
@@ -318,7 +333,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceState",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -337,6 +352,8 @@ mod tests {
                 Token::Str("self_mute"),
                 Token::Bool(true),
                 Token::Str("self_stream"),
+                Token::Bool(false),
+                Token::Str("self_video"),
                 Token::Bool(false),
                 Token::Str("session_id"),
                 Token::Str("a"),
@@ -396,6 +413,7 @@ mod tests {
             self_deaf: false,
             self_mute: true,
             self_stream: false,
+            self_video: false,
             session_id: "a".to_owned(),
             suppress: true,
             token: Some("abc".to_owned()),
@@ -408,7 +426,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceState",
-                    len: 13,
+                    len: 14,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -477,6 +495,8 @@ mod tests {
                 Token::Str("self_mute"),
                 Token::Bool(true),
                 Token::Str("self_stream"),
+                Token::Bool(false),
+                Token::Str("self_video"),
                 Token::Bool(false),
                 Token::Str("session_id"),
                 Token::Str("a"),
