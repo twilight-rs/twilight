@@ -116,6 +116,7 @@ impl Display for CommandValidationError {
                 f.write_str("command name must be between ")?;
                 Display::fmt(&NAME_LENGTH_MIN, f)?;
                 f.write_str(" and ")?;
+
                 Display::fmt(&NAME_LENGTH_MAX, f)
             }
             CommandValidationErrorType::NameCharacterInvalid { character } => {
@@ -123,6 +124,7 @@ impl Display for CommandValidationError {
                     "command name must only contain lowercase alphanumeric characters, found `",
                 )?;
                 Display::fmt(character, f)?;
+
                 f.write_str("`")
             }
             CommandValidationErrorType::OptionDescriptionInvalid => {
@@ -137,11 +139,13 @@ impl Display for CommandValidationError {
                 f.write_str("command option name must be between ")?;
                 Display::fmt(&NAME_LENGTH_MIN, f)?;
                 f.write_str(" and ")?;
+
                 Display::fmt(&NAME_LENGTH_MAX, f)
             }
             CommandValidationErrorType::OptionNameCharacterInvalid { character } => {
                 f.write_str("command option name must only contain lowercase alphanumeric characters, found `")?;
                 Display::fmt(character, f)?;
+
                 f.write_str("`")
             }
             CommandValidationErrorType::OptionsCountInvalid => {
@@ -303,13 +307,7 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
 /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 /// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 pub fn chat_input_name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
-    let len = value.as_ref().chars().count();
-
-    if !(NAME_LENGTH_MIN..=NAME_LENGTH_MAX).contains(&len) {
-        return Err(CommandValidationError {
-            kind: CommandValidationErrorType::NameLengthInvalid,
-        });
-    }
+    self::name(&value)?;
 
     let chars = value.as_ref().chars();
 

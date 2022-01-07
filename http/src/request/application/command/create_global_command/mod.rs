@@ -12,29 +12,17 @@ use twilight_model::id::{marker::ApplicationMarker, Id};
 use twilight_validate::command::CommandValidationError;
 
 /// Create a new global command.
-///
-/// The name must be between 1 and 32 characters in length. Creating a command
-/// with the same name as an already-existing global command will overwrite the
-/// old command. See [the discord docs] for more information.
-///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "the command must have a type"]
 pub struct CreateGlobalCommand<'a> {
     application_id: Id<ApplicationMarker>,
     http: &'a Client,
-    name: &'a str,
 }
 
 impl<'a> CreateGlobalCommand<'a> {
-    pub(crate) const fn new(
-        http: &'a Client,
-        application_id: Id<ApplicationMarker>,
-        name: &'a str,
-    ) -> Self {
+    pub(crate) const fn new(http: &'a Client, application_id: Id<ApplicationMarker>) -> Self {
         Self {
             application_id,
             http,
-            name,
         }
     }
 
@@ -42,11 +30,11 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// The command name must only contain alphanumeric characters and lowercase
     /// variants must be used where possible. Special characters `-` and `_` are
-    /// allowed.
+    /// allowed. The description must be between 1 and 100 characters in length.
     ///
-    /// The description must be between 1 and 100 characters in length. Creating
-    /// a command with the same name as an already-existing global command will
-    /// overwrite the old command. See [the discord docs] for more information.
+    /// Creating a command with the same name as an already-existing global
+    /// command will overwrite the old command. See [the discord docs] for more
+    /// information.
     ///
     /// # Errors
     ///
@@ -61,9 +49,10 @@ impl<'a> CreateGlobalCommand<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn chat_input(
         self,
+        name: &'a str,
         description: &'a str,
     ) -> Result<CreateGlobalChatInputCommand<'a>, CommandValidationError> {
-        CreateGlobalChatInputCommand::new(self.http, self.application_id, self.name, description)
+        CreateGlobalChatInputCommand::new(self.http, self.application_id, name, description)
     }
 
     /// Create a new message global command.
@@ -79,8 +68,11 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub fn message(self) -> Result<CreateGlobalMessageCommand<'a>, CommandValidationError> {
-        CreateGlobalMessageCommand::new(self.http, self.application_id, self.name)
+    pub fn message(
+        self,
+        name: &'a str,
+    ) -> Result<CreateGlobalMessageCommand<'a>, CommandValidationError> {
+        CreateGlobalMessageCommand::new(self.http, self.application_id, name)
     }
 
     /// Create a new user global command.
@@ -96,7 +88,10 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub fn user(self) -> Result<CreateGlobalUserCommand<'a>, CommandValidationError> {
-        CreateGlobalUserCommand::new(self.http, self.application_id, self.name)
+    pub fn user(
+        self,
+        name: &'a str,
+    ) -> Result<CreateGlobalUserCommand<'a>, CommandValidationError> {
+        CreateGlobalUserCommand::new(self.http, self.application_id, name)
     }
 }

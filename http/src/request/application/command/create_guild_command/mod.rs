@@ -15,19 +15,11 @@ use twilight_model::id::{
 use twilight_validate::command::CommandValidationError;
 
 /// Create a new command in a guild.
-///
-/// The name must be between 1 and 32 characters in length. Creating a guild
-/// command with the same name as an already-existing guild command in the same
-/// guild will overwrite the old command. See [the discord docs] for more
-/// information.
-///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "the command must have a type"]
 pub struct CreateGuildCommand<'a> {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    name: &'a str,
 }
 
 impl<'a> CreateGuildCommand<'a> {
@@ -35,13 +27,11 @@ impl<'a> CreateGuildCommand<'a> {
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
         guild_id: Id<GuildMarker>,
-        name: &'a str,
     ) -> Self {
         Self {
             application_id,
             guild_id,
             http,
-            name,
         }
     }
 
@@ -49,16 +39,16 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// The command name must only contain alphanumeric characters and lowercase
     /// variants must be used where possible. Special characters `-` and `_` are
-    /// allowed.
+    /// allowed. The description must be between 1 and 100 characters in length.
     ///
-    /// The description must be between 1 and 100 characters in length. Creating
-    /// a guild command with the same name as an already-existing guild command
-    /// in the same guild will overwrite the old command. See [the discord docs]
-    /// for more information.
+    /// Creating a guild command with the same name as an already-existing guild
+    /// command in the same guild will overwrite the old command. See [the
+    /// discord docs] for more information.
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`NameLengthInvalid`] or [`NameCharacterInvalid`] if the command name is invalid.
+    /// Returns an error of type [`NameLengthInvalid`] or [`NameCharacterInvalid`]
+    /// if the command name is invalid.
     ///
     /// Returns an error of type [`DescriptionInvalid`] error type if the
     /// command description is not between 1 and 100 characters.
@@ -69,13 +59,14 @@ impl<'a> CreateGuildCommand<'a> {
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn chat_input(
         self,
+        name: &'a str,
         description: &'a str,
     ) -> Result<CreateGuildChatInputCommand<'a>, CommandValidationError> {
         CreateGuildChatInputCommand::new(
             self.http,
             self.application_id,
             self.guild_id,
-            self.name,
+            name,
             description,
         )
     }
@@ -93,8 +84,11 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub fn message(self) -> Result<CreateGuildMessageCommand<'a>, CommandValidationError> {
-        CreateGuildMessageCommand::new(self.http, self.application_id, self.guild_id, self.name)
+    pub fn message(
+        self,
+        name: &'a str,
+    ) -> Result<CreateGuildMessageCommand<'a>, CommandValidationError> {
+        CreateGuildMessageCommand::new(self.http, self.application_id, self.guild_id, name)
     }
 
     /// Create a user command in a guild.
@@ -110,7 +104,7 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub fn user(self) -> Result<CreateGuildUserCommand<'a>, CommandValidationError> {
-        CreateGuildUserCommand::new(self.http, self.application_id, self.guild_id, self.name)
+    pub fn user(self, name: &'a str) -> Result<CreateGuildUserCommand<'a>, CommandValidationError> {
+        CreateGuildUserCommand::new(self.http, self.application_id, self.guild_id, name)
     }
 }

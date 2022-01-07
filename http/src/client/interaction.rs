@@ -161,20 +161,11 @@ impl<'a> InteractionClient<'a> {
     }
 
     /// Create a new command in a guild.
-    ///
-    /// The name must be between 1 and 32 characters in length. Creating a
-    /// guild command with the same name as an already-existing guild command in
-    /// the same guild will overwrite the old command. See [the discord docs]
-    /// for more information.
-    ///
-    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub const fn create_guild_command(
         &'a self,
         guild_id: Id<GuildMarker>,
-        name: &'a str,
     ) -> CreateGuildCommand<'a> {
-        CreateGuildCommand::new(self.client, self.application_id, guild_id, name)
+        CreateGuildCommand::new(self.client, self.application_id, guild_id)
     }
 
     /// Fetch a guild command for your application.
@@ -233,14 +224,8 @@ impl<'a> InteractionClient<'a> {
     }
 
     /// Create a new global command.
-    ///
-    /// The name must be between 1 and 32 characters in length. Creating a
-    /// command with the same name as an already-existing global command will
-    /// overwrite the old command. See [the discord docs] for more information.
-    ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub const fn create_global_command(&'a self, name: &'a str) -> CreateGlobalCommand<'a> {
-        CreateGlobalCommand::new(self.client, self.application_id, name)
+    pub const fn create_global_command(&'a self) -> CreateGlobalCommand<'a> {
+        CreateGlobalCommand::new(self.client, self.application_id)
     }
 
     /// Fetch a global command for your application.
