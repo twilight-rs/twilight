@@ -24,6 +24,9 @@ use twilight_model::{
     },
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
 };
+use twilight_validate::request::{
+    scheduled_event_name as validate_scheduled_event_name, ValidationError,
+};
 
 #[derive(Serialize)]
 struct CreateGuildScheduledEventFields<'a> {
@@ -137,40 +140,80 @@ impl<'a> CreateGuildScheduledEvent<'a> {
     }
 
     /// Create an external scheduled event in a guild.
-    pub const fn external(
+    ///
+    /// The name must be between 1 and 100 characters in length.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ScheduledEventName`] if the name is invalid.
+    ///
+    /// [`ScheduledEventName`]: twilight_validate::request::ValidationErrorType::ScheduledEventName
+    pub fn external(
         self,
         name: &'a str,
         location: &'a str,
         scheduled_start_time: &'a Timestamp,
         scheduled_end_time: &'a Timestamp,
-    ) -> CreateGuildExternalScheduledEvent<'a> {
-        CreateGuildExternalScheduledEvent::new(
+    ) -> Result<CreateGuildExternalScheduledEvent<'a>, ValidationError> {
+        validate_scheduled_event_name(name)?;
+
+        Ok(CreateGuildExternalScheduledEvent::new(
             self,
             name,
             location,
             scheduled_start_time,
             scheduled_end_time,
-        )
+        ))
     }
 
     /// Create a stage instance scheduled event in a guild.
-    pub const fn stage_instance(
+    ///
+    /// The name must be between 1 and 100 characters in length.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ScheduledEventName`] if the name is invalid.
+    ///
+    /// [`ScheduledEventName`]: twilight_validate::request::ValidationErrorType::ScheduledEventName
+    pub fn stage_instance(
         self,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
-    ) -> CreateGuildStageInstanceScheduledEvent<'a> {
-        CreateGuildStageInstanceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
+    ) -> Result<CreateGuildStageInstanceScheduledEvent<'a>, ValidationError> {
+        validate_scheduled_event_name(name)?;
+
+        Ok(CreateGuildStageInstanceScheduledEvent::new(
+            self,
+            channel_id,
+            name,
+            scheduled_start_time,
+        ))
     }
 
     /// Create a voice channel scheduled event in a guild.
-    pub const fn voice(
+    ///
+    /// The name must be between 1 and 100 characters in length.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ScheduledEventName`] if the name is invalid.
+    ///
+    /// [`ScheduledEventName`]: twilight_validate::request::ValidationErrorType::ScheduledEventName
+    pub fn voice(
         self,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
         scheduled_start_time: &'a Timestamp,
-    ) -> CreateGuildVoiceScheduledEvent<'a> {
-        CreateGuildVoiceScheduledEvent::new(self, channel_id, name, scheduled_start_time)
+    ) -> Result<CreateGuildVoiceScheduledEvent<'a>, ValidationError> {
+        validate_scheduled_event_name(name)?;
+
+        Ok(CreateGuildVoiceScheduledEvent::new(
+            self,
+            channel_id,
+            name,
+            scheduled_start_time,
+        ))
     }
 
     fn exec(self) -> ResponseFuture<GuildScheduledEvent> {

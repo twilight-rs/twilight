@@ -10,6 +10,9 @@ use twilight_model::{
     datetime::Timestamp,
     scheduled_event::{EntityType, GuildScheduledEvent},
 };
+use twilight_validate::request::{
+    scheduled_event_description as validate_scheduled_event_description, ValidationError,
+};
 
 /// Create an external scheduled event in a guild.
 #[must_use = "requests must be configured and executed"]
@@ -42,10 +45,19 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     /// Set the description of the event.
     ///
     /// Must be between 1 and 1000 characters in length.
-    pub const fn description(mut self, description: &'a str) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ScheduledEventDescription`] if the
+    /// description is invalid.
+    ///
+    /// [`ScheduledEventDescription`]: twilight_validate::request::ValidationErrorType::ScheduledEventDescription
+    pub fn description(mut self, description: &'a str) -> Result<Self, ValidationError> {
+        validate_scheduled_event_description(description)?;
+
         self.0.fields.description = Some(description);
 
-        self
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].

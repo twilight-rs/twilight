@@ -17,6 +17,10 @@ use twilight_model::{
     },
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
 };
+use twilight_validate::request::{
+    scheduled_event_description as validate_scheduled_event_description,
+    scheduled_event_name as validate_scheduled_event_name, ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateGuildScheduledEventFields<'a> {
@@ -107,10 +111,21 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     /// Set the description of the event.
     ///
     /// Must be between 1 and 1000 characters in length.
-    pub const fn description(mut self, description: Option<&'a str>) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ScheduledEventDescription`] if the
+    /// description is invalid.
+    ///
+    /// [`ScheduledEventDescription`]: twilight_validate::request::ValidationErrorType::ScheduledEventDescription
+    pub fn description(mut self, description: Option<&'a str>) -> Result<Self, ValidationError> {
+        if let Some(description) = description {
+            validate_scheduled_event_description(description)?;
+        }
+
         self.fields.description = Some(NullableField(description));
 
-        self
+        Ok(self)
     }
 
     /// Set the [`EntityType`] of the scheduled event.
@@ -141,10 +156,18 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     /// Set the name of the event.
     ///
     /// Must be between 1 and 100 characters in length.
-    pub const fn name(mut self, name: &'a str) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ScheduledEventName`] if the name is invalid.
+    ///
+    /// [`ScheduledEventName`]: twilight_validate::request::ValidationErrorType::ScheduledEventName
+    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
+        validate_scheduled_event_name(name)?;
+
         self.fields.name = Some(name);
 
-        self
+        Ok(self)
     }
 
     /// Set the scheduled end time of the event.

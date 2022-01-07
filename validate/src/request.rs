@@ -69,6 +69,18 @@ pub const NICKNAME_LIMIT_MAX: usize = 32;
 /// Minimum length of a nickname.
 pub const NICKNAME_LIMIT_MIN: usize = 1;
 
+/// Maximum length of a scheduled event's description.
+pub const SCHEDULED_EVENT_DESCRIPTION_MAX: usize = 1000;
+
+/// Minimum length of a scheduled event's description.
+pub const SCHEDULED_EVENT_DESCRIPTION_MIN: usize = 1;
+
+/// Maximum length of a scheduled event's name.
+pub const SCHEDULED_EVENT_NAME_MAX: usize = 100;
+
+/// Minimum length of a scheduled event's name.
+pub const SCHEDULED_EVENT_NAME_MIN: usize = 1;
+
 /// Maximum amount of guild members to search for.
 pub const SEARCH_GUILD_MEMBERS_LIMIT_MAX: u64 = 1000;
 
@@ -226,6 +238,24 @@ impl Display for ValidationError {
 
                 Display::fmt(&NICKNAME_LIMIT_MAX, f)
             }
+            ValidationErrorType::ScheduledEventDescription { len } => {
+                f.write_str("provided scheduled event description is length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&SCHEDULED_EVENT_DESCRIPTION_MIN, f)?;
+                f.write_str(" and at most ")?;
+
+                Display::fmt(&SCHEDULED_EVENT_DESCRIPTION_MAX, f)
+            }
+            ValidationErrorType::ScheduledEventName { len } => {
+                f.write_str("provided scheduled event name is length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&SCHEDULED_EVENT_NAME_MIN, f)?;
+                f.write_str(" and at most ")?;
+
+                Display::fmt(&SCHEDULED_EVENT_NAME_MAX, f)
+            }
             ValidationErrorType::SearchGuildMembers { limit } => {
                 f.write_str("provided search guild members limit is ")?;
                 Display::fmt(limit, f)?;
@@ -335,6 +365,16 @@ pub enum ValidationErrorType {
     },
     /// Provided nickname length was invalid.
     Nickname {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Scheduled event description is invalid.
+    ScheduledEventDescription {
+        /// Invalid length.
+        len: usize,
+    },
+    /// Scheduled event name is invalid.
+    ScheduledEventName {
         /// Invalid length.
         len: usize,
     },
@@ -632,6 +672,54 @@ pub fn nickname(nickname: impl AsRef<str>) -> Result<(), ValidationError> {
     }
 }
 
+/// Ensure that a scheduled even't description is correct.
+///
+/// The length must be at least [`SCHEDULED_EVENT_DESCRIPTION_MIN`] and at most
+/// [`SCHEDULED_EVENT_DESCRIPTION_MAX`]. This is based on
+/// [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`ScheduledEventDescription`] if the length is
+/// invalid.
+///
+/// [`ScheduledEventDescription`]: ValidationErrorType::ScheduledEventDescription
+/// [this documentation entry]: https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-structure
+pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), ValidationError> {
+    let len = description.as_ref().chars().count();
+
+    if (SCHEDULED_EVENT_DESCRIPTION_MIN..=SCHEDULED_EVENT_DESCRIPTION_MAX).contains(&len) {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::ScheduledEventDescription { len },
+        })
+    }
+}
+
+/// Ensure that a scheduled even't name is correct.
+///
+/// The length must be at least [`SCHEDULED_EVENT_NAME_MIN`] and at most
+/// [`SCHEDULED_EVENT_NAME_MAX`]. This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`ScheduledEventName`] if the length is invalid.
+///
+/// [`ScheduledEventName`]: ValidationErrorType::ScheduledEventName
+/// [this documentation entry]: https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-structure
+pub fn scheduled_event_name(name: impl AsRef<str>) -> Result<(), ValidationError> {
+    let len = name.as_ref().chars().count();
+
+    if (SCHEDULED_EVENT_NAME_MIN..=SCHEDULED_EVENT_NAME_MAX).contains(&len) {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::ScheduledEventName { len },
+        })
+    }
+}
+
 /// Ensure that the limit for the Search Guild Members endpoint is correct.
 ///
 /// The limit must be at least [`SEARCH_GUILD_MEMBERS_LIMIT_MIN`] and at most
@@ -865,6 +953,24 @@ mod tests {
 
         assert!(nickname("").is_err());
         assert!(nickname("a".repeat(33)).is_err());
+    }
+
+    #[test]
+    fn test_scheduled_event_description() {
+        assert!(scheduled_event_description("a").is_ok());
+        assert!(scheduled_event_description("a".repeat(1000)).is_ok());
+
+        assert!(scheduled_event_description("").is_err());
+        assert!(scheduled_event_description("a".repeat(1001)).is_err());
+    }
+
+    #[test]
+    fn test_scheduled_event_name() {
+        assert!(scheduled_event_name("a").is_ok());
+        assert!(scheduled_event_name("a".repeat(100)).is_ok());
+
+        assert!(scheduled_event_name("").is_err());
+        assert!(scheduled_event_name("a".repeat(101)).is_err());
     }
 
     #[test]
