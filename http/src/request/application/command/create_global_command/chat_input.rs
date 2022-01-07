@@ -11,7 +11,7 @@ use twilight_model::{
     id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::command::{
-    chat_input_name as validate_name, description as validate_description,
+    chat_input_name as validate_chat_input_name, description as validate_description,
     options as validate_options, CommandValidationError,
 };
 
@@ -41,7 +41,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     ) -> Result<Self, CommandValidationError> {
         validate_description(&description)?;
 
-        validate_name(name)?;
+        validate_chat_input_name(name)?;
 
         Ok(Self {
             application_id,
