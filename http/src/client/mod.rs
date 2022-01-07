@@ -2039,7 +2039,7 @@ impl Client {
     /// # let client = Client::new("token".to_owned());
     /// let guild_id = Id::new(1).expect("non zero");
     /// let channel_id = Id::new(2).expect("non zero");
-    /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00Z")?;
+    /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00+00:00")?;
     ///
     /// client
     ///     .create_guild_scheduled_event(guild_id)
@@ -2063,8 +2063,8 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
     /// let guild_id = Id::new(1).expect("non zero");
-    /// let garfield_con_start_time = Timestamp::parse("2022-01-04T08:00:00Z")?;
-    /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00Z")?;
+    /// let garfield_con_start_time = Timestamp::parse("2022-01-04T08:00:00+00:00")?;
+    /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00+00:00")?;
     ///
     /// client
     ///     .create_guild_scheduled_event(guild_id)
