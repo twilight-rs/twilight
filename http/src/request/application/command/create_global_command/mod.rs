@@ -38,7 +38,8 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`NameLengthInvalid`] or [`NameCharacterInvalid`] if the command name is invalid.
+    /// Returns an error of type [`NameLengthInvalid`] or [`NameCharacterInvalid`]
+    /// if the command name is invalid.
     ///
     /// Returns an error of type [`DescriptionInvalid`] if the
     /// command description is not between 1 and 100 characters.
