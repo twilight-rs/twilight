@@ -40,17 +40,17 @@ impl InMemoryCache {
 }
 
 impl UpdateCache for RoleCreate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }
 
-        cache.cache_role(self.guild_id, self.role.clone());
+        cache.cache_role(self.guild_id, self.role);
     }
 }
 
 impl UpdateCache for RoleDelete {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }
@@ -60,12 +60,12 @@ impl UpdateCache for RoleDelete {
 }
 
 impl UpdateCache for RoleUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::ROLE) {
             return;
         }
 
-        cache.cache_role(self.guild_id, self.role.clone());
+        cache.cache_role(self.guild_id, self.role);
     }
 }
 
@@ -78,7 +78,7 @@ mod tests {
     fn test_insert_role_on_event() {
         let cache = InMemoryCache::new();
 
-        cache.update(&RoleCreate {
+        cache.update(RoleCreate {
             guild_id: Id::new(1),
             role: test::role(Id::new(2)),
         });

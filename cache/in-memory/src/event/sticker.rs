@@ -75,11 +75,11 @@ impl InMemoryCache {
 }
 
 impl UpdateCache for GuildStickersUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::STICKER) {
             return;
         }
 
-        cache.cache_stickers(self.guild_id, self.stickers.clone());
+        cache.cache_stickers(self.guild_id, self.stickers);
     }
 }

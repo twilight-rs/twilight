@@ -40,7 +40,7 @@
 //!
 //! while let Some(event) = events.next().await {
 //!     // Update the cache with the event.
-//!     cache.update(&event);
+//!     cache.update(event);
 //! }
 //! # Ok(()) }
 //! ```
@@ -429,7 +429,7 @@ impl InMemoryCache {
     }
 
     /// Update the cache with an event from the gateway.
-    pub fn update(&self, value: &impl UpdateCache) {
+    pub fn update(&self, value: impl UpdateCache) {
         value.update(self);
     }
 
@@ -831,7 +831,11 @@ pub trait UpdateCache {
     /// Updates the cache based on data contained within an event.
     // Allow this for presentation purposes in documentation.
     #[allow(unused_variables)]
-    fn update(&self, cache: &InMemoryCache) {}
+    fn update(self, cache: &InMemoryCache)
+    where
+        Self: Sized,
+    {
+    }
 }
 
 /// Iterator over a voice channel's list of voice states.
@@ -860,7 +864,7 @@ impl<'a> Iterator for VoiceChannelStates<'a> {
 
 impl UpdateCache for Event {
     #[allow(clippy::cognitive_complexity)]
-    fn update(&self, c: &InMemoryCache) {
+    fn update(self, c: &InMemoryCache) {
         use Event::*;
 
         match self {
@@ -876,32 +880,32 @@ impl UpdateCache for Event {
             GatewayInvalidateSession(_v) => {}
             GatewayReconnect => {}
             GiftCodeUpdate => {}
-            GuildCreate(v) => c.update(v.deref()),
-            GuildDelete(v) => c.update(v.deref()),
+            GuildCreate(v) => c.update(v),
+            GuildDelete(v) => c.update(v),
             GuildEmojisUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(_) => {}
-            GuildUpdate(v) => c.update(v.deref()),
-            IntegrationCreate(v) => c.update(v.deref()),
-            IntegrationDelete(v) => c.update(v.deref()),
-            IntegrationUpdate(v) => c.update(v.deref()),
-            InteractionCreate(v) => c.update(v.deref()),
+            GuildUpdate(v) => c.update(v),
+            IntegrationCreate(v) => c.update(v),
+            IntegrationDelete(v) => c.update(v),
+            IntegrationUpdate(v) => c.update(v),
+            InteractionCreate(v) => c.update(v),
             InviteCreate(_) => {}
             InviteDelete(_) => {}
-            MemberAdd(v) => c.update(v.deref()),
+            MemberAdd(v) => c.update(v),
             MemberRemove(v) => c.update(v),
-            MemberUpdate(v) => c.update(v.deref()),
+            MemberUpdate(v) => c.update(v),
             MemberChunk(v) => c.update(v),
-            MessageCreate(v) => c.update(v.deref()),
+            MessageCreate(v) => c.update(v),
             MessageDelete(v) => c.update(v),
             MessageDeleteBulk(v) => c.update(v),
-            MessageUpdate(v) => c.update(v.deref()),
-            PresenceUpdate(v) => c.update(v.deref()),
+            MessageUpdate(v) => c.update(v),
+            PresenceUpdate(v) => c.update(v),
             PresencesReplace => {}
-            ReactionAdd(v) => c.update(v.deref()),
-            ReactionRemove(v) => c.update(v.deref()),
+            ReactionAdd(v) => c.update(v),
+            ReactionRemove(v) => c.update(v),
             ReactionRemoveAll(v) => c.update(v),
             ReactionRemoveEmoji(v) => c.update(v),
-            Ready(v) => c.update(v.deref()),
+            Ready(v) => c.update(v),
             Resumed => {}
             RoleCreate(v) => c.update(v),
             RoleDelete(v) => c.update(v),
@@ -926,7 +930,7 @@ impl UpdateCache for Event {
             UnavailableGuild(v) => c.update(v),
             UserUpdate(v) => c.update(v),
             VoiceServerUpdate(_) => {}
-            VoiceStateUpdate(v) => c.update(v.deref()),
+            VoiceStateUpdate(v) => c.update(v),
             WebhooksUpdate(_) => {}
         }
     }
@@ -945,7 +949,7 @@ mod tests {
     #[test]
     fn test_syntax_update() {
         let cache = InMemoryCache::new();
-        cache.update(&RoleDelete {
+        cache.update(RoleDelete {
             guild_id: Id::new(1),
             role_id: Id::new(1),
         });

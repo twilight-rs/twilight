@@ -166,7 +166,7 @@
 //!     // Process each event as they come in.
 //!     while let Some((shard_id, event)) = events.next().await {
 //!         // Update the cache with the event.
-//!         cache.update(&event);
+//!         cache.update(event.clone());
 //!
 //!         tokio::spawn(handle_event(shard_id, event, Arc::clone(&http)));
 //!     }

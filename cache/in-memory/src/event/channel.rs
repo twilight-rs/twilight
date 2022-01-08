@@ -77,29 +77,29 @@ impl InMemoryCache {
 }
 
 impl UpdateCache for ChannelCreate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
-        match &self.0 {
+        match self.0 {
             Channel::Group(c) => {
-                crate::upsert_item(&cache.groups, c.id, c.clone());
+                crate::upsert_item(&cache.groups, c.id, c);
             }
             Channel::Guild(c) => {
                 if let Some(gid) = c.guild_id() {
-                    cache.cache_guild_channel(gid, c.clone());
+                    cache.cache_guild_channel(gid, c);
                 }
             }
             Channel::Private(c) => {
-                cache.cache_private_channel(c.clone());
+                cache.cache_private_channel(c);
             }
         }
     }
 }
 
 impl UpdateCache for ChannelDelete {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -119,7 +119,7 @@ impl UpdateCache for ChannelDelete {
 }
 
 impl UpdateCache for ChannelPinsUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -145,12 +145,12 @@ impl UpdateCache for ChannelPinsUpdate {
 }
 
 impl UpdateCache for ChannelUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
-        match self.0.clone() {
+        match self.0 {
             Channel::Group(c) => {
                 cache.cache_group(c);
             }
@@ -185,9 +185,7 @@ mod tests {
             .unwrap()
             .contains(&channel_id));
 
-        cache.update(&Event::ChannelDelete(ChannelDelete(Channel::Guild(
-            channel,
-        ))));
+        cache.update(Event::ChannelDelete(ChannelDelete(Channel::Guild(channel))));
         assert!(cache.channels_guild.is_empty());
         assert!(cache.guild_channels.get(&guild_id).unwrap().is_empty());
     }
@@ -197,7 +195,7 @@ mod tests {
         let cache = InMemoryCache::new();
         let (guild_id, channel_id, channel) = test::guild_channel_text();
 
-        cache.update(&ChannelUpdate(Channel::Guild(channel)));
+        cache.update(ChannelUpdate(Channel::Guild(channel)));
         assert_eq!(1, cache.channels_guild.len());
         assert!(cache
             .guild_channels

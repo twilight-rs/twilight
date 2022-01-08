@@ -76,17 +76,17 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for VoiceStateUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl UpdateCache for Box<VoiceStateUpdate> {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::VOICE_STATE) {
             return;
         }
 
-        cache.cache_voice_state(self.0.clone());
-
-        if let (Some(guild_id), Some(member)) = (self.0.guild_id, &self.0.member) {
-            cache.cache_member(guild_id, member.clone());
+        if let (Some(guild_id), Some(member)) = (self.0.guild_id, self.0.member.clone()) {
+            cache.cache_member(guild_id, member);
         }
+
+        cache.cache_voice_state(self.0);
     }
 }
 
@@ -258,7 +258,7 @@ mod tests {
             .resource_types(ResourceType::VOICE_STATE)
             .build();
 
-        cache.update(&VoiceStateUpdate(VoiceState {
+        cache.update(Box::new(VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
             guild_id: Some(Id::new(1)),
@@ -275,7 +275,7 @@ mod tests {
             request_to_speak_timestamp: Some(
                 Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
             ),
-        }));
+        })));
     }
 
     #[test]
@@ -334,7 +334,7 @@ mod tests {
             ),
         });
 
-        cache.update(&mutation);
+        cache.update(Box::new(mutation));
 
         assert_eq!(cache.members.len(), 1);
         {

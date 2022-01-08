@@ -102,18 +102,18 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for GuildCreate {
-    fn update(&self, cache: &InMemoryCache) {
+impl UpdateCache for Box<GuildCreate> {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::GUILD) {
             return;
         }
 
-        cache.cache_guild(self.0.clone());
+        cache.cache_guild(self.0);
     }
 }
 
-impl UpdateCache for GuildDelete {
-    fn update(&self, cache: &InMemoryCache) {
+impl UpdateCache for Box<GuildDelete> {
+    fn update(self, cache: &InMemoryCache) {
         fn remove_ids<T: Eq + Hash, U>(
             guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
             container: &DashMap<T, U>,
@@ -173,8 +173,8 @@ impl UpdateCache for GuildDelete {
     }
 }
 
-impl UpdateCache for GuildUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl UpdateCache for Box<GuildUpdate> {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::GUILD) {
             return;
         }
@@ -182,30 +182,30 @@ impl UpdateCache for GuildUpdate {
         if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
-            guild.banner = self.banner;
-            guild.default_message_notifications = self.default_message_notifications;
-            guild.description = self.description.clone();
-            guild.features = self.features.clone();
-            guild.icon = self.icon;
-            guild.max_members = self.max_members;
-            guild.max_presences = Some(self.max_presences.unwrap_or(25000));
-            guild.mfa_level = self.mfa_level;
-            guild.name = self.name.clone();
-            guild.nsfw_level = self.nsfw_level;
-            guild.owner = self.owner;
-            guild.owner_id = self.owner_id;
-            guild.permissions = self.permissions;
-            guild.preferred_locale = self.preferred_locale.clone();
-            guild.premium_tier = self.premium_tier;
+            guild.banner = self.0.banner;
+            guild.default_message_notifications = self.0.default_message_notifications;
+            guild.description = self.0.description;
+            guild.features = self.0.features;
+            guild.icon = self.0.icon;
+            guild.max_members = self.0.max_members;
+            guild.max_presences = Some(self.0.max_presences.unwrap_or(25000));
+            guild.mfa_level = self.0.mfa_level;
+            guild.name = self.0.name;
+            guild.nsfw_level = self.0.nsfw_level;
+            guild.owner = self.0.owner;
+            guild.owner_id = self.0.owner_id;
+            guild.permissions = self.0.permissions;
+            guild.preferred_locale = self.0.preferred_locale;
+            guild.premium_tier = self.0.premium_tier;
             guild
                 .premium_subscription_count
-                .replace(self.premium_subscription_count.unwrap_or_default());
-            guild.splash = self.splash;
-            guild.system_channel_id = self.system_channel_id;
-            guild.verification_level = self.verification_level;
-            guild.vanity_url_code = self.vanity_url_code.clone();
-            guild.widget_channel_id = self.widget_channel_id;
-            guild.widget_enabled = self.widget_enabled;
+                .replace(self.0.premium_subscription_count.unwrap_or_default());
+            guild.splash = self.0.splash;
+            guild.system_channel_id = self.0.system_channel_id;
+            guild.verification_level = self.0.verification_level;
+            guild.vanity_url_code = self.0.vanity_url_code;
+            guild.widget_channel_id = self.0.widget_channel_id;
+            guild.widget_enabled = self.0.widget_enabled;
         };
     }
 }
@@ -409,7 +409,7 @@ mod tests {
             widget_enabled: None,
         };
 
-        cache.update(&GuildCreate(guild.clone()));
+        cache.update(Box::new(GuildCreate(guild.clone())));
 
         let mutation = PartialGuild {
             id: guild.id,
@@ -448,7 +448,7 @@ mod tests {
             widget_enabled: guild.widget_enabled,
         };
 
-        cache.update(&GuildUpdate(mutation.clone()));
+        cache.update(Box::new(GuildUpdate(mutation.clone())));
 
         assert_eq!(cache.guild(guild.id).unwrap().name, mutation.name);
         assert_eq!(cache.guild(guild.id).unwrap().owner_id, mutation.owner_id);

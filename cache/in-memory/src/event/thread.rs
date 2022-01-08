@@ -5,21 +5,21 @@ use twilight_model::{
 };
 
 impl UpdateCache for ThreadCreate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
-        if let Channel::Guild(c) = &self.0 {
+        if let Channel::Guild(c) = self.0 {
             if let Some(gid) = c.guild_id() {
-                cache.cache_guild_channel(gid, c.clone());
+                cache.cache_guild_channel(gid, c);
             }
         }
     }
 }
 
 impl UpdateCache for ThreadDelete {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
@@ -29,16 +29,16 @@ impl UpdateCache for ThreadDelete {
 }
 
 impl UpdateCache for ThreadListSync {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
         let threads: Vec<GuildChannel> = self
             .threads
-            .iter()
-            .filter_map(|c| match &c {
-                Channel::Guild(c) => Some(c.clone()),
+            .into_iter()
+            .filter_map(|c| match c {
+                Channel::Guild(c) => Some(c),
                 _ => None,
             })
             .collect();
@@ -48,14 +48,14 @@ impl UpdateCache for ThreadListSync {
 }
 
 impl UpdateCache for ThreadUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::CHANNEL) {
             return;
         }
 
-        if let Channel::Guild(c) = &self.0 {
+        if let Channel::Guild(c) = self.0 {
             if let Some(gid) = c.guild_id() {
-                cache.cache_guild_channel(gid, c.clone());
+                cache.cache_guild_channel(gid, c);
             }
         }
     }

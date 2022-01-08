@@ -61,10 +61,10 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for Ready {
-    fn update(&self, cache: &InMemoryCache) {
+impl UpdateCache for Box<Ready> {
+    fn update(self, cache: &InMemoryCache) {
         if cache.wants(ResourceType::USER_CURRENT) {
-            cache.cache_current_user(self.user.clone());
+            cache.cache_current_user(self.user);
         }
 
         if cache.wants(ResourceType::GUILD) {
@@ -76,7 +76,7 @@ impl UpdateCache for Ready {
 }
 
 impl UpdateCache for UnavailableGuild {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::GUILD) {
             return;
         }
@@ -87,12 +87,12 @@ impl UpdateCache for UnavailableGuild {
 }
 
 impl UpdateCache for UserUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::USER_CURRENT) {
             return;
         }
 
-        cache.cache_current_user(self.0.clone());
+        cache.cache_current_user(self.0);
     }
 }
 

@@ -21,15 +21,15 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for PresenceUpdate {
-    fn update(&self, cache: &InMemoryCache) {
+impl UpdateCache for Box<PresenceUpdate> {
+    fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::PRESENCE) {
             return;
         }
 
         let presence = CachedPresence {
-            activities: self.activities.clone(),
-            client_status: self.client_status.clone(),
+            activities: self.activities,
+            client_status: self.client_status,
             guild_id: self.guild_id,
             status: self.status,
             user_id: self.user.id(),
