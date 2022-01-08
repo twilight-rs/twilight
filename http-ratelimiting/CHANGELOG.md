@@ -1,5 +1,18 @@
 # Changelog
 
+Changelog for `twilight-http-ratelimiting`.
+
+## [0.8.3] - 2022-01-08
+
+### Additions
+
+Support the `scope` header ([#1351] - [@zeylahellyer]).
+
+Add `Path::UsersIdGuildsIdMember` ([#1355] - [@HTG-YT]).
+
+[#1351]: https://github.com/twilight-rs/twilight/pull/1351
+[#1355]: https://github.com/twilight-rs/twilight/pull/1355
+
 ## [0.8.2] - 2021-12-25
 
 ### Fixes
@@ -39,8 +52,10 @@ For webhooks, the token is now a major parameter ([#1263] -
 [#1263]: https://github.com/twilight-rs/twilight/pull/1263
 
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@HTG-YT]: https://github.com/HTG-YT
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.0
