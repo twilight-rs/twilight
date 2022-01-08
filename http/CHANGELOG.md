@@ -2,6 +2,17 @@
 
 Changelog for `twilight-http`.
 
+## [0.8.4] - 2022-01-08
+
+### Additions
+
+Add `Client::get_current_user_guild_member` ([#1355] - [@HTG-YT]).
+
+Add `UpdateGuild::premium_progress_bar_enabled` ([#1399] - [@Erk-]).
+
+[#1355]: https://github.com/twilight-rs/twilight/pull/1355
+[#1399]: https://github.com/twilight-rs/twilight/pull/1399
+
 ## [0.8.3] - 2021-12-27
 
 ### Additions
@@ -1496,6 +1507,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.4
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.3
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.3
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.0
