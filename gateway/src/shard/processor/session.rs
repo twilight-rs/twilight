@@ -221,8 +221,8 @@ impl Drop for Session {
 /// Calculate the number of commands to allot in a given reset period while
 /// taking the heartbeat interval into account.
 ///
-/// This is reserving twice as much as needed for heartbeats, to account for discord
-/// sending us a heartbeat and expecting an ACK in response
+/// This is reserving twice as much as needed for heartbeats, to account for
+/// Discord sending us a heartbeat and expecting a heartbeat in response.
 ///
 /// For example, when the heartbeat interval is 42500 milliseconds then 116
 /// commands will be allotted per reset period.
