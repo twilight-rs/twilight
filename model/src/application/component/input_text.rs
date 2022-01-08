@@ -31,6 +31,8 @@ pub struct InputText {
     ///
     /// Defaults to `true`.
     pub required: Option<bool>,
+    /// Pre-filled value for input text.
+    pub value: Option<String>,
 }
 
 /// Style of an [`InputText`].
@@ -62,6 +64,7 @@ enum InputTextField {
     MinLength,
     MaxLength,
     Required,
+    Value,
 }
 
 struct InputTextVisitor;
@@ -83,6 +86,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
         let mut min_length: Option<u16> = None;
         let mut max_length: Option<u16> = None;
         let mut required: Option<bool> = None;
+        let mut value: Option<String> = None;
 
         #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing input text");
@@ -185,6 +189,13 @@ impl<'de> Visitor<'de> for InputTextVisitor {
 
                     required = Some(map.next_value()?)
                 }
+                InputTextField::Value => {
+                    if value.is_some() {
+                        return Err(DeError::duplicate_field("value"));
+                    }
+
+                    value = Some(map.next_value()?)
+                }
             }
         }
 
@@ -213,6 +224,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
             min_length,
             max_length,
             required,
+            value,
         })
     }
 }
@@ -253,6 +265,10 @@ impl Serialize for InputText {
             state.serialize_field("required", &self.required)?;
         }
 
+        if self.value.is_some() {
+            state.serialize_field("value", &self.value)?;
+        }
+
         state.end()
     }
 }
@@ -274,7 +290,8 @@ mod tests {
         style,
         placeholder,
         min_length,
-        max_length
+        max_length,
+        value
     );
     assert_impl_all!(
         InputText: Clone,
@@ -319,6 +336,7 @@ mod tests {
             min_length: Some(1),
             max_length: Some(100),
             required: Some(true),
+            value: Some("Hello World!".to_owned()),
         };
 
         serde_test::assert_ser_tokens(
@@ -348,6 +366,9 @@ mod tests {
                 Token::String("required"),
                 Token::Some,
                 Token::Bool(true),
+                Token::String("value"),
+                Token::Some,
+                Token::String("Hello World!"),
                 Token::StructEnd,
             ],
         );
@@ -379,6 +400,9 @@ mod tests {
                 Token::String("required"),
                 Token::Some,
                 Token::Bool(true),
+                Token::String("value"),
+                Token::Some,
+                Token::String("Hello World!"),
                 Token::StructEnd,
             ],
         );
