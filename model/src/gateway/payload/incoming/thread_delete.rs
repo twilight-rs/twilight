@@ -8,5 +8,5 @@ pub struct ThreadDelete {
     pub id: ChannelId,
     #[serde(rename = "type")]
     pub kind: ChannelType,
-    pub parent_id: Option<ChannelId>,
+    pub parent_id: ChannelId,
 }
