@@ -137,7 +137,7 @@ impl Session {
             .store(new_heartbeat_interval, Ordering::Release);
 
         // Number of commands allotted to the user per reset period.
-        let commands_allotted = f64::from(heartbeats_per_reset(new_heartbeat_interval));
+        let commands_allotted = f64::from(available_commands_per_interval(new_heartbeat_interval));
 
         // We can ignore an error if the ratelimiter has already been set.
         let _result = self.ratelimit.set(
@@ -218,12 +218,15 @@ impl Drop for Session {
     }
 }
 
-/// Calculate the number of heartbeats to allot in a given reset period while
+/// Calculate the number of commands to allot in a given reset period while
 /// taking the heartbeat interval into account.
 ///
-/// For example, when the heartbeat interval is 42500 milliseconds then 118
-/// heartbeats will be allotted per reset period.
-fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
+/// This is reserving twice as much as needed for heartbeats, to account for
+/// Discord sending us a heartbeat and expecting a heartbeat in response.
+///
+/// For example, when the heartbeat interval is 42500 milliseconds then 116
+/// commands will be allotted per reset period.
+fn available_commands_per_interval(heartbeat_interval: u64) -> u8 {
     // Number of commands allowed in a given reset period.
     //
     // API documentation with details:
@@ -262,16 +265,16 @@ fn heartbeats_per_reset(heartbeat_interval: u64) -> u8 {
         ALLOT_ON_FAIL
     };
 
-    COMMANDS_PER_RESET.saturating_sub(heartbeats_converted)
+    COMMANDS_PER_RESET.saturating_sub(heartbeats_converted * 2)
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn test_heartbeats_per_reset() {
-        assert_eq!(119, super::heartbeats_per_reset(60_000));
-        assert_eq!(118, super::heartbeats_per_reset(42_500));
-        assert_eq!(118, super::heartbeats_per_reset(30_000));
-        assert_eq!(117, super::heartbeats_per_reset(29_999));
+        assert_eq!(118, super::available_commands_per_interval(60_000));
+        assert_eq!(116, super::available_commands_per_interval(42_500));
+        assert_eq!(116, super::available_commands_per_interval(30_000));
+        assert_eq!(114, super::available_commands_per_interval(29_999));
     }
 }
