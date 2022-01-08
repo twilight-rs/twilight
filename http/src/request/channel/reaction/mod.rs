@@ -35,6 +35,24 @@ pub enum RequestReactionType<'a> {
     },
 }
 
+
+/// Format a [`RequestReactionType`] into a format acceptable for use in URLs.
+///
+/// # Examples
+///
+/// Format a custom reaction for use in a URL:
+///
+/// ```
+/// use twilight_http::request::channel::reaction::RequestReactionType;
+/// use twilight_model::id::Id;
+///
+/// let reaction = RequestReactionType::Custom {
+///     id: Id::new(123).expect("non zero"),
+///     name: Some("rarity"),
+/// };
+///
+/// assert_eq!("rarity:123", reaction.to_string());
+/// ```
 impl Display for RequestReactionType<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
