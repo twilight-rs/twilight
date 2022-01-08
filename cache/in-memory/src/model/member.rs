@@ -7,6 +7,7 @@ use twilight_model::{
         marker::{GuildMarker, RoleMarker, UserMarker},
         Id,
     },
+    util::image_hash::ImageHash,
 };
 
 /// Represents a cached [`Member`].
@@ -14,7 +15,7 @@ use twilight_model::{
 /// [`Member`]: twilight_model::guild::Member
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedMember {
-    pub(crate) avatar: Option<String>,
+    pub(crate) avatar: Option<ImageHash>,
     pub(crate) communication_disabled_until: Option<Timestamp>,
     pub(crate) deaf: Option<bool>,
     pub(crate) guild_id: Id<GuildMarker>,
@@ -29,8 +30,8 @@ pub struct CachedMember {
 
 impl CachedMember {
     /// Member's guild avatar.
-    pub fn avatar(&self) -> Option<&str> {
-        self.avatar.as_deref()
+    pub const fn avatar(&self) -> Option<ImageHash> {
+        self.avatar
     }
 
     /// When the user can resume communication in a guild again.
@@ -185,7 +186,7 @@ mod tests {
             avatar: None,
             communication_disabled_until: None,
             deaf: Some(false),
-            guild_id: Id::new(3).expect("non zero"),
+            guild_id: Id::new(3),
             joined_at,
             mute: Some(true),
             nick: Some("member nick".to_owned()),
@@ -205,7 +206,7 @@ mod tests {
             discriminator: 1,
             email: None,
             flags: None,
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             locale: None,
             mfa_enabled: None,
             name: "bar".to_owned(),
@@ -224,7 +225,7 @@ mod tests {
             avatar: None,
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(3).expect("non zero"),
+            guild_id: Id::new(3),
             joined_at,
             mute: true,
             nick: Some("member nick".to_owned()),

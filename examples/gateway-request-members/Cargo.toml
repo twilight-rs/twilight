@@ -1,6 +1,6 @@
 [package]
 authors = ["Twilight Contributors"]
-edition = "2018"
+edition = "2021"
 name = "twilight-example-gateway-request-members"
 publish = false
 version = "0.0.1"

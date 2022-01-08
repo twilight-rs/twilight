@@ -37,8 +37,8 @@ struct GetChannelMessagesFields {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let channel_id = Id::new(123).expect("non zero");
-/// let message_id = Id::new(234).expect("non zero");
+/// let channel_id = Id::new(123);
+/// let message_id = Id::new(234);
 ///
 /// let messages = client
 ///     .channel_messages(channel_id)

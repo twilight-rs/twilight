@@ -117,7 +117,7 @@ impl Player {
     /// use twilight_lavalink::{model::{Play, Pause}, Lavalink};
     /// # use twilight_model::id::Id;
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let (guild_id, user_id) = (Id::new(1).expect("non zero"), Id::new(2).expect("non zero"));
+    /// # let (guild_id, user_id) = (Id::new(1), Id::new(2));
     /// # let track = String::new();
     ///
     /// let lavalink = Lavalink::new(user_id, 10);
@@ -150,9 +150,9 @@ impl Player {
             event
         );
 
-        match event {
-            OutgoingEvent::Pause(ref event) => self.paused.store(event.pause, Ordering::Release),
-            OutgoingEvent::Volume(ref event) => {
+        match &event {
+            OutgoingEvent::Pause(event) => self.paused.store(event.pause, Ordering::Release),
+            OutgoingEvent::Volume(event) => {
                 self.volume.store(event.volume as u16, Ordering::Release)
             }
             _ => {}
@@ -173,7 +173,7 @@ impl Player {
         if channel_id == 0 {
             None
         } else {
-            Some(Id::new(channel_id).expect("non zero"))
+            Some(Id::new(channel_id))
         }
     }
 

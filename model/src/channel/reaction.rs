@@ -114,8 +114,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer =
-                        OptionalMemberDeserializer::new(Id::new(1).expect("non zero"));
+                    let deserializer = OptionalMemberDeserializer::new(Id::new(1));
 
                     member = map.next_value_seed(deserializer)?;
                 }
@@ -184,6 +183,7 @@ mod tests {
         datetime::{Timestamp, TimestampParseError},
         guild::Member,
         id::Id,
+        test::image_hash,
         user::User,
     };
     use serde_test::Token;
@@ -195,31 +195,31 @@ mod tests {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = Reaction {
-            channel_id: Id::new(2).expect("non zero"),
+            channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
             },
-            guild_id: Some(Id::new(1).expect("non zero")),
+            guild_id: Some(Id::new(1)),
             member: Some(Member {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: Id::new(1).expect("non zero"),
+                guild_id: Id::new(1),
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new(5).expect("non zero")],
+                roles: vec![Id::new(5)],
                 user: User {
                     accent_color: None,
-                    avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                    avatar: Some(image_hash::AVATAR),
                     banner: None,
                     bot: false,
                     discriminator: 1,
                     email: None,
                     flags: None,
-                    id: Id::new(4).expect("non zero"),
+                    id: Id::new(4),
                     locale: None,
                     mfa_enabled: None,
                     name: "test".to_owned(),
@@ -229,8 +229,8 @@ mod tests {
                     verified: None,
                 },
             }),
-            message_id: Id::new(3).expect("non zero"),
-            user_id: Id::new(4).expect("non zero"),
+            message_id: Id::new(3),
+            user_id: Id::new(4),
         };
 
         serde_test::assert_tokens(
@@ -291,7 +291,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -321,14 +321,14 @@ mod tests {
     #[test]
     fn test_reaction_without_member() {
         let value = Reaction {
-            channel_id: Id::new(2).expect("non zero"),
+            channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
             },
             guild_id: None,
             member: None,
-            message_id: Id::new(3).expect("non zero"),
-            user_id: Id::new(4).expect("non zero"),
+            message_id: Id::new(3),
+            user_id: Id::new(4),
         };
 
         serde_test::assert_tokens(

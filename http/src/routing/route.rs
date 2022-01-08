@@ -389,6 +389,11 @@ pub enum Route<'a> {
     GetCurrentUserApplicationInfo,
     /// Route information to get the current user.
     GetCurrentUser,
+    /// Route information to get the current user as a member object within a guild.
+    GetCurrentUserGuildMember {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get an emoji by ID within a guild.
     GetEmoji {
         /// The ID of the emoji.
@@ -1038,6 +1043,7 @@ impl<'a> Route<'a> {
             | Self::GetCommandPermissions { .. }
             | Self::GetCurrentUserApplicationInfo
             | Self::GetCurrentUser
+            | Self::GetCurrentUserGuildMember { .. }
             | Self::GetEmoji { .. }
             | Self::GetEmojis { .. }
             | Self::GetGateway
@@ -1395,6 +1401,7 @@ impl<'a> Route<'a> {
             }
             Self::GetCurrentUserApplicationInfo => Path::OauthApplicationsMe,
             Self::GetCurrentUser | Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
+            Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
             Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
                 Path::GuildsIdEmojisId(*guild_id)
             }
@@ -2119,6 +2126,12 @@ impl Display for Route<'_> {
             }
             Route::GetCurrentUserApplicationInfo => f.write_str("oauth2/applications/@me"),
             Route::GetCurrentUser | Route::UpdateCurrentUser => f.write_str("users/@me"),
+            Route::GetCurrentUserGuildMember { guild_id } => {
+                f.write_str("users/@me/guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/member")
+            }
             Route::GetGateway => f.write_str("gateway"),
             Route::GetGuild {
                 guild_id,
@@ -2623,9 +2636,9 @@ mod tests {
     const TEMPLATE_CODE: &str = "templatecode";
     const USER_ID: u64 = 11;
 
-    fn emoji() -> RequestReactionType<'static> {
+    const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
-            id: Id::new(EMOJI_ID).expect("non zero id"),
+            id: Id::new(EMOJI_ID),
             name: None,
         }
     }
@@ -3889,6 +3902,15 @@ mod tests {
     }
 
     #[test]
+    fn test_get_current_user_guild_member() {
+        let route = Route::GetCurrentUserGuildMember { guild_id: GUILD_ID };
+        assert_eq!(
+            route.to_string(),
+            format!("users/@me/guilds/{guild_id}/member", guild_id = GUILD_ID)
+        )
+    }
+
+    #[test]
     fn test_update_current_user() {
         let route = Route::UpdateCurrentUser;
         assert_eq!(route.to_string(), "users/@me");
@@ -4396,7 +4418,7 @@ mod tests {
 
     #[test]
     fn test_create_guild_prune_include_one_role() {
-        let include_roles = [Id::new(1).expect("non zero id")];
+        let include_roles = [Id::new(1)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: None,
@@ -4415,10 +4437,7 @@ mod tests {
 
     #[test]
     fn test_create_guild_prune_include_two_roles() {
-        let include_roles = [
-            Id::new(1).expect("non zero id"),
-            Id::new(2).expect("non zero id"),
-        ];
+        let include_roles = [Id::new(1), Id::new(2)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: None,
@@ -4437,10 +4456,7 @@ mod tests {
 
     #[test]
     fn test_create_guild_prune_all() {
-        let include_roles = [
-            Id::new(1).expect("non zero id"),
-            Id::new(2).expect("non zero id"),
-        ];
+        let include_roles = [Id::new(1), Id::new(2)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: Some(true),

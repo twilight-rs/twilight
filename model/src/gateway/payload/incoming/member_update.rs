@@ -5,13 +5,15 @@ use crate::{
         Id,
     },
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberUpdate {
     /// Member's guild avatar.
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
+    pub communication_disabled_until: Option<Timestamp>,
     pub guild_id: Id<GuildMarker>,
     pub deaf: Option<bool>,
     pub joined_at: Timestamp,
@@ -36,17 +38,19 @@ pub struct MemberUpdate {
 #[cfg(test)]
 mod tests {
     use super::MemberUpdate;
-    use crate::{datetime::Timestamp, id::Id, user::User};
+    use crate::{datetime::Timestamp, id::Id, test::image_hash, user::User};
     use serde_test::Token;
 
     #[test]
     fn test_member_update() {
         let joined_at = Timestamp::from_micros(1_488_234_110_121_000).expect("non zero");
+        let communication_disabled_until =
+            Timestamp::from_micros(1_641_027_600_000_000).expect("non zero");
 
         let value = MemberUpdate {
             avatar: None,
-            guild_id: Id::new(1_234).expect("non zero"),
-
+            communication_disabled_until: Some(communication_disabled_until),
+            guild_id: Id::new(1_234),
             deaf: Some(false),
             joined_at,
             mute: Some(false),
@@ -59,9 +63,9 @@ mod tests {
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
-                id: Id::new(424_242).expect("non zero"),
+                id: Id::new(424_242),
                 discriminator: 1234,
-                avatar: Some("cool image".to_string()),
+                avatar: Some(image_hash::AVATAR),
                 bot: false,
                 email: None,
                 flags: None,
@@ -78,10 +82,13 @@ mod tests {
             &[
                 Token::Struct {
                     name: "MemberUpdate",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("avatar"),
                 Token::None,
+                Token::Str("communication_disabled_until"),
+                Token::Some,
+                Token::Str("2022-01-01T09:00:00.000000+00:00"),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1234"),
@@ -112,7 +119,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("cool image"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),

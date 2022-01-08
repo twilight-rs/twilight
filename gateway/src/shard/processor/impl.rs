@@ -173,6 +173,9 @@ impl ReceivingEventError {
             ReceivingEventErrorType::AuthorizationInvalid { .. }
                 | ReceivingEventErrorType::IntentsDisallowed { .. }
                 | ReceivingEventErrorType::IntentsInvalid { .. }
+                | ReceivingEventErrorType::InvalidApiVersion
+                | ReceivingEventErrorType::InvalidShard { .. }
+                | ReceivingEventErrorType::ShardingRequired
         )
     }
 
@@ -216,6 +219,23 @@ impl Display for ReceivingEventError {
             ReceivingEventErrorType::EventStreamEnded => {
                 f.write_str("event stream from gateway ended")
             }
+            ReceivingEventErrorType::InvalidApiVersion => {
+                f.write_str("invalid api version was used for identifying")
+            }
+            ReceivingEventErrorType::InvalidShard {
+                shard_count,
+                shard_id,
+            } => {
+                f.write_str("The shard [")?;
+                Debug::fmt(shard_id, f)?;
+                f.write_str(", ")?;
+                Debug::fmt(shard_count, f)?;
+
+                f.write_str("] is invalid")
+            }
+            ReceivingEventErrorType::ShardingRequired => {
+                f.write_str("session handles too many guilds, sharding required")
+            }
         }
     }
 }
@@ -256,6 +276,17 @@ pub enum ReceivingEventErrorType {
         /// ID of the shard.
         shard_id: u64,
     },
+    /// Invalid API version was used for identify.
+    InvalidApiVersion,
+    /// Attempting to identify a invalid shard.
+    InvalidShard {
+        /// Shard count.
+        shard_count: u64,
+        /// ID of the shard.
+        shard_id: u64,
+    },
+    /// Sharding is required for the bot.
+    ShardingRequired,
 }
 
 #[derive(Deserialize)]
@@ -376,12 +407,21 @@ impl ShardProcessor {
 
             if let Err(source) = self.process().await {
                 #[cfg(feature = "tracing")]
-                tracing::warn!(
-                    shard_id = self.config.shard()[0],
-                    shard_total = self.config.shard()[1],
-                    "processing incoming event failed: {:?}",
-                    source,
-                );
+                if matches!(&source.kind, ProcessErrorType::EventTypeUnknown { .. }) {
+                    tracing::debug!(
+                        shard_id = self.config.shard()[0],
+                        shard_total = self.config.shard()[1],
+                        "processing incoming event failed: {:?}",
+                        source,
+                    );
+                } else {
+                    tracing::warn!(
+                        shard_id = self.config.shard()[0],
+                        shard_total = self.config.shard()[1],
+                        "processing incoming event failed: {:?}",
+                        source,
+                    );
+                }
 
                 if source.fatal() {
                     #[cfg(feature = "tracing")]
@@ -812,6 +852,27 @@ impl ShardProcessor {
                             shard_id: self.config.shard()[0],
                             token: self.config.token().to_owned(),
                         },
+                        source: None,
+                    });
+                }
+                CloseCode::Library(4010) => {
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::InvalidShard {
+                            shard_count: self.config.shard()[1],
+                            shard_id: self.config.shard()[0],
+                        },
+                        source: None,
+                    });
+                }
+                CloseCode::Library(4011) => {
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::ShardingRequired,
+                        source: None,
+                    });
+                }
+                CloseCode::Library(4012) => {
+                    return Err(ReceivingEventError {
+                        kind: ReceivingEventErrorType::InvalidApiVersion,
                         source: None,
                     });
                 }

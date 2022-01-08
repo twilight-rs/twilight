@@ -30,7 +30,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 //! [Discord snowflakes]: https://discord.com/developers/docs/reference#snowflakes
 
 #![deny(
@@ -46,16 +46,13 @@
     warnings
 )]
 #![allow(clippy::semicolon_if_nothing_returned)]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature = "builder")]
-#[cfg_attr(docsrs, doc(cfg(feature = "builder")))]
 pub mod builder;
 
 #[cfg(feature = "link")]
-#[cfg_attr(docsrs, doc(cfg(feature = "link")))]
 pub mod link;
 
 #[cfg(feature = "permission-calculator")]
-#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub mod permission_calculator;

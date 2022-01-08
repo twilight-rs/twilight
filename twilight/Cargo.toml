@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = []
 description = "Advertisement crate for the twilight ecosystem; please use the individual crates instead."
 documentation = "https://docs.rs/twilight"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
@@ -12,6 +12,7 @@ name = "twilight"
 publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "../README.md"
+rust-version = "1.57"
 version = "0.8.0"
 
 [dev-dependencies]

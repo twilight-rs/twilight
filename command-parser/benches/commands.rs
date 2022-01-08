@@ -3,7 +3,6 @@ use patricia_tree::PatriciaSet;
 use std::{
     borrow::Cow,
     collections::{BTreeSet, HashSet},
-    iter::FromIterator,
 };
 
 fn btreeset(set: &BTreeSet<Cow<'static, str>>, needle: &str) {

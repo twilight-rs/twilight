@@ -36,8 +36,8 @@ struct GetGuildMembersFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(100).expect("non zero");
-/// let user_id = Id::new(3000).expect("non zero");
+/// let guild_id = Id::new(100);
+/// let user_id = Id::new(3000);
 /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
 /// # Ok(()) }
 /// ```

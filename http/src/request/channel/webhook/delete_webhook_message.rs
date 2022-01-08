@@ -23,7 +23,7 @@ use twilight_model::id::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
 /// client
-///     .delete_webhook_message(Id::new(1).expect("non zero"), "token here", Id::new(2).expect("non zero"))
+///     .delete_webhook_message(Id::new(1), "token here", Id::new(2))
 ///     .reason("reason here")?
 ///     .exec()
 ///     .await?;
@@ -116,12 +116,7 @@ mod tests {
     #[test]
     fn test_request() {
         let client = Client::new("token".to_owned());
-        let builder = DeleteWebhookMessage::new(
-            &client,
-            Id::new(1).expect("non zero"),
-            "token",
-            Id::new(2).expect("non zero"),
-        );
+        let builder = DeleteWebhookMessage::new(&client, Id::new(1), "token", Id::new(2));
         let actual = builder
             .try_into_request()
             .expect("failed to create request");

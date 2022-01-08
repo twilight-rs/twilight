@@ -333,6 +333,7 @@ mod test {
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
         id::Id,
+        test::image_hash,
         user::User,
     };
     use serde_test::Token;
@@ -344,20 +345,20 @@ mod test {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
-            application_id: Id::new(100).expect("non zero"),
-            channel_id: Id::new(200).expect("non zero"),
+            application_id: Id::new(100),
+            channel_id: Id::new(200),
             data: CommandData {
-                id: Id::new(300).expect("non zero"),
+                id: Id::new(300),
                 name: "command name".into(),
                 options: Vec::from([CommandDataOption {
                     focused: false,
                     name: "member".into(),
-                    value: CommandOptionValue::User(Id::new(600).expect("non zero")),
+                    value: CommandOptionValue::User(Id::new(600)),
                 }]),
                 resolved: Some(CommandInteractionDataResolved {
                     channels: HashMap::new(),
                     members: IntoIterator::into_iter([(
-                        Id::new(600).expect("non zero"),
+                        Id::new(600),
                         InteractionMember {
                             avatar: None,
                             communication_disabled_until: None,
@@ -373,16 +374,16 @@ mod test {
                     messages: HashMap::new(),
                     roles: HashMap::new(),
                     users: IntoIterator::into_iter([(
-                        Id::new(600).expect("non zero"),
+                        Id::new(600),
                         User {
                             accent_color: None,
-                            avatar: Some("avatar string".into()),
+                            avatar: Some(image_hash::AVATAR),
                             banner: None,
                             bot: false,
                             discriminator: 1111,
                             email: None,
                             flags: None,
-                            id: Id::new(600).expect("non zero"),
+                            id: Id::new(600),
                             locale: None,
                             mfa_enabled: None,
                             name: "username".into(),
@@ -395,8 +396,8 @@ mod test {
                     .collect(),
                 }),
             },
-            guild_id: Some(Id::new(400).expect("non zero")),
-            id: Id::new(500).expect("non zero"),
+            guild_id: Some(Id::new(400)),
+            id: Id::new(500),
             kind: InteractionType::ApplicationCommand,
             member: Some(PartialMember {
                 avatar: None,
@@ -410,13 +411,13 @@ mod test {
                 roles: Vec::new(),
                 user: Some(User {
                     accent_color: None,
-                    avatar: Some("avatar string".into()),
+                    avatar: Some(image_hash::AVATAR),
                     banner: None,
                     bot: false,
                     discriminator: 1111,
                     email: None,
                     flags: None,
-                    id: Id::new(600).expect("non zero"),
+                    id: Id::new(600),
                     locale: None,
                     mfa_enabled: None,
                     name: "username".into(),
@@ -510,7 +511,7 @@ mod test {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar string"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -568,7 +569,7 @@ mod test {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar string"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),

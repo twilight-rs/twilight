@@ -34,8 +34,8 @@ struct GetCurrentUserGuildsFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let after = Id::new(300).expect("non zero");
-/// let before = Id::new(400).expect("non zero");
+/// let after = Id::new(300);
+/// let before = Id::new(400);
 /// let guilds = client.current_user_guilds()
 ///     .after(after)
 ///     .before(before)

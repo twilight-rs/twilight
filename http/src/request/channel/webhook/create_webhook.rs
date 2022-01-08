@@ -29,7 +29,7 @@ struct CreateWebhookFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let channel_id = Id::new(123).expect("non zero");
+/// let channel_id = Id::new(123);
 ///
 /// let webhook = client
 ///     .create_webhook(channel_id, "Twily Bot")

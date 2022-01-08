@@ -96,7 +96,7 @@ mod tests {
         fn user_mod(id: Id<EmojiMarker>) -> Option<User> {
             if id.get() % 2 == 0 {
                 // Only use user for half
-                Some(test::user(Id::new(1).expect("non zero")))
+                Some(test::user(Id::new(1)))
             } else {
                 None
             }
@@ -104,9 +104,7 @@ mod tests {
 
         // Single inserts
         {
-            let guild_1_emoji_ids = (1..=10)
-                .map(|n| Id::new(n).expect("non zero"))
-                .collect::<Vec<_>>();
+            let guild_1_emoji_ids = (1..=10).map(Id::new).collect::<Vec<_>>();
             let guild_1_emoji = guild_1_emoji_ids
                 .iter()
                 .copied()
@@ -114,7 +112,7 @@ mod tests {
                 .collect::<Vec<_>>();
 
             for emoji in guild_1_emoji {
-                cache.cache_emoji(Id::new(1).expect("non zero"), emoji);
+                cache.cache_emoji(Id::new(1), emoji);
             }
 
             for id in guild_1_emoji_ids.iter().cloned() {
@@ -124,7 +122,7 @@ mod tests {
 
             // Ensure the emoji has been added to the per-guild lookup map to prevent
             // issues like #551 from returning
-            let guild_emojis = cache.guild_emojis(Id::new(1).expect("non zero"));
+            let guild_emojis = cache.guild_emojis(Id::new(1));
             assert!(guild_emojis.is_some());
             let guild_emojis = guild_emojis.unwrap();
 
@@ -134,22 +132,20 @@ mod tests {
 
         // Bulk inserts
         {
-            let guild_2_emoji_ids = (11..=20)
-                .map(|n| Id::new(n).expect("non zero"))
-                .collect::<Vec<_>>();
+            let guild_2_emoji_ids = (11..=20).map(Id::new).collect::<Vec<_>>();
             let guild_2_emojis = guild_2_emoji_ids
                 .iter()
                 .copied()
                 .map(|id| test::emoji(id, user_mod(id)))
                 .collect::<Vec<_>>();
-            cache.cache_emojis(Id::new(2).expect("non zero"), guild_2_emojis);
+            cache.cache_emojis(Id::new(2), guild_2_emojis);
 
             for id in guild_2_emoji_ids.iter().cloned() {
                 let global_emoji = cache.emoji(id);
                 assert!(global_emoji.is_some());
             }
 
-            let guild_emojis = cache.guild_emojis(Id::new(2).expect("non zero"));
+            let guild_emojis = cache.guild_emojis(Id::new(2));
 
             assert!(guild_emojis.is_some());
             let guild_emojis = guild_emojis.unwrap();
@@ -162,11 +158,11 @@ mod tests {
     fn test_emoji_removal() {
         let cache = InMemoryCache::new();
 
-        let guild_id = Id::new(1).expect("non zero");
+        let guild_id = Id::new(1);
 
-        let emote = test::emoji(Id::new(1).expect("non zero"), None);
-        let emote_2 = test::emoji(Id::new(2).expect("non zero"), None);
-        let emote_3 = test::emoji(Id::new(3).expect("non zero"), None);
+        let emote = test::emoji(Id::new(1), None);
+        let emote_2 = test::emoji(Id::new(2), None);
+        let emote_3 = test::emoji(Id::new(3), None);
 
         cache.cache_emoji(guild_id, emote.clone());
         cache.cache_emoji(guild_id, emote_2.clone());
@@ -193,7 +189,7 @@ mod tests {
         assert!(cache.emoji(emote.id).is_some());
         assert!(cache.emoji(emote_2.id).is_none());
 
-        let emote_4 = test::emoji(Id::new(4).expect("non zero"), None);
+        let emote_4 = test::emoji(Id::new(4), None);
 
         cache.update(&GuildEmojisUpdate {
             emojis: vec![emote_4.clone()],

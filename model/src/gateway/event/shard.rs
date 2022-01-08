@@ -1,6 +1,5 @@
 use super::{Event, EventConversionError};
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 
 /// Indicator that a shard is now fully connected.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -113,7 +112,6 @@ mod tests {
         ShardEvent,
     };
     use serde_test::Token;
-    use std::convert::TryInto;
 
     #[test]
     fn test_connected() {
