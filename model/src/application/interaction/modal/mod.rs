@@ -160,6 +160,7 @@ mod tests {
                 premium_since: None,
                 roles: Vec::new(),
                 user: Some(user(user_id())),
+                communication_disabled_until: None,
             }),
             token: "TOKEN".to_owned(),
             user: None,
