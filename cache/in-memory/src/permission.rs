@@ -319,7 +319,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             source: None,
         })?;
 
-        let guild_id = channel.guild_id();
+        let guild_id = channel.GUILD_ID;
 
         if self.is_owner(user_id, guild_id) {
             return Ok(Permissions::all());
@@ -669,7 +669,7 @@ mod tests {
             if g_id == GUILD_ID && u_id == USER_ID
         ));
 
-        cache.update(&MemberAdd(test::member(USER_ID, GUILD_ID)));
+        cache.update(MemberAdd(test::member(USER_ID, GUILD_ID)));
 
         assert!(matches!(
             permissions.root(USER_ID, GUILD_ID).unwrap_err().kind(),
@@ -692,9 +692,9 @@ mod tests {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
 
-        cache.update(&GuildCreate(base_guild()));
-        cache.update(&MemberAdd(test::member(USER_ID, GUILD_ID)));
-        cache.update(&MemberUpdate {
+        cache.update(GuildCreate(base_guild()));
+        cache.update(MemberAdd(test::member(USER_ID, GUILD_ID)));
+        cache.update(MemberUpdate {
             avatar: None,
             communication_disabled_until: None,
             guild_id: GUILD_ID,
@@ -707,7 +707,8 @@ mod tests {
             roles: Vec::from([OTHER_ROLE_ID]),
             user: test::user(USER_ID),
         });
-        cache.update(&role_create(
+
+        cache.update(role_create(
             GUILD_ID,
             role_with_permissions(
                 OTHER_ROLE_ID,
@@ -735,21 +736,21 @@ mod tests {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
 
-        cache.update(&GuildCreate(base_guild()));
+        cache.update(GuildCreate(base_guild()));
         assert!(matches!(
             permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
             ChannelErrorType::ChannelUnavailable { channel_id: c_id }
             if *c_id == CHANNEL_ID
         ));
 
-        cache.update(&ChannelCreate(channel()));
+        cache.update(ChannelCreate(channel()));
         assert!(matches!(
             permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
             ChannelErrorType::MemberUnavailable { guild_id: g_id, user_id: u_id }
             if *g_id == GUILD_ID && *u_id == USER_ID
         ));
 
-        cache.update(&MemberAdd({
+        cache.update(MemberAdd({
             let mut member = test::member(USER_ID, GUILD_ID);
             member.roles.push(OTHER_ROLE_ID);
 
@@ -761,7 +762,7 @@ mod tests {
             if role_id == OTHER_ROLE_ID
         ));
 
-        cache.update(&role_create(
+        cache.update(role_create(
             GUILD_ID,
             role_with_permissions(
                 OTHER_ROLE_ID,
@@ -789,11 +790,11 @@ mod tests {
     fn test_owner() -> Result<(), Box<dyn Error>> {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
-        cache.update(&GuildCreate(base_guild()));
+        cache.update(GuildCreate(base_guild()));
 
         assert!(permissions.root(OWNER_ID, GUILD_ID)?.is_all());
 
-        cache.update(&ChannelCreate(channel()));
+        cache.update(ChannelCreate(channel()));
         assert!(permissions.in_channel(OWNER_ID, CHANNEL_ID)?.is_all());
 
         Ok(())
