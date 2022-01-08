@@ -20,26 +20,26 @@ impl InMemoryCache {
     }
 
     pub(crate) fn cache_guild_channel(&self, guild_id: Id<GuildMarker>, mut channel: GuildChannel) {
-        match channel {
-            GuildChannel::Category(ref mut c) => {
+        match &mut channel {
+            GuildChannel::Category(c) => {
                 c.guild_id.replace(guild_id);
             }
-            GuildChannel::NewsThread(ref mut c) => {
+            GuildChannel::NewsThread(c) => {
                 c.guild_id.replace(guild_id);
             }
-            GuildChannel::PrivateThread(ref mut c) => {
+            GuildChannel::PrivateThread(c) => {
                 c.guild_id.replace(guild_id);
             }
-            GuildChannel::PublicThread(ref mut c) => {
+            GuildChannel::PublicThread(c) => {
                 c.guild_id.replace(guild_id);
             }
-            GuildChannel::Text(ref mut c) => {
+            GuildChannel::Text(c) => {
                 c.guild_id.replace(guild_id);
             }
-            GuildChannel::Voice(ref mut c) => {
+            GuildChannel::Voice(c) => {
                 c.guild_id.replace(guild_id);
             }
-            GuildChannel::Stage(ref mut c) => {
+            GuildChannel::Stage(c) => {
                 c.guild_id.replace(guild_id);
             }
         }
@@ -104,14 +104,14 @@ impl UpdateCache for ChannelDelete {
             return;
         }
 
-        match self.0 {
-            Channel::Group(ref c) => {
+        match &self.0 {
+            Channel::Group(c) => {
                 cache.delete_group(c.id);
             }
-            Channel::Guild(ref c) => {
+            Channel::Guild(c) => {
                 cache.delete_guild_channel(c.id());
             }
-            Channel::Private(ref c) => {
+            Channel::Private(c) => {
                 cache.channels_private.remove(&c.id);
             }
         }
@@ -125,9 +125,7 @@ impl UpdateCache for ChannelPinsUpdate {
         }
 
         if let Some(mut r) = cache.channels_guild.get_mut(&self.channel_id) {
-            let value = r.value_mut();
-
-            if let GuildChannel::Text(ref mut text) = value.value {
+            if let GuildChannel::Text(text) = &mut r.value_mut().value {
                 text.last_pin_timestamp = self.last_pin_timestamp;
             }
 

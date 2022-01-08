@@ -41,6 +41,8 @@ pub enum AuditLogChangeKey {
     Code,
     /// Color of a role.
     Color,
+    /// Member timeout state changed.
+    CommunicationDisabledUntil,
     /// Whether a user is guild deafened.
     Deaf,
     /// Default auto archive duration for new threads.
@@ -189,6 +191,7 @@ impl AuditLogChangeKey {
             Self::ChannelId => "channel_id",
             Self::Code => "code",
             Self::Color => "color",
+            Self::CommunicationDisabledUntil => "communication_disabled_until",
             Self::Deaf => "deaf",
             Self::DefaultAutoArchiveDuration => "default_auto_archive_duration",
             Self::DefaultMessageNotifications => "default_message_notifications",
@@ -291,6 +294,10 @@ mod tests {
         assert_eq!("channel_id", AuditLogChangeKey::ChannelId.name());
         assert_eq!("code", AuditLogChangeKey::Code.name());
         assert_eq!("color", AuditLogChangeKey::Color.name());
+        assert_eq!(
+            "communication_disabled_until",
+            AuditLogChangeKey::CommunicationDisabledUntil.name()
+        );
         assert_eq!("deaf", AuditLogChangeKey::Deaf.name());
         assert_eq!(
             "default_message_notifications",
@@ -443,6 +450,13 @@ mod tests {
             &[Token::UnitVariant {
                 name: "AuditLogChangeKey",
                 variant: "color",
+            }],
+        );
+        serde_test::assert_tokens(
+            &AuditLogChangeKey::CommunicationDisabledUntil,
+            &[Token::UnitVariant {
+                name: "AuditLogChangeKey",
+                variant: "communication_disabled_until",
             }],
         );
         serde_test::assert_tokens(

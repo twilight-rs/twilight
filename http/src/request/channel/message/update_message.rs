@@ -56,7 +56,7 @@ struct UpdateMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// client.update_message(Id::new(1).expect("non zero"), Id::new(2).expect("non zero"))
+/// client.update_message(Id::new(1), Id::new(2))
 ///     .content(Some("test update"))?
 ///     .exec()
 ///     .await?;
@@ -72,7 +72,7 @@ struct UpdateMessageFields<'a> {
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("my token".to_owned());
-/// client.update_message(Id::new(1).expect("non zero"), Id::new(2).expect("non zero"))
+/// client.update_message(Id::new(1), Id::new(2))
 ///     .content(None)?
 ///     .exec()
 ///     .await?;

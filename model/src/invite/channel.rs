@@ -25,7 +25,7 @@ mod tests {
     #[test]
     fn test_invite_channel() {
         let value = InviteChannel {
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             name: Some("channel name".to_owned()),
             kind: ChannelType::GuildText,
         };

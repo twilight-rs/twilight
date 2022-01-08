@@ -10,6 +10,7 @@ use crate::{
         Id,
     },
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +18,7 @@ use serde::{Deserialize, Serialize};
 pub struct Webhook {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     pub channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -47,7 +48,7 @@ pub struct Webhook {
 #[cfg(test)]
 mod tests {
     use super::{User, Webhook, WebhookChannel, WebhookGuild, WebhookType};
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -80,11 +81,11 @@ mod tests {
     #[test]
     fn test_webhook() {
         let value = Webhook {
-            application_id: Some(Id::new(4).expect("non zero")),
-            avatar: Some("avatar".to_owned()),
-            channel_id: Id::new(1).expect("non zero"),
-            guild_id: Some(Id::new(2).expect("non zero")),
-            id: Id::new(3).expect("non zero"),
+            application_id: Some(Id::new(4)),
+            avatar: Some(image_hash::AVATAR),
+            channel_id: Id::new(1),
+            guild_id: Some(Id::new(2)),
+            id: Id::new(3),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: None,
@@ -107,7 +108,7 @@ mod tests {
                 Token::Str("4"),
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -135,20 +136,20 @@ mod tests {
     #[test]
     fn test_webhook_complete() {
         let value = Webhook {
-            application_id: Some(Id::new(4).expect("non zero")),
-            avatar: Some("avatar".to_owned()),
-            channel_id: Id::new(1).expect("non zero"),
-            guild_id: Some(Id::new(2).expect("non zero")),
-            id: Id::new(3).expect("non zero"),
+            application_id: Some(Id::new(4)),
+            avatar: Some(image_hash::AVATAR),
+            channel_id: Id::new(1),
+            guild_id: Some(Id::new(2)),
+            id: Id::new(3),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: Some(WebhookChannel {
-                id: Id::new(4).expect("non zero"),
+                id: Id::new(4),
                 name: "webhook channel".into(),
             }),
             source_guild: Some(WebhookGuild {
-                icon: Some("guild icon".into()),
-                id: Id::new(5).expect("non zero"),
+                icon: Some(image_hash::ICON),
+                id: Id::new(5),
                 name: "webhook guild".into(),
             }),
             token: Some("a token".to_owned()),
@@ -161,7 +162,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(2).expect("non zero"),
+                id: Id::new(2),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -185,7 +186,7 @@ mod tests {
                 Token::Str("4"),
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -221,7 +222,7 @@ mod tests {
                 },
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("guild icon"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("5"),

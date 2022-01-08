@@ -61,7 +61,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = Id::new(123).expect("non zero");
+/// let channel_id = Id::new(123);
 /// let message = client
 ///     .create_message(channel_id)
 ///     .content("Twilight is best pony")?

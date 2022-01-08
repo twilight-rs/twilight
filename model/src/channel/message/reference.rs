@@ -25,7 +25,7 @@ mod tests {
     #[test]
     fn test_minimal() {
         let value = MessageReference {
-            channel_id: Some(Id::new(1).expect("non zero")),
+            channel_id: Some(Id::new(1)),
             guild_id: None,
             message_id: None,
             fail_if_not_exists: None,
@@ -50,9 +50,9 @@ mod tests {
     #[test]
     fn test_complete() {
         let value = MessageReference {
-            channel_id: Some(Id::new(1).expect("non zero")),
-            guild_id: Some(Id::new(2).expect("non zero")),
-            message_id: Some(Id::new(3).expect("non zero")),
+            channel_id: Some(Id::new(1)),
+            guild_id: Some(Id::new(2)),
+            message_id: Some(Id::new(3)),
             fail_if_not_exists: Some(false),
         };
 

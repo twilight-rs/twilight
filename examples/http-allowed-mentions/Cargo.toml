@@ -1,6 +1,6 @@
 [package]
 authors = ["Twilight Contributors"]
-edition = "2018"
+edition = "2021"
 name = "twilight-example-http-allowed-mentions"
 publish = false
 version = "0.0.1"

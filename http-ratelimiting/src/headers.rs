@@ -8,7 +8,7 @@
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
-    str::{self, Utf8Error},
+    str::{self, FromStr, Utf8Error},
 };
 
 /// Iterator of header name-value pairs failed to be parsed.
@@ -139,6 +139,8 @@ pub enum HeaderName {
     Reset,
     /// How long until a request can be tried again.
     RetryAfter,
+    /// Scope of a ratelimit.
+    Scope,
 }
 
 impl HeaderName {
@@ -164,6 +166,9 @@ impl HeaderName {
     // It's correct for this to not have the `x-ratelimit-` prefix.
     pub const RETRY_AFTER: &'static str = "retry-after";
 
+    /// Lowercased name for the scope header.
+    pub const SCOPE: &'static str = "x-ratelimit-scope";
+
     /// Lowercased name of the header.
     #[must_use]
     pub const fn name(self) -> &'static str {
@@ -175,6 +180,7 @@ impl HeaderName {
             Self::ResetAfter => Self::RESET_AFTER,
             Self::Reset => Self::RESET,
             Self::RetryAfter => Self::RETRY_AFTER,
+            Self::Scope => Self::SCOPE,
         }
     }
 }
@@ -219,6 +225,8 @@ impl Display for HeaderType {
 pub struct GlobalLimited {
     /// Number of seconds until the global ratelimit bucket is reset.
     retry_after: u64,
+    /// Scope of the ratelimit.
+    scope: Option<RatelimitScope>,
 }
 
 impl GlobalLimited {
@@ -226,6 +234,15 @@ impl GlobalLimited {
     #[must_use]
     pub const fn retry_after(&self) -> u64 {
         self.retry_after
+    }
+
+    /// Scope of the ratelimit.
+    ///
+    /// This should always be present and should always be
+    /// [`RatelimitScope::Global`].
+    #[must_use]
+    pub const fn scope(&self) -> Option<RatelimitScope> {
+        self.scope
     }
 }
 
@@ -242,6 +259,8 @@ pub struct Present {
     reset_after: u64,
     /// When the bucket resets as a Unix timestamp in milliseconds.
     reset: u64,
+    /// Scope of a ratelimit when one occurs.
+    scope: Option<RatelimitScope>,
 }
 
 impl Present {
@@ -281,6 +300,67 @@ impl Present {
     #[must_use]
     pub const fn reset(&self) -> u64 {
         self.reset
+    }
+
+    /// Scope of a ratelimit when one occurs.
+    #[must_use]
+    pub const fn scope(&self) -> Option<RatelimitScope> {
+        self.scope
+    }
+}
+
+/// Scope of a ratelimit when one occurs.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum RatelimitScope {
+    /// Ratelimit is a global ratelimit and affects the application as a whole.
+    Global,
+    /// Ratelimit is a shared ratelimit and affects all applications in the
+    /// resource.
+    ///
+    /// This does not affect the application's individual ratelimit buckets or
+    /// global limits.
+    Shared,
+    /// Ratelimit is a per-resource limit, such as for an individual bucket.
+    User,
+}
+
+impl Display for RatelimitScope {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(match self {
+            Self::Global => "global",
+            Self::Shared => "shared",
+            Self::User => "user",
+        })
+    }
+}
+
+impl FromStr for RatelimitScope {
+    type Err = HeaderParsingError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "global" => Self::Global,
+            "shared" => Self::Shared,
+            "user" => Self::User,
+            _ => {
+                return Err(HeaderParsingError {
+                    kind: HeaderParsingErrorType::Parsing {
+                        kind: HeaderType::String,
+                        name: HeaderName::Scope,
+                        value: s.to_owned(),
+                    },
+                    source: None,
+                })
+            }
+        })
+    }
+}
+
+impl TryFrom<&'_ str> for RatelimitScope {
+    type Error = HeaderParsingError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::from_str(value)
     }
 }
 
@@ -385,6 +465,7 @@ impl RatelimitHeaders {
         let mut reset = None;
         let mut reset_after = None;
         let mut retry_after = None;
+        let mut scope = None;
 
         for (name, value) in headers {
             match name {
@@ -392,12 +473,6 @@ impl RatelimitHeaders {
                     bucket.replace(header_str(HeaderName::Bucket, value)?);
                 }
                 HeaderName::GLOBAL => {
-                    if let Some(retry_after) = retry_after {
-                        return Ok(RatelimitHeaders::GlobalLimited(GlobalLimited {
-                            retry_after,
-                        }));
-                    }
-
                     global = header_bool(value);
                 }
                 HeaderName::LIMIT => {
@@ -422,16 +497,26 @@ impl RatelimitHeaders {
                 HeaderName::RETRY_AFTER => {
                     let retry_after_value = header_int(HeaderName::RetryAfter, value)?;
 
-                    if global {
-                        return Ok(RatelimitHeaders::GlobalLimited(GlobalLimited {
-                            retry_after: header_int(HeaderName::RetryAfter, value)?,
-                        }));
-                    }
-
                     retry_after.replace(retry_after_value);
+                }
+                HeaderName::SCOPE => {
+                    let scope_value = header_str(HeaderName::Scope, value)?;
+                    let scope_parsed = RatelimitScope::try_from(scope_value)?;
+
+                    scope.replace(scope_parsed);
                 }
                 _ => continue,
             }
+        }
+
+        if global {
+            let retry_after =
+                retry_after.ok_or_else(|| HeaderParsingError::missing(HeaderName::RetryAfter))?;
+
+            return Ok(RatelimitHeaders::GlobalLimited(GlobalLimited {
+                retry_after,
+                scope,
+            }));
         }
 
         // If none of the values have been set then there are no ratelimit headers.
@@ -453,6 +538,7 @@ impl RatelimitHeaders {
             reset: reset.ok_or_else(|| HeaderParsingError::missing(HeaderName::Reset))?,
             reset_after: reset_after
                 .ok_or_else(|| HeaderParsingError::missing(HeaderName::ResetAfter))?,
+            scope,
         }))
     }
 }
@@ -510,6 +596,7 @@ mod tests {
         GlobalLimited, HeaderName, HeaderParsingError, HeaderParsingErrorType, HeaderType, Present,
         RatelimitHeaders,
     };
+    use crate::headers::RatelimitScope;
     use http::header::{HeaderMap, HeaderName as HttpHeaderName, HeaderValue};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{
@@ -570,6 +657,110 @@ mod tests {
     }
 
     #[test]
+    fn test_global_with_scope() -> Result<(), Box<dyn Error>> {
+        let map = {
+            let mut map = HeaderMap::new();
+            map.insert(
+                HttpHeaderName::from_static("x-ratelimit-global"),
+                HeaderValue::from_static("true"),
+            );
+            map.insert(
+                HttpHeaderName::from_static("retry-after"),
+                HeaderValue::from_static("65"),
+            );
+            map.insert(
+                HttpHeaderName::from_static("x-ratelimit-scope"),
+                HeaderValue::from_static("global"),
+            );
+
+            map
+        };
+
+        let iter = map.iter().map(|(k, v)| (k.as_str(), v.as_bytes()));
+        let headers = RatelimitHeaders::from_pairs(iter)?;
+        assert!(matches!(
+            headers,
+            RatelimitHeaders::GlobalLimited(ref global)
+            if global.retry_after() == 65
+        ));
+        assert!(matches!(
+            headers,
+            RatelimitHeaders::GlobalLimited(global)
+            if global.scope() == Some(RatelimitScope::Global)
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_present() -> Result<(), Box<dyn Error>> {
+        let map = {
+            let mut map = HeaderMap::new();
+            map.insert(
+                HttpHeaderName::from_static("x-ratelimit-limit"),
+                HeaderValue::from_static("10"),
+            );
+            map.insert(
+                HttpHeaderName::from_static("x-ratelimit-remaining"),
+                HeaderValue::from_static("9"),
+            );
+            map.insert(
+                HttpHeaderName::from_static("x-ratelimit-reset"),
+                HeaderValue::from_static("1470173023.123"),
+            );
+            map.insert(
+                HttpHeaderName::from_static("x-ratelimit-reset-after"),
+                HeaderValue::from_static("64.57"),
+            );
+            map.insert(
+                HttpHeaderName::from_static("x-ratelimit-bucket"),
+                HeaderValue::from_static("abcd1234"),
+            );
+            map.insert(
+                HttpHeaderName::from_static("x-ratelimit-scope"),
+                HeaderValue::from_static("shared"),
+            );
+
+            map
+        };
+
+        let iter = map.iter().map(|(k, v)| (k.as_str(), v.as_bytes()));
+        let headers = RatelimitHeaders::from_pairs(iter)?;
+        assert!(matches!(
+            headers,
+            RatelimitHeaders::Present(ref present)
+            if present.bucket.as_deref() == Some("abcd1234")
+        ));
+        assert!(matches!(
+            headers,
+            RatelimitHeaders::Present(ref present)
+            if present.limit == 10
+        ));
+        assert!(matches!(
+            headers,
+            RatelimitHeaders::Present(ref present)
+            if present.remaining == 9
+        ));
+        assert!(matches!(
+            headers,
+            RatelimitHeaders::Present(ref present)
+            if present.reset_after == 64_570
+        ));
+        assert!(matches!(
+            headers,
+            RatelimitHeaders::Present(ref present)
+            if present.reset == 1_470_173_023_123
+        ));
+        assert!(matches!(
+            headers,
+            RatelimitHeaders::Present(present)
+            if present.scope() == Some(RatelimitScope::Shared)
+        ));
+
+        Ok(())
+    }
+
+    #[test]
     fn test_name() {
         assert_eq!("x-ratelimit-bucket", HeaderName::BUCKET);
         assert_eq!("x-ratelimit-global", HeaderName::GLOBAL);
@@ -578,6 +769,7 @@ mod tests {
         assert_eq!("x-ratelimit-reset-after", HeaderName::RESET_AFTER);
         assert_eq!("x-ratelimit-reset", HeaderName::RESET);
         assert_eq!("retry-after", HeaderName::RETRY_AFTER);
+        assert_eq!("x-ratelimit-scope", HeaderName::SCOPE);
         assert_eq!(HeaderName::BUCKET, HeaderName::Bucket.name());
         assert_eq!(HeaderName::GLOBAL, HeaderName::Global.name());
         assert_eq!(HeaderName::LIMIT, HeaderName::Limit.name());
@@ -585,6 +777,7 @@ mod tests {
         assert_eq!(HeaderName::RESET_AFTER, HeaderName::ResetAfter.name());
         assert_eq!(HeaderName::RESET, HeaderName::Reset.name());
         assert_eq!(HeaderName::RETRY_AFTER, HeaderName::RetryAfter.name());
+        assert_eq!(HeaderName::SCOPE, HeaderName::Scope.name());
     }
 
     #[test]

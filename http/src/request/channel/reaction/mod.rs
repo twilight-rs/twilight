@@ -75,7 +75,7 @@ impl<'a> RequestReactionType<'a> {
 /// use twilight_model::id::Id;
 ///
 /// let reaction = RequestReactionType::Custom {
-///     id: Id::new(123).expect("non zero"),
+///     id: Id::new(123),
 ///     name: Some("rarity"),
 /// };
 ///
@@ -131,7 +131,7 @@ mod tests {
     #[test]
     fn test_display_custom_with_name() {
         let reaction = RequestReactionType::Custom {
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             name: Some("foo"),
         };
 
@@ -141,7 +141,7 @@ mod tests {
     #[test]
     fn test_display_custom_without_name() {
         let reaction = RequestReactionType::Custom {
-            id: Id::new(123).expect("non zero"),
+            id: Id::new(123),
             name: None,
         };
 

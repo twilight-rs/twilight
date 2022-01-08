@@ -670,6 +670,12 @@ impl Display for RouteDisplay<'_> {
             }
             Route::GetCurrentUserApplicationInfo => f.write_str("oauth2/applications/@me"),
             Route::GetCurrentUser | Route::UpdateCurrentUser => f.write_str("users/@me"),
+            Route::GetCurrentUserGuildMember { guild_id } => {
+                f.write_str("users/@me/guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/member")
+            }
             Route::GetGateway => f.write_str("gateway"),
             Route::GetGuild {
                 guild_id,
@@ -1143,9 +1149,9 @@ mod tests {
     const TEMPLATE_CODE: &str = "templatecode";
     const USER_ID: u64 = 11;
 
-    fn emoji() -> RequestReactionType<'static> {
+    const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
-            id: Id::new(EMOJI_ID).expect("non zero id"),
+            id: Id::new(EMOJI_ID),
             name: None,
         }
     }
@@ -2415,6 +2421,15 @@ mod tests {
     }
 
     #[test]
+    fn test_get_current_user_guild_member() {
+        let route = Route::GetCurrentUserGuildMember { guild_id: GUILD_ID };
+        assert_eq!(
+            route.display().to_string(),
+            format!("users/@me/guilds/{guild_id}/member", guild_id = GUILD_ID)
+        )
+    }
+
+    #[test]
     fn test_update_current_user() {
         let route = Route::UpdateCurrentUser;
         assert_eq!(route.display().to_string(), "users/@me");
@@ -2922,7 +2937,7 @@ mod tests {
 
     #[test]
     fn test_create_guild_prune_include_one_role() {
-        let include_roles = [Id::new(1).expect("non zero id")];
+        let include_roles = [Id::new(1)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: None,
@@ -2941,10 +2956,7 @@ mod tests {
 
     #[test]
     fn test_create_guild_prune_include_two_roles() {
-        let include_roles = [
-            Id::new(1).expect("non zero id"),
-            Id::new(2).expect("non zero id"),
-        ];
+        let include_roles = [Id::new(1), Id::new(2)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: None,
@@ -2963,10 +2975,7 @@ mod tests {
 
     #[test]
     fn test_create_guild_prune_all() {
-        let include_roles = [
-            Id::new(1).expect("non zero id"),
-            Id::new(2).expect("non zero id"),
-        ];
+        let include_roles = [Id::new(1), Id::new(2)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: Some(true),

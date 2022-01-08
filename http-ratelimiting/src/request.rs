@@ -8,7 +8,6 @@
 
 use http::Method as HttpMethod;
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
@@ -253,6 +252,8 @@ pub enum Path {
     UsersIdGuilds,
     /// Operating on the state of a guild that the user is in.
     UsersIdGuildsId,
+    /// Operating on the state of a guild that the user, as a member, is in.
+    UsersIdGuildsIdMember,
     /// Operating on the voice regions available to the current user.
     VoiceRegions,
     /// Operating on a webhook as a bot.
@@ -401,6 +402,7 @@ impl FromStr for Path {
             ["users", _, "channels"] => UsersIdChannels,
             ["users", _, "guilds"] => UsersIdGuilds,
             ["users", _, "guilds", _] => UsersIdGuildsId,
+            ["users", _, "guilds", _, "member"] => UsersIdGuildsIdMember,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] => WebhooksId(parse_id(id)?),
             ["webhooks", id, token] => WebhooksIdToken(parse_id(id)?, token.to_string()),
@@ -440,7 +442,7 @@ mod tests {
     use crate::request::Method;
     use http::Method as HttpMethod;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash, str::FromStr};
+    use std::{error::Error, fmt::Debug, hash::Hash, str::FromStr};
 
     assert_fields!(PathParseErrorType::MessageIdWithoutMethod: channel_id);
     assert_impl_all!(PathParseErrorType: Debug, Send, Sync);

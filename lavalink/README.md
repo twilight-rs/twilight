@@ -67,7 +67,6 @@ events:
 ```rust,no_run
 use futures_util::stream::StreamExt;
 use std::{
-    convert::TryInto,
     env,
     error::Error,
     future::Future,
@@ -124,6 +123,6 @@ There is also an example of a basic bot located in the [root of the
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [node]: Node
 [process]: Lavalink::process
-[rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

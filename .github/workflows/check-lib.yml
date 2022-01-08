@@ -14,7 +14,7 @@ jobs:
     name: Minimum supported Rust version
     runs-on: ubuntu-latest
     env:
-      minrust: 1.53
+      minrust: 1.57
 
     steps:
       - name: Checkout sources
@@ -75,7 +75,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install cargo-sync-readme
-        uses: baptiste0928/cargo-install@v1
+        uses: actions-rs/install@v0.1
         with:
           crate: cargo-sync-readme
 
@@ -168,7 +168,7 @@ jobs:
           profile: minimal
 
       - name: Install cargo-hack
-        uses: baptiste0928/cargo-install@v1
+        uses: actions-rs/install@v0.1
         with:
           crate: cargo-hack
 

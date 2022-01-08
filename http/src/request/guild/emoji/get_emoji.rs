@@ -27,8 +27,8 @@ use twilight_model::{
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(50).expect("non zero");
-/// let emoji_id = Id::new(100).expect("non zero");
+/// let guild_id = Id::new(50);
+/// let emoji_id = Id::new(100);
 ///
 /// client.emoji(guild_id, emoji_id).exec().await?;
 /// # Ok(()) }

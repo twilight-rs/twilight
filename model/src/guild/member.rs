@@ -5,6 +5,7 @@ use crate::{
         Id,
     },
     user::User,
+    util::image_hash::ImageHash,
 };
 
 use serde::{
@@ -20,7 +21,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 pub struct Member {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub guild_id: Id<GuildMarker>,
@@ -46,7 +47,7 @@ pub struct Member {
 pub struct MemberIntermediary {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,
@@ -215,6 +216,7 @@ mod tests {
     use crate::{
         datetime::{Timestamp, TimestampParseError},
         id::Id,
+        test::image_hash,
         user::User,
     };
     use serde_test::Token;
@@ -226,10 +228,10 @@ mod tests {
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
 
         let value = Member {
-            avatar: Some("guild avatar".to_owned()),
+            avatar: Some(image_hash::AVATAR),
             communication_disabled_until: None,
             deaf: false,
-            guild_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new(1),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -244,7 +246,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
@@ -264,7 +266,7 @@ mod tests {
                 },
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("guild avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),
@@ -322,10 +324,10 @@ mod tests {
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
 
         let value = Member {
-            avatar: Some("guild avatar".to_owned()),
+            avatar: Some(image_hash::AVATAR),
             communication_disabled_until: Some(communication_disabled_until),
             deaf: false,
-            guild_id: Id::new(1).expect("non zero"),
+            guild_id: Id::new(1),
             joined_at,
             mute: true,
             nick: Some("twilight".to_owned()),
@@ -340,7 +342,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: Id::new(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "twilight".to_owned(),
@@ -360,7 +362,7 @@ mod tests {
                 },
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("guild avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("communication_disabled_until"),
                 Token::Some,
                 Token::Str("2021-12-23T14:29:19.046000+00:00"),

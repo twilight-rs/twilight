@@ -56,15 +56,6 @@ impl Chunking {
             }
         };
 
-        #[cfg(feature = "tracing")]
-        if let ApiError::General(ref general) = error {
-            use crate::api_error::ErrorCode;
-
-            if let ErrorCode::Other(num) = general.code {
-                tracing::debug!("got unknown API error code variant: {}; {:?}", num, error);
-            }
-        }
-
         InnerPoll::Ready(Err(Error {
             kind: ErrorType::Response {
                 body: bytes,
@@ -339,8 +330,8 @@ impl<T> ResponseFuture<T> {
     /// use twilight_http::{error::ErrorType, Client};
     /// use twilight_model::id::{ChannelId, MessageId};
     ///
-    /// let channel_id = ChannelId::new(1).expect("non zero id");
-    /// let message_id = MessageId::new(2).expect("non zero id");
+    /// let channel_id = ChannelId::new(1);
+    /// let message_id = MessageId::new(2);
     ///
     /// let channels_ignored = {
     ///     let mut map = HashSet::new();
@@ -374,7 +365,7 @@ impl<T> ResponseFuture<T> {
         &mut self,
         pre_flight: Box<dyn FnOnce() -> bool + Send + 'static>,
     ) -> bool {
-        if let ResponseFutureStage::RatelimitQueue(ref mut queue) = &mut self.stage {
+        if let ResponseFutureStage::RatelimitQueue(queue) = &mut self.stage {
             queue.pre_flight_check = Some(pre_flight);
 
             true
@@ -415,10 +406,10 @@ impl<T> ResponseFuture<T> {
     /// Necessary for [`MemberBody`] and [`MemberListBody`] deserialization.
     pub(crate) fn set_guild_id(&mut self, guild_id: Id<GuildMarker>) {
         match &mut self.stage {
-            ResponseFutureStage::InFlight(ref mut stage) => {
+            ResponseFutureStage::InFlight(stage) => {
                 stage.guild_id.replace(guild_id);
             }
-            ResponseFutureStage::RatelimitQueue(ref mut stage) => {
+            ResponseFutureStage::RatelimitQueue(stage) => {
                 stage.guild_id.replace(guild_id);
             }
             _ => {}

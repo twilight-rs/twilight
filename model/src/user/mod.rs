@@ -12,7 +12,10 @@ pub use self::{
     profile::UserProfile,
 };
 
-use crate::id::{marker::UserMarker, Id};
+use crate::{
+    id::{marker::UserMarker, Id},
+    util::image_hash::ImageHash,
+};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -22,10 +25,7 @@ pub(crate) mod discriminator {
         de::{Deserializer, Error as DeError, Visitor},
         ser::Serializer,
     };
-    use std::{
-        convert::TryInto,
-        fmt::{Formatter, Result as FmtResult},
-    };
+    use std::fmt::{Formatter, Result as FmtResult};
 
     struct DiscriminatorVisitor;
 
@@ -124,9 +124,9 @@ pub struct User {
     ///
     /// This is an integer representation of a hexadecimal color code.
     pub accent_color: Option<u64>,
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// Hash of the user's banner image.
-    pub banner: Option<String>,
+    pub banner: Option<ImageHash>,
     #[serde(default)]
     pub bot: bool,
     /// Discriminator used to differentiate people with the same username.
@@ -171,7 +171,7 @@ impl User {
 #[cfg(test)]
 mod tests {
     use super::{DiscriminatorDisplay, PremiumType, User, UserFlags};
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};
@@ -197,10 +197,10 @@ mod tests {
             Token::None,
             Token::Str("avatar"),
             Token::Some,
-            Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            Token::Str(image_hash::AVATAR_INPUT),
             Token::Str("banner"),
             Token::Some,
-            Token::Str("06c16474723fe537c283b8efa61a30c8"),
+            Token::Str(image_hash::BANNER_INPUT),
             Token::Str("bot"),
             Token::Bool(false),
             Token::Str("discriminator"),
@@ -245,10 +245,10 @@ mod tests {
             Token::None,
             Token::Str("avatar"),
             Token::Some,
-            Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            Token::Str(image_hash::AVATAR_INPUT),
             Token::Str("banner"),
             Token::Some,
-            Token::Str("06c16474723fe537c283b8efa61a30c8"),
+            Token::Str(image_hash::BANNER_INPUT),
             Token::Str("bot"),
             Token::Bool(false),
             Token::Str("discriminator"),
@@ -299,13 +299,13 @@ mod tests {
     fn test_user() {
         let value = User {
             accent_color: None,
-            avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
-            banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
+            avatar: Some(image_hash::AVATAR),
+            banner: Some(image_hash::BANNER),
             bot: false,
             discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
             name: "test".to_owned(),
@@ -329,13 +329,13 @@ mod tests {
     fn test_user_complete() {
         let value = User {
             accent_color: None,
-            avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
-            banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
+            avatar: Some(image_hash::AVATAR),
+            banner: Some(image_hash::BANNER),
             bot: false,
             discriminator: 1,
             email: Some("address@example.com".to_owned()),
             flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-            id: Id::new(1).expect("non zero"),
+            id: Id::new(1),
             locale: Some("en-us".to_owned()),
             mfa_enabled: Some(true),
             name: "test".to_owned(),

@@ -34,13 +34,13 @@ use twilight_validate::command::CommandValidationError;
 ///
 /// ```no_run
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<std::error::Error>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let application_id = Id::new(123).expect("non zero id");
+/// let application_id = Id::new(123);
 ///
 /// let interaction_client = client.interaction(application_id);
 ///

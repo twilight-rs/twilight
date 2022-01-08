@@ -35,8 +35,8 @@ struct CreateBanFields<'a> {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = Id::new(100).expect("non zero");
-/// let user_id = Id::new(200).expect("non zero");
+/// let guild_id = Id::new(100);
+/// let user_id = Id::new(200);
 /// client.create_ban(guild_id, user_id)
 ///     .delete_message_days(1)?
 ///     .reason("memes")?
