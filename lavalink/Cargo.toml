@@ -13,7 +13,7 @@ publish = false
 readme = "README.md"
 rust-version = "1.57"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.1"
+version = "0.8.2"
 
 [dependencies]
 dashmap = { default-features = false, version = ">=4.0, <6.0" }
