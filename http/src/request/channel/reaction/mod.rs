@@ -35,7 +35,6 @@ pub enum RequestReactionType<'a> {
     },
 }
 
-
 /// Format a [`RequestReactionType`] into a format acceptable for use in URLs.
 ///
 /// # Examples
