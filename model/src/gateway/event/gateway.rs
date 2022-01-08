@@ -10,7 +10,7 @@ use serde::{
     Deserialize, Serialize,
 };
 use std::fmt::{Formatter, Result as FmtResult};
-use std::{convert::TryFrom, str::FromStr};
+use std::str::FromStr;
 
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
@@ -544,7 +544,7 @@ impl Serialize for GatewayEvent {
 #[cfg(test)]
 mod tests {
     use super::{DispatchEvent, GatewayEvent, GatewayEventDeserializer, OpCode};
-    use crate::{gateway::payload::incoming::RoleDelete, id::Id};
+    use crate::{gateway::payload::incoming::RoleDelete, id::Id, test::image_hash};
     use serde::de::DeserializeSeed;
     use serde_json::de::Deserializer;
     use serde_test::Token;
@@ -569,8 +569,9 @@ mod tests {
 
     #[test]
     fn test_deserialize_dispatch_guild_update() {
-        let input = r#"{
-  "d": {
+        let input = format!(
+            r#"{{
+  "d": {{
     "afk_channel_id": "1337",
     "afk_timeout": 300,
     "application_id": null,
@@ -579,7 +580,7 @@ mod tests {
     "description": null,
     "discovery_splash": null,
     "emojis": [
-      {
+      {{
         "animated": false,
         "available": true,
         "id": "1338",
@@ -587,7 +588,7 @@ mod tests {
         "name": "goodboi",
         "require_colons": true,
         "roles": []
-      }
+      }}
     ],
     "explicit_content_filter": 0,
     "features": [
@@ -595,7 +596,7 @@ mod tests {
       "ANIMATED_ICON"
     ],
     "guild_id": "1339",
-    "icon": "foobar",
+    "icon": "{icon}",
     "id": "13310",
     "max_members": 250000,
     "max_presences": null,
@@ -609,7 +610,7 @@ mod tests {
     "premium_tier": 1,
     "region": "eu-central",
     "roles": [
-      {
+      {{
         "color": 0,
         "hoist": false,
         "id": "13312",
@@ -618,24 +619,27 @@ mod tests {
         "name": "@everyone",
         "permissions": "104193601",
         "position": 0
-      }
+      }}
     ],
     "rules_channel_id": null,
-    "splash": "barbaz",
+    "splash": "{splash}",
     "system_channel_flags": 0,
     "system_channel_id": "13313",
     "vanity_url_code": null,
     "verification_level": 0,
     "widget_channel_id": null,
     "widget_enabled": false
-  },
+  }},
   "op": 0,
   "s": 42,
   "t": "GUILD_UPDATE"
-}"#;
+}}"#,
+            icon = image_hash::ICON_INPUT,
+            splash = image_hash::SPLASH_INPUT,
+        );
 
-        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
-        let mut json_deserializer = Deserializer::from_str(input);
+        let deserializer = GatewayEventDeserializer::from_json(&input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(&input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert!(matches!(event, GatewayEvent::Dispatch(42, _)));
@@ -643,8 +647,9 @@ mod tests {
 
     #[test]
     fn test_deserialize_dispatch_guild_update_2() {
-        let input = r#"{
-  "d": {
+        let input = format!(
+            r#"{{
+  "d": {{
     "afk_channel_id": null,
     "afk_timeout": 300,
     "application_id": null,
@@ -653,7 +658,7 @@ mod tests {
     "description": null,
     "discovery_splash": null,
     "emojis": [
-      {
+      {{
         "animated": false,
         "available": true,
         "id": "42",
@@ -661,12 +666,12 @@ mod tests {
         "name": "emmet",
         "require_colons": true,
         "roles": []
-      }
+      }}
     ],
     "explicit_content_filter": 2,
     "features": [],
     "guild_id": "43",
-    "icon": "44",
+    "icon": "{icon}",
     "id": "45",
     "max_members": 250000,
     "max_presences": null,
@@ -680,7 +685,7 @@ mod tests {
     "premium_tier": 0,
     "region": "us-central",
     "roles": [
-      {
+      {{
         "color": 0,
         "hoist": false,
         "id": "47",
@@ -689,7 +694,7 @@ mod tests {
         "name": "@everyone",
         "permissions": "104324673",
         "position": 0
-      }
+      }}
     ],
     "rules_channel_id": null,
     "splash": null,
@@ -699,14 +704,16 @@ mod tests {
     "verification_level": 4,
     "widget_channel_id": null,
     "widget_enabled": true
-  },
+  }},
   "op": 0,
   "s": 1190911,
   "t": "GUILD_UPDATE"
-}"#;
+}}"#,
+            icon = image_hash::ICON_INPUT
+        );
 
-        let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
-        let mut json_deserializer = Deserializer::from_str(input);
+        let deserializer = GatewayEventDeserializer::from_json(&input).unwrap();
+        let mut json_deserializer = Deserializer::from_str(&input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
         assert!(matches!(event, GatewayEvent::Dispatch(1_190_911, _)));

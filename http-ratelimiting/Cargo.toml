@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = ["api-bindings", "asynchronous"]
 description = "Discord REST API ratelimiter implementations for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-http-ratelimiting"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
@@ -12,6 +12,7 @@ name = "twilight-http-ratelimiting"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
+rust-version = "1.57"
 version = "0.8.2"
 
 [dependencies]

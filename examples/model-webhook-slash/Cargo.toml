@@ -2,7 +2,7 @@
 name = "twilight-example-model-webhook-slash"
 version = "0.1.0"
 authors = ["Twilight Contributors"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 ed25519-dalek = "1"

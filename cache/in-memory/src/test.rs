@@ -12,12 +12,14 @@ use twilight_model::{
         Id,
     },
     user::{CurrentUser, User},
+    util::image_hash::ImageHash,
     voice::VoiceState,
 };
 
 pub fn cache_with_message_and_reactions() -> InMemoryCache {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
     let cache = InMemoryCache::new();
+    let avatar = ImageHash::parse(b"6961d9f1fdb5880bf4a3ec6348d3bbcf").unwrap();
 
     let msg = Message {
         activity: None,
@@ -26,7 +28,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         attachments: Vec::new(),
         author: User {
             accent_color: None,
-            avatar: Some("".to_owned()),
+            avatar: Some(avatar),
             banner: None,
             bot: false,
             discriminator: 1,
@@ -99,7 +101,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             roles: Vec::new(),
             user: User {
                 accent_color: None,
-                avatar: Some("".to_owned()),
+                avatar: Some(avatar),
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -121,6 +123,9 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
     cache.update(&reaction);
 
+    let user_5_input = b"ef678abdee09d8dfb14e83381983d5e4";
+    let user_5_avatar = ImageHash::parse(user_5_input).unwrap();
+
     reaction.member.replace(Member {
         avatar: None,
         communication_disabled_until: None,
@@ -134,7 +139,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         roles: Vec::new(),
         user: User {
             accent_color: None,
-            avatar: Some("".to_owned()),
+            avatar: Some(user_5_avatar),
             banner: None,
             bot: false,
             discriminator: 2,
@@ -264,6 +269,7 @@ pub fn voice_state(
         self_deaf: false,
         self_mute: true,
         self_stream: false,
+        self_video: false,
         session_id: "a".to_owned(),
         suppress: false,
         token: None,
@@ -273,10 +279,13 @@ pub fn voice_state(
 }
 
 pub fn user(id: Id<UserMarker>) -> User {
+    let banner_hash = b"16ed037ab6dae5e1739f15c745d12454";
+    let banner = ImageHash::parse(banner_hash).expect("valid hash");
+
     User {
         accent_color: None,
         avatar: None,
-        banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
+        banner: Some(banner),
         bot: false,
         discriminator: 1,
         email: None,

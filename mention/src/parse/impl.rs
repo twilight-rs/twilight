@@ -1,7 +1,7 @@
 use crate::timestamp::{Timestamp, TimestampStyle};
 
 use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
-use std::{convert::TryFrom, num::NonZeroU64, str::Chars};
+use std::{num::NonZeroU64, str::Chars};
 use twilight_model::id::{
     marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
     Id,

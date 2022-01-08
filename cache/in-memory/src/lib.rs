@@ -1,5 +1,5 @@
 #![doc = include_str!("../README.md")]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
     clippy::missing_const_for_fn,
     missing_docs,
@@ -14,7 +14,6 @@ pub mod iter;
 pub mod model;
 
 #[cfg(feature = "permission-calculator")]
-#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub mod permission;
 
 mod builder;
@@ -32,7 +31,6 @@ pub use self::{
 };
 
 #[cfg(feature = "permission-calculator")]
-#[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
 pub use self::permission::InMemoryCachePermissions;
 
 use self::{iter::InMemoryCacheIter, model::*};
@@ -363,7 +361,6 @@ impl InMemoryCache {
     /// # Ok(()) }
     /// ```
     #[cfg(feature = "permission-calculator")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "permission-calculator")))]
     pub const fn permissions(&self) -> InMemoryCachePermissions<'_> {
         InMemoryCachePermissions::new(self)
     }

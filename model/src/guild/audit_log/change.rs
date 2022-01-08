@@ -4,6 +4,7 @@ use crate::{
         message::sticker::StickerFormatType, permission_overwrite::PermissionOverwrite,
         stage_instance::PrivacyLevel, thread::AutoArchiveDuration,
     },
+    datetime::Timestamp,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         VerificationLevel,
@@ -164,6 +165,15 @@ pub enum AuditLogChange {
         /// Old role color.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
+    },
+    /// Member timeout state changed.
+    CommunicationDisabledUntil {
+        /// New timeout timestamp.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<Timestamp>,
+        /// Old timeout timestamp.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<Timestamp>,
     },
     /// Whether a member is guild deafened.
     Deaf {
@@ -505,6 +515,7 @@ pub enum AuditLogChange {
         old: Option<String>,
     },
     /// Role was added to a user.
+    #[serde(rename = "$add")]
     RoleAdded {
         /// Minimal information about a added role.
         #[serde(default, rename = "new_value", skip_serializing_if = "Vec::is_empty")]
@@ -514,6 +525,7 @@ pub enum AuditLogChange {
         old: Vec<AffectedRole>,
     },
     /// Role was removed from a user.
+    #[serde(rename = "$remove")]
     RoleRemoved {
         /// Minimal information about a removed role.
         #[serde(default, rename = "new_value", skip_serializing_if = "Vec::is_empty")]
@@ -703,6 +715,9 @@ impl AuditLogChange {
             Self::ChannelId { .. } => AuditLogChangeKey::ChannelId,
             Self::Code { .. } => AuditLogChangeKey::Code,
             Self::Color { .. } => AuditLogChangeKey::Color,
+            Self::CommunicationDisabledUntil { .. } => {
+                AuditLogChangeKey::CommunicationDisabledUntil
+            }
             Self::Deaf { .. } => AuditLogChangeKey::Deaf,
             Self::DefaultAutoArchiveDuration { .. } => {
                 AuditLogChangeKey::DefaultAutoArchiveDuration
@@ -787,6 +802,7 @@ mod tests {
     assert_fields!(AuditLogChange::ChannelId: new);
     assert_fields!(AuditLogChange::Code: new);
     assert_fields!(AuditLogChange::Color: new, old);
+    assert_fields!(AuditLogChange::CommunicationDisabledUntil: new, old);
     assert_fields!(AuditLogChange::Deaf: new, old);
     assert_fields!(AuditLogChange::DefaultMessageNotifications: new, old);
     assert_fields!(AuditLogChange::Deny: new);

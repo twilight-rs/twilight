@@ -1,20 +1,17 @@
-use crate::channel::Channel;
+use crate::{
+    channel::ChannelType,
+    id::{
+        marker::{ChannelMarker, GuildMarker},
+        Id,
+    },
+};
 use serde::{Deserialize, Serialize};
-use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct ThreadDelete(pub Channel);
-
-impl Deref for ThreadDelete {
-    type Target = Channel;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for ThreadDelete {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+pub struct ThreadDelete {
+    pub guild_id: Id<GuildMarker>,
+    pub id: Id<ChannelMarker>,
+    #[serde(rename = "type")]
+    pub kind: ChannelType,
+    pub parent_id: Id<ChannelMarker>,
 }

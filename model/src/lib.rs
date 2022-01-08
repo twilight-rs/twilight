@@ -27,7 +27,10 @@ pub mod invite;
 pub mod oauth;
 pub mod template;
 pub mod user;
+pub mod util;
 pub mod voice;
 
-pub(crate) mod util;
 mod visitor;
+
+#[cfg(test)]
+mod test;

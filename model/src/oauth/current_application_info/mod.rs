@@ -9,6 +9,7 @@ use crate::{
     },
     oauth::team::Team,
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -16,12 +17,12 @@ use serde::{Deserialize, Serialize};
 pub struct CurrentApplicationInfo {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
-    pub cover_image: Option<String>,
+    pub cover_image: Option<ImageHash>,
     pub description: String,
     pub guild_id: Option<Id<GuildMarker>>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     pub id: Id<ApplicationMarker>,
     pub name: String,
     pub owner: User,
@@ -43,7 +44,7 @@ pub struct CurrentApplicationInfo {
 #[cfg(test)]
 mod tests {
     use super::{ApplicationFlags, CurrentApplicationInfo, Team, User};
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -86,11 +87,11 @@ mod tests {
         let value = CurrentApplicationInfo {
             bot_public: true,
             bot_require_code_grant: false,
-            cover_image: Some("cover image hash".to_owned()),
+            cover_image: Some(image_hash::COVER),
             description: "a pretty cool application".to_owned(),
             guild_id: Some(Id::new(1)),
             flags: Some(ApplicationFlags::EMBEDDED),
-            icon: Some("icon hash".to_owned()),
+            icon: Some(image_hash::ICON),
             id: Id::new(2),
             name: "cool application".to_owned(),
             owner: User {
@@ -139,7 +140,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("cover_image"),
                 Token::Some,
-                Token::Str("cover image hash"),
+                Token::Str(image_hash::COVER_INPUT),
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
                 Token::Str("guild_id"),
@@ -151,7 +152,7 @@ mod tests {
                 Token::U64(131_072),
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),

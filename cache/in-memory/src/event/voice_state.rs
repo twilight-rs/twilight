@@ -99,6 +99,7 @@ mod tests {
     use twilight_model::{
         datetime::Timestamp,
         id::{marker::ChannelMarker, Id},
+        util::{image_hash::ImageHashParseError, ImageHash},
     };
 
     #[test]
@@ -266,6 +267,7 @@ mod tests {
             self_deaf: false,
             self_mute: false,
             self_stream: false,
+            self_video: false,
             session_id: "38fj3jfkh3pfho3prh2".to_string(),
             suppress: false,
             token: None,
@@ -277,11 +279,13 @@ mod tests {
     }
 
     #[test]
-    fn test_voice_states_members() {
+    fn test_voice_states_members() -> Result<(), ImageHashParseError> {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         use twilight_model::{guild::member::Member, user::User};
 
         let cache = InMemoryCache::new();
+
+        let avatar = ImageHash::parse(b"169280485ba78d541a9090e7ea35a14e")?;
 
         let mutation = VoiceStateUpdate(VoiceState {
             channel_id: Some(Id::new(4)),
@@ -300,7 +304,7 @@ mod tests {
                 roles: Vec::new(),
                 user: User {
                     accent_color: None,
-                    avatar: Some("".to_owned()),
+                    avatar: Some(avatar),
                     banner: None,
                     bot: false,
                     discriminator: 1,
@@ -320,6 +324,7 @@ mod tests {
             self_deaf: false,
             self_mute: false,
             self_stream: false,
+            self_video: false,
             session_id: "".to_owned(),
             suppress: false,
             token: None,
@@ -340,5 +345,7 @@ mod tests {
             cache.member(Id::new(2), Id::new(3)).unwrap().user_id,
             Id::new(3),
         );
+
+        Ok(())
     }
 }

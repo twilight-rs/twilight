@@ -52,7 +52,6 @@ use serde::{
 use std::{
     any,
     cmp::Ordering,
-    convert::TryFrom,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     hash::{Hash, Hasher},
     marker::PhantomData,
@@ -468,7 +467,6 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::{
         collections::hash_map::DefaultHasher,
-        convert::TryFrom,
         error::Error,
         fmt::{Debug, Display},
         hash::{Hash, Hasher},

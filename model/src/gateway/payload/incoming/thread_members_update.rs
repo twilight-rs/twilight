@@ -94,6 +94,7 @@ mod tests {
         },
         guild::Member,
         id::Id,
+        test::image_hash,
         user::User,
     };
     use serde_test::Token;
@@ -109,7 +110,7 @@ mod tests {
         let premium_since = Timestamp::from_str(PREMIUM_SINCE).expect("timestamp error");
 
         let member = Member {
-            avatar: Some("guild avatar".to_owned()),
+            avatar: Some(image_hash::AVATAR),
             communication_disabled_until: None,
             deaf: false,
             guild_id: Id::new(2),
@@ -218,7 +219,7 @@ mod tests {
                 },
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("guild avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("communication_disabled_until"),
                 Token::None,
                 Token::Str("deaf"),

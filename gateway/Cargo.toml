@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = ["api-bindings", "asynchronous", "web-programming::websocket"]
 description = "Discord Gateway implementation for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-gateway"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_3_gateway.html"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
@@ -12,6 +12,7 @@ name = "twilight-gateway"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
+rust-version = "1.57"
 version = "0.8.2"
 
 [dependencies]
@@ -25,7 +26,7 @@ twilight-gateway-queue = { default-features = false, path = "../gateway-queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
 url = { default-features = false, version = "2" }
-leaky-bucket-lite = { default-features = false, version = "0.2" }
+leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently

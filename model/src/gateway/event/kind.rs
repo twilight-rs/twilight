@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 
 /// The type of an event.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

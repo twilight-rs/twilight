@@ -77,7 +77,7 @@ use hyper::{
     Body,
 };
 use std::{
-    convert::{AsRef, TryFrom},
+    convert::AsRef,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
@@ -233,7 +233,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<std::error::Error>> {
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_http::Client;
     ///

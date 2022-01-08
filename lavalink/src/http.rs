@@ -7,10 +7,7 @@ use http::{
 };
 use percent_encoding::NON_ALPHANUMERIC;
 use serde::{Deserialize, Deserializer, Serialize};
-use std::{
-    convert::TryFrom,
-    net::{IpAddr, SocketAddr},
-};
+use std::net::{IpAddr, SocketAddr};
 
 /// The type of search result given.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
