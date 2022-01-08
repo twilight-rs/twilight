@@ -41,7 +41,7 @@ let cache = InMemoryCache::builder().message_cache_size(10).build();
 
 while let Some(event) = events.next().await {
     // Update the cache with the event.
-    cache.update(&event);
+    cache.update(event);
 }
 ```
 
