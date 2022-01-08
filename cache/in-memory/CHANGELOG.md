@@ -2,6 +2,20 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.8.4] - 2022-01-08
+
+### Additions
+
+Support `Guild::premium_progress_bar_enabled` ([#1399] - [@Erk-]).
+
+Add an iterator over the guild's voice states ([#1410] - [@Gelbpunkt]).
+
+Support `Member::communication_disabled_until` ([#1414] - [@AEnterprise]).
+
+[#1399]: https://github.com/twilight-rs/twilight/pull/1399
+[#1410]: https://github.com/twilight-rs/twilight/pull/1410
+[#1414]: https://github.com/twilight-rs/twilight/pull/1414
+
 ## [0.8.3] - 2021-12-27
 
 ### Additions
@@ -537,6 +551,7 @@ The crate now depends on version 0.2 of `twilight-model`.
 Initial release.
 
 [@7596ff]: https://github.com/7596ff
+[@AEnterprise]: https://github.com/AEnterprise
 [@AsianIntel]: https://github.com/AsianIntel
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
@@ -568,6 +583,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.1
