@@ -510,6 +510,7 @@ pub enum AuditLogChange {
         old: Option<String>,
     },
     /// Role was added to a user.
+    #[serde(rename = "$add")]
     RoleAdded {
         /// Minimal information about a added role.
         #[serde(default, rename = "new_value", skip_serializing_if = "Vec::is_empty")]
@@ -519,6 +520,7 @@ pub enum AuditLogChange {
         old: Vec<AffectedRole>,
     },
     /// Role was removed from a user.
+    #[serde(rename = "$remove")]
     RoleRemoved {
         /// Minimal information about a removed role.
         #[serde(default, rename = "new_value", skip_serializing_if = "Vec::is_empty")]

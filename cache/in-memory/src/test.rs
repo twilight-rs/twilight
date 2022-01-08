@@ -261,6 +261,7 @@ pub fn voice_state(
         self_deaf: false,
         self_mute: true,
         self_stream: false,
+        self_video: false,
         session_id: "a".to_owned(),
         suppress: false,
         token: None,
