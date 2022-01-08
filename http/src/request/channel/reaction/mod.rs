@@ -53,6 +53,21 @@ pub enum RequestReactionType<'a> {
 ///
 /// assert_eq!("rarity:123", reaction.to_string());
 /// ```
+///
+/// Format the transgender flag for use in a URL:
+///
+/// ```
+/// use twilight_http::request::channel::reaction::RequestReactionType;
+///
+/// let reaction = RequestReactionType::Unicode {
+///     name: "🏳️‍⚧️",
+/// };
+///
+/// assert_eq!(
+///     "%F0%9F%8F%B3%EF%B8%8F%E2%80%8D%E2%9A%A7%EF%B8%8F",
+///     reaction.to_string(),
+/// );
+/// ```
 impl Display for RequestReactionType<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
