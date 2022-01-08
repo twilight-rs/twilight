@@ -669,7 +669,7 @@ mod tests {
             if g_id == GUILD_ID && u_id == USER_ID
         ));
 
-        cache.update(MemberAdd(test::member(USER_ID, GUILD_ID)));
+        cache.update(Box::new(MemberAdd(test::member(USER_ID, GUILD_ID))));
 
         assert!(matches!(
             permissions.root(USER_ID, GUILD_ID).unwrap_err().kind(),
@@ -692,9 +692,9 @@ mod tests {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
 
-        cache.update(GuildCreate(base_guild()));
-        cache.update(MemberAdd(test::member(USER_ID, GUILD_ID)));
-        cache.update(MemberUpdate {
+        cache.update(Box::new(GuildCreate(base_guild())));
+        cache.update(Box::new(MemberAdd(test::member(USER_ID, GUILD_ID))));
+        cache.update(Box::new(MemberUpdate {
             avatar: None,
             communication_disabled_until: None,
             guild_id: GUILD_ID,
@@ -706,8 +706,7 @@ mod tests {
             premium_since: None,
             roles: Vec::from([OTHER_ROLE_ID]),
             user: test::user(USER_ID),
-        });
-
+        }));
         cache.update(role_create(
             GUILD_ID,
             role_with_permissions(
@@ -736,7 +735,7 @@ mod tests {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
 
-        cache.update(GuildCreate(base_guild()));
+        cache.update(Box::new(GuildCreate(base_guild())));
         assert!(matches!(
             permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
             ChannelErrorType::ChannelUnavailable { channel_id: c_id }
@@ -750,12 +749,12 @@ mod tests {
             if *g_id == GUILD_ID && *u_id == USER_ID
         ));
 
-        cache.update(MemberAdd({
+        cache.update(Box::new(MemberAdd({
             let mut member = test::member(USER_ID, GUILD_ID);
             member.roles.push(OTHER_ROLE_ID);
 
             member
-        }));
+        })));
         assert!(matches!(
             permissions.in_channel(USER_ID, CHANNEL_ID).unwrap_err().kind(),
             &ChannelErrorType::RoleUnavailable { role_id }
@@ -790,7 +789,7 @@ mod tests {
     fn test_owner() -> Result<(), Box<dyn Error>> {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
-        cache.update(GuildCreate(base_guild()));
+        cache.update(Box::new(GuildCreate(base_guild())));
 
         assert!(permissions.root(OWNER_ID, GUILD_ID)?.is_all());
 
