@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn test_current_user_guild() {
-        // The example partial guild from the discord docs
+        // The example partial guild from the Discord docs
         let value = CurrentUserGuild {
             id: GuildId::new(80_351_110_224_678_912).expect("non zero"),
             name: "abcd".to_owned(),

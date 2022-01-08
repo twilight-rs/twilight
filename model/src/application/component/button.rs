@@ -40,9 +40,9 @@ pub struct Button {
 
 /// Style of a [`Button`].
 ///
-/// Refer to [the discord docs] for additional information.
+/// Refer to [the Discord docs] for additional information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
+/// [the Discord docs]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
 pub enum ButtonStyle {

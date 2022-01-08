@@ -21,10 +21,10 @@ struct CreateEmojiFields<'a> {
 /// Create an emoji in a guild.
 ///
 /// The emoji must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}`
-/// is the image MIME type and `{data}` is the base64-encoded image.  Refer to [the discord docs]
+/// is the image MIME type and `{data}` is the base64-encoded image.  Refer to [the Discord docs]
 /// for more information about image data.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+/// [the Discord docs]: https://discord.com/developers/docs/reference#image-data
 #[must_use = "requests must be configured and executed"]
 pub struct CreateEmoji<'a> {
     fields: CreateEmojiFields<'a>,
@@ -54,9 +54,9 @@ impl<'a> CreateEmoji<'a> {
 
     /// Whitelist roles for this emoji.
     ///
-    /// Refer to [the discord docs] for more information.
+    /// Refer to [the Discord docs] for more information.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/emoji
+    /// [the Discord docs]: https://discord.com/developers/docs/resources/emoji
     pub const fn roles(mut self, roles: &'a [RoleId]) -> Self {
         self.fields.roles = Some(roles);
 

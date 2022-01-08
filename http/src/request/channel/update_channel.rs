@@ -198,7 +198,7 @@ impl<'a> UpdateChannel<'a> {
     /// Set the number of seconds that a user must wait before before they are able to send another
     /// message.
     ///
-    /// The minimum is 0 and the maximum is 21600. Refer to [the discord docs] for more details.
+    /// The minimum is 0 and the maximum is 21600. Refer to [the Discord docs] for more details.
     /// This is also known as "Slow Mode".
     ///
     /// # Errors
@@ -206,7 +206,7 @@ impl<'a> UpdateChannel<'a> {
     /// Returns an [`UpdateChannelErrorType::RateLimitPerUserInvalid`] error
     /// type if the amount is greater than 21600.
     ///
-    /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
+    /// [the Discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     pub const fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,
@@ -224,14 +224,14 @@ impl<'a> UpdateChannel<'a> {
 
     /// Set the topic.
     ///
-    /// The maximum length is 1024 UTF-16 characters. Refer to [the discord docs] for more details.
+    /// The maximum length is 1024 UTF-16 characters. Refer to [the Discord docs] for more details.
     ///
     /// # Errors
     ///
     /// Returns an [`UpdateChannelErrorType::TopicInvalid`] error type if the topic
     /// length is too long.
     ///
-    /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
+    /// [the Discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub fn topic(mut self, topic: &'a str) -> Result<Self, UpdateChannelError> {
         if topic.chars().count() > 1024 {
             return Err(UpdateChannelError {
@@ -247,9 +247,9 @@ impl<'a> UpdateChannel<'a> {
     /// For voice channels, set the user limit.
     ///
     /// Set to 0 for no limit. Limit can otherwise be between 1 and 99 inclusive. Refer to [the
-    /// discord docs] for more details.
+    /// Discord docs] for more details.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params
+    /// [the Discord docs]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params
     pub const fn user_limit(mut self, user_limit: u64) -> Self {
         self.fields.user_limit = Some(user_limit);
 
@@ -266,10 +266,10 @@ impl<'a> UpdateChannel<'a> {
     /// Set the kind of channel.
     ///
     /// Only conversion between `ChannelType::GuildText` and `ChannelType::GuildNews` is possible,
-    /// and only if the guild has the `NEWS` feature enabled. Refer to [the discord docs] for more
+    /// and only if the guild has the `NEWS` feature enabled. Refer to [the Discord docs] for more
     /// details.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params
+    /// [the Discord docs]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params
     pub const fn kind(mut self, kind: ChannelType) -> Self {
         self.fields.kind = Some(kind);
 

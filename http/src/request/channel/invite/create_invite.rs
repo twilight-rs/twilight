@@ -245,9 +245,9 @@ impl<'a> CreateInvite<'a> {
     /// Specify true if the invite should be unique. Defaults to false.
     ///
     /// If true, don't try to reuse a similar invite (useful for creating many unique one time use
-    /// invites). Refer to [the discord docs] for more information.
+    /// invites). Refer to [the Discord docs] for more information.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#create-channel-invite
+    /// [the Discord docs]: https://discord.com/developers/docs/resources/channel#create-channel-invite
     pub const fn unique(mut self, unique: bool) -> Self {
         self.fields.unique = Some(unique);
 

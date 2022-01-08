@@ -108,7 +108,7 @@ where
             // Run the handler to gain a response.
             let response = f(interaction).await?;
 
-            // Serialize the response and return it back to discord.
+            // Serialize the response and return it back to Discord.
             let json = serde_json::to_vec(&response)?;
 
             Ok(Response::builder()

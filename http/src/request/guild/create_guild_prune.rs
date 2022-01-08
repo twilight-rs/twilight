@@ -73,9 +73,9 @@ struct CreateGuildPruneFields<'a> {
 
 /// Begin a guild prune.
 ///
-/// Refer to [the discord docs] for more information.
+/// Refer to [the Discord docs] for more information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
+/// [the Discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {
     fields: CreateGuildPruneFields<'a>,

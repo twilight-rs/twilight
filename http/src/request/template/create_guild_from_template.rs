@@ -106,10 +106,10 @@ impl<'a> CreateGuildFromTemplate<'a> {
     /// Set the icon.
     ///
     /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
-    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
+    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the Discord docs]
     /// for more information.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+    /// [the Discord docs]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: &'a str) -> Self {
         self.fields.icon = Some(icon);
 

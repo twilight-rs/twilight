@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// Data received when an [`MessageComponent`] interaction is executed.
 ///
-/// Refer to [the discord docs] for more information.
+/// Refer to [the Discord docs] for more information.
 ///
 /// [`MessageComponent`]: crate::application::interaction::Interaction::MessageComponent
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

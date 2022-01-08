@@ -15,10 +15,10 @@ use twilight_model::id::{ApplicationId, GuildId};
 ///
 /// The name must be between 1 and 32 characters in length. Creating a guild
 /// command with the same name as an already-existing guild command in the same
-/// guild will overwrite the old command. See [the discord docs] for more
+/// guild will overwrite the old command. See [the Discord docs] for more
 /// information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
+/// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "the command must have a type"]
 pub struct CreateGuildCommand<'a> {
     application_id: ApplicationId,
@@ -52,7 +52,7 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// The description must be between 1 and 100 characters in length. Creating
     /// a guild command with the same name as an already-existing guild command
-    /// in the same guild will overwrite the old command. See [the discord docs]
+    /// in the same guild will overwrite the old command. See [the Discord docs]
     /// for more information.
     ///
     /// # Errors
@@ -61,7 +61,7 @@ impl<'a> CreateGuildCommand<'a> {
     /// error type if the command description is not between 1 and
     /// 100 characters.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
+    /// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn chat_input(
         self,
         description: &'a str,
@@ -79,9 +79,9 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// Creating a guild command with the same name as an already-existing guild
     /// command in the same guild will overwrite the old command. See [the
-    /// discord docs] for more information.
+    /// Discord docs] for more information.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
+    /// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub const fn message(self) -> CreateGuildMessageCommand<'a> {
         CreateGuildMessageCommand::new(self.http, self.application_id, self.guild_id, self.name)
     }
@@ -90,9 +90,9 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// Creating a guild command with the same name as an already-existing guild
     /// command in the same guild will overwrite the old command. See [the
-    /// discord docs] for more information.
+    /// Discord docs] for more information.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
+    /// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub const fn user(self) -> CreateGuildUserCommand<'a> {
         CreateGuildUserCommand::new(self.http, self.application_id, self.guild_id, self.name)
     }

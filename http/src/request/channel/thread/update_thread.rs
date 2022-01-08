@@ -129,7 +129,7 @@ impl<'a> UpdateThread<'a> {
     /// Set the number of seconds that a user must wait before before they are
     /// able to send another message.
     ///
-    /// The minimum is 0 and the maximum is 21600. Refer to [the discord docs]
+    /// The minimum is 0 and the maximum is 21600. Refer to [the Discord docs]
     /// for more details.  This is also known as "Slow Mode".
     ///
     /// # Errors
@@ -137,7 +137,7 @@ impl<'a> UpdateThread<'a> {
     /// Returns a [`ThreadValidationErrorType::RateLimitPerUserInvalid`] error type
     /// if the amount is greater than 21600.
     ///
-    /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
+    /// [the Discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     pub const fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,

@@ -17,17 +17,17 @@ pub use self::{
 use crate::id::{ApplicationId, CommandId, CommandVersionId, GuildId};
 use serde::{Deserialize, Serialize};
 
-/// Data sent to discord to create a command.
+/// Data sent to Discord to create a command.
 ///
 /// [`CommandOption`]s that are required must be listed before optional ones.
 /// Command names must be lower case, matching the Regex `^[\w-]{1,32}$`. Refer
-/// to [the discord docs] for more information.
+/// to [the Discord docs] for more information.
 ///
 /// This struct has an [associated builder] in the [`twilight-util`] crate.
 ///
 /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
 /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommand
+/// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommand
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]

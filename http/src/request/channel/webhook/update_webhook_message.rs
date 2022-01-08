@@ -304,7 +304,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// The total character length of each embed must not exceed 6000
     /// characters. Additionally, the internal fields also have character
-    /// limits. Refer to [the discord docs] for more information.
+    /// limits. Refer to [the Discord docs] for more information.
     ///
     /// # Examples
     ///
@@ -340,7 +340,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// Returns an [`UpdateWebhookMessageErrorType::TooManyEmbeds`] error type
     /// if more than 10 embeds are provided.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
+    /// [the Discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EMBED_COUNT_LIMIT`]: Self::EMBED_COUNT_LIMIT
     pub fn embeds(
         mut self,
