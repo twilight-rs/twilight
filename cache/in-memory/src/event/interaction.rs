@@ -89,6 +89,7 @@ mod tests {
         let avatar3 = ImageHash::parse(b"5e23c298295ad37936cfe24ad314774f")?;
 
         let cache = InMemoryCache::new();
+
         cache.update(InteractionCreate(Interaction::ApplicationCommand(
             Box::new(ApplicationCommand {
                 application_id: Id::new(1),

@@ -319,7 +319,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             source: None,
         })?;
 
-        let guild_id = channel.GUILD_ID;
+        let guild_id = channel.guild_id();
 
         if self.is_owner(user_id, guild_id) {
             return Ok(Permissions::all());
