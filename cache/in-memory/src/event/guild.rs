@@ -180,8 +180,8 @@ impl UpdateCache for GuildUpdate {
         }
 
         if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
-            guild.afk_channel_id = self.afk_channel_id;
-            guild.afk_timeout = self.afk_timeout;
+            guild.afk_channel_id = self.0.afk_channel_id;
+            guild.afk_timeout = self.0.afk_timeout;
             guild.banner = self.0.banner;
             guild.default_message_notifications = self.0.default_message_notifications;
             guild.description = self.0.description;
