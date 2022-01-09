@@ -356,7 +356,7 @@ pub enum ComponentValidationErrorType {
 
 /// An embed is not valid.
 ///
-/// Referenced values are used from [the Discord docs][docs].
+/// Referenced values are used from [the Discord Docs][docs].
 ///
 /// [docs]: https://discord.com/developers/docs/resources/channel#embed-limits
 #[derive(Debug)]

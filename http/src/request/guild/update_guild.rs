@@ -105,9 +105,9 @@ struct UpdateGuildFields<'a> {
 
 /// Update a guild.
 ///
-/// All endpoints are optional. Refer to [the Discord docs] for more information.
+/// All endpoints are optional. Refer to [the Discord Docs] for more information.
 ///
-/// [the Discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
+/// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#modify-guild
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuild<'a> {
     fields: UpdateGuildFields<'a>,
@@ -171,10 +171,10 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    /// Set the default message notification level. Refer to [the Discord docs] for more
+    /// Set the default message notification level. Refer to [the Discord Docs] for more
     /// information.
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
+    /// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#create-guild
     pub const fn default_message_notifications(
         mut self,
         default_message_notifications: Option<DefaultMessageNotificationLevel>,
@@ -214,10 +214,10 @@ impl<'a> UpdateGuild<'a> {
     /// Set the icon.
     ///
     /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
-    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the Discord docs]
+    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the Discord Docs]
     /// for more information.
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/reference#image-data
+    /// [the Discord Docs]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
         self.fields.icon = Some(NullableField(icon));
 
@@ -282,9 +282,9 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the rules channel.
     ///
-    /// Requires the guild to be `PUBLIC`. Refer to [the Discord docs] for more information.
+    /// Requires the guild to be `PUBLIC`. Refer to [the Discord Docs] for more information.
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
+    /// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn rules_channel(mut self, rules_channel_id: Option<ChannelId>) -> Self {
         self.fields.rules_channel_id = Some(NullableField(rules_channel_id));
 
@@ -312,9 +312,9 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    /// Set the verification level. Refer to [the Discord docs] for more information.
+    /// Set the verification level. Refer to [the Discord Docs] for more information.
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
+    /// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
     pub const fn verification_level(
         mut self,
         verification_level: Option<VerificationLevel>,

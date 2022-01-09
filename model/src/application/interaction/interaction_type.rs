@@ -5,9 +5,9 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Type of interaction.
 ///
-/// Refer to [the Discord docs] for more information.
+/// Refer to [the Discord Docs] for more information.
 ///
-/// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-interactiontype
+/// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-interactiontype
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]

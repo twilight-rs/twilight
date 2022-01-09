@@ -15,9 +15,9 @@ use twilight_model::id::ApplicationId;
 ///
 /// The name must be between 1 and 32 characters in length. Creating a command
 /// with the same name as an already-existing global command will overwrite the
-/// old command. See [the Discord docs] for more information.
+/// old command. See [the Discord Docs] for more information.
 ///
-/// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+/// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "the command must have a type"]
 pub struct CreateGlobalCommand<'a> {
     application_id: ApplicationId,
@@ -48,7 +48,7 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// The description must be between 1 and 100 characters in length. Creating
     /// a command with the same name as an already-existing global command will
-    /// overwrite the old command. See [the Discord docs] for more information.
+    /// overwrite the old command. See [the Discord Docs] for more information.
     ///
     /// # Errors
     ///
@@ -56,7 +56,7 @@ impl<'a> CreateGlobalCommand<'a> {
     /// error type if the command description is not between 1 and
     /// 100 characters.
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+    /// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn chat_input(
         self,
         description: &'a str,
@@ -67,10 +67,10 @@ impl<'a> CreateGlobalCommand<'a> {
     /// Create a new message global command.
     ///
     /// Creating a command with the same name as an already-existing global
-    /// command will overwrite the old command. See [the Discord docs] for more
+    /// command will overwrite the old command. See [the Discord Docs] for more
     /// information.
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+    /// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub const fn message(self) -> CreateGlobalMessageCommand<'a> {
         CreateGlobalMessageCommand::new(self.http, self.application_id, self.name)
     }
@@ -78,10 +78,10 @@ impl<'a> CreateGlobalCommand<'a> {
     /// Create a new user global command.
     ///
     /// Creating a command with the same name as an already-existing global
-    /// command will overwrite the old command. See [the Discord docs] for more
+    /// command will overwrite the old command. See [the Discord Docs] for more
     /// information.
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+    /// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub const fn user(self) -> CreateGlobalUserCommand<'a> {
         CreateGlobalUserCommand::new(self.http, self.application_id, self.name)
     }

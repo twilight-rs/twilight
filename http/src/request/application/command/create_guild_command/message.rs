@@ -17,7 +17,7 @@ use twilight_model::{
 /// command in the same guild will overwrite the old command. See [the Discord
 /// docs] for more information.
 ///
-/// [the Discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
+/// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildMessageCommand<'a> {
     application_id: ApplicationId,

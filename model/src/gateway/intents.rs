@@ -10,9 +10,9 @@ bitflags! {
     /// Developers must specify intents when connecting to the gateway. The
     /// intents specified correspond with the events received. To specify
     /// multiple intents, create a union using the `|` operator. See [the
-    /// Discord docs] for more information.
+    /// Discord Docs] for more information.
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/topics/gateway#gateway-intents
+    /// [the Discord Docs]: https://discord.com/developers/docs/topics/gateway#gateway-intents
     pub struct Intents: u64 {
         /// Guilds intent.
         ///
@@ -41,14 +41,14 @@ bitflags! {
         const GUILDS = 1;
         /// Guild members intent.
         ///
-        /// This intent is privileged. See [the Discord docs] for more information.
+        /// This intent is privileged. See [the Discord Docs] for more information.
         ///
         /// Event(s) received:
         ///  - [`GUILD_MEMBER_ADD`]
         ///  - [`GUILD_MEMBER_UPDATE`]
         ///  - [`GUILD_MEMBER_REMOVE`]
         ///
-        /// [the Discord docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
+        /// [the Discord Docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
         /// [`GUILD_MEMBER_ADD`]: super::event::Event::MemberAdd
         /// [`GUILD_MEMBER_UPDATE`]: super::event::Event::MemberUpdate
         /// [`GUILD_MEMBER_REMOVE`]: super::event::Event::MemberRemove
@@ -101,12 +101,12 @@ bitflags! {
         const GUILD_VOICE_STATES = 1 << 7;
         /// Guild presences intent.
         ///
-        /// This intent is privileged. See [the Discord docs] for more information.
+        /// This intent is privileged. See [the Discord Docs] for more information.
         ///
         /// Event(s) received:
         ///  - [`PRESENCE_UPDATE`]
         ///
-        /// [the Discord docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
+        /// [the Discord Docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
         /// [`PRESENCE_UPDATE`]: super::event::Event::PresenceUpdate
         const GUILD_PRESENCES = 1 << 8;
         /// Guild messages intent.
