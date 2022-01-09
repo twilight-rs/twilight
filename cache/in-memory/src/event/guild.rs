@@ -102,7 +102,7 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for Box<GuildCreate> {
+impl UpdateCache for GuildCreate {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::GUILD) {
             return;
@@ -112,7 +112,7 @@ impl UpdateCache for Box<GuildCreate> {
     }
 }
 
-impl UpdateCache for Box<GuildDelete> {
+impl UpdateCache for GuildDelete {
     fn update(self, cache: &InMemoryCache) {
         fn remove_ids<T: Eq + Hash, U>(
             guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
@@ -173,7 +173,7 @@ impl UpdateCache for Box<GuildDelete> {
     }
 }
 
-impl UpdateCache for Box<GuildUpdate> {
+impl UpdateCache for GuildUpdate {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::GUILD) {
             return;
@@ -409,7 +409,7 @@ mod tests {
             widget_enabled: None,
         };
 
-        cache.update(Box::new(GuildCreate(guild.clone())));
+        cache.update(GuildCreate(guild.clone()));
 
         let mutation = PartialGuild {
             id: guild.id,
@@ -448,7 +448,7 @@ mod tests {
             widget_enabled: guild.widget_enabled,
         };
 
-        cache.update(Box::new(GuildUpdate(mutation.clone())));
+        cache.update(GuildUpdate(mutation.clone()));
 
         assert_eq!(cache.guild(guild.id).unwrap().name, mutation.name);
         assert_eq!(cache.guild(guild.id).unwrap().owner_id, mutation.owner_id);

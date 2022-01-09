@@ -36,7 +36,7 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for Box<IntegrationCreate> {
+impl UpdateCache for IntegrationCreate {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::INTEGRATION) {
             return;
@@ -58,7 +58,7 @@ impl UpdateCache for IntegrationDelete {
     }
 }
 
-impl UpdateCache for Box<IntegrationUpdate> {
+impl UpdateCache for IntegrationUpdate {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::INTEGRATION) {
             return;

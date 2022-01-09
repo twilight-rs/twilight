@@ -4,7 +4,7 @@ use twilight_model::gateway::payload::incoming::{
     MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
 };
 
-impl UpdateCache for Box<MessageCreate> {
+impl UpdateCache for MessageCreate {
     fn update(self, cache: &InMemoryCache) {
         if cache.wants(ResourceType::USER) {
             cache.cache_user(Cow::Borrowed(&self.author), self.guild_id);
@@ -78,7 +78,7 @@ impl UpdateCache for MessageDeleteBulk {
     }
 }
 
-impl UpdateCache for Box<MessageUpdate> {
+impl UpdateCache for MessageUpdate {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::MESSAGE) {
             return;
@@ -208,9 +208,9 @@ mod tests {
             webhook_id: None,
         };
 
-        cache.update(Box::new(MessageCreate(msg.clone())));
+        cache.update(MessageCreate(msg.clone()));
         msg.id = Id::new(5);
-        cache.update(Box::new(MessageCreate(msg)));
+        cache.update(MessageCreate(msg));
 
         {
             let entry = cache.user_guilds.get(&Id::new(3)).unwrap();

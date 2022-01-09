@@ -6,7 +6,7 @@ use twilight_model::{
     },
 };
 
-impl UpdateCache for Box<ReactionAdd> {
+impl UpdateCache for ReactionAdd {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::REACTION) {
             return;
@@ -46,7 +46,7 @@ impl UpdateCache for Box<ReactionAdd> {
     }
 }
 
-impl UpdateCache for Box<ReactionRemove> {
+impl UpdateCache for ReactionRemove {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::REACTION) {
             return;
@@ -147,16 +147,16 @@ mod tests {
     #[test]
     fn test_reaction_remove() {
         let cache = test::cache_with_message_and_reactions();
-        cache.update(Box::new(ReactionRemove(Reaction {
+        cache.update(ReactionRemove(Reaction {
             channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "😀".to_owned(),
             },
             guild_id: Some(Id::new(1)),
             member: None,
-message_id: Id::new(4),
-user_id: Id::new(5),
-        })));
+            message_id: Id::new(4),
+            user_id: Id::new(5),
+        }));
 
         let msg = cache.message(Id::new(4)).unwrap();
 

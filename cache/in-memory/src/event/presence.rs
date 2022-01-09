@@ -21,7 +21,7 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for Box<PresenceUpdate> {
+impl UpdateCache for PresenceUpdate {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::PRESENCE) {
             return;

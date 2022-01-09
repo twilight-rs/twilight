@@ -76,7 +76,7 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for Box<VoiceStateUpdate> {
+impl UpdateCache for VoiceStateUpdate {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::VOICE_STATE) {
             return;
@@ -258,7 +258,7 @@ mod tests {
             .resource_types(ResourceType::VOICE_STATE)
             .build();
 
-        cache.update(Box::new(VoiceStateUpdate(VoiceState {
+        cache.update(VoiceStateUpdate(VoiceState {
             channel_id: None,
             deaf: false,
             guild_id: Some(Id::new(1)),
@@ -275,7 +275,7 @@ mod tests {
             request_to_speak_timestamp: Some(
                 Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
             ),
-        })));
+        }));
     }
 
     #[test]
@@ -334,7 +334,7 @@ mod tests {
             ),
         });
 
-        cache.update(Box::new(mutation));
+        cache.update(mutation);
 
         assert_eq!(cache.members.len(), 1);
         {

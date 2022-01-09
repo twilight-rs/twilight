@@ -126,7 +126,7 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for Box<MemberAdd> {
+impl UpdateCache for MemberAdd {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::MEMBER) {
             return;
@@ -187,7 +187,7 @@ impl UpdateCache for MemberRemove {
     }
 }
 
-impl UpdateCache for Box<MemberUpdate> {
+impl UpdateCache for MemberUpdate {
     fn update(self, cache: &InMemoryCache) {
         if !cache.wants(ResourceType::MEMBER) {
             return;

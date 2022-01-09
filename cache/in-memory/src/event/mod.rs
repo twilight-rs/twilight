@@ -61,7 +61,7 @@ impl InMemoryCache {
     }
 }
 
-impl UpdateCache for Box<Ready> {
+impl UpdateCache for Ready {
     fn update(self, cache: &InMemoryCache) {
         if cache.wants(ResourceType::USER_CURRENT) {
             cache.cache_current_user(self.user);

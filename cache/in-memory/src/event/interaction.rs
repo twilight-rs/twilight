@@ -4,7 +4,7 @@ use twilight_model::{
     application::interaction::Interaction, gateway::payload::incoming::InteractionCreate,
 };
 
-impl UpdateCache for Box<InteractionCreate> {
+impl UpdateCache for InteractionCreate {
     fn update(self, cache: &InMemoryCache) {
         #[allow(clippy::single_match)]
         match self.0 {
@@ -89,8 +89,8 @@ mod tests {
         let avatar3 = ImageHash::parse(b"5e23c298295ad37936cfe24ad314774f")?;
 
         let cache = InMemoryCache::new();
-        cache.update(Box::new(InteractionCreate(
-            Interaction::ApplicationCommand(Box::new(ApplicationCommand {
+        cache.update(InteractionCreate(Interaction::ApplicationCommand(
+            Box::new(ApplicationCommand {
                 application_id: Id::new(1),
                 channel_id: Id::new(2),
                 data: CommandData {
@@ -252,7 +252,7 @@ mod tests {
                 }),
                 token: "token".into(),
                 user: None,
-            })),
+            }),
         )));
 
         {
