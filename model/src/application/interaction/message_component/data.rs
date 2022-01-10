@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 /// Refer to [the Discord Docs] for more information.
 ///
 /// [`MessageComponent`]: crate::application::interaction::Interaction::MessageComponent
+/// [the Discord Docs]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageComponentInteractionData {
     pub custom_id: String,

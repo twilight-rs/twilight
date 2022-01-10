@@ -14,8 +14,8 @@ use twilight_model::{
 /// Create a user command in a guild.
 ///
 /// Creating a guild command with the same name as an already-existing guild
-/// command in the same guild will overwrite the old command. See [the Discord
-/// docs] for more information.
+/// command in the same guild will overwrite the old command. See 
+/// [the Discord Docs] for more information.
 ///
 /// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
