@@ -1,4 +1,5 @@
-use super::Path;
+pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
+
 use crate::request::{channel::reaction::RequestReactionType, Method};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::{Display, Formatter, Result as FmtResult};
