@@ -28,7 +28,7 @@ pub struct MessageComponentInteraction {
     /// Guild's preferred locale.
     ///
     /// Present when the command is used in a guild.
-    /// 
+    ///
     /// Defaults to `en-US`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_locale: Option<String>,
