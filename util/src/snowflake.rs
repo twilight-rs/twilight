@@ -188,8 +188,8 @@ mod tests {
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use twilight_model::id::{
         ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId,
-        EmojiId, GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId,
-        UserId, WebhookId,
+        EmojiId, GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId,
+        WebhookId,
     };
 
     assert_impl_all!(ApplicationId: Snowflake);
