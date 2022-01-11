@@ -233,9 +233,9 @@ impl Event {
     }
 }
 
-impl From<Box<DispatchEvent>> for Event {
-    fn from(event: Box<DispatchEvent>) -> Self {
-        match *event {
+impl From<DispatchEvent> for Event {
+    fn from(event: DispatchEvent) -> Self {
+        match event {
             DispatchEvent::BanAdd(v) => Self::BanAdd(v),
             DispatchEvent::BanRemove(v) => Self::BanRemove(v),
             DispatchEvent::ChannelCreate(v) => Self::ChannelCreate(v),
@@ -295,7 +295,7 @@ impl From<Box<DispatchEvent>> for Event {
 impl From<GatewayEvent> for Event {
     fn from(event: GatewayEvent) -> Self {
         match event {
-            GatewayEvent::Dispatch(_, e) => Self::from(e),
+            GatewayEvent::Dispatch(_, e) => Self::from(*e),
             GatewayEvent::Heartbeat(interval) => Self::GatewayHeartbeat(interval),
             GatewayEvent::HeartbeatAck => Self::GatewayHeartbeatAck,
             GatewayEvent::Hello(interval) => Self::GatewayHello(interval),
