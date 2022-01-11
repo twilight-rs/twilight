@@ -23,7 +23,7 @@ use twilight_model::{
     application::component::Component,
     channel::{
         embed::Embed,
-        message::{AllowedMentions, MessageReference, sticker::StickerId},
+        message::{sticker::StickerId, AllowedMentions, MessageReference},
         Message,
     },
     id::{ChannelId, MessageId},
@@ -82,11 +82,11 @@ impl Display for CreateMessageError {
                 Display::fmt(&idx, f)?;
 
                 f.write_str("'s contents are too long")
-            },
+            }
             CreateMessageErrorType::TooManyStickers { count } => {
                 Display::fmt(count, f)?;
                 f.write_str(" stickers were provided, but max 3 are supported")
-            },
+            }
         }
     }
 }
@@ -148,7 +148,6 @@ pub(crate) struct CreateMessageFields<'a> {
     sticker_ids: &'a [StickerId],
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
-
 }
 
 /// Send a message to a channel.
@@ -392,9 +391,11 @@ impl<'a> CreateMessage<'a> {
     pub fn stickers(mut self, stickers: &'a [StickerId]) -> Result<Self, CreateMessageError> {
         if !validate_inner::sticker_limit(stickers) {
             return Err(CreateMessageError {
-                kind: CreateMessageErrorType::TooManyStickers { count: stickers.len() },
+                kind: CreateMessageErrorType::TooManyStickers {
+                    count: stickers.len(),
+                },
                 source: None,
-            })
+            });
         }
 
         self.fields.sticker_ids = stickers;

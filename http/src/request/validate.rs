@@ -11,7 +11,7 @@ use std::{
 };
 use twilight_model::{
     application::component::{select_menu::SelectMenuOption, Component, ComponentType},
-    channel::{embed::Embed, ChannelType, message::sticker::StickerId},
+    channel::{embed::Embed, message::sticker::StickerId, ChannelType},
     datetime::Timestamp,
 };
 
