@@ -11,9 +11,8 @@ use std::{
 };
 use twilight_model::{
     application::component::{select_menu::SelectMenuOption, Component, ComponentType},
-    channel::{embed::Embed, ChannelType},
+    channel::{embed::Embed, ChannelType, message::sticker::StickerId},
     datetime::Timestamp,
-    id::StickerId,
 };
 
 /// A provided [`Component`] is invalid.
@@ -1181,6 +1180,7 @@ fn _sticker_tags(value: &str) -> bool {
 pub fn sticker_limit(value: &[StickerId]) -> bool {
     let len = value.len();
 
+    // https://discord.com/developers/docs/resources/channel#create-message-jsonform-params
     (0..=3).contains(&len)
 }
 

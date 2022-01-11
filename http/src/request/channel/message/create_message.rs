@@ -23,12 +23,11 @@ use twilight_model::{
     application::component::Component,
     channel::{
         embed::Embed,
-        message::{AllowedMentions, MessageReference},
+        message::{AllowedMentions, MessageReference, sticker::StickerId},
         Message,
     },
-    id::{ChannelId, MessageId, StickerId},
+    id::{ChannelId, MessageId},
 };
-use crate::request::channel::message::create_message::CreateMessageErrorType::TooManyStickers;
 
 /// The error created when a message can not be created as configured.
 #[derive(Debug)]
@@ -393,7 +392,7 @@ impl<'a> CreateMessage<'a> {
     pub fn stickers(mut self, stickers: &'a [StickerId]) -> Result<Self, CreateMessageError> {
         if !validate_inner::sticker_limit(stickers) {
             return Err(CreateMessageError {
-                kind: TooManyStickers { count: stickers.len() },
+                kind: CreateMessageErrorType::TooManyStickers { count: stickers.len() },
                 source: None,
             })
         }

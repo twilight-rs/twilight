@@ -759,56 +759,6 @@ impl From<NonZeroU64> for StageId {
     }
 }
 
-/// Unique ID of a sticker.
-#[allow(clippy::unsafe_derive_deserialize)]
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct StickerId(#[serde(with = "string")] pub NonZeroU64);
-
-impl StickerId {
-    /// Create a non-zero sticker ID without checking the value.
-    ///
-    /// Equivalent to [`NonZeroU64::new_unchecked`].
-    ///
-    /// # Safety
-    ///
-    /// The value must not be zero.
-    #[allow(unsafe_code)]
-    pub const unsafe fn new_unchecked(n: u64) -> Self {
-        Self(NonZeroU64::new_unchecked(n))
-    }
-
-    /// Create a non-zero sticker ID if the given value is not zero.
-    ///
-    /// Equivalent to [`NonZeroU64::new`].
-    pub const fn new(n: u64) -> Option<Self> {
-        #[allow(clippy::option_if_let_else)]
-        if let Some(n) = NonZeroU64::new(n) {
-            Some(Self(n))
-        } else {
-            None
-        }
-    }
-
-    /// Return the inner primitive value.
-    ///
-    /// Equivalent to [`NonZeroU64::get`].
-    pub const fn get(self) -> u64 {
-        self.0.get()
-    }
-}
-
-impl Display for StickerId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(&self.0, f)
-    }
-}
-
-impl From<NonZeroU64> for StickerId {
-    fn from(id: NonZeroU64) -> Self {
-        StickerId(id)
-    }
-}
-
 /// Unique ID of an user.
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -914,7 +864,7 @@ mod tests {
     use super::{
         ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId,
         EmojiId, GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId,
-        StickerId, UserId, WebhookId,
+        UserId, WebhookId,
     };
     use serde_test::Token;
 
@@ -1138,24 +1088,6 @@ mod tests {
             &StageId::new(114_941_315_417_899_012).expect("non zero"),
             &[
                 Token::NewtypeStruct { name: "StageId" },
-                Token::U64(114_941_315_417_899_012),
-            ],
-        );
-        serde_test::assert_tokens(
-            &StickerId::new(114_941_315_417_899_012).expect("non zero"),
-            &[
-                Token::NewtypeStruct {
-                    name: "StickerId",
-                },
-                Token::Str("114941315417899012"),
-            ],
-        );
-        serde_test::assert_de_tokens(
-            &StickerId::new(114_941_315_417_899_012).expect("non zero"),
-            &[
-                Token::NewtypeStruct {
-                    name: "StickerId",
-                },
                 Token::U64(114_941_315_417_899_012),
             ],
         );
