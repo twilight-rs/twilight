@@ -25,11 +25,18 @@ pub struct MessageComponentInteraction {
     pub data: MessageComponentInteractionData,
     /// ID of the guild the interaction was triggered from.
     pub guild_id: Option<GuildId>,
+    /// The guild's preferred locale.
+    ///
+    /// Present when the command is used in a guild.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_locale: Option<String>,
     /// ID of the interaction.
     pub id: InteractionId,
     /// Type of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,
+    /// The selected language of the user who triggered the interaction.
+    pub locale: String,
     /// Member that triggered the interaction.
     ///
     /// Present when the command is used in a guild.
@@ -148,8 +155,10 @@ mod tests {
                 values: Vec::from(["bar".to_owned()]),
             },
             guild_id: Some(GuildId::new(3).expect("non zero")),
+            guild_locale: None,
             id: InteractionId::new(4).expect("non zero"),
             kind: InteractionType::MessageComponent,
+            locale: "en-GB".to_owned(),
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,
