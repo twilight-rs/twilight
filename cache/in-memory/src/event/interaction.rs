@@ -221,8 +221,10 @@ mod tests {
                     }),
                 },
                 guild_id: Some(GuildId::new(3).expect("non zero")),
+                guild_locale: Some("en_US".to_string()),
                 id: InteractionId::new(4).expect("non zero"),
                 kind: InteractionType::ApplicationCommand,
+                locale: "en_US".to_string(),
                 member: Some(PartialMember {
                     avatar: None,
                     communication_disabled_until: None,
