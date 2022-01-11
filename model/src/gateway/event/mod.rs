@@ -349,3 +349,70 @@ impl Display for EventConversionError {
 }
 
 impl Error for EventConversionError {}
+
+#[cfg(test)]
+mod tests {
+    use super::{super::payload::incoming::*, shard::*, Event};
+    use std::mem;
+
+    #[test]
+    fn event_sizes() {
+        assert_eq!(712, mem::size_of::<Event>());
+        assert_eq!(184, mem::size_of::<BanAdd>());
+        assert_eq!(184, mem::size_of::<BanRemove>());
+        assert_eq!(704, mem::size_of::<ChannelCreate>());
+        assert_eq!(704, mem::size_of::<ChannelDelete>());
+        assert_eq!(32, mem::size_of::<ChannelPinsUpdate>());
+        assert_eq!(704, mem::size_of::<ChannelUpdate>());
+        assert_eq!(16, mem::size_of::<Connected>());
+        assert_eq!(32, mem::size_of::<Connecting>());
+        assert_eq!(40, mem::size_of::<Disconnected>());
+        assert_eq!(632, mem::size_of::<GuildCreate>());
+        assert_eq!(16, mem::size_of::<GuildDelete>());
+        assert_eq!(32, mem::size_of::<GuildEmojisUpdate>());
+        assert_eq!(8, mem::size_of::<GuildIntegrationsUpdate>());
+        assert_eq!(400, mem::size_of::<GuildUpdate>());
+        assert_eq!(16, mem::size_of::<Identifying>());
+        assert_eq!(632, mem::size_of::<IntegrationCreate>());
+        assert_eq!(24, mem::size_of::<IntegrationDelete>());
+        assert_eq!(632, mem::size_of::<IntegrationUpdate>());
+        assert_eq!(16, mem::size_of::<InteractionCreate>());
+        assert_eq!(304, mem::size_of::<InviteCreate>());
+        assert_eq!(40, mem::size_of::<InviteDelete>());
+        assert_eq!(288, mem::size_of::<MemberAdd>());
+        assert_eq!(184, mem::size_of::<MemberRemove>());
+        assert_eq!(288, mem::size_of::<MemberUpdate>());
+        assert_eq!(112, mem::size_of::<MemberChunk>());
+        assert_eq!(1864, mem::size_of::<MessageCreate>());
+        assert_eq!(24, mem::size_of::<MessageDelete>());
+        assert_eq!(40, mem::size_of::<MessageDeleteBulk>());
+        assert_eq!(352, mem::size_of::<MessageUpdate>());
+        assert_eq!(24, mem::size_of::<Payload>());
+        assert_eq!(736, mem::size_of::<PresenceUpdate>());
+        assert_eq!(360, mem::size_of::<ReactionAdd>());
+        assert_eq!(360, mem::size_of::<ReactionRemove>());
+        assert_eq!(24, mem::size_of::<ReactionRemoveAll>());
+        assert_eq!(64, mem::size_of::<ReactionRemoveEmoji>());
+        assert_eq!(264, mem::size_of::<Ready>());
+        assert_eq!(8, mem::size_of::<Reconnecting>());
+        assert_eq!(16, mem::size_of::<Resuming>());
+        assert_eq!(128, mem::size_of::<RoleCreate>());
+        assert_eq!(16, mem::size_of::<RoleDelete>());
+        assert_eq!(128, mem::size_of::<RoleUpdate>());
+        assert_eq!(56, mem::size_of::<StageInstanceCreate>());
+        assert_eq!(56, mem::size_of::<StageInstanceDelete>());
+        assert_eq!(56, mem::size_of::<StageInstanceUpdate>());
+        assert_eq!(704, mem::size_of::<ThreadCreate>());
+        assert_eq!(32, mem::size_of::<ThreadDelete>());
+        assert_eq!(80, mem::size_of::<ThreadListSync>());
+        assert_eq!(552, mem::size_of::<ThreadMemberUpdate>());
+        assert_eq!(72, mem::size_of::<ThreadMembersUpdate>());
+        assert_eq!(704, mem::size_of::<ThreadUpdate>());
+        assert_eq!(320, mem::size_of::<TypingStart>());
+        assert_eq!(8, mem::size_of::<UnavailableGuild>());
+        assert_eq!(168, mem::size_of::<UserUpdate>());
+        assert_eq!(64, mem::size_of::<VoiceServerUpdate>());
+        assert_eq!(384, mem::size_of::<VoiceStateUpdate>());
+        assert_eq!(16, mem::size_of::<WebhooksUpdate>());
+    }
+}
