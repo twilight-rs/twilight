@@ -25,7 +25,7 @@ pub struct MessageComponentInteraction {
     pub data: MessageComponentInteractionData,
     /// ID of the guild the interaction was triggered from.
     pub guild_id: Option<GuildId>,
-    /// The guild's preferred locale.
+    /// Guild's preferred locale.
     ///
     /// Present when the command is used in a guild.
     /// 
@@ -37,7 +37,7 @@ pub struct MessageComponentInteraction {
     /// Type of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,
-    /// The selected language of the user who triggered the interaction.
+    /// Selected language of the user who triggered the interaction.
     pub locale: String,
     /// Member that triggered the interaction.
     ///
