@@ -20,8 +20,8 @@ use serde::{Deserialize, Serialize};
 /// Data sent to Discord to create a command.
 ///
 /// [`CommandOption`]s that are required must be listed before optional ones.
-/// Command names must be lower case, matching the Regex `^[\w-]{1,32}$`. Refer
-/// to [the Discord Docs/Application Command Object] for more information.
+/// Command names must be lower case, matching the Regex `^[\w-]{1,32}$`. See
+/// [the Discord Docs/Application Command Object].
 ///
 /// This struct has an [associated builder] in the [`twilight-util`] crate.
 ///

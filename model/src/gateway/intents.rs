@@ -10,7 +10,7 @@ bitflags! {
     /// Developers must specify intents when connecting to the gateway. The
     /// intents specified correspond with the events received. To specify
     /// multiple intents, create a union using the `|` operator. See [the
-    /// Discord Docs/Gateway Intents] for more information.
+    /// Discord Docs/Gateway Intents].
     ///
     /// [the Discord Docs/Gateway Intents]: https://discord.com/developers/docs/topics/gateway#gateway-intents
     pub struct Intents: u64 {
@@ -41,7 +41,7 @@ bitflags! {
         const GUILDS = 1;
         /// Guild members intent.
         ///
-        /// This intent is privileged. See [the Discord Docs/Privileged Intents] for more information.
+        /// This intent is privileged. See [the Discord Docs/Privileged Intents].
         ///
         /// Event(s) received:
         ///  - [`GUILD_MEMBER_ADD`]
@@ -101,7 +101,7 @@ bitflags! {
         const GUILD_VOICE_STATES = 1 << 7;
         /// Guild presences intent.
         ///
-        /// This intent is privileged. See [the Discord Docs/Privileged Intents] for more information.
+        /// This intent is privileged. See [the Discord Docs/Privileged Intents].
         ///
         /// Event(s) received:
         ///  - [`PRESENCE_UPDATE`]

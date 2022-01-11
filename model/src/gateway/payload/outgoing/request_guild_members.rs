@@ -76,8 +76,7 @@ pub struct RequestGuildMembers {
 impl RequestGuildMembers {
     /// Create a new builder to configure a guild members request.
     ///
-    /// This is an alias to [`RequestGuildMembersBuilder::new`]. Refer to its
-    /// documentation for more information.
+    /// This is an alias to [`RequestGuildMembersBuilder::new`].
     pub const fn builder(guild_id: GuildId) -> RequestGuildMembersBuilder {
         RequestGuildMembersBuilder::new(guild_id)
     }

@@ -3,7 +3,7 @@ use twilight_model::{guild::GuildWidget, id::GuildId};
 
 /// Get the guild widget.
 ///
-/// Refer to [the Discord Docs/Get Guild Widget] for more information.
+/// See [the Discord Docs/Get Guild Widget].
 ///
 /// [the Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
 #[must_use = "requests must be configured and executed"]

@@ -125,7 +125,7 @@ impl<'a> GetCurrentUserGuilds<'a> {
 
     /// Set the maximum number of guilds to retrieve.
     ///
-    /// The minimum is 1 and the maximum is 200. Refer to [the Discord Docs/Get Current User Guilds] for more information.
+    /// The minimum is 1 and the maximum is 200. See [the Discord Docs/Get Current User Guilds].
     ///
     /// # Errors
     ///

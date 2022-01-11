@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// Data received when an [`MessageComponent`] interaction is executed.
 ///
-/// Refer to [the Discord Docs/Interaction Object] for more information.
+/// See [the Discord Docs/Interaction Object].
 ///
 /// [`MessageComponent`]: crate::application::interaction::Interaction::MessageComponent
 /// [the Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure

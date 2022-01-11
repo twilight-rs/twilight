@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Type of interaction.
 ///
-/// Refer to [the Discord Docs/Interaction Object] for more information.
+/// See [the Discord Docs/Interaction Object].
 ///
 /// [the Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-type
 #[derive(

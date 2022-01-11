@@ -165,16 +165,14 @@ pub enum EmbedErrorType {
     },
     /// The total content of the embed is too large.
     ///
-    /// Refer to [`EmbedBuilder::EMBED_LENGTH_LIMIT`] for more information about
-    /// what goes into this limit.
+    /// See [`EmbedBuilder::EMBED_LENGTH_LIMIT`].
     TotalContentTooLarge {
         /// The total length of the embed.
         length: usize,
     },
     /// Too many fields were provided.
     ///
-    /// Refer to [`EmbedBuilder::EMBED_FIELD_LIMIT`] for more information about
-    /// what the limit is.
+    /// See [`EmbedBuilder::EMBED_FIELD_LIMIT`].
     TooManyFields {
         /// The provided fields.
         fields: Vec<EmbedField>,

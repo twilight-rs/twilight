@@ -15,7 +15,7 @@ use twilight_model::id::ApplicationId;
 ///
 /// The name must be between 1 and 32 characters in length. Creating a command
 /// with the same name as an already-existing global command will overwrite the
-/// old command. See [the Discord Docs/Create Global Application Command] for more information.
+/// old command. See [the Discord Docs/Create Global Application Command].
 ///
 /// [the Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "the command must have a type"]
@@ -48,7 +48,7 @@ impl<'a> CreateGlobalCommand<'a> {
     ///
     /// The description must be between 1 and 100 characters in length. Creating
     /// a command with the same name as an already-existing global command will
-    /// overwrite the old command. See [the Discord Docs/Create Global Application Command] for more information.
+    /// overwrite the old command. See [the Discord Docs/Create Global Application Command].
     ///
     /// # Errors
     ///

@@ -105,7 +105,7 @@ struct UpdateGuildFields<'a> {
 
 /// Update a guild.
 ///
-/// All endpoints are optional. Refer to [the Discord Docs/Modify Guild] for more information.
+/// All endpoints are optional. See [the Discord Docs/Modify Guild].
 ///
 /// [the Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
 #[must_use = "requests must be configured and executed"]
@@ -214,8 +214,7 @@ impl<'a> UpdateGuild<'a> {
     /// Set the icon.
     ///
     /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
-    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the Discord Docs/Image Data]
-    /// for more information.
+    /// the image MIME type and `{data}` is the base64-encoded image. See [the Discord Docs/Image Data].
     ///
     /// [the Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
@@ -282,7 +281,7 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the rules channel.
     ///
-    /// Requires the guild to be `PUBLIC`. Refer to [the Discord Docs/Modify Guild] for more information.
+    /// Requires the guild to be `PUBLIC`. See [the Discord Docs/Modify Guild].
     ///
     /// [the Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn rules_channel(mut self, rules_channel_id: Option<ChannelId>) -> Self {
@@ -312,7 +311,7 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    /// Set the verification level. Refer to [the Discord Docs/Guild Object] for more information.
+    /// Set the verification level. See [the Discord Docs/Guild Object].
     ///
     /// [the Discord Docs/Guild Object]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
     pub const fn verification_level(

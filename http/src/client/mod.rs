@@ -222,7 +222,7 @@ impl Client {
 
     /// Create a new builder to create a client.
     ///
-    /// Refer to its documentation for more information.
+    /// See [`ClientBuilder`].
     pub fn builder() -> ClientBuilder {
         ClientBuilder::new()
     }
@@ -668,8 +668,8 @@ impl Client {
     /// Create an emoji in a guild.
     ///
     /// The emoji must be a Data URI, in the form of `data:image/{type};base64,{data}` where
-    /// `{type}` is the image MIME type and `{data}` is the base64-encoded image.  Refer to [the
-    /// Discord Docs/Image Data] for more information about image data.
+    /// `{type}` is the image MIME type and `{data}` is the base64-encoded image. See [the
+    /// Discord Docs/Image Data].
     ///
     /// [the Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn create_emoji<'a>(
@@ -756,7 +756,7 @@ impl Client {
 
     /// Update a guild.
     ///
-    /// All endpoints are optional. Refer to [the Discord Docs/Modify Guild] for more information.
+    /// All endpoints are optional. See [the Discord Docs/Modify Guild].
     ///
     /// [the Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn update_guild(&self, guild_id: GuildId) -> UpdateGuild<'_> {
@@ -817,7 +817,7 @@ impl Client {
 
     /// Get the guild widget.
     ///
-    /// Refer to [the Discord Docs/Get Guild Widget] for more information.
+    /// See [the Discord Docs/Get Guild Widget].
     ///
     /// [the Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
     pub const fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
@@ -963,7 +963,7 @@ impl Client {
 
     /// Update a guild member.
     ///
-    /// All fields are optional. Refer to [the Discord Docs/Modify Guild Member] for more information.
+    /// All fields are optional. See [the Discord Docs/Modify Guild Member].
     ///
     /// # Examples
     ///
@@ -1066,7 +1066,7 @@ impl Client {
 
     /// Begin a guild prune.
     ///
-    /// Refer to [the Discord Docs/Begin Guild Prune] for more information.
+    /// See [the Discord Docs/Begin Guild Prune].
     ///
     /// [the Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
     pub const fn create_guild_prune(&self, guild_id: GuildId) -> CreateGuildPrune<'_> {
@@ -1235,7 +1235,7 @@ impl Client {
     ///
     /// The vec count can be between 2 and 100. If the supplied [`MessageId`]s are invalid, they
     /// still count towards the lower and upper limits. This method will not delete messages older
-    /// than two weeks. Refer to [the Discord Docs/Bulk Delete Messages] for more information.
+    /// than two weeks. See [the Discord Docs/Bulk Delete Messages].
     ///
     /// [the Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub const fn delete_messages<'a>(
@@ -2109,8 +2109,7 @@ impl Client {
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
     /// guild command with the same name as an already-existing guild command in
-    /// the same guild will overwrite the old command. See [the Discord Docs/Create Guild Application Command]
-    /// for more information.
+    /// the same guild will overwrite the old command. See [the Discord Docs/Create Guild Application Command].
     ///
     /// # Errors
     ///
@@ -2266,7 +2265,7 @@ impl Client {
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
     /// command with the same name as an already-existing global command will
-    /// overwrite the old command. See [the Discord Docs/Create Global Application Command] for more information.
+    /// overwrite the old command. See [the Discord Docs/Create Global Application Command].
     ///
     /// # Errors
     ///

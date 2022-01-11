@@ -17,7 +17,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 /// Payload used for responding to an interaction.
 ///
-/// Refer to [the Discord Docs/Interaction Object] for more information.
+/// See [the Discord Docs/Interaction Object].
 ///
 /// [the Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

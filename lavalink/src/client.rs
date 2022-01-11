@@ -77,8 +77,7 @@ pub enum ClientErrorType {
 ///
 /// **Note**: You must call the [`process`] method with every Voice State Update
 /// and Voice Server Update event you receive from Discord. It will
-/// automatically forward these events to Lavalink. See its documentation for
-/// more information.
+/// automatically forward these events to Lavalink. See [`process`].
 ///
 /// You can retrieve players using the [`player`] method. Players contain
 /// information about the active playing information of a guild and allows you to send events to the

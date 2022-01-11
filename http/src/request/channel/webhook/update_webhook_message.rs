@@ -304,7 +304,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// The total character length of each embed must not exceed 6000
     /// characters. Additionally, the internal fields also have character
-    /// limits. Refer to [the Discord Docs/Embed Limits] for more information.
+    /// limits. See [the Discord Docs/Embed Limits].
     ///
     /// # Examples
     ///

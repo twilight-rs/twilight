@@ -252,8 +252,8 @@ impl<'a> CreateMessage<'a> {
     /// Attach multiple embeds to the message.
     ///
     /// Embed total character length must not exceed 6000 characters.
-    /// Additionally, the internal fields also have character limits. Refer to
-    /// [the Discord Docs/Embed Limits] for more information.
+    /// Additionally, the internal fields also have character limits. See
+    /// [the Discord Docs/Embed Limits].
     ///
     /// # Errors
     ///

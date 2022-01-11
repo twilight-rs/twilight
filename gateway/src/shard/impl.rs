@@ -445,7 +445,7 @@ impl Shard {
 
     /// Create a builder to configure and construct a shard.
     ///
-    /// Refer to the builder for more information.
+    /// See [`ShardBuilder`].
     pub fn builder(token: impl Into<String>, intents: Intents) -> ShardBuilder {
         ShardBuilder::new(token, intents)
     }

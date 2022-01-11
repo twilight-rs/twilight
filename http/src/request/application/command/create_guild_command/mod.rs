@@ -53,7 +53,6 @@ impl<'a> CreateGuildCommand<'a> {
     /// The description must be between 1 and 100 characters in length. Creating
     /// a guild command with the same name as an already-existing guild command
     /// in the same guild will overwrite the old command. See [the Discord Docs/Create Guild Application Command]
-    /// for more information.
     ///
     /// # Errors
     ///
@@ -79,7 +78,7 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// Creating a guild command with the same name as an already-existing guild
     /// command in the same guild will overwrite the old command. See [the
-    /// Discord Docs/Create Guild Application Command] for more information.
+    /// Discord Docs/Create Guild Application Command].
     ///
     /// [the Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub const fn message(self) -> CreateGuildMessageCommand<'a> {
@@ -90,7 +89,7 @@ impl<'a> CreateGuildCommand<'a> {
     ///
     /// Creating a guild command with the same name as an already-existing guild
     /// command in the same guild will overwrite the old command. See [the
-    /// Discord Docs/Create Guild Application Command] for more information.
+    /// Discord Docs/Create Guild Application Command].
     ///
     /// [the Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub const fn user(self) -> CreateGuildUserCommand<'a> {
