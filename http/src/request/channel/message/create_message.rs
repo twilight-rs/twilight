@@ -120,8 +120,9 @@ pub enum CreateMessageErrorType {
         /// Index of the embed.
         idx: usize,
     },
+    /// Returned when too many stickers were provided.
     TooManyStickers {
-        /// Number of stickers provided
+        /// Number of stickers.
         count: usize,
     },
 }
@@ -379,15 +380,12 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
-    /// Add multiple stickers to the message.
-    ///
-    /// Up to 3 stickers can be added to a message.  Stickers are Discord
-    /// snowflakes.
+    /// Set the IDs of up to 3 guild stickers.
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateMessageErrorType::TooManyStickers`] error type if
-    /// more than three stickers are provided
+    /// Returns an error of type [`CreateMessageErrorType::TooManyStickers`] if
+    /// more than 3 stickers are provided.
     pub fn stickers(mut self, stickers: &'a [StickerId]) -> Result<Self, CreateMessageError> {
         if !validate_inner::sticker_limit(stickers) {
             return Err(CreateMessageError {
