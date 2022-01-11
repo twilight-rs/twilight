@@ -377,12 +377,13 @@ impl<'a> CreateMessage<'a> {
 
     /// Add multiple stickers to the message.
     ///
-    /// Up to 3 stickers can be added to a message.  Stickers are Discord snowflakes.
+    /// Up to 3 stickers can be added to a message.  Stickers are Discord
+    /// snowflakes.
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateMessageErrorType::TooManyStickers`] error type if more than three
-    /// stickers are provided
+    /// Returns a [`CreateMessageErrorType::TooManyStickers`] error type if
+    /// more than three stickers are provided
     pub fn stickers(mut self, stickers: &'a [StickerId]) -> Result<Self, CreateMessageError> {
         if stickers.len() > 3 {
             return Err(CreateMessageError {
