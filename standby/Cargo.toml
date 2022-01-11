@@ -15,7 +15,7 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.8.2"
 
 [dependencies]
-dashmap = { default-features = false, version = ">=4.0, <6.0" }
+dashmap = { default-features = false, version = "4" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tokio = { default-features = false, features = ["sync"], version = "1.0" }
 twilight-model = { default-features = false, path = "../model" }
