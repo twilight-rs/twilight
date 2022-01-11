@@ -866,10 +866,10 @@ impl UpdateCache for Event {
         match self {
             BanAdd(_) => {}
             BanRemove(_) => {}
-            ChannelCreate(v) => c.update(v),
-            ChannelDelete(v) => c.update(v),
+            ChannelCreate(v) => c.update(v.deref()),
+            ChannelDelete(v) => c.update(v.deref()),
             ChannelPinsUpdate(v) => c.update(v),
-            ChannelUpdate(v) => c.update(v),
+            ChannelUpdate(v) => c.update(v.deref()),
             GatewayHeartbeat(_) => {}
             GatewayHeartbeatAck => {}
             GatewayHello(_) => {}
@@ -916,8 +916,8 @@ impl UpdateCache for Event {
             StageInstanceCreate(v) => c.update(v),
             StageInstanceDelete(v) => c.update(v),
             StageInstanceUpdate(v) => c.update(v),
-            ThreadCreate(v) => c.update(v),
-            ThreadUpdate(v) => c.update(v),
+            ThreadCreate(v) => c.update(v.deref()),
+            ThreadUpdate(v) => c.update(v.deref()),
             ThreadDelete(v) => c.update(v),
             ThreadListSync(v) => c.update(v),
             ThreadMemberUpdate(_) => {}

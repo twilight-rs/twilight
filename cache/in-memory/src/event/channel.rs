@@ -185,8 +185,8 @@ mod tests {
             .unwrap()
             .contains(&channel_id));
 
-        cache.update(&Event::ChannelDelete(ChannelDelete(Channel::Guild(
-            channel,
+        cache.update(&Event::ChannelDelete(Box::new(ChannelDelete(
+            Channel::Guild(channel),
         ))));
         assert!(cache.channels_guild.is_empty());
         assert!(cache.guild_channels.get(&guild_id).unwrap().is_empty());

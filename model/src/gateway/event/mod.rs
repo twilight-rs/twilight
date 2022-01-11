@@ -28,13 +28,13 @@ pub enum Event {
     /// A user's ban from a guild was removed.
     BanRemove(BanRemove),
     /// A channel was created.
-    ChannelCreate(ChannelCreate),
+    ChannelCreate(Box<ChannelCreate>),
     /// A channel was deleted.
-    ChannelDelete(ChannelDelete),
+    ChannelDelete(Box<ChannelDelete>),
     /// A channel's pins were updated.
     ChannelPinsUpdate(ChannelPinsUpdate),
     /// A channel was updated.
-    ChannelUpdate(ChannelUpdate),
+    ChannelUpdate(Box<ChannelUpdate>),
     /// A heartbeat was sent to or received from the gateway.
     GatewayHeartbeat(u64),
     /// A heartbeat acknowledgement was received from the gateway.
@@ -137,17 +137,17 @@ pub enum Event {
     StageInstanceUpdate(StageInstanceUpdate),
     /// A thread has been created, relevant to the current user,
     /// or the current user has been added to a thread.
-    ThreadCreate(ThreadCreate),
+    ThreadCreate(Box<ThreadCreate>),
     /// A thread, relevant to the current user, has been deleted.
     ThreadDelete(ThreadDelete),
     /// The current user has gained access to a thread.
     ThreadListSync(ThreadListSync),
     /// The thread member object for the current user has been updated.
-    ThreadMemberUpdate(ThreadMemberUpdate),
+    ThreadMemberUpdate(Box<ThreadMemberUpdate>),
     /// A user has been added to or removed from a thread.
     ThreadMembersUpdate(ThreadMembersUpdate),
     /// A thread has been updated.
-    ThreadUpdate(ThreadUpdate),
+    ThreadUpdate(Box<ThreadUpdate>),
     /// A user started typing in a channel.
     TypingStart(Box<TypingStart>),
     /// A guild is now unavailable.
@@ -357,7 +357,7 @@ mod tests {
 
     #[test]
     fn event_sizes() {
-        assert_eq!(712, mem::size_of::<Event>());
+        assert_eq!(192, mem::size_of::<Event>());
         assert_eq!(184, mem::size_of::<BanAdd>());
         assert_eq!(184, mem::size_of::<BanRemove>());
         assert_eq!(704, mem::size_of::<ChannelCreate>());
