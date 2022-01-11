@@ -877,14 +877,14 @@ impl UpdateCache for Event {
             GatewayReconnect => {}
             GiftCodeUpdate => {}
             GuildCreate(v) => c.update(v.deref()),
-            GuildDelete(v) => c.update(v.deref()),
+            GuildDelete(v) => c.update(v),
             GuildEmojisUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(_) => {}
             GuildUpdate(v) => c.update(v.deref()),
             IntegrationCreate(v) => c.update(v.deref()),
             IntegrationDelete(v) => c.update(v.deref()),
             IntegrationUpdate(v) => c.update(v.deref()),
-            InteractionCreate(v) => c.update(v.deref()),
+            InteractionCreate(v) => c.update(v),
             InviteCreate(_) => {}
             InviteDelete(_) => {}
             MemberAdd(v) => c.update(v.deref()),

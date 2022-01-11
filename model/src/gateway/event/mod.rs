@@ -52,7 +52,7 @@ pub enum Event {
     /// A guild was created.
     GuildCreate(Box<GuildCreate>),
     /// A guild was deleted or the current user was removed from a guild.
-    GuildDelete(Box<GuildDelete>),
+    GuildDelete(GuildDelete),
     /// A guild's emojis were updated.
     GuildEmojisUpdate(GuildEmojisUpdate),
     /// A guild's integrations were updated.
@@ -66,7 +66,7 @@ pub enum Event {
     /// A guild integration was deleted.
     IntegrationUpdate(Box<IntegrationUpdate>),
     /// An interaction was invoked by a user.
-    InteractionCreate(Box<InteractionCreate>),
+    InteractionCreate(InteractionCreate),
     /// A invite was made.
     InviteCreate(Box<InviteCreate>),
     /// A invite was deleted.
