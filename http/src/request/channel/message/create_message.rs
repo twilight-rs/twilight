@@ -140,10 +140,11 @@ pub(crate) struct CreateMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    tts: Option<bool>,
     #[serde(skip_serializing_if = "request::slice_is_empty")]
     sticker_ids: &'a [StickerId],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tts: Option<bool>,
+
 }
 
 /// Send a message to a channel.
