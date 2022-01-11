@@ -21,13 +21,13 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`CommandOption`]s that are required must be listed before optional ones.
 /// Command names must be lower case, matching the Regex `^[\w-]{1,32}$`. Refer
-/// to [the Discord Docs] for more information.
+/// to [the Discord Docs/Application Command Object] for more information.
 ///
 /// This struct has an [associated builder] in the [`twilight-util`] crate.
 ///
 /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
 /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
-/// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommand
+/// [the Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]

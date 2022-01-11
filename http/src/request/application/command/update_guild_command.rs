@@ -23,10 +23,10 @@ struct UpdateGuildCommandFields<'a> {
 
 /// Edit a command in a guild, by ID.
 ///
-/// You must specify a name and description. See [the Discord Docs] for more
+/// You must specify a name and description. See [the Discord Docs/Edit Guild Application Command] for more
 /// information.
 ///
-/// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
+/// [the Discord Docs/Edit Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildCommand<'a> {
     fields: UpdateGuildCommandFields<'a>,

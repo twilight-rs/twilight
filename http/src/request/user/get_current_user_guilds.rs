@@ -125,14 +125,14 @@ impl<'a> GetCurrentUserGuilds<'a> {
 
     /// Set the maximum number of guilds to retrieve.
     ///
-    /// The minimum is 1 and the maximum is 200. Refer to [the Discord Docs] for more information.
+    /// The minimum is 1 and the maximum is 200. Refer to [the Discord Docs/Get Current User Guilds] for more information.
     ///
     /// # Errors
     ///
     /// Returns a [`GetCurrentUserGuildsErrorType::LimitInvalid`] error type if
     /// the amount is greater than 200.
     ///
-    /// [the Discord Docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
+    /// [the Discord Docs/Get Current User Guilds]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
     pub const fn limit(mut self, limit: u64) -> Result<Self, GetCurrentUserGuildsError> {
         if !validate_inner::get_current_user_guilds_limit(limit) {
             return Err(GetCurrentUserGuildsError {

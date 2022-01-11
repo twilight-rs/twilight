@@ -253,14 +253,14 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Embed total character length must not exceed 6000 characters.
     /// Additionally, the internal fields also have character limits. Refer to
-    /// [the Discord Docs] for more information.
+    /// [the Discord Docs/Embed Limits] for more information.
     ///
     /// # Errors
     ///
     /// Returns a [`CreateMessageErrorType::EmbedTooLarge`] error type if an
     /// embed is too large.
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/resources/channel#embed-limits
+    /// [the Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, CreateMessageError> {
         for (idx, embed) in embeds.iter().enumerate() {
             validate_inner::embed(embed)

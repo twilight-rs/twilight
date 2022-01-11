@@ -88,9 +88,9 @@ pub struct AddGuildMember<'a> {
 /// Add a user to a guild.
 ///
 /// An access token for the user with `guilds.join` scope is required. All other
-/// fields are optional. Refer to [the Discord Docs] for more information.
+/// fields are optional. Refer to [the Discord Docs/Add Guild Member] for more information.
 ///
-/// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
+/// [the Discord Docs/Add Guild Member]: https://discord.com/developers/docs/resources/guild#add-guild-member
 impl<'a> AddGuildMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,

@@ -23,10 +23,10 @@ struct UpdateGlobalCommandFields<'a> {
 
 /// Edit a global command, by ID.
 ///
-/// You must specify a name and description. See [the Discord Docs] for more
+/// You must specify a name and description. See [the Discord Docs/Edit Global Application Command] for more
 /// information.
 ///
-/// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
+/// [the Discord Docs/Edit Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGlobalCommand<'a> {
     fields: UpdateGlobalCommandFields<'a>,

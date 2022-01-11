@@ -669,9 +669,9 @@ impl Client {
     ///
     /// The emoji must be a Data URI, in the form of `data:image/{type};base64,{data}` where
     /// `{type}` is the image MIME type and `{data}` is the base64-encoded image.  Refer to [the
-    /// Discord Docs] for more information about image data.
+    /// Discord Docs/Image Data] for more information about image data.
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/reference#image-data
+    /// [the Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn create_emoji<'a>(
         &'a self,
         guild_id: GuildId,
@@ -756,9 +756,9 @@ impl Client {
 
     /// Update a guild.
     ///
-    /// All endpoints are optional. Refer to [the Discord Docs] for more information.
+    /// All endpoints are optional. Refer to [the Discord Docs/Modify Guild] for more information.
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#modify-guild
+    /// [the Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn update_guild(&self, guild_id: GuildId) -> UpdateGuild<'_> {
         UpdateGuild::new(self, guild_id)
     }
@@ -817,9 +817,9 @@ impl Client {
 
     /// Get the guild widget.
     ///
-    /// Refer to [the Discord Docs] for more information.
+    /// Refer to [the Discord Docs/Get Guild Widget] for more information.
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
+    /// [the Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
     pub const fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
         GetGuildWidget::new(self, guild_id)
     }
@@ -932,7 +932,7 @@ impl Client {
     /// Add a user to a guild.
     ///
     /// An access token for the user with `guilds.join` scope is required. All
-    /// other fields are optional. Refer to [the Discord Docs] for more
+    /// other fields are optional. Refer to [the Discord Docs/Add Guild Member] for more
     /// information.
     ///
     /// # Errors
@@ -942,7 +942,7 @@ impl Client {
     ///
     /// [`AddGuildMemberErrorType::NickNameInvalid`]: crate::request::guild::member::add_guild_member::AddGuildMemberErrorType::NicknameInvalid
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
+    /// [the Discord Docs/Add Guild Member]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub const fn add_guild_member<'a>(
         &'a self,
         guild_id: GuildId,
@@ -963,7 +963,7 @@ impl Client {
 
     /// Update a guild member.
     ///
-    /// All fields are optional. Refer to [the Discord Docs] for more information.
+    /// All fields are optional. Refer to [the Discord Docs/Modify Guild Member] for more information.
     ///
     /// # Examples
     ///
@@ -995,7 +995,7 @@ impl Client {
     ///
     /// [`UpdateGuildMemberErrorType::NicknameInvalid`]: crate::request::guild::member::update_guild_member::UpdateGuildMemberErrorType::NicknameInvalid
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
+    /// [the Discord Docs/Modify Guild Member]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub const fn update_guild_member(
         &self,
         guild_id: GuildId,
@@ -1066,9 +1066,9 @@ impl Client {
 
     /// Begin a guild prune.
     ///
-    /// Refer to [the Discord Docs] for more information.
+    /// Refer to [the Discord Docs/Begin Guild Prune] for more information.
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
+    /// [the Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
     pub const fn create_guild_prune(&self, guild_id: GuildId) -> CreateGuildPrune<'_> {
         CreateGuildPrune::new(self, guild_id)
     }
@@ -1235,9 +1235,9 @@ impl Client {
     ///
     /// The vec count can be between 2 and 100. If the supplied [`MessageId`]s are invalid, they
     /// still count towards the lower and upper limits. This method will not delete messages older
-    /// than two weeks. Refer to [the Discord Docs] for more information.
+    /// than two weeks. Refer to [the Discord Docs/Bulk Delete Messages] for more information.
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
+    /// [the Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub const fn delete_messages<'a>(
         &'a self,
         channel_id: ChannelId,
@@ -2109,7 +2109,7 @@ impl Client {
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
     /// guild command with the same name as an already-existing guild command in
-    /// the same guild will overwrite the old command. See [the Discord Docs]
+    /// the same guild will overwrite the old command. See [the Discord Docs/Create Guild Application Command]
     /// for more information.
     ///
     /// # Errors
@@ -2121,7 +2121,7 @@ impl Client {
     /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
     /// error type if the command name is not between 1 and 32 characters.
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
+    /// [the Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
     pub fn create_guild_command<'a>(
         &'a self,
         guild_id: GuildId,
@@ -2178,7 +2178,7 @@ impl Client {
 
     /// Edit a command in a guild, by ID.
     ///
-    /// You must specify a name and description. See [the Discord Docs] for more
+    /// You must specify a name and description. See [the Discord Docs/Edit Guild Application Command] for more
     /// information.
     ///
     /// # Errors
@@ -2187,7 +2187,7 @@ impl Client {
     /// error type if an application ID has not been configured via
     /// [`Client::set_application_id`].
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
+    /// [the Discord Docs/Edit Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
     pub fn update_guild_command(
         &self,
         guild_id: GuildId,
@@ -2266,7 +2266,7 @@ impl Client {
     ///
     /// The name must be between 1 and 32 characters in length. Creating a
     /// command with the same name as an already-existing global command will
-    /// overwrite the old command. See [the Discord Docs] for more information.
+    /// overwrite the old command. See [the Discord Docs/Create Global Application Command] for more information.
     ///
     /// # Errors
     ///
@@ -2277,7 +2277,7 @@ impl Client {
     /// Returns an [`InteractionErrorType::CommandNameValidationFailed`]
     /// error type if the command name is not between 1 and 32 characters.
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+    /// [the Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn create_global_command<'a>(
         &'a self,
         name: &'a str,
@@ -2324,7 +2324,7 @@ impl Client {
 
     /// Edit a global command, by ID.
     ///
-    /// You must specify a name and description. See [the Discord Docs] for more
+    /// You must specify a name and description. See [the Discord Docs/Edit Global Application Command] for more
     /// information.
     ///
     /// # Errors
@@ -2333,7 +2333,7 @@ impl Client {
     /// error type if an application ID has not been configured via
     /// [`Client::set_application_id`].
     ///
-    /// [the Discord Docs]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
+    /// [the Discord Docs/Edit Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
     pub fn update_global_command(
         &self,
         command_id: CommandId,

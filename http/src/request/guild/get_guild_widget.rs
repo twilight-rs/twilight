@@ -3,9 +3,9 @@ use twilight_model::{guild::GuildWidget, id::GuildId};
 
 /// Get the guild widget.
 ///
-/// Refer to [the Discord Docs] for more information.
+/// Refer to [the Discord Docs/Get Guild Widget] for more information.
 ///
-/// [the Discord Docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
+/// [the Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWidget<'a> {
     guild_id: GuildId,
