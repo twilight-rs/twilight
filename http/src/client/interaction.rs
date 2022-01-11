@@ -34,7 +34,7 @@ use twilight_validate::command::CommandValidationError;
 ///
 /// ```no_run
 /// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<std::error::Error>> {
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
@@ -184,23 +184,11 @@ impl<'a> InteractionClient<'a> {
     }
 
     /// Create a new command in a guild.
-    ///
-    /// The name must be between 1 and 32 characters in length. Creating a
-    /// guild command with the same name as an already-existing guild command in
-    /// the same guild will overwrite the old command. See [the discord docs]
-    /// for more information.
-    ///
-    /// Returns an error of type [`NameInvalid`] error type if the command name
-    /// is not between 1 and 32 characters.
-    ///
-    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
-    pub fn create_guild_command(
+    pub const fn create_guild_command(
         &'a self,
         guild_id: Id<GuildMarker>,
-        name: &'a str,
-    ) -> Result<CreateGuildCommand<'a>, CommandValidationError> {
-        CreateGuildCommand::new(self.client, self.application_id, guild_id, name)
+    ) -> CreateGuildCommand<'a> {
+        CreateGuildCommand::new(self.client, self.application_id, guild_id)
     }
 
     /// Fetch a guild command for your application.
@@ -259,21 +247,8 @@ impl<'a> InteractionClient<'a> {
     }
 
     /// Create a new global command.
-    ///
-    /// The name must be between 1 and 32 characters in length. Creating a
-    /// command with the same name as an already-existing global command will
-    /// overwrite the old command. See [the discord docs] for more information.
-    ///
-    /// Returns an error of type [`NameInvalid`] if the command name is not
-    /// between 1 and 32 characters.
-    ///
-    /// [`NameInvalid`]: twilight_validate::command::CommandValidationErrorType::NameInvalid
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    pub fn create_global_command(
-        &'a self,
-        name: &'a str,
-    ) -> Result<CreateGlobalCommand<'a>, CommandValidationError> {
-        CreateGlobalCommand::new(self.client, self.application_id, name)
+    pub const fn create_global_command(&'a self) -> CreateGlobalCommand<'a> {
+        CreateGlobalCommand::new(self.client, self.application_id)
     }
 
     /// Fetch a global command for your application.

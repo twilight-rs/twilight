@@ -10,6 +10,7 @@ use crate::{
         Id,
     },
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +18,7 @@ use serde::{Deserialize, Serialize};
 pub struct Webhook {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     pub channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -47,7 +48,7 @@ pub struct Webhook {
 #[cfg(test)]
 mod tests {
     use super::{User, Webhook, WebhookChannel, WebhookGuild, WebhookType};
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -81,7 +82,7 @@ mod tests {
     fn test_webhook() {
         let value = Webhook {
             application_id: Some(Id::new(4)),
-            avatar: Some("avatar".to_owned()),
+            avatar: Some(image_hash::AVATAR),
             channel_id: Id::new(1),
             guild_id: Some(Id::new(2)),
             id: Id::new(3),
@@ -107,7 +108,7 @@ mod tests {
                 Token::Str("4"),
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -136,7 +137,7 @@ mod tests {
     fn test_webhook_complete() {
         let value = Webhook {
             application_id: Some(Id::new(4)),
-            avatar: Some("avatar".to_owned()),
+            avatar: Some(image_hash::AVATAR),
             channel_id: Id::new(1),
             guild_id: Some(Id::new(2)),
             id: Id::new(3),
@@ -147,7 +148,7 @@ mod tests {
                 name: "webhook channel".into(),
             }),
             source_guild: Some(WebhookGuild {
-                icon: Some("guild icon".into()),
+                icon: Some(image_hash::ICON),
                 id: Id::new(5),
                 name: "webhook guild".into(),
             }),
@@ -185,7 +186,7 @@ mod tests {
                 Token::Str("4"),
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -221,7 +222,7 @@ mod tests {
                 },
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("guild icon"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("5"),

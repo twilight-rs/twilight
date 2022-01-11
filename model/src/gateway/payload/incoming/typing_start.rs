@@ -171,6 +171,7 @@ mod tests {
         datetime::{Timestamp, TimestampParseError},
         guild::Member,
         id::Id,
+        test::image_hash,
         user::User,
     };
     use serde_test::Token;
@@ -198,7 +199,7 @@ mod tests {
                 user: User {
                     id: Id::new(3),
                     accent_color: None,
-                    avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                    avatar: Some(image_hash::AVATAR),
                     banner: None,
                     bot: false,
                     discriminator: 1,
@@ -267,7 +268,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),

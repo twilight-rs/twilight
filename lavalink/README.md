@@ -67,7 +67,6 @@ events:
 ```rust,no_run
 use futures_util::stream::StreamExt;
 use std::{
-    convert::TryInto,
     env,
     error::Error,
     future::Future,

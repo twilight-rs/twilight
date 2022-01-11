@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = ["api-bindings", "asynchronous", "web-programming::http-client", "web-programming::websocket"]
 description = "Lavalink client for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-lavalink"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_8_first_party/section_3_lavalink.html"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "lavalink", "twilight"]
@@ -11,11 +11,12 @@ license = "ISC"
 name = "twilight-lavalink"
 publish = false
 readme = "README.md"
+rust-version = "1.57"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.1"
+version = "0.8.3"
 
 [dependencies]
-dashmap = { default-features = false, version = ">=4.0, <6.0" }
+dashmap = { default-features = false, version = "4" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
 http = { default-features = false, version = "0.2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }

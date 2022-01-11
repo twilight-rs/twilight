@@ -1,7 +1,6 @@
 use super::json;
 use crate::{Event, EventTypeFlags};
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };

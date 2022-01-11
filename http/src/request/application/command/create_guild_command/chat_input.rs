@@ -14,7 +14,8 @@ use twilight_model::{
     },
 };
 use twilight_validate::command::{
-    description as validate_description, options as validate_options, CommandValidationError,
+    chat_input_name as validate_chat_input_name, description as validate_description,
+    options as validate_options, CommandValidationError,
 };
 
 /// Create a chat input command in a guild.
@@ -45,6 +46,8 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         description: &'a str,
     ) -> Result<Self, CommandValidationError> {
         validate_description(&description)?;
+
+        validate_chat_input_name(name)?;
 
         Ok(Self {
             application_id,

@@ -71,6 +71,7 @@ mod tests {
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions, Role},
         id::Id,
+        test::image_hash,
         user::{PremiumType, User, UserFlags},
     };
     use serde_test::Token;
@@ -118,7 +119,7 @@ mod tests {
                     attachments: Vec::new(),
                     author: User {
                         accent_color: None,
-                        avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                        avatar: Some(image_hash::AVATAR),
                         banner: None,
                         bot: false,
                         discriminator: 1,
@@ -196,7 +197,7 @@ mod tests {
                 Id::new(300),
                 User {
                     accent_color: None,
-                    avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                    avatar: Some(image_hash::AVATAR),
                     banner: None,
                     bot: false,
                     discriminator: 1,
@@ -286,7 +287,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -416,7 +417,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),

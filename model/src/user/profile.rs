@@ -1,5 +1,8 @@
 use super::{DiscriminatorDisplay, PremiumType, UserFlags};
-use crate::id::{marker::UserMarker, Id};
+use crate::{
+    id::{marker::UserMarker, Id},
+    util::image_hash::ImageHash,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -8,9 +11,9 @@ pub struct UserProfile {
     ///
     /// This is an integer representation of a hexadecimal color code.
     pub accent_color: Option<u64>,
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// Hash of the user's banner image.
-    pub banner: Option<String>,
+    pub banner: Option<ImageHash>,
     #[serde(default)]
     pub bot: bool,
     /// Discriminator used to differentiate people with the same username.
@@ -51,7 +54,7 @@ impl UserProfile {
 #[cfg(test)]
 mod tests {
     use super::{PremiumType, UserFlags, UserProfile};
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde_test::Token;
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
@@ -65,7 +68,7 @@ mod tests {
             Token::U64(16_579_836),
             Token::Str("avatar"),
             Token::Some,
-            Token::Str("hash"),
+            Token::Str(image_hash::AVATAR_INPUT),
             Token::Str("banner"),
             Token::None,
             Token::Str("bot"),
@@ -103,7 +106,7 @@ mod tests {
     fn test_user_profile() {
         let value = UserProfile {
             accent_color: Some(16_579_836),
-            avatar: Some("hash".to_owned()),
+            avatar: Some(image_hash::AVATAR),
             banner: None,
             bot: false,
             discriminator: 4,

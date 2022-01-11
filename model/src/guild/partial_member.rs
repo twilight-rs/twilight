@@ -3,6 +3,7 @@ use crate::{
     guild::Permissions,
     id::{marker::RoleMarker, Id},
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +11,7 @@ use serde::{Deserialize, Serialize};
 pub struct PartialMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
     pub deaf: bool,
     pub joined_at: Timestamp,

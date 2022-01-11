@@ -1,5 +1,8 @@
-use crate::guild::Permissions;
-use crate::id::{marker::GuildMarker, Id};
+use crate::{
+    guild::Permissions,
+    id::{marker::GuildMarker, Id},
+    util::image_hash::ImageHash,
+};
 use serde::{Deserialize, Serialize};
 
 /// Information about a guild the current user is in.
@@ -22,7 +25,7 @@ pub struct CurrentUserGuild {
     /// Refer to the [Discord documentation] for more information.
     ///
     /// [Discord documentation]: https://discord.com/developers/docs/reference#image-formatting
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     /// Whether the current user is the owner.
     pub owner: bool,
     /// Permissions of the current user in the guild. This excludes channels'
@@ -35,7 +38,7 @@ pub struct CurrentUserGuild {
 #[cfg(test)]
 mod tests {
     use super::{CurrentUserGuild, Permissions};
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde_test::Token;
 
     #[test]
@@ -44,7 +47,7 @@ mod tests {
         let value = CurrentUserGuild {
             id: Id::new(80_351_110_224_678_912),
             name: "abcd".to_owned(),
-            icon: Some("8342729096ea3675442027381ff50dfe".to_owned()),
+            icon: Some(image_hash::ICON),
             owner: true,
             permissions: Permissions::from_bits_truncate(36_953_089),
             features: vec!["a feature".to_owned()],
@@ -64,7 +67,7 @@ mod tests {
                 Token::Str("abcd"),
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("8342729096ea3675442027381ff50dfe"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("owner"),
                 Token::Bool(true),
                 Token::Str("permissions"),

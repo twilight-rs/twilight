@@ -3,7 +3,6 @@ use serde::{
     de::{Deserialize, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny},
     Serialize,
 };
-use std::convert::TryFrom;
 
 /// A dispatch event, containing information about a created guild, a member
 /// added, etc.

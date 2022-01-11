@@ -99,7 +99,7 @@ impl InMemoryCache {
 
         let (avatar, deaf, mute) = match self.members.get(&id) {
             Some(m) if &*m == member => return,
-            Some(m) => (m.avatar().map(ToString::to_string), m.deaf(), m.mute()),
+            Some(m) => (m.avatar(), m.deaf(), m.mute()),
             None => (None, None, None),
         };
 
@@ -197,13 +197,14 @@ impl UpdateCache for MemberUpdate {
             None => return,
         };
 
-        member.avatar = self.avatar.clone();
+        member.avatar = self.avatar;
         member.deaf = self.deaf.or_else(|| member.deaf());
         member.mute = self.mute.or_else(|| member.mute());
         member.nick = self.nick.clone();
         member.roles = self.roles.clone();
         member.joined_at = self.joined_at;
         member.pending = self.pending;
+        member.communication_disabled_until = self.communication_disabled_until;
     }
 }
 

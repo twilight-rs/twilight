@@ -55,7 +55,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::StageInstanceDelete(e) => Some(e.0.guild_id),
         Event::StageInstanceUpdate(e) => Some(e.0.guild_id),
         Event::ThreadCreate(e) => channel_guild_id(&e.0),
-        Event::ThreadDelete(e) => channel_guild_id(&e.0),
+        Event::ThreadDelete(e) => Some(e.guild_id),
         Event::ThreadListSync(e) => Some(e.guild_id),
         Event::ThreadMembersUpdate(e) => Some(e.guild_id),
         Event::ThreadUpdate(e) => channel_guild_id(&e.0),

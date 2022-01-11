@@ -2,6 +2,14 @@
 
 Changelog for `twilight-util`.
 
+## [0.8.2] - 2022-01-08
+
+### Changes
+
+Support `CallbackData::embeds: Option<Vec<Embed>>` ([#1401] - [@itohatweb]).
+
+[#1401]: https://github.com/twilight-rs/twilight/pull/1401
+
 ## [0.8.1] - 2021-12-15
 
 ### Fixes
@@ -156,10 +164,14 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@baptiste0928]: https://github.com/baptiste0928
+[@itohatweb]: https://github.com/itohatweb
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.8.2
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.8.1
+[0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.7.0
 [0.6.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.2
 [0.6.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.6.1
