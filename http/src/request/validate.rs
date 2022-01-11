@@ -13,6 +13,7 @@ use twilight_model::{
     application::component::{select_menu::SelectMenuOption, Component, ComponentType},
     channel::{embed::Embed, ChannelType},
     datetime::Timestamp,
+    id::StickerId,
 };
 
 /// A provided [`Component`] is invalid.
@@ -1175,6 +1176,12 @@ fn _sticker_tags(value: &str) -> bool {
 
     (StickerValidationError::TAGS_MIN_LENGTH..=StickerValidationError::TAGS_MAX_LENGTH)
         .contains(&len)
+}
+
+pub fn sticker_limit(value: &[StickerId]) -> bool {
+    let len = value.len();
+
+    (0..=3).contains(&len)
 }
 
 pub fn communication_disabled_until(timestamp: Timestamp) -> bool {

@@ -28,6 +28,7 @@ use twilight_model::{
     },
     id::{ChannelId, MessageId, StickerId},
 };
+use crate::request::channel::message::create_message::CreateMessageErrorType::TooManyStickers;
 
 /// The error created when a message can not be created as configured.
 #[derive(Debug)]
@@ -83,9 +84,10 @@ impl Display for CreateMessageError {
 
                 f.write_str("'s contents are too long")
             },
-            CreateMessageErrorType::TooManyStickers { .. } => {
-                f.write_str("too many stickers were provided")
-            }
+            CreateMessageErrorType::TooManyStickers { count } => {
+                Display::fmt(count, f)?;
+                f.write_str(" stickers were provided, but max 3 are supported")
+            },
         }
     }
 }
@@ -119,7 +121,10 @@ pub enum CreateMessageErrorType {
         /// Index of the embed.
         idx: usize,
     },
-    TooManyStickers,
+    TooManyStickers {
+        /// Number of stickers provided
+        count: usize,
+    },
 }
 
 #[derive(Serialize)]
@@ -386,11 +391,11 @@ impl<'a> CreateMessage<'a> {
     /// Returns a [`CreateMessageErrorType::TooManyStickers`] error type if
     /// more than three stickers are provided
     pub fn stickers(mut self, stickers: &'a [StickerId]) -> Result<Self, CreateMessageError> {
-        if stickers.len() > 3 {
+        if !validate_inner::sticker_limit(stickers) {
             return Err(CreateMessageError {
-                kind: CreateMessageErrorType::TooManyStickers,
-                source: None
-            });
+                kind: TooManyStickers { count: stickers.len() },
+                source: None,
+            })
         }
 
         self.fields.sticker_ids = stickers;
