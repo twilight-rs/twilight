@@ -2,7 +2,7 @@
 
 use twilight_model::id::{
     ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId, EmojiId,
-    GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, UserId,
+    GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId, StickerId, UserId,
     WebhookId,
 };
 
@@ -170,6 +170,12 @@ impl Snowflake for StageId {
     }
 }
 
+impl Snowflake for StickerId {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
 impl Snowflake for UserId {
     fn id(&self) -> u64 {
         self.get()
@@ -189,7 +195,7 @@ mod tests {
     use twilight_model::id::{
         ApplicationId, AttachmentId, AuditLogEntryId, ChannelId, CommandId, CommandVersionId,
         EmojiId, GenericId, GuildId, IntegrationId, InteractionId, MessageId, RoleId, StageId,
-        UserId, WebhookId,
+        StickerId, UserId, WebhookId,
     };
 
     assert_impl_all!(ApplicationId: Snowflake);
@@ -206,6 +212,7 @@ mod tests {
     assert_impl_all!(MessageId: Snowflake);
     assert_impl_all!(RoleId: Snowflake);
     assert_impl_all!(StageId: Snowflake);
+    assert_impl_all!(StickerId, Snowflake);
     assert_impl_all!(UserId: Snowflake);
     assert_impl_all!(WebhookId: Snowflake);
     assert_obj_safe!(Snowflake);

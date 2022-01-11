@@ -26,7 +26,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageReference},
         Message,
     },
-    id::{ChannelId, MessageId},
+    id::{ChannelId, MessageId, StickerId},
 };
 
 /// The error created when a message can not be created as configured.
@@ -82,6 +82,9 @@ impl Display for CreateMessageError {
                 Display::fmt(&idx, f)?;
 
                 f.write_str("'s contents are too long")
+            },
+            CreateMessageErrorType::TooManyStickers { .. } => {
+                f.write_str("too many stickers were provided")
             }
         }
     }
@@ -116,6 +119,7 @@ pub enum CreateMessageErrorType {
         /// Index of the embed.
         idx: usize,
     },
+    TooManyStickers,
 }
 
 #[derive(Serialize)]
@@ -138,6 +142,8 @@ pub(crate) struct CreateMessageFields<'a> {
     pub(crate) allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
+    #[serde(skip_serializing_if = "request::slice_is_empty")]
+    sticker_ids: &'a [StickerId],
 }
 
 /// Send a message to a channel.
@@ -182,6 +188,7 @@ impl<'a> CreateMessage<'a> {
                 nonce: None,
                 payload_json: None,
                 allowed_mentions: None,
+                sticker_ids: &[],
                 tts: None,
             },
             attachments: Cow::Borrowed(&[]),
@@ -366,6 +373,27 @@ impl<'a> CreateMessage<'a> {
         self.fields.tts = Some(tts);
 
         self
+    }
+
+    /// Add multiple stickers to the message.
+    ///
+    /// Up to 3 stickers can be added to a message.  Stickers are Discord snowflakes.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`CreateMessageErrorType::TooManyStickers`] error type if more than three
+    /// stickers are provided
+    pub fn stickers(mut self, stickers: &'a [StickerId]) -> Result<Self, CreateMessageError> {
+        if stickers.len() > 3 {
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::TooManyStickers,
+                source: None
+            });
+        }
+
+        self.fields.sticker_ids = stickers;
+
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
