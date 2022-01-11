@@ -10,6 +10,7 @@ use twilight_model::{
     application::command::{Command, CommandType},
     id::{marker::ApplicationMarker, Id},
 };
+use twilight_validate::command::{name as validate_name, CommandValidationError};
 
 /// Create a new message global command.
 ///
@@ -26,17 +27,19 @@ pub struct CreateGlobalMessageCommand<'a> {
 }
 
 impl<'a> CreateGlobalMessageCommand<'a> {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
         name: &'a str,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, CommandValidationError> {
+        validate_name(name)?;
+
+        Ok(Self {
             application_id,
             default_permission: None,
             http,
             name,
-        }
+        })
     }
 
     /// Whether the command is enabled by default when the app is added to a guild.
