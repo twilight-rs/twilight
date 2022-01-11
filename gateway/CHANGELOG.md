@@ -2,6 +2,15 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.8.4] - 2022-01-11
+
+### Changes
+
+Gateway parsing failures now emit at an `error` level ([#1427] -
+[@AEnterprise]).
+
+[#1427]: https://github.com/twilight-rs/twilight/pull/1427
+
 ## [0.8.3] - 2022-01-08
 
 ### Additions
@@ -694,6 +703,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.1
