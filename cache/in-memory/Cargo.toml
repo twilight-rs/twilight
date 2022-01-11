@@ -13,11 +13,11 @@ publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "README.md"
 rust-version = "1.57"
-version = "0.8.4"
+version = "0.8.5"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
-dashmap = { default-features = false, version = ">=4.0, <6.0" }
+dashmap = { default-features = false, version = "4" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 twilight-model = { default-features = false, path = "../../model" }
 
