@@ -8,7 +8,10 @@ pub use self::data::{
 use super::InteractionType;
 use crate::{
     guild::PartialMember,
-    id::{Id, marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker}},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
+        Id,
+    },
     user::User,
 };
 use serde::Serialize;
@@ -80,7 +83,12 @@ mod tests {
         application::interaction::{modal::data::ModalInteractionDataActionRow, InteractionType},
         datetime::Timestamp,
         guild::PartialMember,
-        id::{Id, marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker}},
+        id::{
+            marker::{
+                ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker,
+            },
+            Id,
+        },
         user::User,
     };
 

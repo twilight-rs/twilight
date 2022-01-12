@@ -459,20 +459,19 @@ fn component_inner(component: &Component) -> Result<(), ComponentValidationError
         }
         Component::InputText(input_text) => {
             // TODO(modal): validations
-    // /// Placeholder for the text input.
-    // pub placeholder: Option<String>,
-    // /// The minimum length of the text.
-    // ///
-    // /// Defaults to `0`.
-    // pub min_length: Option<u16>,
-    // /// The maximum length of the text.
-    // pub max_length: Option<u16>,
-    // /// Pre-filled value for input text.
-    // pub value: Option<String>,
+            // /// Placeholder for the text input.
+            // pub placeholder: Option<String>,
+            // /// The minimum length of the text.
+            // ///
+            // /// Defaults to `0`.
+            // pub min_length: Option<u16>,
+            // /// The maximum length of the text.
+            // pub max_length: Option<u16>,
+            // /// Pre-filled value for input text.
+            // pub value: Option<String>,
 
             self::component_custom_id(&input_text.custom_id)?;
             self::component_label(&input_text.label)?;
-
         }
     }
 
