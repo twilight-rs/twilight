@@ -8,7 +8,7 @@ pub use self::data::{
 use super::InteractionType;
 use crate::{
     guild::PartialMember,
-    id::{ApplicationId, ChannelId, GuildId, InteractionId, UserId},
+    id::{Id, marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker}},
     user::User,
 };
 use serde::Serialize;
@@ -20,15 +20,15 @@ use serde::Serialize;
 #[serde(rename(serialize = "Interaction"))]
 pub struct ModalSubmitInteraction {
     /// ID of the associated application.
-    pub application_id: ApplicationId,
+    pub application_id: Id<ApplicationMarker>,
     /// ID of the channel the interaction was triggered from.
-    pub channel_id: ChannelId,
+    pub channel_id: Id<ChannelMarker>,
     /// Data from the submitted modal.
     pub data: ModalInteractionData,
     /// ID of the guild the interaction was triggered from.
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the interaction.
-    pub id: InteractionId,
+    pub id: Id<InteractionMarker>,
     /// Type of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,
@@ -55,7 +55,7 @@ impl ModalSubmitInteraction {
     ///
     /// [`member`]: Self::member
     /// [`user`]: Self::user
-    pub const fn author_id(&self) -> Option<UserId> {
+    pub const fn author_id(&self) -> Option<Id<UserMarker>> {
         if let Some(member) = &self.member {
             if let Some(user) = &member.user {
                 return Some(user.id);
@@ -80,7 +80,7 @@ mod tests {
         application::interaction::{modal::data::ModalInteractionDataActionRow, InteractionType},
         datetime::Timestamp,
         guild::PartialMember,
-        id::{ApplicationId, ChannelId, GuildId, InteractionId, UserId},
+        id::{Id, marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker}},
         user::User,
     };
 
@@ -130,13 +130,13 @@ mod tests {
 
     #[test]
     fn test_author_id() {
-        fn user_id() -> UserId {
-            UserId::new(7).expect("non zero")
+        fn user_id() -> Id<UserMarker> {
+            Id<UserMarker>::new(7).expect("non zero")
         }
 
         let in_guild = ModalSubmitInteraction {
-            application_id: ApplicationId::new(1).expect("non zero"),
-            channel_id: ChannelId::new(1).expect("non zero"),
+            application_id: Id<ApplicationMarker>::new(1).expect("non zero"),
+            channel_id: Id<ChannelMarker>::new(1).expect("non zero"),
             data: ModalInteractionData {
                 custom_id: "the-id".to_owned(),
                 components: Vec::from([ModalInteractionDataActionRow {
@@ -146,8 +146,8 @@ mod tests {
                     }]),
                 }]),
             },
-            guild_id: Some(GuildId::new(1).expect("non zero")),
-            id: InteractionId::new(1).expect("non zero"),
+            guild_id: Some(Id<GuildMarker>::new(1).expect("non zero")),
+            id: Id<InteractionMarker>::new(1).expect("non zero"),
             kind: InteractionType::ModalSubmit,
             member: Some(PartialMember {
                 avatar: None,
