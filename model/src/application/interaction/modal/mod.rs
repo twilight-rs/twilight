@@ -108,7 +108,7 @@ mod tests {
         Serialize,
     );
 
-    fn user(id: UserId) -> User {
+    fn user(id: Id<UserMarker>) -> User {
         User {
             accent_color: None,
             avatar: None,
@@ -131,12 +131,12 @@ mod tests {
     #[test]
     fn test_author_id() {
         fn user_id() -> Id<UserMarker> {
-            Id<UserMarker>::new(7).expect("non zero")
+            Id::<UserMarker>::new(7)
         }
 
         let in_guild = ModalSubmitInteraction {
-            application_id: Id<ApplicationMarker>::new(1).expect("non zero"),
-            channel_id: Id<ChannelMarker>::new(1).expect("non zero"),
+            application_id: Id::<ApplicationMarker>::new(1),
+            channel_id: Id::<ChannelMarker>::new(1),
             data: ModalInteractionData {
                 custom_id: "the-id".to_owned(),
                 components: Vec::from([ModalInteractionDataActionRow {
@@ -146,8 +146,8 @@ mod tests {
                     }]),
                 }]),
             },
-            guild_id: Some(Id<GuildMarker>::new(1).expect("non zero")),
-            id: Id<InteractionMarker>::new(1).expect("non zero"),
+            guild_id: Some(Id::<GuildMarker>::new(1)),
+            id: Id::<InteractionMarker>::new(1),
             kind: InteractionType::ModalSubmit,
             member: Some(PartialMember {
                 avatar: None,
