@@ -888,7 +888,7 @@ mod private {
 
 /// Implemented for dispatch events.
 ///
-/// This trait is sealed and cannot be implemented for types outside of twilight.
+/// This trait is sealed and cannot be implemented.
 pub trait UpdateCache: private::Sealed {
     /// Updates the cache based on data contained within an event.
     // Allow this for presentation purposes in documentation.
