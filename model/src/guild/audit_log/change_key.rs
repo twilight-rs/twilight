@@ -75,6 +75,8 @@ pub enum AuditLogChangeKey {
     IconHash,
     /// ID of an entity.
     Id,
+    /// Invitable state of a private thread.
+    Invitable,
     /// ID of the user who created an invite.
     InviterId,
     /// Channel ID for a scheduled event changed.
@@ -208,6 +210,7 @@ impl AuditLogChangeKey {
             Self::Hoist => "hoist",
             Self::IconHash => "icon_hash",
             Self::Id => "id",
+            Self::Invitable => "invitable",
             Self::InviterId => "inviter_id",
             Self::Location => "location",
             Self::Locked => "locked",
@@ -325,6 +328,7 @@ mod tests {
         assert_eq!("hoist", AuditLogChangeKey::Hoist.name());
         assert_eq!("icon_hash", AuditLogChangeKey::IconHash.name());
         assert_eq!("id", AuditLogChangeKey::Id.name());
+        assert_eq!("invitable", AuditLogChangeKey::Invitable.name());
         assert_eq!("inviter_id", AuditLogChangeKey::InviterId.name());
         assert_eq!("max_age", AuditLogChangeKey::MaxAge.name());
         assert_eq!("max_uses", AuditLogChangeKey::MaxUses.name());
@@ -541,6 +545,13 @@ mod tests {
             &[Token::UnitVariant {
                 name: "AuditLogChangeKey",
                 variant: "id",
+            }],
+        );
+        serde_test::assert_tokens(
+            &AuditLogChangeKey::Invitable,
+            &[Token::UnitVariant {
+                name: "AuditLogChangeKey",
+                variant: "invitable",
             }],
         );
         serde_test::assert_tokens(
