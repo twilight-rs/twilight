@@ -75,6 +75,12 @@ pub const SCHEDULED_EVENT_DESCRIPTION_MAX: usize = 1000;
 /// Minimum length of a scheduled event's description.
 pub const SCHEDULED_EVENT_DESCRIPTION_MIN: usize = 1;
 
+/// Maximum amount of scheduled event users to get.
+pub const SCHEDULED_EVENT_GET_USERS_MAX: u64 = 100;
+
+/// Minimum amount of scheduled event users to get.
+pub const SCHEDULED_EVENT_GET_USERS_MIN: u64 = 1;
+
 /// Maximum length of a scheduled event's name.
 pub const SCHEDULED_EVENT_NAME_MAX: usize = 100;
 
@@ -247,6 +253,15 @@ impl Display for ValidationError {
 
                 Display::fmt(&SCHEDULED_EVENT_DESCRIPTION_MAX, f)
             }
+            ValidationErrorType::ScheduledEventGetUsers { limit } => {
+                f.write_str("provided scheduled event get users limit is ")?;
+                Display::fmt(limit, f)?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&SCHEDULED_EVENT_GET_USERS_MIN, f)?;
+                f.write_str(" and at most ")?;
+
+                Display::fmt(&SCHEDULED_EVENT_GET_USERS_MAX, f)
+            }
             ValidationErrorType::ScheduledEventName { len } => {
                 f.write_str("provided scheduled event name is length is ")?;
                 Display::fmt(len, f)?;
@@ -372,6 +387,11 @@ pub enum ValidationErrorType {
     ScheduledEventDescription {
         /// Invalid length.
         len: usize,
+    },
+    /// Scheduled event get users limit is invalid.
+    ScheduledEventGetUsers {
+        /// Invalid limit.
+        limit: u64,
     },
     /// Scheduled event name is invalid.
     ScheduledEventName {
@@ -693,6 +713,28 @@ pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), V
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::ScheduledEventDescription { len },
+        })
+    }
+}
+
+/// Ensure that a scheduled event get users limit amount is correct.
+///
+/// The length must be at least [`SCHEDULED_EVENT_GET_USERS_MIN`] and at most
+/// [`SCHEDULED_EVENT_GET_USERS_MAX`]. This is based on [this documentation
+/// entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`ScheduledEventGetUsers`] if the limit is invalid.
+///
+/// [`ScheduledEventGetUsers`]: ValidationErrorType::ScheduledEventGetUsers
+/// [this documentation entry]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users-query-string-params
+pub const fn scheduled_event_get_users(limit: u64) -> Result<(), ValidationError> {
+    if limit <= SCHEDULED_EVENT_GET_USERS_MIN && limit >= SCHEDULED_EVENT_GET_USERS_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::ScheduledEventGetUsers { limit },
         })
     }
 }

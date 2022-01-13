@@ -12,6 +12,9 @@ use twilight_model::{
     },
     scheduled_event::GuildScheduledEventUser,
 };
+use twilight_validate::request::{
+    scheduled_event_get_users as validate_scheduled_event_get_users, ValidationError,
+};
 
 /// Get a list of users subscribed to a scheduled event.
 ///
@@ -77,10 +80,19 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     /// Set the limit of users to return.
     ///
     /// If not specified, the default is 100.
-    pub const fn limit(mut self, limit: u64) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ScheduledEventGetUsers`] if the limit is
+    /// invalid.
+    ///
+    /// [`ScheduledEventGetUsers`]: twilight_validate::request::ValidationErrorType::ScheduledEventGetUsers
+    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+        validate_scheduled_event_get_users(limit)?;
+
         self.limit = Some(limit);
 
-        self
+        Ok(self)
     }
 
     /// Set whether to return member objects with each user.
