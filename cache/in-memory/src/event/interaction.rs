@@ -224,8 +224,10 @@ mod tests {
                     }),
                 },
                 guild_id: Some(Id::new(3)),
+                guild_locale: None,
                 id: Id::new(4),
                 kind: InteractionType::ApplicationCommand,
+                locale: "en-GB".to_owned(),
                 member: Some(PartialMember {
                     avatar: None,
                     communication_disabled_until: None,
