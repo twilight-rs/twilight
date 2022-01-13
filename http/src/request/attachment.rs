@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+use twilight_model::id::{marker::AttachmentMarker, Id};
+
 /// Attachment for when creating and updating messages.
 #[derive(Clone, Debug)]
 pub struct AttachmentFile<'a> {
@@ -22,5 +25,24 @@ impl<'a> AttachmentFile<'a> {
         self.description = Some(description);
 
         self
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct PartialAttachment<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<&'a str>,
+    pub id: u64,
+}
+
+impl PartialAttachment<'_> {
+    pub const fn from_id(id: Id<AttachmentMarker>) -> Self {
+        Self {
+            description: None,
+            filename: None,
+            id: id.get(),
+        }
     }
 }

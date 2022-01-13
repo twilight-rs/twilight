@@ -17,7 +17,7 @@ mod multipart;
 mod try_into_request;
 
 pub use self::{
-    attachment::AttachmentFile,
+    attachment::{AttachmentFile, PartialAttachment},
     audit_reason::{AuditLogReason, AuditLogReasonError},
     base::{Request, RequestBuilder},
     get_gateway::GetGateway,
@@ -34,7 +34,6 @@ use hyper::header::{HeaderName, HeaderValue};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Serialize, Serializer};
 use std::iter;
-use twilight_model::id::{marker::AttachmentMarker, Id};
 
 /// Field that either serializes to null or a value.
 ///
@@ -51,25 +50,6 @@ impl<T: Serialize> Serialize for NullableField<T> {
         match self.0.as_ref() {
             Some(inner) => serializer.serialize_some(inner),
             None => serializer.serialize_none(),
-        }
-    }
-}
-
-#[derive(PartialEq, Eq, Serialize)]
-pub(crate) struct PartialAttachment<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<&'a str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filename: Option<&'a str>,
-    pub id: u64,
-}
-
-impl PartialAttachment<'_> {
-    pub const fn from_id(id: Id<AttachmentMarker>) -> Self {
-        Self {
-            description: None,
-            filename: None,
-            id: id.get(),
         }
     }
 }
