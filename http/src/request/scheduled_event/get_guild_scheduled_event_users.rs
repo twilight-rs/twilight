@@ -88,7 +88,9 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     ///
     /// [`ScheduledEventGetUsers`]: twilight_validate::request::ValidationErrorType::ScheduledEventGetUsers
     pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
-        validate_scheduled_event_get_users(limit)?;
+        if let Err(source) = validate_scheduled_event_get_users(limit) {
+            return Err(source);
+        }
 
         self.limit = Some(limit);
 
