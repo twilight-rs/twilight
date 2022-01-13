@@ -87,6 +87,11 @@ pub enum Route<'a> {
         /// pruned.
         include_roles: &'a [Id<RoleMarker>],
     },
+    /// Route information to create a scheduled event in a guild.
+    CreateGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to create a sticker in a guild.
     CreateGuildSticker {
         /// ID of the guild.
@@ -200,6 +205,13 @@ pub enum Route<'a> {
         guild_id: u64,
         /// The ID of the integration.
         integration_id: u64,
+    },
+    /// Route information to delete a scheduled event in a guild.
+    DeleteGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
     },
     /// Route information to delete a guild sticker.
     DeleteGuildSticker {
@@ -514,6 +526,37 @@ pub enum Route<'a> {
     GetGuildRoles {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    /// Route information to get a guild scheduled event.
+    GetGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        // ID of the scheduled event.
+        scheduled_event_id: u64,
+        /// Whether to include user counts.
+        with_user_count: bool,
+    },
+    /// Route information to get a guild's scheduled events.
+    GetGuildScheduledEvents {
+        /// ID of the guild.
+        guild_id: u64,
+        /// Whether to include user counts.
+        with_user_count: bool,
+    },
+    /// Route information to get a guild scheduled event's members.
+    GetGuildScheduledEventUsers {
+        /// Get members after this ID.
+        after: Option<u64>,
+        /// Get members before this ID.
+        before: Option<u64>,
+        /// ID of the guild.
+        guild_id: u64,
+        /// Maximum amount of members to get.
+        limit: Option<u64>,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
+        /// Whether to return a member object.
+        with_member: bool,
     },
     /// Route information to get a guild's sticker.
     GetGuildSticker {
@@ -889,6 +932,13 @@ pub enum Route<'a> {
         /// The ID of the integration.
         integration_id: u64,
     },
+    /// Route information to update a scheduled event in a guild.
+    UpdateGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
+    },
     /// Route information to update a guild sticker.
     UpdateGuildSticker {
         /// ID of the guild.
@@ -1012,6 +1062,7 @@ impl<'a> Route<'a> {
             | Self::DeleteGuild { .. }
             | Self::DeleteGuildCommand { .. }
             | Self::DeleteGuildIntegration { .. }
+            | Self::DeleteGuildScheduledEvent { .. }
             | Self::DeleteGuildSticker { .. }
             | Self::DeleteInteractionOriginal { .. }
             | Self::DeleteInvite { .. }
@@ -1061,6 +1112,9 @@ impl<'a> Route<'a> {
             | Self::GetGuildPreview { .. }
             | Self::GetGuildPruneCount { .. }
             | Self::GetGuildRoles { .. }
+            | Self::GetGuildScheduledEvent { .. }
+            | Self::GetGuildScheduledEventUsers { .. }
+            | Self::GetGuildScheduledEvents { .. }
             | Self::GetGuildSticker { .. }
             | Self::GetGuildStickers { .. }
             | Self::GetGuildVanityUrl { .. }
@@ -1105,6 +1159,7 @@ impl<'a> Route<'a> {
             | Self::UpdateGuildCommand { .. }
             | Self::UpdateGuildWidget { .. }
             | Self::UpdateGuildIntegration { .. }
+            | Self::UpdateGuildScheduledEvent { .. }
             | Self::UpdateGuildSticker { .. }
             | Self::UpdateGuildWelcomeScreen { .. }
             | Self::UpdateInteractionOriginal { .. }
@@ -1126,6 +1181,7 @@ impl<'a> Route<'a> {
             | Self::CreateGuildFromTemplate { .. }
             | Self::CreateGuildIntegration { .. }
             | Self::CreateGuildPrune { .. }
+            | Self::CreateGuildScheduledEvent { .. }
             | Self::CreateGuildSticker { .. }
             | Self::CreateInvite { .. }
             | Self::CreateMessage { .. }
@@ -1418,6 +1474,18 @@ impl<'a> Route<'a> {
             Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
                 Path::GuildsIdMembers(*guild_id)
             }
+            Self::CreateGuildScheduledEvent { guild_id, .. }
+            | Self::GetGuildScheduledEvents { guild_id, .. } => {
+                Path::GuildsIdScheduledEvents(*guild_id)
+            }
+            Self::DeleteGuildScheduledEvent { guild_id, .. }
+            | Self::GetGuildScheduledEvent { guild_id, .. }
+            | Self::UpdateGuildScheduledEvent { guild_id, .. } => {
+                Path::GuildsIdScheduledEventsId(*guild_id)
+            }
+            Self::GetGuildScheduledEventUsers { guild_id, .. } => {
+                Path::GuildsIdScheduledEventsIdUsers(*guild_id)
+            }
             Self::GetGuildPreview { guild_id } => Path::GuildsIdPreview(*guild_id),
             Self::GetGuildVanityUrl { guild_id } => Path::GuildsIdVanityUrl(*guild_id),
             Self::GetGuildVoiceRegions { guild_id } => Path::GuildsIdRegions(*guild_id),
@@ -1664,6 +1732,12 @@ impl Display for Route<'_> {
                 }
 
                 Ok(())
+            }
+            Route::CreateGuildScheduledEvent { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/scheduled-events")
             }
             Route::CreateGuildSticker { guild_id, .. }
             | Route::GetGuildStickers { guild_id, .. } => {
@@ -2231,6 +2305,73 @@ impl Display for Route<'_> {
 
                 Ok(())
             }
+            Route::GetGuildScheduledEvent {
+                guild_id,
+                scheduled_event_id,
+                with_user_count,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/scheduled-events/")?;
+                Display::fmt(scheduled_event_id, f)?;
+
+                if *with_user_count {
+                    f.write_str("?with_user_count=true")?;
+                }
+
+                Ok(())
+            }
+            Route::GetGuildScheduledEventUsers {
+                after,
+                before,
+                guild_id,
+                limit,
+                scheduled_event_id,
+                with_member,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/scheduled-events/")?;
+                Display::fmt(scheduled_event_id, f)?;
+                f.write_str("/users?")?;
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                match (before, after) {
+                    (Some(before), Some(_) | None) => {
+                        f.write_str("&before=")?;
+                        Display::fmt(before, f)?;
+                    }
+                    (None, Some(after)) => {
+                        f.write_str("&after=")?;
+                        Display::fmt(after, f)?;
+                    }
+                    _ => {}
+                }
+
+                if *with_member {
+                    f.write_str("&with_member=true")?;
+                }
+
+                Ok(())
+            }
+            Route::GetGuildScheduledEvents {
+                guild_id,
+                with_user_count,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/scheduled-events?")?;
+
+                if *with_user_count {
+                    f.write_str("with_user_count=true")?;
+                }
+
+                Ok(())
+            }
             Route::GetGuildSticker {
                 guild_id,
                 sticker_id,
@@ -2560,6 +2701,20 @@ impl Display for Route<'_> {
 
                 f.write_str("/voice-states/@me")
             }
+            Route::DeleteGuildScheduledEvent {
+                guild_id,
+                scheduled_event_id,
+            }
+            | Route::UpdateGuildScheduledEvent {
+                guild_id,
+                scheduled_event_id,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/scheduled-events/")?;
+
+                Display::fmt(scheduled_event_id, f)
+            }
             Route::UpdateNickname { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
@@ -2636,6 +2791,7 @@ mod tests {
     const STICKER_ID: u64 = 10;
     const TEMPLATE_CODE: &str = "templatecode";
     const USER_ID: u64 = 11;
+    const SCHEDULED_EVENT_ID: u64 = 12;
 
     const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
@@ -4472,5 +4628,168 @@ mod tests {
                 guild_id = GUILD_ID
             )
         );
+    }
+
+    #[test]
+    fn test_get_guild_scheduled_events() {
+        let route = Route::GetGuildScheduledEvents {
+            guild_id: GUILD_ID,
+            with_user_count: false,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{guild_id}/scheduled-events?", guild_id = GUILD_ID)
+        );
+
+        let route = Route::GetGuildScheduledEvents {
+            guild_id: GUILD_ID,
+            with_user_count: true,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events?with_user_count=true",
+                guild_id = GUILD_ID
+            )
+        );
+    }
+
+    #[test]
+    fn test_create_guild_scheduled_event() {
+        let route = Route::CreateGuildScheduledEvent { guild_id: GUILD_ID };
+
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{guild_id}/scheduled-events", guild_id = GUILD_ID)
+        );
+    }
+
+    #[test]
+    fn test_get_guild_scheduled_event() {
+        let route = Route::GetGuildScheduledEvent {
+            guild_id: GUILD_ID,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_user_count: false,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID
+            )
+        );
+
+        let route = Route::GetGuildScheduledEvent {
+            guild_id: GUILD_ID,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_user_count: true,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}?with_user_count=true",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID
+            )
+        );
+    }
+
+    #[test]
+    fn test_update_guild_scheduled_event() {
+        let route = Route::UpdateGuildScheduledEvent {
+            guild_id: GUILD_ID,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID
+            )
+        );
+    }
+
+    #[test]
+    fn test_delete_guild_scheduled_event() {
+        let route = Route::DeleteGuildScheduledEvent {
+            guild_id: GUILD_ID,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID
+            )
+        );
+    }
+
+    #[test]
+    fn test_get_guild_scheduled_event_users() {
+        let route = Route::GetGuildScheduledEventUsers {
+            after: None,
+            before: Some(USER_ID),
+            guild_id: GUILD_ID,
+            limit: None,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_member: true,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&before={user_id}&with_member=true",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID,
+                user_id = USER_ID,
+            )
+        );
+
+        let route = Route::GetGuildScheduledEventUsers {
+            after: Some(USER_ID),
+            before: None,
+            guild_id: GUILD_ID,
+            limit: Some(101),
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_member: false,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=101&after={user_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID,
+                user_id = USER_ID,
+            )
+        );
+
+        let route = Route::GetGuildScheduledEventUsers {
+            after: Some(USER_ID),
+            before: Some(USER_ID),
+            guild_id: GUILD_ID,
+            limit: Some(99),
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_member: false,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=99&before={user_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID,
+                user_id = USER_ID,
+            )
+        )
     }
 }
