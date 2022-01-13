@@ -2,6 +2,22 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.8.3] - 2022-01-11
+
+### Fixes
+
+Downgrade `dashmap` to `4.0`, to prevent an issue with `Ref::value` and `dashmap
+5.0` ([#1434] - [@baptiste0928]).
+
+[#1434]: https://github.com/twilight-rs/twilight/pull/1434
+
+## [0.8.2] - 2022-01-08
+
+### Changes
+
+This release contains internal refactors, there are no public facing
+changes.
+
 ## [0.8.1] - 2021-12-24
 
 ### Changes
@@ -262,6 +278,7 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 Initial release.
 
 [@7596ff]: https://github.com/7596ff
+[@baptiste0928]: https://github.com/baptiste0928
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@james7132]: https://github.com/james7132
 [@MOZGIII]: https://github.com/MOZGIII
@@ -275,6 +292,8 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.3
+[0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.0
 [0.7.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.7.2
