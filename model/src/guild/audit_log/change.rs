@@ -318,6 +318,7 @@ pub enum AuditLogChange {
         /// New threads invitable state.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
         new: Option<bool>,
+        /// Old threads invitable state.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<bool>,
     },
