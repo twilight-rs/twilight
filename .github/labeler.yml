@@ -70,7 +70,7 @@ labels:
     matcher:
       files: "validate/**/*"
 
-  - label: "t-github-actions"
+  - label: "t-ci"
     matcher:
       files: ".github/workflows/*"
       title: "^ci: .*"
