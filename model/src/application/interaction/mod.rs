@@ -80,7 +80,9 @@ enum InteractionField {
     ChannelId,
     Data,
     GuildId,
+    GuildLocale,
     Id,
+    Locale,
     Member,
     Message,
     Token,
@@ -103,11 +105,13 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut channel_id: Option<ChannelId> = None;
         let mut data: Option<Value> = None;
         let mut guild_id: Option<Option<GuildId>> = None;
+        let mut guild_locale: Option<Option<String>> = None;
         let mut id: Option<InteractionId> = None;
         let mut member: Option<Option<PartialMember>> = None;
         let mut message: Option<Message> = None;
         let mut token: Option<String> = None;
         let mut kind: Option<InteractionType> = None;
+        let mut locale: Option<String> = None;
         let mut user: Option<Option<User>> = None;
 
         #[cfg(feature = "tracing")]
@@ -176,12 +180,26 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                     guild_id = Some(map.next_value()?);
                 }
+                InteractionField::GuildLocale => {
+                    if guild_locale.is_some() {
+                        return Err(DeError::duplicate_field("guild_locale"));
+                    }
+
+                    guild_locale = Some(map.next_value()?);
+                }
                 InteractionField::Id => {
                     if id.is_some() {
                         return Err(DeError::duplicate_field("id"));
                     }
 
                     id = Some(map.next_value()?);
+                }
+                InteractionField::Locale => {
+                    if locale.is_some() {
+                        return Err(DeError::duplicate_field("locale"));
+                    }
+
+                    locale = Some(map.next_value()?);
                 }
                 InteractionField::Member => {
                     if member.is_some() {
@@ -257,6 +275,8 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     .map_err(DeserializerError::into_error)?;
 
                 let guild_id = guild_id.unwrap_or_default();
+                let guild_locale = guild_locale.unwrap_or_default();
+                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
                 let member = member.unwrap_or_default();
                 let user = user.unwrap_or_default();
 
@@ -268,8 +288,10 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     channel_id,
                     data,
                     guild_id,
+                    guild_locale,
                     id,
                     kind,
+                    locale,
                     member,
                     token,
                     user,
@@ -294,6 +316,8 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let message = message.ok_or_else(|| DeError::missing_field("message"))?;
 
                 let guild_id = guild_id.unwrap_or_default();
+                let guild_locale = guild_locale.unwrap_or_default();
+                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
                 let member = member.unwrap_or_default();
                 let user = user.unwrap_or_default();
 
@@ -302,8 +326,10 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     channel_id,
                     data,
                     guild_id,
+                    guild_locale,
                     id,
                     kind,
+                    locale,
                     member,
                     message,
                     token,
@@ -393,8 +419,10 @@ mod test {
                 }),
             },
             guild_id: Some(GuildId::new(400).expect("non zero")),
+            guild_locale: Some("de".to_owned()),
             id: InteractionId::new(500).expect("non zero"),
             kind: InteractionType::ApplicationCommand,
+            locale: "en-GB".to_owned(),
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,
@@ -432,7 +460,7 @@ mod test {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 8,
+                    len: 10,
                 },
                 Token::Str("application_id"),
                 Token::NewtypeStruct {
@@ -529,6 +557,9 @@ mod test {
                 Token::Some,
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("400"),
+                Token::Str("guild_locale"),
+                Token::Some,
+                Token::String("de"),
                 Token::Str("id"),
                 Token::NewtypeStruct {
                     name: "InteractionId",
@@ -536,6 +567,8 @@ mod test {
                 Token::Str("500"),
                 Token::Str("type"),
                 Token::U8(2),
+                Token::Str("locale"),
+                Token::Str("en-GB"),
                 Token::Str("member"),
                 Token::Some,
                 Token::Struct {
