@@ -170,12 +170,13 @@ jobs:
         with:
           crate: cargo-hack
 
-      - name: Prepare minimal versions
-        run: |
-          # Ignore examples
-          sed -i '/examples/d' Cargo.toml
-          # Update Cargo.lock to minimal version dependencies.
-          cargo +nightly update -Z minimal-versions
+      - name: Install cargo-minimal-versions
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-minimal-versions
+
+      - name: Ignore examples
+        run: sed -i '/examples/d' Cargo.toml
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
@@ -184,7 +185,7 @@ jobs:
         run: echo "::add-matcher::.github/rust.json"
 
       - name: Check minimal versions
-        run: cargo check --all-features
+        run: cargo minimal-versions check
 
   # Tests
   test:

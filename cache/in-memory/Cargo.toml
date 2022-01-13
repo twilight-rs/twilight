@@ -29,10 +29,6 @@ static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 twilight-gateway = { default-features = false, features = ["rustls"], path = "../../gateway" }
 
-# Depend on at least this version to fix an issue with `minvers` CI and
-# `futures`
-proc-macro-hack = { default-features = false, version = "0.5.7" }
-
 [features]
 permission-calculator = ["twilight-util"]
 
