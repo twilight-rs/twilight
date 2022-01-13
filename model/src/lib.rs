@@ -76,6 +76,7 @@ pub mod guild;
 pub mod id;
 pub mod invite;
 pub mod oauth;
+pub mod scheduled_event;
 pub mod template;
 pub mod user;
 pub mod util;

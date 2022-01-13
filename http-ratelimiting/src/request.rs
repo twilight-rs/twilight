@@ -212,6 +212,12 @@ pub enum Path {
     GuildsIdRoles(u64),
     /// Operating on a role of one of the user's guilds.
     GuildsIdRolesId(u64),
+    /// Operating on the guild's scheduled events.
+    GuildsIdScheduledEvents(u64),
+    /// Operating on a particular guild's scheduled events.
+    GuildsIdScheduledEventsId(u64),
+    /// Operating on a particular guild's scheduled event users.
+    GuildsIdScheduledEventsIdUsers(u64),
     /// Operating on one of the user's guilds' stickers.
     GuildsIdStickers(u64),
     /// Operating on one of the user's guilds' templates.
@@ -381,6 +387,11 @@ impl FromStr for Path {
             ["guilds", id, "regions"] => GuildsIdRegions(parse_id(id)?),
             ["guilds", id, "roles"] => GuildsIdRoles(parse_id(id)?),
             ["guilds", id, "roles", _] => GuildsIdRolesId(parse_id(id)?),
+            ["guilds", id, "scheduled-events"] => GuildsIdScheduledEvents(parse_id(id)?),
+            ["guilds", id, "scheduled-events", _] => GuildsIdScheduledEventsId(parse_id(id)?),
+            ["guilds", id, "scheduled-events", _, "users"] => {
+                GuildsIdScheduledEventsIdUsers(parse_id(id)?)
+            }
             ["guilds", id, "stickers"] | ["guilds", id, "stickers", _] => {
                 GuildsIdStickers(parse_id(id)?)
             }
