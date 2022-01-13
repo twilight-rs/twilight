@@ -23,7 +23,7 @@ use twilight_model::{
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
-    MessageValidationError,
+    sticker_ids as validate_sticker_ids, MessageValidationError,
 };
 
 #[derive(Serialize)]
@@ -263,10 +263,21 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Set the IDs of up to 3 guild stickers.
-    pub const fn sticker_ids(mut self, sticker_ids: &'a [Id<StickerMarker>]) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`StickersInvalid`] if the length is invalid.
+    ///
+    /// [`StickersInvalid`]: twilight_validate::message::MessageValidationErrorType::StickersInvalid
+    pub fn sticker_ids(
+        mut self,
+        sticker_ids: &'a [Id<StickerMarker>],
+    ) -> Result<Self, MessageValidationError> {
+        validate_sticker_ids(sticker_ids)?;
+
         self.fields.sticker_ids = Some(sticker_ids);
 
-        self
+        Ok(self)
     }
 
     /// Specify true if the message is TTS.

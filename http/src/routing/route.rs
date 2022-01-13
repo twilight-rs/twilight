@@ -84,6 +84,11 @@ pub enum Route<'a> {
         /// pruned.
         include_roles: &'a [Id<RoleMarker>],
     },
+    /// Route information to create a scheduled event in a guild.
+    CreateGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to create a sticker in a guild.
     CreateGuildSticker {
         /// ID of the guild.
@@ -197,6 +202,13 @@ pub enum Route<'a> {
         guild_id: u64,
         /// The ID of the integration.
         integration_id: u64,
+    },
+    /// Route information to delete a scheduled event in a guild.
+    DeleteGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
     },
     /// Route information to delete a guild sticker.
     DeleteGuildSticker {
@@ -511,6 +523,37 @@ pub enum Route<'a> {
     GetGuildRoles {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    /// Route information to get a guild scheduled event.
+    GetGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        // ID of the scheduled event.
+        scheduled_event_id: u64,
+        /// Whether to include user counts.
+        with_user_count: bool,
+    },
+    /// Route information to get a guild's scheduled events.
+    GetGuildScheduledEvents {
+        /// ID of the guild.
+        guild_id: u64,
+        /// Whether to include user counts.
+        with_user_count: bool,
+    },
+    /// Route information to get a guild scheduled event's members.
+    GetGuildScheduledEventUsers {
+        /// Get members after this ID.
+        after: Option<u64>,
+        /// Get members before this ID.
+        before: Option<u64>,
+        /// ID of the guild.
+        guild_id: u64,
+        /// Maximum amount of members to get.
+        limit: Option<u64>,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
+        /// Whether to return a member object.
+        with_member: bool,
     },
     /// Route information to get a guild's sticker.
     GetGuildSticker {
@@ -886,6 +929,13 @@ pub enum Route<'a> {
         /// The ID of the integration.
         integration_id: u64,
     },
+    /// Route information to update a scheduled event in a guild.
+    UpdateGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
+    },
     /// Route information to update a guild sticker.
     UpdateGuildSticker {
         /// ID of the guild.
@@ -1047,6 +1097,7 @@ impl<'a> Route<'a> {
             | Self::DeleteGuild { .. }
             | Self::DeleteGuildCommand { .. }
             | Self::DeleteGuildIntegration { .. }
+            | Self::DeleteGuildScheduledEvent { .. }
             | Self::DeleteGuildSticker { .. }
             | Self::DeleteInteractionOriginal { .. }
             | Self::DeleteInvite { .. }
@@ -1096,6 +1147,9 @@ impl<'a> Route<'a> {
             | Self::GetGuildPreview { .. }
             | Self::GetGuildPruneCount { .. }
             | Self::GetGuildRoles { .. }
+            | Self::GetGuildScheduledEvent { .. }
+            | Self::GetGuildScheduledEventUsers { .. }
+            | Self::GetGuildScheduledEvents { .. }
             | Self::GetGuildSticker { .. }
             | Self::GetGuildStickers { .. }
             | Self::GetGuildVanityUrl { .. }
@@ -1140,6 +1194,7 @@ impl<'a> Route<'a> {
             | Self::UpdateGuildCommand { .. }
             | Self::UpdateGuildWidget { .. }
             | Self::UpdateGuildIntegration { .. }
+            | Self::UpdateGuildScheduledEvent { .. }
             | Self::UpdateGuildSticker { .. }
             | Self::UpdateGuildWelcomeScreen { .. }
             | Self::UpdateInteractionOriginal { .. }
@@ -1161,6 +1216,7 @@ impl<'a> Route<'a> {
             | Self::CreateGuildFromTemplate { .. }
             | Self::CreateGuildIntegration { .. }
             | Self::CreateGuildPrune { .. }
+            | Self::CreateGuildScheduledEvent { .. }
             | Self::CreateGuildSticker { .. }
             | Self::CreateInvite { .. }
             | Self::CreateMessage { .. }
@@ -1452,6 +1508,18 @@ impl<'a> Route<'a> {
             Self::GetGuildInvites { guild_id } => Path::GuildsIdInvites(*guild_id),
             Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
                 Path::GuildsIdMembers(*guild_id)
+            }
+            Self::CreateGuildScheduledEvent { guild_id, .. }
+            | Self::GetGuildScheduledEvents { guild_id, .. } => {
+                Path::GuildsIdScheduledEvents(*guild_id)
+            }
+            Self::DeleteGuildScheduledEvent { guild_id, .. }
+            | Self::GetGuildScheduledEvent { guild_id, .. }
+            | Self::UpdateGuildScheduledEvent { guild_id, .. } => {
+                Path::GuildsIdScheduledEventsId(*guild_id)
+            }
+            Self::GetGuildScheduledEventUsers { guild_id, .. } => {
+                Path::GuildsIdScheduledEventsIdUsers(*guild_id)
             }
             Self::GetGuildPreview { guild_id } => Path::GuildsIdPreview(*guild_id),
             Self::GetGuildVanityUrl { guild_id } => Path::GuildsIdVanityUrl(*guild_id),

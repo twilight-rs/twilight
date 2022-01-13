@@ -28,6 +28,11 @@ mod private {
             sticker::{CreateGuildSticker, UpdateGuildSticker},
             CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild,
         },
+        scheduled_event::{
+            CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
+            CreateGuildStageInstanceScheduledEvent, CreateGuildVoiceScheduledEvent,
+            UpdateGuildScheduledEvent,
+        },
         user::UpdateCurrentUser,
     };
 
@@ -68,6 +73,11 @@ mod private {
     impl<'a> Sealed for UpdateThread<'a> {}
     impl<'a> Sealed for UpdateCurrentUser<'a> {}
     impl Sealed for UpdateCurrentMember<'_> {}
+    impl Sealed for CreateGuildScheduledEvent<'_> {}
+    impl Sealed for CreateGuildExternalScheduledEvent<'_> {}
+    impl Sealed for CreateGuildStageInstanceScheduledEvent<'_> {}
+    impl Sealed for CreateGuildVoiceScheduledEvent<'_> {}
+    impl Sealed for UpdateGuildScheduledEvent<'_> {}
 }
 
 impl AuditLogReasonError {
