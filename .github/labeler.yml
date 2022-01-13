@@ -95,6 +95,14 @@ labels:
     matcher:
       title: "^fix(\\(.+\\))?!?: .*"
 
+  - label: "t-perf"
+    matcher:
+      title: "^perf(\\(.+\\))?!?: .*"
+
   - label: "t-refactor"
     matcher:
       title: "^refactor(\\(.+\\))?!?: .*"
+
+  - label: "t-test"
+    matcher:
+      title: "^test(\\(.+\\))?!?: .*"
