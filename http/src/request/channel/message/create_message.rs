@@ -271,7 +271,7 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Returns an error of type [`StickersInvalid`] if the length is invalid.
     ///
-    /// [`StickersInvalid`]: MessageValidationErrorType::StickersInvalid
+    /// [`StickersInvalid`]: twilight_validate::message::MessageValidationErrorType::StickersInvalid
     pub fn stickers(
         mut self,
         stickers: &'a [Id<StickerMarker>],
