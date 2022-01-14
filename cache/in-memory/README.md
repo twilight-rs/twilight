@@ -24,22 +24,27 @@ Refer to the `permission` module for more documentation.
 
 Update a cache with events that come in through the gateway:
 
-```rust,ignore
-use std::env;
+```rust,no_run
+use std::{env, error::Error};
 use futures::stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::{Intents, Shard};
 
-let token = env::var("DISCORD_TOKEN")?;
-let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
-shard.start().await?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let token = env::var("DISCORD_TOKEN")?;
+    let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
+    shard.start().await?;
 
-// Create a cache, caching up to 10 messages per channel:
-let cache = InMemoryCache::builder().message_cache_size(10).build();
+    // Create a cache, caching up to 10 messages per channel:
+    let cache = InMemoryCache::builder().message_cache_size(10).build();
 
-while let Some(event) = events.next().await {
-    // Update the cache with the event.
-    cache.update(&event);
+    while let Some(event) = events.next().await {
+        // Update the cache with the event.
+        cache.update(&event);
+    }
+    
+    Ok(())
 }
 ```
 
