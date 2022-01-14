@@ -48,7 +48,7 @@ labels:
   - label: "c-mention"
     sync: true
     matcher:
-      fiiles: "mention/**/*"
+      files: "mention/**/*"
 
   - label: "c-model"
     sync: true
