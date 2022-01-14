@@ -25,7 +25,6 @@ mod get_guild_voice_regions;
 mod get_guild_webhooks;
 mod get_guild_welcome_screen;
 mod get_guild_widget;
-pub(crate) mod update_current_user_nick;
 mod update_guild_welcome_screen;
 mod update_guild_widget;
 
@@ -41,6 +40,3 @@ pub use self::{
     update_guild::UpdateGuild, update_guild_channel_positions::UpdateGuildChannelPositions,
     update_guild_welcome_screen::UpdateGuildWelcomeScreen, update_guild_widget::UpdateGuildWidget,
 };
-
-#[deprecated(note = "use UpdateCurrentMember instead", since = "0.7.2")]
-pub type UpdateCurrentUserNick<'a> = self::update_current_user_nick::UpdateCurrentUserNick<'a>;
