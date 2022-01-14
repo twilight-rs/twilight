@@ -41,7 +41,7 @@ pub use self::{
 use self::member::MemberListDeserializer;
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
-    channel::{message::sticker::Sticker, GuildChannel, StageInstance},
+    channel::{message::sticker::Sticker, Channel, StageInstance},
     datetime::Timestamp,
     gateway::presence::Presence,
     id::{
@@ -68,7 +68,7 @@ pub struct Guild {
     pub approximate_presence_count: Option<u64>,
     pub banner: Option<ImageHash>,
     #[serde(default)]
-    pub channels: Vec<GuildChannel>,
+    pub channels: Vec<Channel>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
     pub discovery_splash: Option<ImageHash>,
@@ -117,7 +117,7 @@ pub struct Guild {
     pub system_channel_flags: SystemChannelFlags,
     pub system_channel_id: Option<Id<ChannelMarker>>,
     #[serde(default)]
-    pub threads: Vec<GuildChannel>,
+    pub threads: Vec<Channel>,
     #[serde(default)]
     pub unavailable: bool,
     pub vanity_url_code: Option<String>,
@@ -202,7 +202,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut approximate_member_count = None::<Option<_>>;
                 let mut approximate_presence_count = None::<Option<_>>;
                 let mut banner = None::<Option<_>>;
-                let mut channels = None::<Vec<GuildChannel>>;
+                let mut channels = None::<Vec<Channel>>;
                 let mut default_message_notifications = None;
                 let mut description = None::<Option<_>>;
                 let mut discovery_splash = None::<Option<_>>;
@@ -235,7 +235,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut stickers = None::<Vec<Sticker>>;
                 let mut system_channel_id = None::<Option<_>>;
                 let mut system_channel_flags = None;
-                let mut threads = None::<Vec<GuildChannel>>;
+                let mut threads = None::<Vec<Channel>>;
                 let mut rules_channel_id = None::<Option<_>>;
                 let mut unavailable = None;
                 let mut verification_level = None;
@@ -734,26 +734,7 @@ impl<'de> Deserialize<'de> for Guild {
                 );
 
                 for channel in &mut channels {
-                    match channel {
-                        GuildChannel::Category(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::NewsThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::PrivateThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::PublicThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::Text(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::Voice(c) | GuildChannel::Stage(c) => {
-                            c.guild_id.replace(id);
-                        }
-                    }
+                    channel.guild_id = Some(id);
                 }
 
                 for member in &mut members {
@@ -765,22 +746,7 @@ impl<'de> Deserialize<'de> for Guild {
                 }
 
                 for thread in &mut threads {
-                    match thread {
-                        GuildChannel::NewsThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::PrivateThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::PublicThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        _ => {
-                            return Err(DeError::custom(
-                                "non-thread channel found in threads field",
-                            ))
-                        }
-                    }
+                    thread.guild_id = Some(id);
                 }
 
                 for voice_state in &mut voice_states {

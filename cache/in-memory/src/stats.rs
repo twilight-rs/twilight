@@ -26,6 +26,11 @@ impl<'a> InMemoryCacheStats<'a> {
         self.0
     }
 
+    /// Number of channels in the cache.
+    pub fn channels(&self) -> usize {
+        self.0.channels.len()
+    }
+
     /// Number of messages in a given channel in the cache.
     ///
     /// Returns `None` if the channel hasn't yet been cached or there are no
@@ -51,11 +56,6 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of emojis in the cache.
     pub fn emojis(&self) -> usize {
         self.0.emojis.len()
-    }
-
-    /// Number of groups in the cache.
-    pub fn groups(&self) -> usize {
-        self.0.groups.len()
     }
 
     /// Number of guilds in the cache.
@@ -125,11 +125,6 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of presences in the cache.
     pub fn presences(&self) -> usize {
         self.0.presences.len()
-    }
-
-    /// Number of private channels in the cache.
-    pub fn private_channels(&self) -> usize {
-        self.0.channels_private.len()
     }
 
     /// Number of roles in the cache.

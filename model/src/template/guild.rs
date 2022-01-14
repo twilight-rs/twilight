@@ -1,6 +1,6 @@
 use super::TemplateRole;
 use crate::{
-    channel::GuildChannel,
+    channel::Channel,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, SystemChannelFlags,
         VerificationLevel,
@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 pub struct TemplateGuild {
     pub afk_channel_id: Option<Id<ChannelMarker>>,
     pub afk_timeout: u64,
-    pub channels: Vec<GuildChannel>,
+    pub channels: Vec<Channel>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
     pub explicit_content_filter: ExplicitContentFilter,

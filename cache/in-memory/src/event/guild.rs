@@ -17,8 +17,20 @@ impl InMemoryCache {
         // objects always has a place to put them.
         if self.wants(ResourceType::CHANNEL) {
             self.guild_channels.insert(guild.id, HashSet::new());
-            self.cache_guild_channels(guild.id, guild.channels);
-            self.cache_guild_channels(guild.id, guild.threads);
+
+            let mut channels = guild.channels;
+            let mut threads = guild.threads;
+
+            for channel in &mut channels {
+                channel.guild_id = Some(guild.id);
+            }
+
+            for channel in &mut threads {
+                channel.guild_id = Some(guild.id);
+            }
+
+            self.cache_channels(channels);
+            self.cache_channels(threads);
         }
 
         if self.wants(ResourceType::EMOJI) {
@@ -135,7 +147,7 @@ impl UpdateCache for GuildDelete {
         cache.guilds.remove(&id);
 
         if cache.wants(ResourceType::CHANNEL) {
-            remove_ids(&cache.guild_channels, &cache.channels_guild, id);
+            remove_ids(&cache.guild_channels, &cache.channels, id);
         }
 
         if cache.wants(ResourceType::EMOJI) {
@@ -217,8 +229,8 @@ mod tests {
     use super::*;
     use twilight_model::{
         channel::{
-            thread::{AutoArchiveDuration, PublicThread, ThreadMember, ThreadMetadata},
-            ChannelType, GuildChannel, TextChannel,
+            thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
+            Channel, ChannelType,
         },
         datetime::{Timestamp, TimestampParseError},
         guild::{
@@ -234,40 +246,48 @@ mod tests {
 
         let timestamp = Timestamp::from_str(DATETIME)?;
 
-        let channels = Vec::from([GuildChannel::Text(TextChannel {
-            id: Id::new(111),
-            guild_id: None,
-            kind: ChannelType::GuildText,
-            last_message_id: None,
-            last_pin_timestamp: None,
-            name: "guild channel with no guild id".to_owned(),
-            nsfw: true,
-            permission_overwrites: Vec::new(),
-            parent_id: None,
-            position: 1,
-            rate_limit_per_user: None,
-            topic: None,
-        })]);
-
-        let threads = Vec::from([GuildChannel::PublicThread(PublicThread {
-            id: Id::new(222),
+        let channels = Vec::from([Channel {
+            application_id: None,
+            bitrate: None,
             default_auto_archive_duration: None,
             guild_id: None,
-            kind: ChannelType::GuildPublicThread,
+            icon: None,
+            id: Id::new(111),
+            kind: ChannelType::GuildText,
+            name: Some("guild channel with no guild id".to_owned()),
+            invitable: None,
             last_message_id: None,
-            message_count: 0,
-            name: "guild thread with no guild id".to_owned(),
+            last_pin_timestamp: None,
+            nsfw: Some(true),
+            member: None,
+            member_count: None,
+            message_count: None,
             owner_id: None,
             parent_id: None,
+            permission_overwrites: Some(Vec::new()),
+            position: Some(1),
             rate_limit_per_user: None,
-            member_count: 0,
-            thread_metadata: ThreadMetadata {
-                archived: false,
-                auto_archive_duration: AutoArchiveDuration::Hour,
-                archive_timestamp: timestamp,
-                invitable: None,
-                locked: false,
-            },
+            recipients: None,
+            rtc_region: None,
+            topic: None,
+            thread_metadata: None,
+            user_limit: None,
+            video_quality_mode: None,
+        }]);
+
+        let threads = Vec::from([Channel {
+            application_id: None,
+            bitrate: None,
+            default_auto_archive_duration: None,
+            guild_id: None,
+            icon: None,
+            id: Id::new(222),
+            kind: ChannelType::GuildPublicThread,
+            name: Some("guild thread with no guild id".to_owned()),
+            invitable: None,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            nsfw: None,
             member: Some(ThreadMember {
                 flags: 0,
                 id: Some(Id::new(1)),
@@ -276,7 +296,26 @@ mod tests {
                 presence: None,
                 user_id: Some(Id::new(2)),
             }),
-        })]);
+            member_count: Some(0),
+            message_count: Some(0),
+            owner_id: None,
+            parent_id: None,
+            permission_overwrites: None,
+            position: None,
+            rate_limit_per_user: None,
+            recipients: None,
+            rtc_region: None,
+            topic: None,
+            thread_metadata: Some(ThreadMetadata {
+                archived: false,
+                auto_archive_duration: AutoArchiveDuration::Hour,
+                archive_timestamp: timestamp,
+                invitable: None,
+                locked: false,
+            }),
+            user_limit: None,
+            video_quality_mode: None,
+        }]);
 
         let guild = Guild {
             id: Id::new(123),
@@ -331,27 +370,16 @@ mod tests {
         let cache = InMemoryCache::new();
         cache.cache_guild(guild);
 
-        let channel = cache.guild_channel(Id::new(111)).unwrap();
+        let channel = cache.channel(Id::new(111)).unwrap();
 
-        let thread = cache.guild_channel(Id::new(222)).unwrap();
+        let thread = cache.channel(Id::new(222)).unwrap();
 
         // The channel was given to the cache without a guild ID, but because
         // it's part of a guild create, the cache can automatically attach the
         // guild ID to it. So now, the channel's guild ID is present with the
         // correct value.
-        match channel.resource() {
-            GuildChannel::Text(c) => {
-                assert_eq!(Some(Id::new(123)), c.guild_id);
-            }
-            _ => panic!("{:?}", channel),
-        }
-
-        match thread.resource() {
-            GuildChannel::PublicThread(c) => {
-                assert_eq!(Some(Id::new(123)), c.guild_id);
-            }
-            _ => panic!("{:?}", channel),
-        }
+        assert_eq!(Some(Id::new(123)), channel.guild_id);
+        assert_eq!(Some(Id::new(123)), thread.guild_id);
 
         Ok(())
     }

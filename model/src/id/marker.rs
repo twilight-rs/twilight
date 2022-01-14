@@ -37,10 +37,10 @@ pub struct AuditLogEntryMarker;
 
 /// Marker for channel IDs.
 ///
-/// Types such as [`PrivateChannel`] or [`TextChannel`] use this ID marker.
+/// Types such as [`Channel`] or [`Reaction`] use this ID marker.
 ///
-/// [`PrivateChannel`]: crate::channel::PrivateChannel
-/// [`TextChannel`]: crate::channel::TextChannel
+/// [`Channel`]: crate::channel::Channel
+/// [`Reaction`]: crate::channel::Reaction
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
 pub struct ChannelMarker;
@@ -221,9 +221,9 @@ pub struct StickerPackSkuMarker;
 
 /// Marker for user IDs.
 ///
-/// Types such as [`PublicThread`] or [`User`] use this ID marker.
+/// Types such as [`Channel`] or [`User`] use this ID marker.
 ///
-/// [`PublicThread`]: crate::channel::thread::PublicThread
+/// [`Channel`]: crate::channel::Channel
 /// [`User`]: crate::user::User
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]

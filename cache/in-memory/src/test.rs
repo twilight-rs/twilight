@@ -2,7 +2,7 @@ use crate::InMemoryCache;
 use twilight_model::{
     channel::{
         message::{Message, MessageFlags, MessageType},
-        ChannelType, GuildChannel, Reaction, ReactionType, TextChannel,
+        Channel, ChannelType, Reaction, ReactionType,
     },
     datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
@@ -200,23 +200,37 @@ pub fn emoji(id: Id<EmojiMarker>, user: Option<User>) -> Emoji {
     }
 }
 
-pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, GuildChannel) {
+pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
     let guild_id = Id::new(1);
     let channel_id = Id::new(2);
-    let channel = GuildChannel::Text(TextChannel {
+    let channel = Channel {
+        application_id: None,
+        bitrate: None,
+        default_auto_archive_duration: None,
         guild_id: Some(guild_id),
+        icon: None,
         id: channel_id,
         kind: ChannelType::GuildText,
+        name: Some("test".to_owned()),
+        invitable: None,
         last_message_id: None,
         last_pin_timestamp: None,
-        name: "test".to_owned(),
-        nsfw: false,
+        nsfw: Some(false),
+        member: None,
+        member_count: None,
+        message_count: None,
+        owner_id: None,
         parent_id: None,
-        permission_overwrites: Vec::new(),
-        position: 3,
+        permission_overwrites: Some(Vec::new()),
+        position: Some(3),
         rate_limit_per_user: None,
+        recipients: None,
+        rtc_region: None,
         topic: None,
-    });
+        thread_metadata: None,
+        user_limit: None,
+        video_quality_mode: None,
+    };
 
     (guild_id, channel_id, channel)
 }

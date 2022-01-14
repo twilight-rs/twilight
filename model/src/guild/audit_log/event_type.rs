@@ -13,31 +13,31 @@ pub enum AuditLogEventType {
     ///
     /// [Guild]: super::super::Guild
     GuildUpdate = 1,
-    /// [Guild channel] was created.
+    /// [Channel] was created.
     ///
-    /// [Guild channel]: crate::channel::GuildChannel
+    /// [Channel]: crate::channel::Channel
     ChannelCreate = 10,
-    /// [Guild channel] was updated.
+    /// [Channel] was updated.
     ///
-    /// [Guild channel]: crate::channel::GuildChannel
+    /// [Channel]: crate::channel::Channel
     ChannelUpdate = 11,
-    /// [Guild channel] was deleted.
+    /// [Channel] was deleted.
     ///
-    /// [Guild channel]: crate::channel::GuildChannel
+    /// [Channel]: crate::channel::Channel
     ChannelDelete = 12,
-    /// [Permission overwrite] for a [guild channel] was created.
+    /// [Permission overwrite] for a [channel] was created.
     ///
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
     ChannelOverwriteCreate = 13,
-    /// [Permission overwrite] for a [guild channel] was updated.
+    /// [Permission overwrite] for a [channel] was updated.
     ///
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
     ChannelOverwriteUpdate = 14,
-    /// [Permission overwrite] for a [guild channel] was deleted.
+    /// [Permission overwrite] for a [channel] was deleted.
     ///
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
     ChannelOverwriteDelete = 15,
     /// [Member] was kicked.
@@ -66,15 +66,15 @@ pub enum AuditLogEventType {
     /// [Member]: super::super::Member
     /// [role]: super::super::Role
     MemberRoleUpdate = 25,
-    /// [Member] was moved to a [voice channel].
+    /// [Member] was moved between audio [channel]s.
     ///
     /// [Member]: super::super::Member
-    /// [voice channel]: crate::channel::VoiceChannel
+    /// [channel]: crate::channel::Channel
     MemberMove = 26,
-    /// [Member] was disconnected from a [voice channel].
+    /// [Member] was disconnected from an audio [channel].
     ///
     /// [Member]: super::super::Member
-    /// [voice channel]: crate::channel::VoiceChannel
+    /// [channel]: crate::channel::Channel
     MemberDisconnect = 27,
     /// [Bot user] was added to a [guild].
     ///
@@ -137,15 +137,15 @@ pub enum AuditLogEventType {
     ///
     /// [messages]: crate::channel::message::Message
     MessageBulkDelete = 73,
-    /// [Message] was pinned to a [guild channel].
+    /// [Message] was pinned to a [channel].
     ///
     /// [Message]: crate::channel::message::Message
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     MessagePin = 74,
-    /// [Message] was unpinned from a [guild channel].
+    /// [Message] was unpinned from a [channel].
     ///
     /// [Message]: crate::channel::message::Message
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     MessageUnpin = 75,
     /// [Integration] was created.
     ///
@@ -159,23 +159,17 @@ pub enum AuditLogEventType {
     ///
     /// [Integration]: super::super::GuildIntegration
     IntegrationDelete = 82,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was created.
+    /// Thread [channel] was created.
     ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
+    /// [channel]: crate::channel::Channel
     ThreadCreate = 110,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was deleted.
+    /// Thread [channel] was deleted.
     ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
+    /// [channel]: crate::channel::Channel
     ThreadDelete = 112,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was updated.
+    /// Thread [channel] was updated.
     ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
+    /// [channel]: crate::channel::Channel
     ThreadUpdate = 111,
     /// [Stage instance] was created.
     ///
