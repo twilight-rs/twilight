@@ -10,7 +10,7 @@ messages.
 
 Build a simple embed:
 
-```rust,ignore
+```rust
 use twilight_embed_builder::{EmbedBuilder, EmbedFieldBuilder};
 
 let embed = EmbedBuilder::new()
@@ -18,17 +18,21 @@ let embed = EmbedBuilder::new()
     .field(EmbedFieldBuilder::new("Wings", "She has wings.").inline())
     .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.").inline())
     .build()?;
+    
+# Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
 Build an embed with an image:
 
-```rust,ignore
+```rust
 use twilight_embed_builder::{EmbedBuilder, ImageSource};
 
 let embed = EmbedBuilder::new()
     .description("Here's a cool image of Twilight Sparkle")
     .image(ImageSource::attachment("bestpony.png")?)
     .build()?;
+
+# Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
 [`twilight-rs`]: https://github.com/twilight-rs/twilight
