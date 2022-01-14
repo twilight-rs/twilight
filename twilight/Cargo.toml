@@ -28,7 +28,3 @@ twilight-mention = { default-features = false, path = "../mention" }
 twilight-model = { default-features = false, path = "../model" }
 twilight-standby = { default-features = false, path = "../standby" }
 twilight-util = { default-features = false, path = "../util" }
-
-# Depend on at least this version to fix an issue with `minvers` CI and
-# `futures`
-proc-macro-hack = { default-features = false, version = "0.5.7" }

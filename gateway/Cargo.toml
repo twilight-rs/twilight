@@ -12,7 +12,7 @@ name = "twilight-gateway"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.2"
+version = "0.8.4"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
@@ -48,10 +48,6 @@ webpki-roots = { default-features = false, optional = true, version = "0.22" }
 futures = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.12" }
-
-# Depend on at least this version to fix an issue with `minvers` CI and
-# `futures`
-proc-macro-hack = { default-features = false, version = "0.5.7" }
 
 [features]
 default = ["compression", "rustls", "tracing", "flate2/zlib"]

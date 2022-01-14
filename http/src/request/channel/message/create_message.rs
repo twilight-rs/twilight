@@ -23,7 +23,7 @@ use twilight_model::{
     application::component::Component,
     channel::{
         embed::Embed,
-        message::{AllowedMentions, MessageReference},
+        message::{sticker::StickerId, AllowedMentions, MessageReference},
         Message,
     },
     id::{ChannelId, MessageId},
@@ -83,6 +83,10 @@ impl Display for CreateMessageError {
 
                 f.write_str("'s contents are too long")
             }
+            CreateMessageErrorType::TooManyStickers { count } => {
+                Display::fmt(count, f)?;
+                f.write_str(" stickers were provided, but max 3 are supported")
+            }
         }
     }
 }
@@ -116,6 +120,11 @@ pub enum CreateMessageErrorType {
         /// Index of the embed.
         idx: usize,
     },
+    /// Returned when too many stickers were provided.
+    TooManyStickers {
+        /// Number of stickers.
+        count: usize,
+    },
 }
 
 #[derive(Serialize)]
@@ -136,6 +145,8 @@ pub(crate) struct CreateMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "request::slice_is_empty")]
+    sticker_ids: &'a [StickerId],
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
 }
@@ -182,6 +193,7 @@ impl<'a> CreateMessage<'a> {
                 nonce: None,
                 payload_json: None,
                 allowed_mentions: None,
+                sticker_ids: &[],
                 tts: None,
             },
             attachments: Cow::Borrowed(&[]),
@@ -366,6 +378,27 @@ impl<'a> CreateMessage<'a> {
         self.fields.tts = Some(tts);
 
         self
+    }
+
+    /// Set the IDs of up to 3 guild stickers.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`CreateMessageErrorType::TooManyStickers`] if
+    /// more than 3 stickers are provided.
+    pub fn stickers(mut self, stickers: &'a [StickerId]) -> Result<Self, CreateMessageError> {
+        if !validate_inner::sticker_limit(stickers) {
+            return Err(CreateMessageError {
+                kind: CreateMessageErrorType::TooManyStickers {
+                    count: stickers.len(),
+                },
+                source: None,
+            });
+        }
+
+        self.fields.sticker_ids = stickers;
+
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
