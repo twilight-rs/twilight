@@ -11,7 +11,8 @@ use twilight_model::{
     id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::command::{
-    description as validate_description, options as validate_options, CommandValidationError,
+    chat_input_name as validate_chat_input_name, description as validate_description,
+    options as validate_options, CommandValidationError,
 };
 
 /// Create a new chat input global command.
@@ -40,6 +41,8 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     ) -> Result<Self, CommandValidationError> {
         validate_description(&description)?;
 
+        validate_chat_input_name(name)?;
+
         Ok(Self {
             application_id,
             default_permission: None,
@@ -54,7 +57,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     ///
     /// Required command options must be added before optional options.
     ///
-    /// Errors
+    /// # Errors
     ///
     /// Returns an error of type [`OptionsRequiredFirst`] if a required option
     /// was added after an optional option. The problem option's index is

@@ -89,7 +89,7 @@ impl Queue for LargeBotQueue {
 
         Box::pin(async move {
             self.limiter.get().await;
-            if let Err(_source) = self.buckets[bucket].clone().send(tx) {
+            if let Err(_source) = self.buckets[bucket].send(tx) {
                 #[cfg(feature = "tracing")]
                 tracing::warn!("skipping, send failed with: {:?}", _source);
                 return;

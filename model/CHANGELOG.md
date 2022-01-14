@@ -2,6 +2,42 @@
 
 Changelog for `twilight-model`.
 
+## [0.8.4] - 2022-01-08
+
+### Additions
+
+Add `{Guild, PartialGuild}::premium_progress_bar_enabled` ([#1399] - [@Erk-]).
+
+Support guild timeouts in `MemberUpdate` ([#1414] - [@AEnterprise]).
+
+Add `VoiceState::self_video` ([#1422] - [@AEnterprise]).
+
+Support guild timeouts in the audit log ([#1423] - [@itohatweb]).
+
+### Changes
+
+`CallbackData::embeds` is now an `Option<Vec>` instead of a `Vec` ([#1401] -
+[@itohatweb]).
+
+### Fixes
+
+Properly deserialize `AuditLogChange::{RoleAdd, RoleRemove}` as `$add` and
+`$remove` ([#1419] - [@itohatweb]).
+
+Change `ThreadListSync::channel_ids` to a list of channel IDs instead of guild
+IDs ([#1420] - [@AEnterprise]).
+
+Properly deserialize `ThreadDelete` ([#1426] - [@AEnterprise]).
+
+[#1399]: https://github.com/twilight-rs/twilight/pull/1399
+[#1401]: https://github.com/twilight-rs/twilight/pull/1401
+[#1414]: https://github.com/twilight-rs/twilight/pull/1414
+[#1419]: https://github.com/twilight-rs/twilight/pull/1419
+[#1420]: https://github.com/twilight-rs/twilight/pull/1420
+[#1422]: https://github.com/twilight-rs/twilight/pull/1422
+[#1423]: https://github.com/twilight-rs/twilight/pull/1423
+[#1426]: https://github.com/twilight-rs/twilight/pull/1426
+
 ## [0.8.3] - 2021-12-27
 
 ### Additions
@@ -1145,6 +1181,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.1
