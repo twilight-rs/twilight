@@ -44,31 +44,6 @@ This is enabled by default.
 
 ## Examples
 
-### At a glance
-
-Wait for a message in channel 123 by user 456 with the content "test":
-
-```rust,ignore
-use twilight_model::{
-    gateway::payload::incoming::MessageCreate,
-    id::Id,
-};
-use twilight_standby::Standby;
-
-let standby = Standby::new();
-
-let channel_id = Id::new(123);
-
-let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
-    event.author.id.get() == 456 && event.content == "test"
-}).await?;
-```
-
-### A full example
-
-A full sample bot connecting to the gateway, processing events, and
-including a handler to wait for reactions:
-
 ```rust,no_run
 use futures_util::StreamExt;
 use std::{env, error::Error, sync::Arc};
