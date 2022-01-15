@@ -1,6 +1,7 @@
 pub mod application;
 pub mod channel;
 pub mod guild;
+pub mod scheduled_event;
 pub mod sticker;
 pub mod template;
 pub mod user;

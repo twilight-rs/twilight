@@ -18,13 +18,13 @@ use twilight_model::{
         Message,
     },
     id::{
-        marker::{ChannelMarker, MessageMarker},
+        marker::{ChannelMarker, MessageMarker, StickerMarker},
         Id,
     },
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
-    MessageValidationError,
+    stickers as validate_stickers, MessageValidationError,
 };
 
 #[derive(Serialize)]
@@ -45,6 +45,8 @@ pub(crate) struct CreateMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "request::slice_is_empty")]
+    sticker_ids: &'a [Id<StickerMarker>],
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
 }
@@ -91,6 +93,7 @@ impl<'a> CreateMessage<'a> {
                 nonce: None,
                 payload_json: None,
                 allowed_mentions: None,
+                sticker_ids: &[],
                 tts: None,
             },
             attachments: Cow::Borrowed(&[]),
@@ -260,6 +263,24 @@ impl<'a> CreateMessage<'a> {
         self.fields.tts = Some(tts);
 
         self
+    }
+
+    /// Set the IDs of up to 3 guild stickers.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`StickersInvalid`] if the length is invalid.
+    ///
+    /// [`StickersInvalid`]: twilight_validate::message::MessageValidationErrorType::StickersInvalid
+    pub fn stickers(
+        mut self,
+        stickers: &'a [Id<StickerMarker>],
+    ) -> Result<Self, MessageValidationError> {
+        validate_stickers(stickers)?;
+
+        self.fields.sticker_ids = stickers;
+
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].

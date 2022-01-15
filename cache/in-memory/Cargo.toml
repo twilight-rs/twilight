@@ -13,11 +13,11 @@ publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "README.md"
 rust-version = "1.57"
-version = "0.8.3"
+version = "0.8.5"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
-dashmap = { default-features = false, version = ">=4.0, <6.0" }
+dashmap = { default-features = false, version = "4" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 twilight-model = { default-features = false, path = "../../model" }
 
@@ -29,10 +29,6 @@ futures = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../../gateway" }
-
-# Depend on at least this version to fix an issue with `minvers` CI and
-# `futures`
-proc-macro-hack = { default-features = false, version = "0.5.7" }
 
 [features]
 permission-calculator = ["twilight-util"]

@@ -97,7 +97,7 @@ impl Queue for LocalQueue {
         Box::pin(async move {
             let (tx, rx) = oneshot::channel();
 
-            if let Err(_source) = self.0.clone().send(tx) {
+            if let Err(_source) = self.0.send(tx) {
                 #[cfg(feature = "tracing")]
                 tracing::warn!("skipping, send failed: {:?}", _source);
                 return;

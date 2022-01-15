@@ -2,6 +2,30 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.8.4] - 2022-01-11
+
+### Changes
+
+Gateway parsing failures now emit at an `error` level ([#1427] -
+[@AEnterprise]).
+
+[#1427]: https://github.com/twilight-rs/twilight/pull/1427
+
+## [0.8.3] - 2022-01-08
+
+### Additions
+
+Support the following close codes: `4010 Invalid Shard`, `4011 Sharding
+Required`, `4012 Invalid API Version` ([#1400] - [@Erk-]).
+
+### Fixes
+
+Reserve capacity in the ratelimiter for heartbeat responses ([#1421] -
+[@AEnterprise]).
+
+[#1400]: https://github.com/twilight-rs/twilight/pull/1400
+[#1421]: https://github.com/twilight-rs/twilight/pull/1421
+
 ## [0.8.2] - 2021-12-27
 
 ### Fixes
@@ -648,6 +672,7 @@ pulling in all of the gateway when creating shard queue brokers ([#537] - [@Gelb
 Initial release.
 
 [@7596ff]: https://github.com/7596ff
+[@AEnterprise]: https://github.com/AEnterprise
 [@chamburr]: https://github.com/chamburr
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
@@ -678,6 +703,8 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.4
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.0
