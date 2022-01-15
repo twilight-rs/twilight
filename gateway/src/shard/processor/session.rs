@@ -66,9 +66,7 @@ pub enum SessionSendErrorType {
 
 #[derive(Debug)]
 pub struct Session {
-    // Needs to be Arc so it can be cloned in the `Drop` impl when spawned on
-    // the runtime.
-    pub heartbeater_handle: Arc<MutexSync<Option<JoinHandle<()>>>>,
+    pub heartbeater_handle: MutexSync<Option<JoinHandle<()>>>,
     pub heartbeats: Arc<Heartbeats>,
     pub heartbeat_interval: AtomicU64,
     pub id: MutexSync<Option<Box<str>>>,
@@ -81,7 +79,7 @@ pub struct Session {
 impl Session {
     pub fn new(tx: UnboundedSender<TungsteniteMessage>) -> Self {
         Self {
-            heartbeater_handle: Arc::new(MutexSync::new(None)),
+            heartbeater_handle: MutexSync::new(None),
             heartbeats: Arc::new(Heartbeats::default()),
             heartbeat_interval: AtomicU64::new(0),
             id: MutexSync::new(None),
