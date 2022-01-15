@@ -1,10 +1,9 @@
-pub mod get_reactions;
-
 pub(crate) mod delete_reaction;
 
 mod create_reaction;
 mod delete_all_reaction;
 mod delete_all_reactions;
+mod get_reactions;
 
 pub use self::{
     create_reaction::CreateReaction, delete_all_reaction::DeleteAllReaction,

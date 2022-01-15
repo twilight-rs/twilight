@@ -1235,7 +1235,7 @@ impl<'a> Route<'a> {
     ///  };
     ///
     /// // Take a ticket from the ratelimiter.
-    /// let rx = ratelimiter.ticket(route.path()).await?;
+    /// let rx = ratelimiter.ticket(route.to_path()).await?;
     ///
     /// // Wait to be told that a request can be made...
     /// let _tx = rx.await;
@@ -1246,14 +1246,14 @@ impl<'a> Route<'a> {
     ///
     /// [`Ratelimiter`]: twilight_http_ratelimiting::Ratelimiter
     #[allow(clippy::too_many_lines)]
-    pub fn path(&self) -> Path {
-        match self {
+    pub fn to_path(&self) -> Path {
+        match *self {
             Self::AddGuildMember { guild_id, .. }
             | Self::GetMember { guild_id, .. }
             | Self::RemoveMember { guild_id, .. }
-            | Self::UpdateMember { guild_id, .. } => Path::GuildsIdMembersId(*guild_id),
+            | Self::UpdateMember { guild_id, .. } => Path::GuildsIdMembersId(guild_id),
             Self::AddMemberRole { guild_id, .. } | Self::RemoveMemberRole { guild_id, .. } => {
-                Path::GuildsIdMembersIdRolesId(*guild_id)
+                Path::GuildsIdMembersIdRolesId(guild_id)
             }
             Self::AddThreadMember { channel_id, .. }
             | Self::GetThreadMember { channel_id, .. }
@@ -1261,24 +1261,24 @@ impl<'a> Route<'a> {
             | Self::JoinThread { channel_id, .. }
             | Self::LeaveThread { channel_id, .. }
             | Self::RemoveThreadMember { channel_id, .. } => {
-                Path::ChannelsIdThreadMembers(*channel_id)
+                Path::ChannelsIdThreadMembers(channel_id)
             }
             Self::CreateBan { guild_id, .. } | Self::DeleteBan { guild_id, .. } => {
-                Path::GuildsIdBansUserId(*guild_id)
+                Path::GuildsIdBansUserId(guild_id)
             }
-            Self::CreateChannel { guild_id } => Path::GuildsIdChannels(*guild_id),
+            Self::CreateChannel { guild_id } => Path::GuildsIdChannels(guild_id),
             Self::CreateEmoji { guild_id } | Self::GetEmojis { guild_id } => {
-                Path::GuildsIdEmojis(*guild_id)
+                Path::GuildsIdEmojis(guild_id)
             }
             Self::CreateGlobalCommand { application_id }
             | Self::GetGlobalCommands { application_id }
             | Self::SetGlobalCommands { application_id } => {
-                Path::ApplicationCommand(*application_id)
+                Path::ApplicationCommand(application_id)
             }
             Self::CreateGuild => Path::Guilds,
             Self::CreateGuildFromTemplate { template_code, .. }
             | Self::GetTemplate { template_code, .. } => {
-                Path::GuildsTemplatesCode((*template_code).to_string().into_boxed_str())
+                Path::GuildsTemplatesCode(template_code.to_string())
             }
             Self::CreateGuildCommand { application_id, .. }
             | Self::DeleteGuildCommand { application_id, .. }
@@ -1288,61 +1288,61 @@ impl<'a> Route<'a> {
             | Self::SetCommandPermissions { application_id, .. }
             | Self::SetGuildCommands { application_id, .. }
             | Self::UpdateGuildCommand { application_id, .. } => {
-                Path::ApplicationGuildCommand(*application_id)
+                Path::ApplicationGuildCommand(application_id)
             }
-            Self::CreateGuildIntegration { guild_id } => Path::GuildsIdIntegrationsId(*guild_id),
+            Self::CreateGuildIntegration { guild_id } => Path::GuildsIdIntegrationsId(guild_id),
             Self::CreateGuildPrune { guild_id, .. } | Self::GetGuildPruneCount { guild_id, .. } => {
-                Path::GuildsIdPrune(*guild_id)
+                Path::GuildsIdPrune(guild_id)
             }
             Self::CreateGuildSticker { guild_id, .. }
             | Self::DeleteGuildSticker { guild_id, .. }
             | Self::GetGuildSticker { guild_id, .. }
             | Self::GetGuildStickers { guild_id, .. }
-            | Self::UpdateGuildSticker { guild_id, .. } => Path::GuildsIdStickers(*guild_id),
+            | Self::UpdateGuildSticker { guild_id, .. } => Path::GuildsIdStickers(guild_id),
             Self::CreateInvite { channel_id } | Self::GetChannelInvites { channel_id } => {
-                Path::ChannelsIdInvites(*channel_id)
+                Path::ChannelsIdInvites(channel_id)
             }
             Self::CreateMessage { channel_id } | Self::GetMessages { channel_id, .. } => {
-                Path::ChannelsIdMessages(*channel_id)
+                Path::ChannelsIdMessages(channel_id)
             }
             Self::CreatePrivateChannel | Self::GetUserPrivateChannels => Path::UsersIdChannels,
             Self::CreateReaction { channel_id, .. }
             | Self::DeleteReactionCurrentUser { channel_id, .. }
             | Self::DeleteReaction { channel_id, .. } => {
-                Path::ChannelsIdMessagesIdReactionsUserIdType(*channel_id)
+                Path::ChannelsIdMessagesIdReactionsUserIdType(channel_id)
             }
             Self::CreateRole { guild_id } | Self::GetGuildRoles { guild_id } => {
-                Path::GuildsIdRoles(*guild_id)
+                Path::GuildsIdRoles(guild_id)
             }
             Self::CreateStageInstance { .. }
             | Self::DeleteStageInstance { .. }
             | Self::GetStageInstance { .. }
             | Self::UpdateStageInstance { .. } => Path::StageInstances,
             Self::CreateTemplate { guild_id } | Self::GetTemplates { guild_id } => {
-                Path::GuildsIdTemplates(*guild_id)
+                Path::GuildsIdTemplates(guild_id)
             }
-            Self::CreateThread { channel_id, .. } => Path::ChannelsIdThreads(*channel_id),
+            Self::CreateThread { channel_id, .. } => Path::ChannelsIdThreads(channel_id),
             Self::CreateThreadFromMessage { channel_id, .. } => {
-                Path::ChannelsIdMessagesIdThreads(*channel_id)
+                Path::ChannelsIdMessagesIdThreads(channel_id)
             }
-            Self::CreateTypingTrigger { channel_id } => Path::ChannelsIdTyping(*channel_id),
+            Self::CreateTypingTrigger { channel_id } => Path::ChannelsIdTyping(channel_id),
             Self::CreateWebhook { channel_id } | Self::GetChannelWebhooks { channel_id } => {
-                Path::ChannelsIdWebhooks(*channel_id)
+                Path::ChannelsIdWebhooks(channel_id)
             }
             Self::CrosspostMessage { channel_id, .. } => {
-                Path::ChannelsIdMessagesIdCrosspost(*channel_id)
+                Path::ChannelsIdMessagesIdCrosspost(channel_id)
             }
-            Self::DeleteChannel { channel_id } => Path::ChannelsId(*channel_id),
-            Self::DeleteEmoji { guild_id, .. } => Path::GuildsIdEmojisId(*guild_id),
+            Self::DeleteChannel { channel_id } => Path::ChannelsId(channel_id),
+            Self::DeleteEmoji { guild_id, .. } => Path::GuildsIdEmojisId(guild_id),
             Self::DeleteGlobalCommand { application_id, .. }
             | Self::GetGlobalCommand { application_id, .. }
             | Self::UpdateGlobalCommand { application_id, .. } => {
-                Path::ApplicationCommandId(*application_id)
+                Path::ApplicationCommandId(application_id)
             }
-            Self::DeleteGuild { guild_id } => Path::GuildsId(*guild_id),
+            Self::DeleteGuild { guild_id } => Path::GuildsId(guild_id),
             Self::DeleteGuildIntegration { guild_id, .. }
             | Self::UpdateGuildIntegration { guild_id, .. } => {
-                Path::GuildsIdIntegrationsId(*guild_id)
+                Path::GuildsIdIntegrationsId(guild_id)
             }
             Self::DeleteInteractionOriginal {
                 application_id,
@@ -1363,29 +1363,26 @@ impl<'a> Route<'a> {
                 application_id,
                 interaction_token,
                 ..
-            } => Path::WebhooksIdTokenMessagesId(
-                *application_id,
-                (*interaction_token).to_string().into_boxed_str(),
-            ),
+            } => Path::WebhooksIdTokenMessagesId(application_id, interaction_token.to_string()),
             Self::DeleteInvite { .. }
             | Self::GetInvite { .. }
             | Self::GetInviteWithExpiration { .. } => Path::InvitesCode,
             Self::DeleteMessageReactions { channel_id, .. }
             | Self::DeleteMessageSpecificReaction { channel_id, .. }
             | Self::GetReactionUsers { channel_id, .. } => {
-                Path::ChannelsIdMessagesIdReactions(*channel_id)
+                Path::ChannelsIdMessagesIdReactions(channel_id)
             }
             Self::DeleteMessage { message_id, .. } => {
-                Path::ChannelsIdMessagesId(Method::Delete, *message_id)
+                Path::ChannelsIdMessagesId(Method::Delete, message_id)
             }
-            Self::DeleteMessages { channel_id } => Path::ChannelsIdMessagesBulkDelete(*channel_id),
+            Self::DeleteMessages { channel_id } => Path::ChannelsIdMessagesBulkDelete(channel_id),
             Self::DeletePermissionOverwrite { channel_id, .. }
             | Self::UpdatePermissionOverwrite { channel_id, .. } => {
-                Path::ChannelsIdPermissionsOverwriteId(*channel_id)
+                Path::ChannelsIdPermissionsOverwriteId(channel_id)
             }
             Self::DeleteRole { guild_id, .. }
             | Self::UpdateRole { guild_id, .. }
-            | Self::UpdateRolePositions { guild_id } => Path::GuildsIdRolesId(*guild_id),
+            | Self::UpdateRolePositions { guild_id } => Path::GuildsIdRolesId(guild_id),
             Self::DeleteTemplate {
                 guild_id,
                 template_code,
@@ -1400,10 +1397,7 @@ impl<'a> Route<'a> {
                 guild_id,
                 template_code,
                 ..
-            } => Path::GuildsIdTemplatesCode(
-                *guild_id,
-                (*template_code).to_string().into_boxed_str(),
-            ),
+            } => Path::GuildsIdTemplatesCode(guild_id, template_code.to_string()),
             Self::DeleteWebhookMessage {
                 webhook_id, token, ..
             }
@@ -1412,9 +1406,7 @@ impl<'a> Route<'a> {
             }
             | Self::UpdateWebhookMessage {
                 webhook_id, token, ..
-            } => {
-                Path::WebhooksIdTokenMessagesId(*webhook_id, (*token).to_string().into_boxed_str())
-            }
+            } => Path::WebhooksIdTokenMessagesId(webhook_id, token.to_string()),
             Self::DeleteWebhook {
                 webhook_id,
                 token: Some(token),
@@ -1431,93 +1423,93 @@ impl<'a> Route<'a> {
             | Self::UpdateWebhook {
                 webhook_id,
                 token: Some(token),
-            } => Path::WebhooksIdToken(*webhook_id, (*token).to_string().into_boxed_str()),
+            } => Path::WebhooksIdToken(webhook_id, token.to_string()),
             Self::DeleteWebhook { webhook_id, .. }
             | Self::GetWebhook { webhook_id, .. }
-            | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(*webhook_id)),
-            Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(*channel_id),
+            | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(webhook_id)),
+            Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(channel_id),
             Self::GetJoinedPrivateArchivedThreads { channel_id, .. }
             | Self::GetPrivateArchivedThreads { channel_id, .. }
             | Self::GetPublicArchivedThreads { channel_id, .. } => {
-                Path::ChannelsIdThreads(*channel_id)
+                Path::ChannelsIdThreads(channel_id)
             }
-            Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(*guild_id),
-            Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(*guild_id),
-            Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(*guild_id),
-            Self::GetBans { guild_id } => Path::GuildsIdBans(*guild_id),
+            Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(guild_id),
+            Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(guild_id),
+            Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(guild_id),
+            Self::GetBans { guild_id } => Path::GuildsIdBans(guild_id),
             Self::GetGatewayBot => Path::GatewayBot,
             Self::GetChannel { channel_id } | Self::UpdateChannel { channel_id } => {
-                Path::ChannelsId(*channel_id)
+                Path::ChannelsId(channel_id)
             }
             Self::GetChannels { guild_id } | Self::UpdateGuildChannels { guild_id } => {
-                Path::GuildsIdChannels(*guild_id)
+                Path::GuildsIdChannels(guild_id)
             }
             Self::GetCommandPermissions { application_id, .. }
             | Self::UpdateCommandPermissions { application_id, .. } => {
-                Path::ApplicationGuildCommandId(*application_id)
+                Path::ApplicationGuildCommandId(application_id)
             }
             Self::GetCurrentUserApplicationInfo => Path::OauthApplicationsMe,
             Self::GetCurrentUser | Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
             Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
             Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
-                Path::GuildsIdEmojisId(*guild_id)
+                Path::GuildsIdEmojisId(guild_id)
             }
             Self::GetGateway => Path::Gateway,
             Self::GetGuild { guild_id, .. } | Self::UpdateGuild { guild_id } => {
-                Path::GuildsId(*guild_id)
+                Path::GuildsId(guild_id)
             }
             Self::GetGuildWidget { guild_id } | Self::UpdateGuildWidget { guild_id } => {
-                Path::GuildsIdWidget(*guild_id)
+                Path::GuildsIdWidget(guild_id)
             }
-            Self::GetGuildIntegrations { guild_id } => Path::GuildsIdIntegrations(*guild_id),
-            Self::GetGuildInvites { guild_id } => Path::GuildsIdInvites(*guild_id),
+            Self::GetGuildIntegrations { guild_id } => Path::GuildsIdIntegrations(guild_id),
+            Self::GetGuildInvites { guild_id } => Path::GuildsIdInvites(guild_id),
             Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
-                Path::GuildsIdMembers(*guild_id)
+                Path::GuildsIdMembers(guild_id)
             }
             Self::CreateGuildScheduledEvent { guild_id, .. }
             | Self::GetGuildScheduledEvents { guild_id, .. } => {
-                Path::GuildsIdScheduledEvents(*guild_id)
+                Path::GuildsIdScheduledEvents(guild_id)
             }
             Self::DeleteGuildScheduledEvent { guild_id, .. }
             | Self::GetGuildScheduledEvent { guild_id, .. }
             | Self::UpdateGuildScheduledEvent { guild_id, .. } => {
-                Path::GuildsIdScheduledEventsId(*guild_id)
+                Path::GuildsIdScheduledEventsId(guild_id)
             }
             Self::GetGuildScheduledEventUsers { guild_id, .. } => {
-                Path::GuildsIdScheduledEventsIdUsers(*guild_id)
+                Path::GuildsIdScheduledEventsIdUsers(guild_id)
             }
-            Self::GetGuildPreview { guild_id } => Path::GuildsIdPreview(*guild_id),
-            Self::GetGuildVanityUrl { guild_id } => Path::GuildsIdVanityUrl(*guild_id),
-            Self::GetGuildVoiceRegions { guild_id } => Path::GuildsIdRegions(*guild_id),
+            Self::GetGuildPreview { guild_id } => Path::GuildsIdPreview(guild_id),
+            Self::GetGuildVanityUrl { guild_id } => Path::GuildsIdVanityUrl(guild_id),
+            Self::GetGuildVoiceRegions { guild_id } => Path::GuildsIdRegions(guild_id),
             Self::GetGuildWelcomeScreen { guild_id }
-            | Self::UpdateGuildWelcomeScreen { guild_id } => Path::GuildsIdWelcomeScreen(*guild_id),
-            Self::GetGuildWebhooks { guild_id } => Path::GuildsIdWebhooks(*guild_id),
+            | Self::UpdateGuildWelcomeScreen { guild_id } => Path::GuildsIdWelcomeScreen(guild_id),
+            Self::GetGuildWebhooks { guild_id } => Path::GuildsIdWebhooks(guild_id),
             Self::GetGuilds { .. } => Path::UsersIdGuilds,
             Self::GetMessage { channel_id, .. } => {
-                Path::ChannelsIdMessagesId(Method::Get, *channel_id)
+                Path::ChannelsIdMessagesId(Method::Get, channel_id)
             }
             Self::GetNitroStickerPacks { .. } => Path::StickerPacks,
             Self::GetPins { channel_id } | Self::PinMessage { channel_id, .. } => {
-                Path::ChannelsIdPins(*channel_id)
+                Path::ChannelsIdPins(channel_id)
             }
             Self::GetSticker { .. } => Path::Stickers,
             Self::GetUserConnections => Path::UsersIdConnections,
             Self::GetVoiceRegions => Path::VoiceRegions,
             Self::InteractionCallback { interaction_id, .. } => {
-                Path::InteractionCallback(*interaction_id)
+                Path::InteractionCallback(interaction_id)
             }
             Self::LeaveGuild { .. } => Path::UsersIdGuildsId,
-            Self::SearchGuildMembers { guild_id, .. } => Path::GuildsIdMembersSearch(*guild_id),
+            Self::SearchGuildMembers { guild_id, .. } => Path::GuildsIdMembersSearch(guild_id),
             Self::SyncGuildIntegration { guild_id, .. } => {
-                Path::GuildsIdIntegrationsIdSync(*guild_id)
+                Path::GuildsIdIntegrationsIdSync(guild_id)
             }
-            Self::UnpinMessage { channel_id, .. } => Path::ChannelsIdPinsMessageId(*channel_id),
+            Self::UnpinMessage { channel_id, .. } => Path::ChannelsIdPinsMessageId(channel_id),
             Self::UpdateCurrentUserVoiceState { guild_id }
-            | Self::UpdateUserVoiceState { guild_id, .. } => Path::GuildsIdVoiceStates(*guild_id),
+            | Self::UpdateUserVoiceState { guild_id, .. } => Path::GuildsIdVoiceStates(guild_id),
             Self::UpdateMessage { channel_id, .. } => {
-                Path::ChannelsIdMessagesId(Method::Patch, *channel_id)
+                Path::ChannelsIdMessagesId(Method::Patch, channel_id)
             }
-            Self::UpdateNickname { guild_id } => Path::GuildsIdMembersMeNick(*guild_id),
+            Self::UpdateNickname { guild_id } => Path::GuildsIdMembersMeNick(guild_id),
         }
     }
 }

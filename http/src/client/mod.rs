@@ -53,8 +53,8 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateCurrentUserNick,
-            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
+            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         scheduled_event::{
             CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
@@ -624,17 +624,6 @@ impl Client {
     /// ```
     pub const fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
         GetCurrentUserGuilds::new(self)
-    }
-
-    /// Changes the user's nickname in a guild.
-    #[allow(deprecated)]
-    #[deprecated(note = "use update_current_member instead", since = "0.7.2")]
-    pub const fn update_current_user_nick<'a>(
-        &'a self,
-        guild_id: Id<GuildMarker>,
-        nick: &'a str,
-    ) -> UpdateCurrentUserNick<'a> {
-        UpdateCurrentUserNick::new(self, guild_id, nick)
     }
 
     /// Get the emojis for a guild, by the guild's id.
@@ -2395,9 +2384,7 @@ impl Client {
         #[cfg(feature = "tracing")]
         tracing::debug!("URL: {:?}", url);
 
-        let mut builder = hyper::Request::builder()
-            .method(method.into_http())
-            .uri(&url);
+        let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);
 
         if use_authorization_token {
             if let Some(token) = &self.token {

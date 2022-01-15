@@ -19,14 +19,10 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Set excluded examples
-        id: excluded-examples
-        run: echo "::set-output name=out::$(grep -h '^name' examples/*/Cargo.toml | cut -d \" -f2 | xargs -I '{}' printf '--exclude {} ')"
-
       - name: Collect coverage
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: "--workspace --ignore-tests --all-features ${{ steps.excluded-examples.outputs.out }}"
+          args: "--ignore-tests --all-features"
 
       - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v2
