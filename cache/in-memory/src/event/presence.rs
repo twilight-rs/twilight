@@ -13,6 +13,8 @@ impl InMemoryCache {
     }
 
     fn cache_presence(&self, guild_id: GuildId, presence: CachedPresence) {
+        self.guild_presences.entry(guild_id).or_default().insert(presence.user_id);
+
         self.presences
             .insert((guild_id, presence.user_id()), presence);
     }
