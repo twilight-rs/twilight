@@ -1,4 +1,5 @@
 pub mod application;
+pub mod attachment;
 pub mod channel;
 pub mod guild;
 pub mod scheduled_event;
@@ -6,7 +7,6 @@ pub mod sticker;
 pub mod template;
 pub mod user;
 
-mod attachment;
 mod audit_reason;
 mod base;
 mod get_gateway;
@@ -17,7 +17,6 @@ mod multipart;
 mod try_into_request;
 
 pub use self::{
-    attachment::{AttachmentFile, PartialAttachment},
     audit_reason::{AuditLogReason, AuditLogReasonError},
     base::{Request, RequestBuilder},
     get_gateway::GetGateway,

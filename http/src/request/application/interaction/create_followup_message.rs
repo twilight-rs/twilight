@@ -2,7 +2,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        AttachmentFile, FormBuilder, NullableField, PartialAttachment, Request, TryIntoRequest,
+        attachment::{self, AttachmentFile, PartialAttachment},
+        FormBuilder, NullableField, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -45,8 +46,8 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 
 /// Create a followup message to an interaction.
 ///
-/// The message must include at least one of `attachments`, `content`, or
-/// `embeds`.
+/// The message must include at least one of [`attachments`], [`content`], or
+/// [`embeds`].
 ///
 /// # Examples
 ///
@@ -67,6 +68,10 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+///
+/// [`attachments`]: Self::attachments
+/// [`content`]: Self::content
+/// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
     application_id: Id<ApplicationMarker>,
@@ -163,9 +168,9 @@ impl<'a> CreateFollowupMessage<'a> {
     /// Calling this method will clear previous calls.
     ///
     /// The amount of embeds must not exceed [`EMBED_COUNT_LIMIT`]. The total
-    /// character length of each embed must not exceed 6000 characters.
-    /// Additionally, the internal fields also have character limits. Refer to
-    /// [Discord Docs/Embed Limits] for more information.
+    /// character length of each embed must not exceed [`EMBED_TOTAL_LENGTH`]
+    /// characters. Additionally, the internal fields also have character
+    /// limits. Refer to [Discord Docs/Embed Limits] for more information.
     ///
     /// # Errors
     ///
@@ -176,6 +181,7 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
+    /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
         validate_embeds(embeds)?;
@@ -257,27 +263,15 @@ impl TryIntoRequest for CreateFollowupMessage<'_> {
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
         if self.attachment_files.is_some() || self.fields.payload_json.is_some() {
-            if let Some(attachment_files) = self.attachment_files {
-                self.fields.attachments = Some(
-                    attachment_files
-                        .iter()
-                        .enumerate()
-                        .map(|(index, attachment)| PartialAttachment {
-                            description: attachment.description,
-                            filename: Some(attachment.filename),
-                            id: index as u64,
-                        })
-                        .collect(),
-                );
-            }
-
             let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
-                FormBuilder::new(Cow::Borrowed(payload_json))
+                FormBuilder::from_payload_json(Cow::Borrowed(payload_json))
             } else {
-                crate::json::to_vec(&self.fields)
-                    .map(Cow::Owned)
-                    .map(FormBuilder::new)
-                    .map_err(HttpError::json)?
+                if let Some(attachment_files) = self.attachment_files {
+                    self.fields.attachments =
+                        Some(attachment::files_into_partial_attachments(attachment_files));
+                }
+
+                FormBuilder::from_fields(&self.fields)?
             };
 
             if let Some(attachment_files) = self.attachment_files {

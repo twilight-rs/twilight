@@ -126,8 +126,8 @@ impl<'a> InteractionClient<'a> {
 
     /// Create a followup message to an interaction.
     ///
-    /// The message must include at least one of `attachments`, `content`, or
-    /// `embeds`.
+    /// The message must include at least one of [`attachments`], [`content`],
+    /// or [`embeds`].
     ///
     /// # Examples
     ///
@@ -148,6 +148,10 @@ impl<'a> InteractionClient<'a> {
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`attachments`]: CreateFollowupMessage::attachments
+    /// [`content`]: CreateFollowupMessage::content
+    /// [`embeds`]: CreateFollowupMessage::embeds
     pub const fn create_followup_message(
         &'a self,
         interaction_token: &'a str,

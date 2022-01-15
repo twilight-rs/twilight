@@ -272,7 +272,8 @@ impl Client {
         InteractionClient::new(self, application_id)
     }
 
-    /// Get a reference to the default [`AllowedMentions`] for sent messages.
+    /// Get an immutable reference to the default [`AllowedMentions`] for sent
+    /// messages.
     pub const fn default_allowed_mentions(&self) -> Option<&AllowedMentions> {
         self.default_allowed_mentions.as_ref()
     }
@@ -1224,8 +1225,8 @@ impl Client {
 
     /// Send a message to a channel.
     ///
-    /// The message must include at least one of `attachments`, `content`,
-    /// `embeds`, or `sticker_ids`.
+    /// The message must include at least one of [`attachments`], [`content`],
+    /// [`embeds`], or [`sticker_ids`].
     ///
     /// # Example
     ///
@@ -1246,6 +1247,11 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`attachments`]: CreateMessage::attachments
+    /// [`content`]: CreateMessage::content
+    /// [`embeds`]: CreateMessage::embeds
+    /// [`sticker_ids`]: CreateMessage::sticker_ids
     pub const fn create_message(&self, channel_id: Id<ChannelMarker>) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
@@ -1276,11 +1282,10 @@ impl Client {
 
     /// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
     ///
-    /// You can pass [`None`] or an empty slice to any of the methods to remove
-    /// the associated field. For example, to remove the content, use
-    /// `.content(None)`, and to remove all embeds from a message, use
-    /// `.embeds(&[])`. You must ensure that the message still contains at least
-    /// one of content, attachments, embeds, or sticker IDs.
+    /// You can pass [`None`] to any of the methods to remove the associated
+    /// field. Pass [`None`] to [`content`] to remove the content. You must
+    /// ensure that the message still contains at least one of [`attachments`],
+    /// [`content`], [`embeds`], or stickers.
     ///
     /// # Examples
     ///
@@ -1315,6 +1320,10 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`attachments`]: UpdateMessage::attachments
+    /// [`content`]: UpdateMessage::content
+    /// [`embeds`]: UpdateMessage::embeds
     pub const fn update_message(
         &self,
         channel_id: Id<ChannelMarker>,
@@ -1885,8 +1894,8 @@ impl Client {
 
     /// Execute a webhook, sending a message to its channel.
     ///
-    /// The message must include at least one of `attachments`, `content`, or
-    /// `embeds`.
+    /// The message must include at least one of [`attachments`], [`content`],
+    /// or [`embeds`].
     ///
     /// # Examples
     ///
@@ -1906,6 +1915,10 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`attachments`]: ExecuteWebhook::attachments
+    /// [`content`]: ExecuteWebhook::content
+    /// [`embeds`]: ExecuteWebhook::embeds
     pub const fn execute_webhook<'a>(
         &'a self,
         webhook_id: Id<WebhookMarker>,
@@ -1926,6 +1939,11 @@ impl Client {
 
     /// Update a message executed by a webhook.
     ///
+    /// You can pass [`None`] to any of the methods to remove the associated
+    /// field. Pass [`None`] to [`content`] to remove the content. You must
+    /// ensure that the message still contains at least one of [`attachments`],
+    /// [`content`], or [`embeds`].
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -1941,6 +1959,10 @@ impl Client {
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`attachments`]: UpdateWebhookMessage::attachments
+    /// [`content`]: UpdateWebhookMessage::content
+    /// [`embeds`]: UpdateWebhookMessage::embeds
     pub const fn update_webhook_message<'a>(
         &'a self,
         webhook_id: Id<WebhookMarker>,

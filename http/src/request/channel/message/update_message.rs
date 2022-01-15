@@ -2,7 +2,8 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        AttachmentFile, FormBuilder, NullableField, PartialAttachment, Request, TryIntoRequest,
+        attachment::{self, AttachmentFile, PartialAttachment},
+        FormBuilder, NullableField, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -47,11 +48,10 @@ struct UpdateMessageFields<'a> {
 
 /// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
 ///
-/// You can pass [`None`] or an empty slice to any of the methods to remove the
-/// associated field. For example, to remove the content, use `.content(None)`,
-/// and to remove all embeds from a message, use `.embeds(&[])`. You must ensure
-/// that the message still contains at least one of `attachments`, `content`,
-/// `embeds`, or `sticker_ids`.
+/// You can pass [`None`] to any of the methods to remove the associated field.
+/// Pass [`None`] to [`content`] to remove the content. You must ensure that the
+/// message still contains at least one of [`attachments`], [`content`],
+/// [`embeds`], or stickers.
 ///
 /// # Examples
 ///
@@ -86,6 +86,10 @@ struct UpdateMessageFields<'a> {
 ///     .await?;
 /// # Ok(()) }
 /// ```
+///
+/// [`attachments`]: Self::attachments
+/// [`content`]: Self::content
+/// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateMessage<'a> {
     /// List of new attachments to add to the message.
@@ -198,9 +202,9 @@ impl<'a> UpdateMessage<'a> {
     /// Calling this method will clear previous calls.
     ///
     /// The amount of embeds must not exceed [`EMBED_COUNT_LIMIT`]. The total
-    /// character length of each embed must not exceed 6000 characters.
-    /// Additionally, the internal fields also have character limits. Refer to
-    /// [Discord Docs/Embed Limits] for more information.
+    /// character length of each embed must not exceed [`EMBED_TOTAL_LENGTH`]
+    /// characters. Additionally, the internal fields also have character
+    /// limits. Refer to [Discord Docs/Embed Limits] for more information.
     ///
     /// # Editing
     ///
@@ -219,6 +223,7 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
+    /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     pub fn embeds(mut self, embeds: Option<&'a [Embed]>) -> Result<Self, MessageValidationError> {
         if let Some(embeds) = embeds {
@@ -316,36 +321,23 @@ impl TryIntoRequest for UpdateMessage<'_> {
             || self.attachment_ids.is_some()
             || self.fields.payload_json.is_some()
         {
-            let mut attachments = Vec::new();
-
-            if let Some(attachment_files) = self.attachment_files {
-                attachments.extend(attachment_files.iter().enumerate().map(|(index, file)| {
-                    PartialAttachment {
-                        description: file.description,
-                        filename: Some(file.filename),
-                        id: index as u64,
-                    }
-                }));
-            }
-
-            if let Some(attachment_ids) = self.attachment_ids {
-                attachments.extend(
-                    attachment_ids
-                        .iter()
-                        .copied()
-                        .map(PartialAttachment::from_id),
-                )
-            }
-
-            self.fields.attachments.replace(attachments);
-
             let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
-                FormBuilder::new(Cow::Borrowed(payload_json))
+                FormBuilder::from_payload_json(Cow::Borrowed(payload_json))
             } else {
-                crate::json::to_vec(&self.fields)
-                    .map(Cow::Owned)
-                    .map(FormBuilder::new)
-                    .map_err(HttpError::json)?
+                let mut attachments = Vec::new();
+
+                if let Some(attachment_files) = self.attachment_files {
+                    attachments
+                        .extend(attachment::files_into_partial_attachments(attachment_files));
+                }
+
+                if let Some(attachment_ids) = self.attachment_ids {
+                    attachments.extend(attachment::ids_into_partial_attachments(attachment_ids))
+                }
+
+                self.fields.attachments.replace(attachments);
+
+                FormBuilder::from_fields(&self.fields)?
             };
 
             if let Some(attachment_files) = self.attachment_files {

@@ -1,5 +1,6 @@
-use crate::request::AttachmentFile;
+use crate::{error::Error as HttpError, request::attachment::AttachmentFile};
 use rand::{distributions::Alphanumeric, Rng};
+use serde::Serialize;
 use std::borrow::Cow;
 
 #[derive(Debug)]
@@ -51,7 +52,14 @@ impl<'a> FormBuilder<'a> {
     const CONTENT_DISPOSITION_IMAGE_MID: &'static [u8; 14] = br#"]"; filename=""#;
     const CONTENT_DISPOSITION_IMAGE_POST: &'static [u8; 1] = br#"""#;
 
-    pub fn new(payload_json: Cow<'a, [u8]>) -> Self {
+    pub fn from_fields(fields: &impl Serialize) -> Result<Self, HttpError> {
+        crate::json::to_vec(fields)
+            .map(Cow::Owned)
+            .map(FormBuilder::from_payload_json)
+            .map_err(HttpError::json)
+    }
+
+    pub fn from_payload_json(payload_json: Cow<'a, [u8]>) -> Self {
         Self {
             attachments: &[],
             boundary: random_boundary(),
@@ -202,6 +210,7 @@ impl<'a> FormBuilder<'a> {
     }
 }
 
+/// Generate a random boundary that is 15 characters long.
 pub fn random_boundary() -> [u8; 15] {
     let mut boundary = [0; 15];
     let mut rng = rand::thread_rng();
@@ -213,6 +222,7 @@ pub fn random_boundary() -> [u8; 15] {
     boundary
 }
 
+/// Count the number of digits in a given number.
 const fn num_digits(index: usize) -> usize {
     let mut index = index;
     let mut len = 0;
@@ -272,7 +282,7 @@ fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::request::PartialAttachment;
+    use crate::request::attachment::PartialAttachment;
     use serde::Serialize;
     use std::str;
 
@@ -324,7 +334,7 @@ mod tests {
         };
 
         let payload_json = crate::json::to_vec(&fields).unwrap();
-        let form_builder = FormBuilder::new(Cow::Owned(payload_json));
+        let form_builder = FormBuilder::from_payload_json(Cow::Owned(payload_json));
 
         let attachments = Vec::from([attachment_file]);
         let form_builder = form_builder.attachments(attachments.as_ref());

@@ -37,12 +37,30 @@ pub struct PartialAttachment<'a> {
     pub id: u64,
 }
 
-impl PartialAttachment<'_> {
-    pub const fn from_id(id: Id<AttachmentMarker>) -> Self {
-        Self {
+pub(crate) fn files_into_partial_attachments<'a>(
+    attachment_files: &'a [AttachmentFile<'a>],
+) -> Vec<PartialAttachment<'a>> {
+    attachment_files
+        .iter()
+        .enumerate()
+        .map(|(index, attachment_file)| PartialAttachment {
+            description: attachment_file.description,
+            filename: Some(attachment_file.filename),
+            id: index as u64,
+        })
+        .collect()
+}
+
+pub(crate) fn ids_into_partial_attachments(
+    attachment_ids: &[Id<AttachmentMarker>],
+) -> Vec<PartialAttachment<'_>> {
+    attachment_ids
+        .iter()
+        .copied()
+        .map(|id| PartialAttachment {
             description: None,
             filename: None,
             id: id.get(),
-        }
-    }
+        })
+        .collect()
 }
