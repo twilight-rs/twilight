@@ -250,7 +250,7 @@ impl GlobalLimited {
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Present {
     /// Hashed bucket ID, if any.
-    bucket: Option<Box<str>>,
+    bucket: Option<String>,
     /// Total number of tickets allocated to a bucket.
     limit: u64,
     /// Remaining number of tickets.
@@ -266,22 +266,15 @@ pub struct Present {
 impl Present {
     /// Immutable reference to the bucket.
     #[must_use]
-    pub const fn bucket_ref(&self) -> Option<&str> {
-        // Clippy recommends using `Option::map`, but we can't because this is a
-        // `const` function.
-        #[allow(clippy::option_if_let_else)]
-        if let Some(bucket) = self.bucket.as_ref() {
-            Some(bucket)
-        } else {
-            None
-        }
+    pub fn bucket(&self) -> Option<&str> {
+        self.bucket.as_deref()
     }
 
     /// Consume the present ratelimit headers, returning the owned bucket if
     /// available.
     #[allow(clippy::missing_const_for_fn)]
     #[must_use]
-    pub fn into_bucket(self) -> Option<Box<str>> {
+    pub fn into_bucket(self) -> Option<String> {
         self.bucket
     }
 
