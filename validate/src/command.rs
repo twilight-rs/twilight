@@ -4,7 +4,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::application::command::{Command, CommandOption};
+use twilight_model::application::command::{Command, CommandOption, CommandType};
 
 /// Maximum number of choices an option can have.
 pub const CHOICES_LIMIT: usize = 25;
@@ -97,7 +97,7 @@ impl CommandValidationError {
 
 impl Display for CommandValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self.kind {
+        match &self.kind {
             CommandValidationErrorType::CountInvalid => {
                 f.write_str("more than ")?;
                 Display::fmt(&GUILD_COMMAND_LIMIT, f)?;
@@ -112,13 +112,20 @@ impl Display for CommandValidationError {
 
                 f.write_str(" characters")
             }
-            CommandValidationErrorType::NameInvalid => {
+            CommandValidationErrorType::NameLengthInvalid => {
                 f.write_str("command name must be between ")?;
                 Display::fmt(&NAME_LENGTH_MIN, f)?;
                 f.write_str(" and ")?;
-                Display::fmt(&NAME_LENGTH_MAX, f)?;
 
-                f.write_str(" characters")
+                Display::fmt(&NAME_LENGTH_MAX, f)
+            }
+            CommandValidationErrorType::NameCharacterInvalid { character } => {
+                f.write_str(
+                    "command name must only contain lowercase alphanumeric characters, found `",
+                )?;
+                Display::fmt(character, f)?;
+
+                f.write_str("`")
             }
             CommandValidationErrorType::OptionDescriptionInvalid => {
                 f.write_str("command option description must be between ")?;
@@ -128,13 +135,18 @@ impl Display for CommandValidationError {
 
                 f.write_str(" characters")
             }
-            CommandValidationErrorType::OptionNameInvalid => {
+            CommandValidationErrorType::OptionNameLengthInvalid => {
                 f.write_str("command option name must be between ")?;
                 Display::fmt(&OPTION_NAME_LENGTH_MIN, f)?;
                 f.write_str(" and ")?;
-                Display::fmt(&OPTION_NAME_LENGTH_MAX, f)?;
 
-                f.write_str(" characters")
+                Display::fmt(&OPTION_NAME_LENGTH_MAX, f)
+            }
+            CommandValidationErrorType::OptionNameCharacterInvalid { character } => {
+                f.write_str("command option name must only contain lowercase alphanumeric characters, found `")?;
+                Display::fmt(character, f)?;
+
+                f.write_str("`")
             }
             CommandValidationErrorType::OptionsCountInvalid => {
                 f.write_str("more than ")?;
@@ -168,12 +180,22 @@ pub enum CommandValidationErrorType {
     CountInvalid,
     /// Command description is invalid.
     DescriptionInvalid,
-    /// Command name is invalid.
-    NameInvalid,
+    /// Command name length is invalid.
+    NameLengthInvalid,
+    /// Command name contain an invalid character.
+    NameCharacterInvalid {
+        /// Invalid character.
+        character: char,
+    },
     /// Command option description is invalid.
     OptionDescriptionInvalid,
-    /// Command option name is invalid.
-    OptionNameInvalid,
+    /// Command option name length is invalid.
+    OptionNameLengthInvalid,
+    /// Command option name contain an invalid character.
+    OptionNameCharacterInvalid {
+        /// Invalid character.
+        character: char,
+    },
     /// Command options count invalid.
     OptionsCountInvalid,
     /// Required command options have to be passed before optional ones.
@@ -192,20 +214,26 @@ pub enum CommandValidationErrorType {
 /// Returns an error of type [`DescriptionInvalid`] if the description is
 /// invalid.
 ///
-/// Returns an error of type [`NameInvalid`] if the name is invalid.
+/// Returns an error of type [`NameLengthInvalid`] or [`NameCharacterInvalid`]
+/// if the name is invalid.
 ///
 /// [`DescriptionInvalid`]: CommandValidationErrorType::DescriptionInvalid
-/// [`NameInvalid`]: CommandValidationErrorType::NameInvalid
+/// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
+/// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 pub fn command(value: &Command) -> Result<(), CommandValidationError> {
     let Command {
-        description, name, ..
+        description,
+        name,
+        kind,
+        ..
     } = value;
 
     self::description(description)?;
 
-    self::name(name)?;
-
-    Ok(())
+    match kind {
+        CommandType::ChatInput => self::chat_input_name(name),
+        CommandType::User | CommandType::Message => self::name(name),
+    }
 }
 
 /// Validate the description of a [`Command`].
@@ -232,16 +260,21 @@ pub fn description(value: impl AsRef<str>) -> Result<(), CommandValidationError>
     }
 }
 
-/// Validate the name of a [`Command`].
+/// Validate the name of a [`User`] or [`Message`] command.
 ///
 /// The length of the name must be more than [`NAME_LENGTH_MIN`] and less than
 /// or equal to [`NAME_LENGTH_MAX`].
 ///
+/// Use [`chat_input_name`] to validate name of a [`ChatInput`] command.
+///
 /// # Errors
 ///
-/// Returns an error of type [`NameInvalid`] if the name is invalid.
+/// Returns an error of type [`NameLengthInvalid`] if the name is invalid.
 ///
-/// [`NameInvalid`]: CommandValidationErrorType::NameInvalid
+/// [`User`]: CommandType::User
+/// [`Message`]: CommandType::Message
+/// [`ChatInput`]: CommandType::ChatInput
+/// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let len = value.as_ref().chars().count();
 
@@ -250,9 +283,100 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
         Ok(())
     } else {
         Err(CommandValidationError {
-            kind: CommandValidationErrorType::NameInvalid,
+            kind: CommandValidationErrorType::NameLengthInvalid,
         })
     }
+}
+
+/// Validate the name of a [`ChatInput`] command.
+///
+/// The length of the name must be more than [`NAME_LENGTH_MIN`] and less than
+/// or equal to [`NAME_LENGTH_MAX`]. It can only contain alphanumeric characters
+/// and lowercase variants must be used where possible. Special characters `-`
+/// and `_` are allowed.
+///
+/// # Errors
+///
+/// Returns an error of type [`NameLengthInvalid`] if the length is invalid.
+///
+/// Returns an error of type [`NameCharacterInvalid`] if the name contains a
+/// non-alphanumeric character or an uppercase character for which a lowercase
+/// variant exists.
+///
+/// [`ChatInput`]: CommandType::ChatInput
+/// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
+/// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
+pub fn chat_input_name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
+    self::name(&value)?;
+
+    self::name_characters(value)?;
+
+    Ok(())
+}
+
+/// Validate the name of a [`CommandOption`].
+///
+/// The length of the name must be more than [`NAME_LENGTH_MIN`] and less than
+/// or equal to [`NAME_LENGTH_MAX`]. It can only contain alphanumeric characters
+/// and lowercase variants must be used where possible. Special characters `-`
+/// and `_` are allowed.
+///
+/// # Errors
+///
+/// Returns an error of type [`NameLengthInvalid`] if the length is invalid.
+///
+/// Returns an error of type [`NameCharacterInvalid`] if the name contains a
+/// non-alphanumeric character or an uppercase character for which a lowercase
+/// variant exists.
+///
+/// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
+/// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
+pub fn option_name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
+    let len = value.as_ref().chars().count();
+
+    if !(OPTION_NAME_LENGTH_MIN..=OPTION_NAME_LENGTH_MAX).contains(&len) {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::NameLengthInvalid,
+        });
+    }
+
+    self::name_characters(value)?;
+
+    Ok(())
+}
+
+/// Validate the characters of a [`ChatInput`] command name or a
+/// [`CommandOption`] name.
+///
+/// The name can only contain alphanumeric characters and lowercase variants
+/// must be used where possible. Special characters `-` and `_` are allowed.
+///
+/// # Errors
+///
+/// Returns an error of type [`NameCharacterInvalid`] if the name contains a
+/// non-alphanumeric character or an uppercase character for which a lowercase
+/// variant exists.
+///
+/// [`ChatInput`]: CommandType::ChatInput
+/// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
+fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
+    let chars = value.as_ref().chars();
+
+    for char in chars {
+        if !char.is_alphanumeric() && char != '_' && char != '-' {
+            return Err(CommandValidationError {
+                kind: CommandValidationErrorType::NameCharacterInvalid { character: char },
+            });
+        }
+
+        if char.to_lowercase().next() != Some(char) {
+            return Err(CommandValidationError {
+                kind: CommandValidationErrorType::NameCharacterInvalid { character: char },
+            });
+        }
+    }
+
+    Ok(())
 }
 
 /// Validate a single [`CommandOption`].
@@ -262,10 +386,12 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
 /// Returns an error of type [`OptionDescriptionInvalid`] if the description is
 /// invalid.
 ///
-/// Returns an error of type [`OptionNameInvalid`] if the name is invalid.
+/// Returns an error of type [`OptionNameLengthInvalid`] or [`OptionNameCharacterInvalid`]
+/// if the name is invalid.
 ///
 /// [`OptionDescriptionInvalid`]: CommandValidationErrorType::OptionDescriptionInvalid
-/// [`OptionNameInvalid`]: CommandValidationErrorType::OptionNameInvalid
+/// [`OptionNameLengthInvalid`]: CommandValidationErrorType::OptionNameLengthInvalid
+/// [`OptionNameCharacterInvalid`]: CommandValidationErrorType::OptionNameCharacterInvalid
 pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
     let (description, name) = match option {
         CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => return Ok(()),
@@ -280,7 +406,7 @@ pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
         | CommandOption::Mentionable(data) => (&data.description, &data.name),
     };
 
-    let description_len = description.len();
+    let description_len = description.chars().count();
     if description_len > OPTION_DESCRIPTION_LENGTH_MAX
         && description_len < OPTION_DESCRIPTION_LENGTH_MIN
     {
@@ -289,14 +415,7 @@ pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
         });
     }
 
-    let name_len = name.len();
-    if name_len > OPTION_DESCRIPTION_LENGTH_MAX && name_len < OPTION_DESCRIPTION_LENGTH_MIN {
-        return Err(CommandValidationError {
-            kind: CommandValidationErrorType::OptionNameInvalid,
-        });
-    }
-
-    Ok(())
+    self::option_name(name)
 }
 
 /// Validate a list of command options for count, order, and internal validity.
@@ -367,6 +486,8 @@ pub const fn guild_permissions(count: usize) -> Result<(), CommandValidationErro
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::non_ascii_literal)]
+
     use super::*;
     use twilight_model::{application::command::CommandType, id::Id};
 
@@ -394,6 +515,20 @@ mod tests {
         };
 
         assert!(command(&invalid_command).is_err());
+    }
+
+    #[test]
+    fn test_name_characters() {
+        assert!(name_characters("hello-command").is_ok()); // Latin language
+        assert!(name_characters("Hello").is_err()); // Latin language with uppercase
+        assert!(name_characters("hello!").is_err()); // Latin language with non-alphanumeric
+
+        assert!(name_characters("здрасти").is_ok()); // Russian
+        assert!(name_characters("Здрасти").is_err()); // Russian with uppercase
+        assert!(name_characters("здрасти!").is_err()); // Russian with non-alphanumeric
+
+        assert!(name_characters("你好").is_ok()); // Chinese (no upper and lowercase variants)
+        assert!(name_characters("你好。").is_err()); // Chinese with non-alphanumeric
     }
 
     #[test]

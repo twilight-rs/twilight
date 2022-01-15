@@ -13,6 +13,7 @@ use twilight_model::{
         Id,
     },
 };
+use twilight_validate::command::{name as validate_name, CommandValidationError};
 
 /// Create a user command in a guild.
 ///
@@ -31,19 +32,21 @@ pub struct CreateGuildUserCommand<'a> {
 }
 
 impl<'a> CreateGuildUserCommand<'a> {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, CommandValidationError> {
+        validate_name(name)?;
+
+        Ok(Self {
             application_id,
             default_permission: None,
             guild_id,
             http,
             name,
-        }
+        })
     }
 
     /// Whether the command is enabled by default when the app is added to a guild.

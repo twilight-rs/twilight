@@ -318,6 +318,15 @@ pub enum AuditLogChange {
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<Id<GenericMarker>>,
     },
+    /// Invitable state of a private thread.
+    Invitable {
+        /// New threads invitable state.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<bool>,
+        /// Old threads invitable state.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<bool>,
+    },
     /// ID of the user who created an invite.
     InviterId {
         /// User ID.
@@ -738,6 +747,7 @@ impl AuditLogChange {
             Self::Hoist { .. } => AuditLogChangeKey::Hoist,
             Self::IconHash { .. } => AuditLogChangeKey::IconHash,
             Self::Id { .. } => AuditLogChangeKey::Id,
+            Self::Invitable { .. } => AuditLogChangeKey::Invitable,
             Self::InviterId { .. } => AuditLogChangeKey::InviterId,
             Self::Location { .. } => AuditLogChangeKey::Location,
             Self::Locked { .. } => AuditLogChangeKey::Locked,
@@ -815,6 +825,7 @@ mod tests {
     assert_fields!(AuditLogChange::Hoist: new, old);
     assert_fields!(AuditLogChange::IconHash: new, old);
     assert_fields!(AuditLogChange::Id: new);
+    assert_fields!(AuditLogChange::Invitable: new, old);
     assert_fields!(AuditLogChange::InviterId: new);
     assert_fields!(AuditLogChange::MaxAge: new);
     assert_fields!(AuditLogChange::MaxUses: new);

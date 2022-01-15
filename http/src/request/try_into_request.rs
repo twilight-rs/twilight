@@ -61,13 +61,18 @@ mod private {
                 CreateGuildSticker, DeleteGuildSticker, GetGuildSticker, GetGuildStickers,
                 UpdateGuildSticker,
             },
-            update_current_user_nick::UpdateCurrentUserNick,
             user::{UpdateCurrentUserVoiceState, UpdateUserVoiceState},
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
             GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
             UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+        },
+        scheduled_event::{
+            CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
+            CreateGuildStageInstanceScheduledEvent, CreateGuildVoiceScheduledEvent,
+            DeleteGuildScheduledEvent, GetGuildScheduledEvent, GetGuildScheduledEventUsers,
+            GetGuildScheduledEvents, UpdateGuildScheduledEvent,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
@@ -98,11 +103,15 @@ mod private {
     impl Sealed for CreateGuildChannel<'_> {}
     impl Sealed for CreateGuildChatInputCommand<'_> {}
     impl Sealed for CreateGuildCommand<'_> {}
+    impl Sealed for CreateGuildExternalScheduledEvent<'_> {}
     impl Sealed for CreateGuildFromTemplate<'_> {}
     impl Sealed for CreateGuildMessageCommand<'_> {}
     impl Sealed for CreateGuildPrune<'_> {}
+    impl Sealed for CreateGuildScheduledEvent<'_> {}
+    impl Sealed for CreateGuildStageInstanceScheduledEvent<'_> {}
     impl Sealed for CreateGuildSticker<'_> {}
     impl Sealed for CreateGuildUserCommand<'_> {}
+    impl Sealed for CreateGuildVoiceScheduledEvent<'_> {}
     impl Sealed for CreateInvite<'_> {}
     impl Sealed for CreateMessage<'_> {}
     impl Sealed for CreatePin<'_> {}
@@ -128,6 +137,7 @@ mod private {
     impl Sealed for DeleteGuild<'_> {}
     impl Sealed for DeleteGuildCommand<'_> {}
     impl Sealed for DeleteGuildIntegration<'_> {}
+    impl Sealed for DeleteGuildScheduledEvent<'_> {}
     impl Sealed for DeleteGuildSticker<'_> {}
     impl Sealed for DeleteInvite<'_> {}
     impl Sealed for DeleteMessage<'_> {}
@@ -175,6 +185,9 @@ mod private {
     impl Sealed for GetGuildPreview<'_> {}
     impl Sealed for GetGuildPruneCount<'_> {}
     impl Sealed for GetGuildRoles<'_> {}
+    impl Sealed for GetGuildScheduledEvent<'_> {}
+    impl Sealed for GetGuildScheduledEventUsers<'_> {}
+    impl Sealed for GetGuildScheduledEvents<'_> {}
     impl Sealed for GetGuildSticker<'_> {}
     impl Sealed for GetGuildStickers<'_> {}
     impl Sealed for GetGuildVanityUrl<'_> {}
@@ -221,7 +234,6 @@ mod private {
     impl Sealed for UpdateCommandPermissions<'_> {}
     impl Sealed for UpdateCurrentMember<'_> {}
     impl Sealed for UpdateCurrentUser<'_> {}
-    impl Sealed for UpdateCurrentUserNick<'_> {}
     impl Sealed for UpdateCurrentUserVoiceState<'_> {}
     impl Sealed for UpdateEmoji<'_> {}
     impl Sealed for UpdateFollowupMessage<'_> {}
@@ -230,6 +242,7 @@ mod private {
     impl Sealed for UpdateGuildChannelPositions<'_> {}
     impl Sealed for UpdateGuildCommand<'_> {}
     impl Sealed for UpdateGuildMember<'_> {}
+    impl Sealed for UpdateGuildScheduledEvent<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
     impl Sealed for UpdateGuildWelcomeScreen<'_> {}
     impl Sealed for UpdateGuildWidget<'_> {}

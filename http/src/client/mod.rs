@@ -53,8 +53,12 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateCurrentUserNick,
-            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
+            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+        },
+        scheduled_event::{
+            CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
+            GetGuildScheduledEventUsers, GetGuildScheduledEvents, UpdateGuildScheduledEvent,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
@@ -92,7 +96,8 @@ use twilight_model::{
     id::{
         marker::{
             ApplicationMarker, ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker,
-            MessageMarker, RoleMarker, StickerMarker, UserMarker, WebhookMarker,
+            MessageMarker, RoleMarker, ScheduledEventMarker, StickerMarker, UserMarker,
+            WebhookMarker,
         },
         Id,
     },
@@ -619,17 +624,6 @@ impl Client {
     /// ```
     pub const fn current_user_guilds(&self) -> GetCurrentUserGuilds<'_> {
         GetCurrentUserGuilds::new(self)
-    }
-
-    /// Changes the user's nickname in a guild.
-    #[allow(deprecated)]
-    #[deprecated(note = "use update_current_member instead", since = "0.7.2")]
-    pub const fn update_current_user_nick<'a>(
-        &'a self,
-        guild_id: Id<GuildMarker>,
-        nick: &'a str,
-    ) -> UpdateCurrentUserNick<'a> {
-        UpdateCurrentUserNick::new(self, guild_id, nick)
     }
 
     /// Get the emojis for a guild, by the guild's id.
@@ -1985,6 +1979,165 @@ impl Client {
         DeleteWebhookMessage::new(self, webhook_id, token, message_id)
     }
 
+    /// Delete a scheduled event in a guild.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// # use twilight_model::id::Id;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token".to_owned());
+    /// let guild_id = Id::new(1);
+    /// let scheduled_event_id = Id::new(2);
+    ///
+    /// client
+    ///     .delete_guild_scheduled_event(guild_id, scheduled_event_id)
+    ///     .exec()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    pub const fn delete_guild_scheduled_event(
+        &self,
+        guild_id: Id<GuildMarker>,
+        scheduled_event_id: Id<ScheduledEventMarker>,
+    ) -> DeleteGuildScheduledEvent<'_> {
+        DeleteGuildScheduledEvent::new(self, guild_id, scheduled_event_id)
+    }
+
+    /// Create a scheduled event in a guild.
+    ///
+    /// Once a guild is selected, you must choose one of three event types to
+    /// create. The request builders will ensure you provide the correct data to
+    /// Discord. See [the Discord docs] for more information on which events
+    /// require which fields.
+    ///
+    /// The name must be between 1 and 100 characters in length. For external
+    /// events, the location must be between 1 and 100 characters in length.
+    ///
+    /// # Examples
+    ///
+    /// Create an event in a stage instance:
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::{datetime::Timestamp, id::Id};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token".to_owned());
+    /// let guild_id = Id::new(1);
+    /// let channel_id = Id::new(2);
+    /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00+00:00")?;
+    ///
+    /// client
+    ///     .create_guild_scheduled_event(guild_id)
+    ///     .stage_instance(
+    ///         channel_id,
+    ///         "Garfield Appreciation Hour",
+    ///         &garfield_start_time
+    ///     )?
+    ///     .description("Discuss: How important is Garfield to You?")?
+    ///     .exec()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// Create an external event:
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::{datetime::Timestamp, id::Id};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("token".to_owned());
+    /// let guild_id = Id::new(1);
+    /// let garfield_con_start_time = Timestamp::parse("2022-01-04T08:00:00+00:00")?;
+    /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00+00:00")?;
+    ///
+    /// client
+    ///     .create_guild_scheduled_event(guild_id)
+    ///     .external(
+    ///         "Garfield Con 2022",
+    ///         "Baltimore Convention Center",
+    ///         &garfield_con_start_time,
+    ///         &garfield_con_end_time
+    ///     )?
+    ///     .description("In a spiritual successor to BronyCon, Garfield fans \
+    /// from around the globe celebrate all things related to the loveable cat.")?
+    ///     .exec()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
+    pub const fn create_guild_scheduled_event(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> CreateGuildScheduledEvent<'_> {
+        CreateGuildScheduledEvent::new(self, guild_id)
+    }
+
+    /// Get a scheduled event in a guild.
+    pub const fn guild_scheduled_event(
+        &self,
+        guild_id: Id<GuildMarker>,
+        scheduled_event_id: Id<ScheduledEventMarker>,
+    ) -> GetGuildScheduledEvent<'_> {
+        GetGuildScheduledEvent::new(self, guild_id, scheduled_event_id)
+    }
+
+    /// Get a list of users subscribed to a scheduled event.
+    ///
+    /// Users are returned in ascending order by `user_id`. [`before`] and
+    /// [`after`] both take a user id. If both are specified, only [`before`] is
+    /// respected. The default [`limit`] is 100. See [the Discord docs] for more
+    /// information.
+    ///
+    /// [`after`]: GetGuildScheduledEventUsers::after
+    /// [`before`]: GetGuildScheduledEventUsers::before
+    /// [`limit`]: GetGuildScheduledEventUsers::limit
+    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
+    pub const fn guild_scheduled_event_users(
+        &self,
+        guild_id: Id<GuildMarker>,
+        scheduled_event_id: Id<ScheduledEventMarker>,
+    ) -> GetGuildScheduledEventUsers<'_> {
+        GetGuildScheduledEventUsers::new(self, guild_id, scheduled_event_id)
+    }
+
+    /// Get a list of scheduled events in a guild.
+    pub const fn guild_scheduled_events(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildScheduledEvents<'_> {
+        GetGuildScheduledEvents::new(self, guild_id)
+    }
+
+    /// Update a scheduled event in a guild.
+    ///
+    /// This endpoint supports changing the type of event. When changing the
+    /// entity type to either [`EntityType::StageInstance`] or
+    /// [`EntityType::Voice`], an [`Id<ChannelMarker>`] must be provided if it
+    /// does not already exist.
+    ///
+    /// When changing the entity type to [`EntityType::External`], the
+    /// `channel_id` field is cleared and the [`channel_id`] method has no
+    /// effect. Additionally, you must set a location with [`location`].
+    ///
+    /// [`EntityType::External`]: twilight_model::scheduled_event::EntityType::External
+    /// [`EntityType::StageInstance`]: twilight_model::scheduled_event::EntityType::StageInstance
+    /// [`EntityType::Voice`]: twilight_model::scheduled_event::EntityType::Voice
+    /// [`channel_id`]: UpdateGuildScheduledEvent::channel_id
+    /// [`location`]: UpdateGuildScheduledEvent::location
+    pub const fn update_guild_scheduled_event(
+        &self,
+        guild_id: Id<GuildMarker>,
+        scheduled_event_id: Id<ScheduledEventMarker>,
+    ) -> UpdateGuildScheduledEvent<'_> {
+        UpdateGuildScheduledEvent::new(self, guild_id, scheduled_event_id)
+    }
+
     /// Returns a single sticker by its ID.
     ///
     /// # Examples
@@ -2231,9 +2384,7 @@ impl Client {
         #[cfg(feature = "tracing")]
         tracing::debug!("URL: {:?}", url);
 
-        let mut builder = hyper::Request::builder()
-            .method(method.into_http())
-            .uri(&url);
+        let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);
 
         if use_authorization_token {
             if let Some(token) = &self.token {

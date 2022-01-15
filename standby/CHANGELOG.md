@@ -2,6 +2,15 @@
 
 Changelog for `twilight-standby`.
 
+## [0.8.3] - 2022-01-11
+
+### Fixes
+
+Downgrade `dashmap` to `4.0`, to prevent an issue with `Ref::value` and `dashmap
+5.0` ([#1434] - [@baptiste0928]).
+
+[#1434]: https://github.com/twilight-rs/twilight/pull/1434
+
 ## [0.8.2] - 2022-01-08
 
 ### Changes
@@ -166,6 +175,7 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
+[@baptiste0928]: https://github.com/baptiste0928
 [@chamburr]: https://github.com/chamburr
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@nickelc]: https://github.com/nickelc
@@ -177,6 +187,7 @@ Initial release.
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.8.0

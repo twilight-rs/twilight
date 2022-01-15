@@ -826,8 +826,70 @@ impl InMemoryCache {
     }
 }
 
+mod private {
+    use twilight_model::gateway::{
+        event::Event,
+        payload::incoming::{
+            ChannelCreate, ChannelDelete, ChannelPinsUpdate, ChannelUpdate, GuildCreate,
+            GuildDelete, GuildEmojisUpdate, GuildStickersUpdate, GuildUpdate, IntegrationCreate,
+            IntegrationDelete, IntegrationUpdate, InteractionCreate, MemberAdd, MemberChunk,
+            MemberRemove, MemberUpdate, MessageCreate, MessageDelete, MessageDeleteBulk,
+            MessageUpdate, PresenceUpdate, ReactionAdd, ReactionRemove, ReactionRemoveAll,
+            ReactionRemoveEmoji, Ready, RoleCreate, RoleDelete, RoleUpdate, StageInstanceCreate,
+            StageInstanceDelete, StageInstanceUpdate, ThreadCreate, ThreadDelete, ThreadListSync,
+            ThreadUpdate, UnavailableGuild, UserUpdate, VoiceStateUpdate,
+        },
+    };
+
+    pub trait Sealed {}
+
+    impl Sealed for Event {}
+    impl Sealed for ChannelCreate {}
+    impl Sealed for ChannelDelete {}
+    impl Sealed for ChannelPinsUpdate {}
+    impl Sealed for ChannelUpdate {}
+    impl Sealed for GuildCreate {}
+    impl Sealed for GuildEmojisUpdate {}
+    impl Sealed for GuildDelete {}
+    impl Sealed for GuildStickersUpdate {}
+    impl Sealed for GuildUpdate {}
+    impl Sealed for IntegrationCreate {}
+    impl Sealed for IntegrationDelete {}
+    impl Sealed for IntegrationUpdate {}
+    impl Sealed for InteractionCreate {}
+    impl Sealed for MemberAdd {}
+    impl Sealed for MemberChunk {}
+    impl Sealed for MemberRemove {}
+    impl Sealed for MemberUpdate {}
+    impl Sealed for MessageCreate {}
+    impl Sealed for MessageDelete {}
+    impl Sealed for MessageDeleteBulk {}
+    impl Sealed for MessageUpdate {}
+    impl Sealed for PresenceUpdate {}
+    impl Sealed for ReactionAdd {}
+    impl Sealed for ReactionRemove {}
+    impl Sealed for ReactionRemoveAll {}
+    impl Sealed for ReactionRemoveEmoji {}
+    impl Sealed for Ready {}
+    impl Sealed for RoleCreate {}
+    impl Sealed for RoleDelete {}
+    impl Sealed for RoleUpdate {}
+    impl Sealed for StageInstanceCreate {}
+    impl Sealed for StageInstanceDelete {}
+    impl Sealed for StageInstanceUpdate {}
+    impl Sealed for ThreadCreate {}
+    impl Sealed for ThreadDelete {}
+    impl Sealed for ThreadListSync {}
+    impl Sealed for ThreadUpdate {}
+    impl Sealed for UnavailableGuild {}
+    impl Sealed for UserUpdate {}
+    impl Sealed for VoiceStateUpdate {}
+}
+
 /// Implemented for dispatch events.
-pub trait UpdateCache {
+///
+/// This trait is sealed and cannot be implemented.
+pub trait UpdateCache: private::Sealed {
     /// Updates the cache based on data contained within an event.
     // Allow this for presentation purposes in documentation.
     #[allow(unused_variables)]
