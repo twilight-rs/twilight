@@ -1,15 +1,15 @@
-pub mod add_thread_member;
-pub mod create_thread;
-pub mod create_thread_from_message;
-pub mod get_joined_private_archived_threads;
-pub mod get_private_archived_threads;
-pub mod get_public_archived_threads;
-pub mod get_thread_member;
-pub mod get_thread_members;
-pub mod join_thread;
-pub mod leave_thread;
-pub mod remove_thread_member;
-pub mod update_thread;
+mod add_thread_member;
+mod create_thread;
+mod create_thread_from_message;
+mod get_joined_private_archived_threads;
+mod get_private_archived_threads;
+mod get_public_archived_threads;
+mod get_thread_member;
+mod get_thread_members;
+mod join_thread;
+mod leave_thread;
+mod remove_thread_member;
+mod update_thread;
 
 pub use self::{
     add_thread_member::AddThreadMember, create_thread::CreateThread,
