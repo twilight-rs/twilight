@@ -43,8 +43,7 @@ jobs:
         env:
           RUSTDOCFLAGS: --cfg docsrs
         run: |
-          exclude_examples=($(grep -h '^name' examples/**/Cargo.toml | cut -d'"' -f2 | xargs -I '{}' echo '--exclude {}'))
-          cargo doc --workspace --no-deps --features=permission-calculator "${exclude_examples[@]}"
+          cargo doc --no-deps --features=permission-calculator
           cargo doc -p twilight-util --no-deps --all-features
 
       - name: Prepare docs

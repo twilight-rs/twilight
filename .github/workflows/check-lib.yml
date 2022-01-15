@@ -75,7 +75,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install cargo-sync-readme
-        uses: actions-rs/install@v0.1
+        uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-sync-readme
 
@@ -168,17 +168,14 @@ jobs:
           profile: minimal
 
       - name: Install cargo-hack
-        uses: actions-rs/install@v0.1
+        uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-hack
 
       - name: Install cargo-minimal-versions
-        uses: actions-rs/install@v0.1
+        uses: baptiste0928/cargo-install@v1
         with:
           crate: cargo-minimal-versions
-
-      - name: Ignore examples
-        run: sed -i '/examples/d' Cargo.toml
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
