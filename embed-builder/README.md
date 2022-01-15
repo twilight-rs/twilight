@@ -18,7 +18,7 @@ let embed = EmbedBuilder::new()
     .field(EmbedFieldBuilder::new("Wings", "She has wings.").inline())
     .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.").inline())
     .build()?;
-    
+
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
