@@ -533,7 +533,7 @@ impl Shard {
                     }
                 })?;
 
-        let handle = tokio::spawn(async move {
+        let handle = tokio::spawn(async {
             processor.run().await;
 
             #[cfg(feature = "tracing")]
@@ -745,9 +745,10 @@ impl Shard {
 
         let shard_id = self.config().shard()[0];
 
-        let session = match self.session() {
-            Ok(session) => session,
-            Err(_) => return (shard_id, None),
+        let session = if let Ok(session) = self.session() {
+            session
+        } else {
+            return (shard_id, None);
         };
 
         let _res = session.close(Some(TungsteniteCloseFrame {

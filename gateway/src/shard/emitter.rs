@@ -77,7 +77,6 @@ impl Emitter {
     }
 
     /// Whether the configured event types include an individual event type.
-    #[inline]
     pub const fn wants(&self, event_type: EventTypeFlags) -> bool {
         self.event_types.contains(event_type)
     }
@@ -145,7 +144,7 @@ impl Emitter {
                         source: Some(Box::new(source)),
                     }
                 })?;
-            self.event(Event::from(gateway_event));
+            self.send(Event::from(gateway_event));
         }
 
         Ok(())
