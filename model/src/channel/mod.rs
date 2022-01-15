@@ -114,11 +114,13 @@ pub struct Channel {
     /// Number of members in the channel.
     ///
     /// At most a value of 50 is provided although the real number may be
+    /// higher.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member_count: Option<u8>,
     /// Number of messages in the channel.
     ///
     /// At most a value of 50 is provided although the real number may be
+    /// higher.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_count: Option<u8>,
     /// ID of the creator of the channel.
