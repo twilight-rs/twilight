@@ -349,10 +349,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             ChannelType::GuildPrivateThread => {
                 self.parent_overwrites(&channel.id, channel.permission_overwrites.clone())?
             }
-            other
-                if other == ChannelType::GuildNewsThread
-                    || other == ChannelType::GuildPublicThread =>
-            {
+            ChannelType::GuildNewsThread | ChannelType::GuildPublicThread => {
                 self.parent_overwrites(&channel.id, None)?
             }
             _ => channel.permission_overwrites.clone().unwrap_or_default(),
