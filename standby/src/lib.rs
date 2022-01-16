@@ -88,32 +88,12 @@ impl<T: Debug> Debug for Bystander<T> {
 /// The `Standby` struct, used by the main event loop to process events and by
 /// tasks to wait for an event.
 ///
+/// Refer to the crate-level documentation for more information.
+///
 /// # Using Standby in multiple tasks
 ///
 /// To use a Standby instance in multiple tasks, consider wrapping it in an
 /// [`std::sync::Arc`] or [`std::rc::Rc`].
-///
-/// # Examples
-///
-/// Wait for a message in channel 123 by user 456 with the content "test":
-///
-/// ```no_run
-/// use twilight_model::{
-///     gateway::payload::incoming::MessageCreate,
-///     id::Id,
-/// };
-/// use twilight_standby::Standby;
-///
-/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let standby = Standby::new();
-///
-/// let channel_id = Id::new(123);
-///
-/// let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
-///     event.author.id.get() == 456 && event.content == "test"
-/// }).await?;
-/// # Ok(()) }
-/// ```
 #[derive(Debug, Default)]
 pub struct Standby {
     /// List of component bystanders where the ID of the message is known
