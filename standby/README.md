@@ -48,20 +48,25 @@ This is enabled by default.
 
 Wait for a message in channel 123 by user 456 with the content "test":
 
-```rust,ignore
+```rust,no_run
 use twilight_model::{
     gateway::payload::incoming::MessageCreate,
     id::Id,
 };
 use twilight_standby::Standby;
 
-let standby = Standby::new();
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let standby = Standby::new();
 
-let channel_id = Id::new(123);
+    let channel_id = Id::new(123);
 
-let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
-    event.author.id.get() == 456 && event.content == "test"
-}).await?;
+    let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
+        event.author.id.get() == 456 && event.content == "test"
+    }).await?;
+
+    Ok(())
+}
 ```
 
 ### A full example
