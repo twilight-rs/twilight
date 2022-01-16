@@ -2,14 +2,13 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        attachment::{self, AttachmentFile, PartialAttachment},
-        FormBuilder, NullableField, Request, TryIntoRequest,
+        attachment::{Attachment, AttachmentManager, PartialAttachment},
+        NullableField, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{
@@ -82,8 +81,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// [`sticker_ids`]: Self::sticker_ids
 #[must_use = "requests must be configured and executed"]
 pub struct CreateMessage<'a> {
-    /// List of new attachments to add to the message.
-    attachment_files: Option<&'a [AttachmentFile<'a>]>,
+    attachment_manager: AttachmentManager<'a>,
     channel_id: Id<ChannelMarker>,
     fields: CreateMessageFields<'a>,
     http: &'a Client,
@@ -92,7 +90,7 @@ pub struct CreateMessage<'a> {
 impl<'a> CreateMessage<'a> {
     pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
-            attachment_files: None,
+            attachment_manager: AttachmentManager::new(),
             channel_id,
             fields: CreateMessageFields {
                 attachments: None,
@@ -123,8 +121,10 @@ impl<'a> CreateMessage<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear previous calls.
-    pub const fn attachments(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachment_files = Some(attachments);
+    pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
+        self.attachment_manager = self
+            .attachment_manager
+            .set_files(attachments.iter().collect());
 
         self
     }
@@ -322,23 +322,20 @@ impl TryIntoRequest for CreateMessage<'_> {
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
-        if self.attachment_files.is_some() || self.fields.payload_json.is_some() {
-            let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
-                FormBuilder::from_payload_json(Cow::Borrowed(payload_json))
+        if !self.attachment_manager.is_empty() {
+            let form = if let Some(payload_json) = self.fields.payload_json {
+                self.attachment_manager.build_form(payload_json)
             } else {
-                if let Some(attachment_files) = self.attachment_files {
-                    self.fields.attachments =
-                        Some(attachment::files_into_partial_attachments(attachment_files));
-                }
+                self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                FormBuilder::from_fields(&self.fields)?
+                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+
+                self.attachment_manager.build_form(fields.as_ref())
             };
 
-            if let Some(attachment_files) = self.attachment_files {
-                form_builder = form_builder.attachments(attachment_files);
-            }
-
-            request = request.form(form_builder.build());
+            request = request.form(form);
+        } else if let Some(payload_json) = self.fields.payload_json {
+            request = request.body(payload_json.to_vec())
         } else {
             request = request.json(&self.fields)?;
         }

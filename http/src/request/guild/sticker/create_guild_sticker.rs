@@ -1,10 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{
-        multipart::{self, Form},
-        AuditLogReason, AuditLogReasonError, Request, TryIntoRequest,
-    },
+    request::{multipart::Form, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -111,97 +108,17 @@ impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
 
 impl TryIntoRequest for CreateGuildSticker<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
-        const BOUNDARY_TERMINATOR: &[u8; 2] = b"--";
-        const DESCRIPTION: &[u8; 11] = b"description";
-        const FILE: &[u8; 4] = b"file";
-        const KEY_POST: &[u8; 1] = br#"""#;
-        const KEY_PRE: &[u8; 38] = br#"Content-Disposition: form-data; name=""#;
-        const NAME: &[u8; 4] = b"name";
-        const NEWLINE: &[u8; 2] = b"\r\n";
-        const TAGS: &[u8; 4] = b"tags";
-
         let mut request = Request::builder(&Route::CreateGuildSticker {
             guild_id: self.guild_id.get(),
         });
 
-        let boundary = multipart::random_boundary();
+        let form = Form::new()
+            .part(b"description", self.fields.description.as_bytes())
+            .part(b"file", self.fields.file)
+            .part(b"name", self.fields.name.as_bytes())
+            .part(b"tags", self.fields.tags.as_bytes());
 
-        let mut capacity = 0;
-
-        capacity += BOUNDARY_TERMINATOR.len() * 6;
-        capacity += boundary.len() * 5;
-        capacity += KEY_PRE.len() * 4;
-        capacity += KEY_POST.len() * 4;
-        capacity += NEWLINE.len() * 12;
-
-        capacity += NAME.len();
-        capacity += self.fields.name.len();
-
-        capacity += DESCRIPTION.len();
-        capacity += self.fields.description.len();
-
-        capacity += TAGS.len();
-        capacity += self.fields.tags.len();
-
-        capacity += FILE.len();
-        capacity += self.fields.file.len();
-
-        let mut buffer = Vec::with_capacity(capacity);
-
-        // Write the first boundary.
-        buffer.extend(BOUNDARY_TERMINATOR);
-        buffer.extend(&boundary);
-        buffer.extend(NEWLINE);
-
-        // Write the name to the form.
-        buffer.extend(KEY_PRE);
-        buffer.extend(NAME);
-        buffer.extend(KEY_POST);
-        buffer.extend(NEWLINE);
-        buffer.extend(NEWLINE);
-        buffer.extend(self.fields.name.as_bytes());
-        buffer.extend(NEWLINE);
-        buffer.extend(BOUNDARY_TERMINATOR);
-        buffer.extend(&boundary);
-        buffer.extend(NEWLINE);
-
-        // Write the description to the form.
-        buffer.extend(KEY_PRE);
-        buffer.extend(DESCRIPTION);
-        buffer.extend(KEY_POST);
-        buffer.extend(NEWLINE);
-        buffer.extend(NEWLINE);
-        buffer.extend(self.fields.description.as_bytes());
-        buffer.extend(NEWLINE);
-        buffer.extend(BOUNDARY_TERMINATOR);
-        buffer.extend(&boundary);
-        buffer.extend(NEWLINE);
-
-        // Write the tags to the form.
-        buffer.extend(KEY_PRE);
-        buffer.extend(TAGS);
-        buffer.extend(KEY_POST);
-        buffer.extend(NEWLINE);
-        buffer.extend(NEWLINE);
-        buffer.extend(self.fields.tags.as_bytes());
-        buffer.extend(NEWLINE);
-        buffer.extend(BOUNDARY_TERMINATOR);
-        buffer.extend(&boundary);
-        buffer.extend(NEWLINE);
-
-        // Write the file to the form.
-        buffer.extend(KEY_PRE);
-        buffer.extend(FILE);
-        buffer.extend(KEY_POST);
-        buffer.extend(NEWLINE);
-        buffer.extend(NEWLINE);
-        buffer.extend(self.fields.file);
-        buffer.extend(NEWLINE);
-        buffer.extend(BOUNDARY_TERMINATOR);
-        buffer.extend(&boundary);
-        buffer.extend(NEWLINE);
-
-        request = request.form(Form::new(boundary, buffer));
+        request = request.form(form);
 
         Ok(request.build())
     }

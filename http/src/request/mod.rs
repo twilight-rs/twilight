@@ -23,7 +23,7 @@ pub use self::{
     get_gateway_authed::GetGatewayAuthed,
     get_user_application::GetUserApplicationInfo,
     get_voice_regions::GetVoiceRegions,
-    multipart::{Form, FormBuilder},
+    multipart::Form,
     try_into_request::TryIntoRequest,
 };
 pub use twilight_http_ratelimiting::request::Method;

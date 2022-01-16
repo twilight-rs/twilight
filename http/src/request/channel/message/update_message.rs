@@ -2,14 +2,13 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        attachment::{self, AttachmentFile, PartialAttachment},
-        FormBuilder, NullableField, Request, TryIntoRequest,
+        attachment::{Attachment, AttachmentManager, PartialAttachment},
+        NullableField, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{
@@ -92,10 +91,7 @@ struct UpdateMessageFields<'a> {
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateMessage<'a> {
-    /// List of new attachments to add to the message.
-    attachment_files: Option<&'a [AttachmentFile<'a>]>,
-    /// List of existing attachment IDs to keep.
-    attachment_ids: Option<&'a [Id<AttachmentMarker>]>,
+    attachment_manager: AttachmentManager<'a>,
     channel_id: Id<ChannelMarker>,
     fields: UpdateMessageFields<'a>,
     http: &'a Client,
@@ -109,8 +105,7 @@ impl<'a> UpdateMessage<'a> {
         message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
-            attachment_files: None,
-            attachment_ids: None,
+            attachment_manager: AttachmentManager::new(),
             channel_id,
             fields: UpdateMessageFields {
                 allowed_mentions: None,
@@ -139,8 +134,10 @@ impl<'a> UpdateMessage<'a> {
     /// Attach multiple new files to the message.
     ///
     /// This method clears previous calls.
-    pub const fn attachments(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachment_files = Some(attachments);
+    pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
+        self.attachment_manager = self
+            .attachment_manager
+            .set_files(attachments.iter().collect());
 
         self
     }
@@ -244,8 +241,10 @@ impl<'a> UpdateMessage<'a> {
     /// or `sticker_ids`. If not called, all attachments will be kept.
     ///
     /// [`attachments`]: Self::attachments
-    pub const fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {
-        self.attachment_ids = Some(attachment_ids);
+    pub fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {
+        self.attachment_manager = self
+            .attachment_manager
+            .set_ids(attachment_ids.iter().copied().collect());
 
         self
     }
@@ -317,34 +316,20 @@ impl TryIntoRequest for UpdateMessage<'_> {
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
-        if self.attachment_files.is_some()
-            || self.attachment_ids.is_some()
-            || self.fields.payload_json.is_some()
-        {
-            let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
-                FormBuilder::from_payload_json(Cow::Borrowed(payload_json))
+        if !self.attachment_manager.is_empty() {
+            let form = if let Some(payload_json) = self.fields.payload_json {
+                self.attachment_manager.build_form(payload_json)
             } else {
-                let mut attachments = Vec::new();
+                self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                if let Some(attachment_files) = self.attachment_files {
-                    attachments
-                        .extend(attachment::files_into_partial_attachments(attachment_files));
-                }
+                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
 
-                if let Some(attachment_ids) = self.attachment_ids {
-                    attachments.extend(attachment::ids_into_partial_attachments(attachment_ids))
-                }
-
-                self.fields.attachments.replace(attachments);
-
-                FormBuilder::from_fields(&self.fields)?
+                self.attachment_manager.build_form(fields.as_ref())
             };
 
-            if let Some(attachment_files) = self.attachment_files {
-                form_builder = form_builder.attachments(attachment_files);
-            }
-
-            request = request.form(form_builder.build());
+            request = request.form(form);
+        } else if let Some(payload_json) = self.fields.payload_json {
+            request = request.body(payload_json.to_vec())
         } else {
             request = request.json(&self.fields)?;
         }

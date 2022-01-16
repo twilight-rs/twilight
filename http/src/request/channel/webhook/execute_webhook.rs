@@ -2,15 +2,14 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        attachment::{self, AttachmentFile, PartialAttachment},
+        attachment::{Attachment, AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
-        FormBuilder, NullableField, Request, TryIntoRequest,
+        NullableField, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions},
@@ -75,8 +74,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhook<'a> {
-    /// List of new attachments to add to the message.
-    attachment_files: Option<&'a [AttachmentFile<'a>]>,
+    attachment_manager: AttachmentManager<'a>,
     fields: ExecuteWebhookFields<'a>,
     http: &'a Client,
     thread_id: Option<Id<ChannelMarker>>,
@@ -92,7 +90,7 @@ impl<'a> ExecuteWebhook<'a> {
         token: &'a str,
     ) -> Self {
         Self {
-            attachment_files: None,
+            attachment_manager: AttachmentManager::new(),
             fields: ExecuteWebhookFields {
                 attachments: None,
                 avatar_url: None,
@@ -125,8 +123,10 @@ impl<'a> ExecuteWebhook<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    pub const fn attachments(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachment_files = Some(attachments);
+    pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
+        self.attachment_manager = self
+            .attachment_manager
+            .set_files(attachments.iter().collect());
 
         self
     }
@@ -336,23 +336,20 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
 
         // Determine whether we need to use a multipart/form-data body or a JSON
         // body.
-        if self.attachment_files.is_some() || self.fields.payload_json.is_some() {
-            let mut form_builder = if let Some(payload_json) = self.fields.payload_json {
-                FormBuilder::from_payload_json(Cow::Borrowed(payload_json))
+        if !self.attachment_manager.is_empty() {
+            let form = if let Some(payload_json) = self.fields.payload_json {
+                self.attachment_manager.build_form(payload_json)
             } else {
-                if let Some(attachment_files) = self.attachment_files {
-                    self.fields.attachments =
-                        Some(attachment::files_into_partial_attachments(attachment_files));
-                }
+                self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                FormBuilder::from_fields(&self.fields)?
+                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+
+                self.attachment_manager.build_form(fields.as_ref())
             };
 
-            if let Some(attachment_files) = self.attachment_files {
-                form_builder = form_builder.attachments(attachment_files);
-            }
-
-            request = request.form(form_builder.build());
+            request = request.form(form);
+        } else if let Some(payload_json) = self.fields.payload_json {
+            request = request.body(payload_json.to_vec())
         } else {
             request = request.json(&self.fields)?;
         }

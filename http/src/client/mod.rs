@@ -2470,7 +2470,7 @@ impl Client {
         }
 
         let req = if let Some(form) = form {
-            let form_bytes = form.buffer();
+            let form_bytes = form.build();
 
             if let Some(headers) = builder.headers_mut() {
                 headers.insert(CONTENT_LENGTH, HeaderValue::from(form_bytes.len()));
