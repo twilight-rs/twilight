@@ -56,7 +56,7 @@ use twilight_model::{
 use twilight_standby::Standby;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let standby = Standby::new();
 
     let channel_id = Id::new(123);
