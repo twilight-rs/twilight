@@ -45,19 +45,11 @@ impl CachedPresence {
 
 impl PartialEq<Presence> for CachedPresence {
     fn eq(&self, other: &Presence) -> bool {
-        (
-            &self.activities,
-            &self.client_status,
-            self.guild_id,
-            self.status,
-            self.user_id,
-        ) == (
-            &other.activities,
-            &other.client_status,
-            other.guild_id,
-            other.status,
-            other.user.id(),
-        )
+        self.activities == other.activities
+            && self.client_status == other.client_status
+            && self.guild_id == other.guild_id
+            && self.status == other.status
+            && self.user_id == other.user.id()
     }
 }
 
