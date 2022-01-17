@@ -1,4 +1,4 @@
-//! Update a original response create for a interaction.
+//! Update a followup message created from a interaction.
 
 use crate::{
     client::Client,
@@ -7,15 +7,15 @@ use crate::{
         attachment::{Attachment, AttachmentManager, PartialAttachment},
         NullableField, Request, TryIntoRequest,
     },
-    response::ResponseFuture,
+    response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions, Message},
+    channel::{embed::Embed, message::AllowedMentions},
     id::{
-        marker::{ApplicationMarker, AttachmentMarker},
+        marker::{ApplicationMarker, AttachmentMarker, MessageMarker},
         Id,
     },
 };
@@ -25,7 +25,7 @@ use twilight_validate::message::{
 };
 
 #[derive(Serialize)]
-struct UpdateOriginalResponseFields<'a> {
+struct UpdateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
     /// List of attachments to keep, and new attachments to add.
@@ -41,7 +41,7 @@ struct UpdateOriginalResponseFields<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
-/// Update the original response created by a interaction.
+/// Edit a followup message of an interaction, by its token and the message ID.
 ///
 /// You can pass [`None`] to any of the methods to remove the associated field.
 /// Pass [`None`] to [`content`] to remove the content. You must ensure that the
@@ -50,7 +50,7 @@ struct UpdateOriginalResponseFields<'a> {
 ///
 /// # Examples
 ///
-/// Update the original response by setting the content to `test <@3>` -
+/// Update a followup message by setting the content to `test <@3>` -
 /// attempting to mention user ID 3 - while specifying that no entities can be
 /// mentioned.
 ///
@@ -68,7 +68,7 @@ struct UpdateOriginalResponseFields<'a> {
 ///
 /// client
 ///     .interaction(application_id)
-///     .update_interaction_original("token here")
+///     .update_followup("token here", Id::new(2))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(Some(&AllowedMentions::default()))
@@ -82,24 +82,26 @@ struct UpdateOriginalResponseFields<'a> {
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
-pub struct UpdateOriginalResponse<'a> {
+pub struct UpdateFollowup<'a> {
     application_id: Id<ApplicationMarker>,
     attachment_manager: AttachmentManager<'a>,
-    fields: UpdateOriginalResponseFields<'a>,
+    fields: UpdateFollowupMessageFields<'a>,
     http: &'a Client,
+    message_id: Id<MessageMarker>,
     token: &'a str,
 }
 
-impl<'a> UpdateOriginalResponse<'a> {
+impl<'a> UpdateFollowup<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
-        interaction_token: &'a str,
+        token: &'a str,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             application_id,
             attachment_manager: AttachmentManager::new(),
-            fields: UpdateOriginalResponseFields {
+            fields: UpdateFollowupMessageFields {
                 allowed_mentions: None,
                 attachments: None,
                 components: None,
@@ -108,14 +110,15 @@ impl<'a> UpdateOriginalResponse<'a> {
                 payload_json: None,
             },
             http,
-            token: interaction_token,
+            message_id,
+            token,
         }
     }
 
     /// Specify the [`AllowedMentions`] for the message.
     ///
-    /// If not called, the request will use the client's default allowed
-    /// mentions.
+    /// Unless otherwise called, the request will use the client's default
+    /// allowed mentions. Set to `None` to ignore this default.
     pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
         self.fields.allowed_mentions = Some(NullableField(allowed_mentions));
 
@@ -175,7 +178,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
     pub fn content(mut self, content: Option<&'a str>) -> Result<Self, MessageValidationError> {
-        if let Some(content_ref) = content {
+        if let Some(content_ref) = content.as_ref() {
             validate_content(content_ref)?;
         }
 
@@ -215,6 +218,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// let client = Client::new("token".to_owned());
     /// let application_id = Id::new(1);
+    /// let message_id = Id::new(2);
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
@@ -225,7 +229,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// client
     ///     .interaction(application_id)
-    ///     .update_interaction_original("token")
+    ///     .update_followup("token", message_id)
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -288,7 +292,7 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    pub fn exec(self) -> ResponseFuture<Message> {
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
         let http = self.http;
 
         match self.try_into_request() {
@@ -298,11 +302,13 @@ impl<'a> UpdateOriginalResponse<'a> {
     }
 }
 
-impl TryIntoRequest for UpdateOriginalResponse<'_> {
+impl TryIntoRequest for UpdateFollowup<'_> {
     fn try_into_request(mut self) -> Result<Request, HttpError> {
-        let mut request = Request::builder(&Route::UpdateInteractionOriginal {
-            application_id: self.application_id.get(),
-            interaction_token: self.token,
+        let mut request = Request::builder(&Route::UpdateWebhookMessage {
+            message_id: self.message_id.get(),
+            thread_id: None,
+            token: self.token,
+            webhook_id: self.application_id.get(),
         });
 
         // Interaction executions don't need the authorization token, only the
@@ -348,14 +354,15 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_delete_followup_message() -> Result<(), Box<dyn Error>> {
+    fn test_update_followup_message() -> Result<(), Box<dyn Error>> {
         let application_id = Id::new(1);
+        let message_id = Id::new(2);
         let token = "foo".to_owned();
 
         let client = Client::new(String::new());
         let req = client
             .interaction(application_id)
-            .update_interaction_original(&token)
+            .update_followup(&token, message_id)
             .content(Some("test"))?
             .try_into_request()?;
 
