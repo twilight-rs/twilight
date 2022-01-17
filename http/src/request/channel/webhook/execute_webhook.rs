@@ -53,11 +53,10 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// # Examples
 ///
 /// ```no_run
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 /// let id = Id::new(432);
 ///
@@ -214,12 +213,11 @@ impl<'a> ExecuteWebhook<'a> {
     /// Without [`payload_json`]:
     ///
     /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::Id;
     ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("token".to_owned());
     ///
     /// let message = client.execute_webhook(Id::new(1), "token here")
@@ -238,12 +236,11 @@ impl<'a> ExecuteWebhook<'a> {
     /// With [`payload_json`]:
     ///
     /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::Id;
     ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("token".to_owned());
     ///
     /// let message = client.execute_webhook(Id::new(1), "token here")

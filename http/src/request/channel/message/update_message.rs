@@ -57,11 +57,10 @@ struct UpdateMessageFields<'a> {
 /// Replace the content with `"test update"`:
 ///
 /// ```no_run
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 /// client.update_message(Id::new(1), Id::new(2))
 ///     .content(Some("test update"))?

@@ -58,11 +58,10 @@ pub(crate) struct CreateMessageFields<'a> {
 /// # Example
 ///
 /// ```no_run
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use twilight_http::Client;
 /// use twilight_model::id::Id;
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
 /// let channel_id = Id::new(123);

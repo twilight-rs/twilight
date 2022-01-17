@@ -55,15 +55,14 @@ struct UpdateWebhookMessageFields<'a> {
 /// mentioned.
 ///
 /// ```no_run
-/// # use twilight_http::Client;
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
 ///     id::Id,
 /// };
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let client = Client::new("token".to_owned());
+/// let client = Client::new("token".to_owned());
 /// client.update_webhook_message(Id::new(1), "token here", Id::new(2))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
@@ -211,12 +210,12 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// modified.
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::Id;
     ///
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token".to_owned());
+    /// let client = Client::new("token".to_owned());
     /// let webhook_id = Id::new(1);
     /// let message_id = Id::new(2);
     ///
