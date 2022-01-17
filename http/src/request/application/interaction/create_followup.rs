@@ -40,7 +40,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
     allowed_mentions: Option<&'a AllowedMentions>,
 }
 
-/// Create a followup message to an interaction.
+/// Create a followup message to an interaction, by its token.
 ///
 /// You must specify at least one of [`content`], [`embeds`], or [`files`].
 ///
@@ -57,7 +57,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 ///
 /// client
 ///     .interaction(application_id)
-///     .create_followup_message("webhook token")
+///     .create_followup("webhook token")
 ///     .content("Pinkie...")?
 ///     .exec()
 ///     .await?;
@@ -68,7 +68,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// [`embeds`]: Self::embeds
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
-pub struct CreateFollowupMessage<'a> {
+pub struct CreateFollowup<'a> {
     application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: CreateFollowupMessageFields<'a>,
@@ -76,7 +76,7 @@ pub struct CreateFollowupMessage<'a> {
     token: &'a str,
 }
 
-impl<'a> CreateFollowupMessage<'a> {
+impl<'a> CreateFollowup<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
@@ -217,7 +217,7 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// let message = client
     ///     .interaction(application_id)
-    ///     .create_followup_message("token here")
+    ///     .create_followup("token here")
     ///     .content("some content")?
     ///     .embeds(&[EmbedBuilder::new().title("title").build()?])?
     ///     .exec()
@@ -243,7 +243,7 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// let message = client
     ///     .interaction(application_id)
-    ///     .create_followup_message("token here")
+    ///     .create_followup("token here")
     ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .exec()
@@ -284,7 +284,7 @@ impl<'a> CreateFollowupMessage<'a> {
     }
 }
 
-impl TryIntoRequest for CreateFollowupMessage<'_> {
+impl TryIntoRequest for CreateFollowup<'_> {
     fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
@@ -342,7 +342,7 @@ mod tests {
         let client = Client::new(String::new());
         let req = client
             .interaction(application_id)
-            .create_followup_message(&token)
+            .create_followup(&token)
             .content("test")?
             .try_into_request()?;
 

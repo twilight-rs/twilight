@@ -35,11 +35,11 @@ struct UpdateOriginalResponseFields<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
-/// Update the original response created by a interaction.
+/// Edit the original message, by its token.
 ///
 /// A response must always have at least one embed or some amount of
 /// content. If you wish to delete a original response refer to
-/// [`DeleteOriginalResponse`].
+/// [`DeleteResponse`].
 ///
 /// # Examples
 ///
@@ -62,7 +62,7 @@ struct UpdateOriginalResponseFields<'a> {
 ///
 /// client
 ///     .interaction(application_id)
-///     .update_interaction_original("token here")
+///     .update_response("token here")
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -72,9 +72,9 @@ struct UpdateOriginalResponseFields<'a> {
 /// # Ok(()) }
 /// ```
 ///
-/// [`DeleteOriginalResponse`]: super::DeleteOriginalResponse
+/// [`DeleteResponse`]: super::DeleteResponse
 #[must_use = "requests must be configured and executed"]
-pub struct UpdateOriginalResponse<'a> {
+pub struct UpdateResponse<'a> {
     application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateOriginalResponseFields<'a>,
@@ -82,10 +82,7 @@ pub struct UpdateOriginalResponse<'a> {
     token: &'a str,
 }
 
-impl<'a> UpdateOriginalResponse<'a> {
-    /// Maximum number of embeds that a original response may have.
-    pub const EMBED_COUNT_LIMIT: usize = 10;
-
+impl<'a> UpdateResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
@@ -209,7 +206,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// client
     ///     .interaction(application_id)
-    ///     .update_interaction_original("token")
+    ///     .update_response("token")
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -261,10 +258,10 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// If this method is called, all other fields are ignored, except for
     /// [`attach`]. See [Discord Docs/Create Message] and
-    /// [`CreateFollowupMessage::payload_json`].
+    /// [`CreateFollowup::payload_json`].
     ///
     /// [`attach`]: Self::attach
-    /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
+    /// [`CreateFollowup::payload_json`]: super::CreateFollowup::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
@@ -282,7 +279,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     }
 }
 
-impl TryIntoRequest for UpdateOriginalResponse<'_> {
+impl TryIntoRequest for UpdateResponse<'_> {
     fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateInteractionOriginal {
             application_id: self.application_id.get(),
@@ -341,7 +338,7 @@ mod tests {
         let client = Client::new(String::new());
         let req = client
             .interaction(application_id)
-            .update_interaction_original(&token)
+            .update_response(&token)
             .content(Some("test"))?
             .try_into_request()?;
 

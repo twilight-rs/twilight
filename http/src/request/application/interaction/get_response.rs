@@ -27,19 +27,19 @@ use twilight_model::{
 ///
 /// client
 ///     .interaction(application_id)
-///     .get_interaction_original("token here")
+///     .response("token here")
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
-pub struct GetOriginalResponse<'a> {
+pub struct GetResponse<'a> {
     application_id: Id<ApplicationMarker>,
     http: &'a Client,
     token: &'a str,
 }
 
-impl<'a> GetOriginalResponse<'a> {
+impl<'a> GetResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
@@ -65,7 +65,7 @@ impl<'a> GetOriginalResponse<'a> {
     }
 }
 
-impl TryIntoRequest for GetOriginalResponse<'_> {
+impl TryIntoRequest for GetResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::builder(&Route::GetInteractionOriginal {
             application_id: self.application_id.get(),
@@ -91,7 +91,7 @@ mod tests {
         let client = Client::new(String::new());
         let req = client
             .interaction(application_id)
-            .get_interaction_original(&token)
+            .response(&token)
             .try_into_request()?;
 
         assert!(!req.use_authorization_token());

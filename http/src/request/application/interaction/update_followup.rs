@@ -38,11 +38,11 @@ struct UpdateFollowupMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
-/// Update a followup message.
+/// Edit a followup message of an interaction, by its token and the message ID.
 ///
 /// A followup message must always have at least one embed or some amount of
 /// content. If you wish to delete a followup message refer to
-/// [`DeleteFollowupMessage`].
+/// [`DeleteFollowup`].
 ///
 /// # Examples
 ///
@@ -65,7 +65,7 @@ struct UpdateFollowupMessageFields<'a> {
 ///
 /// client
 ///     .interaction(application_id)
-///     .update_followup_message("token here", Id::new(2))
+///     .update_followup("token here", Id::new(2))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -75,9 +75,9 @@ struct UpdateFollowupMessageFields<'a> {
 /// # Ok(()) }
 /// ```
 ///
-/// [`DeleteFollowupMessage`]: super::DeleteFollowupMessage
+/// [`DeleteFollowup`]: super::DeleteFollowup
 #[must_use = "requests must be configured and executed"]
-pub struct UpdateFollowupMessage<'a> {
+pub struct UpdateFollowup<'a> {
     application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateFollowupMessageFields<'a>,
@@ -86,7 +86,7 @@ pub struct UpdateFollowupMessage<'a> {
     token: &'a str,
 }
 
-impl<'a> UpdateFollowupMessage<'a> {
+impl<'a> UpdateFollowup<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
@@ -202,6 +202,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
     /// let application_id = Id::new(1);
+    /// let message_id = Id::new(2);
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -211,7 +212,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// client
     ///     .interaction(application_id)
-    ///     .update_followup_message("token", Id::new(2))
+    ///     .update_followup("token", message_id)
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -263,10 +264,10 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// If this method is called, all other fields are ignored, except for
     /// [`attachments`]. See [Discord Docs/Create Message] and
-    /// [`CreateFollowupMessage::payload_json`].
+    /// [`CreateFollowup::payload_json`].
     ///
     /// [`attachments`]: Self::attachments
-    /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
+    /// [`CreateFollowup::payload_json`]: super::CreateFollowup::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
@@ -284,7 +285,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     }
 }
 
-impl TryIntoRequest for UpdateFollowupMessage<'_> {
+impl TryIntoRequest for UpdateFollowup<'_> {
     fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
@@ -346,7 +347,7 @@ mod tests {
         let client = Client::new(String::new());
         let req = client
             .interaction(application_id)
-            .update_followup_message(&token, message_id)
+            .update_followup(&token, message_id)
             .content(Some("test"))?
             .try_into_request()?;
 
