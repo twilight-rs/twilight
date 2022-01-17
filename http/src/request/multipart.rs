@@ -147,7 +147,7 @@ mod tests {
         Content-Disposition: form-data; name=\"payload_json\"\r\n\
         Content-Type: application/json\r\n\
         \r\n\
-        json_value
+        json_value\r\n\
         --{boundary}\r\n\
         Content-Disposition: form-data; name=\"files[0]\"; filename=\"filename.jpg\"\r\n\
         \r\n\
