@@ -215,7 +215,6 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// let client = Client::new("token".to_owned());
     /// let application_id = Id::new(1);
-    /// let message_id = Id::new(2);
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
@@ -226,7 +225,7 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// client
     ///     .interaction(application_id)
-    ///     .update_interaction_original("token", message_id)
+    ///     .update_interaction_original("token")
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
