@@ -1,6 +1,9 @@
 use crate::request::Form;
 use serde::{Deserialize, Serialize};
-use twilight_model::id::{marker::AttachmentMarker, Id};
+use twilight_model::{
+    http::attachment::Attachment,
+    id::{marker::AttachmentMarker, Id},
+};
 
 pub struct AttachmentManager<'a> {
     files: Vec<&'a Attachment>,
@@ -61,31 +64,6 @@ impl<'a> AttachmentManager<'a> {
         self.ids = ids;
 
         self
-    }
-}
-
-/// Attachment for when creating and updating messages.
-#[derive(Clone, Debug)]
-pub struct Attachment {
-    pub description: Option<String>,
-    pub file: Vec<u8>,
-    pub filename: String,
-}
-
-impl Attachment {
-    /// Create a attachment from a filename and bytes.
-    pub const fn from_bytes(filename: String, file: Vec<u8>) -> Self {
-        Self {
-            description: None,
-            file,
-            filename,
-        }
-    }
-
-    /// Set the description of a attachment, this is used for alt-text
-    /// on Discords end.
-    pub fn description(&mut self, description: String) {
-        self.description = Some(description);
     }
 }
 

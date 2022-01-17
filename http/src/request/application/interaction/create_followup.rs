@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        attachment::{Attachment, AttachmentManager, PartialAttachment},
+        attachment::{AttachmentManager, PartialAttachment},
         NullableField, Request, TryIntoRequest,
     },
     response::ResponseFuture,
@@ -16,6 +16,7 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Message,
     },
+    http::attachment::Attachment,
     id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::message::{

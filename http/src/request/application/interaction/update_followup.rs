@@ -4,7 +4,7 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        attachment::{Attachment, AttachmentManager, PartialAttachment},
+        attachment::{AttachmentManager, PartialAttachment},
         NullableField, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
@@ -14,6 +14,7 @@ use serde::Serialize;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions},
+    http::attachment::Attachment,
     id::{
         marker::{ApplicationMarker, AttachmentMarker, MessageMarker},
         Id,

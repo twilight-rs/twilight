@@ -1,12 +1,12 @@
 use crate::{
     client::Client,
-    error::Error,
-    request::{Request, TryIntoRequest},
+    error::Error as HttpError,
+    request::{attachment::AttachmentManager, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use twilight_model::{
-    application::callback::InteractionResponse,
+    http::interaction::InteractionResponse,
     id::{marker::InteractionMarker, Id},
 };
 
@@ -48,25 +48,44 @@ impl<'a> CreateResponse<'a> {
 }
 
 impl TryIntoRequest for CreateResponse<'_> {
-    fn try_into_request(self) -> Result<Request, Error> {
-        let request = Request::builder(&Route::InteractionCallback {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::InteractionCallback {
             interaction_id: self.interaction_id.get(),
             interaction_token: self.interaction_token,
-        })
-        .json(self.response)?
-        .use_authorization_token(false)
-        .build();
+        });
 
-        Ok(request)
+        // Interaction executions don't need the authorization token, only the
+        // interaction token.
+        request = request.use_authorization_token(false);
+
+        // Determine whether we need to use a multipart/form-data body or a JSON
+        // body.
+        if let Some(data) = &self.response.data {
+            if let Some(attachments) = &data.attachments {
+                if !attachments.is_empty() {
+                    let fields = crate::json::to_vec(&self.response).map_err(HttpError::json)?;
+
+                    let form = AttachmentManager::new()
+                        .set_files(attachments.iter().collect())
+                        .build_form(&fields);
+
+                    request = request.form(form);
+                }
+            }
+        } else {
+            request = request.json(&self.response)?;
+        }
+
+        Ok(request.build())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{client::Client, request::TryIntoRequest};
+    use super::*;
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::{application::callback::InteractionResponse, id::Id};
+    use twilight_model::http::interaction::InteractionResponseType;
 
     #[test]
     fn test_interaction_callback() -> Result<(), Box<dyn Error>> {
@@ -76,7 +95,11 @@ mod tests {
 
         let client = Client::new(String::new());
 
-        let sent_response = InteractionResponse::DeferredUpdateMessage;
+        let sent_response = InteractionResponse {
+            kind: InteractionResponseType::DeferredUpdateMessage,
+            data: None,
+        };
+
         let req = client
             .interaction(application_id)
             .create_response(interaction_id, &token, &sent_response)
