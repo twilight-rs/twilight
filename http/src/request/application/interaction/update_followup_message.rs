@@ -357,7 +357,7 @@ mod tests {
     fn test_update_followup_message() -> Result<(), Box<dyn Error>> {
         let application_id = Id::new(1);
         let message_id = Id::new(2);
-        let token = "foo".to_owned().into_boxed_str();
+        let token = "foo".to_owned();
 
         let client = Client::new(String::new());
         let req = client

@@ -1,5 +1,4 @@
-pub mod create_ban;
-
+mod create_ban;
 mod delete_ban;
 mod get_ban;
 mod get_bans;

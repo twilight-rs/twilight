@@ -48,7 +48,7 @@ labels:
   - label: "c-mention"
     sync: true
     matcher:
-      fiiles: "mention/**/*"
+      files: "mention/**/*"
 
   - label: "c-model"
     sync: true
@@ -70,18 +70,14 @@ labels:
     matcher:
       files: "validate/**/*"
 
-  - label: "t-github-actions"
-    matcher:
-      files: ".github/workflows/*"
-      title: "^ci: .*"
-
   - label: "m-breaking change"
     matcher:
       title: "^[a-z]+(\\(.+\\))?!: .*"
 
-  - label: "t-chore"
+  - label: "t-ci"
     matcher:
-      title: "^chore(\\(.+\\))?!?: .*"
+      files: ".github/workflows/*"
+      title: "^ci: .*"
 
   - label: "t-docs"
     matcher:
@@ -95,6 +91,14 @@ labels:
     matcher:
       title: "^fix(\\(.+\\))?!?: .*"
 
+  - label: "t-perf"
+    matcher:
+      title: "^perf(\\(.+\\))?!?: .*"
+
   - label: "t-refactor"
     matcher:
       title: "^refactor(\\(.+\\))?!?: .*"
+
+  - label: "t-test"
+    matcher:
+      title: "^test(\\(.+\\))?!?: .*"
