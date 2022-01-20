@@ -137,8 +137,10 @@ impl UpdateCache for MemberAdd {
             .or_default()
             .insert(self.0.user.id);
 
-        if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
-            guild.member_count = guild.member_count.map(|count| count + 1);
+        if cache.wants(ResourceType::GUILD) {
+            if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
+                guild.member_count = guild.member_count.map(|count| count + 1);
+            }
         }
     }
 }
@@ -185,8 +187,10 @@ impl UpdateCache for MemberRemove {
             cache.users.remove(&self.user.id);
         }
 
-        if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
-            guild.member_count = guild.member_count.map(|count| count - 1);
+        if cache.wants(ResourceType::GUILD) {
+            if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
+                guild.member_count = guild.member_count.map(|count| count - 1);
+            }
         }
     }
 }
