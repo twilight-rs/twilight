@@ -311,6 +311,10 @@ impl Cluster {
                 shard_config.sequence = Some(data.sequence);
             }
 
+            if let Some(shard_presence) = config.shard_presences.remove(&idx) {
+                shard_config.presence = Some(shard_presence);
+            }
+
             let (shard, stream) = Shard::new_with_config(shard_config);
 
             fold.shards.insert(idx, shard);
