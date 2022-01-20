@@ -28,7 +28,7 @@ pub trait Snowflake {
     /// use twilight_util::snowflake::Snowflake;
     /// use twilight_model::id::{marker::UserMarker, Id};
     ///
-    /// let id = Id::<UserMarker>::new(105484726235607040).expect("non zero");
+    /// let id = Id::<UserMarker>::new(105484726235607040);
     ///
     /// assert_eq!(
     ///     "2015-10-19T01:58:38.546+00:00",
@@ -44,7 +44,7 @@ pub trait Snowflake {
     /// use twilight_model::id::{marker::UserMarker, Id};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let id = Id::<UserMarker>::new(105484726235607040).expect("non zero");
+    /// let id = Id::<UserMarker>::new(105484726235607040);
     /// // Convert milliseconds to seconds or nanoseconds.
     /// let dur = Duration::milliseconds(id.timestamp());
     ///
@@ -219,7 +219,7 @@ mod tests {
     #[test]
     fn test_timestamp() {
         let expected: i64 = 1_445_219_918_546;
-        let id = Id::<GenericMarker>::new(105_484_726_235_607_040).expect("non zero");
+        let id = Id::<GenericMarker>::new(105_484_726_235_607_040);
 
         assert_eq!(expected, id.timestamp())
     }
@@ -227,7 +227,7 @@ mod tests {
     #[test]
     fn test_worker_id() {
         let expected: u8 = 8;
-        let id = Id::<GenericMarker>::new(762_022_344_856_174_632).expect("non zero");
+        let id = Id::<GenericMarker>::new(762_022_344_856_174_632);
 
         assert_eq!(expected, id.worker_id())
     }
@@ -235,7 +235,7 @@ mod tests {
     #[test]
     fn test_process_id() {
         let expected: u8 = 1;
-        let id = Id::<GenericMarker>::new(61_189_081_970_774_016).expect("non zero");
+        let id = Id::<GenericMarker>::new(61_189_081_970_774_016);
 
         assert_eq!(expected, id.process_id())
     }
@@ -243,7 +243,7 @@ mod tests {
     #[test]
     fn test_increment() {
         let expected: u16 = 40;
-        let id = Id::<GenericMarker>::new(762_022_344_856_174_632).expect("non zero");
+        let id = Id::<GenericMarker>::new(762_022_344_856_174_632);
 
         assert_eq!(expected, id.increment())
     }
