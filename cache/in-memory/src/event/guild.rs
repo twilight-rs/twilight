@@ -265,6 +265,7 @@ mod tests {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Hour,
                 archive_timestamp: timestamp,
+                create_timestamp: Some(timestamp),
                 invitable: None,
                 locked: false,
             },
