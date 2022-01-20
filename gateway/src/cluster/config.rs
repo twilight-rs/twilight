@@ -2,15 +2,17 @@ use super::scheme::ShardScheme;
 use crate::shard::ResumeSession;
 use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::Queue;
+use twilight_model::gateway::payload::outgoing::update_presence::UpdatePresencePayload;
 
 /// Built configuration for a [`Cluster`].
 ///
 /// [`Cluster`]: crate::Cluster
 #[derive(Debug)]
 pub struct Config {
-    pub(super) shard_scheme: ShardScheme,
     pub(super) queue: Arc<dyn Queue>,
     pub(super) resume_sessions: HashMap<u64, ResumeSession>,
+    pub(super) shard_presences: HashMap<u64, UpdatePresencePayload>,
+    pub(super) shard_scheme: ShardScheme,
 }
 
 impl Config {

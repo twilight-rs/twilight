@@ -47,9 +47,10 @@ impl ClusterBuilder {
     pub fn new(token: impl Into<String>, intents: Intents) -> Self {
         Self(
             ClusterConfig {
-                shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(LocalQueue::new()),
                 resume_sessions: HashMap::new(),
+                shard_presences: HashMap::new(),
+                shard_scheme: ShardScheme::Auto,
             },
             ShardBuilder::new(token, intents),
         )
@@ -180,6 +181,19 @@ impl ClusterBuilder {
     /// Refer to the shard's [`ShardBuilder::presence`] for more information.
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.1 = self.1.presence(presence);
+
+        self
+    }
+
+    /// Set specific shard presences to use when identifying with the gateway.
+    ///
+    /// If there is no custom presence set for a shard in the provided
+    /// [`HashMap`], the presence set by [`presence`] will be preferred.
+    ///
+    /// [`presence`]: Self::presence
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn shard_presences(mut self, shard_presences: HashMap<u64, UpdatePresencePayload>) -> Self {
+        self.0.shard_presences = shard_presences;
 
         self
     }
