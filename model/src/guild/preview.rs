@@ -1,4 +1,4 @@
-use crate::{guild::Emoji, id::GuildId};
+use crate::{channel::message::Sticker, guild::Emoji, id::GuildId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -13,6 +13,8 @@ pub struct GuildPreview {
     pub name: String,
     pub icon: Option<String>,
     pub splash: Option<String>,
+    /// Guild's custom stickers.
+    pub stickers: Vec<Sticker>,
 }
 
 #[cfg(test)]
@@ -43,6 +45,7 @@ mod tests {
             name: "guild name".to_owned(),
             icon: Some("icon hash".to_owned()),
             splash: Some("splash hash".to_owned()),
+            stickers: Vec::new(),
         };
 
         serde_test::assert_tokens(
@@ -50,7 +53,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildPreview",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("approximate_member_count"),
                 Token::U64(1_000),
@@ -98,6 +101,9 @@ mod tests {
                 Token::Str("splash"),
                 Token::Some,
                 Token::Str("splash hash"),
+                Token::Str("stickers"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::StructEnd,
             ],
         );
