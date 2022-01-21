@@ -6,6 +6,9 @@
 //! a user's ID is required; by using markers it can be ensured that only an
 //! ID with a [`RoleMarker`] can be used where a role's ID is required.
 
+// DEVELOPMENT: When adding a new marker, be sure to add its implementation to
+// `util/snowflake`.
+
 /// Marker for application IDs.
 ///
 /// Types such as [`Message::application_id`] or [`Guild::application_id`]

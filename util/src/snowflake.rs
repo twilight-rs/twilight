@@ -4,7 +4,9 @@ use twilight_model::id::{
     marker::{
         ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
         CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
-        InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
+        InteractionMarker, MessageMarker, OauthSkuMarker, OauthTeamMarker, RoleMarker,
+        ScheduledEventEntityMarker, ScheduledEventMarker, StageMarker, StickerMarker,
+        StickerPackMarker, StickerPackSkuMarker, UserMarker, WebhookMarker,
     },
     Id,
 };
@@ -161,13 +163,55 @@ impl Snowflake for Id<MessageMarker> {
     }
 }
 
+impl Snowflake for Id<OauthSkuMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
+impl Snowflake for Id<OauthTeamMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
 impl Snowflake for Id<RoleMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
 }
 
+impl Snowflake for Id<ScheduledEventMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
+impl Snowflake for Id<ScheduledEventEntityMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
 impl Snowflake for Id<StageMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
+impl Snowflake for Id<StickerMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
+impl Snowflake for Id<StickerPackMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
+impl Snowflake for Id<StickerPackSkuMarker> {
     fn id(&self) -> u64 {
         self.get()
     }
@@ -187,16 +231,8 @@ impl Snowflake for Id<WebhookMarker> {
 
 #[cfg(test)]
 mod tests {
-    use super::Snowflake;
+    use super::*;
     use static_assertions::{assert_impl_all, assert_obj_safe};
-    use twilight_model::id::{
-        marker::{
-            ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
-            CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
-            InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
-        },
-        Id,
-    };
 
     assert_impl_all!(Id<ApplicationMarker>: Snowflake);
     assert_impl_all!(Id<AttachmentMarker>: Snowflake);
@@ -210,8 +246,15 @@ mod tests {
     assert_impl_all!(Id<IntegrationMarker>: Snowflake);
     assert_impl_all!(Id<InteractionMarker>: Snowflake);
     assert_impl_all!(Id<MessageMarker>: Snowflake);
+    assert_impl_all!(Id<OauthSkuMarker>: Snowflake);
+    assert_impl_all!(Id<OauthTeamMarker>: Snowflake);
     assert_impl_all!(Id<RoleMarker>: Snowflake);
+    assert_impl_all!(Id<ScheduledEventMarker>: Snowflake);
+    assert_impl_all!(Id<ScheduledEventEntityMarker>: Snowflake);
     assert_impl_all!(Id<StageMarker>: Snowflake);
+    assert_impl_all!(Id<StickerMarker>: Snowflake);
+    assert_impl_all!(Id<StickerPackMarker>: Snowflake);
+    assert_impl_all!(Id<StickerPackSkuMarker>: Snowflake);
     assert_impl_all!(Id<UserMarker>: Snowflake);
     assert_impl_all!(Id<WebhookMarker>: Snowflake);
     assert_obj_safe!(Snowflake);

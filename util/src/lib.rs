@@ -63,5 +63,4 @@ pub mod link;
 pub mod permission_calculator;
 
 #[cfg(feature = "snowflake")]
-#[cfg_attr(docsrs, doc(cfg(feature = "snowflake")))]
 pub mod snowflake;
