@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct StageInstance {
     pub channel_id: ChannelId,
-    pub discoverable_disabled: bool,
     pub guild_id: GuildId,
     pub id: StageId,
     pub privacy_level: PrivacyLevel,
@@ -25,10 +24,9 @@ mod test {
     fn test_stage_instance() {
         let value = StageInstance {
             channel_id: ChannelId::new(100).expect("non zero"),
-            discoverable_disabled: false,
             guild_id: GuildId::new(200).expect("non zero"),
             id: StageId::new(300).expect("non zero"),
-            privacy_level: PrivacyLevel::Public,
+            privacy_level: PrivacyLevel::GuildOnly,
             topic: "a topic".into(),
         };
 
@@ -37,13 +35,11 @@ mod test {
             &[
                 Token::Struct {
                     name: "StageInstance",
-                    len: 6,
+                    len: 5,
                 },
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("100"),
-                Token::Str("discoverable_disabled"),
-                Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "GuildId" },
                 Token::Str("200"),
@@ -51,7 +47,7 @@ mod test {
                 Token::NewtypeStruct { name: "StageId" },
                 Token::Str("300"),
                 Token::Str("privacy_level"),
-                Token::U8(1),
+                Token::U8(2),
                 Token::Str("topic"),
                 Token::Str("a topic"),
                 Token::StructEnd,

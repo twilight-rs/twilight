@@ -82,7 +82,6 @@ mod tests {
 
         let stage_instance = StageInstance {
             channel_id: ChannelId::new(1).expect("non zero"),
-            discoverable_disabled: true,
             guild_id: GuildId::new(2).expect("non zero"),
             id: StageId::new(3).expect("non zero"),
             privacy_level: PrivacyLevel::GuildOnly,
