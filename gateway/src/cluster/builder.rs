@@ -204,10 +204,8 @@ impl ClusterBuilder {
 
     /// Set specific shard presences to use when identifying with the gateway.
     ///
-    /// If there is no custom presence set for a shard in the provided
-    /// [`HashMap`], the presence set by [`presence`] will be preferred.
-    ///
-    /// [`presence`]: Self::presence
+    /// Accepts a closure. The closure accepts a [`u64`] and returns an
+    /// [`Option<UpdatePresencePayload>`].
     pub fn shard_presence(mut self, shard_presence: ShardPresence) -> Self {
         self.0.shard_presence = Some(shard_presence);
 
