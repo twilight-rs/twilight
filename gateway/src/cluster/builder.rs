@@ -27,7 +27,7 @@ pub trait ShardPresence: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync 
 
 impl Debug for dyn ShardPresence {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("Box<dyn ShardPresenceTrait<Output = Option<UpdatePresencePayload>>>")
+        f.write_str("Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync")
     }
 }
 
