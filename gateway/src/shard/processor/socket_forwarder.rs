@@ -1,6 +1,6 @@
 use super::super::ShardStream;
 use futures_util::{
-    future::{self, Either, FutureExt},
+    future::{self, Either},
     sink::SinkExt,
     stream::StreamExt,
 };
@@ -42,11 +42,11 @@ impl SocketForwarder {
         tracing::debug!("starting driving loop");
 
         loop {
-            let timeout = sleep(Self::TIMEOUT).fuse();
-            tokio::pin!(timeout);
-
-            let rx = Box::pin(self.rx.recv().fuse());
-            let tx = Box::pin(self.stream.next().fuse());
+            tokio::pin! {
+                let timeout = sleep(Self::TIMEOUT);
+                let rx = self.rx.recv();
+                let tx = self.stream.next();
+            }
 
             let select_message = future::select(rx, tx);
 
@@ -93,13 +93,13 @@ impl SocketForwarder {
                     }
                 },
                 // Timeout future finished first.
-                Either::Right((_, _)) => {
+                Either::Right(_) => {
                     #[cfg(feature = "tracing")]
                     tracing::warn!("socket timed out");
 
                     break;
                 }
-            };
+            }
         }
 
         #[cfg(feature = "tracing")]

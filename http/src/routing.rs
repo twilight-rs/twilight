@@ -1768,7 +1768,7 @@ impl Display for Route<'_> {
                 f.write_str("/messages/")?;
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
-                Display::fmt(&emoji.display(), f)?;
+                Display::fmt(&emoji, f)?;
 
                 f.write_str("/@me")
             }
@@ -1956,7 +1956,7 @@ impl Display for Route<'_> {
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
 
-                Display::fmt(&emoji.display(), f)
+                Display::fmt(&emoji, f)
             }
             Route::DeleteMessage {
                 channel_id,
@@ -2007,7 +2007,7 @@ impl Display for Route<'_> {
                 f.write_str("/messages/")?;
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
-                Display::fmt(&emoji.display(), f)?;
+                Display::fmt(&emoji, f)?;
                 f.write_str("/")?;
 
                 Display::fmt(user_id, f)
@@ -2584,7 +2584,7 @@ impl Display for Route<'_> {
                 f.write_str("/messages/")?;
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
-                Display::fmt(&emoji.display(), f)?;
+                Display::fmt(&emoji, f)?;
                 f.write_str("?")?;
 
                 if let Some(after) = after {
@@ -3230,7 +3230,7 @@ mod tests {
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
                 channel_id = CHANNEL_ID,
-                emoji = emoji.display(),
+                emoji = emoji,
                 message_id = MESSAGE_ID
             )
         );
@@ -3250,7 +3250,7 @@ mod tests {
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
                 channel_id = CHANNEL_ID,
-                emoji = emoji.display(),
+                emoji = emoji,
                 message_id = MESSAGE_ID
             )
         );
@@ -3732,7 +3732,7 @@ mod tests {
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
                 channel_id = CHANNEL_ID,
-                emoji = emoji.display(),
+                emoji = emoji,
                 message_id = MESSAGE_ID
             )
         );
@@ -3847,7 +3847,7 @@ mod tests {
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}",
                 channel_id = CHANNEL_ID,
-                emoji = emoji.display(),
+                emoji = emoji,
                 message_id = MESSAGE_ID,
                 user_id = USER_ID
             )
