@@ -2,6 +2,13 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.8.5] - 2022-01-21
+
+This release contains internal refactors ([#1335] - [@vilgotf]). There are no
+public facing changes.
+
+[#1335]: https://github.com/twilight-rs/twilight/pull/1335
+
 ## [0.8.4] - 2022-01-11
 
 ### Changes
@@ -703,6 +710,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.2

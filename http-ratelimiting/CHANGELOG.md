@@ -2,6 +2,14 @@
 
 Changelog for `twilight-http-ratelimiting`.
 
+## [0.8.4] - 2022-01-21
+
+### Changes
+
+Ensure the `rt` feature of `tokio` is enabled ([#1425] - [@vilgotf]).
+
+[#1425]: https://github.com/twilight-rs/twilight/pull/1425
+
 ## [0.8.3] - 2022-01-08
 
 ### Additions
@@ -53,8 +61,10 @@ For webhooks, the token is now a major parameter ([#1263] -
 
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@HTG-YT]: https://github.com/HTG-YT
+[@vilgotf]: https://github.com/vilgotf
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.1
