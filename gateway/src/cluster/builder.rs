@@ -21,14 +21,11 @@ use twilight_model::gateway::{
     Intents,
 };
 
-/// Trait helper for [`ShardPresence`] that allows implementing [`Debug`].
-pub trait ShardPresenceTrait: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync {}
-
 /// Function used in [`ClusterBuilder`] to give shards custom presences on
 /// identify.
-pub type ShardPresence = Box<dyn ShardPresenceTrait<Output = Option<UpdatePresencePayload>>>;
+pub trait ShardPresence: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync {}
 
-impl Debug for ShardPresence {
+impl Debug for dyn ShardPresence {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("Box<dyn ShardPresenceTrait<Output = Option<UpdatePresencePayload>>>")
     }
@@ -205,9 +202,17 @@ impl ClusterBuilder {
     /// Set specific shard presences to use when identifying with the gateway.
     ///
     /// Accepts a closure. The closure accepts a [`u64`] and returns an
-    /// [`Option<UpdatePresencePayload>`].
-    pub fn shard_presence(mut self, shard_presence: ShardPresence) -> Self {
-        self.0.shard_presence = Some(shard_presence);
+    /// [`Option<UpdatePresencePayload>`]. If the closure returns [`None`], the
+    /// shard will identify with a presence set by [`presence`].
+    ///
+    /// [`presence`]: Self::presence
+    pub fn shard_presence<
+        F: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + ShardPresence + 'static,
+    >(
+        mut self,
+        shard_presence: F,
+    ) -> Self {
+        self.0.shard_presence = Some(Box::new(shard_presence));
 
         self
     }

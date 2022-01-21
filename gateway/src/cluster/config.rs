@@ -10,7 +10,7 @@ use twilight_gateway_queue::Queue;
 pub struct Config {
     pub(super) queue: Arc<dyn Queue>,
     pub(super) resume_sessions: HashMap<u64, ResumeSession>,
-    pub(super) shard_presence: Option<ShardPresence>,
+    pub(super) shard_presence: Option<Box<dyn ShardPresence>>,
     pub(super) shard_scheme: ShardScheme,
 }
 
