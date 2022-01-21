@@ -9,13 +9,30 @@ use crate::{
     shard::{tls::TlsContainer, LargeThresholdError, ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Formatter, Result as FmtResult},
+    sync::Arc,
+};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+/// Trait helper for [`ShardPresence`] that allows implementing [`Debug`].
+pub trait ShardPresenceTrait: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync {}
+
+/// Function used in [`ClusterBuilder`] to give shards custom presences on
+/// identify.
+pub type ShardPresence = Box<dyn ShardPresenceTrait<Output = Option<UpdatePresencePayload>>>;
+
+impl Debug for ShardPresence {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("Box<dyn ShardPresenceTrait<Output = Option<UpdatePresencePayload>>>")
+    }
+}
 
 /// Builder to configure and construct a [`Cluster`].
 ///
@@ -49,7 +66,7 @@ impl ClusterBuilder {
             ClusterConfig {
                 queue: Arc::new(LocalQueue::new()),
                 resume_sessions: HashMap::new(),
-                shard_presences: HashMap::new(),
+                shard_presence: None,
                 shard_scheme: ShardScheme::Auto,
             },
             ShardBuilder::new(token, intents),
@@ -191,9 +208,8 @@ impl ClusterBuilder {
     /// [`HashMap`], the presence set by [`presence`] will be preferred.
     ///
     /// [`presence`]: Self::presence
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn shard_presences(mut self, shard_presences: HashMap<u64, UpdatePresencePayload>) -> Self {
-        self.0.shard_presences = shard_presences;
+    pub fn shard_presence(mut self, shard_presence: ShardPresence) -> Self {
+        self.0.shard_presence = Some(shard_presence);
 
         self
     }
