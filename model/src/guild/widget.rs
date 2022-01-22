@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildWidget {
-    pub channel_id: ChannelId,
+    pub channel_id: Option<ChannelId>,
     pub enabled: bool,
 }
 
@@ -15,7 +15,7 @@ mod tests {
     #[test]
     fn test_guild_widget() {
         let value = GuildWidget {
-            channel_id: ChannelId::new(111_111_111_111_111_111).expect("non zero"),
+            channel_id: Some(ChannelId::new(111_111_111_111_111_111).expect("non zero")),
             enabled: true,
         };
 
@@ -27,6 +27,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("channel_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("111111111111111111"),
                 Token::Str("enabled"),
