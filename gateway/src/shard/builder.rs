@@ -323,7 +323,7 @@ impl ShardBuilder {
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let shard = Shard::builder(env::var("token")?, Intents::empty())
+    /// let shard = Shard::builder(env::var("DISCORD_TOKEN")?, Intents::empty())
     ///     .presence(UpdatePresencePayload::new(
     ///         vec![MinimalActivity {
     ///             kind: ActivityType::Playing,
