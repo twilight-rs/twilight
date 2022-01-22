@@ -119,6 +119,19 @@ use twilight_model::{
     },
 };
 
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+type Connector = HttpsConnector<HttpConnector>;
+#[cfg(not(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+)))]
+type Connector = HttpConnector;
+
 #[cfg(feature = "hyper-rustls")]
 type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
 #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
@@ -200,18 +213,7 @@ pub struct Client {
     pub(crate) application_id: AtomicU64,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
-    #[cfg(any(
-        feature = "native",
-        feature = "rustls-native-roots",
-        feature = "rustls-webpki-roots"
-    ))]
-    http: HyperClient<HttpsConnector<HttpConnector>>,
-    #[cfg(not(any(
-        feature = "native",
-        feature = "rustls-native-roots",
-        feature = "rustls-webpki-roots"
-    )))]
-    http: HyperClient<HttpConnector>,
+    http: HyperClient<Connector>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Box<dyn Ratelimiter>>,
     timeout: Duration,
