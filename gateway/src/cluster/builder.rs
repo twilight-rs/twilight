@@ -189,7 +189,7 @@ impl ClusterBuilder {
     ///
     /// Accepts a closure. The closure accepts a [`u64`] and returns an
     /// [`Option<UpdatePresencePayload>`]. This presence will override any set
-    /// by [`presence`], even if the function returns [`None`].
+    /// by [`presence`], even if the provided closure returns [`None`].
     ///
     /// [`presence`]: Self::presence
     pub fn shard_presence<F>(mut self, shard_presence: F) -> Self
