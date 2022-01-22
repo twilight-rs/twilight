@@ -432,7 +432,7 @@ impl Shard {
     /// ```
     ///
     /// [`start`]: Self::start
-    pub fn new(token: impl Into<String>, intents: Intents) -> (Self, Events) {
+    pub fn new(token: String, intents: Intents) -> (Self, Events) {
         Self::builder(token, intents).build()
     }
 
@@ -455,7 +455,7 @@ impl Shard {
     /// Create a builder to configure and construct a shard.
     ///
     /// Refer to the builder for more information.
-    pub fn builder(token: impl Into<String>, intents: Intents) -> ShardBuilder {
+    pub fn builder(token: String, intents: Intents) -> ShardBuilder {
         ShardBuilder::new(token, intents)
     }
 

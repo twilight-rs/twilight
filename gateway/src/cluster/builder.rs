@@ -44,7 +44,7 @@ pub struct ClusterBuilder(ClusterConfig, ShardBuilder);
 
 impl ClusterBuilder {
     /// Create a new builder to construct and configure a cluster.
-    pub fn new(token: impl Into<String>, intents: Intents) -> Self {
+    pub fn new(token: String, intents: Intents) -> Self {
         Self(
             ClusterConfig {
                 shard_scheme: ShardScheme::Auto,
@@ -249,8 +249,8 @@ impl ClusterBuilder {
     }
 }
 
-impl<T: Into<String>> From<(T, Intents)> for ClusterBuilder {
-    fn from((token, intents): (T, Intents)) -> Self {
+impl From<(String, Intents)> for ClusterBuilder {
+    fn from((token, intents): (String, Intents)) -> Self {
         Self::new(token, intents)
     }
 }

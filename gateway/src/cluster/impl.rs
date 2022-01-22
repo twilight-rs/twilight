@@ -271,10 +271,7 @@ impl Cluster {
     /// there was an HTTP error Retrieving the gateway information.
     ///
     /// [`builder`]: Self::builder
-    pub async fn new(
-        token: impl Into<String>,
-        intents: Intents,
-    ) -> Result<(Self, Events), ClusterStartError> {
+    pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ClusterStartError> {
         Self::builder(token, intents).build().await
     }
 
@@ -388,7 +385,7 @@ impl Cluster {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn builder(token: impl Into<String>, intents: Intents) -> ClusterBuilder {
+    pub fn builder(token: String, intents: Intents) -> ClusterBuilder {
         ClusterBuilder::new(token, intents)
     }
 
