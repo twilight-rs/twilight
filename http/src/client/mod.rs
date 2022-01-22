@@ -815,17 +815,17 @@ impl Client {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
     }
 
-    /// Get the guild widget.
+    /// Get the guilds' widget settings.
     ///
     /// Refer to [the discord docs] for more information.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
-    pub const fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidgetSettings<'_> {
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget-settings
+    pub const fn guild_widget_settings(&self, guild_id: GuildId) -> GetGuildWidgetSettings<'_> {
         GetGuildWidgetSettings::new(self, guild_id)
     }
 
     /// Modify the guild widget.
-    pub const fn update_guild_widget(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
+    pub const fn update_guild_widget_settings(&self, guild_id: GuildId) -> UpdateGuildWidget<'_> {
         UpdateGuildWidget::new(self, guild_id)
     }
 
