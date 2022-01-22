@@ -47,9 +47,10 @@ impl ClusterBuilder {
     pub fn new(token: String, intents: Intents) -> Self {
         Self(
             ClusterConfig {
-                shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(LocalQueue::new()),
                 resume_sessions: HashMap::new(),
+                shard_presence: None,
+                shard_scheme: ShardScheme::Auto,
             },
             ShardBuilder::new(token, intents),
         )
@@ -180,6 +181,22 @@ impl ClusterBuilder {
     /// Refer to the shard's [`ShardBuilder::presence`] for more information.
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.1 = self.1.presence(presence);
+
+        self
+    }
+
+    /// Set specific shard presences to use when identifying with the gateway.
+    ///
+    /// Accepts a closure. The closure accepts a [`u64`] and returns an
+    /// [`Option<UpdatePresencePayload>`]. This presence will override any set
+    /// by [`presence`], even if the provided closure returns [`None`].
+    ///
+    /// [`presence`]: Self::presence
+    pub fn shard_presence<F>(mut self, shard_presence: F) -> Self
+    where
+        F: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + 'static,
+    {
+        self.0.shard_presence = Some(Box::new(shard_presence));
 
         self
     }

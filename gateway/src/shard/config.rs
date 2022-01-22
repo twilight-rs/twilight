@@ -21,7 +21,7 @@ pub struct Config {
     pub(super) identify_properties: Option<IdentifyProperties>,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
-    pub(super) presence: Option<UpdatePresencePayload>,
+    pub(crate) presence: Option<UpdatePresencePayload>,
     pub(super) queue: Arc<dyn Queue>,
     pub(crate) shard: [u64; 2],
     pub(super) token: Box<str>,
