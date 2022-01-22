@@ -2,6 +2,14 @@
 
 Changelog for `twilight-http`.
 
+## [0.8.5] - 2022-01-21
+
+### Additions
+
+Support sending stickers in `CreateMessage` ([#1435] - [@cmays90]).
+
+[#1435]: https://github.com/twilight-rs/twilight/pull/1435
+
 ## [0.8.4] - 2022-01-08
 
 ### Additions
@@ -1507,6 +1515,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.3
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.3

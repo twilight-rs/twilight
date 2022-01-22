@@ -2,6 +2,28 @@
 
 Changelog for `twilight-model`.
 
+## [0.8.5] - 2022-01-21
+
+### Additions
+
+In interactions, support `guild_locale` and `locale` ([#1437] - [@itohatweb]).
+
+Support `Invitable` in the audit log ([#1442] - [@itohatweb]).
+
+Add `GuildPreview::stickers` ([#1467] - [@itohatweb]).
+
+Add `ThreadMetadata::created_timestamp` ([#1478] - [@itohatweb]).
+
+### Changes
+
+Depend on at least version `0.1.16` of `tracing` ([#1425] - [@vilgotf]).
+
+[#1425]: https://github.com/twilight-rs/twilight/pull/1425
+[#1437]: https://github.com/twilight-rs/twilight/pull/1437
+[#1442]: https://github.com/twilight-rs/twilight/pull/1442
+[#1467]: https://github.com/twilight-rs/twilight/pull/1467
+[#1478]: https://github.com/twilight-rs/twilight/pull/1478
+
 ## [0.8.4] - 2022-01-08
 
 ### Additions
@@ -1181,6 +1203,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.2

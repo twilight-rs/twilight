@@ -9,6 +9,11 @@ pub struct ThreadMetadata {
     pub archived: bool,
     pub auto_archive_duration: AutoArchiveDuration,
     pub archive_timestamp: Timestamp,
+    /// When the thread was created at.
+    ///
+    /// Only present if the Thread has been created after 2022-01-09.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub create_timestamp: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invitable: Option<bool>,
     #[serde(default)]
@@ -26,12 +31,13 @@ mod tests {
     fn test_thread_metadata() -> Result<(), TimestampParseError> {
         const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
 
-        let archive_timestamp = Timestamp::from_str(DATETIME)?;
+        let timestamp = Timestamp::from_str(DATETIME)?;
 
         let value = ThreadMetadata {
             archived: true,
             auto_archive_duration: AutoArchiveDuration::Day,
-            archive_timestamp,
+            archive_timestamp: timestamp,
+            create_timestamp: Some(timestamp),
             invitable: Some(false),
             locked: false,
         };
@@ -41,13 +47,16 @@ mod tests {
             &[
                 Token::Struct {
                     name: "ThreadMetadata",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("archived"),
                 Token::Bool(true),
                 Token::Str("auto_archive_duration"),
                 Token::U16(1440),
                 Token::Str("archive_timestamp"),
+                Token::Str(DATETIME),
+                Token::Str("create_timestamp"),
+                Token::Some,
                 Token::Str(DATETIME),
                 Token::Str("invitable"),
                 Token::Some,
