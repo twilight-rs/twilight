@@ -9,27 +9,13 @@ use crate::{
     shard::{tls::TlsContainer, LargeThresholdError, ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Formatter, Result as FmtResult},
-    sync::Arc,
-};
+use std::{collections::HashMap, sync::Arc};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
-
-/// Function used in [`ClusterBuilder`] to give shards custom presences on
-/// identify.
-pub trait ShardPresence: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync {}
-
-impl Debug for dyn ShardPresence {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync")
-    }
-}
 
 /// Builder to configure and construct a [`Cluster`].
 ///
@@ -202,16 +188,14 @@ impl ClusterBuilder {
     /// Set specific shard presences to use when identifying with the gateway.
     ///
     /// Accepts a closure. The closure accepts a [`u64`] and returns an
-    /// [`Option<UpdatePresencePayload>`]. If the closure returns [`None`], the
-    /// shard will identify with a presence set by [`presence`].
+    /// [`Option<UpdatePresencePayload>`]. This presence will override any set
+    /// by [`presence`], even if the function returns [`None`].
     ///
     /// [`presence`]: Self::presence
-    pub fn shard_presence<
-        F: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + ShardPresence + 'static,
-    >(
-        mut self,
-        shard_presence: F,
-    ) -> Self {
+    pub fn shard_presence<F>(mut self, shard_presence: F) -> Self
+    where
+        F: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + 'static,
+    {
         self.0.shard_presence = Some(Box::new(shard_presence));
 
         self

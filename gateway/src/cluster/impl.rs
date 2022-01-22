@@ -312,9 +312,7 @@ impl Cluster {
             }
 
             if let Some(shard_presence) = &config.shard_presence {
-                if let Some(shard_presence) = shard_presence(idx) {
-                    shard_config.presence = Some(shard_presence);
-                }
+                shard_config.presence = shard_presence(idx)
             }
 
             let (shard, stream) = Shard::new_with_config(shard_config);
