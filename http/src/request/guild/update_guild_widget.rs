@@ -6,7 +6,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    guild::GuildWidget,
+    guild::GuildWidgetSettings,
     id::{ChannelId, GuildId},
 };
 
@@ -18,7 +18,7 @@ struct UpdateGuildWidgetFields {
     enabled: Option<bool>,
 }
 
-/// Modify the guild widget.
+/// Modify the guild's widget settings.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildWidget<'a> {
     fields: UpdateGuildWidgetFields,
@@ -55,8 +55,8 @@ impl<'a> UpdateGuildWidget<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<GuildWidget> {
-        let mut request = Request::builder(&Route::UpdateGuildWidget {
+    pub fn exec(self) -> ResponseFuture<GuildWidgetSettings> {
+        let mut request = Request::builder(&Route::UpdateGuildWidgetSettings {
             guild_id: self.guild_id.get(),
         });
 

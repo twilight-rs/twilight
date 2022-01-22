@@ -69,7 +69,7 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateCurrentUserNick,
+            GetGuildWelcomeScreen, GetGuildWidgetSettings, UpdateCurrentMember, UpdateCurrentUserNick,
             UpdateGuild, UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
@@ -820,8 +820,8 @@ impl Client {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
-    pub const fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
-        GetGuildWidget::new(self, guild_id)
+    pub const fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidgetSettings<'_> {
+        GetGuildWidgetSettings::new(self, guild_id)
     }
 
     /// Modify the guild widget.

@@ -2,19 +2,19 @@ use crate::id::ChannelId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct GuildWidget {
+pub struct GuildWidgetSettings {
     pub channel_id: ChannelId,
     pub enabled: bool,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, GuildWidget};
+    use super::{ChannelId, GuildWidgetSettings};
     use serde_test::Token;
 
     #[test]
     fn test_guild_widget() {
-        let value = GuildWidget {
+        let value = GuildWidgetSettings {
             channel_id: ChannelId::new(111_111_111_111_111_111).expect("non zero"),
             enabled: true,
         };
@@ -23,7 +23,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "GuildWidget",
+                    name: "GuildWidgetSettings",
                     len: 2,
                 },
                 Token::Str("channel_id"),

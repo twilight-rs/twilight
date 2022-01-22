@@ -820,7 +820,7 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("/webhooks")
             }
-            Route::GetGuildWidget { guild_id } | Route::UpdateGuildWidget { guild_id } => {
+            Route::GetGuildWidgetSettings { guild_id } | Route::UpdateGuildWidgetSettings { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
 
@@ -2586,7 +2586,7 @@ mod tests {
 
     #[test]
     fn test_get_guild_widget() {
-        let route = Route::GetGuildWidget { guild_id: GUILD_ID };
+        let route = Route::GetGuildWidgetSettings { guild_id: GUILD_ID };
         assert_eq!(
             route.display().to_string(),
             format!("guilds/{guild_id}/widget", guild_id = GUILD_ID)
@@ -2595,7 +2595,7 @@ mod tests {
 
     #[test]
     fn test_update_guild_widget() {
-        let route = Route::UpdateGuildWidget { guild_id: GUILD_ID };
+        let route = Route::UpdateGuildWidgetSettings { guild_id: GUILD_ID };
         assert_eq!(
             route.display().to_string(),
             format!("guilds/{guild_id}/widget", guild_id = GUILD_ID)
