@@ -2,6 +2,7 @@ mod builder;
 
 pub use self::builder::ClientBuilder;
 
+use crate::request::guild::GetGuildWidget;
 #[allow(deprecated)]
 use crate::{
     error::{Error, ErrorType},
@@ -813,6 +814,15 @@ impl Client {
         channel_positions: &'a [Position],
     ) -> UpdateGuildChannelPositions<'a> {
         UpdateGuildChannelPositions::new(self, guild_id, channel_positions)
+    }
+
+    /// Get the guilds widget.
+    ///
+    /// Refer to [the discord docs] for more information.
+    ///
+    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
+    pub const fn guild_widget(&self, guild_id: GuildId) -> GetGuildWidget<'_> {
+        GetGuildWidget::new(self, guild_id)
     }
 
     /// Get the guilds' widget settings.

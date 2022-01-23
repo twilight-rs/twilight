@@ -462,6 +462,11 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's widget.
+    GetGuildWidget {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a guild's widget settings.
     GetGuildWidgetSettings {
         /// The ID of the guild.
@@ -1102,6 +1107,7 @@ impl<'a> Route<'a> {
             | Self::GetGuildVoiceRegions { .. }
             | Self::GetGuildWelcomeScreen { .. }
             | Self::GetGuildWebhooks { .. }
+            | Self::GetGuildWidget { .. }
             | Self::GetGuildWidgetSettings { .. }
             | Self::GetGuilds { .. }
             | Self::GetInteractionOriginal { .. }
@@ -1444,6 +1450,9 @@ impl<'a> Route<'a> {
             Self::GetGateway => Path::Gateway,
             Self::GetGuild { guild_id, .. } | Self::UpdateGuild { guild_id } => {
                 Path::GuildsId(*guild_id)
+            }
+            Self::GetGuildWidget { guild_id } => {
+                Path::GuildsIdWidget(*guild_id)
             }
             Self::GetGuildWidgetSettings { guild_id } | Self::UpdateGuildWidgetSettings { guild_id } => {
                 Path::GuildsIdWidgetSettings(*guild_id)

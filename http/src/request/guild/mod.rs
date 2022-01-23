@@ -28,6 +28,7 @@ mod get_guild_widget_settings;
 mod update_current_user_nick;
 mod update_guild_welcome_screen;
 mod update_guild_widget;
+mod get_guild_widget;
 
 pub use self::{
     create_guild::CreateGuild, create_guild_channel::CreateGuildChannel,
@@ -40,6 +41,7 @@ pub use self::{
     get_guild_widget_settings::GetGuildWidgetSettings, update_current_member::UpdateCurrentMember,
     update_guild::UpdateGuild, update_guild_channel_positions::UpdateGuildChannelPositions,
     update_guild_welcome_screen::UpdateGuildWelcomeScreen, update_guild_widget::UpdateGuildWidget,
+    get_guild_widget::GetGuildWidget
 };
 
 #[deprecated(note = "use UpdateCurrentMember instead", since = "0.7.2")]

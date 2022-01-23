@@ -179,6 +179,8 @@ pub enum Path {
     GuildsIdBansUserId(u64),
     /// Operating on one of the user's guilds' channels.
     GuildsIdChannels(u64),
+    /// Operating on one of the user's guilds' widget.
+    GuildsIdWidget(u64),
     /// Operating on one of the user's guilds' widget settings.
     GuildsIdWidgetSettings(u64),
     /// Operating on one of the user's guilds' emojis.
@@ -365,6 +367,7 @@ impl FromStr for Path {
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
             ["guilds", id, "bans", _] => GuildsIdBansUserId(parse_id(id)?),
             ["guilds", id, "channels"] => GuildsIdChannels(parse_id(id)?),
+            ["guilds", id, "widget.json"] => GuildsIdWidget(parse_id(id)?),
             ["guilds", id, "widget"] => GuildsIdWidgetSettings(parse_id(id)?),
             ["guilds", id, "emojis"] => GuildsIdEmojis(parse_id(id)?),
             ["guilds", id, "emojis", _] => GuildsIdEmojisId(parse_id(id)?),

@@ -25,6 +25,7 @@ mod unavailable_guild;
 mod vanity_url;
 mod verification_level;
 mod widget_settings;
+mod widget;
 
 pub use self::{
     ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
@@ -36,6 +37,7 @@ pub use self::{
     role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
     verification_level::VerificationLevel, widget_settings::GuildWidgetSettings,
+    widget::{GuildWidget, GuildWidgetChannel}
 };
 
 use self::member::MemberListDeserializer;

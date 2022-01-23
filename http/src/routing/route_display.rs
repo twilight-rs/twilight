@@ -820,6 +820,12 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("/webhooks")
             }
+            Route::GetGuildWidget { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/widget.json")
+            }
             Route::GetGuildWidgetSettings { guild_id } | Route::UpdateGuildWidgetSettings { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
