@@ -101,7 +101,7 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("instant_invite"),
                 Token::Some,
-                Token::Str("https://discord.com/invite/twilight-rs"),
+                Token::Str("https://discord.com/invite/P8PkgN2"),
                 Token::Str("members"),
                 Token::Seq { len: Some(1) },
                 Token::Struct { name: "GuildWidgetMember", len: 6},
