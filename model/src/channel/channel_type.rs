@@ -23,15 +23,15 @@ impl ChannelType {
     ///
     /// The following channel types are considered guild channel types:
     ///
-    /// - [`Self::GuildCategory`][`GuildCategory`]
-    /// - [`Self::GuildNews`][`GuildNews`]
-    /// - [`Self::GuildStore`][`GuildStore`]
-    /// - [`Self::GuildNewsThread`][`GuildNewsThread`]
-    /// - [`Self::GuildPublicThread`][`GuildPublicThread`]
-    /// - [`Self::GuildPrivateThread`][`GuildPrivateThread`]
-    /// - [`Self::GuildStageVoice`][`GuildStageVoice`]
-    /// - [`Self::GuildText`][`GuildText`]
-    /// - [`Self::GuildVoice`][`GuildVoice`]
+    /// - [`GuildCategory`][`Self::GuildCategory`]
+    /// - [`GuildNews`][`Self::GuildNews`]
+    /// - [`GuildStore`][`Self::GuildStore`]
+    /// - [`GuildNewsThread`][`Self::GuildNewsThread`]
+    /// - [`GuildPublicThread`][`Self::GuildPublicThread`]
+    /// - [`GuildPrivateThread`][`Self::GuildPrivateThread`]
+    /// - [`GuildStageVoice`][`Self::GuildStageVoice`]
+    /// - [`GuildText`][`Self::GuildText`]
+    /// - [`GuildVoice`][`Self::GuildVoice`]
     pub const fn is_guild(self) -> bool {
         matches!(
             self,
@@ -51,9 +51,9 @@ impl ChannelType {
     ///
     /// The following channel types are considered guild channel types:
     ///
-    /// - [`Self::GuildNewsThread`][`GuildNewsThread`]
-    /// - [`Self::GuildPublicThread`][`GuildPublicThread`]
-    /// - [`Self::GuildPrivateThread`][`GuildPrivateThread`]
+    /// - [`GuildNewsThread`][`Self::GuildNewsThread`]
+    /// - [`GuildPublicThread`][`Self::GuildPublicThread`]
+    /// - [`GuildPrivateThread`][`Self::GuildPrivateThread`]
     pub const fn is_thread(self) -> bool {
         matches!(
             self,
