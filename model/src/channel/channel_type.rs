@@ -19,6 +19,49 @@ pub enum ChannelType {
 }
 
 impl ChannelType {
+    /// Whether the channel type is that of a guild.
+    ///
+    /// The following channel types are considered guild channel types:
+    ///
+    /// - [`Self::GuildCategory`][`GuildCategory`]
+    /// - [`Self::GuildNews`][`GuildNews`]
+    /// - [`Self::GuildStore`][`GuildStore`]
+    /// - [`Self::GuildNewsThread`][`GuildNewsThread`]
+    /// - [`Self::GuildPublicThread`][`GuildPublicThread`]
+    /// - [`Self::GuildPrivateThread`][`GuildPrivateThread`]
+    /// - [`Self::GuildStageVoice`][`GuildStageVoice`]
+    /// - [`Self::GuildText`][`GuildText`]
+    /// - [`Self::GuildVoice`][`GuildVoice`]
+    pub const fn is_guild(self) -> bool {
+        matches!(
+            self,
+            Self::GuildCategory
+                | Self::GuildNews
+                | Self::GuildStore
+                | Self::GuildNewsThread
+                | Self::GuildPublicThread
+                | Self::GuildPrivateThread
+                | Self::GuildStageVoice
+                | Self::GuildText
+                | Self::GuildVoice
+        )
+    }
+
+    /// Whether the channel type is a thread.
+    ///
+    /// The following channel types are considered guild channel types:
+    ///
+    /// - [`Self::GuildNewsThread`][`GuildNewsThread`]
+    /// - [`Self::GuildPublicThread`][`GuildPublicThread`]
+    /// - [`Self::GuildPrivateThread`][`GuildPrivateThread`]
+    pub const fn is_thread(self) -> bool {
+        matches!(
+            self,
+            Self::GuildNewsThread | Self::GuildPublicThread | Self::GuildPrivateThread
+        )
+    }
+
+    /// Name of the variant as a string slice.
     pub const fn name(self) -> &'static str {
         match self {
             Self::Group => "Group",
@@ -40,6 +83,21 @@ impl ChannelType {
 mod tests {
     use super::ChannelType;
     use serde_test::Token;
+    use static_assertions::const_assert;
+
+    const_assert!(ChannelType::GuildCategory.is_guild());
+    const_assert!(ChannelType::GuildNews.is_guild());
+    const_assert!(ChannelType::GuildStore.is_guild());
+    const_assert!(ChannelType::GuildNewsThread.is_guild());
+    const_assert!(ChannelType::GuildPublicThread.is_guild());
+    const_assert!(ChannelType::GuildPrivateThread.is_guild());
+    const_assert!(ChannelType::GuildStageVoice.is_guild());
+    const_assert!(ChannelType::GuildText.is_guild());
+    const_assert!(ChannelType::GuildVoice.is_guild());
+
+    const_assert!(ChannelType::GuildNewsThread.is_thread());
+    const_assert!(ChannelType::GuildPublicThread.is_thread());
+    const_assert!(ChannelType::GuildPrivateThread.is_thread());
 
     #[test]
     fn test_variants() {
