@@ -1,5 +1,5 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
-use twilight_model::{guild::GuildWidgetSettings, id::GuildId};
+use twilight_model::{guild::GuildWidgetSettings, id::{Id, marker::GuildMarker}};
 
 /// Get the guild's widget settings.
 ///
@@ -8,12 +8,12 @@ use twilight_model::{guild::GuildWidgetSettings, id::GuildId};
 /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget-settings
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWidgetSettings<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildWidgetSettings<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self { guild_id, http }
     }
 

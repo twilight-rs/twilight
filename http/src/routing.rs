@@ -482,6 +482,11 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's widget settings.
+    GetGuildWidgetSettings {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a guild's integrations.
     GetGuildIntegrations {
         /// The ID of the guild.
@@ -921,7 +926,7 @@ pub enum Route<'a> {
         guild_id: u64,
     },
     /// Route information to update a guild's widget.
-    UpdateGuildWidget {
+    UpdateGuildWidgetSettings {
         /// The ID of the guild.
         guild_id: u64,
     },
@@ -1122,6 +1127,7 @@ impl<'a> Route<'a> {
             | Self::GetGuildWelcomeScreen { .. }
             | Self::GetGuildWebhooks { .. }
             | Self::GetGuildWidget { .. }
+            | Self::GetGuildWidgetSettings { .. }
             | Self::GetGuilds { .. }
             | Self::GetInteractionOriginal { .. }
             | Self::GetInvite { .. }
@@ -1157,7 +1163,7 @@ impl<'a> Route<'a> {
             | Self::UpdateGuild { .. }
             | Self::UpdateGuildChannels { .. }
             | Self::UpdateGuildCommand { .. }
-            | Self::UpdateGuildWidget { .. }
+            | Self::UpdateGuildWidgetSettings { .. }
             | Self::UpdateGuildIntegration { .. }
             | Self::UpdateGuildScheduledEvent { .. }
             | Self::UpdateGuildSticker { .. }
@@ -1458,8 +1464,11 @@ impl<'a> Route<'a> {
             Self::GetGuild { guild_id, .. } | Self::UpdateGuild { guild_id } => {
                 Path::GuildsId(guild_id)
             }
-            Self::GetGuildWidget { guild_id } | Self::UpdateGuildWidget { guild_id } => {
+            Self::GetGuildWidget { guild_id } => {
                 Path::GuildsIdWidget(guild_id)
+            }
+            Self::GetGuildWidgetSettings { guild_id } | Self::UpdateGuildWidgetSettings { guild_id } => {
+                Path::GuildsIdWidgetSettings(guild_id)
             }
             Self::GetGuildIntegrations { guild_id } => Path::GuildsIdIntegrations(guild_id),
             Self::GetGuildInvites { guild_id } => Path::GuildsIdInvites(guild_id),

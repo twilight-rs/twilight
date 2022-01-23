@@ -3,7 +3,6 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
-use crate::request::guild::GetGuildWidget;
 #[allow(deprecated)]
 use crate::{
     error::{Error, ErrorType},
@@ -54,7 +53,7 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
+            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember, UpdateGuild,
             UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         scheduled_event::{
@@ -849,12 +848,15 @@ impl Client {
     /// Refer to [the discord docs] for more information.
     ///
     /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget-settings
-    pub const fn guild_widget_settings(&self, guild_id: GuildId) -> GetGuildWidgetSettings<'_> {
+    pub const fn guild_widget_settings(&self, guild_id: Id<GuildMarker>) -> GetGuildWidgetSettings<'_> {
         GetGuildWidgetSettings::new(self, guild_id)
     }
 
     /// Modify the guild widget.
-    pub const fn update_guild_widget_settings(&self, guild_id: Id<GuildMarker>) -> UpdateGuildWidget<'_> {
+    pub const fn update_guild_widget_settings(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> UpdateGuildWidget<'_> {
         UpdateGuildWidget::new(self, guild_id)
     }
 
