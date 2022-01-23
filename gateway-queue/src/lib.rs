@@ -160,22 +160,22 @@ impl Queue for LocalQueue {
 /// client and the Discord gateway and should not be used in any other
 /// cases.
 #[derive(Debug)]
-pub struct NoRatelimitQueue;
+pub struct NoOpQueue;
 
-impl Queue for NoRatelimitQueue {
+impl Queue for NoOpQueue {
     fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
-        Box::pin(async { () })
+        Box::pin(async {})
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{LocalQueue, NoRatelimitQueue, Queue};
+    use super::{LocalQueue, NoOpQueue, Queue};
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use std::fmt::Debug;
 
     assert_impl_all!(LocalQueue: Clone, Debug, Queue, Send, Sync);
-    assert_impl_all!(NoRatelimitQueue: Debug, Queue, Send, Sync);
+    assert_impl_all!(NoOpQueue: Debug, Queue, Send, Sync);
     assert_impl_all!(dyn Queue: Debug, Send, Sync);
     assert_obj_safe!(Queue);
 }
