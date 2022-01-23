@@ -3,14 +3,14 @@ use crate::{
         ActivityAssets, ActivityButton, ActivityEmoji, ActivityFlags, ActivityParty,
         ActivitySecrets, ActivityTimestamps, ActivityType,
     },
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Activity {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<ApplicationId>,
+    pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub assets: Option<ActivityAssets>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

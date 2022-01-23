@@ -1,5 +1,14 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
-use twilight_model::{channel::Message, id::ApplicationId};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
+use twilight_model::{
+    channel::Message,
+    id::{marker::ApplicationMarker, Id},
+};
 
 /// Get the original message, by its token.
 ///
@@ -11,20 +20,21 @@ use twilight_model::{channel::Message, id::ApplicationId};
 /// use std::env;
 /// use twilight_http::Client;
 /// use twilight_http::request::AuditLogReason;
-/// use twilight_model::id::ApplicationId;
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = Id::new(1);
 ///
-/// let message = client
-///     .get_interaction_original("token here")?
+/// client
+///     .interaction(application_id)
+///     .get_interaction_original("token here")
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetOriginalResponse<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
     token: &'a str,
 }
@@ -32,7 +42,7 @@ pub struct GetOriginalResponse<'a> {
 impl<'a> GetOriginalResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         interaction_token: &'a str,
     ) -> Self {
         Self {
@@ -42,38 +52,47 @@ impl<'a> GetOriginalResponse<'a> {
         }
     }
 
-    fn request(&self) -> Request {
-        Request::builder(&Route::GetInteractionOriginal {
-            application_id: self.application_id.get(),
-            interaction_token: self.token,
-        })
-        .use_authorization_token(false)
-        .build()
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        self.http.request(self.request())
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetOriginalResponse<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::builder(&Route::GetInteractionOriginal {
+            application_id: self.application_id.get(),
+            interaction_token: self.token,
+        })
+        .use_authorization_token(false)
+        .build())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::ApplicationId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_delete_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
-        let token = "foo".to_owned().into_boxed_str();
+        let application_id = Id::new(1);
+        let token = "foo".to_owned();
 
         let client = Client::new(String::new());
-        client.set_application_id(application_id);
-        let req = client.get_interaction_original(&token)?.request();
+        let req = client
+            .interaction(application_id)
+            .get_interaction_original(&token)
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

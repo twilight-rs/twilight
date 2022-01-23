@@ -1,21 +1,20 @@
-use crate::id::GuildId;
+use crate::id::{marker::GuildMarker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct UnavailableGuild {
-    pub id: GuildId,
+    pub id: Id<GuildMarker>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{GuildId, UnavailableGuild};
+    use super::UnavailableGuild;
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn test_unavailable_guild() {
-        let value = UnavailableGuild {
-            id: GuildId::new(1).expect("non zero"),
-        };
+        let value = UnavailableGuild { id: Id::new(1) };
 
         serde_test::assert_tokens(
             &value,
@@ -25,7 +24,7 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::StructEnd,
             ],

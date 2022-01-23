@@ -1,5 +1,4 @@
 pub mod current_application_info;
-pub mod id;
 pub mod team;
 
 mod partial_application;

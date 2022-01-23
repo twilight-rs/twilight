@@ -2,7 +2,6 @@
 
 use super::image_source::ImageSource;
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     mem,
@@ -747,7 +746,7 @@ mod tests {
     use super::{EmbedBuilder, EmbedError, EmbedErrorType};
     use crate::{field::EmbedFieldBuilder, footer::EmbedFooterBuilder, image_source::ImageSource};
     use static_assertions::{assert_fields, assert_impl_all, const_assert};
-    use std::{convert::TryFrom, error::Error, fmt::Debug};
+    use std::{error::Error, fmt::Debug};
     use twilight_model::{
         channel::embed::{Embed, EmbedField, EmbedFooter},
         datetime::Timestamp,

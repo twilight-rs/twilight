@@ -1,17 +1,21 @@
-use super::super::{
-    super::{InteractionError, InteractionErrorType},
-    CommandBorrowed,
-};
+use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{validate_inner, Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
-    id::{ApplicationId, GuildId},
+    id::{
+        marker::{ApplicationMarker, GuildMarker},
+        Id,
+    },
+};
+use twilight_validate::command::{
+    chat_input_name as validate_chat_input_name, description as validate_description,
+    options as validate_options, CommandValidationError,
 };
 
 /// Create a chat input command in a guild.
@@ -24,10 +28,10 @@ use twilight_model::{
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChatInputCommand<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     default_permission: Option<bool>,
     description: &'a str,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
     options: Option<&'a [CommandOption]>,
@@ -36,16 +40,14 @@ pub struct CreateGuildChatInputCommand<'a> {
 impl<'a> CreateGuildChatInputCommand<'a> {
     pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
         description: &'a str,
-    ) -> Result<Self, InteractionError> {
-        if !validate_inner::command_description(&description) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::CommandDescriptionValidationFailed,
-            });
-        }
+    ) -> Result<Self, CommandValidationError> {
+        validate_description(&description)?;
+
+        validate_chat_input_name(name)?;
 
         Ok(Self {
             application_id,
@@ -72,38 +74,37 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     ///
     /// Errors
     ///
-    /// Returns an [`InteractionErrorType::CommandOptionsRequiredFirst`]
-    /// if a required option was added after an optional option. The problem
-    /// option's index is provided.
-    pub const fn command_options(
+    /// Returns an error of type [`OptionsRequiredFirst`] if a required option
+    /// was added after an optional option. The problem option's index is
+    /// provided.
+    ///
+    /// [`OptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::OptionsRequiredFirst
+    pub fn command_options(
         mut self,
         options: &'a [CommandOption],
-    ) -> Result<Self, InteractionError> {
-        let mut optional_option_added = false;
-        let mut idx = 0;
-
-        while idx < options.len() {
-            let option = &options[idx];
-
-            if !optional_option_added && !option.is_required() {
-                optional_option_added = true;
-            }
-
-            if option.is_required() && optional_option_added {
-                return Err(InteractionError {
-                    kind: InteractionErrorType::CommandOptionsRequiredFirst { index: idx },
-                });
-            }
-
-            idx += 1;
-        }
+    ) -> Result<Self, CommandValidationError> {
+        validate_options(options)?;
 
         self.options = Some(options);
 
         Ok(self)
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateGuildChatInputCommand<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
@@ -117,15 +118,5 @@ impl<'a> CreateGuildChatInputCommand<'a> {
             options: self.options,
         })
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

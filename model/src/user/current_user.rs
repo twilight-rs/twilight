@@ -1,5 +1,8 @@
 use super::{DiscriminatorDisplay, PremiumType, UserFlags};
-use crate::id::UserId;
+use crate::{
+    id::{marker::UserMarker, Id},
+    util::image_hash::ImageHash,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -14,9 +17,9 @@ pub struct CurrentUser {
     /// Image formatting.
     ///
     /// [Discord's documentation]: https://discord.com/developers/docs/reference#image-formatting
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// Hash of the user's banner image.
-    pub banner: Option<String>,
+    pub banner: Option<ImageHash>,
     /// Whether the user belongs to an OAuth2 application.
     #[serde(default)]
     pub bot: bool,
@@ -41,7 +44,7 @@ pub struct CurrentUser {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<UserFlags>,
     /// User's id.
-    pub id: UserId,
+    pub id: Id<UserMarker>,
     /// User's chosen language option.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
@@ -77,7 +80,8 @@ impl CurrentUser {
 
 #[cfg(test)]
 mod tests {
-    use super::{CurrentUser, PremiumType, UserFlags, UserId};
+    use super::{CurrentUser, PremiumType, UserFlags};
+    use crate::{id::Id, test::image_hash};
     use serde_test::Token;
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
@@ -91,7 +95,7 @@ mod tests {
             Token::U64(16_711_680),
             Token::Str("avatar"),
             Token::Some,
-            Token::Str("avatar hash"),
+            Token::Str(image_hash::AVATAR_INPUT),
             Token::Str("banner"),
             Token::None,
             Token::Str("bot"),
@@ -99,7 +103,7 @@ mod tests {
             Token::Str("discriminator"),
             discriminator_token,
             Token::Str("id"),
-            Token::NewtypeStruct { name: "UserId" },
+            Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
@@ -131,10 +135,10 @@ mod tests {
             Token::None,
             Token::Str("avatar"),
             Token::Some,
-            Token::Str("avatar hash"),
+            Token::Str(image_hash::AVATAR_INPUT),
             Token::Str("banner"),
             Token::Some,
-            Token::Str("06c16474723fe537c283b8efa61a30c8"),
+            Token::Str(image_hash::BANNER_INPUT),
             Token::Str("bot"),
             Token::Bool(true),
             Token::Str("discriminator"),
@@ -146,7 +150,7 @@ mod tests {
             Token::Some,
             Token::U64(1),
             Token::Str("id"),
-            Token::NewtypeStruct { name: "UserId" },
+            Token::NewtypeStruct { name: "Id" },
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
@@ -172,12 +176,12 @@ mod tests {
     fn test_current_user() {
         let value = CurrentUser {
             accent_color: Some(16_711_680),
-            avatar: Some("avatar hash".to_owned()),
+            avatar: Some(image_hash::AVATAR),
             banner: None,
             bot: true,
             discriminator: 9999,
             email: None,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1),
             mfa_enabled: true,
             name: "test name".to_owned(),
             verified: Some(true),
@@ -201,12 +205,12 @@ mod tests {
     fn test_current_user_complete() {
         let value = CurrentUser {
             accent_color: None,
-            avatar: Some("avatar hash".to_owned()),
-            banner: Some("06c16474723fe537c283b8efa61a30c8".to_owned()),
+            avatar: Some(image_hash::AVATAR),
+            banner: Some(image_hash::BANNER),
             bot: true,
             discriminator: 9999,
             email: Some("test@example.com".to_owned()),
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1),
             mfa_enabled: true,
             name: "test name".to_owned(),
             verified: Some(true),

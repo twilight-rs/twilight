@@ -1,4 +1,7 @@
-use twilight_model::id::{ChannelId, GuildId};
+use twilight_model::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 
 use super::InMemoryCache;
 
@@ -28,7 +31,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Returns `None` if the channel hasn't yet been cached or there are no
     /// messages in the channel. However, the provided number may still be 0
     /// if some number is returned.
-    pub fn channel_messages(&self, channel_id: ChannelId) -> Option<usize> {
+    pub fn channel_messages(&self, channel_id: Id<ChannelMarker>) -> Option<usize> {
         let channel = self.0.channel_messages.get(&channel_id)?;
 
         Some(channel.len())
@@ -39,7 +42,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Returns `None` if the channel hasn't yet been cached or there are no
     /// voice states in the channel. However, the provided number may still be 0
     /// if some number is returned.
-    pub fn channel_voice_states(&self, channel_id: ChannelId) -> Option<usize> {
+    pub fn channel_voice_states(&self, channel_id: Id<ChannelMarker>) -> Option<usize> {
         let channel = self.0.voice_state_channels.get(&channel_id)?;
 
         Some(channel.len())
@@ -63,7 +66,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of channels in a given guild in the cache.
     ///
     /// Returns `None` if the guild hasn't yet been cached.
-    pub fn guild_channels(&self, guild_id: GuildId) -> Option<usize> {
+    pub fn guild_channels(&self, guild_id: Id<GuildMarker>) -> Option<usize> {
         let guild = self.0.guild_channels.get(&guild_id)?;
 
         Some(guild.len())
@@ -72,7 +75,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of emojis in a given guild in the cache.
     ///
     /// Returns `None` if the guild hasn't yet been cached.
-    pub fn guild_emojis(&self, guild_id: GuildId) -> Option<usize> {
+    pub fn guild_emojis(&self, guild_id: Id<GuildMarker>) -> Option<usize> {
         let guild = self.0.guild_emojis.get(&guild_id)?;
 
         Some(guild.len())
@@ -81,7 +84,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of members in a given guild in the cache.
     ///
     /// Returns `None` if the guild hasn't yet been cached.
-    pub fn guild_members(&self, guild_id: GuildId) -> Option<usize> {
+    pub fn guild_members(&self, guild_id: Id<GuildMarker>) -> Option<usize> {
         let guild = self.0.guild_members.get(&guild_id)?;
 
         Some(guild.len())
@@ -90,7 +93,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of presences in a given guild in the cache.
     ///
     /// Returns `None` if the guild hasn't yet been cached.
-    pub fn guild_presences(&self, guild_id: GuildId) -> Option<usize> {
+    pub fn guild_presences(&self, guild_id: Id<GuildMarker>) -> Option<usize> {
         let guild = self.0.guild_presences.get(&guild_id)?;
 
         Some(guild.len())
@@ -99,7 +102,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of roles in a given guild in the cache.
     ///
     /// Returns `None` if the guild hasn't yet been cached.
-    pub fn guild_roles(&self, guild_id: GuildId) -> Option<usize> {
+    pub fn guild_roles(&self, guild_id: Id<GuildMarker>) -> Option<usize> {
         let guild = self.0.guild_roles.get(&guild_id)?;
 
         Some(guild.len())
@@ -108,7 +111,7 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of voice states in a given guild in the cache.
     ///
     /// Returns `None` if the guild hasn't yet been cached.
-    pub fn guild_voice_states(&self, guild_id: GuildId) -> Option<usize> {
+    pub fn guild_voice_states(&self, guild_id: Id<GuildMarker>) -> Option<usize> {
         let guild = self.0.voice_state_guilds.get(&guild_id)?;
 
         Some(guild.len())

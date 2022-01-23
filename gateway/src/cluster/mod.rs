@@ -59,7 +59,7 @@
 //! ```no_run
 //! use twilight_gateway::{cluster::ShardScheme, Cluster, Event, Intents};
 //! use futures::StreamExt;
-//! use std::{convert::TryFrom, env};
+//! use std::env;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {

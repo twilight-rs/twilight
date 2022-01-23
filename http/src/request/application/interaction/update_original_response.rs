@@ -3,121 +3,21 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        self,
-        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, NullableField, Request,
-    },
+    request::{self, AttachmentFile, Form, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment, Message},
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
-
-/// A original response can not be updated as configured.
-#[derive(Debug)]
-pub struct UpdateOriginalResponseError {
-    kind: UpdateOriginalResponseErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl UpdateOriginalResponseError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateOriginalResponseErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        UpdateOriginalResponseErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, self.source)
-    }
-}
-
-impl Display for UpdateOriginalResponseError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateOriginalResponseErrorType::ComponentCount { count } => {
-                Display::fmt(count, f)?;
-                f.write_str(" components were provided, but only ")?;
-                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
-
-                f.write_str(" root components are allowed")
-            }
-            UpdateOriginalResponseErrorType::ComponentInvalid { .. } => {
-                f.write_str("a provided component is invalid")
-            }
-            UpdateOriginalResponseErrorType::ContentInvalid => {
-                f.write_str("message content is invalid")
-            }
-            UpdateOriginalResponseErrorType::EmbedTooLarge { .. } => {
-                f.write_str("length of one of the embeds is too large")
-            }
-            UpdateOriginalResponseErrorType::TooManyEmbeds => {
-                f.write_str("more than 10 embeds were provided")
-            }
-        }
-    }
-}
-
-impl Error for UpdateOriginalResponseError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`UpdateOriginalResponseError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UpdateOriginalResponseErrorType {
-    /// An invalid message component was provided.
-    ComponentInvalid {
-        /// Additional details about the validation failure type.
-        kind: ComponentValidationErrorType,
-    },
-    /// Too many message components were provided.
-    ComponentCount {
-        /// Number of components that were provided.
-        count: usize,
-    },
-    /// Content is over 2000 UTF-16 characters.
-    ContentInvalid,
-    /// Length of one of the embeds is over 6000 characters.
-    EmbedTooLarge {
-        /// Index of the embed that was too large.
-        ///
-        /// This can be used to index into the provided embeds to retrieve the
-        /// invalid embed.
-        index: usize,
-    },
-    /// Too many embeds were provided.
-    ///
-    /// A original response can have up to 10 embeds.
-    TooManyEmbeds,
-}
+use twilight_validate::message::{
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateOriginalResponseFields<'a> {
@@ -154,13 +54,15 @@ struct UpdateOriginalResponseFields<'a> {
 /// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::ApplicationId,
+///     id::Id,
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = Id::new(1);
 ///
-/// client.update_interaction_original("token here")?
+/// client
+///     .interaction(application_id)
+///     .update_interaction_original("token here")
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -173,7 +75,7 @@ struct UpdateOriginalResponseFields<'a> {
 /// [`DeleteOriginalResponse`]: super::DeleteOriginalResponse
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateOriginalResponse<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateOriginalResponseFields<'a>,
     http: &'a Client,
@@ -186,7 +88,7 @@ impl<'a> UpdateOriginalResponse<'a> {
 
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         interaction_token: &'a str,
     ) -> Self {
         Self {
@@ -230,32 +132,15 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateOriginalResponseErrorType::ComponentInvalid`] error
-    /// type if one of the provided components is invalid.
-    ///
-    /// Returns an [`UpdateOriginalResponseErrorType::ComponentCount`] error
-    /// type if too many components are provided.
+    /// Refer to the errors section of
+    /// [`twilight_validate::component::component`] for a list of errors that
+    /// may be returned as a result of validating each provided component.
     pub fn components(
         mut self,
         components: Option<&'a [Component]>,
-    ) -> Result<Self, UpdateOriginalResponseError> {
-        if let Some(components) = components.as_ref() {
-            validate_inner::components(components).map_err(|source| {
-                let (kind, inner_source) = source.into_parts();
-
-                match kind {
-                    ComponentValidationErrorType::ComponentCount { count } => {
-                        UpdateOriginalResponseError {
-                            kind: UpdateOriginalResponseErrorType::ComponentCount { count },
-                            source: inner_source,
-                        }
-                    }
-                    other => UpdateOriginalResponseError {
-                        kind: UpdateOriginalResponseErrorType::ComponentInvalid { kind: other },
-                        source: inner_source,
-                    },
-                }
-            })?;
+    ) -> Result<Self, MessageValidationError> {
+        if let Some(components) = components {
+            validate_components(components)?;
         }
 
         self.fields.components = Some(NullableField(components));
@@ -274,19 +159,13 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateOriginalResponseErrorType::ContentInvalid`] error type if
-    /// the content length is too long.
-    pub fn content(
-        mut self,
-        content: Option<&'a str>,
-    ) -> Result<Self, UpdateOriginalResponseError> {
+    /// Returns an error of type [`ContentInvalid`] if the content length is too
+    /// long.
+    ///
+    /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    pub fn content(mut self, content: Option<&'a str>) -> Result<Self, MessageValidationError> {
         if let Some(content_ref) = content {
-            if !validate_inner::content_limit(content_ref) {
-                return Err(UpdateOriginalResponseError {
-                    kind: UpdateOriginalResponseErrorType::ContentInvalid,
-                    source: None,
-                });
-            }
+            validate_content(content_ref)?;
         }
 
         self.fields.content = Some(NullableField(content));
@@ -317,10 +196,10 @@ impl<'a> UpdateOriginalResponse<'a> {
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::ApplicationId;
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// let application_id = Id::new(1);
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -328,7 +207,9 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_interaction_original("token")?
+    /// client
+    ///     .interaction(application_id)
+    ///     .update_interaction_original("token")
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -337,34 +218,18 @@ impl<'a> UpdateOriginalResponse<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateOriginalResponseErrorType::EmbedTooLarge`] error type
-    /// if one of the embeds are too large.
+    /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
     ///
-    /// Returns an [`UpdateOriginalResponseErrorType::TooManyEmbeds`] error type
-    /// if more than 10 embeds are provided.
+    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
+    /// that may occur.
     ///
+    /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [`embed`]: twilight_validate::embed::embed
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
-    /// [`EMBED_COUNT_LIMIT`]: Self::EMBED_COUNT_LIMIT
-    pub fn embeds(
-        mut self,
-        embeds: Option<&'a [Embed]>,
-    ) -> Result<Self, UpdateOriginalResponseError> {
-        if let Some(embeds_present) = embeds {
-            if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
-                return Err(UpdateOriginalResponseError {
-                    kind: UpdateOriginalResponseErrorType::TooManyEmbeds,
-                    source: None,
-                });
-            }
-
-            for (idx, embed) in embeds_present.iter().enumerate() {
-                if let Err(source) = validate_inner::embed(embed) {
-                    return Err(UpdateOriginalResponseError {
-                        kind: UpdateOriginalResponseErrorType::EmbedTooLarge { index: idx },
-                        source: Some(Box::new(source)),
-                    });
-                }
-            }
+    pub fn embeds(mut self, embeds: Option<&'a [Embed]>) -> Result<Self, MessageValidationError> {
+        if let Some(embeds) = embeds {
+            validate_embeds(embeds)?;
         }
 
         self.fields.embeds = Some(NullableField(embeds));
@@ -407,9 +272,18 @@ impl<'a> UpdateOriginalResponse<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateOriginalResponse<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateInteractionOriginal {
             application_id: self.application_id.get(),
             interaction_token: self.token,
@@ -450,33 +324,26 @@ impl<'a> UpdateOriginalResponse<'a> {
 
         Ok(request.use_authorization_token(false).build())
     }
-
-    pub fn exec(mut self) -> ResponseFuture<Message> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::ApplicationId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_delete_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
-        let token = "foo".to_owned().into_boxed_str();
+        let application_id = Id::new(1);
+        let token = "foo".to_owned();
 
         let client = Client::new(String::new());
-        client.set_application_id(application_id);
         let req = client
-            .update_interaction_original(&token)?
+            .interaction(application_id)
+            .update_interaction_original(&token)
             .content(Some("test"))?
-            .request()?;
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

@@ -1,15 +1,18 @@
-use super::{ThreadValidationError, ThreadValidationErrorType};
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, validate_inner, AuditLogReason, AuditLogReasonError, Request},
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
-    id::ChannelId,
+    id::{marker::ChannelMarker, Id},
+};
+use twilight_validate::channel::{
+    name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
+    ChannelValidationError,
 };
 
 #[derive(Serialize)]
@@ -34,14 +37,14 @@ struct UpdateThreadFields<'a> {
 /// characters and the maximum is 100 UTF-16 characters.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateThread<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: UpdateThreadFields<'a>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> UpdateThread<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: UpdateThreadFields {
@@ -112,14 +115,11 @@ impl<'a> UpdateThread<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`ThreadValidationErrorType::NameInvalid`] error type if the
-    /// name is invalid.
-    pub fn name(mut self, name: &'a str) -> Result<Self, ThreadValidationError> {
-        if !validate_inner::channel_name(name) {
-            return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::NameInvalid,
-            });
-        }
+    /// Returns an error of type [`NameInvalid`] if the name is invalid.
+    ///
+    /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    pub fn name(mut self, name: &'a str) -> Result<Self, ChannelValidationError> {
+        validate_name(name)?;
 
         self.fields.name = Some(name);
 
@@ -134,20 +134,17 @@ impl<'a> UpdateThread<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`ThreadValidationErrorType::RateLimitPerUserInvalid`] error type
-    /// if the amount is greater than 21600.
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the name is
+    /// invalid.
     ///
+    /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
     pub const fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u64,
-    ) -> Result<Self, ThreadValidationError> {
-        if rate_limit_per_user > 21600 {
-            return Err(ThreadValidationError {
-                kind: ThreadValidationErrorType::RateLimitPerUserInvalid {
-                    rate_limit_per_user,
-                },
-            });
+    ) -> Result<Self, ChannelValidationError> {
+        if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
+            return Err(source);
         }
 
         self.fields.rate_limit_per_user = Some(rate_limit_per_user);
@@ -155,25 +152,14 @@ impl<'a> UpdateThread<'a> {
         Ok(self)
     }
 
-    fn request(&self) -> Result<Request, HttpError> {
-        let mut request = Request::builder(&Route::UpdateChannel {
-            channel_id: self.channel_id.get(),
-        })
-        .json(&self.fields)?;
-
-        if let Some(reason) = &self.reason {
-            request = request.headers(request::audit_header(reason)?);
-        }
-
-        Ok(request.build())
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Channel> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
     }
@@ -187,21 +173,40 @@ impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
     }
 }
 
+impl TryIntoRequest for UpdateThread<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::UpdateChannel {
+            channel_id: self.channel_id.get(),
+        })
+        .json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            request = request.headers(request::audit_header(reason)?);
+        }
+
+        Ok(request.build())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{UpdateThread, UpdateThreadFields};
-    use crate::{request::Request, routing::Route, Client};
+    use crate::{
+        request::{Request, TryIntoRequest},
+        routing::Route,
+        Client,
+    };
     use std::error::Error;
-    use twilight_model::id::ChannelId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_string());
-        let channel_id = ChannelId::new(123).expect("non zero");
+        let channel_id = Id::new(123);
 
         let actual = UpdateThread::new(&client, channel_id)
             .rate_limit_per_user(60)?
-            .request()?;
+            .try_into_request()?;
 
         let expected = Request::builder(&Route::UpdateChannel {
             channel_id: channel_id.get(),

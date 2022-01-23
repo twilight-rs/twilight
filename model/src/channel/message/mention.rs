@@ -1,7 +1,8 @@
 use crate::{
     guild::PartialMember,
-    id::UserId,
+    id::{marker::UserMarker, Id},
     user::{self, DiscriminatorDisplay, UserFlags},
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Mention {
     /// Hash of the user's avatar, if any.
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// Whether the user is a bot.
     #[serde(default)]
     pub bot: bool,
@@ -23,7 +24,7 @@ pub struct Mention {
     #[serde(with = "user::discriminator")]
     pub discriminator: u16,
     /// Unique ID of the user.
-    pub id: UserId,
+    pub id: Id<UserMarker>,
     /// Member object for the user in the guild, if available.
     pub member: Option<PartialMember>,
     #[serde(rename = "username")]
@@ -44,11 +45,13 @@ impl Mention {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
-    use super::{Mention, PartialMember, UserFlags, UserId};
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use super::{Mention, PartialMember, UserFlags};
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::Id,
+    };
     use serde_test::Token;
+    use std::str::FromStr;
 
     #[test]
     fn test_mention_without_member() {
@@ -56,7 +59,7 @@ mod tests {
             avatar: None,
             bot: false,
             discriminator: 1,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1),
             member: None,
             name: "foo".to_owned(),
             public_flags: UserFlags::empty(),
@@ -76,7 +79,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("member"),
                 Token::None,
@@ -97,7 +100,7 @@ mod tests {
             avatar: None,
             bot: false,
             discriminator: 1,
-            id: UserId::new(1).expect("non zero"),
+            id: Id::new(1),
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,
@@ -128,7 +131,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("member"),
                 Token::Some,

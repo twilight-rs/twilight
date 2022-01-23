@@ -31,7 +31,7 @@ pub use self::{
 use serde::Serialize;
 use twilight_model::{
     application::command::{CommandOption, CommandType},
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
 
 /// Version of [`Command`] but with borrowed fields.
@@ -40,7 +40,7 @@ use twilight_model::{
 #[derive(Serialize)]
 struct CommandBorrowed<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<ApplicationId>,
+    pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_permission: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,7 +57,7 @@ mod tests {
     use super::CommandBorrowed;
     use twilight_model::{
         application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
-        id::{ApplicationId, CommandId, CommandVersionId, GuildId},
+        id::Id,
     };
 
     /// Test to convert a `Command` to a `CommandBorrowed`.
@@ -68,11 +68,11 @@ mod tests {
     #[test]
     fn test_command_borrowed_from_command() {
         let command = Command {
-            application_id: Some(ApplicationId::new(1).expect("non zero")),
+            application_id: Some(Id::new(1)),
             default_permission: Some(true),
             description: "command description".to_owned(),
-            guild_id: Some(GuildId::new(2).expect("non zero")),
-            id: Some(CommandId::new(3).expect("non zero")),
+            guild_id: Some(Id::new(2)),
+            id: Some(Id::new(3)),
             kind: CommandType::ChatInput,
             name: "command name".to_owned(),
             options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
@@ -80,7 +80,7 @@ mod tests {
                 name: "command name".to_owned(),
                 required: true,
             })]),
-            version: CommandVersionId::new(1).expect("non zero"),
+            version: Id::new(1),
         };
 
         let _ = CommandBorrowed {

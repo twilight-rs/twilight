@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = ["api-bindings", "asynchronous", "web-programming::http-client", "web-programming::websocket"]
 description = "Lavalink client for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-lavalink"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_8_first_party/section_3_lavalink.html"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "lavalink", "twilight"]
@@ -11,8 +11,9 @@ license = "ISC"
 name = "twilight-lavalink"
 publish = false
 readme = "README.md"
+rust-version = "1.57"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.3"
+version = "0.9.0"
 
 [dependencies]
 dashmap = { default-features = false, version = "4" }
@@ -32,13 +33,12 @@ tracing = { default-features = false, features = ["std", "attributes"], optional
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-twilight-gateway = { default-features = false, features = ["rustls"], path = "../gateway" }
-twilight-http = { default-features = false, features = ["rustls"], path = "../http" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http" }
 
 [features]
-default = ["http-support", "rustls", "tracing"]
+default = ["http-support", "rustls-native-roots", "tracing"]
 http-support = ["percent-encoding"]
 native = ["tokio-tungstenite/native-tls"]
-rustls = ["rustls-native-roots"]
 rustls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots"]

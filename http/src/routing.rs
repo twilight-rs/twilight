@@ -1,37 +1,1554 @@
-use super::route::Route;
+pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
+
+use crate::request::{channel::reaction::RequestReactionType, Method};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use twilight_model::id::{marker::RoleMarker, Id};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct RouteDisplay<'a>(&'a Route<'a>);
+#[non_exhaustive]
+pub enum Route<'a> {
+    /// Route information to add a user to a guild.
+    AddGuildMember { guild_id: u64, user_id: u64 },
+    /// Route information to add a role to guild member.
+    AddMemberRole {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the role.
+        role_id: u64,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to add a member to a thread.
+    AddThreadMember {
+        /// ID of the thread.
+        channel_id: u64,
+        /// ID of the member.
+        user_id: u64,
+    },
+    /// Route information to create a ban on a user in a guild.
+    CreateBan {
+        /// The number of days' worth of the user's messages to delete in the
+        /// guild's channels.
+        delete_message_days: Option<u64>,
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The reason for the ban.
+        reason: Option<&'a str>,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to create a channel in a guild.
+    CreateChannel {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create an emoji in a guild.
+    CreateEmoji {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create a global command.
+    CreateGlobalCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+    },
+    /// Route information to create a guild.
+    CreateGuild,
+    /// Route information to create a guild command.
+    CreateGuildCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create a guild from a template.
+    CreateGuildFromTemplate {
+        /// Code of the template.
+        template_code: &'a str,
+    },
+    /// Route information to create a guild's integration.
+    CreateGuildIntegration {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create a prune in a guild.
+    CreateGuildPrune {
+        /// Whether to compute the number of pruned users.
+        compute_prune_count: Option<bool>,
+        /// The number of days that a user must be offline before being able to
+        /// be pruned.
+        days: Option<u64>,
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The roles to filter the prune by.
+        ///
+        /// A user must have at least one of these roles to be able to be
+        /// pruned.
+        include_roles: &'a [Id<RoleMarker>],
+    },
+    /// Route information to create a scheduled event in a guild.
+    CreateGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create a sticker in a guild.
+    CreateGuildSticker {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create an invite to a channel.
+    CreateInvite {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to create a message in a channel.
+    CreateMessage {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to create a private channel.
+    CreatePrivateChannel,
+    /// Route information to create a thread in a channel.
+    CreateThread {
+        /// ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to create a thread from a message.
+    CreateThreadFromMessage {
+        /// ID of the channel.
+        channel_id: u64,
+        /// ID of the message.
+        message_id: u64,
+    },
+    /// Route information to create a reaction on a message.
+    CreateReaction {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The URI encoded custom or unicode emoji.
+        emoji: &'a RequestReactionType<'a>,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to create a role in a guild.
+    CreateRole {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create a stage instance.
+    CreateStageInstance,
+    /// Route information to create a guild template.
+    CreateTemplate {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to create a typing trigger in a channel.
+    CreateTypingTrigger {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to create a webhook in a channel.
+    CreateWebhook {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to crosspost a message to following guilds.
+    CrosspostMessage {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to delete a ban on a user in a guild.
+    DeleteBan {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to delete a channel.
+    DeleteChannel {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to delete a guild's custom emoji.
+    DeleteEmoji {
+        /// The ID of the emoji.
+        emoji_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to delete a global command.
+    DeleteGlobalCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+    },
+    /// Route information to delete a guild.
+    DeleteGuild {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to delete a guild command.
+    DeleteGuildCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to delete a guild integration.
+    DeleteGuildIntegration {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the integration.
+        integration_id: u64,
+    },
+    /// Route information to delete a scheduled event in a guild.
+    DeleteGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
+    },
+    /// Route information to delete a guild sticker.
+    DeleteGuildSticker {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the sticker.
+        sticker_id: u64,
+    },
+    /// Route information to delete an invite.
+    DeleteInvite {
+        /// The unique invite code.
+        code: &'a str,
+    },
+    /// Route information to delete the original interaction response.
+    DeleteInteractionOriginal {
+        /// The ID of the owner application
+        application_id: u64,
+        /// The token of the interaction.
+        interaction_token: &'a str,
+    },
+    /// Route information to delete a channel's message.
+    DeleteMessage {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to bulk delete messages in a channel.
+    DeleteMessages {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to delete all of the reactions on a message.
+    DeleteMessageReactions {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to delete all of the reactions on a message with a
+    /// specific emoji.
+    DeleteMessageSpecificReaction {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The URI encoded custom or unicode emoji.
+        emoji: &'a RequestReactionType<'a>,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to delete a permission overwrite for a role or user in
+    /// a channel.
+    DeletePermissionOverwrite {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the target role or user.
+        target_id: u64,
+    },
+    /// Route information to delete the current user's reaction on a message.
+    DeleteReactionCurrentUser {
+        /// ID of the channel.
+        channel_id: u64,
+        /// URI encoded custom or unicode emoji.
+        emoji: &'a RequestReactionType<'a>,
+        /// ID of the message.
+        message_id: u64,
+    },
+    /// Route information to delete a user's reaction on a message.
+    DeleteReaction {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The URI encoded custom or unicode emoji.
+        emoji: &'a RequestReactionType<'a>,
+        /// The ID of the message.
+        message_id: u64,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to delete a guild's role.
+    DeleteRole {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the role.
+        role_id: u64,
+    },
+    /// Route information to delete a stage instance.
+    DeleteStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
+    },
+    /// Route information to delete a guild template.
+    DeleteTemplate {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The target template code.
+        template_code: &'a str,
+    },
+    /// Route information to delete a message created by a webhook.
+    DeleteWebhookMessage {
+        message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
+        token: &'a str,
+        webhook_id: u64,
+    },
+    /// Route information to delete a webhook.
+    DeleteWebhook {
+        /// The token of the webhook.
+        token: Option<&'a str>,
+        /// The ID of the webhook.
+        webhook_id: u64,
+    },
+    /// Route information to execute a webhook by ID and token.
+    ExecuteWebhook {
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
+        /// The token of the webhook.
+        token: &'a str,
+        /// Whether to wait for a message response.
+        wait: Option<bool>,
+        /// The ID of the webhook.
+        webhook_id: u64,
+    },
+    /// Route information to follow a news channel.
+    FollowNewsChannel {
+        /// The ID of the channel to follow.
+        channel_id: u64,
+    },
+    /// Route information to get active threads in a channel.
+    GetActiveThreads {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a paginated list of audit logs in a guild.
+    GetAuditLogs {
+        /// The type of action to get audit logs for.
+        action_type: Option<u64>,
+        /// The maximum ID of audit logs to get.
+        before: Option<u64>,
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The maximum number of audit logs to get.
+        limit: Option<u64>,
+        /// The ID of the user, if specified.
+        user_id: Option<u64>,
+    },
+    /// Route information to get information about a single ban in a guild.
+    GetBan {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to get a guild's bans.
+    GetBans {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a channel.
+    GetChannel {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to get a channel's invites.
+    GetChannelInvites {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to get a channel's webhooks.
+    GetChannelWebhooks {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to get a guild's channels.
+    GetChannels {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get permissions of a specific guild command.
+    GetCommandPermissions {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get info about application the current bot user belongs to
+    GetCurrentUserApplicationInfo,
+    /// Route information to get the current user.
+    GetCurrentUser,
+    /// Route information to get the current user as a member object within a guild.
+    GetCurrentUserGuildMember {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get an emoji by ID within a guild.
+    GetEmoji {
+        /// The ID of the emoji.
+        emoji_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's emojis.
+    GetEmojis {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route to get a followup message for an interaction.
+    GetFollowupMessage {
+        /// ID of the application.
+        application_id: u64,
+        /// Token of the interaction.
+        interaction_token: &'a str,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
+        /// ID of the followup message.
+        message_id: u64,
+    },
+    /// Route information to get basic gateway information.
+    GetGateway,
+    /// Route information to get gateway information tailored to the current
+    /// user.
+    GetGatewayBot,
+    /// Route information to get a global command for an application.
+    GetGlobalCommand {
+        /// ID of the owner application.
+        application_id: u64,
+        /// ID of the command.
+        command_id: u64,
+    },
+    GetGlobalCommands {
+        /// The ID of the owner application.
+        application_id: u64,
+    },
+    /// Route information to get a guild.
+    GetGuild {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// Whether to include approximate member and presence counts for the
+        /// guild.
+        with_counts: bool,
+    },
+    /// Route information to get a guild command.
+    GetGuildCommand {
+        /// ID of the owner application.
+        application_id: u64,
+        /// ID of the command.
+        command_id: u64,
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get permissions of all guild commands.
+    GetGuildCommandPermissions {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get guild commands.
+    GetGuildCommands {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's widget.
+    GetGuildWidget {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's integrations.
+    GetGuildIntegrations {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's invites.
+    GetGuildInvites {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's members.
+    GetGuildMembers {
+        /// The minimum ID of members to get.
+        after: Option<u64>,
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The maximum number of members to get.
+        limit: Option<u64>,
+        /// Whether to get the members' presences.
+        presences: Option<bool>,
+    },
+    /// Route information to get a guild's preview.
+    GetGuildPreview {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get the number of members that would be pruned,
+    /// filtering by inactivity and users with one of the provided roles.
+    GetGuildPruneCount {
+        /// The number of days that a user must be offline before being able to
+        /// be pruned.
+        days: Option<u64>,
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The roles to filter the prune by.
+        ///
+        /// A user must have at least one of these roles to be able to be
+        /// pruned.
+        include_roles: &'a [Id<RoleMarker>],
+    },
+    /// Route information to get a guild's roles.
+    GetGuildRoles {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild scheduled event.
+    GetGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        // ID of the scheduled event.
+        scheduled_event_id: u64,
+        /// Whether to include user counts.
+        with_user_count: bool,
+    },
+    /// Route information to get a guild's scheduled events.
+    GetGuildScheduledEvents {
+        /// ID of the guild.
+        guild_id: u64,
+        /// Whether to include user counts.
+        with_user_count: bool,
+    },
+    /// Route information to get a guild scheduled event's members.
+    GetGuildScheduledEventUsers {
+        /// Get members after this ID.
+        after: Option<u64>,
+        /// Get members before this ID.
+        before: Option<u64>,
+        /// ID of the guild.
+        guild_id: u64,
+        /// Maximum amount of members to get.
+        limit: Option<u64>,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
+        /// Whether to return a member object.
+        with_member: bool,
+    },
+    /// Route information to get a guild's sticker.
+    GetGuildSticker {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the stickers.
+        sticker_id: u64,
+    },
+    /// Route information to get a guild's stickers.
+    GetGuildStickers {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's vanity URL.
+    GetGuildVanityUrl {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's available voice regions.
+    GetGuildVoiceRegions {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's welcome screen.
+    GetGuildWelcomeScreen {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's webhooks.
+    GetGuildWebhooks {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a paginated list of guilds.
+    GetGuilds {
+        /// The minimum ID of guilds to get.
+        after: Option<u64>,
+        /// The maximum ID of guilds to get.
+        before: Option<u64>,
+        /// The maximum number of guilds to get.
+        limit: Option<u64>,
+    },
+    /// Route information to get an original interaction response message.
+    GetInteractionOriginal {
+        /// ID of the owner application.
+        application_id: u64,
+        /// Token of the interaction.
+        interaction_token: &'a str,
+    },
+    /// Route information to get an invite.
+    GetInvite {
+        /// The unique invite code.
+        code: &'a str,
+        /// Whether to retrieve statistics about the invite.
+        with_counts: bool,
+    },
+    /// Route information to get an invite with an expiration.
+    GetInviteWithExpiration {
+        /// The unique invite code.
+        code: &'a str,
+        /// Whether to retrieve statistics about the invite.
+        with_counts: bool,
+        /// Whether to retrieve the expiration date of the invite.
+        with_expiration: bool,
+    },
+    /// Route information to get a member.
+    GetMember {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to get a single message in a channel.
+    GetMessage {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to get a paginated list of messages in a channel.
+    GetMessages {
+        /// The minimum ID of messages to get.
+        after: Option<u64>,
+        /// The message ID to get the messages around.
+        around: Option<u64>,
+        /// The maximum ID of messages to get.
+        before: Option<u64>,
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The maximum number of messages to get.
+        limit: Option<u64>,
+    },
+    /// Route information to get a list of sticker packs available to Nitro
+    /// subscribers.
+    GetNitroStickerPacks,
+    /// Route information to get a channel's pins.
+    GetPins {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to get joined private archived threads in a channel.
+    GetJoinedPrivateArchivedThreads {
+        /// Optional timestamp to return threads before.
+        before: Option<u64>,
+        /// ID of the channel.
+        channel_id: u64,
+        /// Optional maximum number of threads to return.
+        limit: Option<u64>,
+    },
+    /// Route information to get private archived threads in a channel.
+    GetPrivateArchivedThreads {
+        /// Optional timestamp to return threads before.
+        before: Option<&'a str>,
+        /// ID of the channel.
+        channel_id: u64,
+        /// Optional maximum number of threads to return.
+        limit: Option<u64>,
+    },
+    /// Route information to get public archived threads in a channel.
+    GetPublicArchivedThreads {
+        /// Optional timestamp to return threads before.
+        before: Option<&'a str>,
+        /// ID of the channel.
+        channel_id: u64,
+        /// Optional maximum number of threads to return.
+        limit: Option<u64>,
+    },
+    /// Route information to get the users who reacted to a message with a
+    /// specified emoji.
+    GetReactionUsers {
+        /// The minimum ID of users to get.
+        after: Option<u64>,
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The URI encoded custom or unicode emoji.
+        emoji: &'a RequestReactionType<'a>,
+        /// The maximum number of users to retrieve.
+        limit: Option<u64>,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to get a stage instance.
+    GetStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
+    },
+    /// Route information to get a sticker.
+    GetSticker {
+        /// ID of the sticker.
+        sticker_id: u64,
+    },
+    /// Route information to get a template.
+    GetTemplate {
+        /// The template code.
+        template_code: &'a str,
+    },
+    /// Route information to get a list of templates from a guild.
+    GetTemplates {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a member of a thread.
+    GetThreadMember {
+        /// ID of the thread.
+        channel_id: u64,
+        /// ID of the member.
+        user_id: u64,
+    },
+    /// Route information to get members of a thread.
+    GetThreadMembers {
+        /// ID of the thread.
+        channel_id: u64,
+    },
+    /// Route information to get a user.
+    GetUser {
+        /// ID of the target user.
+        user_id: u64,
+    },
+    /// Route information to get the current user's connections.
+    GetUserConnections,
+    /// Route information to get the current user's private channels and groups.
+    GetUserPrivateChannels,
+    /// Route information to get a list of the voice regions.
+    GetVoiceRegions,
+    /// Route information to get a webhook by ID, optionally with a token if the
+    /// current user doesn't have access to it.
+    GetWebhook {
+        /// The token of the webhook.
+        token: Option<&'a str>,
+        /// The ID of the webhook.
+        webhook_id: u64,
+    },
+    /// Route information to get a previously-sent webhook message.
+    GetWebhookMessage {
+        /// ID of the message.
+        message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
+        /// Token of the webhook.
+        token: &'a str,
+        /// ID of the webhook.
+        webhook_id: u64,
+    },
+    /// Route information to respond to an interaction.
+    InteractionCallback {
+        /// The ID of the interaction.
+        interaction_id: u64,
+        /// The token for the interaction.
+        interaction_token: &'a str,
+    },
+    /// Route information to join a thread as the current user.
+    JoinThread {
+        /// ID of the thread.
+        channel_id: u64,
+    },
+    /// Route information to leave the guild.
+    LeaveGuild {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to leave a thread as the current user.
+    LeaveThread {
+        /// ID of the thread.
+        channel_id: u64,
+    },
+    /// Route information to pin a message to a channel.
+    PinMessage {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to remove a member from a guild.
+    RemoveMember {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to remove a role from a member.
+    RemoveMemberRole {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the role.
+        role_id: u64,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to remove a member from a thread.
+    RemoveThreadMember {
+        /// ID of the thread.
+        channel_id: u64,
+        /// ID of the member.
+        user_id: u64,
+    },
+    /// Route information to search for members in a guild.
+    SearchGuildMembers {
+        /// ID of the guild to search in.
+        guild_id: u64,
+        /// Upper limit of members to query for.
+        limit: Option<u64>,
+        /// Query to search by.
+        query: &'a str,
+    },
+    /// Route information to set permissions of commands in a guild.
+    SetCommandPermissions {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to set global commands.
+    SetGlobalCommands {
+        /// The ID of the owner application.
+        application_id: u64,
+    },
+    /// Route information to set guild commands.
+    SetGuildCommands {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to sync a guild's integration.
+    SyncGuildIntegration {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the integration.
+        integration_id: u64,
+    },
+    /// Route information to sync a template.
+    SyncTemplate {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The template code.
+        template_code: &'a str,
+    },
+    /// Route information to unpin a message from a channel.
+    UnpinMessage {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to update a channel, such as a guild channel or group.
+    UpdateChannel {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to edit permissions of a command in a guild.
+    UpdateCommandPermissions {
+        /// The ID of the application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update the current member.
+    UpdateCurrentMember {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update the current user.
+    UpdateCurrentUser,
+    /// Route information to update the current user's voice state.
+    UpdateCurrentUserVoiceState {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update an emoji.
+    UpdateEmoji {
+        /// The ID of the emoji.
+        emoji_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update a global command.
+    UpdateGlobalCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+    },
+    /// Route information to update a guild.
+    UpdateGuild {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update a guild channel.
+    UpdateGuildChannels {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update a guild command.
+    UpdateGuildCommand {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The ID of the command.
+        command_id: u64,
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update a guild's widget.
+    UpdateGuildWidget {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update a guild's integration.
+    UpdateGuildIntegration {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the integration.
+        integration_id: u64,
+    },
+    /// Route information to update a scheduled event in a guild.
+    UpdateGuildScheduledEvent {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the scheduled event.
+        scheduled_event_id: u64,
+    },
+    /// Route information to update a guild sticker.
+    UpdateGuildSticker {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the sticker.
+        sticker_id: u64,
+    },
+    /// Route information to update a guild's welcome screen.
+    UpdateGuildWelcomeScreen {
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Update the original interaction response.
+    UpdateInteractionOriginal {
+        /// The ID of the owner application.
+        application_id: u64,
+        /// The token for the interaction.
+        interaction_token: &'a str,
+    },
+    /// Route information to update a member.
+    UpdateMember {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the user.
+        user_id: u64,
+    },
+    /// Route information to update a message.
+    UpdateMessage {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the message.
+        message_id: u64,
+    },
+    /// Route information to update the current member's nickname.
+    UpdateNickname {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update the permission overwrite of a role or user
+    /// in a channel.
+    UpdatePermissionOverwrite {
+        /// The ID of the channel.
+        channel_id: u64,
+        /// The ID of the role or user.
+        target_id: u64,
+    },
+    /// Route information to update a role.
+    UpdateRole {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The ID of the role.
+        role_id: u64,
+    },
+    /// Route information to update the positions of roles.
+    UpdateRolePositions {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update an existing stage instance.
+    UpdateStageInstance {
+        /// ID of the stage channel.
+        channel_id: u64,
+    },
+    /// Route information to update a template.
+    UpdateTemplate {
+        /// The ID of the guild.
+        guild_id: u64,
+        /// The template code.
+        template_code: &'a str,
+    },
+    /// Route information to update a user's voice state.
+    UpdateUserVoiceState {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the user.
+        user_id: u64,
+    },
+    /// Route information to update a message created by a webhook.
+    UpdateWebhookMessage {
+        message_id: u64,
+        /// ID of the thread channel, if there is one.
+        thread_id: Option<u64>,
+        token: &'a str,
+        webhook_id: u64,
+    },
+    /// Route information to update a webhook.
+    UpdateWebhook {
+        /// The token of the webhook.
+        token: Option<&'a str>,
+        /// The ID of the webhook.
+        webhook_id: u64,
+    },
+}
 
-impl<'a> RouteDisplay<'a> {
-    /// Create a display formatter for a route.
+impl<'a> Route<'a> {
+    /// HTTP method of the route.
     ///
-    /// This is equivalent to [`Route::display`].
-    pub(super) const fn new(route: &'a Route<'a>) -> Self {
-        Self(route)
+    /// # Examples
+    ///
+    /// Assert that the [`GetGuild`] route returns [`Method::Get`]:
+    ///
+    /// ```
+    /// use twilight_http::{request::Method, routing::Route};
+    ///
+    /// let route = Route::GetGuild {
+    ///     guild_id: 123,
+    ///     with_counts: false,
+    /// };
+    ///
+    /// assert_eq!(Method::Get, route.method());
+    /// ```
+    ///
+    /// [`GetGuild`]: Self::GetGuild
+    #[allow(clippy::too_many_lines)]
+    pub const fn method(&self) -> Method {
+        match self {
+            Self::DeleteBan { .. }
+            | Self::DeleteChannel { .. }
+            | Self::DeleteEmoji { .. }
+            | Self::DeleteGlobalCommand { .. }
+            | Self::DeleteGuild { .. }
+            | Self::DeleteGuildCommand { .. }
+            | Self::DeleteGuildIntegration { .. }
+            | Self::DeleteGuildScheduledEvent { .. }
+            | Self::DeleteGuildSticker { .. }
+            | Self::DeleteInteractionOriginal { .. }
+            | Self::DeleteInvite { .. }
+            | Self::DeleteMessageReactions { .. }
+            | Self::DeleteMessageSpecificReaction { .. }
+            | Self::DeleteMessage { .. }
+            | Self::DeletePermissionOverwrite { .. }
+            | Self::DeleteReactionCurrentUser { .. }
+            | Self::DeleteReaction { .. }
+            | Self::DeleteRole { .. }
+            | Self::DeleteStageInstance { .. }
+            | Self::DeleteTemplate { .. }
+            | Self::DeleteWebhookMessage { .. }
+            | Self::DeleteWebhook { .. }
+            | Self::LeaveGuild { .. }
+            | Self::LeaveThread { .. }
+            | Self::RemoveMember { .. }
+            | Self::RemoveMemberRole { .. }
+            | Self::RemoveThreadMember { .. }
+            | Self::UnpinMessage { .. } => Method::Delete,
+            Self::GetActiveThreads { .. }
+            | Self::GetAuditLogs { .. }
+            | Self::GetBan { .. }
+            | Self::GetBans { .. }
+            | Self::GetGatewayBot
+            | Self::GetChannel { .. }
+            | Self::GetChannelInvites { .. }
+            | Self::GetChannelWebhooks { .. }
+            | Self::GetChannels { .. }
+            | Self::GetCommandPermissions { .. }
+            | Self::GetCurrentUserApplicationInfo
+            | Self::GetCurrentUser
+            | Self::GetCurrentUserGuildMember { .. }
+            | Self::GetEmoji { .. }
+            | Self::GetEmojis { .. }
+            | Self::GetGateway
+            | Self::GetFollowupMessage { .. }
+            | Self::GetGlobalCommand { .. }
+            | Self::GetGlobalCommands { .. }
+            | Self::GetGuild { .. }
+            | Self::GetGuildCommand { .. }
+            | Self::GetGuildCommandPermissions { .. }
+            | Self::GetGuildCommands { .. }
+            | Self::GetGuildIntegrations { .. }
+            | Self::GetGuildInvites { .. }
+            | Self::GetGuildMembers { .. }
+            | Self::GetGuildPreview { .. }
+            | Self::GetGuildPruneCount { .. }
+            | Self::GetGuildRoles { .. }
+            | Self::GetGuildScheduledEvent { .. }
+            | Self::GetGuildScheduledEventUsers { .. }
+            | Self::GetGuildScheduledEvents { .. }
+            | Self::GetGuildSticker { .. }
+            | Self::GetGuildStickers { .. }
+            | Self::GetGuildVanityUrl { .. }
+            | Self::GetGuildVoiceRegions { .. }
+            | Self::GetGuildWelcomeScreen { .. }
+            | Self::GetGuildWebhooks { .. }
+            | Self::GetGuildWidget { .. }
+            | Self::GetGuilds { .. }
+            | Self::GetInteractionOriginal { .. }
+            | Self::GetInvite { .. }
+            | Self::GetInviteWithExpiration { .. }
+            | Self::GetMember { .. }
+            | Self::GetMessage { .. }
+            | Self::GetMessages { .. }
+            | Self::GetNitroStickerPacks { .. }
+            | Self::GetPins { .. }
+            | Self::GetJoinedPrivateArchivedThreads { .. }
+            | Self::GetPrivateArchivedThreads { .. }
+            | Self::GetPublicArchivedThreads { .. }
+            | Self::GetReactionUsers { .. }
+            | Self::GetStageInstance { .. }
+            | Self::GetSticker { .. }
+            | Self::GetTemplate { .. }
+            | Self::GetTemplates { .. }
+            | Self::GetThreadMember { .. }
+            | Self::GetThreadMembers { .. }
+            | Self::GetUserConnections
+            | Self::GetUserPrivateChannels
+            | Self::GetUser { .. }
+            | Self::GetVoiceRegions
+            | Self::GetWebhook { .. }
+            | Self::GetWebhookMessage { .. }
+            | Self::SearchGuildMembers { .. } => Method::Get,
+            Self::UpdateChannel { .. }
+            | Self::UpdateCurrentMember { .. }
+            | Self::UpdateCurrentUser
+            | Self::UpdateCurrentUserVoiceState { .. }
+            | Self::UpdateEmoji { .. }
+            | Self::UpdateGlobalCommand { .. }
+            | Self::UpdateGuild { .. }
+            | Self::UpdateGuildChannels { .. }
+            | Self::UpdateGuildCommand { .. }
+            | Self::UpdateGuildWidget { .. }
+            | Self::UpdateGuildIntegration { .. }
+            | Self::UpdateGuildScheduledEvent { .. }
+            | Self::UpdateGuildSticker { .. }
+            | Self::UpdateGuildWelcomeScreen { .. }
+            | Self::UpdateInteractionOriginal { .. }
+            | Self::UpdateMember { .. }
+            | Self::UpdateMessage { .. }
+            | Self::UpdateNickname { .. }
+            | Self::UpdateRole { .. }
+            | Self::UpdateRolePositions { .. }
+            | Self::UpdateStageInstance { .. }
+            | Self::UpdateTemplate { .. }
+            | Self::UpdateUserVoiceState { .. }
+            | Self::UpdateWebhookMessage { .. }
+            | Self::UpdateWebhook { .. } => Method::Patch,
+            Self::CreateChannel { .. }
+            | Self::CreateGlobalCommand { .. }
+            | Self::CreateGuildCommand { .. }
+            | Self::CreateEmoji { .. }
+            | Self::CreateGuild
+            | Self::CreateGuildFromTemplate { .. }
+            | Self::CreateGuildIntegration { .. }
+            | Self::CreateGuildPrune { .. }
+            | Self::CreateGuildScheduledEvent { .. }
+            | Self::CreateGuildSticker { .. }
+            | Self::CreateInvite { .. }
+            | Self::CreateMessage { .. }
+            | Self::CreatePrivateChannel
+            | Self::CreateThread { .. }
+            | Self::CreateThreadFromMessage { .. }
+            | Self::CreateRole { .. }
+            | Self::CreateStageInstance { .. }
+            | Self::CreateTemplate { .. }
+            | Self::CreateTypingTrigger { .. }
+            | Self::CreateWebhook { .. }
+            | Self::CrosspostMessage { .. }
+            | Self::DeleteMessages { .. }
+            | Self::ExecuteWebhook { .. }
+            | Self::FollowNewsChannel { .. }
+            | Self::InteractionCallback { .. }
+            | Self::SyncGuildIntegration { .. } => Method::Post,
+            Self::AddGuildMember { .. }
+            | Self::AddMemberRole { .. }
+            | Self::AddThreadMember { .. }
+            | Self::CreateBan { .. }
+            | Self::CreateReaction { .. }
+            | Self::JoinThread { .. }
+            | Self::PinMessage { .. }
+            | Self::SetCommandPermissions { .. }
+            | Self::SetGlobalCommands { .. }
+            | Self::SetGuildCommands { .. }
+            | Self::SyncTemplate { .. }
+            | Self::UpdateCommandPermissions { .. }
+            | Self::UpdatePermissionOverwrite { .. } => Method::Put,
+        }
     }
 
-    /// Immutable reference to the underlying route.
+    /// Typed path of the route.
+    ///
+    /// Paths are used with a [`Ratelimiter`].
+    ///
+    /// # Examples
+    ///
+    /// Use a route's path to retrieve a ratelimiter ticket:
     ///
     /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// use twilight_http::routing::Route;
+    /// use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
     ///
-    /// let route = Route::GetMessage {
+    /// let ratelimiter = InMemoryRatelimiter::new();
+    /// let route = Route::CreateMessage {
     ///     channel_id: 123,
-    ///     message_id: 456,
-    /// };
-    /// let display = route.display();
+    ///  };
     ///
-    /// assert_eq!(display.route_ref(), &route);
+    /// // Take a ticket from the ratelimiter.
+    /// let rx = ratelimiter.ticket(route.to_path()).await?;
+    ///
+    /// // Wait to be told that a request can be made...
+    /// let _tx = rx.await;
+    ///
+    /// // The request can now be made.
+    /// # Ok(()) }
     /// ```
-    pub const fn route_ref(&self) -> &'a Route<'a> {
-        self.0
+    ///
+    /// [`Ratelimiter`]: twilight_http_ratelimiting::Ratelimiter
+    #[allow(clippy::too_many_lines)]
+    pub fn to_path(&self) -> Path {
+        match *self {
+            Self::AddGuildMember { guild_id, .. }
+            | Self::GetMember { guild_id, .. }
+            | Self::RemoveMember { guild_id, .. }
+            | Self::UpdateMember { guild_id, .. } => Path::GuildsIdMembersId(guild_id),
+            Self::AddMemberRole { guild_id, .. } | Self::RemoveMemberRole { guild_id, .. } => {
+                Path::GuildsIdMembersIdRolesId(guild_id)
+            }
+            Self::AddThreadMember { channel_id, .. }
+            | Self::GetThreadMember { channel_id, .. }
+            | Self::GetThreadMembers { channel_id, .. }
+            | Self::JoinThread { channel_id, .. }
+            | Self::LeaveThread { channel_id, .. }
+            | Self::RemoveThreadMember { channel_id, .. } => {
+                Path::ChannelsIdThreadMembers(channel_id)
+            }
+            Self::CreateBan { guild_id, .. } | Self::DeleteBan { guild_id, .. } => {
+                Path::GuildsIdBansUserId(guild_id)
+            }
+            Self::CreateChannel { guild_id } => Path::GuildsIdChannels(guild_id),
+            Self::CreateEmoji { guild_id } | Self::GetEmojis { guild_id } => {
+                Path::GuildsIdEmojis(guild_id)
+            }
+            Self::CreateGlobalCommand { application_id }
+            | Self::GetGlobalCommands { application_id }
+            | Self::SetGlobalCommands { application_id } => {
+                Path::ApplicationCommand(application_id)
+            }
+            Self::CreateGuild => Path::Guilds,
+            Self::CreateGuildFromTemplate { template_code, .. }
+            | Self::GetTemplate { template_code, .. } => {
+                Path::GuildsTemplatesCode(template_code.to_string())
+            }
+            Self::CreateGuildCommand { application_id, .. }
+            | Self::DeleteGuildCommand { application_id, .. }
+            | Self::GetGuildCommand { application_id, .. }
+            | Self::GetGuildCommandPermissions { application_id, .. }
+            | Self::GetGuildCommands { application_id, .. }
+            | Self::SetCommandPermissions { application_id, .. }
+            | Self::SetGuildCommands { application_id, .. }
+            | Self::UpdateGuildCommand { application_id, .. } => {
+                Path::ApplicationGuildCommand(application_id)
+            }
+            Self::CreateGuildIntegration { guild_id } => Path::GuildsIdIntegrationsId(guild_id),
+            Self::CreateGuildPrune { guild_id, .. } | Self::GetGuildPruneCount { guild_id, .. } => {
+                Path::GuildsIdPrune(guild_id)
+            }
+            Self::CreateGuildSticker { guild_id, .. }
+            | Self::DeleteGuildSticker { guild_id, .. }
+            | Self::GetGuildSticker { guild_id, .. }
+            | Self::GetGuildStickers { guild_id, .. }
+            | Self::UpdateGuildSticker { guild_id, .. } => Path::GuildsIdStickers(guild_id),
+            Self::CreateInvite { channel_id } | Self::GetChannelInvites { channel_id } => {
+                Path::ChannelsIdInvites(channel_id)
+            }
+            Self::CreateMessage { channel_id } | Self::GetMessages { channel_id, .. } => {
+                Path::ChannelsIdMessages(channel_id)
+            }
+            Self::CreatePrivateChannel | Self::GetUserPrivateChannels => Path::UsersIdChannels,
+            Self::CreateReaction { channel_id, .. }
+            | Self::DeleteReactionCurrentUser { channel_id, .. }
+            | Self::DeleteReaction { channel_id, .. } => {
+                Path::ChannelsIdMessagesIdReactionsUserIdType(channel_id)
+            }
+            Self::CreateRole { guild_id } | Self::GetGuildRoles { guild_id } => {
+                Path::GuildsIdRoles(guild_id)
+            }
+            Self::CreateStageInstance { .. }
+            | Self::DeleteStageInstance { .. }
+            | Self::GetStageInstance { .. }
+            | Self::UpdateStageInstance { .. } => Path::StageInstances,
+            Self::CreateTemplate { guild_id } | Self::GetTemplates { guild_id } => {
+                Path::GuildsIdTemplates(guild_id)
+            }
+            Self::CreateThread { channel_id, .. } => Path::ChannelsIdThreads(channel_id),
+            Self::CreateThreadFromMessage { channel_id, .. } => {
+                Path::ChannelsIdMessagesIdThreads(channel_id)
+            }
+            Self::CreateTypingTrigger { channel_id } => Path::ChannelsIdTyping(channel_id),
+            Self::CreateWebhook { channel_id } | Self::GetChannelWebhooks { channel_id } => {
+                Path::ChannelsIdWebhooks(channel_id)
+            }
+            Self::CrosspostMessage { channel_id, .. } => {
+                Path::ChannelsIdMessagesIdCrosspost(channel_id)
+            }
+            Self::DeleteChannel { channel_id } => Path::ChannelsId(channel_id),
+            Self::DeleteEmoji { guild_id, .. } => Path::GuildsIdEmojisId(guild_id),
+            Self::DeleteGlobalCommand { application_id, .. }
+            | Self::GetGlobalCommand { application_id, .. }
+            | Self::UpdateGlobalCommand { application_id, .. } => {
+                Path::ApplicationCommandId(application_id)
+            }
+            Self::DeleteGuild { guild_id } => Path::GuildsId(guild_id),
+            Self::DeleteGuildIntegration { guild_id, .. }
+            | Self::UpdateGuildIntegration { guild_id, .. } => {
+                Path::GuildsIdIntegrationsId(guild_id)
+            }
+            Self::DeleteInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::GetFollowupMessage {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::GetInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            }
+            | Self::UpdateInteractionOriginal {
+                application_id,
+                interaction_token,
+                ..
+            } => Path::WebhooksIdTokenMessagesId(application_id, interaction_token.to_string()),
+            Self::DeleteInvite { .. }
+            | Self::GetInvite { .. }
+            | Self::GetInviteWithExpiration { .. } => Path::InvitesCode,
+            Self::DeleteMessageReactions { channel_id, .. }
+            | Self::DeleteMessageSpecificReaction { channel_id, .. }
+            | Self::GetReactionUsers { channel_id, .. } => {
+                Path::ChannelsIdMessagesIdReactions(channel_id)
+            }
+            Self::DeleteMessage { message_id, .. } => {
+                Path::ChannelsIdMessagesId(Method::Delete, message_id)
+            }
+            Self::DeleteMessages { channel_id } => Path::ChannelsIdMessagesBulkDelete(channel_id),
+            Self::DeletePermissionOverwrite { channel_id, .. }
+            | Self::UpdatePermissionOverwrite { channel_id, .. } => {
+                Path::ChannelsIdPermissionsOverwriteId(channel_id)
+            }
+            Self::DeleteRole { guild_id, .. }
+            | Self::UpdateRole { guild_id, .. }
+            | Self::UpdateRolePositions { guild_id } => Path::GuildsIdRolesId(guild_id),
+            Self::DeleteTemplate {
+                guild_id,
+                template_code,
+                ..
+            }
+            | Self::SyncTemplate {
+                guild_id,
+                template_code,
+                ..
+            }
+            | Self::UpdateTemplate {
+                guild_id,
+                template_code,
+                ..
+            } => Path::GuildsIdTemplatesCode(guild_id, template_code.to_string()),
+            Self::DeleteWebhookMessage {
+                webhook_id, token, ..
+            }
+            | Self::GetWebhookMessage {
+                webhook_id, token, ..
+            }
+            | Self::UpdateWebhookMessage {
+                webhook_id, token, ..
+            } => Path::WebhooksIdTokenMessagesId(webhook_id, token.to_string()),
+            Self::DeleteWebhook {
+                webhook_id,
+                token: Some(token),
+                ..
+            }
+            | Self::ExecuteWebhook {
+                webhook_id, token, ..
+            }
+            | Self::GetWebhook {
+                webhook_id,
+                token: Some(token),
+                ..
+            }
+            | Self::UpdateWebhook {
+                webhook_id,
+                token: Some(token),
+            } => Path::WebhooksIdToken(webhook_id, token.to_string()),
+            Self::DeleteWebhook { webhook_id, .. }
+            | Self::GetWebhook { webhook_id, .. }
+            | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(webhook_id)),
+            Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(channel_id),
+            Self::GetJoinedPrivateArchivedThreads { channel_id, .. }
+            | Self::GetPrivateArchivedThreads { channel_id, .. }
+            | Self::GetPublicArchivedThreads { channel_id, .. } => {
+                Path::ChannelsIdThreads(channel_id)
+            }
+            Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(guild_id),
+            Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(guild_id),
+            Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(guild_id),
+            Self::GetBans { guild_id } => Path::GuildsIdBans(guild_id),
+            Self::GetGatewayBot => Path::GatewayBot,
+            Self::GetChannel { channel_id } | Self::UpdateChannel { channel_id } => {
+                Path::ChannelsId(channel_id)
+            }
+            Self::GetChannels { guild_id } | Self::UpdateGuildChannels { guild_id } => {
+                Path::GuildsIdChannels(guild_id)
+            }
+            Self::GetCommandPermissions { application_id, .. }
+            | Self::UpdateCommandPermissions { application_id, .. } => {
+                Path::ApplicationGuildCommandId(application_id)
+            }
+            Self::GetCurrentUserApplicationInfo => Path::OauthApplicationsMe,
+            Self::GetCurrentUser | Self::GetUser { .. } | Self::UpdateCurrentUser => Path::UsersId,
+            Self::GetCurrentUserGuildMember { .. } => Path::UsersIdGuildsIdMember,
+            Self::GetEmoji { guild_id, .. } | Self::UpdateEmoji { guild_id, .. } => {
+                Path::GuildsIdEmojisId(guild_id)
+            }
+            Self::GetGateway => Path::Gateway,
+            Self::GetGuild { guild_id, .. } | Self::UpdateGuild { guild_id } => {
+                Path::GuildsId(guild_id)
+            }
+            Self::GetGuildWidget { guild_id } | Self::UpdateGuildWidget { guild_id } => {
+                Path::GuildsIdWidget(guild_id)
+            }
+            Self::GetGuildIntegrations { guild_id } => Path::GuildsIdIntegrations(guild_id),
+            Self::GetGuildInvites { guild_id } => Path::GuildsIdInvites(guild_id),
+            Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
+                Path::GuildsIdMembers(guild_id)
+            }
+            Self::CreateGuildScheduledEvent { guild_id, .. }
+            | Self::GetGuildScheduledEvents { guild_id, .. } => {
+                Path::GuildsIdScheduledEvents(guild_id)
+            }
+            Self::DeleteGuildScheduledEvent { guild_id, .. }
+            | Self::GetGuildScheduledEvent { guild_id, .. }
+            | Self::UpdateGuildScheduledEvent { guild_id, .. } => {
+                Path::GuildsIdScheduledEventsId(guild_id)
+            }
+            Self::GetGuildScheduledEventUsers { guild_id, .. } => {
+                Path::GuildsIdScheduledEventsIdUsers(guild_id)
+            }
+            Self::GetGuildPreview { guild_id } => Path::GuildsIdPreview(guild_id),
+            Self::GetGuildVanityUrl { guild_id } => Path::GuildsIdVanityUrl(guild_id),
+            Self::GetGuildVoiceRegions { guild_id } => Path::GuildsIdRegions(guild_id),
+            Self::GetGuildWelcomeScreen { guild_id }
+            | Self::UpdateGuildWelcomeScreen { guild_id } => Path::GuildsIdWelcomeScreen(guild_id),
+            Self::GetGuildWebhooks { guild_id } => Path::GuildsIdWebhooks(guild_id),
+            Self::GetGuilds { .. } => Path::UsersIdGuilds,
+            Self::GetMessage { channel_id, .. } => {
+                Path::ChannelsIdMessagesId(Method::Get, channel_id)
+            }
+            Self::GetNitroStickerPacks { .. } => Path::StickerPacks,
+            Self::GetPins { channel_id } | Self::PinMessage { channel_id, .. } => {
+                Path::ChannelsIdPins(channel_id)
+            }
+            Self::GetSticker { .. } => Path::Stickers,
+            Self::GetUserConnections => Path::UsersIdConnections,
+            Self::GetVoiceRegions => Path::VoiceRegions,
+            Self::InteractionCallback { interaction_id, .. } => {
+                Path::InteractionCallback(interaction_id)
+            }
+            Self::LeaveGuild { .. } => Path::UsersIdGuildsId,
+            Self::SearchGuildMembers { guild_id, .. } => Path::GuildsIdMembersSearch(guild_id),
+            Self::SyncGuildIntegration { guild_id, .. } => {
+                Path::GuildsIdIntegrationsIdSync(guild_id)
+            }
+            Self::UnpinMessage { channel_id, .. } => Path::ChannelsIdPinsMessageId(channel_id),
+            Self::UpdateCurrentUserVoiceState { guild_id }
+            | Self::UpdateUserVoiceState { guild_id, .. } => Path::GuildsIdVoiceStates(guild_id),
+            Self::UpdateMessage { channel_id, .. } => {
+                Path::ChannelsIdMessagesId(Method::Patch, channel_id)
+            }
+            Self::UpdateNickname { guild_id } => Path::GuildsIdMembersMeNick(guild_id),
+        }
     }
 }
 
-impl Display for RouteDisplay<'_> {
+/// Display formatter of the route portion of a URL.
+///
+/// # Examples
+///
+/// Create a formatted representation of the [`GetPins`] route:
+///
+/// ```
+/// use twilight_http::routing::Route;
+///
+/// let route = Route::GetPins {
+///     channel_id: 123,
+/// };
+/// assert_eq!("channels/123/pins", route.to_string());
+/// ```
+///
+/// Create a formatted representation of the [`GetInvite`] route, which
+/// includes a query parameter:
+///
+/// ```
+/// use twilight_http::routing::Route;
+///
+/// let route = Route::GetInvite {
+///     code: "twilight-rs",
+///     with_counts: true,
+/// };
+///
+/// assert_eq!(
+///     "invites/twilight-rs?with-counts=true",
+///     route.to_string(),
+/// );
+/// ```
+///
+/// [`GetInvite`]: Self::GetInvite
+/// [`GetPins`]: Self::GetPins
+impl Display for Route<'_> {
     // Notably, we don't use macros like `write!` or `format_args!` due to them
     // both compiling slowly and performing slowly during runtime.
     //
@@ -40,7 +1557,7 @@ impl Display for RouteDisplay<'_> {
     // <https://github.com/rust-lang/rust/issues/10761>
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self.0 {
+        match self {
             Route::AddGuildMember { guild_id, user_id }
             | Route::GetMember { guild_id, user_id }
             | Route::RemoveMember { guild_id, user_id }
@@ -208,6 +1725,12 @@ impl Display for RouteDisplay<'_> {
 
                 Ok(())
             }
+            Route::CreateGuildScheduledEvent { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/scheduled-events")
+            }
             Route::CreateGuildSticker { guild_id, .. }
             | Route::GetGuildStickers { guild_id, .. } => {
                 f.write_str("guilds/")?;
@@ -245,7 +1768,7 @@ impl Display for RouteDisplay<'_> {
                 f.write_str("/messages/")?;
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
-                Display::fmt(&emoji.display(), f)?;
+                Display::fmt(&emoji, f)?;
 
                 f.write_str("/@me")
             }
@@ -433,7 +1956,7 @@ impl Display for RouteDisplay<'_> {
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
 
-                Display::fmt(&emoji.display(), f)
+                Display::fmt(&emoji, f)
             }
             Route::DeleteMessage {
                 channel_id,
@@ -484,7 +2007,7 @@ impl Display for RouteDisplay<'_> {
                 f.write_str("/messages/")?;
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
-                Display::fmt(&emoji.display(), f)?;
+                Display::fmt(&emoji, f)?;
                 f.write_str("/")?;
 
                 Display::fmt(user_id, f)
@@ -774,6 +2297,73 @@ impl Display for RouteDisplay<'_> {
 
                 Ok(())
             }
+            Route::GetGuildScheduledEvent {
+                guild_id,
+                scheduled_event_id,
+                with_user_count,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/scheduled-events/")?;
+                Display::fmt(scheduled_event_id, f)?;
+
+                if *with_user_count {
+                    f.write_str("?with_user_count=true")?;
+                }
+
+                Ok(())
+            }
+            Route::GetGuildScheduledEventUsers {
+                after,
+                before,
+                guild_id,
+                limit,
+                scheduled_event_id,
+                with_member,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/scheduled-events/")?;
+                Display::fmt(scheduled_event_id, f)?;
+                f.write_str("/users?")?;
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                match (before, after) {
+                    (Some(before), Some(_) | None) => {
+                        f.write_str("&before=")?;
+                        Display::fmt(before, f)?;
+                    }
+                    (None, Some(after)) => {
+                        f.write_str("&after=")?;
+                        Display::fmt(after, f)?;
+                    }
+                    _ => {}
+                }
+
+                if *with_member {
+                    f.write_str("&with_member=true")?;
+                }
+
+                Ok(())
+            }
+            Route::GetGuildScheduledEvents {
+                guild_id,
+                with_user_count,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/scheduled-events?")?;
+
+                if *with_user_count {
+                    f.write_str("with_user_count=true")?;
+                }
+
+                Ok(())
+            }
             Route::GetGuildSticker {
                 guild_id,
                 sticker_id,
@@ -994,7 +2584,7 @@ impl Display for RouteDisplay<'_> {
                 f.write_str("/messages/")?;
                 Display::fmt(message_id, f)?;
                 f.write_str("/reactions/")?;
-                Display::fmt(&emoji.display(), f)?;
+                Display::fmt(&emoji, f)?;
                 f.write_str("?")?;
 
                 if let Some(after) = after {
@@ -1103,6 +2693,20 @@ impl Display for RouteDisplay<'_> {
 
                 f.write_str("/voice-states/@me")
             }
+            Route::DeleteGuildScheduledEvent {
+                guild_id,
+                scheduled_event_id,
+            }
+            | Route::UpdateGuildScheduledEvent {
+                guild_id,
+                scheduled_event_id,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/scheduled-events/")?;
+
+                Display::fmt(scheduled_event_id, f)
+            }
             Route::UpdateNickname { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
@@ -1122,17 +2726,48 @@ impl Display for RouteDisplay<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::request::channel::reaction::RequestReactionType;
+    use super::Route;
+    use crate::request::{channel::reaction::RequestReactionType, Method};
+    use twilight_model::id::Id;
 
-    use super::{super::Route, RouteDisplay};
-    use static_assertions::assert_impl_all;
-    use std::{
-        fmt::{Debug, Display},
-        hash::Hash,
-    };
-    use twilight_model::id::{EmojiId, RoleId};
+    /// Test a route for each method.
+    #[test]
+    fn test_methods() {
+        assert_eq!(
+            Method::Delete,
+            Route::DeleteInvite {
+                code: "twilight-rs",
+            }
+            .method()
+        );
+        assert_eq!(
+            Method::Get,
+            Route::GetInvite {
+                code: "twilight-rs",
+                with_counts: false,
+            }
+            .method()
+        );
+        assert_eq!(
+            Method::Patch,
+            Route::UpdateMessage {
+                channel_id: 123,
+                message_id: 456,
+            }
+            .method()
+        );
+        assert_eq!(Method::Post, Route::CreateGuild.method());
+        assert_eq!(
+            Method::Put,
+            Route::SyncTemplate {
+                guild_id: 123,
+                template_code: "abc",
+            }
+            .method()
+        );
+    }
 
-    assert_impl_all!(RouteDisplay<'_>: Clone, Debug, Display, Eq, Hash, PartialEq, Send, Sync);
+    // Test display implementation
 
     const APPLICATION_ID: u64 = 1;
     const CHANNEL_ID: u64 = 2;
@@ -1148,10 +2783,11 @@ mod tests {
     const STICKER_ID: u64 = 10;
     const TEMPLATE_CODE: &str = "templatecode";
     const USER_ID: u64 = 11;
+    const SCHEDULED_EVENT_ID: u64 = 12;
 
-    fn emoji() -> RequestReactionType<'static> {
+    const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
-            id: EmojiId::new(EMOJI_ID).expect("non zero id"),
+            id: Id::new(EMOJI_ID),
             name: None,
         }
     }
@@ -1166,7 +2802,7 @@ mod tests {
 
         assert_eq!(
             "channels/1/threads/archived/public?before=2021-01-01T00:00:00Z",
-            route.display().to_string()
+            route.to_string()
         );
     }
 
@@ -1179,10 +2815,7 @@ mod tests {
             webhook_id: 3,
         };
 
-        assert_eq!(
-            "webhooks/3/token/messages/1?thread_id=2",
-            route.display().to_string()
-        )
+        assert_eq!("webhooks/3/token/messages/1?thread_id=2", route.to_string())
     }
 
     #[test]
@@ -1192,7 +2825,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/members/{user_id}",
                 guild_id = GUILD_ID,
@@ -1208,7 +2841,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/members/{user_id}",
                 guild_id = GUILD_ID,
@@ -1224,7 +2857,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/members/{user_id}",
                 guild_id = GUILD_ID,
@@ -1240,7 +2873,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/members/{user_id}",
                 guild_id = GUILD_ID,
@@ -1257,7 +2890,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/members/{user_id}/roles/{role_id}",
                 guild_id = GUILD_ID,
@@ -1275,7 +2908,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/members/{user_id}/roles/{role_id}",
                 guild_id = GUILD_ID,
@@ -1292,7 +2925,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/thread-members/{user_id}",
                 channel_id = CHANNEL_ID,
@@ -1308,7 +2941,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/thread-members/{user_id}",
                 channel_id = CHANNEL_ID,
@@ -1324,7 +2957,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/thread-members/{user_id}",
                 channel_id = CHANNEL_ID,
@@ -1337,7 +2970,7 @@ mod tests {
     fn test_create_channel() {
         let route = Route::CreateChannel { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/channels", guild_id = GUILD_ID)
         );
     }
@@ -1346,7 +2979,7 @@ mod tests {
     fn test_get_channels() {
         let route = Route::GetChannels { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/channels", guild_id = GUILD_ID)
         );
     }
@@ -1355,7 +2988,7 @@ mod tests {
     fn test_update_guild_channels() {
         let route = Route::UpdateGuildChannels { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/channels", guild_id = GUILD_ID)
         );
     }
@@ -1364,7 +2997,7 @@ mod tests {
     fn test_create_emoji() {
         let route = Route::CreateEmoji { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/emojis", guild_id = GUILD_ID)
         );
     }
@@ -1373,7 +3006,7 @@ mod tests {
     fn test_get_emojis() {
         let route = Route::GetEmojis { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/emojis", guild_id = GUILD_ID)
         );
     }
@@ -1384,7 +3017,7 @@ mod tests {
             application_id: APPLICATION_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/commands",
                 application_id = APPLICATION_ID
@@ -1398,7 +3031,7 @@ mod tests {
             application_id: APPLICATION_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/commands",
                 application_id = APPLICATION_ID
@@ -1412,7 +3045,7 @@ mod tests {
             application_id: APPLICATION_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/commands",
                 application_id = APPLICATION_ID
@@ -1423,7 +3056,7 @@ mod tests {
     #[test]
     fn test_create_guild() {
         let route = Route::CreateGuild;
-        assert_eq!(route.display().to_string(), "guilds");
+        assert_eq!(route.to_string(), "guilds");
     }
 
     #[test]
@@ -1433,7 +3066,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands",
                 application_id = APPLICATION_ID,
@@ -1449,7 +3082,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands",
                 application_id = APPLICATION_ID,
@@ -1465,7 +3098,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands",
                 application_id = APPLICATION_ID,
@@ -1480,7 +3113,7 @@ mod tests {
             template_code: TEMPLATE_CODE,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/templates/{template_code}",
                 template_code = TEMPLATE_CODE
@@ -1494,7 +3127,7 @@ mod tests {
             template_code: TEMPLATE_CODE,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/templates/{template_code}",
                 template_code = TEMPLATE_CODE
@@ -1506,7 +3139,7 @@ mod tests {
     fn test_create_guild_integration() {
         let route = Route::CreateGuildIntegration { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/integrations", guild_id = GUILD_ID)
         );
     }
@@ -1515,7 +3148,7 @@ mod tests {
     fn test_get_guild_integrations() {
         let route = Route::GetGuildIntegrations { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/integrations", guild_id = GUILD_ID)
         );
     }
@@ -1524,7 +3157,7 @@ mod tests {
     fn test_create_guild_sticker() {
         let route = Route::CreateGuildSticker { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/stickers", guild_id = GUILD_ID)
         );
     }
@@ -1533,7 +3166,7 @@ mod tests {
     fn test_get_guild_stickers() {
         let route = Route::GetGuildStickers { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/stickers", guild_id = GUILD_ID)
         );
     }
@@ -1544,7 +3177,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/invites", channel_id = CHANNEL_ID)
         );
     }
@@ -1555,7 +3188,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/invites", channel_id = CHANNEL_ID)
         );
     }
@@ -1566,7 +3199,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/messages", channel_id = CHANNEL_ID)
         );
     }
@@ -1574,13 +3207,13 @@ mod tests {
     #[test]
     fn test_create_private_channel() {
         let route = Route::CreatePrivateChannel;
-        assert_eq!(route.display().to_string(), "users/@me/channels");
+        assert_eq!(route.to_string(), "users/@me/channels");
     }
 
     #[test]
     fn test_get_user_private_channels() {
         let route = Route::GetUserPrivateChannels;
-        assert_eq!(route.display().to_string(), "users/@me/channels");
+        assert_eq!(route.to_string(), "users/@me/channels");
     }
 
     #[test]
@@ -1593,11 +3226,11 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
                 channel_id = CHANNEL_ID,
-                emoji = emoji.display(),
+                emoji = emoji,
                 message_id = MESSAGE_ID
             )
         );
@@ -1613,11 +3246,11 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
                 channel_id = CHANNEL_ID,
-                emoji = emoji.display(),
+                emoji = emoji,
                 message_id = MESSAGE_ID
             )
         );
@@ -1627,7 +3260,7 @@ mod tests {
     fn test_create_role() {
         let route = Route::CreateRole { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/roles", guild_id = GUILD_ID)
         );
     }
@@ -1636,7 +3269,7 @@ mod tests {
     fn test_get_guild_roles() {
         let route = Route::GetGuildRoles { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/roles", guild_id = GUILD_ID)
         );
     }
@@ -1645,7 +3278,7 @@ mod tests {
     fn test_update_role_positions() {
         let route = Route::UpdateRolePositions { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/roles", guild_id = GUILD_ID)
         );
     }
@@ -1653,14 +3286,14 @@ mod tests {
     #[test]
     fn test_create_stage_instance() {
         let route = Route::CreateStageInstance;
-        assert_eq!(route.display().to_string(), "stage-instances");
+        assert_eq!(route.to_string(), "stage-instances");
     }
 
     #[test]
     fn test_create_template() {
         let route = Route::CreateTemplate { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/templates", guild_id = GUILD_ID)
         );
     }
@@ -1669,7 +3302,7 @@ mod tests {
     fn test_get_templates() {
         let route = Route::GetTemplates { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/templates", guild_id = GUILD_ID)
         );
     }
@@ -1680,7 +3313,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/threads", channel_id = CHANNEL_ID)
         );
     }
@@ -1692,7 +3325,7 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}/threads",
                 channel_id = CHANNEL_ID,
@@ -1707,7 +3340,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/typing", channel_id = CHANNEL_ID)
         );
     }
@@ -1718,7 +3351,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/webhooks", channel_id = CHANNEL_ID)
         );
     }
@@ -1729,7 +3362,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/webhooks", channel_id = CHANNEL_ID)
         );
     }
@@ -1741,7 +3374,7 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}/crosspost",
                 channel_id = CHANNEL_ID,
@@ -1757,7 +3390,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/bans/{user_id}",
                 guild_id = GUILD_ID,
@@ -1773,7 +3406,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/bans/{user_id}",
                 guild_id = GUILD_ID,
@@ -1788,7 +3421,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}", channel_id = CHANNEL_ID)
         );
     }
@@ -1799,7 +3432,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}", channel_id = CHANNEL_ID)
         );
     }
@@ -1810,7 +3443,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}", channel_id = CHANNEL_ID)
         );
     }
@@ -1822,7 +3455,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/emojis/{emoji_id}",
                 emoji_id = EMOJI_ID,
@@ -1838,7 +3471,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/emojis/{emoji_id}",
                 emoji_id = EMOJI_ID,
@@ -1854,7 +3487,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/emojis/{emoji_id}",
                 emoji_id = EMOJI_ID,
@@ -1870,7 +3503,7 @@ mod tests {
             command_id: COMMAND_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/commands/{command_id}",
                 application_id = APPLICATION_ID,
@@ -1886,7 +3519,7 @@ mod tests {
             command_id: COMMAND_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/commands/{command_id}",
                 application_id = APPLICATION_ID,
@@ -1902,7 +3535,7 @@ mod tests {
             command_id: COMMAND_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/commands/{command_id}",
                 application_id = APPLICATION_ID,
@@ -1915,7 +3548,7 @@ mod tests {
     fn test_delete_guild() {
         let route = Route::DeleteGuild { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}", guild_id = GUILD_ID)
         );
     }
@@ -1924,7 +3557,7 @@ mod tests {
     fn test_update_guild() {
         let route = Route::UpdateGuild { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}", guild_id = GUILD_ID)
         );
     }
@@ -1937,7 +3570,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
                 application_id = APPLICATION_ID,
@@ -1955,7 +3588,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
                 application_id = APPLICATION_ID,
@@ -1973,7 +3606,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
                 application_id = APPLICATION_ID,
@@ -1990,7 +3623,7 @@ mod tests {
             integration_id: INTEGRATION_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/integrations/{integration_id}",
                 guild_id = GUILD_ID,
@@ -2006,7 +3639,7 @@ mod tests {
             integration_id: INTEGRATION_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/integrations/{integration_id}",
                 guild_id = GUILD_ID,
@@ -2022,7 +3655,7 @@ mod tests {
             interaction_token: INTERACTION_TOKEN,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "webhooks/{application_id}/{interaction_token}/messages/@original",
                 application_id = APPLICATION_ID,
@@ -2038,7 +3671,7 @@ mod tests {
             interaction_token: INTERACTION_TOKEN,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "webhooks/{application_id}/{interaction_token}/messages/@original",
                 application_id = APPLICATION_ID,
@@ -2054,7 +3687,7 @@ mod tests {
             interaction_token: INTERACTION_TOKEN,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "webhooks/{application_id}/{interaction_token}/messages/@original",
                 application_id = APPLICATION_ID,
@@ -2066,10 +3699,7 @@ mod tests {
     #[test]
     fn test_delete_invite() {
         let route = Route::DeleteInvite { code: CODE };
-        assert_eq!(
-            route.display().to_string(),
-            format!("invites/{code}", code = CODE)
-        );
+        assert_eq!(route.to_string(), format!("invites/{code}", code = CODE));
     }
 
     #[test]
@@ -2079,7 +3709,7 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions",
                 channel_id = CHANNEL_ID,
@@ -2098,11 +3728,11 @@ mod tests {
             emoji: &emoji,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
                 channel_id = CHANNEL_ID,
-                emoji = emoji.display(),
+                emoji = emoji,
                 message_id = MESSAGE_ID
             )
         );
@@ -2115,7 +3745,7 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}",
                 channel_id = CHANNEL_ID,
@@ -2131,7 +3761,7 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}",
                 channel_id = CHANNEL_ID,
@@ -2147,7 +3777,7 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}",
                 channel_id = CHANNEL_ID,
@@ -2162,7 +3792,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/bulk-delete",
                 channel_id = CHANNEL_ID
@@ -2177,7 +3807,7 @@ mod tests {
             target_id: ROLE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/permissions/{target_id}",
                 channel_id = CHANNEL_ID,
@@ -2193,7 +3823,7 @@ mod tests {
             target_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/permissions/{target_id}",
                 channel_id = CHANNEL_ID,
@@ -2213,11 +3843,11 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}",
                 channel_id = CHANNEL_ID,
-                emoji = emoji.display(),
+                emoji = emoji,
                 message_id = MESSAGE_ID,
                 user_id = USER_ID
             )
@@ -2231,7 +3861,7 @@ mod tests {
             role_id: ROLE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/roles/{role_id}",
                 guild_id = GUILD_ID,
@@ -2247,7 +3877,7 @@ mod tests {
             role_id: ROLE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/roles/{role_id}",
                 guild_id = GUILD_ID,
@@ -2262,7 +3892,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("stage-instances/{channel_id}", channel_id = CHANNEL_ID)
         );
     }
@@ -2273,7 +3903,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("stage-instances/{channel_id}", channel_id = CHANNEL_ID)
         );
     }
@@ -2284,7 +3914,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("stage-instances/{channel_id}", channel_id = CHANNEL_ID)
         );
     }
@@ -2296,7 +3926,7 @@ mod tests {
             template_code: TEMPLATE_CODE,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/templates/{template_code}",
                 guild_id = GUILD_ID,
@@ -2312,7 +3942,7 @@ mod tests {
             template_code: TEMPLATE_CODE,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/templates/{template_code}",
                 guild_id = GUILD_ID,
@@ -2328,7 +3958,7 @@ mod tests {
             template_code: TEMPLATE_CODE,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/templates/{template_code}",
                 guild_id = GUILD_ID,
@@ -2343,7 +3973,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/followers", channel_id = CHANNEL_ID)
         );
     }
@@ -2352,7 +3982,7 @@ mod tests {
     fn test_get_active_threads() {
         let route = Route::GetActiveThreads { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/threads/active", guild_id = GUILD_ID)
         );
     }
@@ -2361,7 +3991,7 @@ mod tests {
     fn test_get_bans() {
         let route = Route::GetBans { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/bans", guild_id = GUILD_ID)
         );
     }
@@ -2369,7 +3999,7 @@ mod tests {
     #[test]
     fn test_get_gateway_bot() {
         let route = Route::GetGatewayBot;
-        assert_eq!(route.display().to_string(), "gateway/bot");
+        assert_eq!(route.to_string(), "gateway/bot");
     }
 
     #[test]
@@ -2380,7 +4010,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands/{command_id}/permissions",
                 application_id = APPLICATION_ID,
@@ -2398,7 +4028,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands/{command_id}/permissions",
                 application_id = APPLICATION_ID,
@@ -2411,20 +4041,20 @@ mod tests {
     #[test]
     fn test_get_current_user_application_info() {
         let route = Route::GetCurrentUserApplicationInfo;
-        assert_eq!(route.display().to_string(), "oauth2/applications/@me");
+        assert_eq!(route.to_string(), "oauth2/applications/@me");
     }
 
     #[test]
     fn test_get_current_user() {
         let route = Route::GetCurrentUser;
-        assert_eq!(route.display().to_string(), "users/@me");
+        assert_eq!(route.to_string(), "users/@me");
     }
 
     #[test]
     fn test_get_current_user_guild_member() {
         let route = Route::GetCurrentUserGuildMember { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("users/@me/guilds/{guild_id}/member", guild_id = GUILD_ID)
         )
     }
@@ -2432,13 +4062,13 @@ mod tests {
     #[test]
     fn test_update_current_user() {
         let route = Route::UpdateCurrentUser;
-        assert_eq!(route.display().to_string(), "users/@me");
+        assert_eq!(route.to_string(), "users/@me");
     }
 
     #[test]
     fn test_get_gateway() {
         let route = Route::GetGateway;
-        assert_eq!(route.display().to_string(), "gateway");
+        assert_eq!(route.to_string(), "gateway");
     }
 
     #[test]
@@ -2448,7 +4078,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands/permissions",
                 application_id = APPLICATION_ID,
@@ -2464,7 +4094,7 @@ mod tests {
             guild_id: GUILD_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands/permissions",
                 application_id = APPLICATION_ID,
@@ -2477,7 +4107,7 @@ mod tests {
     fn test_get_guild_invites() {
         let route = Route::GetGuildInvites { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/invites", guild_id = GUILD_ID)
         );
     }
@@ -2486,7 +4116,7 @@ mod tests {
     fn test_get_guild_preview() {
         let route = Route::GetGuildPreview { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/preview", guild_id = GUILD_ID)
         );
     }
@@ -2498,7 +4128,7 @@ mod tests {
             sticker_id: STICKER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/stickers/{sticker_id}",
                 guild_id = GUILD_ID,
@@ -2514,7 +4144,7 @@ mod tests {
             sticker_id: STICKER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/stickers/{sticker_id}",
                 guild_id = GUILD_ID,
@@ -2530,7 +4160,7 @@ mod tests {
             sticker_id: STICKER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/stickers/{sticker_id}",
                 guild_id = GUILD_ID,
@@ -2543,7 +4173,7 @@ mod tests {
     fn test_get_guild_vanity_url() {
         let route = Route::GetGuildVanityUrl { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/vanity-url", guild_id = GUILD_ID)
         );
     }
@@ -2552,7 +4182,7 @@ mod tests {
     fn test_get_guild_voice_regions() {
         let route = Route::GetGuildVoiceRegions { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/regions", guild_id = GUILD_ID)
         );
     }
@@ -2561,7 +4191,7 @@ mod tests {
     fn test_get_guild_welcome_screen() {
         let route = Route::GetGuildWelcomeScreen { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/welcome-screen", guild_id = GUILD_ID)
         );
     }
@@ -2570,7 +4200,7 @@ mod tests {
     fn test_update_guild_welcome_screen() {
         let route = Route::UpdateGuildWelcomeScreen { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/welcome-screen", guild_id = GUILD_ID)
         );
     }
@@ -2579,7 +4209,7 @@ mod tests {
     fn test_get_guild_webhooks() {
         let route = Route::GetGuildWebhooks { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/webhooks", guild_id = GUILD_ID)
         );
     }
@@ -2588,7 +4218,7 @@ mod tests {
     fn test_get_guild_widget() {
         let route = Route::GetGuildWidget { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/widget", guild_id = GUILD_ID)
         );
     }
@@ -2597,7 +4227,7 @@ mod tests {
     fn test_update_guild_widget() {
         let route = Route::UpdateGuildWidget { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/widget", guild_id = GUILD_ID)
         );
     }
@@ -2606,7 +4236,7 @@ mod tests {
     fn test_get_nitro_sticker_packs() {
         let route = Route::GetNitroStickerPacks;
 
-        assert_eq!(route.display().to_string(), "sticker-packs");
+        assert_eq!(route.to_string(), "sticker-packs");
     }
 
     #[test]
@@ -2615,7 +4245,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("channels/{channel_id}/pins", channel_id = CHANNEL_ID)
         );
     }
@@ -2626,7 +4256,7 @@ mod tests {
             sticker_id: STICKER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("stickers/{sticker_id}", sticker_id = STICKER_ID)
         );
     }
@@ -2637,7 +4267,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/thread-members",
                 channel_id = CHANNEL_ID
@@ -2648,14 +4278,14 @@ mod tests {
     #[test]
     fn test_get_user_connections() {
         let route = Route::GetUserConnections;
-        assert_eq!(route.display().to_string(), "users/@me/connections");
+        assert_eq!(route.to_string(), "users/@me/connections");
     }
 
     #[test]
     fn test_get_user() {
         let route = Route::GetUser { user_id: USER_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("users/{user_id}", user_id = USER_ID)
         );
     }
@@ -2663,7 +4293,7 @@ mod tests {
     #[test]
     fn test_get_voice_regions() {
         let route = Route::GetVoiceRegions;
-        assert_eq!(route.display().to_string(), "voice/regions");
+        assert_eq!(route.to_string(), "voice/regions");
     }
 
     #[test]
@@ -2673,7 +4303,7 @@ mod tests {
             interaction_token: INTERACTION_TOKEN,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "interactions/{interaction_id}/{interaction_token}/callback",
                 interaction_id = INTERACTION_ID,
@@ -2688,7 +4318,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/thread-members/@me",
                 channel_id = CHANNEL_ID
@@ -2702,7 +4332,7 @@ mod tests {
             channel_id: CHANNEL_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/thread-members/@me",
                 channel_id = CHANNEL_ID
@@ -2714,7 +4344,7 @@ mod tests {
     fn test_leave_guild() {
         let route = Route::LeaveGuild { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("users/@me/guilds/{guild_id}", guild_id = GUILD_ID)
         );
     }
@@ -2726,7 +4356,7 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/pins/{message_id}",
                 channel_id = CHANNEL_ID,
@@ -2742,7 +4372,7 @@ mod tests {
             message_id: MESSAGE_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "channels/{channel_id}/pins/{message_id}",
                 channel_id = CHANNEL_ID,
@@ -2758,7 +4388,7 @@ mod tests {
             integration_id: INTEGRATION_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/integrations/{integration_id}/sync",
                 guild_id = GUILD_ID,
@@ -2771,7 +4401,7 @@ mod tests {
     fn test_update_current_member() {
         let route = Route::UpdateCurrentMember { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/members/@me", guild_id = GUILD_ID)
         );
     }
@@ -2780,7 +4410,7 @@ mod tests {
     fn test_update_current_user_voice_state() {
         let route = Route::UpdateCurrentUserVoiceState { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/voice-states/@me", guild_id = GUILD_ID)
         );
     }
@@ -2789,7 +4419,7 @@ mod tests {
     fn test_update_nickname() {
         let route = Route::UpdateNickname { guild_id: GUILD_ID };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/members/@me/nick", guild_id = GUILD_ID)
         );
     }
@@ -2801,7 +4431,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/voice-states/{user_id}",
                 guild_id = GUILD_ID,
@@ -2819,7 +4449,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/bans/{user_id}?",
                 guild_id = GUILD_ID,
@@ -2834,7 +4464,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/bans/{user_id}?delete_message_days=3",
                 guild_id = GUILD_ID,
@@ -2849,7 +4479,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/bans/{user_id}?reason=test",
                 guild_id = GUILD_ID,
@@ -2864,7 +4494,7 @@ mod tests {
             user_id: USER_ID,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/bans/{user_id}?delete_message_days=3&reason=test",
                 guild_id = GUILD_ID,
@@ -2882,7 +4512,7 @@ mod tests {
             include_roles: &[],
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/prune?", guild_id = GUILD_ID)
         );
     }
@@ -2896,7 +4526,7 @@ mod tests {
             include_roles: &[],
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/prune?compute_prune_count=true",
                 guild_id = GUILD_ID
@@ -2913,7 +4543,7 @@ mod tests {
             include_roles: &[],
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/prune?compute_prune_count=false",
                 guild_id = GUILD_ID
@@ -2930,14 +4560,14 @@ mod tests {
             include_roles: &[],
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!("guilds/{guild_id}/prune?&days=4", guild_id = GUILD_ID)
         );
     }
 
     #[test]
     fn test_create_guild_prune_include_one_role() {
-        let include_roles = [RoleId::new(1).expect("non zero id")];
+        let include_roles = [Id::new(1)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: None,
@@ -2946,7 +4576,7 @@ mod tests {
             include_roles: &include_roles,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/prune?&include_roles=1",
                 guild_id = GUILD_ID
@@ -2956,10 +4586,7 @@ mod tests {
 
     #[test]
     fn test_create_guild_prune_include_two_roles() {
-        let include_roles = [
-            RoleId::new(1).expect("non zero id"),
-            RoleId::new(2).expect("non zero id"),
-        ];
+        let include_roles = [Id::new(1), Id::new(2)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: None,
@@ -2968,7 +4595,7 @@ mod tests {
             include_roles: &include_roles,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/prune?&include_roles=1,2",
                 guild_id = GUILD_ID
@@ -2978,10 +4605,7 @@ mod tests {
 
     #[test]
     fn test_create_guild_prune_all() {
-        let include_roles = [
-            RoleId::new(1).expect("non zero id"),
-            RoleId::new(2).expect("non zero id"),
-        ];
+        let include_roles = [Id::new(1), Id::new(2)];
 
         let route = Route::CreateGuildPrune {
             compute_prune_count: Some(true),
@@ -2990,11 +4614,174 @@ mod tests {
             include_roles: &include_roles,
         };
         assert_eq!(
-            route.display().to_string(),
+            route.to_string(),
             format!(
                 "guilds/{guild_id}/prune?compute_prune_count=true&days=4&include_roles=1,2",
                 guild_id = GUILD_ID
             )
         );
+    }
+
+    #[test]
+    fn test_get_guild_scheduled_events() {
+        let route = Route::GetGuildScheduledEvents {
+            guild_id: GUILD_ID,
+            with_user_count: false,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{guild_id}/scheduled-events?", guild_id = GUILD_ID)
+        );
+
+        let route = Route::GetGuildScheduledEvents {
+            guild_id: GUILD_ID,
+            with_user_count: true,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events?with_user_count=true",
+                guild_id = GUILD_ID
+            )
+        );
+    }
+
+    #[test]
+    fn test_create_guild_scheduled_event() {
+        let route = Route::CreateGuildScheduledEvent { guild_id: GUILD_ID };
+
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{guild_id}/scheduled-events", guild_id = GUILD_ID)
+        );
+    }
+
+    #[test]
+    fn test_get_guild_scheduled_event() {
+        let route = Route::GetGuildScheduledEvent {
+            guild_id: GUILD_ID,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_user_count: false,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID
+            )
+        );
+
+        let route = Route::GetGuildScheduledEvent {
+            guild_id: GUILD_ID,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_user_count: true,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}?with_user_count=true",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID
+            )
+        );
+    }
+
+    #[test]
+    fn test_update_guild_scheduled_event() {
+        let route = Route::UpdateGuildScheduledEvent {
+            guild_id: GUILD_ID,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID
+            )
+        );
+    }
+
+    #[test]
+    fn test_delete_guild_scheduled_event() {
+        let route = Route::DeleteGuildScheduledEvent {
+            guild_id: GUILD_ID,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID
+            )
+        );
+    }
+
+    #[test]
+    fn test_get_guild_scheduled_event_users() {
+        let route = Route::GetGuildScheduledEventUsers {
+            after: None,
+            before: Some(USER_ID),
+            guild_id: GUILD_ID,
+            limit: None,
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_member: true,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&before={user_id}&with_member=true",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID,
+                user_id = USER_ID,
+            )
+        );
+
+        let route = Route::GetGuildScheduledEventUsers {
+            after: Some(USER_ID),
+            before: None,
+            guild_id: GUILD_ID,
+            limit: Some(101),
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_member: false,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=101&after={user_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID,
+                user_id = USER_ID,
+            )
+        );
+
+        let route = Route::GetGuildScheduledEventUsers {
+            after: Some(USER_ID),
+            before: Some(USER_ID),
+            guild_id: GUILD_ID,
+            limit: Some(99),
+            scheduled_event_id: SCHEDULED_EVENT_ID,
+            with_member: false,
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=99&before={user_id}",
+                guild_id = GUILD_ID,
+                scheduled_event_id = SCHEDULED_EVENT_ID,
+                user_id = USER_ID,
+            )
+        )
     }
 }

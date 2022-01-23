@@ -53,13 +53,13 @@ Wait for a message in channel 123 by user 456 with the content "test":
 ```rust,no_run
 use twilight_model::{
     gateway::payload::incoming::MessageCreate,
-    id::{ChannelId, UserId},
+    id::Id,
 };
 use twilight_standby::Standby;
 
 let standby = Standby::new();
 
-let channel_id = ChannelId::new(123).expect("non zero");
+let channel_id = Id::new(123);
 
 let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
     event.author.id.get() == 456 && event.content == "test"
@@ -78,7 +78,6 @@ use twilight_gateway::{Event, Intents, Shard};
 use twilight_model::{
     channel::Message,
     gateway::payload::incoming::ReactionAdd,
-    id::{ChannelId, UserId},
 };
 use twilight_standby::Standby;
 
@@ -138,6 +137,6 @@ For more examples, check out each of the methods on [`Standby`].
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

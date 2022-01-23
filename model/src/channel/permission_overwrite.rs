@@ -1,6 +1,9 @@
 use crate::{
     guild::Permissions,
-    id::{RoleId, UserId},
+    id::{
+        marker::{RoleMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{de::Deserializer, ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -44,8 +47,8 @@ pub struct PermissionOverwrite {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum PermissionOverwriteType {
-    Member(UserId),
-    Role(RoleId),
+    Member(Id<UserMarker>),
+    Role(Id<RoleMarker>),
 }
 
 #[derive(Deserialize)]
@@ -80,16 +83,16 @@ impl<'de> Deserialize<'de> for PermissionOverwrite {
 
         let kind = match data.kind {
             PermissionOverwriteTargetType::Member => {
-                let id = UserId::new(data.id).expect("non zero");
+                let id = Id::new(data.id);
                 #[cfg(feature = "tracing")]
-                tracing::trace!(id = %id.0, kind = ?data.kind);
+                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 PermissionOverwriteType::Member(id)
             }
             PermissionOverwriteTargetType::Role => {
-                let id = RoleId::new(data.id).expect("non zero");
+                let id = Id::new(data.id);
                 #[cfg(feature = "tracing")]
-                tracing::trace!(id = %id.0, kind = ?data.kind);
+                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 PermissionOverwriteType::Role(id)
             }
@@ -112,11 +115,11 @@ impl Serialize for PermissionOverwrite {
 
         match &self.kind {
             PermissionOverwriteType::Member(id) => {
-                state.serialize_field("id", &id.0.to_string())?;
+                state.serialize_field("id", &id.to_string())?;
                 state.serialize_field("type", &(PermissionOverwriteTargetType::Member as u8))?;
             }
             PermissionOverwriteType::Role(id) => {
-                state.serialize_field("id", &id.0.to_string())?;
+                state.serialize_field("id", &id.to_string())?;
                 state.serialize_field("type", &(PermissionOverwriteTargetType::Role as u8))?;
             }
         }
@@ -130,7 +133,7 @@ mod tests {
     use super::{
         PermissionOverwrite, PermissionOverwriteTargetType, PermissionOverwriteType, Permissions,
     };
-    use crate::id::UserId;
+    use crate::id::Id;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all, const_assert_eq};
@@ -177,7 +180,7 @@ mod tests {
         let overwrite = PermissionOverwrite {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
-            kind: PermissionOverwriteType::Member(UserId::new(12_345_678).expect("non zero")),
+            kind: PermissionOverwriteType::Member(Id::new(12_345_678)),
         };
 
         // We can't use serde_test because it doesn't support 128 bit integers.
@@ -210,7 +213,7 @@ mod tests {
         let value = PermissionOverwrite {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
-            kind: PermissionOverwriteType::Member(UserId::new(1).expect("non zero")),
+            kind: PermissionOverwriteType::Member(Id::new(1)),
         };
 
         let deserialized = serde_json::from_str::<PermissionOverwrite>(raw).unwrap();

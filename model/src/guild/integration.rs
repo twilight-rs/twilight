@@ -1,7 +1,10 @@
 use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
 use crate::{
     datetime::Timestamp,
-    id::{GuildId, IntegrationId, RoleId},
+    id::{
+        marker::{GuildMarker, IntegrationMarker, RoleMarker},
+        Id,
+    },
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -19,15 +22,15 @@ pub struct GuildIntegration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_grace_period: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
-    pub id: IntegrationId,
+    pub guild_id: Option<Id<GuildMarker>>,
+    pub id: Id<IntegrationMarker>,
     #[serde(rename = "type")]
     pub kind: String,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub revoked: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub role_id: Option<RoleId>,
+    pub role_id: Option<Id<RoleMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subscriber_count: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -42,11 +45,12 @@ pub struct GuildIntegration {
 mod tests {
     use super::{
         GuildIntegration, IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior,
-        IntegrationId, User,
+        User,
     };
     use crate::{
         datetime::{Timestamp, TimestampParseError},
-        id::{ApplicationId, RoleId, UserId},
+        id::Id,
+        test::image_hash,
     };
     use serde_test::Token;
     use std::str::FromStr;
@@ -67,23 +71,23 @@ mod tests {
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
-            id: IntegrationId::new(2).expect("non zero"),
+            id: Id::new(2),
             kind: "a".to_owned(),
             name: "integration name".to_owned(),
             revoked: Some(false),
-            role_id: Some(RoleId::new(3).expect("non zero")),
+            role_id: Some(Id::new(3)),
             subscriber_count: Some(1337),
             synced_at: Some(synced_at),
             syncing: Some(false),
             user: Some(User {
                 accent_color: None,
-                avatar: Some("hash".to_owned()),
+                avatar: Some(image_hash::AVATAR),
                 banner: None,
                 bot: true,
                 discriminator: 1000,
                 email: None,
                 flags: None,
-                id: UserId::new(4).expect("non zero"),
+                id: Id::new(4),
                 locale: None,
                 mfa_enabled: None,
                 name: "user".to_owned(),
@@ -123,9 +127,7 @@ mod tests {
                 Token::Some,
                 Token::U64(3_600),
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "IntegrationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
                 Token::Str("a"),
@@ -136,7 +138,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("role_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("subscriber_count"),
                 Token::Some,
@@ -157,7 +159,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("hash"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -165,7 +167,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("1000"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("username"),
                 Token::Str("user"),
@@ -191,7 +193,7 @@ mod tests {
                 bot: None,
                 description: "Friendship is Magic".to_string(),
                 icon: None,
-                id: ApplicationId::new(123).expect("non zero"),
+                id: Id::new(123),
                 name: "Twilight".to_string(),
                 summary: "A cool pony".to_string(),
             }),
@@ -200,23 +202,23 @@ mod tests {
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
-            id: IntegrationId::new(2).expect("non zero"),
+            id: Id::new(2),
             kind: "a".to_owned(),
             name: "integration name".to_owned(),
             revoked: Some(false),
-            role_id: Some(RoleId::new(3).expect("non zero")),
+            role_id: Some(Id::new(3)),
             subscriber_count: Some(1337),
             synced_at: Some(synced_at),
             syncing: Some(false),
             user: Some(User {
                 accent_color: None,
-                avatar: Some("hash".to_owned()),
+                avatar: Some(image_hash::AVATAR),
                 banner: None,
                 bot: true,
                 discriminator: 1000,
                 email: None,
                 flags: None,
-                id: UserId::new(4).expect("non zero"),
+                id: Id::new(4),
                 locale: None,
                 mfa_enabled: None,
                 name: "user".to_owned(),
@@ -255,9 +257,7 @@ mod tests {
                 Token::Str("icon"),
                 Token::None,
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("name"),
                 Token::Str("Twilight"),
@@ -276,9 +276,7 @@ mod tests {
                 Token::Some,
                 Token::U64(3_600),
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "IntegrationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
                 Token::Str("a"),
@@ -289,7 +287,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("role_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("subscriber_count"),
                 Token::Some,
@@ -310,7 +308,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("hash"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -318,7 +316,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("1000"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("username"),
                 Token::Str("user"),

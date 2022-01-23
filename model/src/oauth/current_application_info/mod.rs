@@ -3,9 +3,13 @@ mod flags;
 pub use self::flags::ApplicationFlags;
 
 use crate::{
-    id::{ApplicationId, GuildId},
-    oauth::{id::SkuId, team::Team},
+    id::{
+        marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
+        Id,
+    },
+    oauth::team::Team,
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
@@ -13,16 +17,16 @@ use serde::{Deserialize, Serialize};
 pub struct CurrentApplicationInfo {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
-    pub cover_image: Option<String>,
+    pub cover_image: Option<ImageHash>,
     pub description: String,
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
-    pub icon: Option<String>,
-    pub id: ApplicationId,
+    pub icon: Option<ImageHash>,
+    pub id: Id<ApplicationMarker>,
     pub name: String,
     pub owner: User,
-    pub primary_sku_id: Option<SkuId>,
+    pub primary_sku_id: Option<Id<OauthSkuMarker>>,
     /// URL of the application's privacy policy.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy_url: Option<String>,
@@ -39,8 +43,8 @@ pub struct CurrentApplicationInfo {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApplicationFlags, CurrentApplicationInfo, GuildId, SkuId, Team, User};
-    use crate::{id::ApplicationId, id::UserId, oauth::id::TeamId};
+    use super::{ApplicationFlags, CurrentApplicationInfo, Team, User};
+    use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -83,12 +87,12 @@ mod tests {
         let value = CurrentApplicationInfo {
             bot_public: true,
             bot_require_code_grant: false,
-            cover_image: Some("cover image hash".to_owned()),
+            cover_image: Some(image_hash::COVER),
             description: "a pretty cool application".to_owned(),
-            guild_id: Some(GuildId::new(1).expect("non zero")),
+            guild_id: Some(Id::new(1)),
             flags: Some(ApplicationFlags::EMBEDDED),
-            icon: Some("icon hash".to_owned()),
-            id: ApplicationId::new(2).expect("non zero"),
+            icon: Some(image_hash::ICON),
+            id: Id::new(2),
             name: "cool application".to_owned(),
             owner: User {
                 accent_color: None,
@@ -98,7 +102,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "app dev".to_owned(),
@@ -107,17 +111,17 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            primary_sku_id: Some(SkuId(4)),
+            primary_sku_id: Some(Id::new(4)),
             privacy_policy_url: Some("https://privacypolicy".into()),
             rpc_origins: vec!["one".to_owned()],
             slug: Some("app slug".to_owned()),
             summary: "a summary".to_owned(),
             team: Some(Team {
                 icon: None,
-                id: TeamId::new(5).expect("non zero"),
+                id: Id::new(5),
                 members: Vec::new(),
                 name: "team name".into(),
-                owner_user_id: UserId::new(6).expect("non zero"),
+                owner_user_id: Id::new(6),
             }),
             terms_of_service_url: Some("https://termsofservice".into()),
             verify_key: "key".to_owned(),
@@ -136,23 +140,21 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("cover_image"),
                 Token::Some,
-                Token::Str("cover image hash"),
+                Token::Str(image_hash::COVER_INPUT),
                 Token::Str("description"),
                 Token::Str("a pretty cool application"),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("flags"),
                 Token::Some,
                 Token::U64(131_072),
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("name"),
                 Token::Str("cool application"),
@@ -172,14 +174,14 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("username"),
                 Token::Str("app dev"),
                 Token::StructEnd,
                 Token::Str("primary_sku_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "SkuId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("privacy_policy_url"),
                 Token::Some,
@@ -202,7 +204,7 @@ mod tests {
                 Token::Str("icon"),
                 Token::None,
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "TeamId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("5"),
                 Token::Str("members"),
                 Token::Seq { len: Some(0) },
@@ -210,7 +212,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("team name"),
                 Token::Str("owner_user_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("6"),
                 Token::StructEnd,
                 Token::Str("terms_of_service_url"),

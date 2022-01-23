@@ -2,6 +2,43 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.9.0] - 2022-01-22
+
+### Changes
+
+All types and method signatures have been updated to use the new `Id<T>` syntax
+([#1260] - [@zeylahellyer]).
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+Methods that return an image hash, such as `CachedGuild::banner`, now return an
+`ImageHash` instead of a string ([#1405] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+`UpdateCache` trait is now sealed ([#1431] - [@vilgotf]).
+
+[#1260]: https://github.com/twilight-rs/twilight/pull/1260
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1405]: https://github.com/twilight-rs/twilight/pull/1405
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+[#1431]: https://github.com/twilight-rs/twilight/pull/1431
+
+## [0.8.6] - 2022-01-21
+
+### Changes
+
+Support `Interaction::{guild_locale, locale}` ([#1437] - [@itohatweb]).
+
+Support `ThreadMetadata::create_timestamp` ([#1478] - [@itohatweb]).
+
+### Fixes
+
+Presences are now properly stored in `guild_presences` ([#1459] - [@itohatweb]).
+
+[#1459]: https://github.com/twilight-rs/twilight/pull/1459
+[#1478]: https://github.com/twilight-rs/twilight/pull/1478
+
 ## [0.8.5] - 2022-01-11
 
 ### Fixes
@@ -569,6 +606,7 @@ Initial release.
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@HTG-YT]: https://github.com/HTG-YT
+[@itohatweb]: https://github.com/itohatweb
 [@james7132]: https://github.com/james7132
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
@@ -593,6 +631,8 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.9.0
+[0.8.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.6
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.3

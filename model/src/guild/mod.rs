@@ -44,7 +44,11 @@ use crate::{
     channel::{message::sticker::Sticker, GuildChannel, StageInstance},
     datetime::Timestamp,
     gateway::presence::Presence,
-    id::{ApplicationId, ChannelId, GuildId, UserId},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
+        Id,
+    },
+    util::image_hash::ImageHash,
     voice::voice_state::VoiceState,
 };
 use serde::{
@@ -55,24 +59,24 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Guild {
-    pub afk_channel_id: Option<ChannelId>,
+    pub afk_channel_id: Option<Id<ChannelMarker>>,
     pub afk_timeout: u64,
-    pub application_id: Option<ApplicationId>,
+    pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_member_count: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_presence_count: Option<u64>,
-    pub banner: Option<String>,
+    pub banner: Option<ImageHash>,
     #[serde(default)]
     pub channels: Vec<GuildChannel>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
-    pub discovery_splash: Option<String>,
+    pub discovery_splash: Option<ImageHash>,
     pub emojis: Vec<Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
     pub features: Vec<String>,
-    pub icon: Option<String>,
-    pub id: GuildId,
+    pub icon: Option<ImageHash>,
+    pub id: Id<GuildMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub joined_at: Option<Timestamp>,
     pub large: bool,
@@ -89,7 +93,7 @@ pub struct Guild {
     pub mfa_level: MfaLevel,
     pub name: String,
     pub nsfw_level: NSFWLevel,
-    pub owner_id: UserId,
+    pub owner_id: Id<UserMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -104,14 +108,14 @@ pub struct Guild {
     #[serde(default)]
     pub presences: Vec<Presence>,
     pub roles: Vec<Role>,
-    pub rules_channel_id: Option<ChannelId>,
-    pub splash: Option<String>,
+    pub rules_channel_id: Option<Id<ChannelMarker>>,
+    pub splash: Option<ImageHash>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub stage_instances: Vec<StageInstance>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub stickers: Vec<Sticker>,
     pub system_channel_flags: SystemChannelFlags,
-    pub system_channel_id: Option<ChannelId>,
+    pub system_channel_id: Option<Id<ChannelMarker>>,
     #[serde(default)]
     pub threads: Vec<GuildChannel>,
     #[serde(default)]
@@ -121,7 +125,7 @@ pub struct Guild {
     #[serde(default)]
     pub voice_states: Vec<VoiceState>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub widget_channel_id: Option<ChannelId>,
+    pub widget_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub widget_enabled: Option<bool>,
 }
@@ -432,8 +436,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("members"));
                             }
 
-                            let deserializer =
-                                MemberListDeserializer::new(GuildId::new(1).expect("non zero"));
+                            let deserializer = MemberListDeserializer::new(Id::new(1));
 
                             members = Some(map.next_value_seed(deserializer)?);
                         }
@@ -514,8 +517,7 @@ impl<'de> Deserialize<'de> for Guild {
                                 return Err(DeError::duplicate_field("presences"));
                             }
 
-                            let deserializer =
-                                PresenceListDeserializer::new(GuildId::new(1).expect("non zero"));
+                            let deserializer = PresenceListDeserializer::new(Id::new(1));
 
                             presences = Some(map.next_value_seed(deserializer)?);
                         }
@@ -891,13 +893,15 @@ impl<'de> Deserialize<'de> for Guild {
 
 #[cfg(test)]
 mod tests {
-
     use super::{
-        ApplicationId, ChannelId, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild,
-        GuildId, MfaLevel, NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, UserId,
-        VerificationLevel,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
+        Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     };
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::Id,
+        test::image_hash,
+    };
     use serde_test::Token;
     use std::str::FromStr;
 
@@ -907,21 +911,21 @@ mod tests {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value = Guild {
-            afk_channel_id: Some(ChannelId::new(2).expect("non zero")),
+            afk_channel_id: Some(Id::new(2)),
             afk_timeout: 900,
-            application_id: Some(ApplicationId::new(3).expect("non zero")),
+            application_id: Some(Id::new(3)),
             approximate_member_count: Some(1_200),
             approximate_presence_count: Some(900),
-            banner: Some("banner hash".to_owned()),
+            banner: Some(image_hash::BANNER),
             channels: Vec::new(),
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
             description: Some("a description".to_owned()),
-            discovery_splash: Some("discovery splash hash".to_owned()),
+            discovery_splash: Some(image_hash::SPLASH),
             emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
             features: vec!["a feature".to_owned()],
-            icon: Some("icon hash".to_owned()),
-            id: GuildId::new(1).expect("non zero"),
+            icon: Some(image_hash::ICON),
+            id: Id::new(1),
             joined_at: Some(joined_at),
             large: true,
             max_members: Some(25_000),
@@ -932,7 +936,7 @@ mod tests {
             mfa_level: MfaLevel::Elevated,
             name: "the name".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: UserId::new(5).expect("non zero"),
+            owner_id: Id::new(5),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-us".to_owned(),
@@ -941,18 +945,18 @@ mod tests {
             premium_tier: PremiumTier::Tier1,
             presences: Vec::new(),
             roles: Vec::new(),
-            rules_channel_id: Some(ChannelId::new(6).expect("non zero")),
-            splash: Some("splash hash".to_owned()),
+            rules_channel_id: Some(Id::new(6)),
+            splash: Some(image_hash::SPLASH),
             stage_instances: Vec::new(),
             stickers: Vec::new(),
             system_channel_flags: SystemChannelFlags::SUPPRESS_PREMIUM_SUBSCRIPTIONS,
-            system_channel_id: Some(ChannelId::new(7).expect("non zero")),
+            system_channel_id: Some(Id::new(7)),
             threads: Vec::new(),
             unavailable: false,
             vanity_url_code: Some("twilight".to_owned()),
             verification_level: VerificationLevel::Medium,
             voice_states: Vec::new(),
-            widget_channel_id: Some(ChannelId::new(8).expect("non zero")),
+            widget_channel_id: Some(Id::new(8)),
             widget_enabled: Some(true),
         };
 
@@ -965,15 +969,13 @@ mod tests {
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("afk_timeout"),
                 Token::U64(900),
                 Token::Str("application_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("approximate_member_count"),
                 Token::Some,
@@ -983,7 +985,7 @@ mod tests {
                 Token::U64(900),
                 Token::Str("banner"),
                 Token::Some,
-                Token::Str("banner hash"),
+                Token::Str(image_hash::BANNER_INPUT),
                 Token::Str("channels"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -994,7 +996,7 @@ mod tests {
                 Token::Str("a description"),
                 Token::Str("discovery_splash"),
                 Token::Some,
-                Token::Str("discovery splash hash"),
+                Token::Str(image_hash::SPLASH_INPUT),
                 Token::Str("emojis"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -1006,9 +1008,9 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Some,
@@ -1037,7 +1039,7 @@ mod tests {
                 Token::Str("nsfw_level"),
                 Token::U8(0),
                 Token::Str("owner_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("5"),
                 Token::Str("owner"),
                 Token::Some,
@@ -1062,16 +1064,16 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("rules_channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("6"),
                 Token::Str("splash"),
                 Token::Some,
-                Token::Str("splash hash"),
+                Token::Str(image_hash::SPLASH_INPUT),
                 Token::Str("system_channel_flags"),
                 Token::U64(2),
                 Token::Str("system_channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("7"),
                 Token::Str("threads"),
                 Token::Seq { len: Some(0) },
@@ -1088,7 +1090,7 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("widget_channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("8"),
                 Token::Str("widget_enabled"),
                 Token::Some,

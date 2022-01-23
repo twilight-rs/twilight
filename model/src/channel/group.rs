@@ -1,47 +1,55 @@
 use crate::{
     channel::ChannelType,
     datetime::Timestamp,
-    id::{ApplicationId, ChannelId, MessageId, UserId},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, MessageMarker, UserMarker},
+        Id,
+    },
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Group {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<ApplicationId>,
-    pub icon: Option<String>,
-    pub id: ChannelId,
+    pub application_id: Option<Id<ApplicationMarker>>,
+    pub icon: Option<ImageHash>,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<MessageId>,
+    pub last_message_id: Option<Id<MessageMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    pub owner_id: UserId,
+    pub owner_id: Id<UserMarker>,
     pub recipients: Vec<User>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ApplicationId, ChannelId, ChannelType, Group, MessageId, UserId};
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use super::{ChannelType, Group};
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::Id,
+        test::image_hash,
+    };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[test]
     fn test_group() {
         let value = Group {
-            application_id: Some(ApplicationId::new(1).expect("non zero")),
-            icon: Some("icon hash".to_owned()),
-            id: ChannelId::new(2).expect("non zero"),
+            application_id: Some(Id::new(1)),
+            icon: Some(image_hash::ICON),
+            id: Id::new(2),
             kind: ChannelType::Group,
-            last_message_id: Some(MessageId::new(3).expect("non zero")),
+            last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             name: Some("a group".to_owned()),
-            owner_id: UserId::new(4).expect("non zero"),
+            owner_id: Id::new(4),
             recipients: Vec::new(),
         };
 
@@ -54,27 +62,25 @@ mod tests {
                 },
                 Token::Str("application_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
                 Token::U8(3),
                 Token::Str("last_message_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "MessageId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("name"),
                 Token::Some,
                 Token::Str("a group"),
                 Token::Str("owner_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("recipients"),
                 Token::Seq { len: Some(0) },
@@ -89,14 +95,14 @@ mod tests {
         let timestamp = Timestamp::from_str("2021-08-10T12:21:10+00:00")?;
 
         let value = Group {
-            application_id: Some(ApplicationId::new(1).expect("non zero")),
-            icon: Some("icon hash".to_owned()),
-            id: ChannelId::new(2).expect("non zero"),
+            application_id: Some(Id::new(1)),
+            icon: Some(image_hash::ICON),
+            id: Id::new(2),
             kind: ChannelType::Group,
-            last_message_id: Some(MessageId::new(3).expect("non zero")),
+            last_message_id: Some(Id::new(3)),
             last_pin_timestamp: Some(timestamp),
             name: Some("a group".to_owned()),
-            owner_id: UserId::new(4).expect("non zero"),
+            owner_id: Id::new(4),
             recipients: Vec::new(),
         };
 
@@ -109,21 +115,19 @@ mod tests {
                 },
                 Token::Str("application_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
                 Token::U8(3),
                 Token::Str("last_message_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "MessageId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("last_pin_timestamp"),
                 Token::Some,
@@ -132,7 +136,7 @@ mod tests {
                 Token::Some,
                 Token::Str("a group"),
                 Token::Str("owner_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("recipients"),
                 Token::Seq { len: Some(0) },

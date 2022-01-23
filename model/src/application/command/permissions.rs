@@ -1,12 +1,17 @@
-use crate::id::{ApplicationId, CommandId, GenericId, GuildId, RoleId, UserId};
+use crate::id::{
+    marker::{
+        ApplicationMarker, CommandMarker, GenericMarker, GuildMarker, RoleMarker, UserMarker,
+    },
+    Id,
+};
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GuildCommandPermissions {
-    pub application_id: ApplicationId,
-    pub guild_id: GuildId,
-    pub id: CommandId,
+    pub application_id: Id<ApplicationMarker>,
+    pub guild_id: Id<GuildMarker>,
+    pub id: Id<CommandMarker>,
     pub permissions: Vec<CommandPermissions>,
 }
 
@@ -18,13 +23,13 @@ pub struct CommandPermissions {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandPermissionsType {
-    Role(RoleId),
-    User(UserId),
+    Role(Id<RoleMarker>),
+    User(Id<UserMarker>),
 }
 
 #[derive(Deserialize, Serialize)]
 struct CommandPermissionsData {
-    id: GenericId,
+    id: Id<GenericMarker>,
     #[serde(rename = "type")]
     kind: CommandPermissionsDataType,
     permission: bool,
@@ -48,16 +53,16 @@ impl<'de> Deserialize<'de> for CommandPermissions {
 
         let id = match data.kind {
             CommandPermissionsDataType::Role => {
-                let id = RoleId(data.id.0);
+                let id = data.id.cast();
                 #[cfg(feature = "tracing")]
-                tracing::trace!(id = %id.0, kind = ?data.kind);
+                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 CommandPermissionsType::Role(id)
             }
             CommandPermissionsDataType::User => {
-                let id = UserId(data.id.0);
+                let id = data.id.cast();
                 #[cfg(feature = "tracing")]
-                tracing::trace!(id = %id.0, kind = ?data.kind);
+                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 CommandPermissionsType::User(id)
             }
@@ -74,8 +79,8 @@ impl Serialize for CommandPermissions {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let data = CommandPermissionsData {
             id: match self.id {
-                CommandPermissionsType::Role(role_id) => GenericId(role_id.0),
-                CommandPermissionsType::User(user_id) => GenericId(user_id.0),
+                CommandPermissionsType::Role(role_id) => role_id.cast(),
+                CommandPermissionsType::User(user_id) => user_id.cast(),
             },
             kind: match self.id {
                 CommandPermissionsType::Role(_) => CommandPermissionsDataType::Role,
@@ -91,13 +96,13 @@ impl Serialize for CommandPermissions {
 #[cfg(test)]
 mod tests {
     use super::{CommandPermissions, CommandPermissionsType};
-    use crate::id::RoleId;
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn test_command_permissions() {
         let value = CommandPermissions {
-            id: CommandPermissionsType::Role(RoleId::new(100).expect("non zero")),
+            id: CommandPermissionsType::Role(Id::new(100)),
             permission: true,
         };
 
@@ -109,7 +114,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GenericId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("type"),
                 Token::U8(1),

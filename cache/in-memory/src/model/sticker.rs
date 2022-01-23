@@ -1,10 +1,13 @@
 use serde::Serialize;
 use twilight_model::{
     channel::message::{
-        sticker::{StickerFormatType, StickerId, StickerPackId, StickerType},
+        sticker::{StickerFormatType, StickerType},
         Sticker,
     },
-    id::{GuildId, UserId},
+    id::{
+        marker::{GuildMarker, StickerMarker, StickerPackMarker, UserMarker},
+        Id,
+    },
 };
 
 /// Representation of a cached [`Sticker`].
@@ -19,21 +22,21 @@ pub struct CachedSticker {
     /// Format type.
     pub(crate) format_type: StickerFormatType,
     /// ID of the guild that owns the sticker.
-    pub(crate) guild_id: Option<GuildId>,
+    pub(crate) guild_id: Option<Id<GuildMarker>>,
     /// Unique ID of the sticker.
-    pub(crate) id: StickerId,
+    pub(crate) id: Id<StickerMarker>,
     /// Kind of sticker.
     pub(crate) kind: StickerType,
     /// Name of the sticker.
     pub(crate) name: String,
     /// Unique ID of the pack the sticker is in.
-    pub(crate) pack_id: Option<StickerPackId>,
+    pub(crate) pack_id: Option<Id<StickerPackMarker>>,
     /// Sticker's sort order within a pack.
     pub(crate) sort_value: Option<u64>,
     /// CSV list of tags the sticker is assigned to, if any.
     pub(crate) tags: String,
     /// ID of the user that uploaded the sticker.
-    pub(crate) user_id: Option<UserId>,
+    pub(crate) user_id: Option<Id<UserMarker>>,
 }
 
 impl CachedSticker {
@@ -53,12 +56,12 @@ impl CachedSticker {
     }
 
     /// ID of the guild that owns the sticker.
-    pub const fn guild_id(&self) -> Option<GuildId> {
+    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         self.guild_id
     }
 
     /// Unique ID of the sticker.
-    pub const fn id(&self) -> StickerId {
+    pub const fn id(&self) -> Id<StickerMarker> {
         self.id
     }
 
@@ -73,7 +76,7 @@ impl CachedSticker {
     }
 
     /// Unique ID of the pack the sticker is in.
-    pub const fn pack_id(&self) -> Option<StickerPackId> {
+    pub const fn pack_id(&self) -> Option<Id<StickerPackMarker>> {
         self.pack_id
     }
 
@@ -88,7 +91,7 @@ impl CachedSticker {
     }
 
     /// ID of the user that uploaded the sticker.
-    pub const fn user_id(&self) -> Option<UserId> {
+    pub const fn user_id(&self) -> Option<Id<UserMarker>> {
         self.user_id
     }
 }
@@ -116,11 +119,12 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         channel::message::{
-            sticker::{StickerFormatType, StickerId, StickerPackId, StickerType},
+            sticker::{StickerFormatType, StickerType},
             Sticker,
         },
-        id::{GuildId, UserId},
+        id::Id,
         user::{PremiumType, User, UserFlags},
+        util::{image_hash::ImageHashParseError, ImageHash},
     };
 
     assert_fields!(
@@ -139,27 +143,29 @@ mod tests {
     assert_impl_all!(CachedSticker: Clone, Debug, Eq, PartialEq);
 
     #[test]
-    fn test_eq_sticker() {
+    fn test_eq_sticker() -> Result<(), ImageHashParseError> {
+        let avatar = ImageHash::parse(b"5bf451026c107906b4dccea015320222")?;
+
         let sticker = Sticker {
             available: true,
             description: Some("sticker".into()),
             format_type: StickerFormatType::Png,
-            guild_id: Some(GuildId::new(1).expect("non zero")),
-            id: StickerId::new(2).expect("non zero"),
+            guild_id: Some(Id::new(1)),
+            id: Id::new(2),
             kind: StickerType::Guild,
             name: "stick".into(),
-            pack_id: Some(StickerPackId::new(3).expect("non zero")),
+            pack_id: Some(Id::new(3)),
             sort_value: Some(1),
             tags: "foo,bar,baz".into(),
             user: Some(User {
                 accent_color: None,
-                avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                avatar: Some(avatar),
                 banner: None,
                 bot: false,
                 discriminator: 1,
                 email: Some("address@example.com".to_owned()),
                 flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-                id: UserId::new(1).expect("non zero"),
+                id: Id::new(1),
                 locale: Some("en-us".to_owned()),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
@@ -176,16 +182,18 @@ mod tests {
             available: true,
             description: "sticker".into(),
             format_type: StickerFormatType::Png,
-            guild_id: Some(GuildId::new(1).expect("non zero")),
-            id: StickerId::new(2).expect("non zero"),
+            guild_id: Some(Id::new(1)),
+            id: Id::new(2),
             kind: StickerType::Guild,
             name: "stick".into(),
-            pack_id: Some(StickerPackId::new(3).expect("non zero")),
+            pack_id: Some(Id::new(3)),
             sort_value: Some(1),
             tags: "foo,bar,baz".into(),
-            user_id: Some(UserId::new(1).expect("non zero")),
+            user_id: Some(Id::new(1)),
         };
 
         assert_eq!(cached, sticker);
+
+        Ok(())
     }
 }

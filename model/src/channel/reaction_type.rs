@@ -1,4 +1,4 @@
-use crate::id::EmojiId;
+use crate::id::{marker::EmojiMarker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
@@ -11,7 +11,7 @@ pub enum ReactionType {
         // it is a bit misleading as that should only happen when
         // the reaction is a unicode emoji and then it is caught by
         // the other variant.
-        id: EmojiId,
+        id: Id<EmojiMarker>,
         // Name is nil if the emoji data is no longer available, for
         // example if the emoji have been deleted off the guild.
         name: Option<String>,
@@ -24,14 +24,14 @@ pub enum ReactionType {
 #[cfg(test)]
 mod tests {
     use super::ReactionType;
-    use crate::id::EmojiId;
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn test_custom() {
         let value = ReactionType::Custom {
             animated: false,
-            id: EmojiId::new(1337).expect("non zero"),
+            id: Id::new(1337),
             name: Some("foo".to_owned()),
         };
 
@@ -45,7 +45,7 @@ mod tests {
                 Token::Str("animated"),
                 Token::Bool(false),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "EmojiId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1337"),
                 Token::Str("name"),
                 Token::Some,
@@ -64,7 +64,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "EmojiId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1337"),
                 Token::Str("name"),
                 Token::Some,

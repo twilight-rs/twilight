@@ -1,14 +1,17 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     application::command::{Command, CommandOption},
-    id::{ApplicationId, CommandId, GuildId},
+    id::{
+        marker::{ApplicationMarker, CommandMarker, GuildMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
@@ -30,18 +33,18 @@ struct UpdateGuildCommandFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildCommand<'a> {
     fields: UpdateGuildCommandFields<'a>,
-    application_id: ApplicationId,
-    command_id: CommandId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> UpdateGuildCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
-        command_id: CommandId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
+        command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
             application_id,
@@ -77,7 +80,21 @@ impl<'a> UpdateGuildCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateGuildCommand<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateGuildCommand {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
@@ -85,15 +102,5 @@ impl<'a> UpdateGuildCommand<'a> {
         })
         .json(&self.fields)
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

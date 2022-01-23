@@ -2,6 +2,38 @@
 
 Changelog for `twilight-http-ratelimiting`.
 
+## [0.9.0] - 2022-01-22
+
+### Additions
+
+Add `Path` variants for scheduled events ([#1347] - [@7596ff]).
+
+### Changes
+
+`Method::into_http` has been renamed to `to_http` ([#1398] - [@vilgotf]).
+
+`Path` variants that contained a `Box<str>` now contain a `String` ([#1398] -
+[@vilgotf]).
+
+`Present::into_bucket` now returns a `String` ([#1398] - [@vilgotf]).
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+[#1347]: https://github.com/twilight-rs/twilight/pull/1347
+[#1398]: https://github.com/twilight-rs/twilight/pull/1398
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+
+## [0.8.4] - 2022-01-21
+
+### Changes
+
+Ensure the `rt` feature of `tokio` is enabled ([#1425] - [@vilgotf]).
+
+[#1425]: https://github.com/twilight-rs/twilight/pull/1425
+
 ## [0.8.3] - 2022-01-08
 
 ### Additions
@@ -51,10 +83,14 @@ For webhooks, the token is now a major parameter ([#1263] -
 [#1205]: https://github.com/twilight-rs/twilight/pull/1205
 [#1263]: https://github.com/twilight-rs/twilight/pull/1263
 
+[@7596ff]: https://github.com/7596ff
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@HTG-YT]: https://github.com/HTG-YT
+[@vilgotf]: https://github.com/vilgotf
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.9.0
+[0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.1

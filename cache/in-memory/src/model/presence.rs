@@ -1,7 +1,10 @@
 use serde::Serialize;
 use twilight_model::{
     gateway::presence::{Activity, ClientStatus, Presence, Status},
-    id::{GuildId, UserId},
+    id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    },
 };
 
 /// Represents a cached [`Presence`].
@@ -11,9 +14,9 @@ use twilight_model::{
 pub struct CachedPresence {
     pub(crate) activities: Vec<Activity>,
     pub(crate) client_status: ClientStatus,
-    pub(crate) guild_id: GuildId,
+    pub(crate) guild_id: Id<GuildMarker>,
     pub(crate) status: Status,
-    pub(crate) user_id: UserId,
+    pub(crate) user_id: Id<UserMarker>,
 }
 
 impl CachedPresence {
@@ -28,7 +31,7 @@ impl CachedPresence {
     }
 
     /// ID of the guild.
-    pub const fn guild_id(&self) -> GuildId {
+    pub const fn guild_id(&self) -> Id<GuildMarker> {
         self.guild_id
     }
 
@@ -38,26 +41,18 @@ impl CachedPresence {
     }
 
     /// ID of the user.
-    pub const fn user_id(&self) -> UserId {
+    pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
     }
 }
 
 impl PartialEq<Presence> for CachedPresence {
     fn eq(&self, other: &Presence) -> bool {
-        (
-            &self.activities,
-            &self.client_status,
-            self.guild_id,
-            self.status,
-            self.user_id,
-        ) == (
-            &other.activities,
-            &other.client_status,
-            other.guild_id,
-            other.status,
-            other.user.id(),
-        )
+        self.activities == other.activities
+            && self.client_status == other.client_status
+            && self.guild_id == other.guild_id
+            && self.status == other.status
+            && self.user_id == other.user.id()
     }
 }
 

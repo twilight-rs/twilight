@@ -1,5 +1,8 @@
 use crate::{
-    id::{IntegrationId, UserId},
+    id::{
+        marker::{IntegrationMarker, UserMarker},
+        Id,
+    },
     util::is_false,
 };
 use serde::{Deserialize, Serialize};
@@ -56,10 +59,10 @@ mod premium_subscriber {
 pub struct RoleTags {
     /// ID of the bot the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bot_id: Option<UserId>,
+    pub bot_id: Option<Id<UserMarker>>,
     /// ID of the integration the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub integration_id: Option<IntegrationId>,
+    pub integration_id: Option<Id<IntegrationMarker>>,
     /// Whether this is the guild's premium subscriber role.
     #[serde(default, skip_serializing_if = "is_false", with = "premium_subscriber")]
     pub premium_subscriber: bool,
@@ -68,14 +71,14 @@ pub struct RoleTags {
 #[cfg(test)]
 mod tests {
     use super::RoleTags;
-    use crate::id::{IntegrationId, UserId};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn test_role_tags_all() {
         let tags = RoleTags {
-            bot_id: Some(UserId::new(1).expect("non zero")),
-            integration_id: Some(IntegrationId::new(2).expect("non zero")),
+            bot_id: Some(Id::new(1)),
+            integration_id: Some(Id::new(2)),
             premium_subscriber: true,
         };
 
@@ -88,13 +91,11 @@ mod tests {
                 },
                 Token::Str("bot_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("integration_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "IntegrationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("premium_subscriber"),
                 Token::None,
