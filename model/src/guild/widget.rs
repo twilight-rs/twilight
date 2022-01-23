@@ -47,8 +47,7 @@ pub struct GuildWidgetActivity {
 mod tests {
 
     use super::{
-        GuildWidget, GuildWidgetActivity, GuildWidgetChannel,
-        GuildWidgetMember, Id, Status,
+        GuildWidget, GuildWidgetActivity, GuildWidgetChannel, GuildWidgetMember, Id, Status,
     };
     use serde_test::Token;
 

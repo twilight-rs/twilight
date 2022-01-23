@@ -1,4 +1,4 @@
-use crate::id::{Id, marker::ChannelMarker};
+use crate::id::{marker::ChannelMarker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -9,7 +9,7 @@ pub struct GuildWidgetSettings {
 
 #[cfg(test)]
 mod tests {
-    use super::{Id, GuildWidgetSettings};
+    use super::{GuildWidgetSettings, Id};
     use serde_test::Token;
 
     #[test]

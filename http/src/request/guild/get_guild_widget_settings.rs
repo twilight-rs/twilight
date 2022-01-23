@@ -1,5 +1,8 @@
 use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
-use twilight_model::{guild::GuildWidgetSettings, id::{Id, marker::GuildMarker}};
+use twilight_model::{
+    guild::GuildWidgetSettings,
+    id::{marker::GuildMarker, Id},
+};
 
 /// Get the guild's widget settings.
 ///
