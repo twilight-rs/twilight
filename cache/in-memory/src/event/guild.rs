@@ -460,8 +460,8 @@ mod tests {
 
     #[test]
     fn test_guild_member_count() {
-        let user_id = UserId::new(2).expect("non zero");
-        let guild_id = GuildId::new(1).expect("non zero");
+        let user_id = Id::new(2);
+        let guild_id = Id::new(1);
         let cache = InMemoryCache::new();
         let user = test::user(user_id);
         let member = test::member(user_id, guild_id);
@@ -481,7 +481,7 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::None,
             features: Vec::new(),
             icon: None,
-            id: GuildId::new(1).expect("non zero"),
+            id: Id::new(1),
             joined_at: None,
             large: false,
             max_members: None,
@@ -492,7 +492,7 @@ mod tests {
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: UserId::new(1).expect("non zero"),
+            owner_id: Id::new(1),
             owner: None,
             permissions: None,
             preferred_locale: "en_us".to_owned(),
