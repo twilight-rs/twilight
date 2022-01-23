@@ -215,12 +215,14 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
+    use crate::test;
     use twilight_model::{
         channel::{
             thread::{AutoArchiveDuration, PublicThread, ThreadMember, ThreadMetadata},
             ChannelType, GuildChannel, TextChannel,
         },
         datetime::{Timestamp, TimestampParseError},
+        gateway::payload::incoming::{MemberAdd, MemberRemove},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
@@ -457,5 +459,73 @@ mod tests {
         assert_eq!(cache.guild(guild.id).unwrap().name, mutation.name);
         assert_eq!(cache.guild(guild.id).unwrap().owner_id, mutation.owner_id);
         assert_eq!(cache.guild(guild.id).unwrap().id, mutation.id);
+    }
+
+    #[test]
+    fn test_guild_member_count() {
+        let user_id = UserId::new(2).expect("non zero");
+        let guild_id = GuildId::new(1).expect("non zero");
+        let cache = InMemoryCache::new();
+        let user = test::user(user_id);
+        let member = test::member(user_id, guild_id);
+
+        let guild = Guild {
+            afk_channel_id: None,
+            afk_timeout: 0,
+            application_id: None,
+            approximate_member_count: None,
+            approximate_presence_count: None,
+            banner: None,
+            channels: Vec::new(),
+            default_message_notifications: DefaultMessageNotificationLevel::Mentions,
+            description: None,
+            discovery_splash: None,
+            emojis: Vec::new(),
+            explicit_content_filter: ExplicitContentFilter::None,
+            features: Vec::new(),
+            icon: None,
+            id: GuildId::new(1).expect("non zero"),
+            joined_at: None,
+            large: false,
+            max_members: None,
+            max_presences: None,
+            max_video_channel_users: None,
+            member_count: Some(1),
+            members: Vec::new(),
+            mfa_level: MfaLevel::None,
+            name: "test".to_owned(),
+            nsfw_level: NSFWLevel::Default,
+            owner_id: UserId::new(1).expect("non zero"),
+            owner: None,
+            permissions: None,
+            preferred_locale: "en_us".to_owned(),
+            premium_progress_bar_enabled: false,
+            premium_subscription_count: None,
+            premium_tier: PremiumTier::None,
+            presences: Vec::new(),
+            roles: Vec::new(),
+            rules_channel_id: None,
+            splash: None,
+            stage_instances: Vec::new(),
+            stickers: Vec::new(),
+            system_channel_flags: SystemChannelFlags::empty(),
+            system_channel_id: None,
+            threads: Vec::new(),
+            unavailable: false,
+            vanity_url_code: None,
+            verification_level: VerificationLevel::VeryHigh,
+            voice_states: Vec::new(),
+            widget_channel_id: None,
+            widget_enabled: None,
+        };
+
+        cache.update(&GuildCreate(guild));
+        cache.update(&MemberAdd(member));
+
+        assert_eq!(cache.guild(guild_id).unwrap().member_count, Some(2));
+
+        cache.update(&MemberRemove { guild_id, user });
+
+        assert_eq!(cache.guild(guild_id).unwrap().member_count, Some(1));
     }
 }
