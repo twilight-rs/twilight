@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = ["asynchronous"]
 description = "Utility to filter wait for filtered incoming events for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-standby"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_6_standby.html"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
@@ -12,7 +12,8 @@ name = "twilight-standby"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.3"
+rust-version = "1.57"
+version = "0.9.0"
 
 [dependencies]
 dashmap = { default-features = false, version = "4" }
@@ -26,7 +27,7 @@ tracing = { default-features = false, features = ["std", "attributes"], optional
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-twilight-gateway = { default-features = false, features = ["rustls"], path = "../gateway" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
 
 [features]
 default = ["tracing"]

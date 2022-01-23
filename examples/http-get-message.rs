@@ -1,7 +1,7 @@
 use futures_util::future;
 use std::{env, error::Error};
 use twilight_http::Client;
-use twilight_model::id::ChannelId;
+use twilight_model::id::Id;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -9,7 +9,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let client = Client::new(env::var("DISCORD_TOKEN")?);
-    let channel_id = ChannelId::new(381_926_291_785_383_946).expect("non zero");
+    let channel_id = Id::new(381_926_291_785_383_946);
 
     future::join_all((1u8..=10).map(|x| {
         client

@@ -1,26 +1,29 @@
 use crate::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     datetime::Timestamp,
-    id::{ChannelId, GuildId, MessageId},
+    id::{
+        marker::{ChannelMarker, GuildMarker, MessageMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct TextChannel {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
-    pub id: ChannelId,
+    pub guild_id: Option<Id<GuildMarker>>,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<MessageId>,
+    pub last_message_id: Option<Id<MessageMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
     pub name: String,
     #[serde(default)]
     pub nsfw: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<ChannelId>,
+    pub parent_id: Option<Id<ChannelMarker>>,
     pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -31,16 +34,19 @@ pub struct TextChannel {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, ChannelType, GuildId, MessageId, TextChannel};
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use super::{ChannelType, TextChannel};
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::Id,
+    };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[test]
     fn test_text_channel() {
         let value = TextChannel {
-            id: ChannelId::new(1).expect("non zero"),
-            guild_id: Some(GuildId::new(2).expect("non zero")),
+            id: Id::new(1),
+            guild_id: Some(Id::new(2)),
             kind: ChannelType::GuildText,
             last_message_id: None,
             last_pin_timestamp: None,
@@ -62,10 +68,10 @@ mod tests {
                 },
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("type"),
                 Token::U8(0),
@@ -94,15 +100,15 @@ mod tests {
         let last_pin_timestamp = Timestamp::from_str("2021-08-10T12:34:00+00:00")?;
 
         let value = TextChannel {
-            id: ChannelId::new(1).expect("non zero"),
-            guild_id: Some(GuildId::new(2).expect("non zero")),
+            id: Id::new(1),
+            guild_id: Some(Id::new(2)),
             kind: ChannelType::GuildText,
-            last_message_id: Some(MessageId::new(3).expect("non zero")),
+            last_message_id: Some(Id::new(3)),
             last_pin_timestamp: Some(last_pin_timestamp),
             name: "foo".to_owned(),
             nsfw: true,
             permission_overwrites: Vec::new(),
-            parent_id: Some(ChannelId::new(4).expect("non zero")),
+            parent_id: Some(Id::new(4)),
             position: 3,
             rate_limit_per_user: Some(10),
             topic: Some("a topic".to_owned()),
@@ -117,16 +123,16 @@ mod tests {
                 },
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("type"),
                 Token::U8(0),
                 Token::Str("last_message_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "MessageId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("last_pin_timestamp"),
                 Token::Some,
@@ -137,7 +143,7 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("parent_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("permission_overwrites"),
                 Token::Seq { len: Some(0) },

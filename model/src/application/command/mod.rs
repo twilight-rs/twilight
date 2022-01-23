@@ -14,7 +14,10 @@ pub use self::{
     },
 };
 
-use crate::id::{ApplicationId, CommandId, CommandVersionId, GuildId};
+use crate::id::{
+    marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
+    Id,
+};
 use serde::{Deserialize, Serialize};
 
 /// Data sent to discord to create a command.
@@ -31,7 +34,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<ApplicationId>,
+    pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_permission: Option<bool>,
     /// Description of the command.
@@ -43,14 +46,14 @@ pub struct Command {
     pub description: String,
     /// Guild ID of the command, if not global.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<CommandId>,
+    pub id: Option<Id<CommandMarker>>,
     #[serde(rename = "type")]
     pub kind: CommandType,
     pub name: String,
     #[serde(default)]
     pub options: Vec<CommandOption>,
     /// Autoincrementing version identifier.
-    pub version: CommandVersionId,
+    pub version: Id<CommandVersionMarker>,
 }

@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = []
 description = "Message command parser for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-command-parser"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_5_command_parser.html"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
@@ -12,7 +12,8 @@ name = "twilight-command-parser"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.1"
+rust-version = "1.57"
+version = "0.9.0"
 
 [dependencies]
 unicase = { default-features = false, version = "2" }

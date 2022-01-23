@@ -1,16 +1,19 @@
 use crate::{
     channel::ChannelType,
     datetime::Timestamp,
-    id::{ChannelId, MessageId},
+    id::{
+        marker::{ChannelMarker, MessageMarker},
+        Id,
+    },
     user::User,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PrivateChannel {
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<MessageId>,
+    pub last_message_id: Option<Id<MessageMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
     #[serde(rename = "type")]
@@ -20,8 +23,11 @@ pub struct PrivateChannel {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, ChannelType, MessageId, PrivateChannel};
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use super::{ChannelType, PrivateChannel};
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::Id,
+    };
     use serde_test::Token;
     use std::str::FromStr;
 
@@ -30,8 +36,8 @@ mod tests {
         let last_pin_timestamp = Timestamp::from_str("2021-08-10T12:34:00+00:00")?;
 
         let value = PrivateChannel {
-            id: ChannelId::new(1).expect("non zero"),
-            last_message_id: Some(MessageId::new(2).expect("non zero")),
+            id: Id::new(1),
+            last_message_id: Some(Id::new(2)),
             last_pin_timestamp: Some(last_pin_timestamp),
             kind: ChannelType::Private,
             recipients: Vec::new(),
@@ -45,11 +51,11 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("last_message_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "MessageId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("last_pin_timestamp"),
                 Token::Some,

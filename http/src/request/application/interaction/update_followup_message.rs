@@ -3,121 +3,24 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        self,
-        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, NullableField, Request,
-    },
+    request::{self, AttachmentFile, Form, NullableField, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{ApplicationId, MessageId},
+    id::{
+        marker::{ApplicationMarker, MessageMarker},
+        Id,
+    },
 };
-
-/// A followup message can not be updated as configured.
-#[derive(Debug)]
-pub struct UpdateFollowupMessageError {
-    kind: UpdateFollowupMessageErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl UpdateFollowupMessageError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &UpdateFollowupMessageErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        UpdateFollowupMessageErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, self.source)
-    }
-}
-
-impl Display for UpdateFollowupMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            UpdateFollowupMessageErrorType::ComponentCount { count } => {
-                Display::fmt(count, f)?;
-                f.write_str(" components were provided, but only ")?;
-                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
-
-                f.write_str(" root components are allowed")
-            }
-            UpdateFollowupMessageErrorType::ComponentInvalid { .. } => {
-                f.write_str("a provided component is invalid")
-            }
-            UpdateFollowupMessageErrorType::ContentInvalid => {
-                f.write_str("message content is invalid")
-            }
-            UpdateFollowupMessageErrorType::EmbedTooLarge { .. } => {
-                f.write_str("length of one of the embeds is too large")
-            }
-            UpdateFollowupMessageErrorType::TooManyEmbeds => {
-                f.write_str("only 10 embeds may be provided")
-            }
-        }
-    }
-}
-
-impl Error for UpdateFollowupMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`UpdateFollowupMessageError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum UpdateFollowupMessageErrorType {
-    /// An invalid message component was provided.
-    ComponentInvalid {
-        /// Additional details about the validation failure type.
-        kind: ComponentValidationErrorType,
-    },
-    /// Too many message components were provided.
-    ComponentCount {
-        /// Number of components that were provided.
-        count: usize,
-    },
-    /// Content is over 2000 UTF-16 characters.
-    ContentInvalid,
-    /// Length of one of the embeds is over 6000 characters.
-    EmbedTooLarge {
-        /// Index of the embed that was too large.
-        ///
-        /// This can be used to index into the provided embeds to retrieve the
-        /// invalid embed.
-        index: usize,
-    },
-    /// Too many embeds were provided.
-    ///
-    /// A followup message can have up to 10 embeds.
-    TooManyEmbeds,
-}
+use twilight_validate::message::{
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateFollowupMessageFields<'a> {
@@ -154,13 +57,15 @@ struct UpdateFollowupMessageFields<'a> {
 /// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
-///     id::{MessageId, ApplicationId}
+///     id::Id,
 /// };
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = Id::new(1);
 ///
-/// client.update_followup_message("token here", MessageId::new(2).expect("non zero"))?
+/// client
+///     .interaction(application_id)
+///     .update_followup_message("token here", Id::new(2))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -173,23 +78,20 @@ struct UpdateFollowupMessageFields<'a> {
 /// [`DeleteFollowupMessage`]: super::DeleteFollowupMessage
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateFollowupMessage<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     fields: UpdateFollowupMessageFields<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     token: &'a str,
 }
 
 impl<'a> UpdateFollowupMessage<'a> {
-    /// Maximum number of embeds that a followup message may have.
-    pub const EMBED_COUNT_LIMIT: usize = 10;
-
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
-        message_id: MessageId,
+        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             fields: UpdateFollowupMessageFields {
@@ -233,32 +135,15 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateFollowupMessageErrorType::ComponentCount`] error type
-    /// if too many components are provided.
-    ///
-    /// Returns an [`UpdateFollowupMessageErrorType::ComponentInvalid`] error
-    /// type if one of the provided components is invalid.
+    /// Refer to the errors section of
+    /// [`twilight_validate::component::component`] for a list of errors that
+    /// may be returned as a result of validating each provided component.
     pub fn components(
         mut self,
         components: Option<&'a [Component]>,
-    ) -> Result<Self, UpdateFollowupMessageError> {
-        if let Some(components) = components.as_ref() {
-            validate_inner::components(components).map_err(|source| {
-                let (kind, inner_source) = source.into_parts();
-
-                match kind {
-                    ComponentValidationErrorType::ComponentCount { count } => {
-                        UpdateFollowupMessageError {
-                            kind: UpdateFollowupMessageErrorType::ComponentCount { count },
-                            source: inner_source,
-                        }
-                    }
-                    other => UpdateFollowupMessageError {
-                        kind: UpdateFollowupMessageErrorType::ComponentInvalid { kind: other },
-                        source: inner_source,
-                    },
-                }
-            })?;
+    ) -> Result<Self, MessageValidationError> {
+        if let Some(components) = components {
+            validate_components(components)?;
         }
 
         self.fields.components = Some(NullableField(components));
@@ -277,16 +162,13 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateFollowupMessageErrorType::ContentInvalid`] error type if
-    /// the content length is too long.
-    pub fn content(mut self, content: Option<&'a str>) -> Result<Self, UpdateFollowupMessageError> {
+    /// Returns an error of type [`ContentInvalid`] if the content length is too
+    /// long.
+    ///
+    /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    pub fn content(mut self, content: Option<&'a str>) -> Result<Self, MessageValidationError> {
         if let Some(content_ref) = content.as_ref() {
-            if !validate_inner::content_limit(content_ref) {
-                return Err(UpdateFollowupMessageError {
-                    kind: UpdateFollowupMessageErrorType::ContentInvalid,
-                    source: None,
-                });
-            }
+            validate_content(content_ref)?;
         }
 
         self.fields.content = Some(NullableField(content));
@@ -316,10 +198,10 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::{ApplicationId, MessageId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// let application_id = Id::new(1);
     ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
@@ -327,7 +209,9 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///     .url("https://twilight.rs")
     ///     .build()?;
     ///
-    /// client.update_followup_message("token", MessageId::new(2).expect("non zero"))?
+    /// client
+    ///     .interaction(application_id)
+    ///     .update_followup_message("token", Id::new(2))
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -336,34 +220,18 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`UpdateFollowupMessageErrorType::EmbedTooLarge`] error type
-    /// if one of the embeds are too large.
+    /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
     ///
-    /// Returns an [`UpdateFollowupMessageErrorType::TooManyEmbeds`] error type
-    /// if more than 10 embeds are provided.
+    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
+    /// that may occur.
     ///
+    /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [`embed`]: twilight_validate::embed::embed
     /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
-    /// [`EMBED_COUNT_LIMIT`]: Self::EMBED_COUNT_LIMIT
-    pub fn embeds(
-        mut self,
-        embeds: Option<&'a [Embed]>,
-    ) -> Result<Self, UpdateFollowupMessageError> {
-        if let Some(embeds_present) = embeds {
-            if embeds_present.len() > Self::EMBED_COUNT_LIMIT {
-                return Err(UpdateFollowupMessageError {
-                    kind: UpdateFollowupMessageErrorType::TooManyEmbeds,
-                    source: None,
-                });
-            }
-
-            for (idx, embed) in embeds_present.iter().enumerate() {
-                if let Err(source) = validate_inner::embed(embed) {
-                    return Err(UpdateFollowupMessageError {
-                        kind: UpdateFollowupMessageErrorType::EmbedTooLarge { index: idx },
-                        source: Some(Box::new(source)),
-                    });
-                }
-            }
+    pub fn embeds(mut self, embeds: Option<&'a [Embed]>) -> Result<Self, MessageValidationError> {
+        if let Some(embeds) = embeds {
+            validate_embeds(embeds)?;
         }
 
         self.fields.embeds = Some(NullableField(embeds));
@@ -406,9 +274,18 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateFollowupMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: None,
@@ -451,34 +328,27 @@ impl<'a> UpdateFollowupMessage<'a> {
 
         Ok(request.use_authorization_token(false).build())
     }
-
-    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::{ApplicationId, MessageId};
+    use twilight_model::id::Id;
 
     #[test]
     fn test_update_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
-        let message_id = MessageId::new(2).expect("non zero id");
-        let token = "foo".to_owned().into_boxed_str();
+        let application_id = Id::new(1);
+        let message_id = Id::new(2);
+        let token = "foo".to_owned();
 
         let client = Client::new(String::new());
-        client.set_application_id(application_id);
         let req = client
-            .update_followup_message(&token, message_id)?
+            .interaction(application_id)
+            .update_followup_message(&token, message_id)
             .content(Some("test"))?
-            .request()?;
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

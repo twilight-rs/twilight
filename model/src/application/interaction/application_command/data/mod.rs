@@ -4,7 +4,10 @@ pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, Int
 
 use crate::{
     application::command::{CommandOptionType, Number},
-    id::{ChannelId, CommandId, GenericId, RoleId, UserId},
+    id::{
+        marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{
     de::{Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor},
@@ -22,7 +25,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the command.
-    pub id: CommandId,
+    pub id: Id<CommandMarker>,
     /// Name of the command.
     pub name: String,
     /// List of parsed options specified by the user.
@@ -109,7 +112,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             Boolean(bool),
             Integer(i64),
             Number(f64),
-            Id(GenericId),
+            Id(Id<GenericMarker>),
             String(String),
         }
 
@@ -216,7 +219,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                         if let ValueEnvelope::Id(id) = val {
-                            CommandOptionValue::Channel(ChannelId(id.0))
+                            CommandOptionValue::Channel(id.cast())
                         } else {
                             return Err(DeError::invalid_type(
                                 make_unexpected(&val),
@@ -271,7 +274,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                         if let ValueEnvelope::Id(id) = val {
-                            CommandOptionValue::Role(RoleId(id.0))
+                            CommandOptionValue::Role(id.cast())
                         } else {
                             return Err(DeError::invalid_type(make_unexpected(&val), &"role id"));
                         }
@@ -301,7 +304,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                         if let ValueEnvelope::Id(id) = val {
-                            CommandOptionValue::User(UserId(id.0))
+                            CommandOptionValue::User(id.cast())
                         } else {
                             return Err(DeError::invalid_type(make_unexpected(&val), &"user id"));
                         }
@@ -324,15 +327,15 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
     Boolean(bool),
-    Channel(ChannelId),
+    Channel(Id<ChannelMarker>),
     Integer(i64),
-    Mentionable(GenericId),
+    Mentionable(Id<GenericMarker>),
     Number(Number),
-    Role(RoleId),
+    Role(Id<RoleMarker>),
     String(String),
     SubCommand(Vec<CommandDataOption>),
     SubCommandGroup(Vec<CommandDataOption>),
-    User(UserId),
+    User(Id<UserMarker>),
 }
 
 impl CommandOptionValue {
@@ -360,14 +363,14 @@ mod tests {
             command::{CommandOptionType, Number},
             interaction::application_command::{CommandDataOption, CommandOptionValue},
         },
-        id::CommandId,
+        id::Id,
     };
     use serde_test::Token;
 
     #[test]
     fn no_options() {
         let value = CommandData {
-            id: CommandId::new(1).expect("non zero"),
+            id: Id::new(1),
             name: "permissions".to_owned(),
             options: Vec::new(),
             resolved: None,
@@ -380,7 +383,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "CommandId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("permissions"),
@@ -392,7 +395,7 @@ mod tests {
     #[test]
     fn subcommand_without_option() {
         let value = CommandData {
-            id: CommandId::new(1).expect("non zero"),
+            id: Id::new(1),
             name: "photo".to_owned(),
             options: Vec::from([CommandDataOption {
                 focused: false,
@@ -410,7 +413,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "CommandId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("photo"),

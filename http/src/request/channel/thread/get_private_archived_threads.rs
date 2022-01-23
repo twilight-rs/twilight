@@ -1,5 +1,14 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
-use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
+use twilight_model::{
+    channel::thread::ThreadsListing,
+    id::{marker::ChannelMarker, Id},
+};
 
 /// Returns archived private threads in the channel.
 ///
@@ -10,13 +19,13 @@ use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 #[must_use = "requests must be configured and executed"]
 pub struct GetPrivateArchivedThreads<'a> {
     before: Option<&'a str>,
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
     limit: Option<u64>,
 }
 
 impl<'a> GetPrivateArchivedThreads<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             before: None,
             channel_id,
@@ -43,12 +52,21 @@ impl<'a> GetPrivateArchivedThreads<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
-        let request = Request::from_route(&Route::GetPrivateArchivedThreads {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetPrivateArchivedThreads<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetPrivateArchivedThreads {
             before: self.before,
             channel_id: self.channel_id.get(),
             limit: self.limit,
-        });
-
-        self.http.request(request)
+        }))
     }
 }

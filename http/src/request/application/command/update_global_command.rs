@@ -1,14 +1,17 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     application::command::{Command, CommandOption},
-    id::{ApplicationId, CommandId},
+    id::{
+        marker::{ApplicationMarker, CommandMarker},
+        Id,
+    },
 };
 
 #[derive(Serialize)]
@@ -30,16 +33,16 @@ struct UpdateGlobalCommandFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGlobalCommand<'a> {
     fields: UpdateGlobalCommandFields<'a>,
-    command_id: CommandId,
-    application_id: ApplicationId,
+    command_id: Id<CommandMarker>,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
 }
 
 impl<'a> UpdateGlobalCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        command_id: CommandId,
+        application_id: Id<ApplicationMarker>,
+        command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
             application_id,
@@ -74,22 +77,26 @@ impl<'a> UpdateGlobalCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateGlobalCommand<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateGlobalCommand {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
         })
         .json(&self.fields)
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

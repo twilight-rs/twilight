@@ -1,24 +1,28 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ApplicationId, CommandId};
+use twilight_model::id::{
+    marker::{ApplicationMarker, CommandMarker},
+    Id,
+};
 
 /// Delete a global command, by ID.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteGlobalCommand<'a> {
-    application_id: ApplicationId,
-    command_id: CommandId,
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
     http: &'a Client,
 }
 
 impl<'a> DeleteGlobalCommand<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        command_id: CommandId,
+        application_id: Id<ApplicationMarker>,
+        command_id: Id<CommandMarker>,
     ) -> Self {
         Self {
             application_id,
@@ -31,11 +35,20 @@ impl<'a> DeleteGlobalCommand<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let request = Request::from_route(&Route::DeleteGlobalCommand {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for DeleteGlobalCommand<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::DeleteGlobalCommand {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
-        });
-
-        self.http.request(request)
+        }))
     }
 }

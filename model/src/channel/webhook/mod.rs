@@ -5,20 +5,24 @@ mod kind;
 pub use self::{channel::WebhookChannel, guild::WebhookGuild, kind::WebhookType};
 
 use crate::{
-    id::{ApplicationId, ChannelId, GuildId, WebhookId},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, WebhookMarker},
+        Id,
+    },
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Webhook {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub application_id: Option<ApplicationId>,
-    pub avatar: Option<String>,
-    pub channel_id: ChannelId,
+    pub application_id: Option<Id<ApplicationMarker>>,
+    pub avatar: Option<ImageHash>,
+    pub channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
-    pub id: WebhookId,
+    pub guild_id: Option<Id<GuildMarker>>,
+    pub id: Id<WebhookMarker>,
     #[serde(default = "WebhookType::default", rename = "type")]
     pub kind: WebhookType,
     pub name: Option<String>,
@@ -43,11 +47,8 @@ pub struct Webhook {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        ApplicationId, ChannelId, GuildId, User, Webhook, WebhookChannel, WebhookGuild, WebhookId,
-        WebhookType,
-    };
-    use crate::id::UserId;
+    use super::{User, Webhook, WebhookChannel, WebhookGuild, WebhookType};
+    use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -80,11 +81,11 @@ mod tests {
     #[test]
     fn test_webhook() {
         let value = Webhook {
-            application_id: Some(ApplicationId::new(4).expect("non zero")),
-            avatar: Some("avatar".to_owned()),
-            channel_id: ChannelId::new(1).expect("non zero"),
-            guild_id: Some(GuildId::new(2).expect("non zero")),
-            id: WebhookId::new(3).expect("non zero"),
+            application_id: Some(Id::new(4)),
+            avatar: Some(image_hash::AVATAR),
+            channel_id: Id::new(1),
+            guild_id: Some(Id::new(2)),
+            id: Id::new(3),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: None,
@@ -103,22 +104,20 @@ mod tests {
                 },
                 Token::Str("application_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "WebhookId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("type"),
                 Token::U8(1),
@@ -137,20 +136,20 @@ mod tests {
     #[test]
     fn test_webhook_complete() {
         let value = Webhook {
-            application_id: Some(ApplicationId::new(4).expect("non zero")),
-            avatar: Some("avatar".to_owned()),
-            channel_id: ChannelId::new(1).expect("non zero"),
-            guild_id: Some(GuildId::new(2).expect("non zero")),
-            id: WebhookId::new(3).expect("non zero"),
+            application_id: Some(Id::new(4)),
+            avatar: Some(image_hash::AVATAR),
+            channel_id: Id::new(1),
+            guild_id: Some(Id::new(2)),
+            id: Id::new(3),
             kind: WebhookType::Incoming,
             name: Some("a webhook".to_owned()),
             source_channel: Some(WebhookChannel {
-                id: ChannelId::new(4).expect("non zero"),
+                id: Id::new(4),
                 name: "webhook channel".into(),
             }),
             source_guild: Some(WebhookGuild {
-                icon: Some("guild icon".into()),
-                id: GuildId::new(5).expect("non zero"),
+                icon: Some(image_hash::ICON),
+                id: Id::new(5),
                 name: "webhook guild".into(),
             }),
             token: Some("a token".to_owned()),
@@ -163,7 +162,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(2).expect("non zero"),
+                id: Id::new(2),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -183,22 +182,20 @@ mod tests {
                 },
                 Token::Str("application_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("avatar"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "WebhookId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("type"),
                 Token::U8(1),
@@ -212,7 +209,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("name"),
                 Token::Str("webhook channel"),
@@ -225,9 +222,9 @@ mod tests {
                 },
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("guild icon"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("5"),
                 Token::Str("name"),
                 Token::Str("webhook guild"),
@@ -255,7 +252,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("username"),
                 Token::Str("test"),

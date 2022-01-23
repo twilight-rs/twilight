@@ -8,7 +8,6 @@
 
 use http::Method as HttpMethod;
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
@@ -33,7 +32,7 @@ pub enum Method {
 impl Method {
     /// Convert the method into the equivalent [`http::Method`].
     #[must_use]
-    pub const fn into_http(self) -> HttpMethod {
+    pub const fn to_http(self) -> HttpMethod {
         match self {
             Self::Delete => HttpMethod::DELETE,
             Self::Get => HttpMethod::GET,
@@ -215,14 +214,20 @@ pub enum Path {
     GuildsIdRoles(u64),
     /// Operating on a role of one of the user's guilds.
     GuildsIdRolesId(u64),
+    /// Operating on the guild's scheduled events.
+    GuildsIdScheduledEvents(u64),
+    /// Operating on a particular guild's scheduled events.
+    GuildsIdScheduledEventsId(u64),
+    /// Operating on a particular guild's scheduled event users.
+    GuildsIdScheduledEventsIdUsers(u64),
     /// Operating on one of the user's guilds' stickers.
     GuildsIdStickers(u64),
     /// Operating on one of the user's guilds' templates.
     GuildsIdTemplates(u64),
     /// Operating on a guild template.
-    GuildsTemplatesCode(Box<str>),
+    GuildsTemplatesCode(String),
     /// Operating on a template from one of the user's guilds.
-    GuildsIdTemplatesCode(u64, Box<str>),
+    GuildsIdTemplatesCode(u64, String),
     /// Operating on one of the user's guilds' threads.
     GuildsIdThreads(u64),
     /// Operating on one of the user's guilds' vanity URL.
@@ -262,9 +267,9 @@ pub enum Path {
     /// Operating on a webhook as a bot.
     WebhooksId(u64),
     /// Operating on a webhook as a webhook.
-    WebhooksIdToken(u64, Box<str>),
+    WebhooksIdToken(u64, String),
     /// Operating on a message created by a webhook.
-    WebhooksIdTokenMessagesId(u64, Box<str>),
+    WebhooksIdTokenMessagesId(u64, String),
 }
 
 impl FromStr for Path {
@@ -304,7 +309,7 @@ impl FromStr for Path {
 
         let parts = s.split('/').skip(skip).collect::<Vec<&str>>();
 
-        Ok(match parts.as_slice() {
+        Ok(match parts[..] {
             ["applications", id, "commands"] => ApplicationCommand(parse_id(id)?),
             ["applications", id, "commands", _] => ApplicationCommandId(parse_id(id)?),
             ["applications", id, "guilds", _, "commands"]
@@ -359,9 +364,7 @@ impl FromStr for Path {
             ["gateway"] => Gateway,
             ["gateway", "bot"] => GatewayBot,
             ["guilds"] => Guilds,
-            ["guilds", "templates", code] => {
-                GuildsTemplatesCode((*code).to_string().into_boxed_str())
-            }
+            ["guilds", "templates", code] => GuildsTemplatesCode(code.to_string()),
             ["guilds", id] => GuildsId(parse_id(id)?),
             ["guilds", id, "audit-logs"] => GuildsIdAuditLogs(parse_id(id)?),
             ["guilds", id, "bans"] => GuildsIdBans(parse_id(id)?),
@@ -385,12 +388,17 @@ impl FromStr for Path {
             ["guilds", id, "regions"] => GuildsIdRegions(parse_id(id)?),
             ["guilds", id, "roles"] => GuildsIdRoles(parse_id(id)?),
             ["guilds", id, "roles", _] => GuildsIdRolesId(parse_id(id)?),
+            ["guilds", id, "scheduled-events"] => GuildsIdScheduledEvents(parse_id(id)?),
+            ["guilds", id, "scheduled-events", _] => GuildsIdScheduledEventsId(parse_id(id)?),
+            ["guilds", id, "scheduled-events", _, "users"] => {
+                GuildsIdScheduledEventsIdUsers(parse_id(id)?)
+            }
             ["guilds", id, "stickers"] | ["guilds", id, "stickers", _] => {
                 GuildsIdStickers(parse_id(id)?)
             }
             ["guilds", id, "templates"] => GuildsIdTemplates(parse_id(id)?),
             ["guilds", id, "templates", code] => {
-                GuildsIdTemplatesCode(parse_id(id)?, (*code).to_string().into_boxed_str())
+                GuildsIdTemplatesCode(parse_id(id)?, code.to_string())
             }
             ["guilds", id, "threads", _] => GuildsIdThreads(parse_id(id)?),
             ["guilds", id, "vanity-url"] => GuildsIdVanityUrl(parse_id(id)?),
@@ -411,11 +419,9 @@ impl FromStr for Path {
             ["users", _, "guilds", _, "member"] => UsersIdGuildsIdMember,
             ["voice", "regions"] => VoiceRegions,
             ["webhooks", id] => WebhooksId(parse_id(id)?),
-            ["webhooks", id, token] => {
-                WebhooksIdToken(parse_id(id)?, (*token).to_string().into_boxed_str())
-            }
+            ["webhooks", id, token] => WebhooksIdToken(parse_id(id)?, token.to_string()),
             ["webhooks", id, token, "messages", _] => {
-                WebhooksIdTokenMessagesId(parse_id(id)?, (*token).to_string().into_boxed_str())
+                WebhooksIdTokenMessagesId(parse_id(id)?, token.to_string())
             }
             _ => {
                 return Err(PathParseError {
@@ -450,7 +456,7 @@ mod tests {
     use crate::request::Method;
     use http::Method as HttpMethod;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{convert::TryFrom, error::Error, fmt::Debug, hash::Hash, str::FromStr};
+    use std::{error::Error, fmt::Debug, hash::Hash, str::FromStr};
 
     assert_fields!(PathParseErrorType::MessageIdWithoutMethod: channel_id);
     assert_impl_all!(PathParseErrorType: Debug, Send, Sync);
@@ -494,10 +500,10 @@ mod tests {
 
     #[test]
     fn test_method_conversions() {
-        assert_eq!(HttpMethod::DELETE, Method::Delete.into_http());
-        assert_eq!(HttpMethod::GET, Method::Get.into_http());
-        assert_eq!(HttpMethod::PATCH, Method::Patch.into_http());
-        assert_eq!(HttpMethod::POST, Method::Post.into_http());
-        assert_eq!(HttpMethod::PUT, Method::Put.into_http());
+        assert_eq!(HttpMethod::DELETE, Method::Delete.to_http());
+        assert_eq!(HttpMethod::GET, Method::Get.to_http());
+        assert_eq!(HttpMethod::PATCH, Method::Patch.to_http());
+        assert_eq!(HttpMethod::POST, Method::Post.to_http());
+        assert_eq!(HttpMethod::PUT, Method::Put.to_http());
     }
 }

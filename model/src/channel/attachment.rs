@@ -1,4 +1,7 @@
-use crate::{id::AttachmentId, util::is_false};
+use crate::{
+    id::{marker::AttachmentMarker, Id},
+    util::is_false,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -19,7 +22,7 @@ pub struct Attachment {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
-    pub id: AttachmentId,
+    pub id: Id<AttachmentMarker>,
     pub proxy_url: String,
     pub size: u64,
     pub url: String,
@@ -30,7 +33,7 @@ pub struct Attachment {
 #[cfg(test)]
 mod tests {
     use super::Attachment;
-    use crate::id::AttachmentId;
+    use crate::id::Id;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -66,7 +69,7 @@ mod tests {
             filename: "a.png".to_owned(),
             description: Some("a image".to_owned()),
             height: Some(184),
-            id: AttachmentId::new(700_000_000_000_000_000).expect("non zero"),
+            id: Id::new(700_000_000_000_000_000),
             proxy_url: "https://cdn.example.com/1.png".to_owned(),
             size: 13_593,
             url: "https://example.com/1.png".to_owned(),
@@ -92,9 +95,7 @@ mod tests {
                 Token::Some,
                 Token::U64(184),
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "AttachmentId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("700000000000000000"),
                 Token::Str("proxy_url"),
                 Token::Str("https://cdn.example.com/1.png"),

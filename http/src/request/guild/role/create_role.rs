@@ -1,13 +1,14 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     guild::{Permissions, Role},
-    id::GuildId,
+    id::{marker::GuildMarker, Id},
 };
 
 #[derive(Serialize)]
@@ -34,12 +35,12 @@ struct CreateRoleFields<'a> {
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::GuildId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let guild_id = GuildId::new(234).expect("non zero");
+/// let guild_id = Id::new(234);
 ///
 /// client.create_role(guild_id)
 ///     .color(0xd90083)
@@ -51,13 +52,13 @@ struct CreateRoleFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateRole<'a> {
     fields: CreateRoleFields<'a>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateRole<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: CreateRoleFields {
                 color: None,
@@ -135,25 +136,12 @@ impl<'a> CreateRole<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Role> {
-        let mut request = Request::builder(&Route::CreateRole {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = &self.reason {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -162,5 +150,23 @@ impl<'a> AuditLogReason<'a> for CreateRole<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateRole<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::CreateRole {
+            guild_id: self.guild_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = &self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

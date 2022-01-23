@@ -1,17 +1,19 @@
-use super::{StickerFormatType, StickerId};
+use super::StickerFormatType;
+use crate::id::{marker::StickerMarker, Id};
 use serde::{Deserialize, Serialize};
 
 /// Smallest amount of data required to render a sticker.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageSticker {
     pub format_type: StickerFormatType,
-    pub id: StickerId,
+    pub id: Id<StickerMarker>,
     pub name: String,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{MessageSticker, StickerFormatType, StickerId};
+    use super::{MessageSticker, StickerFormatType};
+    use crate::id::Id;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -35,7 +37,7 @@ mod tests {
     fn test_full() {
         let value = MessageSticker {
             format_type: StickerFormatType::Lottie,
-            id: StickerId::new(1).expect("non zero"),
+            id: Id::new(1),
             name: "sticker".into(),
         };
 
@@ -49,7 +51,7 @@ mod tests {
                 Token::Str("format_type"),
                 Token::U8(StickerFormatType::Lottie as u8),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "StickerId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("sticker"),

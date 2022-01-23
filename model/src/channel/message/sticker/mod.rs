@@ -5,20 +5,25 @@
 //! [Discord documentation]: https://discord.com/developers/docs/resources/sticker#sticker-object-sticker-structure
 
 mod format_type;
-mod id;
 mod kind;
 mod message;
 mod pack;
 
 pub use self::{
     format_type::{StickerFormatType, StickerFormatTypeConversionError},
-    id::{StickerBannerAssetId, StickerId, StickerPackId, StickerPackSkuId},
     kind::{StickerType, StickerTypeConversionError},
     message::MessageSticker,
     pack::StickerPack,
 };
 
-use crate::{id::GuildId, user::User, util::is_false};
+use crate::{
+    id::{
+        marker::{GuildMarker, StickerMarker, StickerPackMarker},
+        Id,
+    },
+    user::User,
+    util::is_false,
+};
 use serde::{Deserialize, Serialize};
 
 /// Message sticker.
@@ -33,9 +38,9 @@ pub struct Sticker {
     pub format_type: StickerFormatType,
     /// ID of the guild that owns the sticker.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     /// Unique ID of the sticker.
-    pub id: StickerId,
+    pub id: Id<StickerMarker>,
     /// Kind of sticker.
     #[serde(rename = "type")]
     pub kind: StickerType,
@@ -43,7 +48,7 @@ pub struct Sticker {
     pub name: String,
     /// Unique ID of the pack the sticker is in.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub pack_id: Option<StickerPackId>,
+    pub pack_id: Option<Id<StickerPackMarker>>,
     /// Sticker's sort order within a pack.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort_value: Option<u64>,
@@ -56,9 +61,10 @@ pub struct Sticker {
 
 #[cfg(test)]
 mod tests {
-    use super::{GuildId, Sticker, StickerFormatType, StickerId, StickerPackId, StickerType, User};
+    use super::{Sticker, StickerFormatType, StickerType, User};
     use crate::{
-        id::UserId,
+        id::Id,
+        test::image_hash,
         user::{PremiumType, UserFlags},
     };
     use serde::{Deserialize, Serialize};
@@ -99,7 +105,7 @@ mod tests {
             description: Some("foo2".to_owned()),
             format_type: StickerFormatType::Png,
             guild_id: None,
-            id: StickerId::new(1).expect("non zero"),
+            id: Id::new(1),
             kind: StickerType::Standard,
             name: "sticker name".to_owned(),
             pack_id: None,
@@ -121,7 +127,7 @@ mod tests {
                 Token::Str("format_type"),
                 Token::U8(StickerFormatType::Png as u8),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "StickerId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("type"),
                 Token::U8(1),
@@ -141,22 +147,22 @@ mod tests {
             available: true,
             description: Some("sticker".into()),
             format_type: StickerFormatType::Png,
-            guild_id: Some(GuildId::new(1).expect("non zero")),
-            id: StickerId::new(2).expect("non zero"),
+            guild_id: Some(Id::new(1)),
+            id: Id::new(2),
             kind: StickerType::Guild,
             name: "stick".into(),
-            pack_id: Some(StickerPackId::new(3).expect("non zero")),
+            pack_id: Some(Id::new(3)),
             sort_value: Some(1),
             tags: "foo,bar,baz".into(),
             user: Some(User {
                 accent_color: None,
-                avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                avatar: Some(image_hash::AVATAR),
                 banner: None,
                 bot: false,
                 discriminator: 1,
                 email: Some("address@example.com".to_owned()),
                 flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-                id: UserId::new(1).expect("non zero"),
+                id: Id::new(1),
                 locale: Some("en-us".to_owned()),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
@@ -185,10 +191,10 @@ mod tests {
                 Token::U8(StickerFormatType::Png as u8),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "StickerId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
                 Token::U8(2),
@@ -196,9 +202,7 @@ mod tests {
                 Token::Str("stick"),
                 Token::Str("pack_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "StickerPackId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("sort_value"),
                 Token::Some,
@@ -215,7 +219,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -229,7 +233,7 @@ mod tests {
                 Token::Some,
                 Token::U64(131_584),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("locale"),
                 Token::Some,

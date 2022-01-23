@@ -1,5 +1,6 @@
 use crate::{
-    oauth::{id::TeamId, team::TeamMembershipState},
+    id::{marker::OauthTeamMarker, Id},
+    oauth::team::TeamMembershipState,
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -8,14 +9,14 @@ use serde::{Deserialize, Serialize};
 pub struct TeamMember {
     pub membership_state: TeamMembershipState,
     pub permissions: Vec<String>,
-    pub team_id: TeamId,
+    pub team_id: Id<OauthTeamMarker>,
     pub user: User,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{TeamId, TeamMember, TeamMembershipState, User};
-    use crate::id::UserId;
+    use super::{TeamMember, TeamMembershipState, User};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -23,7 +24,7 @@ mod tests {
         let value = TeamMember {
             membership_state: TeamMembershipState::Accepted,
             permissions: vec!["*".to_owned()],
-            team_id: TeamId::new(1).expect("non zero"),
+            team_id: Id::new(1),
             user: User {
                 accent_color: None,
                 avatar: None,
@@ -32,7 +33,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(2).expect("non zero"),
+                id: Id::new(2),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -57,7 +58,7 @@ mod tests {
                 Token::Str("*"),
                 Token::SeqEnd,
                 Token::Str("team_id"),
-                Token::NewtypeStruct { name: "TeamId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("user"),
                 Token::Struct {
@@ -75,7 +76,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("username"),
                 Token::Str("test"),

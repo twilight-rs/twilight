@@ -2,6 +2,21 @@
 
 Changelog for `twilight-mention`.
 
+## [0.9.0] - 2022-01-22
+
+### Changes
+
+All types and method signatures have been updated to use the new `Id<T>` syntax
+([#1260] - [@zeylahellyer]).
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+[#1260]: https://github.com/twilight-rs/twilight/pull/1260
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+
 ## [0.8.0] - 2021-12-03
 
 This major version bump of the Mention crate is done to match all of the
@@ -134,6 +149,7 @@ Initial release.
 
 [#513]: https://github.com/twilight-rs/twilight/pull/513
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.9.0
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.7.0
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.6.0

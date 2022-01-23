@@ -1,35 +1,39 @@
 use super::RequestReactionType;
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{ChannelId, MessageId, UserId};
+use twilight_model::id::{
+    marker::{ChannelMarker, MessageMarker, UserMarker},
+    Id,
+};
 
 /// User to delete the reaction of.
 pub(crate) enum TargetUser {
     /// Delete a reaction of the current user.
     Current,
     /// Delete a reaction from a user by their ID.
-    Id(UserId),
+    Id(Id<UserMarker>),
 }
 
 /// Delete one reaction by a user on a message.
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteReaction<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     emoji: &'a RequestReactionType<'a>,
     http: &'a Client,
-    message_id: MessageId,
+    message_id: Id<MessageMarker>,
     target_user: TargetUser,
 }
 
 impl<'a> DeleteReaction<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        channel_id: ChannelId,
-        message_id: MessageId,
+        channel_id: Id<ChannelMarker>,
+        message_id: Id<MessageMarker>,
         emoji: &'a RequestReactionType<'a>,
         target_user: TargetUser,
     ) -> Self {
@@ -46,6 +50,17 @@ impl<'a> DeleteReaction<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for DeleteReaction<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let route = match self.target_user {
             TargetUser::Current => Route::DeleteReactionCurrentUser {
                 channel_id: self.channel_id.get(),
@@ -60,6 +75,6 @@ impl<'a> DeleteReaction<'a> {
             },
         };
 
-        self.http.request(Request::from_route(&route))
+        Ok(Request::from_route(&route))
     }
 }

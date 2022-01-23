@@ -1,22 +1,26 @@
-use crate::id::{GuildId, RoleId};
+use crate::id::{
+    marker::{GuildMarker, RoleMarker},
+    Id,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RoleDelete {
-    pub guild_id: GuildId,
-    pub role_id: RoleId,
+    pub guild_id: Id<GuildMarker>,
+    pub role_id: Id<RoleMarker>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{GuildId, RoleDelete, RoleId};
+    use super::RoleDelete;
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn test_webhooks_update() {
         let value = RoleDelete {
-            guild_id: GuildId::new(1).expect("non zero"),
-            role_id: RoleId::new(2).expect("non zero"),
+            guild_id: Id::new(1),
+            role_id: Id::new(2),
         };
 
         serde_test::assert_tokens(
@@ -27,10 +31,10 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("role_id"),
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::StructEnd,
             ],

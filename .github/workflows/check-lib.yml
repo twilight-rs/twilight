@@ -14,7 +14,7 @@ jobs:
     name: Minimum supported Rust version
     runs-on: ubuntu-latest
     env:
-      minrust: 1.53
+      minrust: 1.57
 
     steps:
       - name: Checkout sources
@@ -103,6 +103,8 @@ jobs:
         run: cd twilight && cargo sync-readme --check
       - name: Run in util
         run: cd util && cargo sync-readme --check
+      - name: Run in validate
+        run: cd validate && cargo sync-readme --check
 
   # Lints
   clippy:
@@ -217,22 +219,22 @@ jobs:
           - lavalink
         features:
           - native
-          - rustls
+          - rustls-native-roots
           - simd-json
 
         include:
           - package: http
             features: simd-json
-            additional: --features rustls
+            additional: --features rustls-native-roots
           - package: gateway
-            features: rustls
+            features: rustls-native-roots
             additional: --features zlib-stock
           - package: gateway
             features: native
             additional: --features zlib-stock
           - package: gateway
             features: simd-json
-            additional: --features rustls,zlib-stock
+            additional: --features rustls-native-roots,zlib-stock
           - package: lavalink
             additional: --features http-support
 

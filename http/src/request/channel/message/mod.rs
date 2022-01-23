@@ -1,11 +1,11 @@
 pub mod create_message;
-pub mod crosspost_message;
-pub mod get_channel_messages;
-pub mod get_channel_messages_configured;
 pub mod update_message;
 
+mod crosspost_message;
 mod delete_message;
 mod delete_messages;
+mod get_channel_messages;
+mod get_channel_messages_configured;
 mod get_message;
 
 pub use self::{
@@ -15,4 +15,3 @@ pub use self::{
     get_channel_messages_configured::GetChannelMessagesConfigured, get_message::GetMessage,
     update_message::UpdateMessage,
 };
-pub use super::super::validate_inner::EmbedValidationError;

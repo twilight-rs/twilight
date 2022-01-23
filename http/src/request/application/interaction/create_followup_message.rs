@@ -1,19 +1,12 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, PartialAttachment, Request,
-    },
+    request::{AttachmentFile, Form, PartialAttachment, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{
@@ -21,81 +14,12 @@ use twilight_model::{
         message::{AllowedMentions, MessageFlags},
         Message,
     },
-    id::ApplicationId,
+    id::{marker::ApplicationMarker, Id},
 };
-
-/// A followup message can not be created as configured.
-#[derive(Debug)]
-pub struct CreateFollowupMessageError {
-    kind: CreateFollowupMessageErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl CreateFollowupMessageError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &CreateFollowupMessageErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        CreateFollowupMessageErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, self.source)
-    }
-}
-
-impl Display for CreateFollowupMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            CreateFollowupMessageErrorType::ComponentCount { count } => {
-                Display::fmt(count, f)?;
-                f.write_str(" components were provided, but only ")?;
-                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
-
-                f.write_str(" root components are allowed")
-            }
-            CreateFollowupMessageErrorType::ComponentInvalid { .. } => {
-                f.write_str("a provided component is invalid")
-            }
-        }
-    }
-}
-
-impl Error for CreateFollowupMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`CreateFollowupMessageError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum CreateFollowupMessageErrorType {
-    /// An invalid message component was provided.
-    ComponentInvalid {
-        /// Additional details about the validation failure type.
-        kind: ComponentValidationErrorType,
-    },
-    /// Too many message components were provided.
-    ComponentCount {
-        /// Number of components that were provided.
-        count: usize,
-    },
-}
+use twilight_validate::message::{
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
+};
 
 #[derive(Serialize)]
 pub(crate) struct CreateFollowupMessageFields<'a> {
@@ -126,14 +50,15 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::id::ApplicationId;
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+/// let application_id = Id::new(1);
 ///
 /// client
-///     .create_followup_message("webhook token")?
-///     .content("Pinkie...")
+///     .interaction(application_id)
+///     .create_followup_message("webhook token")
+///     .content("Pinkie...")?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -144,7 +69,7 @@ pub(crate) struct CreateFollowupMessageFields<'a> {
 /// [`files`]: Self::files
 #[must_use = "requests must be configured and executed"]
 pub struct CreateFollowupMessage<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: CreateFollowupMessageFields<'a>,
     http: &'a Client,
@@ -154,7 +79,7 @@ pub struct CreateFollowupMessage<'a> {
 impl<'a> CreateFollowupMessage<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         token: &'a str,
     ) -> Self {
         Self {
@@ -188,31 +113,14 @@ impl<'a> CreateFollowupMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`CreateFollowupMessageErrorType::ComponentCount`] error type
-    /// if too many components are provided.
-    ///
-    /// Returns an [`CreateFollowupMessageErrorType::ComponentInvalid`] error
-    /// type if one of the provided components is invalid.
+    /// Refer to the errors section of
+    /// [`twilight_validate::component::component`] for a list of errors that
+    /// may be returned as a result of validating each provided component.
     pub fn components(
         mut self,
         components: &'a [Component],
-    ) -> Result<Self, CreateFollowupMessageError> {
-        validate_inner::components(components).map_err(|source| {
-            let (kind, inner_source) = source.into_parts();
-
-            match kind {
-                ComponentValidationErrorType::ComponentCount { count } => {
-                    CreateFollowupMessageError {
-                        kind: CreateFollowupMessageErrorType::ComponentCount { count },
-                        source: inner_source,
-                    }
-                }
-                other => CreateFollowupMessageError {
-                    kind: CreateFollowupMessageErrorType::ComponentInvalid { kind: other },
-                    source: inner_source,
-                },
-            }
-        })?;
+    ) -> Result<Self, MessageValidationError> {
+        validate_components(components)?;
 
         self.fields.components = Some(components);
 
@@ -222,17 +130,38 @@ impl<'a> CreateFollowupMessage<'a> {
     /// The content of the webhook's message.
     ///
     /// Up to 2000 UTF-16 codepoints.
-    pub const fn content(mut self, content: &'a str) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ContentInvalid`] if the content length is too
+    /// long.
+    ///
+    /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    pub fn content(mut self, content: &'a str) -> Result<Self, MessageValidationError> {
+        validate_content(content)?;
+
         self.fields.content = Some(content);
 
-        self
+        Ok(self)
     }
 
     /// Set the list of embeds of the webhook's message.
-    pub const fn embeds(mut self, embeds: &'a [Embed]) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
+    ///
+    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
+    /// that may occur.
+    ///
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [`embed`]: twilight_validate::embed::embed
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
+        validate_embeds(embeds)?;
+
         self.fields.embeds = Some(embeds);
 
-        self
+        Ok(self)
     }
 
     /// Set if the followup should be ephemeral.
@@ -281,14 +210,16 @@ impl<'a> CreateFollowupMessage<'a> {
     /// use std::env;
     /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// let application_id = Id::new(1);
     ///
-    /// let message = client.create_followup_message("token here")?
-    ///     .content("some content")
-    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
+    /// let message = client
+    ///     .interaction(application_id)
+    ///     .create_followup_message("token here")
+    ///     .content("some content")?
+    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])?
     ///     .exec()
     ///     .await?
     ///     .model()
@@ -305,13 +236,15 @@ impl<'a> CreateFollowupMessage<'a> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, ApplicationId};
+    /// use twilight_model::id::Id;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// client.set_application_id(ApplicationId::new(1).expect("non zero"));
+    /// let application_id = Id::new(1);
     ///
-    /// let message = client.create_followup_message("token here")?
-    ///     .content("some content")
+    /// let message = client
+    ///     .interaction(application_id)
+    ///     .create_followup_message("token here")
+    ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .exec()
     ///     .await?
@@ -338,9 +271,21 @@ impl<'a> CreateFollowupMessage<'a> {
         self
     }
 
-    // `self` needs to be consumed and the client returned due to parameters
-    // being consumed in request construction.
-    fn request(&mut self) -> Result<Request, HttpError> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateFollowupMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.token,
@@ -380,36 +325,26 @@ impl<'a> CreateFollowupMessage<'a> {
 
         Ok(request.use_authorization_token(false).build())
     }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<Message> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
+    use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::id::ApplicationId;
+    use twilight_model::id::Id;
 
     #[test]
     fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
-        let application_id = ApplicationId::new(1).expect("non zero id");
-        let token = "foo".to_owned().into_boxed_str();
+        let application_id = Id::new(1);
+        let token = "foo".to_owned();
 
         let client = Client::new(String::new());
-        client.set_application_id(application_id);
         let req = client
-            .create_followup_message(&token)?
-            .content("test")
-            .request()?;
+            .interaction(application_id)
+            .create_followup_message(&token)
+            .content("test")?
+            .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(

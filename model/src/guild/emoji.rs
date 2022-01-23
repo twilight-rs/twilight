@@ -1,5 +1,8 @@
 use crate::{
-    id::{EmojiId, RoleId},
+    id::{
+        marker::{EmojiMarker, RoleMarker},
+        Id,
+    },
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -14,22 +17,22 @@ pub struct Emoji {
     // This does not need to be optional here as it can only be optional
     // in a unicode emoji. Which can only happen in reactions, and we use
     // another struct for emojis in that case.
-    pub id: EmojiId,
+    pub id: Id<EmojiMarker>,
     #[serde(default)]
     pub managed: bool,
     pub name: String,
     #[serde(default)]
     pub require_colons: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Emoji, EmojiId, RoleId, User};
-    use crate::id::UserId;
+    use super::{Emoji, User};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -37,7 +40,7 @@ mod tests {
         let emoji = Emoji {
             animated: false,
             available: true,
-            id: EmojiId::new(100_000_000_000_000_000).expect("non zero"),
+            id: Id::new(100_000_000_000_000_000),
             managed: false,
             name: "test".to_owned(),
             require_colons: true,
@@ -50,7 +53,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(1).expect("non zero"),
+                id: Id::new(1),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -73,7 +76,7 @@ mod tests {
                 Token::Str("available"),
                 Token::Bool(true),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "EmojiId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100000000000000000"),
                 Token::Str("managed"),
                 Token::Bool(false),
@@ -98,7 +101,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("username"),
                 Token::Str("test"),
@@ -113,11 +116,11 @@ mod tests {
         let emoji = Emoji {
             animated: false,
             available: true,
-            id: EmojiId::new(100_000_000_000_000_000).expect("non zero"),
+            id: Id::new(100_000_000_000_000_000),
             managed: false,
             name: "test".to_owned(),
             require_colons: true,
-            roles: vec![RoleId::new(1).expect("non zero")],
+            roles: vec![Id::new(1)],
             user: Some(User {
                 accent_color: None,
                 avatar: None,
@@ -126,7 +129,7 @@ mod tests {
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(1).expect("non zero"),
+                id: Id::new(1),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -149,7 +152,7 @@ mod tests {
                 Token::Str("available"),
                 Token::Bool(true),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "EmojiId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100000000000000000"),
                 Token::Str("managed"),
                 Token::Bool(false),
@@ -159,7 +162,7 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::SeqEnd,
                 Token::Str("user"),
@@ -179,7 +182,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("username"),
                 Token::Str("test"),
