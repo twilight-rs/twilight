@@ -154,13 +154,28 @@ impl Queue for LocalQueue {
     }
 }
 
+/// An implementation of [`Queue`] that will instantly allow any requests.
+///
+/// This can be used when running with a proxy gateway in between your
+/// client and the Discord gateway and should not be used in any other
+/// cases.
+#[derive(Debug)]
+pub struct NoRatelimitQueue;
+
+impl Queue for NoRatelimitQueue {
+    fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+        Box::pin(async { () })
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{LocalQueue, Queue};
+    use super::{LocalQueue, NoRatelimitQueue, Queue};
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use std::fmt::Debug;
 
     assert_impl_all!(LocalQueue: Clone, Debug, Queue, Send, Sync);
+    assert_impl_all!(NoRatelimitQueue: Debug, Queue, Send, Sync);
     assert_impl_all!(dyn Queue: Debug, Send, Sync);
     assert_obj_safe!(Queue);
 }
