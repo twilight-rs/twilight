@@ -23,9 +23,12 @@ twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory
 twilight-command-parser = { default-features = false, path = "../command-parser" }
 twilight-embed-builder = { default-features = false, path = "../embed-builder" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
+twilight-gateway-queue = { default-features = false, features = ["rustls-native-roots"], path = "../gateway-queue" }
 twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http" }
+twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
 twilight-lavalink = { default-features = false, path = "../lavalink" }
 twilight-mention = { default-features = false, path = "../mention" }
 twilight-model = { default-features = false, path = "../model" }
 twilight-standby = { default-features = false, path = "../standby" }
 twilight-util = { default-features = false, path = "../util" }
+twilight-validate = { default-features = false, path = "../validate" }
