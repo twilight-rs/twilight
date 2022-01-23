@@ -1,6 +1,8 @@
-use crate::{id::{ChannelId, GuildId}, gateway::presence::Status};
+use crate::{
+    gateway::presence::Status,
+    id::{ChannelId, GuildId},
+};
 use serde::{Deserialize, Serialize};
-
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildWidget {
@@ -35,12 +37,15 @@ pub struct GuildWidgetMember {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildWidgetActivity {
-    pub name: String
+    pub name: String,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, GuildId,  GuildWidget, GuildWidgetChannel, GuildWidgetMember, Status, GuildWidgetActivity};
+    use super::{
+        ChannelId, GuildId, GuildWidget, GuildWidgetActivity, GuildWidgetChannel,
+        GuildWidgetMember, Status,
+    };
     use serde_test::Token;
 
     #[test]

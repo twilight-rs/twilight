@@ -1451,10 +1451,9 @@ impl<'a> Route<'a> {
             Self::GetGuild { guild_id, .. } | Self::UpdateGuild { guild_id } => {
                 Path::GuildsId(*guild_id)
             }
-            Self::GetGuildWidget { guild_id } => {
-                Path::GuildsIdWidget(*guild_id)
-            }
-            Self::GetGuildWidgetSettings { guild_id } | Self::UpdateGuildWidgetSettings { guild_id } => {
+            Self::GetGuildWidget { guild_id } => Path::GuildsIdWidget(*guild_id),
+            Self::GetGuildWidgetSettings { guild_id }
+            | Self::UpdateGuildWidgetSettings { guild_id } => {
                 Path::GuildsIdWidgetSettings(*guild_id)
             }
             Self::GetGuildIntegrations { guild_id } => Path::GuildsIdIntegrations(*guild_id),

@@ -70,8 +70,9 @@ use crate::{
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidgetSettings, UpdateCurrentMember, UpdateCurrentUserNick,
-            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+            GetGuildWelcomeScreen, GetGuildWidgetSettings, UpdateCurrentMember,
+            UpdateCurrentUserNick, UpdateGuild, UpdateGuildChannelPositions,
+            UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
