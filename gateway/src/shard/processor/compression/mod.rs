@@ -6,7 +6,8 @@ use super::r#impl::ReceivingEventError;
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 use inflater::Inflater;
 
-/// Interface for working with buffers variable on the `compression` feature flag.
+/// Interface for working with buffers variable on the `zlib-stock` and
+/// `zlib-simd` feature flags.
 #[derive(Debug)]
 pub struct Compression {
     /// Inflater for use with compression.
@@ -18,8 +19,9 @@ pub struct Compression {
 }
 
 impl Compression {
-    /// Create a new buffer, abstracting over an inflater if the `compression`
-    /// feature is enabled or a simple `Vec` if the feature is disabled.
+    /// Create a new buffer, abstracting over an inflater if `zlib-stock` or
+    /// `zlib-simd` features are enabled or a simple `Vec` if the features are
+    /// disabled.
     #[cfg_attr(
         not(any(feature = "zlib-stock", feature = "zlib-simd")),
         allow(clippy::missing_const_for_fn, unused_variables)
