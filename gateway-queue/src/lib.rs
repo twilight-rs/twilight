@@ -154,11 +154,10 @@ impl Queue for LocalQueue {
     }
 }
 
-/// An implementation of [`Queue`] that will instantly allow any requests.
+/// An implementation of [`Queue`] that instantly allows requests.
 ///
-/// This can be used when running with a proxy gateway in between your
-/// client and the Discord gateway and should not be used in any other
-/// cases.
+/// Useful when running behind a proxy gateway. Running without a
+/// functional queue **will** get you ratelimited.
 #[derive(Debug)]
 pub struct NoOpQueue;
 
