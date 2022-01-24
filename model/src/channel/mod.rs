@@ -1081,6 +1081,7 @@ mod tests {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
                 archive_timestamp: timestamp,
+                create_timestamp: Some(timestamp),
                 invitable: None,
                 locked: false,
             },
@@ -1110,6 +1111,7 @@ mod tests {
                     "archive_timestamp": formatted,
                     "archived": false,
                     "auto_archive_duration": AutoArchiveDuration::Day,
+                    "create_timestamp": formatted,
                     "locked": false
                 }
             }))
@@ -1145,6 +1147,7 @@ mod tests {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
                 archive_timestamp: timestamp,
+                create_timestamp: Some(timestamp),
                 invitable: None,
                 locked: false,
             },
@@ -1174,6 +1177,7 @@ mod tests {
                     "archive_timestamp": timestamp,
                     "archived": false,
                     "auto_archive_duration": AutoArchiveDuration::Day,
+                    "create_timestamp": timestamp,
                     "locked": false
                 }
             }))
@@ -1216,6 +1220,7 @@ mod tests {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
                 archive_timestamp: timestamp,
+                create_timestamp: Some(timestamp),
                 invitable: None,
                 locked: false,
             },
@@ -1246,6 +1251,7 @@ mod tests {
                     "archive_timestamp": formatted,
                     "archived": false,
                     "auto_archive_duration": AutoArchiveDuration::Day,
+                    "create_timestamp": formatted,
                     "locked": false
                 },
                 "permission_overwrites": [

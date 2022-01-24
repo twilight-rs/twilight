@@ -2,6 +2,14 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.8.1] - 2022-01-21
+
+### Changes
+
+Remove two unneeded calls to `clone` ([#1440] - [@vilgotf]).
+
+[#1440]: https://github.com/twilight-rs/twilight/pull/1440
+
 ## [0.8.0] - 2021-12-03
 
 ### Changes
@@ -88,11 +96,13 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.7.0
 [0.6.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.6.0
