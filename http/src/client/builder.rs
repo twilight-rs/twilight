@@ -17,6 +17,11 @@ pub struct ClientBuilder {
     pub(crate) default_headers: Option<HeaderMap>,
     pub(crate) timeout: Duration,
     pub(crate) token: Option<Box<str>>,
+    #[cfg(any(
+        feature = "native",
+        feature = "rustls-native-roots",
+        feature = "rustls-webpki-roots"
+    ))]
     pub(crate) use_http: bool,
 }
 
@@ -75,6 +80,11 @@ impl ClientBuilder {
             token_invalidated,
             token: self.token,
             default_allowed_mentions: self.default_allowed_mentions,
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
             use_http: self.use_http,
         }
     }
@@ -107,9 +117,26 @@ impl ClientBuilder {
     /// ```
     ///
     /// [twilight's HTTP proxy server]: https://github.com/twilight-rs/http-proxy
-    pub fn proxy(mut self, proxy_url: String, use_http: bool) -> Self {
+    pub fn proxy(
+        mut self,
+        proxy_url: String,
+
+        #[cfg(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        ))]
+        use_http: bool,
+    ) -> Self {
         self.proxy.replace(proxy_url.into_boxed_str());
-        self.use_http = use_http;
+        #[cfg(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        ))]
+        {
+            self.use_http = use_http;
+        }
 
         self
     }
