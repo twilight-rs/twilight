@@ -1,16 +1,20 @@
 use crate::{
     datetime::Timestamp,
-    id::{GuildId, RoleId},
+    id::{
+        marker::{GuildMarker, RoleMarker},
+        Id,
+    },
     user::User,
+    util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MemberUpdate {
     /// Member's guild avatar.
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     pub communication_disabled_until: Option<Timestamp>,
-    pub guild_id: GuildId,
+    pub guild_id: Id<GuildMarker>,
     pub deaf: Option<bool>,
     pub joined_at: Timestamp,
     pub mute: Option<bool>,
@@ -27,18 +31,14 @@ pub struct MemberUpdate {
     #[serde(default)]
     pub pending: bool,
     pub premium_since: Option<Timestamp>,
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
     pub user: User,
 }
 
 #[cfg(test)]
 mod tests {
     use super::MemberUpdate;
-    use crate::{
-        datetime::Timestamp,
-        id::{GuildId, UserId},
-        user::User,
-    };
+    use crate::{datetime::Timestamp, id::Id, test::image_hash, user::User};
     use serde_test::Token;
 
     #[test]
@@ -50,7 +50,7 @@ mod tests {
         let value = MemberUpdate {
             avatar: None,
             communication_disabled_until: Some(communication_disabled_until),
-            guild_id: GuildId::new(1_234).expect("non zero"),
+            guild_id: Id::new(1_234),
             deaf: Some(false),
             joined_at,
             mute: Some(false),
@@ -63,9 +63,9 @@ mod tests {
                 banner: None,
                 name: "Twilight Sparkle".to_string(),
                 public_flags: None,
-                id: UserId::new(424_242).expect("non zero"),
+                id: Id::new(424_242),
                 discriminator: 1234,
-                avatar: Some("cool image".to_string()),
+                avatar: Some(image_hash::AVATAR),
                 bot: false,
                 email: None,
                 flags: None,
@@ -90,7 +90,7 @@ mod tests {
                 Token::Some,
                 Token::Str("2022-01-01T09:00:00.000000+00:00"),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1234"),
                 Token::Str("deaf"),
                 Token::Some,
@@ -119,7 +119,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("cool image"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -127,7 +127,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("1234"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("424242"),
                 Token::Str("username"),
                 Token::Str("Twilight Sparkle"),

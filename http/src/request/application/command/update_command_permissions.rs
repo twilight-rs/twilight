@@ -1,17 +1,20 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{
-        application::{InteractionError, InteractionErrorType},
-        validate_inner, Request, RequestBuilder,
-    },
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     application::command::permissions::CommandPermissions,
-    id::{ApplicationId, CommandId, GuildId},
+    id::{
+        marker::{ApplicationMarker, CommandMarker, GuildMarker},
+        Id,
+    },
+};
+use twilight_validate::command::{
+    guild_permissions as validate_guild_permissions, CommandValidationError,
 };
 
 #[derive(Serialize)]
@@ -27,26 +30,22 @@ struct UpdateCommandPermissionsFields<'a> {
 /// have to be sent every time.
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateCommandPermissions<'a> {
-    application_id: ApplicationId,
-    command_id: CommandId,
-    guild_id: GuildId,
+    application_id: Id<ApplicationMarker>,
+    command_id: Id<CommandMarker>,
+    guild_id: Id<GuildMarker>,
     fields: UpdateCommandPermissionsFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> UpdateCommandPermissions<'a> {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
-        command_id: CommandId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
+        command_id: Id<CommandMarker>,
         permissions: &'a [CommandPermissions],
-    ) -> Result<Self, InteractionError> {
-        if !validate_inner::command_permissions(permissions.len()) {
-            return Err(InteractionError {
-                kind: InteractionErrorType::TooManyCommandPermissions,
-            });
-        }
+    ) -> Result<Self, CommandValidationError> {
+        validate_guild_permissions(permissions.len())?;
 
         Ok(Self {
             application_id,
@@ -57,7 +56,21 @@ impl<'a> UpdateCommandPermissions<'a> {
         })
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<ListBody<CommandPermissions>> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for UpdateCommandPermissions<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::UpdateCommandPermissions {
             application_id: self.application_id.get(),
             command_id: self.command_id.get(),
@@ -65,15 +78,5 @@ impl<'a> UpdateCommandPermissions<'a> {
         })
         .json(&self.fields)
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<ListBody<CommandPermissions>> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

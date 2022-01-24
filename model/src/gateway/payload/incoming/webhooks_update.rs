@@ -1,22 +1,26 @@
-use crate::id::{ChannelId, GuildId};
+use crate::id::{
+    marker::{ChannelMarker, GuildMarker},
+    Id,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct WebhooksUpdate {
-    pub channel_id: ChannelId,
-    pub guild_id: GuildId,
+    pub channel_id: Id<ChannelMarker>,
+    pub guild_id: Id<GuildMarker>,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, GuildId, WebhooksUpdate};
+    use super::WebhooksUpdate;
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn test_webhooks_update() {
         let value = WebhooksUpdate {
-            channel_id: ChannelId::new(1).expect("non zero"),
-            guild_id: GuildId::new(2).expect("non zero"),
+            channel_id: Id::new(1),
+            guild_id: Id::new(2),
         };
 
         serde_test::assert_tokens(
@@ -27,10 +31,10 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::StructEnd,
             ],

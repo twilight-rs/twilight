@@ -8,7 +8,7 @@ use std::{collections::HashSet, hash::Hash};
 use twilight_model::{
     gateway::payload::incoming::{GuildCreate, GuildDelete, GuildUpdate},
     guild::Guild,
-    id::GuildId,
+    id::{marker::GuildMarker, Id},
 };
 
 impl InMemoryCache {
@@ -115,9 +115,9 @@ impl UpdateCache for GuildCreate {
 impl UpdateCache for GuildDelete {
     fn update(&self, cache: &InMemoryCache) {
         fn remove_ids<T: Eq + Hash, U>(
-            guild_map: &DashMap<GuildId, HashSet<T>>,
+            guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
             container: &DashMap<T, U>,
-            guild_id: GuildId,
+            guild_id: Id<GuildMarker>,
         ) {
             if let Some((_, ids)) = guild_map.remove(&guild_id) {
                 for id in ids {
@@ -182,11 +182,11 @@ impl UpdateCache for GuildUpdate {
         if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
-            guild.banner = self.banner.clone();
+            guild.banner = self.banner;
             guild.default_message_notifications = self.default_message_notifications;
             guild.description = self.description.clone();
             guild.features = self.features.clone();
-            guild.icon = self.icon.clone();
+            guild.icon = self.icon;
             guild.max_members = self.max_members;
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
             guild.mfa_level = self.mfa_level;
@@ -200,7 +200,7 @@ impl UpdateCache for GuildUpdate {
             guild
                 .premium_subscription_count
                 .replace(self.premium_subscription_count.unwrap_or_default());
-            guild.splash = self.splash.clone();
+            guild.splash = self.splash;
             guild.system_channel_id = self.system_channel_id;
             guild.verification_level = self.verification_level;
             guild.vanity_url_code = self.vanity_url_code.clone();
@@ -225,7 +225,7 @@ mod tests {
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
         },
-        id::{ChannelId, GuildId, UserId},
+        id::Id,
     };
 
     #[test]
@@ -235,7 +235,7 @@ mod tests {
         let timestamp = Timestamp::from_str(DATETIME)?;
 
         let channels = Vec::from([GuildChannel::Text(TextChannel {
-            id: ChannelId::new(111).expect("non zero"),
+            id: Id::new(111),
             guild_id: None,
             kind: ChannelType::GuildText,
             last_message_id: None,
@@ -250,7 +250,7 @@ mod tests {
         })]);
 
         let threads = Vec::from([GuildChannel::PublicThread(PublicThread {
-            id: ChannelId::new(222).expect("non zero"),
+            id: Id::new(222),
             default_auto_archive_duration: None,
             guild_id: None,
             kind: ChannelType::GuildPublicThread,
@@ -271,16 +271,16 @@ mod tests {
             },
             member: Some(ThreadMember {
                 flags: 0,
-                id: Some(ChannelId::new(1).expect("non zero")),
+                id: Some(Id::new(1)),
                 join_timestamp: timestamp,
                 member: None,
                 presence: None,
-                user_id: Some(UserId::new(2).expect("non zero")),
+                user_id: Some(Id::new(2)),
             }),
         })]);
 
         let guild = Guild {
-            id: GuildId::new(123).expect("non zero"),
+            id: Id::new(123),
             afk_channel_id: None,
             afk_timeout: 300,
             application_id: None,
@@ -303,7 +303,7 @@ mod tests {
             name: "this is a guild".to_owned(),
             nsfw_level: NSFWLevel::AgeRestricted,
             owner: Some(false),
-            owner_id: UserId::new(456).expect("non zero"),
+            owner_id: Id::new(456),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-GB".to_owned(),
             premium_progress_bar_enabled: true,
@@ -332,13 +332,9 @@ mod tests {
         let cache = InMemoryCache::new();
         cache.cache_guild(guild);
 
-        let channel = cache
-            .guild_channel(ChannelId::new(111).expect("non zero"))
-            .unwrap();
+        let channel = cache.guild_channel(Id::new(111)).unwrap();
 
-        let thread = cache
-            .guild_channel(ChannelId::new(222).expect("non zero"))
-            .unwrap();
+        let thread = cache.guild_channel(Id::new(222)).unwrap();
 
         // The channel was given to the cache without a guild ID, but because
         // it's part of a guild create, the cache can automatically attach the
@@ -346,14 +342,14 @@ mod tests {
         // correct value.
         match channel.resource() {
             GuildChannel::Text(c) => {
-                assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
+                assert_eq!(Some(Id::new(123)), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
 
         match thread.resource() {
             GuildChannel::PublicThread(c) => {
-                assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
+                assert_eq!(Some(Id::new(123)), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
@@ -379,7 +375,7 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::None,
             features: Vec::new(),
             icon: None,
-            id: GuildId::new(1).expect("non zero"),
+            id: Id::new(1),
             joined_at: None,
             large: false,
             max_members: None,
@@ -390,7 +386,7 @@ mod tests {
             mfa_level: MfaLevel::None,
             name: "test".to_owned(),
             nsfw_level: NSFWLevel::Default,
-            owner_id: UserId::new(1).expect("non zero"),
+            owner_id: Id::new(1),
             owner: None,
             permissions: None,
             preferred_locale: "en_us".to_owned(),
@@ -435,7 +431,7 @@ mod tests {
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
             nsfw_level: guild.nsfw_level,
-            owner_id: UserId::new(2).expect("non zero"),
+            owner_id: Id::new(2),
             owner: guild.owner,
             permissions: guild.permissions,
             preferred_locale: guild.preferred_locale,

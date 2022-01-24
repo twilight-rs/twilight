@@ -1,7 +1,7 @@
 use futures_util::future;
 use std::error::Error;
 use twilight_http::Client;
-use twilight_model::id::ChannelId;
+use twilight_model::id::Id;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .proxy("localhost:3000".to_owned(), true)
         .ratelimiter(None)
         .build();
-    let channel_id = ChannelId::new(620_980_184_606_048_278).expect("non zero");
+    let channel_id = Id::new(620_980_184_606_048_278);
 
     future::join_all((1u8..=10).map(|x| {
         client

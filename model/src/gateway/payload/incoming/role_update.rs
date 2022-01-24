@@ -1,27 +1,30 @@
-use crate::{guild::Role, id::GuildId};
+use crate::{
+    guild::Role,
+    id::{marker::GuildMarker, Id},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RoleUpdate {
-    pub guild_id: GuildId,
+    pub guild_id: Id<GuildMarker>,
     pub role: Role,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{GuildId, Role, RoleUpdate};
-    use crate::{guild::Permissions, id::RoleId};
+    use super::{Role, RoleUpdate};
+    use crate::{guild::Permissions, id::Id};
     use serde_test::Token;
 
     #[test]
     fn test_role_update() {
         let value = RoleUpdate {
-            guild_id: GuildId::new(1).expect("non zero"),
+            guild_id: Id::new(1),
             role: Role {
                 color: 0,
                 hoist: true,
                 icon: None,
-                id: RoleId::new(1).expect("non zero"),
+                id: Id::new(1),
                 managed: false,
                 mentionable: false,
                 name: "a role".to_owned(),
@@ -40,7 +43,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("role"),
                 Token::Struct {
@@ -52,7 +55,7 @@ mod tests {
                 Token::Str("hoist"),
                 Token::Bool(true),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("managed"),
                 Token::Bool(false),

@@ -1,10 +1,14 @@
-use crate::{guild::Permissions, id::GuildId};
+use crate::{
+    guild::Permissions,
+    id::{marker::GuildMarker, Id},
+    util::image_hash::ImageHash,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildInfo {
-    pub icon: Option<String>,
-    pub id: GuildId,
+    pub icon: Option<ImageHash>,
+    pub id: Id<GuildMarker>,
     pub name: String,
     pub owner: bool,
     pub permissions: Permissions,
@@ -12,14 +16,15 @@ pub struct GuildInfo {
 
 #[cfg(test)]
 mod tests {
-    use super::{GuildId, GuildInfo, Permissions};
+    use super::{GuildInfo, Permissions};
+    use crate::{id::Id, test::image_hash};
     use serde_test::Token;
 
     #[test]
     fn test_guild_info() {
         let value = GuildInfo {
-            icon: Some("icon hash".to_owned()),
-            id: GuildId::new(1).expect("non zero"),
+            icon: Some(image_hash::ICON),
+            id: Id::new(1),
             name: "guild name".to_owned(),
             owner: false,
             permissions: Permissions::MANAGE_CHANNELS,
@@ -34,9 +39,9 @@ mod tests {
                 },
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("icon hash"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("guild name"),

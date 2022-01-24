@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = []
 description = "Discord API models for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-model"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_1_model.html"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
@@ -12,7 +12,8 @@ name = "twilight-model"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.5"
+rust-version = "1.57"
+version = "0.9.0"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
@@ -37,3 +38,8 @@ static_assertions = { default-features = false, version = "1.0" }
 name = "deserialization"
 harness = false
 path = "benches/deserialization.rs"
+
+[[bench]]
+name = "image_hash"
+harness = false
+path = "benches/image_hash.rs"

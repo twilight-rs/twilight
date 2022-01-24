@@ -1,5 +1,4 @@
-pub mod create_invite;
-
+mod create_invite;
 mod delete_invite;
 mod get_channel_invites;
 mod get_invite;

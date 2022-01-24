@@ -1,5 +1,8 @@
 use crate::{
-    id::{RoleId, UserId},
+    id::{
+        marker::{RoleMarker, UserMarker},
+        Id,
+    },
     util::is_false,
 };
 use serde::{Deserialize, Serialize};
@@ -24,9 +27,9 @@ pub struct AllowedMentions {
     #[serde(default)]
     pub parse: Vec<ParseTypes>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub users: Vec<UserId>,
+    pub users: Vec<Id<UserMarker>>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
     #[serde(default, skip_serializing_if = "is_false")]
     pub replied_user: bool,
 }
@@ -40,7 +43,7 @@ impl AllowedMentions {
 #[cfg(test)]
 mod tests {
     use super::{AllowedMentions, ParseTypes};
-    use crate::id::{RoleId, UserId};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
@@ -71,8 +74,8 @@ mod tests {
     fn test_full() {
         let value = AllowedMentions {
             parse: vec![ParseTypes::Everyone],
-            users: vec![UserId::new(100).expect("non zero")],
-            roles: vec![RoleId::new(200).expect("non zero")],
+            users: vec![Id::new(100)],
+            roles: vec![Id::new(200)],
             replied_user: true,
         };
 
@@ -92,12 +95,12 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("users"),
                 Token::Seq { len: Some(1) },
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::SeqEnd,
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("200"),
                 Token::SeqEnd,
                 Token::Str("replied_user"),

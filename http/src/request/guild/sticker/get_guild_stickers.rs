@@ -1,10 +1,14 @@
 use crate::{
     client::Client,
-    request::Request,
+    error::Error,
+    request::{Request, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{channel::message::sticker::Sticker, id::GuildId};
+use twilight_model::{
+    channel::message::sticker::Sticker,
+    id::{marker::GuildMarker, Id},
+};
 
 /// Returns a list of stickers in a guild.
 ///
@@ -12,16 +16,13 @@ use twilight_model::{channel::message::sticker::Sticker, id::GuildId};
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::{
-///     channel::message::sticker::StickerId,
-///     id::GuildId,
-/// };
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let guild_id = GuildId::new(1).expect("non zero");
+/// let guild_id = Id::new(1);
 /// let stickers = client
 ///     .guild_stickers(guild_id)
 ///     .exec()
@@ -33,12 +34,12 @@ use twilight_model::{channel::message::sticker::Sticker, id::GuildId};
 /// # Ok(()) }
 /// ```
 pub struct GetGuildStickers<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
 }
 
 impl<'a> GetGuildStickers<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: GuildId) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self { guild_id, http }
     }
 
@@ -46,10 +47,19 @@ impl<'a> GetGuildStickers<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<Sticker>> {
-        let request = Request::from_route(&Route::GetGuildStickers {
-            guild_id: self.guild_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetGuildStickers<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetGuildStickers {
+            guild_id: self.guild_id.get(),
+        }))
     }
 }

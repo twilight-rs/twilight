@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = ["api-bindings", "asynchronous", "web-programming::http-client"]
 description = "Discord REST API client for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-http"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_2_http.html"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
@@ -12,7 +12,8 @@ name = "twilight-http"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.5"
+rust-version = "1.57"
+version = "0.9.0"
 
 [dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
@@ -26,6 +27,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
 twilight-model = { default-features = false, path = "../model" }
+twilight-validate = { default-features = false, path = "../validate" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
@@ -33,10 +35,9 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [features]
-default = ["decompression", "rustls", "tracing"]
+default = ["decompression", "rustls-native-roots", "tracing"]
 decompression = ["brotli"]
 native = ["hyper-tls"]
-rustls = ["rustls-native-roots"]
 rustls-native-roots = ["hyper-rustls/native-tokio"]
 rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
 trust-dns = ["hyper-trust-dns"]

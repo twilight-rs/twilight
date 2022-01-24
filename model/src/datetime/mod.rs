@@ -45,7 +45,6 @@ use serde::{
     ser::{Serialize, Serializer},
 };
 use std::{
-    convert::TryFrom,
     fmt::{Formatter, Result as FmtResult},
     str::FromStr,
 };
@@ -313,7 +312,7 @@ mod tests {
     use super::{Timestamp, TimestampParseError};
     use serde::{Deserialize, Serialize};
     use static_assertions::assert_impl_all;
-    use std::{convert::TryFrom, fmt::Debug, hash::Hash, str::FromStr};
+    use std::{fmt::Debug, hash::Hash, str::FromStr};
     use time::{OffsetDateTime, PrimitiveDateTime};
 
     assert_impl_all!(

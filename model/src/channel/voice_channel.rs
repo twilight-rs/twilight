@@ -1,6 +1,9 @@
 use crate::{
     channel::{permission_overwrite::PermissionOverwrite, ChannelType, VideoQualityMode},
-    id::{ChannelId, GuildId},
+    id::{
+        marker::{ChannelMarker, GuildMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
 
@@ -8,13 +11,13 @@ use serde::{Deserialize, Serialize};
 pub struct VoiceChannel {
     pub bitrate: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
-    pub id: ChannelId,
+    pub guild_id: Option<Id<GuildMarker>>,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<ChannelId>,
+    pub parent_id: Option<Id<ChannelMarker>>,
     pub permission_overwrites: Vec<PermissionOverwrite>,
     pub position: i64,
     /// ID of the voice channel's region.
@@ -30,15 +33,16 @@ pub struct VoiceChannel {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, ChannelType, GuildId, VideoQualityMode, VoiceChannel};
+    use super::{ChannelType, VideoQualityMode, VoiceChannel};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn test_voice_channel() {
         let value = VoiceChannel {
-            id: ChannelId::new(1).expect("non zero"),
+            id: Id::new(1),
             bitrate: 124_000,
-            guild_id: Some(GuildId::new(2).expect("non zero")),
+            guild_id: Some(Id::new(2)),
             kind: ChannelType::GuildVoice,
             name: "foo".to_owned(),
             permission_overwrites: Vec::new(),
@@ -60,10 +64,10 @@ mod tests {
                 Token::U64(124_000),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("type"),
                 Token::U8(2),
@@ -86,13 +90,13 @@ mod tests {
     fn test_voice_channel_complete() {
         fn channel(kind: ChannelType) -> VoiceChannel {
             VoiceChannel {
-                id: ChannelId::new(1).expect("non zero"),
+                id: Id::new(1),
                 bitrate: 124_000,
-                guild_id: Some(GuildId::new(2).expect("non zero")),
+                guild_id: Some(Id::new(2)),
                 kind,
                 name: "foo".to_owned(),
                 permission_overwrites: Vec::new(),
-                parent_id: Some(ChannelId::new(3).expect("non zero")),
+                parent_id: Some(Id::new(3)),
                 position: 3,
                 rtc_region: Some("a".to_owned()),
                 user_limit: Some(7),
@@ -110,10 +114,10 @@ mod tests {
                 Token::U64(124_000),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("type"),
                 Token::U8(kind as u8),
@@ -121,7 +125,7 @@ mod tests {
                 Token::Str("foo"),
                 Token::Str("parent_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("permission_overwrites"),
                 Token::Seq { len: Some(0) },

@@ -1,19 +1,15 @@
 use super::Client;
 use hyper::header::HeaderMap;
 use std::{
-    sync::{
-        atomic::{AtomicBool, AtomicU64, Ordering},
-        Arc,
-    },
+    sync::{atomic::AtomicBool, Arc},
     time::Duration,
 };
 use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
-use twilight_model::{channel::message::allowed_mentions::AllowedMentions, id::ApplicationId};
+use twilight_model::channel::message::allowed_mentions::AllowedMentions;
 
 #[derive(Debug)]
 /// A builder for [`Client`].
 pub struct ClientBuilder {
-    pub(crate) application_id: AtomicU64,
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
     pub(crate) ratelimiter: Option<Box<dyn Ratelimiter>>,
@@ -78,18 +74,9 @@ impl ClientBuilder {
             timeout: self.timeout,
             token_invalidated,
             token: self.token,
-            application_id: self.application_id,
             default_allowed_mentions: self.default_allowed_mentions,
             use_http: self.use_http,
         }
-    }
-
-    /// Set the [`ApplicationId`] used by interaction methods.
-    pub fn application_id(self, application_id: ApplicationId) -> Self {
-        self.application_id
-            .store(application_id.get(), Ordering::Relaxed);
-
-        self
     }
 
     /// Set the default allowed mentions setting to use on all messages sent through the HTTP
@@ -190,7 +177,6 @@ impl ClientBuilder {
 impl Default for ClientBuilder {
     fn default() -> Self {
         Self {
-            application_id: AtomicU64::default(),
             default_allowed_mentions: None,
             default_headers: None,
             proxy: None,

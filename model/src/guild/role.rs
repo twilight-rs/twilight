@@ -1,5 +1,9 @@
 use super::RoleTags;
-use crate::{guild::Permissions, id::RoleId};
+use crate::{
+    guild::Permissions,
+    id::{marker::RoleMarker, Id},
+    util::image_hash::ImageHash,
+};
 use serde::{Deserialize, Serialize};
 use std::cmp::{Ord, Ordering, PartialOrd};
 
@@ -16,8 +20,8 @@ pub struct Role {
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub icon: Option<String>,
-    pub id: RoleId,
+    pub icon: Option<ImageHash>,
+    pub id: Id<RoleMarker>,
     pub managed: bool,
     pub mentionable: bool,
     pub name: String,
@@ -51,10 +55,10 @@ impl Ord for Role {
     /// Compare the position of two roles:
     ///
     /// ```
-    /// # use twilight_model::{guild::{Permissions, Role}, id::RoleId};
+    /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
-    ///     id: RoleId::new(123).expect("non zero"),
+    ///     id: Id::new(123),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -68,7 +72,7 @@ impl Ord for Role {
     ///     // ...
     /// };
     /// let role_b = Role {
-    ///     id: RoleId::new(456).expect("non zero"),
+    ///     id: Id::new(456),
     ///     position: 13,
     ///#    color: 0,
     ///#    hoist: true,
@@ -90,10 +94,10 @@ impl Ord for Role {
     /// Compare the position of two roles with the same position:
     ///
     /// ```
-    /// # use twilight_model::{guild::{Permissions, Role}, id::RoleId};
+    /// # use twilight_model::{guild::{Permissions, Role}, id::Id};
     /// # use std::cmp::Ordering;
     /// let role_a = Role {
-    ///     id: RoleId::new(123).expect("non zero"),
+    ///     id: Id::new(123),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -106,7 +110,7 @@ impl Ord for Role {
     ///#    unicode_emoji: None,
     /// };
     /// let role_b = Role {
-    ///     id: RoleId::new(456).expect("non zero"),
+    ///     id: Id::new(456),
     ///     position: 12,
     ///#    color: 0,
     ///#    hoist: true,
@@ -126,7 +130,7 @@ impl Ord for Role {
     fn cmp(&self, other: &Self) -> Ordering {
         self.position
             .cmp(&other.position)
-            .then(self.id.0.cmp(&other.id.0))
+            .then(self.id.get().cmp(&other.id.get()))
     }
 }
 
@@ -138,7 +142,8 @@ impl PartialOrd for Role {
 
 #[cfg(test)]
 mod tests {
-    use super::{Permissions, Role, RoleId};
+    use super::{Permissions, Role};
+    use crate::id::Id;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -174,7 +179,7 @@ mod tests {
             color: 0,
             hoist: true,
             icon: None,
-            id: RoleId::new(123).expect("non zero"),
+            id: Id::new(123),
             managed: false,
             mentionable: true,
             name: "test".to_owned(),
@@ -196,7 +201,7 @@ mod tests {
                 Token::Str("hoist"),
                 Token::Bool(true),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("123"),
                 Token::Str("managed"),
                 Token::Bool(false),

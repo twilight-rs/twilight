@@ -18,7 +18,7 @@ mod tests {
     use super::Ready;
     use crate::{
         guild::UnavailableGuild,
-        id::{ApplicationId, GuildId, UserId},
+        id::Id,
         oauth::{current_application_info::ApplicationFlags, PartialApplication},
         user::CurrentUser,
     };
@@ -29,11 +29,11 @@ mod tests {
     fn test_ready() {
         let guilds = vec![
             UnavailableGuild {
-                id: GuildId::new(1).expect("non zero"),
+                id: Id::new(1),
                 unavailable: true,
             },
             UnavailableGuild {
-                id: GuildId::new(2).expect("non zero"),
+                id: Id::new(2),
                 unavailable: true,
             },
         ];
@@ -41,7 +41,7 @@ mod tests {
         let ready = Ready {
             application: PartialApplication {
                 flags: ApplicationFlags::empty(),
-                id: ApplicationId::new(100).expect("non zero"),
+                id: Id::new(100),
             },
             guilds,
             session_id: "foo".to_owned(),
@@ -54,7 +54,7 @@ mod tests {
                 discriminator: 1212,
                 email: None,
                 flags: None,
-                id: UserId::new(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: false,
                 name: "bar".to_owned(),
@@ -80,9 +80,7 @@ mod tests {
                 Token::Str("flags"),
                 Token::U64(0),
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::StructEnd,
                 Token::Str("guilds"),
@@ -92,7 +90,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("unavailable"),
                 Token::Bool(true),
@@ -102,7 +100,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("unavailable"),
                 Token::Bool(true),
@@ -132,7 +130,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("1212"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("mfa_enabled"),
                 Token::Bool(false),

@@ -7,7 +7,10 @@ use twilight_model::{
         CategoryChannel, Channel, Group, GuildChannel, PrivateChannel, TextChannel, VoiceChannel,
     },
     guild::{Emoji, Member, Role},
-    id::{ChannelId, EmojiId, RoleId, UserId},
+    id::{
+        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
+        Id,
+    },
     user::{CurrentUser, User},
 };
 
@@ -15,19 +18,19 @@ use twilight_model::{
 ///
 /// # Examples
 ///
-/// Mention a `UserId`:
+/// Mention a `Id<UserMarker>`:
 ///
 /// ```
 /// use twilight_mention::Mention;
-/// use twilight_model::id::UserId;
+/// use twilight_model::id::{marker::UserMarker, Id};
 ///
-/// assert_eq!("<@123>", UserId::new(123).expect("non zero").mention().to_string());
+/// assert_eq!("<@123>", Id::<UserMarker>::new(123).mention().to_string());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct MentionFormat<T>(T);
 
 /// Mention a channel. This will format as `<#ID>`.
-impl Display for MentionFormat<ChannelId> {
+impl Display for MentionFormat<Id<ChannelMarker>> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("<#")?;
         Display::fmt(&self.0, f)?;
@@ -37,7 +40,7 @@ impl Display for MentionFormat<ChannelId> {
 }
 
 /// Mention an emoji. This will format as `<:emoji:ID>`.
-impl Display for MentionFormat<EmojiId> {
+impl Display for MentionFormat<Id<EmojiMarker>> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("<:emoji:")?;
         Display::fmt(&self.0, f)?;
@@ -47,7 +50,7 @@ impl Display for MentionFormat<EmojiId> {
 }
 
 /// Mention a role. This will format as `<@&ID>`.
-impl Display for MentionFormat<RoleId> {
+impl Display for MentionFormat<Id<RoleMarker>> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("<@&")?;
         Display::fmt(&self.0, f)?;
@@ -73,7 +76,7 @@ impl Display for MentionFormat<Timestamp> {
 }
 
 /// Mention a user. This will format as `<@ID>`.
-impl Display for MentionFormat<UserId> {
+impl Display for MentionFormat<Id<UserMarker>> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("<@")?;
         Display::fmt(&self.0, f)?;
@@ -90,13 +93,14 @@ impl Display for MentionFormat<UserId> {
 ///
 /// # Examples
 ///
-/// Mention a `ChannelId`:
+/// Mention a channel ID:
 ///
 /// ```
 /// use twilight_mention::Mention;
-/// use twilight_model::id::ChannelId;
+/// use twilight_model::id::{marker::ChannelMarker, Id};
 ///
-/// assert_eq!("<#123>", ChannelId::new(123).expect("non zero").mention().to_string());
+/// let id = Id::<ChannelMarker>::new(123);
+/// assert_eq!("<#123>", id.mention().to_string());
 /// ```
 pub trait Mention<T> {
     /// Mention a resource by using its ID.
@@ -110,92 +114,92 @@ impl<T, M: Mention<T>> Mention<T> for &'_ M {
 }
 
 /// Mention a channel ID. This will format as `<#ID>`.
-impl Mention<ChannelId> for ChannelId {
-    fn mention(&self) -> MentionFormat<ChannelId> {
+impl Mention<Id<ChannelMarker>> for Id<ChannelMarker> {
+    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(*self)
     }
 }
 
 /// Mention a guild category channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for CategoryChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
+impl Mention<Id<ChannelMarker>> for CategoryChannel {
+    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(self.id)
     }
 }
 
 /// Mention a channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for Channel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
+impl Mention<Id<ChannelMarker>> for Channel {
+    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(self.id())
     }
 }
 
 /// Mention the current user. This will format as `<@ID>`.
-impl Mention<UserId> for CurrentUser {
-    fn mention(&self) -> MentionFormat<UserId> {
+impl Mention<Id<UserMarker>> for CurrentUser {
+    fn mention(&self) -> MentionFormat<Id<UserMarker>> {
         MentionFormat(self.id)
     }
 }
 
 /// Mention an emoji. This will format as `<:emoji:ID>`.
-impl Mention<EmojiId> for EmojiId {
-    fn mention(&self) -> MentionFormat<EmojiId> {
+impl Mention<Id<EmojiMarker>> for Id<EmojiMarker> {
+    fn mention(&self) -> MentionFormat<Id<EmojiMarker>> {
         MentionFormat(*self)
     }
 }
 
 /// Mention an emoji. This will format as `<:emoji:ID>`.
-impl Mention<EmojiId> for Emoji {
-    fn mention(&self) -> MentionFormat<EmojiId> {
+impl Mention<Id<EmojiMarker>> for Emoji {
+    fn mention(&self) -> MentionFormat<Id<EmojiMarker>> {
         MentionFormat(self.id)
     }
 }
 
 /// Mention a group. This will format as `<#ID>`.
-impl Mention<ChannelId> for Group {
-    fn mention(&self) -> MentionFormat<ChannelId> {
+impl Mention<Id<ChannelMarker>> for Group {
+    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(self.id)
     }
 }
 
 /// Mention a guild channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for GuildChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
+impl Mention<Id<ChannelMarker>> for GuildChannel {
+    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(self.id())
     }
 }
 
 /// Mention a member's user. This will format as `<@ID>`.
-impl Mention<UserId> for Member {
-    fn mention(&self) -> MentionFormat<UserId> {
+impl Mention<Id<UserMarker>> for Member {
+    fn mention(&self) -> MentionFormat<Id<UserMarker>> {
         MentionFormat(self.user.id)
     }
 }
 
 /// Mention a private channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for PrivateChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
+impl Mention<Id<ChannelMarker>> for PrivateChannel {
+    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(self.id)
     }
 }
 
 /// Mention a role ID. This will format as `<@&ID>`.
-impl Mention<RoleId> for RoleId {
-    fn mention(&self) -> MentionFormat<RoleId> {
+impl Mention<Id<RoleMarker>> for Id<RoleMarker> {
+    fn mention(&self) -> MentionFormat<Id<RoleMarker>> {
         MentionFormat(*self)
     }
 }
 
 /// Mention a role ID. This will format as `<@&ID>`.
-impl Mention<RoleId> for Role {
-    fn mention(&self) -> MentionFormat<RoleId> {
+impl Mention<Id<RoleMarker>> for Role {
+    fn mention(&self) -> MentionFormat<Id<RoleMarker>> {
         MentionFormat(self.id)
     }
 }
 
 /// Mention a guild text channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for TextChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
+impl Mention<Id<ChannelMarker>> for TextChannel {
+    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(self.id)
     }
 }
@@ -209,22 +213,22 @@ impl Mention<Self> for Timestamp {
 }
 
 /// Mention a user ID. This will format as `<&ID>`.
-impl Mention<UserId> for UserId {
-    fn mention(&self) -> MentionFormat<UserId> {
+impl Mention<Id<UserMarker>> for Id<UserMarker> {
+    fn mention(&self) -> MentionFormat<Id<UserMarker>> {
         MentionFormat(*self)
     }
 }
 
 /// Mention a user. This will format as `<&ID>`.
-impl Mention<UserId> for User {
-    fn mention(&self) -> MentionFormat<UserId> {
+impl Mention<Id<UserMarker>> for User {
+    fn mention(&self) -> MentionFormat<Id<UserMarker>> {
         MentionFormat(self.id)
     }
 }
 
 /// Mention a guild voice channel. This will format as `<#ID>`.
-impl Mention<ChannelId> for VoiceChannel {
-    fn mention(&self) -> MentionFormat<ChannelId> {
+impl Mention<Id<ChannelMarker>> for VoiceChannel {
+    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(self.id)
     }
 }
@@ -242,53 +246,56 @@ mod tests {
             VoiceChannel,
         },
         guild::{Emoji, Member, Role},
-        id::{ChannelId, EmojiId, RoleId, UserId},
+        id::{
+            marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
+            Id,
+        },
         user::{CurrentUser, User},
     };
 
     assert_impl_all!(MentionFormat<()>: Clone, Copy, Debug, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(MentionFormat<ChannelId>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(MentionFormat<EmojiId>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(MentionFormat<RoleId>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(MentionFormat<UserId>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
-    assert_impl_all!(ChannelId: Mention<ChannelId>);
-    assert_impl_all!(&'static ChannelId: Mention<ChannelId>);
-    assert_impl_all!(CategoryChannel: Mention<ChannelId>);
-    assert_impl_all!(&'static CategoryChannel: Mention<ChannelId>);
-    assert_impl_all!(Channel: Mention<ChannelId>);
-    assert_impl_all!(&'static Channel: Mention<ChannelId>);
-    assert_impl_all!(CurrentUser: Mention<UserId>);
-    assert_impl_all!(&'static CurrentUser: Mention<UserId>);
-    assert_impl_all!(EmojiId: Mention<EmojiId>);
-    assert_impl_all!(&'static EmojiId: Mention<EmojiId>);
-    assert_impl_all!(Emoji: Mention<EmojiId>);
-    assert_impl_all!(&'static Emoji: Mention<EmojiId>);
-    assert_impl_all!(Group: Mention<ChannelId>);
-    assert_impl_all!(&'static Group: Mention<ChannelId>);
-    assert_impl_all!(GuildChannel: Mention<ChannelId>);
-    assert_impl_all!(&'static GuildChannel: Mention<ChannelId>);
-    assert_impl_all!(Member: Mention<UserId>);
-    assert_impl_all!(&'static Member: Mention<UserId>);
-    assert_impl_all!(PrivateChannel: Mention<ChannelId>);
-    assert_impl_all!(&'static PrivateChannel: Mention<ChannelId>);
-    assert_impl_all!(RoleId: Mention<RoleId>);
-    assert_impl_all!(&'static RoleId: Mention<RoleId>);
-    assert_impl_all!(Role: Mention<RoleId>);
-    assert_impl_all!(&'static Role: Mention<RoleId>);
-    assert_impl_all!(TextChannel: Mention<ChannelId>);
-    assert_impl_all!(&'static TextChannel: Mention<ChannelId>);
-    assert_impl_all!(UserId: Mention<UserId>);
-    assert_impl_all!(&'static UserId: Mention<UserId>);
-    assert_impl_all!(User: Mention<UserId>);
-    assert_impl_all!(&'static User: Mention<UserId>);
-    assert_impl_all!(VoiceChannel: Mention<ChannelId>);
-    assert_impl_all!(&'static VoiceChannel: Mention<ChannelId>);
+    assert_impl_all!(MentionFormat<Id<ChannelMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(MentionFormat<Id<EmojiMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(MentionFormat<Id<RoleMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(MentionFormat<Id<UserMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(Id<ChannelMarker>: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(&'static Id<ChannelMarker>: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(CategoryChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(&'static CategoryChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(Channel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(&'static Channel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(CurrentUser: Mention<Id<UserMarker>>);
+    assert_impl_all!(&'static CurrentUser: Mention<Id<UserMarker>>);
+    assert_impl_all!(Id<EmojiMarker>: Mention<Id<EmojiMarker>>);
+    assert_impl_all!(&'static Id<EmojiMarker>: Mention<Id<EmojiMarker>>);
+    assert_impl_all!(Emoji: Mention<Id<EmojiMarker>>);
+    assert_impl_all!(&'static Emoji: Mention<Id<EmojiMarker>>);
+    assert_impl_all!(Group: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(&'static Group: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(GuildChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(&'static GuildChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(Member: Mention<Id<UserMarker>>);
+    assert_impl_all!(&'static Member: Mention<Id<UserMarker>>);
+    assert_impl_all!(PrivateChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(&'static PrivateChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(Id<RoleMarker>: Mention<Id<RoleMarker>>);
+    assert_impl_all!(&'static Id<RoleMarker>: Mention<Id<RoleMarker>>);
+    assert_impl_all!(Role: Mention<Id<RoleMarker>>);
+    assert_impl_all!(&'static Role: Mention<Id<RoleMarker>>);
+    assert_impl_all!(TextChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(&'static TextChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(Id<UserMarker>: Mention<Id<UserMarker>>);
+    assert_impl_all!(&'static Id<UserMarker>: Mention<Id<UserMarker>>);
+    assert_impl_all!(User: Mention<Id<UserMarker>>);
+    assert_impl_all!(&'static User: Mention<Id<UserMarker>>);
+    assert_impl_all!(VoiceChannel: Mention<Id<ChannelMarker>>);
+    assert_impl_all!(&'static VoiceChannel: Mention<Id<ChannelMarker>>);
 
     #[test]
     fn test_mention_format_channel_id() {
         assert_eq!(
             "<#123>",
-            ChannelId::new(123).expect("non zero").mention().to_string()
+            Id::<ChannelMarker>::new(123).mention().to_string()
         );
     }
 
@@ -296,16 +303,13 @@ mod tests {
     fn test_mention_format_emoji_id() {
         assert_eq!(
             "<:emoji:123>",
-            EmojiId::new(123).expect("non zero").mention().to_string()
+            Id::<EmojiMarker>::new(123).mention().to_string()
         );
     }
 
     #[test]
     fn test_mention_format_role_id() {
-        assert_eq!(
-            "<@&123>",
-            RoleId::new(123).expect("non zero").mention().to_string()
-        );
+        assert_eq!("<@&123>", Id::<RoleMarker>::new(123).mention().to_string());
     }
 
     /// Test that a timestamp with a style displays correctly.
@@ -326,9 +330,6 @@ mod tests {
 
     #[test]
     fn test_mention_format_user_id() {
-        assert_eq!(
-            "<@123>",
-            UserId::new(123).expect("non zero").mention().to_string()
-        );
+        assert_eq!("<@123>", Id::<UserMarker>::new(123).mention().to_string());
     }
 }

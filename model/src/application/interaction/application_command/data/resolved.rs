@@ -2,7 +2,10 @@ use crate::{
     channel::{thread::ThreadMetadata, ChannelType, Message},
     datetime::Timestamp,
     guild::{Permissions, Role},
-    id::{ChannelId, MessageId, RoleId, UserId},
+    id::{
+        marker::{ChannelMarker, MessageMarker, RoleMarker, UserMarker},
+        Id,
+    },
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -11,25 +14,25 @@ use std::collections::hash_map::HashMap;
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandInteractionDataResolved {
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub channels: HashMap<ChannelId, InteractionChannel>,
+    pub channels: HashMap<Id<ChannelMarker>, InteractionChannel>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub members: HashMap<UserId, InteractionMember>,
+    pub members: HashMap<Id<UserMarker>, InteractionMember>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub messages: HashMap<MessageId, Message>,
+    pub messages: HashMap<Id<MessageMarker>, Message>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub roles: HashMap<RoleId, Role>,
+    pub roles: HashMap<Id<RoleMarker>, Role>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub users: HashMap<UserId, User>,
+    pub users: HashMap<Id<UserMarker>, User>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionChannel {
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<ChannelId>,
+    pub parent_id: Option<Id<ChannelMarker>>,
     pub permissions: Permissions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_metadata: Option<ThreadMetadata>,
@@ -51,7 +54,7 @@ pub struct InteractionMember {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
     #[serde(default)]
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
 }
 
 #[cfg(test)]
@@ -60,14 +63,15 @@ mod tests {
     use crate::{
         channel::{
             message::{
-                sticker::{MessageSticker, StickerFormatType, StickerId},
+                sticker::{MessageSticker, StickerFormatType},
                 MessageFlags, MessageType,
             },
             ChannelType, Message,
         },
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions, Role},
-        id::{ChannelId, GuildId, MessageId, RoleId, UserId},
+        id::Id,
+        test::image_hash,
         user::{PremiumType, User, UserFlags},
     };
     use serde_test::Token;
@@ -81,9 +85,9 @@ mod tests {
 
         let value = CommandInteractionDataResolved {
             channels: IntoIterator::into_iter([(
-                ChannelId::new(100).expect("non zero"),
+                Id::new(100),
                 InteractionChannel {
-                    id: ChannelId::new(100).expect("non zero"),
+                    id: Id::new(100),
                     kind: ChannelType::GuildText,
                     name: "channel name".into(),
                     parent_id: None,
@@ -93,7 +97,7 @@ mod tests {
             )])
             .collect(),
             members: IntoIterator::into_iter([(
-                UserId::new(300).expect("non zero"),
+                Id::new(300),
                 InteractionMember {
                     avatar: None,
                     communication_disabled_until: None,
@@ -107,7 +111,7 @@ mod tests {
             )])
             .collect(),
             messages: IntoIterator::into_iter([(
-                MessageId::new(4).expect("non zero"),
+                Id::new(4),
                 Message {
                     activity: None,
                     application: None,
@@ -115,13 +119,13 @@ mod tests {
                     attachments: Vec::new(),
                     author: User {
                         accent_color: None,
-                        avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                        avatar: Some(image_hash::AVATAR),
                         banner: None,
                         bot: false,
                         discriminator: 1,
                         email: None,
                         flags: None,
-                        id: UserId::new(3).expect("non zero"),
+                        id: Id::new(3),
                         locale: None,
                         mfa_enabled: None,
                         name: "test".to_owned(),
@@ -130,14 +134,14 @@ mod tests {
                         system: None,
                         verified: None,
                     },
-                    channel_id: ChannelId::new(2).expect("non zero"),
+                    channel_id: Id::new(2),
                     components: Vec::new(),
                     content: "ping".to_owned(),
                     edited_timestamp: None,
                     embeds: Vec::new(),
                     flags: Some(MessageFlags::empty()),
-                    guild_id: Some(GuildId::new(1).expect("non zero")),
-                    id: MessageId::new(4).expect("non zero"),
+                    guild_id: Some(Id::new(1)),
+                    id: Id::new(4),
                     interaction: None,
                     kind: MessageType::Regular,
                     member: Some(PartialMember {
@@ -161,7 +165,7 @@ mod tests {
                     reference: None,
                     sticker_items: vec![MessageSticker {
                         format_type: StickerFormatType::Png,
-                        id: StickerId::new(1).expect("non zero"),
+                        id: Id::new(1),
                         name: "sticker name".to_owned(),
                     }],
                     referenced_message: None,
@@ -173,12 +177,12 @@ mod tests {
             )])
             .collect(),
             roles: IntoIterator::into_iter([(
-                RoleId::new(400).expect("non zero"),
+                Id::new(400),
                 Role {
                     color: 0,
                     hoist: true,
                     icon: None,
-                    id: RoleId::new(400).expect("non zero"),
+                    id: Id::new(400),
                     managed: false,
                     mentionable: true,
                     name: "test".to_owned(),
@@ -190,16 +194,16 @@ mod tests {
             )])
             .collect(),
             users: IntoIterator::into_iter([(
-                UserId::new(300).expect("non zero"),
+                Id::new(300),
                 User {
                     accent_color: None,
-                    avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                    avatar: Some(image_hash::AVATAR),
                     banner: None,
                     bot: false,
                     discriminator: 1,
                     email: Some("address@example.com".to_owned()),
                     flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
-                    id: UserId::new(300).expect("non zero"),
+                    id: Id::new(300),
                     locale: Some("en-us".to_owned()),
                     mfa_enabled: Some(true),
                     name: "test".to_owned(),
@@ -223,14 +227,14 @@ mod tests {
                 },
                 Token::Str("channels"),
                 Token::Map { len: Some(1) },
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Struct {
                     name: "InteractionChannel",
                     len: 4,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("type"),
                 Token::U8(0),
@@ -242,7 +246,7 @@ mod tests {
                 Token::MapEnd,
                 Token::Str("members"),
                 Token::Map { len: Some(1) },
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
                 Token::Struct {
                     name: "InteractionMember",
@@ -265,7 +269,7 @@ mod tests {
                 Token::MapEnd,
                 Token::Str("messages"),
                 Token::Map { len: Some(1) },
-                Token::NewtypeStruct { name: "MessageId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Struct {
                     name: "Message",
@@ -283,7 +287,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -291,13 +295,13 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("username"),
                 Token::Str("test"),
                 Token::StructEnd,
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("content"),
                 Token::Str("ping"),
@@ -311,10 +315,10 @@ mod tests {
                 Token::U64(0),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "MessageId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("type"),
                 Token::U8(0),
@@ -362,7 +366,7 @@ mod tests {
                 Token::Str("format_type"),
                 Token::U8(1),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "StickerId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("sticker name"),
@@ -376,7 +380,7 @@ mod tests {
                 Token::MapEnd,
                 Token::Str("roles"),
                 Token::Map { len: Some(1) },
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("400"),
                 Token::Struct {
                     name: "Role",
@@ -387,7 +391,7 @@ mod tests {
                 Token::Str("hoist"),
                 Token::Bool(true),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("400"),
                 Token::Str("managed"),
                 Token::Bool(false),
@@ -403,7 +407,7 @@ mod tests {
                 Token::MapEnd,
                 Token::Str("users"),
                 Token::Map { len: Some(1) },
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
                 Token::Struct {
                     name: "User",
@@ -413,7 +417,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -427,7 +431,7 @@ mod tests {
                 Token::Some,
                 Token::U64(131_584),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
                 Token::Str("locale"),
                 Token::Some,

@@ -3,7 +3,7 @@ name = "examples"
 version = "0.0.0"
 publish = false
 authors = ["Twilight Contributors"]
-edition = "2018"
+edition = "2021"
 
 [dev-dependencies]
 ed25519-dalek = "1"

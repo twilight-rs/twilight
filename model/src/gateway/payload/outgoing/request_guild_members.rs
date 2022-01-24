@@ -1,6 +1,9 @@
 use crate::{
     gateway::opcode::OpCode,
-    id::{GuildId, UserId},
+    id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -36,7 +39,7 @@ impl UserIdsError {
         (self.kind, None)
     }
 
-    fn too_many(ids: Vec<UserId>) -> Self {
+    fn too_many(ids: Vec<Id<UserMarker>>) -> Self {
         Self {
             kind: UserIdsErrorType::TooMany { ids },
         }
@@ -63,7 +66,7 @@ pub enum UserIdsErrorType {
     /// More than 100 user IDs were provided.
     TooMany {
         /// Provided list of user IDs.
-        ids: Vec<UserId>,
+        ids: Vec<Id<UserMarker>>,
     },
 }
 
@@ -78,14 +81,14 @@ impl RequestGuildMembers {
     ///
     /// This is an alias to [`RequestGuildMembersBuilder::new`]. Refer to its
     /// documentation for more information.
-    pub const fn builder(guild_id: GuildId) -> RequestGuildMembersBuilder {
+    pub const fn builder(guild_id: Id<GuildMarker>) -> RequestGuildMembersBuilder {
         RequestGuildMembersBuilder::new(guild_id)
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RequestGuildMembersBuilder {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     nonce: Option<String>,
     presences: Option<bool>,
 }
@@ -93,7 +96,7 @@ pub struct RequestGuildMembersBuilder {
 impl RequestGuildMembersBuilder {
     /// Create a new builder to configure and construct a
     /// [`RequestGuildMembers`].
-    pub const fn new(guild_id: GuildId) -> Self {
+    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
         Self {
             guild_id,
             nonce: None,
@@ -139,16 +142,13 @@ impl RequestGuildMembersBuilder {
     /// their presences:
     ///
     /// ```
-    /// use twilight_model::{
-    ///     gateway::payload::outgoing::RequestGuildMembers,
-    ///     id::GuildId,
-    /// };
+    /// use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
     ///
-    /// let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
+    /// let request = RequestGuildMembers::builder(Id::new(1))
     ///     .presences(true)
     ///     .query("a", None);
     ///
-    /// assert_eq!(GuildId::new(1).expect("non zero"), request.d.guild_id);
+    /// assert_eq!(Id::new(1), request.d.guild_id);
     /// assert_eq!(Some(0), request.d.limit);
     /// assert_eq!(Some("a"), request.d.query.as_deref());
     /// assert_eq!(Some(true), request.d.presences);
@@ -184,17 +184,17 @@ impl RequestGuildMembersBuilder {
     ///         RequestGuildMemberId,
     ///         RequestGuildMembers,
     ///     },
-    ///     id::{GuildId, UserId},
+    ///     id::Id,
     /// };
     ///
-    /// let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
+    /// let request = RequestGuildMembers::builder(Id::new(1))
     ///     .nonce("test")
-    ///     .user_id(UserId::new(2).expect("non zero"));
+    ///     .user_id(Id::new(2));
     ///
-    /// assert_eq!(Some(RequestGuildMemberId::One(UserId::new(2).expect("non zero"))), request.d.user_ids);
+    /// assert_eq!(Some(RequestGuildMemberId::One(Id::new(2))), request.d.user_ids);
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    pub fn user_id(self, user_id: UserId) -> RequestGuildMembers {
+    pub fn user_id(self, user_id: Id<UserMarker>) -> RequestGuildMembers {
         RequestGuildMembers {
             d: RequestGuildMembersInfo {
                 guild_id: self.guild_id,
@@ -223,13 +223,13 @@ impl RequestGuildMembersBuilder {
     ///         RequestGuildMemberId,
     ///         RequestGuildMembers,
     ///     },
-    ///     id::{GuildId, UserId},
+    ///     id::Id,
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let request = RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
+    /// let request = RequestGuildMembers::builder(Id::new(1))
     ///     .nonce("test")
-    ///     .user_ids(vec![UserId::new(2).expect("non zero"), UserId::new(2).expect("non zero")])?;
+    ///     .user_ids(vec![Id::new(2), Id::new(2)])?;
     ///
     /// assert!(matches!(request.d.user_ids, Some(RequestGuildMemberId::Multiple(ids)) if ids.len() == 2));
     /// # Ok(()) }
@@ -241,12 +241,12 @@ impl RequestGuildMembersBuilder {
     /// IDs were provided.
     pub fn user_ids(
         self,
-        user_ids: impl Into<Vec<UserId>>,
+        user_ids: impl Into<Vec<Id<UserMarker>>>,
     ) -> Result<RequestGuildMembers, UserIdsError> {
         self._user_ids(user_ids.into())
     }
 
-    fn _user_ids(self, user_ids: Vec<UserId>) -> Result<RequestGuildMembers, UserIdsError> {
+    fn _user_ids(self, user_ids: Vec<Id<UserMarker>>) -> Result<RequestGuildMembers, UserIdsError> {
         if user_ids.len() > 100 {
             return Err(UserIdsError::too_many(user_ids));
         }
@@ -268,7 +268,7 @@ impl RequestGuildMembersBuilder {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct RequestGuildMembersInfo {
     /// Guild ID.
-    pub guild_id: GuildId,
+    pub guild_id: Id<GuildMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     /// Maximum number of members to request.
     pub limit: Option<u64>,
@@ -279,7 +279,7 @@ pub struct RequestGuildMembersInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub query: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_ids: Option<RequestGuildMemberId<UserId>>,
+    pub user_ids: Option<RequestGuildMemberId<Id<UserMarker>>>,
 }
 
 /// One or a list of IDs in a request.

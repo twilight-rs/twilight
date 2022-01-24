@@ -1,10 +1,13 @@
-use crate::{channel::ChannelType, id::ChannelId};
+use crate::{
+    channel::ChannelType,
+    id::{marker::ChannelMarker, Id},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InviteChannel {
     /// ID of the channel.
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     /// Name of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -15,13 +18,14 @@ pub struct InviteChannel {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, ChannelType, InviteChannel};
+    use super::{ChannelType, InviteChannel};
+    use crate::id::Id;
     use serde_test::Token;
 
     #[test]
     fn test_invite_channel() {
         let value = InviteChannel {
-            id: ChannelId::new(1).expect("non zero"),
+            id: Id::new(1),
             name: Some("channel name".to_owned()),
             kind: ChannelType::GuildText,
         };
@@ -34,7 +38,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Some,

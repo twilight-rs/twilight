@@ -38,11 +38,11 @@
 //!         ChannelType
 //!     },
 //!     guild::Permissions,
-//!     id::{GuildId, RoleId, UserId},
+//!     id::Id,
 //! };
 //!
-//! let guild_id = GuildId::new(1).expect("non zero");
-//! let user_id = UserId::new(3).expect("non zero");
+//! let guild_id = Id::new(1);
+//! let user_id = Id::new(3);
 //!
 //! // Guild-level @everyone role that, by default, allows everyone to view
 //! // channels.
@@ -53,7 +53,7 @@
 //! let member_roles = &[
 //!     // Guild-level permission that grants members with the role the Send
 //!     // Messages permission.
-//!     (RoleId::new(2).expect("non zero"), Permissions::SEND_MESSAGES),
+//!     (Id::new(2), Permissions::SEND_MESSAGES),
 //! ];
 //!
 //! let channel_overwrites = &[
@@ -62,7 +62,7 @@
 //!     PermissionOverwrite {
 //!         allow: Permissions::ADD_REACTIONS | Permissions::EMBED_LINKS,
 //!         deny: Permissions::empty(),
-//!         kind: PermissionOverwriteType::Role(RoleId::new(1).expect("non zero")),
+//!         kind: PermissionOverwriteType::Role(Id::new(1)),
 //!     },
 //!     // Member is denied the Send Messages permission.
 //!     PermissionOverwrite {
@@ -113,7 +113,10 @@ use twilight_model::{
         ChannelType,
     },
     guild::Permissions,
-    id::{GuildId, RoleId, UserId},
+    id::{
+        marker::{GuildMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
 
 /// Calculate the permissions of a member.
@@ -129,13 +132,13 @@ pub struct PermissionCalculator<'a> {
     /// Permissions of the `@everyone` role for the guild.
     everyone_role: Permissions,
     /// ID of the guild.
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     /// Slice of tuples of the member's roles and their permissions.
-    member_roles: &'a [(RoleId, Permissions)],
+    member_roles: &'a [(Id<RoleMarker>, Permissions)],
     /// ID of the owner.
-    owner_id: Option<UserId>,
+    owner_id: Option<Id<UserMarker>>,
     /// ID of the user whose permissions are being calculated.
-    user_id: UserId,
+    user_id: Id<UserMarker>,
 }
 
 impl<'a> PermissionCalculator<'a> {
@@ -148,10 +151,10 @@ impl<'a> PermissionCalculator<'a> {
     /// The provided member's roles *should not* contain the `@everyone` role.
     #[must_use = "calculators should be used to calculate permissions"]
     pub const fn new(
-        guild_id: GuildId,
-        user_id: UserId,
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
         everyone_role: Permissions,
-        member_roles: &'a [(RoleId, Permissions)],
+        member_roles: &'a [(Id<RoleMarker>, Permissions)],
     ) -> Self {
         Self {
             everyone_role,
@@ -173,7 +176,7 @@ impl<'a> PermissionCalculator<'a> {
     ///
     /// [`root`]: Self::root
     #[must_use = "calculators should be used to calculate permissions"]
-    pub const fn owner_id(mut self, owner_id: UserId) -> Self {
+    pub const fn owner_id(mut self, owner_id: Id<UserMarker>) -> Self {
         self.owner_id = Some(owner_id);
 
         self
@@ -406,7 +409,7 @@ impl<'a> PermissionCalculator<'a> {
     }
 }
 
-const fn has_role(roles: &[(RoleId, Permissions)], role_id: RoleId) -> bool {
+const fn has_role(roles: &[(Id<RoleMarker>, Permissions)], role_id: Id<RoleMarker>) -> bool {
     let len = roles.len();
     let mut idx = 0;
 
@@ -426,9 +429,9 @@ const fn has_role(roles: &[(RoleId, Permissions)], role_id: RoleId) -> bool {
 const fn process_permission_overwrites(
     mut permissions: Permissions,
     channel_overwrites: &[PermissionOverwrite],
-    member_roles: &[(RoleId, Permissions)],
-    configured_guild_id: GuildId,
-    configured_user_id: UserId,
+    member_roles: &[(Id<RoleMarker>, Permissions)],
+    configured_guild_id: Id<GuildMarker>,
+    configured_user_id: Id<UserMarker>,
 ) -> Permissions {
     // Hierarchy documentation:
     // <https://discord.com/developers/docs/topics/permissions>
@@ -515,7 +518,7 @@ const fn process_permission_overwrites(
 
 #[cfg(test)]
 mod tests {
-    use super::{preset::PERMISSIONS_ROOT_ONLY, GuildId, PermissionCalculator, RoleId, UserId};
+    use super::{preset::PERMISSIONS_ROOT_ONLY, PermissionCalculator};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
@@ -524,14 +527,15 @@ mod tests {
             ChannelType,
         },
         guild::Permissions,
+        id::Id,
     };
 
     assert_impl_all!(PermissionCalculator<'_>: Clone, Debug, Eq, PartialEq, Send, Sync);
 
     #[test]
     fn test_owner_is_admin() {
-        let guild_id = GuildId::new(1).expect("non zero");
-        let user_id = UserId::new(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role = Permissions::SEND_MESSAGES;
         let roles = &[];
 
@@ -545,10 +549,10 @@ mod tests {
     // implicitly denies all other permissions.
     #[test]
     fn test_view_channel_deny_implicit() {
-        let guild_id = GuildId::new(1).expect("non zero");
-        let user_id = UserId::new(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role = Permissions::MENTION_EVERYONE | Permissions::SEND_MESSAGES;
-        let roles = &[(RoleId::new(3).expect("non zero"), Permissions::empty())];
+        let roles = &[(Id::new(3), Permissions::empty())];
 
         {
             // First, test when it's denied for an overwrite on a role the user
@@ -556,7 +560,7 @@ mod tests {
             let overwrites = &[PermissionOverwrite {
                 allow: Permissions::SEND_TTS_MESSAGES,
                 deny: Permissions::VIEW_CHANNEL,
-                kind: PermissionOverwriteType::Role(RoleId::new(3).expect("non zero")),
+                kind: PermissionOverwriteType::Role(Id::new(3)),
             }];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -570,7 +574,7 @@ mod tests {
             let overwrites = &[PermissionOverwrite {
                 allow: Permissions::SEND_TTS_MESSAGES,
                 deny: Permissions::VIEW_CHANNEL,
-                kind: PermissionOverwriteType::Member(UserId::new(2).expect("non zero")),
+                kind: PermissionOverwriteType::Member(Id::new(2)),
             }];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -582,13 +586,10 @@ mod tests {
 
     #[test]
     fn test_remove_text_and_stage_perms_when_voice() {
-        let guild_id = GuildId::new(1).expect("non zero");
-        let user_id = UserId::new(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
-        let roles = &[(
-            RoleId::new(3).expect("non zero"),
-            Permissions::SEND_MESSAGES,
-        )];
+        let roles = &[(Id::new(3), Permissions::SEND_MESSAGES)];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
             .in_channel(ChannelType::GuildVoice, &[]);
@@ -598,13 +599,10 @@ mod tests {
 
     #[test]
     fn test_remove_audio_perms_when_text() {
-        let guild_id = GuildId::new(1).expect("non zero");
-        let user_id = UserId::new(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
-        let roles = &[(
-            RoleId::new(3).expect("non zero"),
-            Permissions::SEND_MESSAGES,
-        )];
+        let roles = &[(Id::new(3), Permissions::SEND_MESSAGES)];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
             .in_channel(ChannelType::GuildText, &[]);
@@ -618,17 +616,17 @@ mod tests {
     // send related permissions.
     #[test]
     fn test_deny_send_messages_removes_related() {
-        let guild_id = GuildId::new(1).expect("non zero");
-        let user_id = UserId::new(2).expect("non zero");
+        let guild_id = Id::new(1);
+        let user_id = Id::new(2);
         let everyone_role =
             Permissions::MANAGE_MESSAGES | Permissions::EMBED_LINKS | Permissions::MENTION_EVERYONE;
-        let roles = &[(RoleId::new(3).expect("non zero"), Permissions::empty())];
+        let roles = &[(Id::new(3), Permissions::empty())];
 
         // First, test when it's denied for an overwrite on a role the user has.
         let overwrites = &[PermissionOverwrite {
             allow: Permissions::ATTACH_FILES,
             deny: Permissions::SEND_MESSAGES,
-            kind: PermissionOverwriteType::Role(RoleId::new(3).expect("non zero")),
+            kind: PermissionOverwriteType::Role(Id::new(3)),
         }];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -641,16 +639,9 @@ mod tests {
     /// has all denying overwrites ignored.
     #[test]
     fn test_admin() {
-        let member_roles = &[(
-            RoleId::new(3).expect("non zero"),
-            Permissions::ADMINISTRATOR,
-        )];
-        let calc = PermissionCalculator::new(
-            GuildId::new(1).expect("non zero"),
-            UserId::new(2).expect("non zero"),
-            Permissions::empty(),
-            member_roles,
-        );
+        let member_roles = &[(Id::new(3), Permissions::ADMINISTRATOR)];
+        let calc =
+            PermissionCalculator::new(Id::new(1), Id::new(2), Permissions::empty(), member_roles);
         assert!(calc.root().is_all());
 
         // Ensure that the denial of "send messages" doesn't actually occur due
@@ -677,12 +668,7 @@ mod tests {
         everyone.remove(Permissions::ADMINISTRATOR);
 
         for kind in CHANNEL_TYPES {
-            let calc = PermissionCalculator::new(
-                GuildId::new(1).expect("non zero"),
-                UserId::new(2).expect("non zero"),
-                everyone,
-                &[],
-            );
+            let calc = PermissionCalculator::new(Id::new(1), Id::new(2), everyone, &[]);
             let calculated = calc.in_channel(*kind, &[]);
 
             assert!(!calculated.intersects(PERMISSIONS_ROOT_ONLY));

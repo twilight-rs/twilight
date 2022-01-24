@@ -1,6 +1,5 @@
 use crate::channel::ConversionError;
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::convert::TryFrom;
 
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
@@ -73,7 +72,6 @@ impl TryFrom<u8> for MessageType {
 mod tests {
     use super::{ConversionError, MessageType};
     use serde_test::Token;
-    use std::convert::TryFrom;
 
     #[test]
     fn test_variants() {

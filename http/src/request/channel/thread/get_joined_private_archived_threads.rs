@@ -1,5 +1,14 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
-use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
+use twilight_model::{
+    channel::thread::ThreadsListing,
+    id::{marker::ChannelMarker, Id},
+};
 
 /// Returns archived private threads in the channel that the current user has
 /// joined.
@@ -7,14 +16,14 @@ use twilight_model::{channel::thread::ThreadsListing, id::ChannelId};
 /// Threads are ordered by their ID in descending order.
 #[must_use = "requests must be configured and executed"]
 pub struct GetJoinedPrivateArchivedThreads<'a> {
-    before: Option<ChannelId>,
-    channel_id: ChannelId,
+    before: Option<Id<ChannelMarker>>,
+    channel_id: Id<ChannelMarker>,
     http: &'a Client,
     limit: Option<u64>,
 }
 
 impl<'a> GetJoinedPrivateArchivedThreads<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             before: None,
             channel_id,
@@ -24,7 +33,7 @@ impl<'a> GetJoinedPrivateArchivedThreads<'a> {
     }
 
     /// Return threads before this ID.
-    pub const fn before(mut self, before: ChannelId) -> Self {
+    pub const fn before(mut self, before: Id<ChannelMarker>) -> Self {
         self.before = Some(before);
 
         self
@@ -41,12 +50,23 @@ impl<'a> GetJoinedPrivateArchivedThreads<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
-        let request = Request::from_route(&Route::GetJoinedPrivateArchivedThreads {
-            before: self.before.map(ChannelId::get),
-            channel_id: self.channel_id.get(),
-            limit: self.limit,
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetJoinedPrivateArchivedThreads<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(
+            &Route::GetJoinedPrivateArchivedThreads {
+                before: self.before.map(Id::get),
+                channel_id: self.channel_id.get(),
+                limit: self.limit,
+            },
+        ))
     }
 }

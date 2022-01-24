@@ -1,12 +1,11 @@
-pub mod create_followup_message;
-pub mod update_followup_message;
-pub mod update_original_response;
-
+mod create_followup_message;
 mod delete_followup_message;
 mod delete_original_response;
 mod get_followup_message;
 mod get_original_response;
 mod interaction_callback;
+mod update_followup_message;
+mod update_original_response;
 
 pub use self::{
     create_followup_message::CreateFollowupMessage, delete_followup_message::DeleteFollowupMessage,

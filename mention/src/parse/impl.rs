@@ -1,8 +1,11 @@
 use crate::timestamp::{Timestamp, TimestampStyle};
 
 use super::{MentionIter, MentionType, ParseMentionError, ParseMentionErrorType};
-use std::{convert::TryFrom, num::NonZeroU64, str::Chars};
-use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
+use std::{num::NonZeroU64, str::Chars};
+use twilight_model::id::{
+    marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
+    Id,
+};
 
 /// Parse mentions out of buffers.
 ///
@@ -28,12 +31,18 @@ pub trait ParseMention: private::Sealed {
     ///
     /// ```
     /// use twilight_mention::ParseMention;
-    /// use twilight_model::id::{ChannelId, UserId};
+    /// use twilight_model::id::{marker::{ChannelMarker, UserMarker}, Id};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// assert_eq!(ChannelId::new(123).expect("non zero"), ChannelId::parse("<#123>")?);
-    /// assert_eq!(UserId::new(456).expect("non zero"), UserId::parse("<@456>")?);
-    /// assert!(ChannelId::parse("not a mention").is_err());
+    /// assert_eq!(
+    ///     Id::<ChannelMarker>::new(123),
+    ///     Id::parse("<#123>")?,
+    /// );
+    /// assert_eq!(
+    ///     Id::<UserMarker>::new(456),
+    ///     Id::parse("<@456>")?,
+    /// );
+    /// assert!(Id::<ChannelMarker>::parse("not a mention").is_err());
     /// # Ok(()) }
     /// ```
     ///
@@ -67,25 +76,25 @@ pub trait ParseMention: private::Sealed {
     }
 }
 
-impl ParseMention for ChannelId {
+impl ParseMention for Id<ChannelMarker> {
     const SIGILS: &'static [&'static str] = &["#"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
-        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| ChannelId(id))
+        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| Id::from(id))
     }
 }
 
-impl ParseMention for EmojiId {
+impl ParseMention for Id<EmojiMarker> {
     const SIGILS: &'static [&'static str] = &[":"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
-        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| EmojiId(id))
+        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| Id::from(id))
     }
 }
 
@@ -109,21 +118,21 @@ impl ParseMention for MentionType {
     {
         let (id, maybe_modifier, found) = parse_mention(buf, Self::SIGILS)?;
 
-        for sigil in ChannelId::SIGILS {
+        for sigil in Id::<ChannelMarker>::SIGILS {
             if *sigil == found {
-                return Ok(MentionType::Channel(ChannelId(id)));
+                return Ok(MentionType::Channel(Id::from(id)));
             }
         }
 
-        for sigil in EmojiId::SIGILS {
+        for sigil in Id::<EmojiMarker>::SIGILS {
             if *sigil == found {
-                return Ok(MentionType::Emoji(EmojiId(id)));
+                return Ok(MentionType::Emoji(Id::from(id)));
             }
         }
 
-        for sigil in RoleId::SIGILS {
+        for sigil in Id::<RoleMarker>::SIGILS {
             if *sigil == found {
-                return Ok(MentionType::Role(RoleId(id)));
+                return Ok(MentionType::Role(Id::from(id)));
             }
         }
 
@@ -138,9 +147,9 @@ impl ParseMention for MentionType {
             }
         }
 
-        for sigil in UserId::SIGILS {
+        for sigil in Id::<UserMarker>::SIGILS {
             if *sigil == found {
-                return Ok(MentionType::User(UserId(id)));
+                return Ok(MentionType::User(Id::from(id)));
             }
         }
 
@@ -148,14 +157,14 @@ impl ParseMention for MentionType {
     }
 }
 
-impl ParseMention for RoleId {
+impl ParseMention for Id<RoleMarker> {
     const SIGILS: &'static [&'static str] = &["@&"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
         Self: Sized,
     {
-        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| RoleId(id))
+        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| Id::from(id))
     }
 }
 
@@ -183,7 +192,7 @@ impl ParseMention for Timestamp {
     }
 }
 
-impl ParseMention for UserId {
+impl ParseMention for Id<UserMarker> {
     /// Sigils for User ID mentions.
     ///
     /// Unlike other IDs, user IDs have two possible sigils: `@!` and `@`.
@@ -193,7 +202,7 @@ impl ParseMention for UserId {
     where
         Self: Sized,
     {
-        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| UserId(id))
+        parse_mention(buf, Self::SIGILS).map(|(id, _, _)| Id::from(id))
     }
 }
 
@@ -329,16 +338,19 @@ fn separator_sigil_present(chars: &mut Chars<'_>) -> bool {
 mod private {
     use super::super::MentionType;
     use crate::timestamp::Timestamp;
-    use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
+    use twilight_model::id::{
+        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
+        Id,
+    };
 
     pub trait Sealed {}
 
-    impl Sealed for ChannelId {}
-    impl Sealed for EmojiId {}
+    impl Sealed for Id<ChannelMarker> {}
+    impl Sealed for Id<EmojiMarker> {}
     impl Sealed for MentionType {}
-    impl Sealed for RoleId {}
+    impl Sealed for Id<RoleMarker> {}
     impl Sealed for Timestamp {}
-    impl Sealed for UserId {}
+    impl Sealed for Id<UserMarker> {}
 }
 
 #[cfg(test)]
@@ -353,69 +365,69 @@ mod tests {
         timestamp::{Timestamp, TimestampStyle},
     };
     use static_assertions::assert_impl_all;
-    use twilight_model::id::{ChannelId, EmojiId, RoleId, UserId};
+    use twilight_model::id::{
+        marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
+        Id,
+    };
 
-    assert_impl_all!(ChannelId: ParseMention, Sealed);
-    assert_impl_all!(EmojiId: ParseMention, Sealed);
+    assert_impl_all!(Id<ChannelMarker>: ParseMention, Sealed);
+    assert_impl_all!(Id<EmojiMarker>: ParseMention, Sealed);
     assert_impl_all!(MentionType: ParseMention, Sealed);
-    assert_impl_all!(RoleId: ParseMention, Sealed);
-    assert_impl_all!(UserId: ParseMention, Sealed);
+    assert_impl_all!(Id<RoleMarker>: ParseMention, Sealed);
+    assert_impl_all!(Id<UserMarker>: ParseMention, Sealed);
 
     #[test]
     fn test_sigils() {
-        assert_eq!(&["#"], ChannelId::SIGILS);
-        assert_eq!(&[":"], EmojiId::SIGILS);
+        assert_eq!(&["#"], Id::<ChannelMarker>::SIGILS);
+        assert_eq!(&[":"], Id::<EmojiMarker>::SIGILS);
         assert_eq!(&["#", ":", "@&", "@!", "@", "t:"], MentionType::SIGILS);
-        assert_eq!(&["@&"], RoleId::SIGILS);
-        assert_eq!(&["@!", "@"], UserId::SIGILS);
+        assert_eq!(&["@&"], Id::<RoleMarker>::SIGILS);
+        assert_eq!(&["@!", "@"], Id::<UserMarker>::SIGILS);
     }
 
     #[test]
     fn test_parse_channel_id() {
-        assert_eq!(
-            ChannelId::new(123).expect("non zero"),
-            ChannelId::parse("<#123>").unwrap()
-        );
+        assert_eq!(Id::<ChannelMarker>::new(123), Id::parse("<#123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &["#"],
                 found: Some('@'),
             },
-            ChannelId::parse("<@123>").unwrap_err().kind(),
+            Id::<ChannelMarker>::parse("<@123>").unwrap_err().kind(),
         );
     }
 
     #[test]
     fn test_parse_emoji_id() {
         assert_eq!(
-            EmojiId::new(123).expect("non zero"),
-            EmojiId::parse("<:name:123>").unwrap()
+            Id::<EmojiMarker>::new(123),
+            Id::parse("<:name:123>").unwrap()
         );
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &[":"],
                 found: Some('@'),
             },
-            EmojiId::parse("<@123>").unwrap_err().kind(),
+            Id::<EmojiMarker>::parse("<@123>").unwrap_err().kind(),
         );
     }
 
     #[test]
     fn test_parse_mention_type() {
         assert_eq!(
-            MentionType::Channel(ChannelId::new(123).expect("non zero")),
+            MentionType::Channel(Id::new(123)),
             MentionType::parse("<#123>").unwrap()
         );
         assert_eq!(
-            MentionType::Emoji(EmojiId::new(123).expect("non zero")),
+            MentionType::Emoji(Id::new(123)),
             MentionType::parse("<:name:123>").unwrap()
         );
         assert_eq!(
-            MentionType::Role(RoleId::new(123).expect("non zero")),
+            MentionType::Role(Id::new(123)),
             MentionType::parse("<@&123>").unwrap()
         );
         assert_eq!(
-            MentionType::User(UserId::new(123).expect("non zero")),
+            MentionType::User(Id::new(123)),
             MentionType::parse("<@123>").unwrap()
         );
         assert_eq!(
@@ -429,16 +441,13 @@ mod tests {
 
     #[test]
     fn test_parse_role_id() {
-        assert_eq!(
-            RoleId::new(123).expect("non zero"),
-            RoleId::parse("<@&123>").unwrap()
-        );
+        assert_eq!(Id::<RoleMarker>::new(123), Id::parse("<@&123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &["@&"],
                 found: Some('@'),
             },
-            RoleId::parse("<@123>").unwrap_err().kind(),
+            Id::<RoleMarker>::parse("<@123>").unwrap_err().kind(),
         );
     }
 
@@ -459,13 +468,10 @@ mod tests {
 
     #[test]
     fn test_parse_user_id() {
-        assert_eq!(
-            UserId::new(123).expect("non zero"),
-            UserId::parse("<@123>").unwrap()
-        );
+        assert_eq!(Id::<UserMarker>::new(123), Id::parse("<@123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::IdNotU64 { found: "&123" },
-            UserId::parse("<@&123>").unwrap_err().kind(),
+            Id::<UserMarker>::parse("<@&123>").unwrap_err().kind(),
         );
     }
 

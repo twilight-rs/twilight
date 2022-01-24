@@ -2,6 +2,17 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.9.0] - 2022-01-22
+
+### Changes
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+
 ## [0.8.0] - 2021-12-03
 
 ### Changes
@@ -154,6 +165,7 @@ Initial release.
 [@itohatweb]: https://github.com/itohatweb
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.9.0
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.8.0
 [0.7.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.7.1
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.7.0
