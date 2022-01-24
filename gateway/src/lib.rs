@@ -88,8 +88,8 @@
 //!
 //! zlib compression is enabled with one of the two `zlib` features described below.
 //!
-//! There are 2 zlib features `zlib-stock` and `zlib-simd` for the library to work
-//! one of them has to be enabled. If both are enabled it will use `zlib-stock`
+//! There are 2 zlib features `zlib-stock` and `zlib-simd`, if both are enabled it
+//! will use `zlib-stock`.
 //!
 //! `zlib-stock` is enabled by default.
 //!
