@@ -44,12 +44,13 @@ pub struct ClusterBuilder(ClusterConfig, ShardBuilder);
 
 impl ClusterBuilder {
     /// Create a new builder to construct and configure a cluster.
-    pub fn new(token: impl Into<String>, intents: Intents) -> Self {
+    pub fn new(token: String, intents: Intents) -> Self {
         Self(
             ClusterConfig {
-                shard_scheme: ShardScheme::Auto,
                 queue: Arc::new(LocalQueue::new()),
                 resume_sessions: HashMap::new(),
+                shard_presence: None,
+                shard_scheme: ShardScheme::Auto,
             },
             ShardBuilder::new(token, intents),
         )
@@ -184,6 +185,22 @@ impl ClusterBuilder {
         self
     }
 
+    /// Set specific shard presences to use when identifying with the gateway.
+    ///
+    /// Accepts a closure. The closure accepts a [`u64`] and returns an
+    /// [`Option<UpdatePresencePayload>`]. This presence will override any set
+    /// by [`presence`], even if the provided closure returns [`None`].
+    ///
+    /// [`presence`]: Self::presence
+    pub fn shard_presence<F>(mut self, shard_presence: F) -> Self
+    where
+        F: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + 'static,
+    {
+        self.0.shard_presence = Some(Box::new(shard_presence));
+
+        self
+    }
+
     /// Set the scheme to use for shard managing.
     ///
     /// For example, [`ShardScheme::Auto`] means that the cluster will
@@ -249,8 +266,8 @@ impl ClusterBuilder {
     }
 }
 
-impl<T: Into<String>> From<(T, Intents)> for ClusterBuilder {
-    fn from((token, intents): (T, Intents)) -> Self {
+impl From<(String, Intents)> for ClusterBuilder {
+    fn from((token, intents): (String, Intents)) -> Self {
         Self::new(token, intents)
     }
 }

@@ -2,6 +2,42 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.9.0] - 2022-01-22
+
+### Additions
+
+Add `Information::{ratelimit_refill, ratelimit_requests}` to view how much time
+until the shard ratelimiter resets and how many requests until the next refill
+([#1368] - [@itohatweb])
+
+Add `ClusterBuilder::shard_presence`, which allows setting a custom presence
+based on a shard's ID ([#1474] - [@7596ff]).
+
+### Changes
+
+The `rustls` feature has been removed ([#1314] - [@Gelbpunkt]). Users must
+manually select one of `rustls-native-roots` or `rustls-webpki-roots`.
+
+`{CommandErrorType, SendErrorType}::ExecutorShutDown` have been removed, since
+they are no longer possible ([#1368] - [@itohatweb]).
+
+No longer derive `Deserialize` and `Serialize` on `Information` ([#1368] -
+[@itohatweb]).
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+Constructors that used to take `impl Into<String>` now simply accept a `String`
+([#1481] - [@vilgotf]).
+
+[#1314]: https://github.com/twilight-rs/twilight/pull/1314
+[#1368]: https://github.com/twilight-rs/twilight/pull/1368
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+[#1474]: https://github.com/twilight-rs/twilight/pull/1474
+[#1481]: https://github.com/twilight-rs/twilight/pull/1481
+
 ## [0.8.5] - 2022-01-21
 
 This release contains internal refactors ([#1335] - [@vilgotf]). There are no
@@ -684,6 +720,7 @@ Initial release.
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@itohatweb]: https://github.com/itohatweb
 [@james7132]: https://github.com/james7132
 [@kotx]: https://github.com/kotx
 [@nickelc]: https://github.com/nickelc
@@ -710,6 +747,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.0
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.3

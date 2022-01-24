@@ -13,20 +13,23 @@ publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.57"
-version = "0.8.2"
+version = "0.9.0"
 
 [dependencies]
 twilight-model = { default-features = false, optional = true, path = "../model" }
 
 [dev-dependencies]
+chrono = { default-features = false, features = ["std"], version = "0.4" }
 static_assertions = { default-features = false, version = "1" }
+time = { default-features = false, features = ["formatting"], version = "0.3" }
 
 [features]
 default = []
 builder = ["twilight-model"]
 link = ["twilight-model"]
 permission-calculator = ["twilight-model"]
-full = ["builder", "link", "permission-calculator"]
+snowflake = ["twilight-model"]
+full = ["builder", "link", "permission-calculator", "snowflake"]
 
 [package.metadata.docs.rs]
 all-features = true

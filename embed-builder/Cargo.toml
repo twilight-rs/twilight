@@ -13,7 +13,7 @@ publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.57"
-version = "0.8.0"
+version = "0.9.0"
 
 [dependencies]
 twilight-model = { default-features = false, path = "../model" }

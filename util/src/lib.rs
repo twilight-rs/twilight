@@ -22,3 +22,6 @@ pub mod link;
 
 #[cfg(feature = "permission-calculator")]
 pub mod permission_calculator;
+
+#[cfg(feature = "snowflake")]
+pub mod snowflake;

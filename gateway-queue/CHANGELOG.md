@@ -2,6 +2,21 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.9.0] - 2022-01-22
+
+### Changes
+
+The `rustls` feature has been removed ([#1314] - [@Gelbpunkt]). Users must
+manually select one of `rustls-native-roots` or `rustls-webpki-roots`.
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+[#1314]: https://github.com/twilight-rs/twilight/pull/1314
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+
 ## [0.8.1] - 2022-01-21
 
 ### Changes
@@ -102,6 +117,7 @@ Initial release.
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.9.0
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.7.0

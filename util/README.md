@@ -21,6 +21,11 @@ webhook URLs.
 Allows the use of a calculator to determine the permissions of a member in
 a guild or channel.
 
+### `snowflake`
+
+Allows the use of the `Snowflake` trait, which provides methods for the extraction of
+structured information from [Discord snowflakes].
+
 [`twilight-rs`]: https://github.com/twilight-rs/twilight
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
