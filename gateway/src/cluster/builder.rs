@@ -3,10 +3,15 @@ use super::{
     event::Events,
     r#impl::{Cluster, ClusterStartError},
     scheme::ShardScheme,
-    ClusterStartErrorType,
 };
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use crate::shard::tls::TlsContainer;
 use crate::{
-    shard::{tls::TlsContainer, LargeThresholdError, ResumeSession, ShardBuilder},
+    shard::{LargeThresholdError, ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
 use std::{collections::HashMap, sync::Arc};
@@ -65,12 +70,19 @@ impl ClusterBuilder {
     ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
-        let tls = TlsContainer::new().map_err(|err| ClusterStartError {
-            kind: ClusterStartErrorType::Tls,
-            source: Some(Box::new(err)),
-        })?;
+        #[cfg(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        ))]
+        {
+            let tls = TlsContainer::new().map_err(|err| ClusterStartError {
+                kind: super::ClusterStartErrorType::Tls,
+                source: Some(Box::new(err)),
+            })?;
 
-        (self.1).0.tls = Some(tls);
+            (self.1).0.tls = Some(tls);
+        }
 
         if (self.1).0.gateway_url.is_none() {
             let maybe_response = (self.1).0.http_client.gateway().authed().exec().await;

@@ -1,4 +1,4 @@
-use super::{config::Config, Events, Shard};
+use super::{Config, Events, Shard};
 use crate::EventTypeFlags;
 use std::{
     error::Error,
@@ -185,6 +185,11 @@ impl ShardBuilder {
             token: token.into_boxed_str(),
             session_id: None,
             sequence: None,
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
             tls: None,
             ratelimit_payloads: true,
         })

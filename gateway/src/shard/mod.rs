@@ -30,6 +30,11 @@ mod event;
 mod r#impl;
 mod json;
 mod processor;
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 pub(crate) mod tls;
 
 pub use self::{
