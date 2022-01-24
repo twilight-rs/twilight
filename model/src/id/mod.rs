@@ -168,6 +168,24 @@ impl<T> Id<T> {
         self.value.get()
     }
 
+    /// Return the inner value directly as a [`NonZeroU64`].
+    ///
+    /// # Examples
+    ///
+    /// Crate an ID with a value and then confirmt its inner value:
+    ///
+    /// ```
+    /// use std::num::NonZeroU64;
+    /// use twilight_model::id::{marker::ChannelMarker, Id};
+    ///
+    /// let channel_id = Id::<ChannelMarker>::new(7);
+    ///
+    /// assert_eq!(NonZeroU64::new(7).unwrap(), channel_id.get_nonzero());
+    /// ```
+    pub const fn get_nonzero(self) -> NonZeroU64 {
+        self.value
+    }
+
     /// Cast an ID from one type to another.
     ///
     /// # Examples
@@ -278,6 +296,18 @@ impl<T> FromStr for Id<T> {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         NonZeroU64::from_str(s).map(Self::from_nonzero)
+    }
+}
+
+impl<T> From<Id<T>> for u64 {
+    fn from(id: Id<T>) -> Self {
+        id.get()
+    }
+}
+
+impl<T> From<Id<T>> for NonZeroU64 {
+    fn from(id: Id<T>) -> Self {
+        id.get_nonzero()
     }
 }
 
