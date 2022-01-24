@@ -30,3 +30,7 @@ default = ["rustls-native-roots", "tracing"]
 native = ["twilight-http/native"]
 rustls-native-roots = ["twilight-http/rustls-native-roots"]
 rustls-webpki-roots = ["twilight-http/rustls-webpki-roots"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -42,6 +42,7 @@
 //!
 //! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(unsafe_code)]
 
 #[cfg(feature = "twilight-http")]
