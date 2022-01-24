@@ -214,11 +214,6 @@ pub struct Client {
     /// [`ClientBuilder::remember_invalid_token`].
     token_invalidated: Option<Arc<AtomicBool>>,
     token: Option<Box<str>>,
-    #[cfg(any(
-        feature = "native",
-        feature = "rustls-native-roots",
-        feature = "rustls-webpki-roots"
-    ))]
     use_http: bool,
 }
 
@@ -2394,26 +2389,7 @@ impl Client {
             use_authorization_token,
         } = request;
 
-        let protocol;
-
-        #[cfg(any(
-            feature = "native",
-            feature = "rustls-native-roots",
-            feature = "rustls-webpki-roots"
-        ))]
-        {
-            protocol = if self.use_http { "http" } else { "https" };
-        }
-
-        #[cfg(not(any(
-            feature = "native",
-            feature = "rustls-native-roots",
-            feature = "rustls-webpki-roots"
-        )))]
-        {
-            protocol = "http";
-        }
-
+        let protocol = if self.use_http { "http" } else { "https" };
         let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
