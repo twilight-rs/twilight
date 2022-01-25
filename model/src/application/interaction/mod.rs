@@ -30,9 +30,9 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// Payload received when a user executes an interaction.
 ///
 /// Each variant corresponds to `InteractionType` in the Discord Docs. See
-/// [the Discord Docs/Interaction Object].
+/// [Discord Docs/Interaction Object].
 ///
-/// [the Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
+/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 #[non_exhaustive]

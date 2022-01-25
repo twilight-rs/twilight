@@ -9,7 +9,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Clickable interactive components that render on messages.
 ///
-/// Refer to [Discord Docs/Message Components] for additional information.
+/// See [Discord Docs/Message Components].
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#button-object-button-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]

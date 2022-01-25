@@ -13,10 +13,9 @@ pub struct CurrentUser {
     pub accent_color: Option<u64>,
     /// User's avatar hash.
     ///
-    /// To retrieve the url to the avatar, you can follow [Discord's documentation] on
-    /// Image formatting.
+    /// To retrieve the url to the avatar, see [Discord Docs/Image Formatting].
     ///
-    /// [Discord's documentation]: https://discord.com/developers/docs/reference#image-formatting
+    /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     pub avatar: Option<ImageHash>,
     /// Hash of the user's banner image.
     pub banner: Option<ImageHash>,

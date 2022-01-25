@@ -21,9 +21,9 @@ struct DeleteMessagesFields<'a> {
 /// The number of message IDs must be between 2 and 100. If the supplied message
 /// IDs are invalid, they still count towards the lower and upper limits. This
 /// method will not delete messages older than two weeks. See
-/// [the Discord Docs/Bulk Delete Messages].
+/// [Discord Docs/Bulk Delete Messages].
 ///
-/// [the Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
+/// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteMessages<'a> {
     channel_id: Id<ChannelMarker>,

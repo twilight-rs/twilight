@@ -18,10 +18,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 /// Data received when an [`ApplicationCommand`] interaction is executed.
 ///
-/// See [the Discord Docs/Interaction Object].
+/// See [Discord Docs/Interaction Object].
 ///
 /// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
-/// [the Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
+/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the command.
@@ -38,9 +38,9 @@ pub struct CommandData {
 
 /// Data received when a user fills in a command option.
 ///
-/// See [the Discord Docs/Application Command Object].
+/// See [Discord Docs/Application Command Object].
 ///
-/// [the Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
+/// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandDataOption {
     /// [`true`] if this autocomplete option is currently highlighted.

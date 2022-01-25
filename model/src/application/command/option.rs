@@ -531,9 +531,9 @@ pub struct NumberCommandOptionData {
 
 /// Specifies an option that a user must choose from in a dropdown.
 ///
-/// See [the Discord Docs/Application Command Object].
+/// See [Discord Docs/Application Command Object].
 ///
-/// [the Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-choice-structure
+/// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-choice-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoice {
@@ -544,9 +544,9 @@ pub enum CommandOptionChoice {
 
 /// Type used in `max_value` and `min_value` command option field.
 ///
-/// See [the Discord Docs/Application Command Object].
+/// See [Discord Docs/Application Command Object].
 ///
-/// [the Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
+/// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionValue {

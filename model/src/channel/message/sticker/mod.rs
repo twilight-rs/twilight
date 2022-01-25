@@ -1,6 +1,6 @@
 //! Message stickers.
 //!
-//! See the [Discord Docs/Sticker Object] for more information.
+//! See the [Discord Docs/Sticker Object].
 //!
 //! [Discord Docs/Sticker Object]: https://discord.com/developers/docs/resources/sticker#sticker-object-sticker-structure
 

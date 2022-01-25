@@ -15,9 +15,10 @@ use twilight_validate::command::{name as validate_name, CommandValidationError};
 /// Create a new user global command.
 ///
 /// Creating a command with the same name as an already-existing global command
-/// will overwrite the old command. See [the Discord Docs/Create Global Application Command].
+/// will overwrite the old command. See
+/// [Discord Docs/Create Global Application Command].
 ///
-/// [the Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+/// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalUserCommand<'a> {
     application_id: Id<ApplicationMarker>,

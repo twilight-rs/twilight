@@ -22,10 +22,10 @@ use twilight_validate::command::{
 ///
 /// The description must be between 1 and 100 characters in length. Creating a
 /// guild command with the same name as an already-existing guild command in the
-/// same guild will overwrite the old command. See [the Discord Docs/Create Global Application Command] for more
-/// information.
+/// same guild will overwrite the old command. See
+/// [Discord Docs/Create Global Application Command].
 ///
-/// [the Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
+/// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChatInputCommand<'a> {
     application_id: Id<ApplicationMarker>,

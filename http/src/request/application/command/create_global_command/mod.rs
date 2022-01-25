@@ -33,8 +33,8 @@ impl<'a> CreateGlobalCommand<'a> {
     /// allowed. The description must be between 1 and 100 characters in length.
     ///
     /// Creating a command with the same name as an already-existing global
-    /// command will overwrite the old command. See [the discord docs] for more
-    /// information.
+    /// command will overwrite the old command. See
+    /// [Discord Docs/Create Global Application Command].
     ///
     /// # Errors
     ///
@@ -44,10 +44,10 @@ impl<'a> CreateGlobalCommand<'a> {
     /// Returns an error of type [`DescriptionInvalid`] if the
     /// command description is not between 1 and 100 characters.
     ///
-    /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
-    /// [`NameCharacterInvalid`]: twilight_validate::command::CommandValidationErrorType::NameCharacterInvalid
     /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+    /// [`NameCharacterInvalid`]: twilight_validate::command::CommandValidationErrorType::NameCharacterInvalid
+    /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
+    /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn chat_input(
         self,
         name: &'a str,
@@ -59,8 +59,8 @@ impl<'a> CreateGlobalCommand<'a> {
     /// Create a new message global command.
     ///
     /// Creating a command with the same name as an already-existing global
-    /// command will overwrite the old command. See [the Discord Docs/Create Global Application Command] for more
-    /// information.
+    /// command will overwrite the old command. See
+    /// [Discord Docs/Create Global Application Command].
     ///
     /// # Errors
     ///
@@ -68,7 +68,7 @@ impl<'a> CreateGlobalCommand<'a> {
     /// not between 1 and 32 characters.
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+    /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn message(
         self,
         name: &'a str,
@@ -79,8 +79,8 @@ impl<'a> CreateGlobalCommand<'a> {
     /// Create a new user global command.
     ///
     /// Creating a command with the same name as an already-existing global
-    /// command will overwrite the old command. See [the Discord Docs/Create Global Application Command] for more
-    /// information.
+    /// command will overwrite the old command. See
+    /// [Discord Docs/Create Global Application Command].
     ///
     /// # Errors
     ///
@@ -88,7 +88,7 @@ impl<'a> CreateGlobalCommand<'a> {
     /// not between 1 and 32 characters.
     ///
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
+    /// [Discord Docs/Create Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
     pub fn user(
         self,
         name: &'a str,

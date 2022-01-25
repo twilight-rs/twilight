@@ -17,9 +17,9 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 /// Payload used for responding to an interaction.
 ///
-/// See [the Discord Docs/Interaction Object].
+/// See [Discord Docs/Interaction Object].
 ///
-/// [the Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
+/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum InteractionResponse {
     /// Used when responding to an interaction of type Ping.

@@ -679,11 +679,11 @@ impl Client {
 
     /// Create an emoji in a guild.
     ///
-    /// The emoji must be a Data URI, in the form of `data:image/{type};base64,{data}` where
-    /// `{type}` is the image MIME type and `{data}` is the base64-encoded image. See [the
-    /// Discord Docs/Image Data].
+    /// The emoji must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
-    /// [the Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn create_emoji<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
@@ -776,9 +776,9 @@ impl Client {
 
     /// Update a guild.
     ///
-    /// All endpoints are optional. See [the Discord Docs/Modify Guild].
+    /// All endpoints are optional. See [Discord Docs/Modify Guild].
     ///
-    /// [the Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
+    /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn update_guild(&self, guild_id: Id<GuildMarker>) -> UpdateGuild<'_> {
         UpdateGuild::new(self, guild_id)
     }
@@ -836,9 +836,9 @@ impl Client {
 
     /// Get the guild widget.
     ///
-    /// See [the Discord Docs/Get Guild Widget].
+    /// See [Discord Docs/Get Guild Widget].
     ///
-    /// [the Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
+    /// [Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
     pub const fn guild_widget(&self, guild_id: Id<GuildMarker>) -> GetGuildWidget<'_> {
         GetGuildWidget::new(self, guild_id)
     }
@@ -955,8 +955,7 @@ impl Client {
     /// Add a user to a guild.
     ///
     /// An access token for the user with `guilds.join` scope is required. All
-    /// other fields are optional. Refer to [the Discord Docs/Add Guild Member] for more
-    /// information.
+    /// other fields are optional. See [Discord Docs/Add Guild Member].
     ///
     /// # Errors
     ///
@@ -964,7 +963,7 @@ impl Client {
     /// nickname is too short or too long.
     ///
     /// [`ValidationErrorType::Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
-    /// [the Discord Docs/Add Guild Member]: https://discord.com/developers/docs/resources/guild#add-guild-member
+    /// [Discord Docs/Add Guild Member]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub const fn add_guild_member<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
@@ -985,7 +984,7 @@ impl Client {
 
     /// Update a guild member.
     ///
-    /// All fields are optional. See [the Discord Docs/Modify Guild Member].
+    /// All fields are optional. See [Discord Docs/Modify Guild Member].
     ///
     /// # Examples
     ///
@@ -1016,7 +1015,7 @@ impl Client {
     /// nickname length is too short or too long.
     ///
     /// [`ValidationErrorType::Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
-    /// [the Discord Docs/Modify Guild Member]: https://discord.com/developers/docs/resources/guild#modify-guild-member
+    /// [Discord Docs/Modify Guild Member]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub const fn update_guild_member(
         &self,
         guild_id: Id<GuildMarker>,
@@ -1090,9 +1089,9 @@ impl Client {
 
     /// Begin a guild prune.
     ///
-    /// See [the Discord Docs/Begin Guild Prune].
+    /// See [Discord Docs/Begin Guild Prune].
     ///
-    /// [the Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
+    /// [Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
     pub const fn create_guild_prune(&self, guild_id: Id<GuildMarker>) -> CreateGuildPrune<'_> {
         CreateGuildPrune::new(self, guild_id)
     }
@@ -1261,11 +1260,12 @@ impl Client {
 
     /// Delete messages by [`Id<ChannelMarker>`] and Vec<[`Id<MessageMarker>`]>.
     ///
-    /// The vec count can be between 2 and 100. If the supplied [`Id<MessageMarker>`]s are invalid, they
-    /// still count towards the lower and upper limits. This method will not delete messages older
-    /// than two weeks. See [the Discord Docs/Bulk Delete Messages].
+    /// The vec count can be between 2 and 100. If the supplied
+    /// [`Id<MessageMarker>`]s are invalid, they still count towards the lower
+    /// and upper limits. This method will not delete messages older than two
+    /// weeks. See [Discord Docs/Bulk Delete Messages].
     ///
-    /// [the Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
+    /// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub const fn delete_messages<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
@@ -2010,8 +2010,7 @@ impl Client {
     ///
     /// Once a guild is selected, you must choose one of three event types to
     /// create. The request builders will ensure you provide the correct data to
-    /// Discord. See [the Discord docs] for more information on which events
-    /// require which fields.
+    /// Discord. See [Discord Docs/Create Guild Scheduled Event].
     ///
     /// The name must be between 1 and 100 characters in length. For external
     /// events, the location must be between 1 and 100 characters in length.
@@ -2070,7 +2069,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
+    /// [Discord Docs/Create Guild Scheduled Event]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
     pub const fn create_guild_scheduled_event(
         &self,
         guild_id: Id<GuildMarker>,
@@ -2091,13 +2090,13 @@ impl Client {
     ///
     /// Users are returned in ascending order by `user_id`. [`before`] and
     /// [`after`] both take a user id. If both are specified, only [`before`] is
-    /// respected. The default [`limit`] is 100. See [the Discord docs] for more
-    /// information.
+    /// respected. The default [`limit`] is 100. See
+    /// [Discord Docs/Get Guild Scheduled Event Users].
     ///
     /// [`after`]: GetGuildScheduledEventUsers::after
     /// [`before`]: GetGuildScheduledEventUsers::before
     /// [`limit`]: GetGuildScheduledEventUsers::limit
-    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
+    /// [Discord Docs/Get Guild Scheduled Event Users]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
     pub const fn guild_scheduled_event_users(
         &self,
         guild_id: Id<GuildMarker>,
