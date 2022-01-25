@@ -337,11 +337,7 @@ impl<T> PartialOrd for Id<T> {
 
 impl<T> Serialize for Id<T> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        // Avoid requiring a Copy trait bound by simply reconstructing self.
-        let copy = Self::from_nonzero(self.value);
-        let formatter = IdStringDisplay::new(copy);
-
-        serializer.serialize_newtype_struct("Id", &formatter)
+        serializer.serialize_newtype_struct("Id", &self.to_string())
     }
 }
 
@@ -366,31 +362,6 @@ impl<T> TryFrom<u64> for Id<T> {
     }
 }
 
-/// Display implementation to format an ID as a string.
-#[derive(Debug)]
-struct IdStringDisplay<T> {
-    inner: Id<T>,
-}
-
-impl<T> IdStringDisplay<T> {
-    /// Create a new formatter.
-    const fn new(id: Id<T>) -> Self {
-        Self { inner: id }
-    }
-}
-
-impl<T> Display for IdStringDisplay<T> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(&self.inner.value, f)
-    }
-}
-
-impl<T> Serialize for IdStringDisplay<T> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.collect_str(self)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
@@ -399,7 +370,7 @@ mod tests {
             CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
             InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
         },
-        Id, IdStringDisplay,
+        Id,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -434,7 +405,6 @@ mod tests {
         FromStr, Hash, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
         TryFrom<i64>, TryFrom<u64>
     );
-    assert_impl_all!(IdStringDisplay<GenericMarker>: Debug, Display, Send, Serialize, Sync);
 
     /// Test that various methods of initializing IDs are correct, such as via
     /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
