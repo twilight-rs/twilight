@@ -128,6 +128,12 @@ impl InMemoryCache {
 
 impl UpdateCache for MemberAdd {
     fn update(&self, cache: &InMemoryCache) {
+        if cache.wants(ResourceType::GUILD) {
+            if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
+                guild.member_count = guild.member_count.map(|count| count + 1);
+            }
+        }
+
         if !cache.wants(ResourceType::MEMBER) {
             return;
         }
@@ -160,6 +166,12 @@ impl UpdateCache for MemberChunk {
 
 impl UpdateCache for MemberRemove {
     fn update(&self, cache: &InMemoryCache) {
+        if cache.wants(ResourceType::GUILD) {
+            if let Some(mut guild) = cache.guilds.get_mut(&self.guild_id) {
+                guild.member_count = guild.member_count.map(|count| count - 1);
+            }
+        }
+
         if !cache.wants(ResourceType::MEMBER) {
             return;
         }

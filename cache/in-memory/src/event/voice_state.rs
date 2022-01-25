@@ -1,4 +1,4 @@
-use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use crate::{config::ResourceType, model::CachedVoiceState, InMemoryCache, UpdateCache};
 use twilight_model::{gateway::payload::incoming::VoiceStateUpdate, voice::VoiceState};
 
 impl InMemoryCache {
@@ -19,7 +19,7 @@ impl InMemoryCache {
 
         // Check if the user is switching channels in the same guild (ie. they already have a voice state entry)
         if let Some(voice_state) = self.voice_states.get(&(guild_id, user_id)) {
-            if let Some(channel_id) = voice_state.channel_id {
+            if let Some(channel_id) = voice_state.channel_id() {
                 let remove_channel_mapping = self
                     .voice_state_channels
                     .get_mut(&channel_id)
@@ -60,7 +60,8 @@ impl InMemoryCache {
         }
 
         let maybe_channel_id = voice_state.channel_id;
-        self.voice_states.insert((guild_id, user_id), voice_state);
+        self.voice_states
+            .insert((guild_id, user_id), CachedVoiceState::from(voice_state));
 
         self.voice_state_guilds
             .entry(guild_id)
@@ -98,7 +99,10 @@ mod tests {
     use crate::test;
     use twilight_model::{
         datetime::Timestamp,
-        id::{marker::ChannelMarker, Id},
+        id::{
+            marker::{ChannelMarker, GuildMarker, UserMarker},
+            Id,
+        },
         util::{image_hash::ImageHashParseError, ImageHash},
     };
 
@@ -347,5 +351,22 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    /// Assert that the a cached variant of the voice state is correctly
+    /// inserted.
+    #[test]
+    fn test_uses_cached_variant() {
+        const CHANNEL_ID: Id<ChannelMarker> = Id::new(2);
+        const GUILD_ID: Id<GuildMarker> = Id::new(1);
+        const USER_ID: Id<UserMarker> = Id::new(3);
+
+        let cache = InMemoryCache::new();
+        let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
+        cache.update(&VoiceStateUpdate(voice_state.clone()));
+
+        let cached = CachedVoiceState::from(voice_state);
+        let in_cache = cache.voice_state(USER_ID, GUILD_ID).unwrap();
+        assert_eq!(in_cache.value(), &cached);
     }
 }

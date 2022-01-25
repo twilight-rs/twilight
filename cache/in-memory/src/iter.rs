@@ -13,7 +13,10 @@
 //! dereferences to the value.
 
 use crate::{
-    model::{CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence, CachedSticker},
+    model::{
+        CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence, CachedSticker,
+        CachedVoiceState,
+    },
     GuildResource, InMemoryCache,
 };
 use dashmap::{
@@ -32,7 +35,6 @@ use twilight_model::{
         Id,
     },
     user::User,
-    voice::VoiceState,
 };
 
 /// Reference to a resource value being iterated over in the cache.
@@ -220,7 +222,9 @@ impl<'a> InMemoryCacheIter<'a> {
     }
 
     /// Create an iterator over the voice states in the cache.
-    pub fn voice_states(&self) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), VoiceState> {
+    pub fn voice_states(
+        &self,
+    ) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState> {
         ResourceIter::new(self.0.voice_states.iter())
     }
 }
