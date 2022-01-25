@@ -213,7 +213,7 @@ impl Client {
 
     /// Create a new builder to create a client.
     ///
-    /// See [`ClientBuilder`].
+    /// Refer to its documentation for more information.
     pub fn builder() -> ClientBuilder {
         ClientBuilder::new()
     }

@@ -254,8 +254,8 @@ enum ResponseFutureStage {
 /// Response futures can be canceled pre-flight via
 /// [`ResponseFuture::set_pre_flight`]. This allows you to cancel requests that
 /// are no longer necessary once they have been cleared by the ratelimit queue,
-/// which may be necessary in scenarios where requests are being spammed. See
-/// [`ResponseFuture::set_pre_flight`].
+/// which may be necessary in scenarios where requests are being spammed. Refer
+/// to its documentation for more information.
 ///
 /// # Errors
 ///

@@ -164,7 +164,7 @@ impl TicketSender {
 /// The notifier is to be used by the ratelimiter while the receiver is to be
 /// provided to the consumer.
 ///
-/// See [module-level].
+/// Refer to the [module-level] documentation for more information.
 ///
 /// [module-level]: self
 #[must_use]

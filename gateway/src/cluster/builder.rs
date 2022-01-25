@@ -178,7 +178,7 @@ impl ClusterBuilder {
 
     /// Set the presence to use when identifying with the gateway.
     ///
-    /// See [`ShardBuilder::presence`].
+    /// Refer to the shard's [`ShardBuilder::presence`] for more information.
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.1 = self.1.presence(presence);
 
@@ -241,7 +241,7 @@ impl ClusterBuilder {
     /// This is useful when you have a very large bot or when you have a more
     /// advanced setup with multiple processes connecting at the same time.
     ///
-    /// See [`queue`].
+    /// Refer to the [`queue`] module for more information.
     ///
     /// [`queue`]: crate::queue
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
