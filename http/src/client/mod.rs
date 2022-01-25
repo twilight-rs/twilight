@@ -218,7 +218,7 @@ pub struct Client {
 }
 
 impl Client {
-    /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
+    /// Create a new client with a token.
     pub fn new(token: String) -> Self {
         ClientBuilder::default().token(token).build()
     }
