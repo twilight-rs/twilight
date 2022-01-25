@@ -1,7 +1,10 @@
 use crate::{
     datetime::Timestamp,
     guild::member::{Member, OptionalMemberDeserializer},
-    id::{ChannelId, GuildId, UserId},
+    id::{
+        marker::{ChannelMarker, GuildMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -12,10 +15,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceState {
-    pub channel_id: Option<ChannelId>,
+    pub channel_id: Option<Id<ChannelMarker>>,
     pub deaf: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     pub mute: bool,
@@ -30,7 +33,7 @@ pub struct VoiceState {
     pub suppress: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
-    pub user_id: UserId,
+    pub user_id: Id<UserMarker>,
     /// When the user requested to speak.
     ///
     /// # serde
@@ -149,8 +152,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer =
-                        OptionalMemberDeserializer::new(GuildId::new(1).expect("non zero"));
+                    let deserializer = OptionalMemberDeserializer::new(Id::new(1));
 
                     member = map.next_value_seed(deserializer)?;
                 }
@@ -301,9 +303,10 @@ impl<'de> Deserialize<'de> for VoiceState {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, GuildId, Member, UserId, VoiceState};
+    use super::{Member, VoiceState};
     use crate::{
         datetime::{Timestamp, TimestampParseError},
+        id::Id,
         user::User,
     };
     use serde_test::Token;
@@ -312,9 +315,9 @@ mod tests {
     #[test]
     fn test_voice_state() {
         let value = VoiceState {
-            channel_id: Some(ChannelId::new(1).expect("non zero")),
+            channel_id: Some(Id::new(1)),
             deaf: false,
-            guild_id: Some(GuildId::new(2).expect("non zero")),
+            guild_id: Some(Id::new(2)),
             member: None,
             mute: true,
             self_deaf: false,
@@ -324,7 +327,7 @@ mod tests {
             session_id: "a".to_owned(),
             suppress: true,
             token: None,
-            user_id: UserId::new(3).expect("non zero"),
+            user_id: Id::new(3),
             request_to_speak_timestamp: None,
         };
 
@@ -337,13 +340,13 @@ mod tests {
                 },
                 Token::Str("channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("mute"),
                 Token::Bool(true),
@@ -360,7 +363,7 @@ mod tests {
                 Token::Str("suppress"),
                 Token::Bool(true),
                 Token::Str("user_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("request_to_speak_timestamp"),
                 Token::None,
@@ -377,14 +380,14 @@ mod tests {
         let request_to_speak_timestamp = Timestamp::from_str("2021-04-21T22:16:50.000000+00:00")?;
 
         let value = VoiceState {
-            channel_id: Some(ChannelId::new(1).expect("non zero")),
+            channel_id: Some(Id::new(1)),
             deaf: false,
-            guild_id: Some(GuildId::new(2).expect("non zero")),
+            guild_id: Some(Id::new(2)),
             member: Some(Member {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: GuildId::new(2).expect("non zero"),
+                guild_id: Id::new(2),
                 joined_at,
                 mute: true,
                 nick: Some("twilight".to_owned()),
@@ -399,7 +402,7 @@ mod tests {
                     discriminator: 1,
                     email: None,
                     flags: None,
-                    id: UserId::new(3).expect("non zero"),
+                    id: Id::new(3),
                     locale: None,
                     mfa_enabled: None,
                     name: "twilight".to_owned(),
@@ -417,7 +420,7 @@ mod tests {
             session_id: "a".to_owned(),
             suppress: true,
             token: Some("abc".to_owned()),
-            user_id: UserId::new(3).expect("non zero"),
+            user_id: Id::new(3),
             request_to_speak_timestamp: Some(request_to_speak_timestamp),
         };
 
@@ -430,13 +433,13 @@ mod tests {
                 },
                 Token::Str("channel_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("member"),
                 Token::Some,
@@ -449,7 +452,7 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("joined_at"),
                 Token::Str("2015-04-26T06:26:56.936000+00:00"),
@@ -482,7 +485,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("username"),
                 Token::Str("twilight"),
@@ -506,7 +509,7 @@ mod tests {
                 Token::Some,
                 Token::Str("abc"),
                 Token::Str("user_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("request_to_speak_timestamp"),
                 Token::Some,

@@ -5,7 +5,6 @@ use super::{
 use leaky_bucket_lite::LeakyBucket;
 use serde::ser::Serialize;
 use std::{
-    convert::{TryFrom, TryInto},
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     sync::{
@@ -66,9 +65,7 @@ pub enum SessionSendErrorType {
 
 #[derive(Debug)]
 pub struct Session {
-    // Needs to be Arc so it can be cloned in the `Drop` impl when spawned on
-    // the runtime.
-    pub heartbeater_handle: Arc<MutexSync<Option<JoinHandle<()>>>>,
+    pub heartbeater_handle: MutexSync<Option<JoinHandle<()>>>,
     pub heartbeats: Arc<Heartbeats>,
     pub heartbeat_interval: AtomicU64,
     pub id: MutexSync<Option<Box<str>>>,
@@ -81,7 +78,7 @@ pub struct Session {
 impl Session {
     pub fn new(tx: UnboundedSender<TungsteniteMessage>) -> Self {
         Self {
-            heartbeater_handle: Arc::new(MutexSync::new(None)),
+            heartbeater_handle: MutexSync::new(None),
             heartbeats: Arc::new(Heartbeats::default()),
             heartbeat_interval: AtomicU64::new(0),
             id: MutexSync::new(None),
@@ -137,7 +134,7 @@ impl Session {
             .store(new_heartbeat_interval, Ordering::Release);
 
         // Number of commands allotted to the user per reset period.
-        let commands_allotted = f64::from(available_commands_per_interval(new_heartbeat_interval));
+        let commands_allotted = u32::from(available_commands_per_interval(new_heartbeat_interval));
 
         // We can ignore an error if the ratelimiter has already been set.
         let _result = self.ratelimit.set(

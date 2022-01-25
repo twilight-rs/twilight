@@ -11,7 +11,6 @@
 
 use serde::{Deserialize, Serialize};
 use std::{
-    convert::TryFrom,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
@@ -139,7 +138,6 @@ mod tests {
     use super::Stage;
     use static_assertions::assert_impl_all;
     use std::{
-        convert::TryFrom,
         error::Error,
         fmt::{Debug, Display},
         hash::Hash,

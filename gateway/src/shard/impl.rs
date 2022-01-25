@@ -20,6 +20,7 @@ use std::{
 use tokio::{
     sync::{watch::Receiver as WatchReceiver, OnceCell},
     task::JoinHandle,
+    time::Instant,
 };
 use tokio_tungstenite::tungstenite::protocol::{
     frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame,
@@ -57,7 +58,6 @@ impl CommandError {
         let (kind, source) = error.into_parts();
 
         let new_kind = match kind {
-            SendErrorType::ExecutorShutDown => CommandErrorType::ExecutorShutDown,
             SendErrorType::HeartbeaterNotStarted => CommandErrorType::HeartbeaterNotStarted,
             SendErrorType::Sending => CommandErrorType::Sending,
             SendErrorType::SessionInactive => CommandErrorType::SessionInactive,
@@ -73,7 +73,6 @@ impl CommandError {
 impl Display for CommandError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            CommandErrorType::ExecutorShutDown => f.write_str("runtime executor has shut down"),
             CommandErrorType::HeartbeaterNotStarted => {
                 f.write_str("heartbeater task hasn't been started yet")
             }
@@ -98,8 +97,6 @@ impl Error for CommandError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum CommandErrorType {
-    /// The runtime executor shut down, causing the ratelimiting actor to stop.
-    ExecutorShutDown,
     /// Heartbeater task has not been started yet.
     HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
@@ -156,7 +153,6 @@ impl SendError {
 impl Display for SendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            SendErrorType::ExecutorShutDown { .. } => f.write_str("runtime executor has shut down"),
             SendErrorType::HeartbeaterNotStarted { .. } => {
                 f.write_str("heartbeater task hasn't been started yet")
             }
@@ -180,9 +176,6 @@ impl Error for SendError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum SendErrorType {
-    /// Runtime executor has been shutdown, causing the ratelimiting
-    /// actor to stop.
-    ExecutorShutDown,
     /// Heartbeater task has not been started yet.
     HeartbeaterNotStarted,
     /// Sending the payload over the WebSocket failed. This is indicative of a
@@ -270,10 +263,12 @@ pub enum ShardStartErrorType {
 
 /// Information about a shard, including its latency, current session sequence,
 /// and connection stage.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug)]
 pub struct Information {
     id: u64,
     latency: Latency,
+    ratelimit_refill: Instant,
+    ratelimit_requests: u32,
     session_id: Option<Box<str>>,
     seq: u64,
     stage: Stage,
@@ -291,6 +286,20 @@ impl Information {
     /// information for the 5 most recent heartbeats.
     pub const fn latency(&self) -> &Latency {
         &self.latency
+    }
+
+    /// When the ratelimiter will next refill the [`ratelimit_requests`].
+    ///
+    /// [`ratelimit_requests`]: Self::ratelimit_requests
+    pub const fn ratelimit_refill(&self) -> Instant {
+        self.ratelimit_refill
+    }
+
+    /// Number of requests remaining until the next [`ratelimit_refill`].
+    ///
+    /// [`ratelimit_refill`]: Self::ratelimit_refill
+    pub const fn ratelimit_requests(&self) -> u32 {
+        self.ratelimit_requests
     }
 
     /// Return an immutable reference to the session ID of the shard.
@@ -423,7 +432,7 @@ impl Shard {
     /// ```
     ///
     /// [`start`]: Self::start
-    pub fn new(token: impl Into<String>, intents: Intents) -> (Self, Events) {
+    pub fn new(token: String, intents: Intents) -> (Self, Events) {
         Self::builder(token, intents).build()
     }
 
@@ -446,7 +455,7 @@ impl Shard {
     /// Create a builder to configure and construct a shard.
     ///
     /// See [`ShardBuilder`].
-    pub fn builder(token: impl Into<String>, intents: Intents) -> ShardBuilder {
+    pub fn builder(token: String, intents: Intents) -> ShardBuilder {
         ShardBuilder::new(token, intents)
     }
 
@@ -533,7 +542,7 @@ impl Shard {
                     }
                 })?;
 
-        let handle = tokio::spawn(async move {
+        let handle = tokio::spawn(async {
             processor.run().await;
 
             #[cfg(feature = "tracing")]
@@ -556,9 +565,16 @@ impl Shard {
     pub fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
+        let (ratelimit_requests, ratelimit_refill) = match session.ratelimit.get() {
+            Some(limiter) => (limiter.tokens(), limiter.next_refill()),
+            None => return Err(SessionInactiveError),
+        };
+
         Ok(Information {
             id: self.config().shard()[0],
             latency: session.heartbeats.latency(),
+            ratelimit_refill,
+            ratelimit_requests,
             session_id: session.id(),
             seq: session.seq(),
             stage: session.stage(),
@@ -578,7 +594,7 @@ impl Shard {
     /// use twilight_gateway::{shard::Shard, Intents};
     /// use twilight_model::{
     ///     gateway::payload::outgoing::RequestGuildMembers,
-    ///     id::GuildId,
+    ///     id::Id,
     /// };
     ///
     /// let intents = Intents::GUILD_VOICE_STATES;
@@ -590,7 +606,7 @@ impl Shard {
     /// // Query members whose names start with "tw" and limit the results to
     /// // 10 members.
     /// let request =
-    ///     RequestGuildMembers::builder(GuildId::new(1).expect("non zero"))
+    ///     RequestGuildMembers::builder(Id::new(1))
     ///         .query("tw", Some(10));
     ///
     /// // Send the request over the shard.
@@ -664,13 +680,8 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns a [`SendErrorType::ExecutorShutDown`] error type if the async
-    /// executor executing the shard's tasks has been shutdown.
-    ///
     /// Returns a [`SendErrorType::HeartbeaterNotStarted`] error type if the
-    /// shard hasn't started the heartbeater. This is an implementation error
-    /// and shouldn't happen, but may also be indicative of
-    /// [`SendErrorType::ExecutorShutDown`].
+    /// shard hasn't started the heartbeater.
     ///
     /// Returns a [`SendErrorType::Sending`] error type if there is an issue
     /// with sending via the shard's session. This may occur when the shard is
@@ -687,13 +698,7 @@ impl Shard {
         })?;
 
         if let Some(ratelimiter) = session.ratelimit.get() {
-            ratelimiter
-                .acquire_one()
-                .await
-                .map_err(|source| SendError {
-                    kind: SendErrorType::ExecutorShutDown,
-                    source: Some(Box::new(source)),
-                })?;
+            ratelimiter.acquire_one().await;
         } else {
             return Err(SendError {
                 kind: SendErrorType::HeartbeaterNotStarted,
@@ -745,9 +750,10 @@ impl Shard {
 
         let shard_id = self.config().shard()[0];
 
-        let session = match self.session() {
-            Ok(session) => session,
-            Err(_) => return (shard_id, None),
+        let session = if let Ok(session) = self.session() {
+            session
+        } else {
+            return (shard_id, None);
         };
 
         let _res = session.close(Some(TungsteniteCloseFrame {

@@ -2,97 +2,24 @@ use super::ExecuteWebhookAndWait;
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{
-        validate_inner::{self, ComponentValidationError, ComponentValidationErrorType},
-        AttachmentFile, Form, PartialAttachment, Request,
-    },
+    request::{AttachmentFile, Form, PartialAttachment, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions},
-    id::{ChannelId, WebhookId},
+    id::{
+        marker::{ChannelMarker, WebhookMarker},
+        Id,
+    },
 };
-
-/// A webhook could not be executed.
-#[derive(Debug)]
-pub struct ExecuteWebhookError {
-    kind: ExecuteWebhookErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl ExecuteWebhookError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &ExecuteWebhookErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        ExecuteWebhookErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, self.source)
-    }
-}
-
-impl Display for ExecuteWebhookError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            ExecuteWebhookErrorType::ComponentCount { count } => {
-                Display::fmt(count, f)?;
-                f.write_str(" components were provided, but only ")?;
-                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
-
-                f.write_str(" root components are allowed")
-            }
-            ExecuteWebhookErrorType::ComponentInvalid { .. } => {
-                f.write_str("a provided component is invalid")
-            }
-        }
-    }
-}
-
-impl Error for ExecuteWebhookError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`ExecuteWebhookError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum ExecuteWebhookErrorType {
-    /// Too many message components were provided.
-    ComponentCount {
-        /// Number of components that were provided.
-        count: usize,
-    },
-    /// An invalid message component was provided.
-    ComponentInvalid {
-        /// Additional details about the validation failure type.
-        kind: ComponentValidationErrorType,
-    },
-}
+use twilight_validate::message::{
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    MessageValidationError,
+};
 
 #[derive(Serialize)]
 pub(crate) struct ExecuteWebhookFields<'a> {
@@ -124,16 +51,16 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::WebhookId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let id = WebhookId::new(432).expect("non zero");
+/// let id = Id::new(432);
 ///
 /// client
 ///     .execute_webhook(id, "webhook token")
-///     .content("Pinkie...")
+///     .content("Pinkie...")?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -147,13 +74,17 @@ pub struct ExecuteWebhook<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
     pub(crate) fields: ExecuteWebhookFields<'a>,
     pub(super) http: &'a Client,
-    thread_id: Option<ChannelId>,
+    thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
-    webhook_id: WebhookId,
+    webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> ExecuteWebhook<'a> {
-    pub(crate) const fn new(http: &'a Client, webhook_id: WebhookId, token: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        webhook_id: Id<WebhookMarker>,
+        token: &'a str,
+    ) -> Self {
         Self {
             fields: ExecuteWebhookFields {
                 attachments: Vec::new(),
@@ -194,26 +125,14 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`ExecuteWebhookErrorType::ComponentCount`] error
-    /// type if too many components are provided.
-    ///
-    /// Returns an [`ExecuteWebhookErrorType::ComponentInvalid`] error
-    /// type if one of the provided components is invalid.
-    pub fn components(mut self, components: &'a [Component]) -> Result<Self, ExecuteWebhookError> {
-        validate_inner::components(components).map_err(|source| {
-            let (kind, inner_source) = source.into_parts();
-
-            match kind {
-                ComponentValidationErrorType::ComponentCount { count } => ExecuteWebhookError {
-                    kind: ExecuteWebhookErrorType::ComponentCount { count },
-                    source: inner_source,
-                },
-                other => ExecuteWebhookError {
-                    kind: ExecuteWebhookErrorType::ComponentInvalid { kind: other },
-                    source: inner_source,
-                },
-            }
-        })?;
+    /// Refer to the errors section of
+    /// [`twilight_validate::component::component`] for a list of errors that
+    /// may be returned as a result of validating each provided component.
+    pub fn components(
+        mut self,
+        components: &'a [Component],
+    ) -> Result<Self, MessageValidationError> {
+        validate_components(components)?;
 
         self.fields.components = Some(components);
 
@@ -223,17 +142,38 @@ impl<'a> ExecuteWebhook<'a> {
     /// The content of the webhook's message.
     ///
     /// Up to 2000 UTF-16 codepoints, same as a message.
-    pub const fn content(mut self, content: &'a str) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`ContentInvalid`] if the content length is too
+    /// long.
+    ///
+    /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    pub fn content(mut self, content: &'a str) -> Result<Self, MessageValidationError> {
+        validate_content(content)?;
+
         self.fields.content = Some(content);
 
-        self
+        Ok(self)
     }
 
     /// Set the list of embeds of the webhook's message.
-    pub const fn embeds(mut self, embeds: &'a [Embed]) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
+    ///
+    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
+    /// that may occur.
+    ///
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [`embed`]: twilight_validate::embed::embed
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
+        validate_embeds(embeds)?;
+
         self.fields.embeds = Some(embeds);
 
-        self
+        Ok(self)
     }
 
     /// Attach multiple files to the message.
@@ -268,14 +208,14 @@ impl<'a> ExecuteWebhook<'a> {
     /// ```no_run
     /// use twilight_embed_builder::EmbedBuilder;
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, WebhookId};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let message = client.execute_webhook(WebhookId::new(1).expect("non zero"), "token here")
-    ///     .content("some content")
-    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])
+    /// let message = client.execute_webhook(Id::new(1), "token here")
+    ///     .content("some content")?
+    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])?
     ///     .wait()
     ///     .exec()
     ///     .await?
@@ -290,13 +230,13 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::id::{MessageId, WebhookId};
+    /// use twilight_model::id::Id;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
-    /// let message = client.execute_webhook(WebhookId::new(1).expect("non zero"), "token here")
-    ///     .content("some content")
+    /// let message = client.execute_webhook(Id::new(1), "token here")
+    ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
     ///     .exec()
@@ -318,7 +258,7 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Execute in a thread belonging to the channel instead of the channel itself.
-    pub fn thread_id(mut self, thread_id: ChannelId) -> Self {
+    pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
         self.thread_id.replace(thread_id);
 
         self
@@ -353,7 +293,7 @@ impl<'a> ExecuteWebhook<'a> {
     // being consumed in request construction.
     pub(super) fn request(&mut self, wait: bool) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
-            thread_id: self.thread_id.map(ChannelId::get),
+            thread_id: self.thread_id.map(Id::get),
             token: self.token,
             wait: Some(wait),
             webhook_id: self.webhook_id.get(),
@@ -400,10 +340,18 @@ impl<'a> ExecuteWebhook<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<EmptyBody> {
-        match self.request(false) {
-            Ok(request) => self.http.request(request),
+    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
             Err(source) => ResponseFuture::error(source),
         }
+    }
+}
+
+impl TryIntoRequest for ExecuteWebhook<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
+        self.request(false)
     }
 }

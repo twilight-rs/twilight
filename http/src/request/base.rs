@@ -194,8 +194,8 @@ impl Request {
             form: None,
             headers: None,
             method: route.method(),
-            path: route.display().to_string(),
-            ratelimit_path: route.path(),
+            path: route.to_string(),
+            ratelimit_path: route.to_path(),
             use_authorization_token: true,
         }
     }

@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
-    request::{validate_inner, Request},
+    error::Error as HttpError,
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -15,8 +16,12 @@ use twilight_model::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions,
         SystemChannelFlags, VerificationLevel,
     },
-    id::{ChannelId, RoleId},
+    id::{
+        marker::{ChannelMarker, RoleMarker},
+        Id,
+    },
 };
+use twilight_validate::request::guild_name as validate_guild_name;
 
 mod builder;
 
@@ -26,6 +31,7 @@ pub use self::builder::*;
 #[derive(Debug)]
 pub struct CreateGuildError {
     kind: CreateGuildErrorType,
+    source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl CreateGuildError {
@@ -36,16 +42,15 @@ impl CreateGuildError {
     }
 
     /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
     #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
     pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
+        self.source
     }
 
     /// Consume the error, returning the owned error type and the source error.
     #[must_use = "consuming the error into its parts has no effect if left unused"]
     pub fn into_parts(self) -> (CreateGuildErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, None)
+        (self.kind, self.source)
     }
 }
 
@@ -94,7 +99,7 @@ pub enum CreateGuildErrorType {
 #[derive(Serialize)]
 struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    afk_channel_id: Option<ChannelId>,
+    afk_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_timeout: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -109,7 +114,7 @@ struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system_channel_id: Option<ChannelId>,
+    system_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     system_channel_flags: Option<SystemChannelFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -125,7 +130,7 @@ pub struct RoleFields {
     pub color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hoist: Option<bool>,
-    pub id: RoleId,
+    pub id: Id<RoleMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mentionable: Option<bool>,
     pub name: String,
@@ -148,7 +153,7 @@ pub enum GuildChannelFields {
 }
 
 impl GuildChannelFields {
-    pub const fn id(&self) -> ChannelId {
+    pub const fn id(&self) -> Id<ChannelMarker> {
         match self {
             Self::Category(c) => c.id,
             Self::Text(t) => t.id,
@@ -162,7 +167,7 @@ impl GuildChannelFields {
 /// Use [`CategoryFieldsBuilder`] to build one.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CategoryFields {
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
@@ -175,7 +180,7 @@ pub struct CategoryFields {
 /// Use [`TextFieldsBuilder`] to build one.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct TextFields {
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
@@ -184,7 +189,7 @@ pub struct TextFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<ChannelId>,
+    pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -198,14 +203,14 @@ pub struct TextFields {
 pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bitrate: Option<u64>,
-    pub id: ChannelId,
+    pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_id: Option<ChannelId>,
+    pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u64>,
 }
@@ -222,11 +227,10 @@ pub struct CreateGuild<'a> {
 
 impl<'a> CreateGuild<'a> {
     pub(crate) fn new(http: &'a Client, name: String) -> Result<Self, CreateGuildError> {
-        if !validate_inner::guild_name(&name) {
-            return Err(CreateGuildError {
-                kind: CreateGuildErrorType::NameInvalid { name },
-            });
-        }
+        validate_guild_name(&name).map_err(|source| CreateGuildError {
+            kind: CreateGuildErrorType::NameInvalid { name: name.clone() },
+            source: Some(Box::new(source)),
+        })?;
 
         Ok(Self {
             fields: CreateGuildFields {
@@ -265,7 +269,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub const fn afk_channel_id(mut self, afk_channel_id: ChannelId) -> Self {
+    pub const fn afk_channel_id(mut self, afk_channel_id: Id<ChannelMarker>) -> Self {
         self.fields.afk_channel_id = Some(afk_channel_id);
 
         self
@@ -327,6 +331,7 @@ impl<'a> CreateGuild<'a> {
         if channels.len() > 500 {
             return Err(CreateGuildError {
                 kind: CreateGuildErrorType::TooManyChannels { channels },
+                source: None,
             });
         }
 
@@ -393,7 +398,7 @@ impl<'a> CreateGuild<'a> {
     /// This must be an ID specified in [`channels`].
     ///
     /// [`channels`]: Self::channels
-    pub const fn system_channel_id(mut self, system_channel_id: ChannelId) -> Self {
+    pub const fn system_channel_id(mut self, system_channel_id: Id<ChannelMarker>) -> Self {
         self.fields.system_channel_id = Some(system_channel_id);
 
         self
@@ -430,6 +435,7 @@ impl<'a> CreateGuild<'a> {
         if roles.len() > 250 {
             return Err(CreateGuildError {
                 kind: CreateGuildErrorType::TooManyRoles { roles },
+                source: None,
             });
         }
 
@@ -449,13 +455,21 @@ impl<'a> CreateGuild<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<PartialGuild> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateGuild<'_> {
+    fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateGuild);
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
+        request = request.json(&self.fields)?;
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

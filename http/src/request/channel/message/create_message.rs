@@ -2,23 +2,14 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self,
-        attachment::AttachmentFile,
-        multipart::Form,
-        validate_inner::{
-            self, ComponentValidationError, ComponentValidationErrorType, EmbedValidationError,
-        },
-        PartialAttachment, Request,
+        self, attachment::AttachmentFile, multipart::Form, PartialAttachment, Request,
+        TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
     channel::{
@@ -26,97 +17,15 @@ use twilight_model::{
         message::{AllowedMentions, MessageReference},
         Message,
     },
-    id::{ChannelId, MessageId},
+    id::{
+        marker::{ChannelMarker, MessageMarker, StickerMarker},
+        Id,
+    },
 };
-
-/// The error created when a message can not be created as configured.
-#[derive(Debug)]
-pub struct CreateMessageError {
-    kind: CreateMessageErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl CreateMessageError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &CreateMessageErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(self) -> (CreateMessageErrorType, Option<Box<dyn Error + Send + Sync>>) {
-        (self.kind, self.source)
-    }
-
-    fn embed(source: EmbedValidationError, idx: usize) -> Self {
-        Self {
-            kind: CreateMessageErrorType::EmbedTooLarge { idx },
-            source: Some(Box::new(source)),
-        }
-    }
-}
-
-impl Display for CreateMessageError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            CreateMessageErrorType::ComponentCount { count } => {
-                Display::fmt(count, f)?;
-                f.write_str(" components were provided, but only ")?;
-                Display::fmt(&ComponentValidationError::COMPONENT_COUNT, f)?;
-
-                f.write_str(" root components are allowed")
-            }
-            CreateMessageErrorType::ComponentInvalid { .. } => {
-                f.write_str("a provided component is invalid")
-            }
-            CreateMessageErrorType::ContentInvalid => f.write_str("the message content is invalid"),
-            CreateMessageErrorType::EmbedTooLarge { idx } => {
-                f.write_str("the embed at index ")?;
-                Display::fmt(&idx, f)?;
-
-                f.write_str("'s contents are too long")
-            }
-        }
-    }
-}
-
-impl Error for CreateMessageError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`CreateMessageError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum CreateMessageErrorType {
-    /// Too many message components were provided.
-    ComponentCount {
-        /// Number of components that were provided.
-        count: usize,
-    },
-    /// An invalid message component was provided.
-    ComponentInvalid {
-        /// Additional details about the validation failure type.
-        kind: ComponentValidationErrorType,
-    },
-    /// Returned when the content is over 2000 UTF-16 characters.
-    ContentInvalid,
-    /// Returned when the length of the embed is over 6000 characters.
-    EmbedTooLarge {
-        /// Index of the embed.
-        idx: usize,
-    },
-}
+use twilight_validate::message::{
+    components as validate_components, content as validate_content, embeds as validate_embeds,
+    stickers as validate_stickers, MessageValidationError,
+};
 
 #[derive(Serialize)]
 pub(crate) struct CreateMessageFields<'a> {
@@ -136,6 +45,8 @@ pub(crate) struct CreateMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
+    #[serde(skip_serializing_if = "request::slice_is_empty")]
+    sticker_ids: &'a [Id<StickerMarker>],
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
 }
@@ -146,13 +57,13 @@ pub(crate) struct CreateMessageFields<'a> {
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::ChannelId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let channel_id = ChannelId::new(123).expect("non zero");
+/// let channel_id = Id::new(123);
 /// let message = client
 ///     .create_message(channel_id)
 ///     .content("Twilight is best pony")?
@@ -164,13 +75,13 @@ pub(crate) struct CreateMessageFields<'a> {
 #[must_use = "requests must be configured and executed"]
 pub struct CreateMessage<'a> {
     attachments: Cow<'a, [AttachmentFile<'a>]>,
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     pub(crate) fields: CreateMessageFields<'a>,
     http: &'a Client,
 }
 
 impl<'a> CreateMessage<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId) -> Self {
+    pub(crate) const fn new(http: &'a Client, channel_id: Id<ChannelMarker>) -> Self {
         Self {
             channel_id,
             fields: CreateMessageFields {
@@ -182,6 +93,7 @@ impl<'a> CreateMessage<'a> {
                 nonce: None,
                 payload_json: None,
                 allowed_mentions: None,
+                sticker_ids: &[],
                 tts: None,
             },
             attachments: Cow::Borrowed(&[]),
@@ -202,26 +114,14 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an [`CreateMessageErrorType::ComponentCount`] error type if
-    /// too many components are provided.
-    ///
-    /// Returns an [`CreateMessageErrorType::ComponentInvalid`] error type if
-    /// one of the provided components is invalid.
-    pub fn components(mut self, components: &'a [Component]) -> Result<Self, CreateMessageError> {
-        validate_inner::components(components).map_err(|source| {
-            let (kind, inner_source) = source.into_parts();
-
-            match kind {
-                ComponentValidationErrorType::ComponentCount { count } => CreateMessageError {
-                    kind: CreateMessageErrorType::ComponentCount { count },
-                    source: inner_source,
-                },
-                other => CreateMessageError {
-                    kind: CreateMessageErrorType::ComponentInvalid { kind: other },
-                    source: inner_source,
-                },
-            }
-        })?;
+    /// Refer to the errors section of
+    /// [`twilight_validate::component::component`] for a list of errors that
+    /// may be returned as a result of validating each provided component.
+    pub fn components(
+        mut self,
+        components: &'a [Component],
+    ) -> Result<Self, MessageValidationError> {
+        validate_components(components)?;
 
         self.fields.components = components;
 
@@ -234,15 +134,12 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateMessageErrorType::ContentInvalid`] error type if the
-    /// content length is too long.
-    pub fn content(mut self, content: &'a str) -> Result<Self, CreateMessageError> {
-        if !validate_inner::content_limit(content) {
-            return Err(CreateMessageError {
-                kind: CreateMessageErrorType::ContentInvalid,
-                source: None,
-            });
-        }
+    /// Returns an error of type [`ContentInvalid`] if the content length is too
+    /// long.
+    ///
+    /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
+    pub fn content(mut self, content: &'a str) -> Result<Self, MessageValidationError> {
+        validate_content(content)?;
 
         self.fields.content.replace(content);
 
@@ -257,15 +154,16 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
-    /// Returns a [`CreateMessageErrorType::EmbedTooLarge`] error type if an
-    /// embed is too large.
+    /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
     ///
+    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
+    /// that may occur.
+    ///
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [`embed`]: twilight_validate::embed::embed
     /// [the Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
-    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, CreateMessageError> {
-        for (idx, embed) in embeds.iter().enumerate() {
-            validate_inner::embed(embed)
-                .map_err(|source| CreateMessageError::embed(source, idx))?;
-        }
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
+        validate_embeds(embeds)?;
 
         self.fields.embeds = embeds;
 
@@ -336,7 +234,7 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Specify the ID of another message to create a reply to.
-    pub const fn reply(mut self, other: MessageId) -> Self {
+    pub const fn reply(mut self, other: Id<MessageMarker>) -> Self {
         let channel_id = self.channel_id;
 
         // Clippy recommends using `Option::map_or_else` which is not `const`.
@@ -368,10 +266,39 @@ impl<'a> CreateMessage<'a> {
         self
     }
 
+    /// Set the IDs of up to 3 guild stickers.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`StickersInvalid`] if the length is invalid.
+    ///
+    /// [`StickersInvalid`]: twilight_validate::message::MessageValidationErrorType::StickersInvalid
+    pub fn stickers(
+        mut self,
+        stickers: &'a [Id<StickerMarker>],
+    ) -> Result<Self, MessageValidationError> {
+        validate_stickers(stickers)?;
+
+        self.fields.sticker_ids = stickers;
+
+        Ok(self)
+    }
+
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(mut self) -> ResponseFuture<Message> {
+    pub fn exec(self) -> ResponseFuture<Message> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateMessage<'_> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::CreateMessage {
             channel_id: self.channel_id.get(),
         });
@@ -397,22 +324,16 @@ impl<'a> CreateMessage<'a> {
             if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
-                let body = match crate::json::to_vec(&self.fields) {
-                    Ok(body) => body,
-                    Err(source) => return ResponseFuture::error(HttpError::json(source)),
-                };
+                let body = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
 
                 form.payload_json(&body);
             }
 
             request = request.form(form);
         } else {
-            request = match request.json(&self.fields) {
-                Ok(request) => request,
-                Err(source) => return ResponseFuture::error(source),
-            };
+            request = request.json(&self.fields)?;
         }
 
-        self.http.request(request.build())
+        Ok(request.build())
     }
 }

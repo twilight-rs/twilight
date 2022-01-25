@@ -7,7 +7,11 @@ use twilight_model::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         PremiumTier, SystemChannelFlags, VerificationLevel,
     },
-    id::{ApplicationId, ChannelId, GuildId, UserId},
+    id::{
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
+        Id,
+    },
+    util::image_hash::ImageHash,
 };
 
 /// Represents a cached [`Guild`].
@@ -15,17 +19,17 @@ use twilight_model::{
 /// [`Guild`]: twilight_model::guild::Guild
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedGuild {
-    pub(crate) afk_channel_id: Option<ChannelId>,
+    pub(crate) afk_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) afk_timeout: u64,
-    pub(crate) application_id: Option<ApplicationId>,
-    pub(crate) banner: Option<String>,
+    pub(crate) application_id: Option<Id<ApplicationMarker>>,
+    pub(crate) banner: Option<ImageHash>,
     pub(crate) default_message_notifications: DefaultMessageNotificationLevel,
     pub(crate) description: Option<String>,
-    pub(crate) discovery_splash: Option<String>,
+    pub(crate) discovery_splash: Option<ImageHash>,
     pub(crate) explicit_content_filter: ExplicitContentFilter,
     pub(crate) features: Vec<String>,
-    pub(crate) icon: Option<String>,
-    pub(crate) id: GuildId,
+    pub(crate) icon: Option<ImageHash>,
+    pub(crate) id: Id<GuildMarker>,
     pub(crate) joined_at: Option<Timestamp>,
     pub(crate) large: bool,
     pub(crate) max_members: Option<u64>,
@@ -34,27 +38,27 @@ pub struct CachedGuild {
     pub(crate) mfa_level: MfaLevel,
     pub(crate) name: String,
     pub(crate) nsfw_level: NSFWLevel,
-    pub(crate) owner_id: UserId,
+    pub(crate) owner_id: Id<UserMarker>,
     pub(crate) owner: Option<bool>,
     pub(crate) permissions: Option<Permissions>,
     pub(crate) preferred_locale: String,
     pub(crate) premium_progress_bar_enabled: bool,
     pub(crate) premium_subscription_count: Option<u64>,
     pub(crate) premium_tier: PremiumTier,
-    pub(crate) rules_channel_id: Option<ChannelId>,
-    pub(crate) splash: Option<String>,
-    pub(crate) system_channel_id: Option<ChannelId>,
+    pub(crate) rules_channel_id: Option<Id<ChannelMarker>>,
+    pub(crate) splash: Option<ImageHash>,
+    pub(crate) system_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) system_channel_flags: SystemChannelFlags,
     pub(crate) unavailable: bool,
     pub(crate) vanity_url_code: Option<String>,
     pub(crate) verification_level: VerificationLevel,
-    pub(crate) widget_channel_id: Option<ChannelId>,
+    pub(crate) widget_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) widget_enabled: Option<bool>,
 }
 
 impl CachedGuild {
     /// ID of the AFK channel.
-    pub const fn afk_channel_id(&self) -> Option<ChannelId> {
+    pub const fn afk_channel_id(&self) -> Option<Id<ChannelMarker>> {
         self.afk_channel_id
     }
 
@@ -64,7 +68,7 @@ impl CachedGuild {
     }
 
     /// For bot created guilds, the ID of the creating application.
-    pub const fn application_id(&self) -> Option<ApplicationId> {
+    pub const fn application_id(&self) -> Option<Id<ApplicationMarker>> {
         self.application_id
     }
 
@@ -73,8 +77,8 @@ impl CachedGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub fn banner(&self) -> Option<&str> {
-        self.banner.as_deref()
+    pub const fn banner(&self) -> Option<&ImageHash> {
+        self.banner.as_ref()
     }
 
     /// Default message notification level.
@@ -92,8 +96,8 @@ impl CachedGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub fn discovery_splash(&self) -> Option<&str> {
-        self.discovery_splash.as_deref()
+    pub const fn discovery_splash(&self) -> Option<&ImageHash> {
+        self.discovery_splash.as_ref()
     }
 
     /// Explicit content filter level.
@@ -115,12 +119,12 @@ impl CachedGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub fn icon(&self) -> Option<&str> {
-        self.icon.as_deref()
+    pub const fn icon(&self) -> Option<&ImageHash> {
+        self.icon.as_ref()
     }
 
     /// ID of the guild.
-    pub const fn id(&self) -> GuildId {
+    pub const fn id(&self) -> Id<GuildMarker> {
         self.id
     }
 
@@ -170,7 +174,7 @@ impl CachedGuild {
     }
 
     /// ID of the guild's owner.
-    pub const fn owner_id(&self) -> UserId {
+    pub const fn owner_id(&self) -> Id<UserMarker> {
         self.owner_id
     }
 
@@ -202,7 +206,7 @@ impl CachedGuild {
     }
 
     /// For Community guilds, the ID of the rules channel.
-    pub const fn rules_channel_id(&self) -> Option<ChannelId> {
+    pub const fn rules_channel_id(&self) -> Option<Id<ChannelMarker>> {
         self.rules_channel_id
     }
 
@@ -211,14 +215,14 @@ impl CachedGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub fn splash(&self) -> Option<&str> {
-        self.splash.as_deref()
+    pub const fn splash(&self) -> Option<&ImageHash> {
+        self.splash.as_ref()
     }
 
     /// ID of the channel where notices are posted.
     ///
     /// Example notices include welcome messages and boost events.
-    pub const fn system_channel_id(&self) -> Option<ChannelId> {
+    pub const fn system_channel_id(&self) -> Option<Id<ChannelMarker>> {
         self.system_channel_id
     }
 
@@ -243,7 +247,7 @@ impl CachedGuild {
     }
 
     /// ID of the channel that a widget generates an invite to.
-    pub const fn widget_channel_id(&self) -> Option<ChannelId> {
+    pub const fn widget_channel_id(&self) -> Option<Id<ChannelMarker>> {
         self.widget_channel_id
     }
 

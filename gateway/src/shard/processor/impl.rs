@@ -347,9 +347,7 @@ impl ShardProcessor {
         }));
         let stream = Self::connect(&url, config.tls.as_ref()).await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
-        tokio::spawn(async move {
-            forwarder.run().await;
-        });
+        tokio::spawn(forwarder.run());
 
         let session = Arc::new(Session::new(tx));
         if resumable {
@@ -415,7 +413,7 @@ impl ShardProcessor {
                         source,
                     );
                 } else {
-                    tracing::warn!(
+                    tracing::error!(
                         shard_id = self.config.shard()[0],
                         shard_total = self.config.shard()[1],
                         "processing incoming event failed: {:?}",
@@ -460,7 +458,7 @@ impl ShardProcessor {
                     (op, seq, event_type.map(ToOwned::to_owned))
                 } else {
                     #[cfg(feature = "tracing")]
-                    tracing::warn!(
+                    tracing::error!(
                         json = ?self.compression.buffer_slice_mut(),
                         shard_id = self.config.shard()[0],
                         shard_total = self.config.shard()[1],

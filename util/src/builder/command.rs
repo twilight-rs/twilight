@@ -33,7 +33,7 @@ use twilight_model::{
         NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
-    id::{CommandVersionId, GuildId},
+    id::{marker::GuildMarker, Id},
 };
 
 /// Builder to create a [`Command`].
@@ -45,7 +45,7 @@ pub struct CommandBuilder(Command);
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
     #[must_use = "builders have no effect if unused"]
-    pub fn new(name: String, description: String, kind: CommandType) -> Self {
+    pub const fn new(name: String, description: String, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
             default_permission: None,
@@ -55,7 +55,7 @@ impl CommandBuilder {
             kind,
             name,
             options: Vec::new(),
-            version: CommandVersionId::new(1).expect("non zero"),
+            version: Id::new(1),
         })
     }
 
@@ -69,7 +69,7 @@ impl CommandBuilder {
     /// Set the guild ID of the command.
     ///
     /// Defaults to [`None`].
-    pub const fn guild_id(mut self, guild_id: GuildId) -> Self {
+    pub const fn guild_id(mut self, guild_id: Id<GuildMarker>) -> Self {
         self.0.guild_id = Some(guild_id);
 
         self
@@ -817,7 +817,7 @@ mod tests {
                     ]),
                 }),
             ]),
-            version: CommandVersionId::new(1).expect("non zero"),
+            version: Id::new(1),
         };
 
         assert_eq!(command, command_manual);

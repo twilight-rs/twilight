@@ -2,14 +2,18 @@ use super::super::CommandBorrowed;
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use twilight_model::{
     application::command::{Command, CommandType},
-    id::{ApplicationId, GuildId},
+    id::{
+        marker::{ApplicationMarker, GuildMarker},
+        Id,
+    },
 };
+use twilight_validate::command::{name as validate_name, CommandValidationError};
 
 /// Create a message command in a guild.
 ///
@@ -20,27 +24,29 @@ use twilight_model::{
 /// [the Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildMessageCommand<'a> {
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     default_permission: Option<bool>,
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
 }
 
 impl<'a> CreateGuildMessageCommand<'a> {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         http: &'a Client,
-        application_id: ApplicationId,
-        guild_id: GuildId,
+        application_id: Id<ApplicationMarker>,
+        guild_id: Id<GuildMarker>,
         name: &'a str,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, CommandValidationError> {
+        validate_name(name)?;
+
+        Ok(Self {
             application_id,
             default_permission: None,
             guild_id,
             http,
             name,
-        }
+        })
     }
 
     /// Whether the command is enabled by default when the app is added to a
@@ -51,7 +57,21 @@ impl<'a> CreateGuildMessageCommand<'a> {
         self
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Command> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for CreateGuildMessageCommand<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::CreateGuildCommand {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
@@ -65,15 +85,5 @@ impl<'a> CreateGuildMessageCommand<'a> {
             options: None,
         })
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<Command> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

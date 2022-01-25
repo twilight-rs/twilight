@@ -3,7 +3,7 @@ authors = ["Twilight Contributors"]
 categories = ["api-bindings", "asynchronous", "web-programming::websocket"]
 description = "Discord Gateway implementation for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-gateway"
-edition = "2018"
+edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_3_gateway.html"
 include = ["src/**/*.rs", "Cargo.toml"]
 keywords = ["discord", "discord-api", "twilight"]
@@ -12,7 +12,8 @@ name = "twilight-gateway"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.8.3"
+rust-version = "1.57"
+version = "0.9.0"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
@@ -25,7 +26,7 @@ twilight-gateway-queue = { default-features = false, path = "../gateway-queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
 url = { default-features = false, version = "2" }
-leaky-bucket-lite = { default-features = false, version = "0.2" }
+leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
@@ -33,7 +34,7 @@ leaky-bucket-lite = { default-features = false, version = "0.2" }
 # it does not seem to update the total_in of the function to have an offset
 # https://github.com/alexcrichton/flate2-rs/issues/217
 flate2 = { default-features = false, optional = true, version = "1.0" }
-metrics = { default-features = false, features = ["std"], optional = true, version = ">=0.14, <0.18" }
+metrics = { default-features = false, optional = true, version = "0.18" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
@@ -49,15 +50,10 @@ futures = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.12" }
 
-# Depend on at least this version to fix an issue with `minvers` CI and
-# `futures`
-proc-macro-hack = { default-features = false, version = "0.5.7" }
-
 [features]
-default = ["compression", "rustls", "tracing", "flate2/zlib"]
+default = ["compression", "rustls-native-roots", "tracing", "flate2/zlib"]
 compression = ["flate2"]
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
-rustls = ["rustls-native-roots"]
 rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
 zlib-simd = ["compression", "flate2/zlib-ng-compat"]

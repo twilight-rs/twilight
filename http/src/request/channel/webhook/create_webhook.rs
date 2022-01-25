@@ -1,11 +1,15 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use twilight_model::{channel::Webhook, id::ChannelId};
+use twilight_model::{
+    channel::Webhook,
+    id::{marker::ChannelMarker, Id},
+};
 
 #[derive(Serialize)]
 struct CreateWebhookFields<'a> {
@@ -20,12 +24,12 @@ struct CreateWebhookFields<'a> {
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::id::ChannelId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
-/// let channel_id = ChannelId::new(123).expect("non zero");
+/// let channel_id = Id::new(123);
 ///
 /// let webhook = client
 ///     .create_webhook(channel_id, "Twily Bot")
@@ -35,14 +39,18 @@ struct CreateWebhookFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateWebhook<'a> {
-    channel_id: ChannelId,
+    channel_id: Id<ChannelMarker>,
     fields: CreateWebhookFields<'a>,
     http: &'a Client,
     reason: Option<&'a str>,
 }
 
 impl<'a> CreateWebhook<'a> {
-    pub(crate) const fn new(http: &'a Client, channel_id: ChannelId, name: &'a str) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        channel_id: Id<ChannelMarker>,
+        name: &'a str,
+    ) -> Self {
         Self {
             channel_id,
             fields: CreateWebhookFields { avatar: None, name },
@@ -67,25 +75,12 @@ impl<'a> CreateWebhook<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Webhook> {
-        let mut request = Request::builder(&Route::CreateWebhook {
-            channel_id: self.channel_id.get(),
-        });
+        let http = self.http;
 
-        request = match request.json(&self.fields) {
-            Ok(request) => request,
-            Err(source) => return ResponseFuture::error(source),
-        };
-
-        if let Some(reason) = self.reason.as_ref() {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -94,5 +89,23 @@ impl<'a> AuditLogReason<'a> for CreateWebhook<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for CreateWebhook<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::CreateWebhook {
+            channel_id: self.channel_id.get(),
+        });
+
+        request = request.json(&self.fields)?;
+
+        if let Some(reason) = self.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

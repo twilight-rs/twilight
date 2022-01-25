@@ -135,17 +135,20 @@ mod tests {
         channel::message::{Message, MessageFlags, MessageType},
         datetime::Timestamp,
         guild::PartialMember,
-        id::{ChannelId, GuildId, MessageId, UserId},
+        id::Id,
         user::User,
+        util::{image_hash::ImageHashParseError, ImageHash},
     };
 
     #[test]
-    fn test_message_create() {
+    fn test_message_create() -> Result<(), ImageHashParseError> {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::builder()
             .resource_types(ResourceType::MESSAGE | ResourceType::MEMBER | ResourceType::USER)
             .message_cache_size(1)
             .build();
+
+        let avatar = ImageHash::parse(b"e91c75bc7656063cc745f4e79d0b7664")?;
         let mut msg = Message {
             activity: None,
             application: None,
@@ -153,13 +156,13 @@ mod tests {
             attachments: Vec::new(),
             author: User {
                 accent_color: None,
-                avatar: Some("".to_owned()),
+                avatar: Some(avatar),
                 banner: None,
                 bot: false,
                 discriminator: 1,
                 email: None,
                 flags: None,
-                id: UserId::new(3).expect("non zero"),
+                id: Id::new(3),
                 locale: None,
                 mfa_enabled: None,
                 name: "test".to_owned(),
@@ -168,14 +171,14 @@ mod tests {
                 system: None,
                 verified: None,
             },
-            channel_id: ChannelId::new(2).expect("non zero"),
+            channel_id: Id::new(2),
             components: Vec::new(),
             content: "ping".to_owned(),
             edited_timestamp: None,
             embeds: Vec::new(),
             flags: Some(MessageFlags::empty()),
-            guild_id: Some(GuildId::new(1).expect("non zero")),
-            id: MessageId::new(4).expect("non zero"),
+            guild_id: Some(Id::new(1)),
+            id: Id::new(4),
             interaction: None,
             kind: MessageType::Regular,
             member: Some(PartialMember {
@@ -206,41 +209,31 @@ mod tests {
         };
 
         cache.update(&MessageCreate(msg.clone()));
-        msg.id = MessageId::new(5).expect("non zero");
+        msg.id = Id::new(5);
         cache.update(&MessageCreate(msg));
 
         {
-            let entry = cache
-                .user_guilds
-                .get(&UserId::new(3).expect("non zero"))
-                .unwrap();
+            let entry = cache.user_guilds.get(&Id::new(3)).unwrap();
             assert_eq!(entry.value().len(), 1);
         }
         assert_eq!(
-            cache
-                .member(
-                    GuildId::new(1).expect("non zero"),
-                    UserId::new(3).expect("non zero")
-                )
-                .unwrap()
-                .user_id,
-            UserId::new(3).expect("non zero"),
+            cache.member(Id::new(1), Id::new(3)).unwrap().user_id,
+            Id::new(3),
         );
         {
-            let entry = cache
-                .channel_messages
-                .get(&ChannelId::new(2).expect("non zero"))
-                .unwrap();
+            let entry = cache.channel_messages.get(&Id::new(2)).unwrap();
             assert_eq!(entry.value().len(), 2);
         }
 
         let mut iter = cache
-            .channel_messages(ChannelId::new(2).expect("non zero"))
+            .channel_messages(Id::new(2))
             .expect("channel is in cache");
 
         // messages are iterated over in descending order from insertion
-        assert_eq!(Some(5), iter.next().map(MessageId::get));
-        assert_eq!(Some(4), iter.next().map(MessageId::get));
+        assert_eq!(Some(5), iter.next().map(Id::get));
+        assert_eq!(Some(4), iter.next().map(Id::get));
         assert!(iter.next().is_none());
+
+        Ok(())
     }
 }

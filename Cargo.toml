@@ -3,7 +3,7 @@ members = [
     "cache/in-memory",
     "command-parser",
     "embed-builder",
-    "examples/*",
+    "examples",
     "gateway",
     "gateway-queue",
     "http",
@@ -14,4 +14,5 @@ members = [
     "standby",
     "twilight",
     "util",
+    "validate",
 ]

@@ -1,5 +1,8 @@
-use crate::guild::Permissions;
-use crate::id::GuildId;
+use crate::{
+    guild::Permissions,
+    id::{marker::GuildMarker, Id},
+    util::image_hash::ImageHash,
+};
 use serde::{Deserialize, Serialize};
 
 /// Information about a guild the current user is in.
@@ -11,7 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CurrentUserGuild {
     /// Unique ID.
-    pub id: GuildId,
+    pub id: Id<GuildMarker>,
     /// Name of the guild.
     ///
     /// The name must be at least 2 characters long and at most 100 characters
@@ -22,7 +25,7 @@ pub struct CurrentUserGuild {
     /// See [Discord Docs/Image Formatting].
     ///
     /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     /// Whether the current user is the owner.
     pub owner: bool,
     /// Permissions of the current user in the guild. This excludes channels'
@@ -34,16 +37,17 @@ pub struct CurrentUserGuild {
 
 #[cfg(test)]
 mod tests {
-    use super::{CurrentUserGuild, GuildId, Permissions};
+    use super::{CurrentUserGuild, Permissions};
+    use crate::{id::Id, test::image_hash};
     use serde_test::Token;
 
     #[test]
     fn test_current_user_guild() {
         // The example partial guild from the Discord Docs
         let value = CurrentUserGuild {
-            id: GuildId::new(80_351_110_224_678_912).expect("non zero"),
+            id: Id::new(80_351_110_224_678_912),
             name: "abcd".to_owned(),
-            icon: Some("8342729096ea3675442027381ff50dfe".to_owned()),
+            icon: Some(image_hash::ICON),
             owner: true,
             permissions: Permissions::from_bits_truncate(36_953_089),
             features: vec!["a feature".to_owned()],
@@ -57,13 +61,13 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("80351110224678912"),
                 Token::Str("name"),
                 Token::Str("abcd"),
                 Token::Str("icon"),
                 Token::Some,
-                Token::Str("8342729096ea3675442027381ff50dfe"),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::Str("owner"),
                 Token::Bool(true),
                 Token::Str("permissions"),

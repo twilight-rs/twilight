@@ -1,7 +1,10 @@
 use serde::Serialize;
 use twilight_model::{
     guild::Emoji,
-    id::{EmojiId, RoleId, UserId},
+    id::{
+        marker::{EmojiMarker, RoleMarker, UserMarker},
+        Id,
+    },
 };
 
 /// Represents a cached [`Emoji`].
@@ -11,12 +14,12 @@ use twilight_model::{
 pub struct CachedEmoji {
     pub(crate) animated: bool,
     pub(crate) available: bool,
-    pub(crate) id: EmojiId,
+    pub(crate) id: Id<EmojiMarker>,
     pub(crate) managed: bool,
     pub(crate) name: String,
     pub(crate) require_colons: bool,
-    pub(crate) roles: Vec<RoleId>,
-    pub(crate) user_id: Option<UserId>,
+    pub(crate) roles: Vec<Id<RoleMarker>>,
+    pub(crate) user_id: Option<Id<UserMarker>>,
 }
 
 impl CachedEmoji {
@@ -33,7 +36,7 @@ impl CachedEmoji {
     }
 
     /// ID of the Emoji.
-    pub const fn id(&self) -> EmojiId {
+    pub const fn id(&self) -> Id<EmojiMarker> {
         self.id
     }
 
@@ -53,12 +56,12 @@ impl CachedEmoji {
     }
 
     /// List of roles allowed to use this emoji.
-    pub fn roles(&self) -> &[RoleId] {
+    pub fn roles(&self) -> &[Id<RoleMarker>] {
         &self.roles
     }
 
     /// ID of the user who created the emoji.
-    pub const fn user_id(&self) -> Option<UserId> {
+    pub const fn user_id(&self) -> Option<Id<UserMarker>> {
         self.user_id
     }
 }
@@ -81,7 +84,7 @@ mod tests {
     use super::CachedEmoji;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
-    use twilight_model::{guild::Emoji, id::EmojiId};
+    use twilight_model::{guild::Emoji, id::Id};
 
     assert_fields!(
         CachedEmoji: id,
@@ -97,7 +100,7 @@ mod tests {
     #[test]
     fn test_eq_emoji() {
         let emoji = Emoji {
-            id: EmojiId::new(123).expect("non zero"),
+            id: Id::new(123),
             animated: true,
             name: "foo".to_owned(),
             managed: false,
@@ -107,7 +110,7 @@ mod tests {
             available: true,
         };
         let cached = CachedEmoji {
-            id: EmojiId::new(123).expect("non zero"),
+            id: Id::new(123),
             animated: true,
             name: "foo".to_owned(),
             managed: false,

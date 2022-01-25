@@ -620,10 +620,7 @@ mod tests {
         CommandOptionChoice, CommandOptionValue, Number, NumberCommandOptionData,
         OptionsCommandOptionData,
     };
-    use crate::{
-        channel::ChannelType,
-        id::{ApplicationId, CommandId, CommandVersionId, GuildId},
-    };
+    use crate::{channel::ChannelType, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -675,11 +672,11 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     fn test_command_option_full() {
         let value = Command {
-            application_id: Some(ApplicationId::new(100).expect("non zero")),
+            application_id: Some(Id::new(100)),
             default_permission: Some(true),
             description: "this command is a test".into(),
-            guild_id: Some(GuildId::new(300).expect("non zero")),
-            id: Some(CommandId::new(200).expect("non zero")),
+            guild_id: Some(Id::new(300)),
+            id: Some(Id::new(200)),
             kind: CommandType::ChatInput,
             name: "test command".into(),
             options: Vec::from([CommandOption::SubCommandGroup(OptionsCommandOptionData {
@@ -759,7 +756,7 @@ mod tests {
                     ]),
                 })]),
             })]),
-            version: CommandVersionId::new(1).expect("non zero"),
+            version: Id::new(1),
         };
 
         serde_test::assert_tokens(
@@ -771,9 +768,7 @@ mod tests {
                 },
                 Token::Str("application_id"),
                 Token::Some,
-                Token::NewtypeStruct {
-                    name: "ApplicationId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("default_permission"),
                 Token::Some,
@@ -782,11 +777,11 @@ mod tests {
                 Token::Str("this command is a test"),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
                 Token::Str("id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "CommandId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("200"),
                 Token::Str("type"),
                 Token::U8(1),
@@ -990,9 +985,7 @@ mod tests {
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("version"),
-                Token::NewtypeStruct {
-                    name: "CommandVersionId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::StructEnd,
             ],

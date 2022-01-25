@@ -1,6 +1,9 @@
 use crate::{
     guild::member::{Member, OptionalMemberDeserializer},
-    id::{ChannelId, GuildId, UserId},
+    id::{
+        marker::{ChannelMarker, GuildMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -10,13 +13,13 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct TypingStart {
-    pub channel_id: ChannelId,
+    pub channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_id: Option<GuildId>,
+    pub guild_id: Option<Id<GuildMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     pub timestamp: u64,
-    pub user_id: UserId,
+    pub user_id: Id<UserMarker>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -102,8 +105,7 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer =
-                        OptionalMemberDeserializer::new(GuildId::new(1).expect("non zero"));
+                    let deserializer = OptionalMemberDeserializer::new(Id::new(1));
 
                     member = map.next_value_seed(deserializer)?;
                 }
@@ -168,7 +170,8 @@ mod tests {
     use crate::{
         datetime::{Timestamp, TimestampParseError},
         guild::Member,
-        id::{ChannelId, GuildId, RoleId, UserId},
+        id::Id,
+        test::image_hash,
         user::User,
     };
     use serde_test::Token;
@@ -180,23 +183,23 @@ mod tests {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = TypingStart {
-            channel_id: ChannelId::new(2).expect("non zero"),
-            guild_id: Some(GuildId::new(1).expect("non zero")),
+            channel_id: Id::new(2),
+            guild_id: Some(Id::new(1)),
             member: Some(Member {
                 avatar: None,
                 communication_disabled_until: None,
                 deaf: false,
-                guild_id: GuildId::new(1).expect("non zero"),
+                guild_id: Id::new(1),
                 joined_at,
                 mute: false,
                 nick: Some("typing".to_owned()),
                 pending: false,
                 premium_since: None,
-                roles: vec![RoleId::new(4).expect("non zero")],
+                roles: vec![Id::new(4)],
                 user: User {
-                    id: UserId::new(3).expect("non zero"),
+                    id: Id::new(3),
                     accent_color: None,
-                    avatar: Some("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()),
+                    avatar: Some(image_hash::AVATAR),
                     banner: None,
                     bot: false,
                     discriminator: 1,
@@ -212,7 +215,7 @@ mod tests {
                 },
             }),
             timestamp: 1_500_000_000,
-            user_id: UserId::new(3).expect("non zero"),
+            user_id: Id::new(3),
         };
 
         serde_test::assert_tokens(
@@ -223,11 +226,11 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("guild_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("member"),
                 Token::Some,
@@ -240,7 +243,7 @@ mod tests {
                 Token::Str("deaf"),
                 Token::Bool(false),
                 Token::Str("guild_id"),
-                Token::NewtypeStruct { name: "GuildId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("joined_at"),
                 Token::Str("2020-01-01T00:00:00.000000+00:00"),
@@ -253,7 +256,7 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
-                Token::NewtypeStruct { name: "RoleId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::SeqEnd,
                 Token::Str("user"),
@@ -265,7 +268,7 @@ mod tests {
                 Token::None,
                 Token::Str("avatar"),
                 Token::Some,
-                Token::Str("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+                Token::Str(image_hash::AVATAR_INPUT),
                 Token::Str("banner"),
                 Token::None,
                 Token::Str("bot"),
@@ -273,7 +276,7 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("username"),
                 Token::Str("test"),
@@ -282,7 +285,7 @@ mod tests {
                 Token::Str("timestamp"),
                 Token::U64(1_500_000_000),
                 Token::Str("user_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::StructEnd,
             ],
@@ -294,11 +297,11 @@ mod tests {
     #[test]
     fn test_typing_start_without_member() {
         let value = TypingStart {
-            channel_id: ChannelId::new(2).expect("non zero"),
+            channel_id: Id::new(2),
             guild_id: None,
             member: None,
             timestamp: 1_500_000_000,
-            user_id: UserId::new(3).expect("non zero"),
+            user_id: Id::new(3),
         };
 
         serde_test::assert_tokens(
@@ -309,12 +312,12 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("channel_id"),
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("timestamp"),
                 Token::U64(1_500_000_000),
                 Token::Str("user_id"),
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::StructEnd,
             ],

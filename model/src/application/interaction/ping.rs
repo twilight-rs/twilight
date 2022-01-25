@@ -1,5 +1,8 @@
 use super::InteractionType;
-use crate::id::{ApplicationId, InteractionId};
+use crate::id::{
+    marker::{ApplicationMarker, InteractionMarker},
+    Id,
+};
 use serde::Serialize;
 
 /// Data present in an [`Interaction`] of type [`Ping`].
@@ -10,9 +13,9 @@ use serde::Serialize;
 #[serde(rename(serialize = "Interaction"))]
 pub struct Ping {
     /// ID of the associated application.
-    pub application_id: ApplicationId,
+    pub application_id: Id<ApplicationMarker>,
     /// ID of the interaction.
-    pub id: InteractionId,
+    pub id: Id<InteractionMarker>,
     #[serde(rename = "type")]
     /// Kind of the interaction.
     pub kind: InteractionType,

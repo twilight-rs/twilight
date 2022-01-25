@@ -14,7 +14,10 @@ use std::{
 };
 use twilight_model::{
     gateway::event::Event,
-    id::{GuildId, UserId},
+    id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    },
 };
 
 /// An error that can occur while interacting with the client.
@@ -97,9 +100,9 @@ pub struct Lavalink {
     players: PlayerManager,
     resume: Option<Resume>,
     shard_count: u64,
-    user_id: UserId,
-    server_updates: DashMap<GuildId, SlimVoiceServerUpdate>,
-    sessions: DashMap<GuildId, Box<str>>,
+    user_id: Id<UserMarker>,
+    server_updates: DashMap<Id<GuildMarker>, SlimVoiceServerUpdate>,
+    sessions: DashMap<Id<GuildMarker>, Box<str>>,
 }
 
 impl Lavalink {
@@ -114,7 +117,7 @@ impl Lavalink {
     ///
     /// [`add`]: Self::add
     /// [`new_with_resume`]: Self::new_with_resume
-    pub fn new(user_id: UserId, shard_count: u64) -> Self {
+    pub fn new(user_id: Id<UserMarker>, shard_count: u64) -> Self {
         Self::_new_with_resume(user_id, shard_count, None)
     }
 
@@ -126,14 +129,14 @@ impl Lavalink {
     /// [`Resume`]: crate::node::Resume
     /// [`new`]: Self::new
     pub fn new_with_resume(
-        user_id: UserId,
+        user_id: Id<UserMarker>,
         shard_count: u64,
         resume: impl Into<Option<Resume>>,
     ) -> Self {
         Self::_new_with_resume(user_id, shard_count, resume.into())
     }
 
-    fn _new_with_resume(user_id: UserId, shard_count: u64, resume: Option<Resume>) -> Self {
+    fn _new_with_resume(user_id: Id<UserMarker>, shard_count: u64, resume: Option<Resume>) -> Self {
         Self {
             nodes: DashMap::new(),
             players: PlayerManager::new(),
@@ -380,7 +383,7 @@ impl Lavalink {
     ///
     /// [`PlayerManager::get`]: crate::player::PlayerManager::get
     /// [`add`]: Self::add
-    pub async fn player(&self, guild_id: GuildId) -> Result<Arc<Player>, ClientError> {
+    pub async fn player(&self, guild_id: Id<GuildMarker>) -> Result<Arc<Player>, ClientError> {
         if let Some(player) = self.players().get(&guild_id) {
             return Ok(player);
         }

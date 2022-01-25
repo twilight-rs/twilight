@@ -48,18 +48,18 @@ you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`.
 
 ```toml
 [dependencies]
-twilight-gateway = { default-features = false, features = ["rustls", "simd-json"], version = "0.2" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots", "simd-json"], version = "0.2" }
 ```
 
 ### TLS
 
-`twilight-gateway` has features to enable [`async-tungstenite`] and
+`twilight-gateway` has features to enable [`tokio-tungstenite`] and
 [`twilight-http`]'s TLS features. These features are mutually exclusive.
-`rustls` is enabled by default.
+`rustls-native-roots` is enabled by default.
 
 #### `native`
 
-The `native` feature enables [`async-tungstenite`]'s `tokio-native-tls`
+The `native` feature enables [`tokio-tungstenite`]'s `native-tls`
 feature as well as [`twilight-http`]'s `native` feature which is mostly
 equivalent to using [`native-tls`].
 
@@ -70,12 +70,21 @@ To enable `native`, do something like this in your `Cargo.toml`:
 twilight-gateway = { default-features = false, features = ["native"], version = "0.2" }
 ```
 
-#### `rustls`
+#### `rustls-native-roots`
 
-The `rustls` feature enables [`async-tungstenite`]'s `tokio-rustls` feature and
-[`twilight-http`]'s `rustls` feature, which use [`rustls`] as the TLS backend.
+The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s `rustls-tls-native-roots` feature and
+[`twilight-http`]'s `rustls-native-roots` feature, which use [`rustls`] as the TLS backend and [`rustls-native-certs`]
+for root certificates.
 
 This is enabled by default.
+
+#### `rustls-webpki-roots`
+
+The `rustls-webpki-roots` feature enables [`tokio-tungstenite`]'s `rustls-tls-webpki-roots` feature and
+[`twilight-http`]'s `rustls-webpki-roots` feature, which use [`rustls`] as the TLS backend and [`webpki-roots`]
+for root certificates.
+
+This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
 ### zlib
 
@@ -106,13 +115,15 @@ each shard.
 
 This is disabled by default.
 
-[`async-tungstenite`]: https://crates.io/crates/async-tungstenite
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls
+[`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
+[`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
 [`tracing`]: https://crates.io/crates/tracing
 [`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
+[`webpki-roots`]: https://crates.io/crates/webpki-roots
 [`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
@@ -124,6 +135,6 @@ This is disabled by default.
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.53+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

@@ -1,5 +1,8 @@
 use super::{AuditLogChange, AuditLogEventType, AuditLogOptionalEntryInfo};
-use crate::id::{AuditLogEntryId, GenericId, UserId};
+use crate::id::{
+    marker::{AuditLogEntryMarker, GenericMarker, UserMarker},
+    Id,
+};
 use serde::{Deserialize, Serialize};
 
 /// Entry in an [`AuditLog`] possibly containing a number of detailed changes.
@@ -13,7 +16,7 @@ pub struct AuditLogEntry {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub changes: Vec<AuditLogChange>,
     /// ID of the entire entry.
-    pub id: AuditLogEntryId,
+    pub id: Id<AuditLogEntryMarker>,
     /// Optional information about the entry.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<AuditLogOptionalEntryInfo>,
@@ -22,11 +25,11 @@ pub struct AuditLogEntry {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     /// ID of the target entity.
-    pub target_id: Option<GenericId>,
+    pub target_id: Option<Id<GenericMarker>>,
     /// ID of the [user] that performed the action.
     ///
     /// [user]: crate::user::User
-    pub user_id: Option<UserId>,
+    pub user_id: Option<Id<UserMarker>>,
 }
 
 #[cfg(test)]
@@ -35,7 +38,7 @@ mod tests {
         super::{AuditLogChange, AuditLogEventType},
         AuditLogEntry,
     };
-    use crate::id::{AuditLogEntryId, GenericId, UserId};
+    use crate::id::Id;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -73,11 +76,11 @@ mod tests {
                 new: None,
                 old: Some(OLD.to_owned()),
             }]),
-            id: AuditLogEntryId::new(3).expect("non zero"),
+            id: Id::new(3),
             options: None,
             reason: Some("some reason".to_owned()),
-            target_id: Some(GenericId::new(2).expect("non zero")),
-            user_id: Some(UserId::new(1).expect("non zero")),
+            target_id: Some(Id::new(2)),
+            user_id: Some(Id::new(1)),
         };
 
         serde_test::assert_tokens(
@@ -103,20 +106,18 @@ mod tests {
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("id"),
-                Token::NewtypeStruct {
-                    name: "AuditLogEntryId",
-                },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("reason"),
                 Token::Some,
                 Token::Str("some reason"),
                 Token::Str("target_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "GenericId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("user_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::StructEnd,
             ],

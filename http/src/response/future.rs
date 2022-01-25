@@ -18,7 +18,7 @@ use std::{
 };
 use tokio::time::{self, Timeout};
 use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
-use twilight_model::id::GuildId;
+use twilight_model::id::{marker::GuildMarker, Id};
 
 type Output<T> = Result<Response<T>, Error>;
 
@@ -56,15 +56,6 @@ impl Chunking {
             }
         };
 
-        #[cfg(feature = "tracing")]
-        if let ApiError::General(general) = &error {
-            use crate::api_error::ErrorCode;
-
-            if let ErrorCode::Other(num) = general.code {
-                tracing::debug!("got unknown API error code variant: {}; {:?}", num, error);
-            }
-        }
-
         InnerPoll::Ready(Err(Error {
             kind: ErrorType::Response {
                 body: bytes,
@@ -88,7 +79,7 @@ impl Failed {
 
 struct InFlight {
     future: Pin<Box<Timeout<HyperResponseFuture>>>,
-    guild_id: Option<GuildId>,
+    guild_id: Option<Id<GuildMarker>>,
     invalid_token: Option<Arc<AtomicBool>>,
     tx: Option<TicketSender>,
 }
@@ -198,7 +189,7 @@ impl InFlight {
 }
 
 struct RatelimitQueue {
-    guild_id: Option<GuildId>,
+    guild_id: Option<Id<GuildMarker>>,
     invalid_token: Option<Arc<AtomicBool>>,
     pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
     request_timeout: Duration,
@@ -339,8 +330,8 @@ impl<T> ResponseFuture<T> {
     /// use twilight_http::{error::ErrorType, Client};
     /// use twilight_model::id::{ChannelId, MessageId};
     ///
-    /// let channel_id = ChannelId::new(1).expect("non zero id");
-    /// let message_id = MessageId::new(2).expect("non zero id");
+    /// let channel_id = ChannelId::new(1);
+    /// let message_id = MessageId::new(2);
     ///
     /// let channels_ignored = {
     ///     let mut map = HashSet::new();
@@ -391,7 +382,7 @@ impl<T> ResponseFuture<T> {
     }
 
     pub(crate) fn ratelimit(
-        guild_id: Option<GuildId>,
+        guild_id: Option<Id<GuildMarker>>,
         invalid_token: Option<Arc<AtomicBool>>,
         wait_for_sender: WaitForTicketFuture,
         request_timeout: Duration,
@@ -413,7 +404,7 @@ impl<T> ResponseFuture<T> {
     /// Set the ID of the relevant guild.
     ///
     /// Necessary for [`MemberBody`] and [`MemberListBody`] deserialization.
-    pub(crate) fn set_guild_id(&mut self, guild_id: GuildId) {
+    pub(crate) fn set_guild_id(&mut self, guild_id: Id<GuildMarker>) {
         match &mut self.stage {
             ResponseFutureStage::InFlight(stage) => {
                 stage.guild_id.replace(guild_id);

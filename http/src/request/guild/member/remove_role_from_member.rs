@@ -1,27 +1,31 @@
 use crate::{
     client::Client,
-    request::{self, AuditLogReason, AuditLogReasonError, Request},
+    error::Error,
+    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::id::{GuildId, RoleId, UserId};
+use twilight_model::id::{
+    marker::{GuildMarker, RoleMarker, UserMarker},
+    Id,
+};
 
 /// Remove a role from a member in a guild, by id.
 #[must_use = "requests must be configured and executed"]
 pub struct RemoveRoleFromMember<'a> {
-    guild_id: GuildId,
+    guild_id: Id<GuildMarker>,
     http: &'a Client,
-    role_id: RoleId,
-    user_id: UserId,
+    role_id: Id<RoleMarker>,
+    user_id: Id<UserMarker>,
     reason: Option<&'a str>,
 }
 
 impl<'a> RemoveRoleFromMember<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        guild_id: GuildId,
-        user_id: UserId,
-        role_id: RoleId,
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+        role_id: Id<RoleMarker>,
     ) -> Self {
         Self {
             guild_id,
@@ -36,22 +40,12 @@ impl<'a> RemoveRoleFromMember<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let mut request = Request::builder(&Route::RemoveMemberRole {
-            guild_id: self.guild_id.get(),
-            role_id: self.role_id.get(),
-            user_id: self.user_id.get(),
-        });
+        let http = self.http;
 
-        if let Some(reason) = self.reason {
-            let header = match request::audit_header(reason) {
-                Ok(header) => header,
-                Err(source) => return ResponseFuture::error(source),
-            };
-
-            request = request.headers(header);
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
         }
-
-        self.http.request(request.build())
     }
 }
 
@@ -60,5 +54,23 @@ impl<'a> AuditLogReason<'a> for RemoveRoleFromMember<'a> {
         self.reason.replace(AuditLogReasonError::validate(reason)?);
 
         Ok(self)
+    }
+}
+
+impl TryIntoRequest for RemoveRoleFromMember<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        let mut request = Request::builder(&Route::RemoveMemberRole {
+            guild_id: self.guild_id.get(),
+            role_id: self.role_id.get(),
+            user_id: self.user_id.get(),
+        });
+
+        if let Some(reason) = self.reason {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
     }
 }

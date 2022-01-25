@@ -2,6 +2,150 @@
 
 Changelog for `twilight-http`.
 
+## [0.9.0] - 2022-01-22
+
+### Validation
+
+Validation has been moved to a new crate, `twilight_validate` ([#1331] -
+[@7596ff]). Similar concerns such as creating messages
+(`MessageValidationError`) or editing channels (`ChannelValidationError`) have
+been grouped together in error types, and these error types replace the custom
+error types associated with each request builder. Miscellaneous validation
+functions that were associated things like get user limits are also placed under
+one error type, `ValidationError`.
+
+The following error types are now returned by the following methods:
+- `ChannelValidationError`
+  - `Client::create_guild_channel`
+  - `Client::create_thread_from_message`
+  - `Client::create_thread`
+  - `CreateGuildChannel::rate_limit_per_user`
+  - `CreateGuildChannel::topic`
+  - `UpdateChannel::name`
+  - `UpdateChannel::rate_limit_per_user`
+  - `UpdateChannel::topic`
+  - `UpdateThread::name`
+  - `UpdateThread::rate_limit_per_user`
+- `CommandValidationError`
+  - `InteractionClient::set_command_permissions`
+  - `InteractionClient::update_command_permissions`
+- `MessageValidationError`
+  - `CreateFollowupMessage::components`
+  - `CreateMessage::components`
+  - `CreateMessage::content`
+  - `CreateMessage::embeds`
+  - `CreateMessage::stickers`
+  - `CreateWebhookMessage::components`
+  - `UpdateFollowupMessage::components`
+  - `UpdateFollowupMessage::content`
+  - `UpdateFollowupMessage::embeds`
+  - `UpdateMessage::components`
+  - `UpdateMessage::content`
+  - `UpdateMessage::embeds`
+  - `UpdateOriginalResponse::components`
+  - `UpdateOriginalResponse::content`
+  - `UpdateOriginalResponse::embeds`
+  - `UpdateWebhookMessage::components`
+  - `UpdateWebhookMessage::content`
+  - `UpdateWebhookMessage::embeds`
+- `ValidationError`
+  - `AddGuildMember::nick`
+  - `Client::create_guild_from_template`
+  - `Client::create_stage_instance`
+  - `Client::create_template`
+  - `CreateBan::delete_message_days`
+  - `CreateGuildPrune::days`
+  - `CreateInvite::max_uses`
+  - `CreateTemplate::description`
+  - `GetChannelMessages::limit`
+  - `GetCurrentUserGuilds::limit`
+  - `GetGuildAuditLog::limit`
+  - `GetGuildMembers::limit`
+  - `GetGuildPruneCount::limit`
+  - `GetReactions::limit`
+  - `SearchGuildMembers::limit`
+  - `UpdateCurrentMember::nick`
+  - `UpdateCurrentUser::username`
+  - `UpdateGuild::name`
+  - `UpdateGuildMember::communication_disabled_until`
+  - `UpdateGuildMember::nick`
+  - `UpdateStageInstance::topic`
+  - `UpdateTemplate::description`
+  - `UpdateTemplate::name`
+
+The following functions now perform validation:
+- `MessageValidationError`
+  - `CreateFollowupMessage::content`
+  - `CreateFollowupMessage::embeds`
+  - `CreateWebhookMessage::content`
+  - `CreateWebhookMessage::embeds`
+
+### Additions
+
+Add a sealed trait located at `request::TryIntoRequest` for converting a typed
+request builder into a raw `request::Request` ([#1162] - [@zeylahellyer]). This
+allows users to inspect requests prior to sending them which may be useful for
+debugging and unit testing. 
+
+Support guild scheduled events ([#1347] - [@7596ff]). Adds the following
+methods: `Client::create_guild_scheduled_event`,
+`Client::delete_guild_scheduled_event`, `Client::guild_scheduled_event_users`,
+`Client::guild_scheduled_event`, `Client::guild_scheduled_events`,
+`Client::update_guild_scheduled_event`.
+
+### Changes
+
+All types and method signatures have been updated to use the new `Id<T>` syntax
+([#1260] - [@zeylahellyer]).
+
+Requests requiring an `Id<ApplicationMarker>` are now created through an
+`InteractionClient` ([#1275] - [@zeylahellyer]]). This is created by passing the
+ID to `Client::interaction`. It replaces `set_application_id`. The interaction
+methods are no longer on `Client`.
+
+The `rustls` feature has been removed ([#1314] - [@Gelbpunkt]). Users must
+manually select one of `rustls-native-roots` or `rustls-webpki-roots`.
+
+The `ErrorCode` which contained custom names and descriptions for each API error
+code has been removed ([#1394] - [@zeylahellyer]). Users can now read
+`GeneralApiError::code: u64` to see the code.
+
+`InteractionClient::{create_global_command, create_guild_command}` no longer
+accept a `name` when first creating the request ([#1395] - [@baptiste0928]).
+Instead, depending on the type of command the user is created, different
+validation is performed. For `ChatInput` commands, validation ensures that the
+name is between 1 and 32 characters in length and that it contains no uppercase
+letters. For `Message` and `User` commands, validation only ensures the length
+is correct. Similar validation is performed on `ChatInput` `option`s.
+
+`Route` now directly implements `Display` ([#1397] - [@vilgotf]).
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+`RequestReactionType` now directly implements `Display` ([#1457] - [@vilgotf]).
+
+[#1162]: https://github.com/twilight-rs/twilight/pull/1162
+[#1260]: https://github.com/twilight-rs/twilight/pull/1260
+[#1275]: https://github.com/twilight-rs/twilight/pull/1275
+[#1314]: https://github.com/twilight-rs/twilight/pull/1314
+[#1331]: https://github.com/twilight-rs/twilight/pull/1331
+[#1394]: https://github.com/twilight-rs/twilight/pull/1394
+[#1395]: https://github.com/twilight-rs/twilight/pull/1395
+[#1397]: https://github.com/twilight-rs/twilight/pull/1397
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+[#1457]: https://github.com/twilight-rs/twilight/pull/1457
+
+## [0.8.5] - 2022-01-21
+
+### Additions
+
+Support sending stickers in `CreateMessage` ([#1435] - [@cmays90]).
+
+[#1435]: https://github.com/twilight-rs/twilight/pull/1435
+
 ## [0.8.4] - 2022-01-08
 
 ### Additions
@@ -1449,6 +1593,7 @@ Initial release.
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
 [@AsianIntel]: https://github.com/AsianIntel
+[@baptiste0928]: https://github.com/baptiste0928
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@cherryblossom000]: https://github.com/cherryblossom000
@@ -1507,6 +1652,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.9.0
+[0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.3
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.3

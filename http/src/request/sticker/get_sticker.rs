@@ -1,5 +1,14 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
-use twilight_model::channel::message::sticker::{Sticker, StickerId};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
+use twilight_model::{
+    channel::message::sticker::Sticker,
+    id::{marker::StickerMarker, Id},
+};
 
 /// Returns a single sticker by its ID.
 ///
@@ -7,24 +16,24 @@ use twilight_model::channel::message::sticker::{Sticker, StickerId};
 ///
 /// ```no_run
 /// use twilight_http::Client;
-/// use twilight_model::channel::message::sticker::StickerId;
+/// use twilight_model::id::Id;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let id = StickerId::new(123).expect("non zero");
+/// let id = Id::new(123);
 /// let sticker = client.sticker(id).exec().await?.model().await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct GetSticker<'a> {
     http: &'a Client,
-    sticker_id: StickerId,
+    sticker_id: Id<StickerMarker>,
 }
 
 impl<'a> GetSticker<'a> {
-    pub(crate) const fn new(http: &'a Client, sticker_id: StickerId) -> Self {
+    pub(crate) const fn new(http: &'a Client, sticker_id: Id<StickerMarker>) -> Self {
         Self { http, sticker_id }
     }
 
@@ -32,10 +41,19 @@ impl<'a> GetSticker<'a> {
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Sticker> {
-        let request = Request::from_route(&Route::GetSticker {
-            sticker_id: self.sticker_id.get(),
-        });
+        let http = self.http;
 
-        self.http.request(request)
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for GetSticker<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetSticker {
+            sticker_id: self.sticker_id.get(),
+        }))
     }
 }

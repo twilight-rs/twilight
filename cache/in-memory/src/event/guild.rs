@@ -8,7 +8,7 @@ use std::{collections::HashSet, hash::Hash};
 use twilight_model::{
     gateway::payload::incoming::{GuildCreate, GuildDelete, GuildUpdate},
     guild::Guild,
-    id::GuildId,
+    id::{marker::GuildMarker, Id},
 };
 
 impl InMemoryCache {
@@ -115,9 +115,9 @@ impl UpdateCache for GuildCreate {
 impl UpdateCache for GuildDelete {
     fn update(&self, cache: &InMemoryCache) {
         fn remove_ids<T: Eq + Hash, U>(
-            guild_map: &DashMap<GuildId, HashSet<T>>,
+            guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
             container: &DashMap<T, U>,
-            guild_id: GuildId,
+            guild_id: Id<GuildMarker>,
         ) {
             if let Some((_, ids)) = guild_map.remove(&guild_id) {
                 for id in ids {
@@ -182,11 +182,11 @@ impl UpdateCache for GuildUpdate {
         if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = self.afk_timeout;
-            guild.banner = self.banner.clone();
+            guild.banner = self.banner;
             guild.default_message_notifications = self.default_message_notifications;
             guild.description = self.description.clone();
             guild.features = self.features.clone();
-            guild.icon = self.icon.clone();
+            guild.icon = self.icon;
             guild.max_members = self.max_members;
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
             guild.mfa_level = self.mfa_level;
@@ -200,7 +200,7 @@ impl UpdateCache for GuildUpdate {
             guild
                 .premium_subscription_count
                 .replace(self.premium_subscription_count.unwrap_or_default());
-            guild.splash = self.splash.clone();
+            guild.splash = self.splash;
             guild.system_channel_id = self.system_channel_id;
             guild.verification_level = self.verification_level;
             guild.vanity_url_code = self.vanity_url_code.clone();
@@ -215,17 +215,19 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
+    use crate::test;
     use twilight_model::{
         channel::{
             thread::{AutoArchiveDuration, PublicThread, ThreadMember, ThreadMetadata},
             ChannelType, GuildChannel, TextChannel,
         },
         datetime::{Timestamp, TimestampParseError},
+        gateway::payload::incoming::{MemberAdd, MemberRemove},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
         },
-        id::{ChannelId, GuildId, UserId},
+        id::Id,
     };
 
     #[test]
@@ -235,7 +237,7 @@ mod tests {
         let timestamp = Timestamp::from_str(DATETIME)?;
 
         let channels = Vec::from([GuildChannel::Text(TextChannel {
-            id: ChannelId::new(111).expect("non zero"),
+            id: Id::new(111),
             guild_id: None,
             kind: ChannelType::GuildText,
             last_message_id: None,
@@ -250,7 +252,7 @@ mod tests {
         })]);
 
         let threads = Vec::from([GuildChannel::PublicThread(PublicThread {
-            id: ChannelId::new(222).expect("non zero"),
+            id: Id::new(222),
             default_auto_archive_duration: None,
             guild_id: None,
             kind: ChannelType::GuildPublicThread,
@@ -265,21 +267,22 @@ mod tests {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Hour,
                 archive_timestamp: timestamp,
+                create_timestamp: Some(timestamp),
                 invitable: None,
                 locked: false,
             },
             member: Some(ThreadMember {
                 flags: 0,
-                id: Some(ChannelId::new(1).expect("non zero")),
+                id: Some(Id::new(1)),
                 join_timestamp: timestamp,
                 member: None,
                 presence: None,
-                user_id: Some(UserId::new(2).expect("non zero")),
+                user_id: Some(Id::new(2)),
             }),
         })]);
 
         let guild = Guild {
-            id: GuildId::new(123).expect("non zero"),
+            id: Id::new(123),
             afk_channel_id: None,
             afk_timeout: 300,
             application_id: None,
@@ -302,7 +305,7 @@ mod tests {
             name: "this is a guild".to_owned(),
             nsfw_level: NSFWLevel::AgeRestricted,
             owner: Some(false),
-            owner_id: UserId::new(456).expect("non zero"),
+            owner_id: Id::new(456),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-GB".to_owned(),
             premium_progress_bar_enabled: true,
@@ -331,13 +334,9 @@ mod tests {
         let cache = InMemoryCache::new();
         cache.cache_guild(guild);
 
-        let channel = cache
-            .guild_channel(ChannelId::new(111).expect("non zero"))
-            .unwrap();
+        let channel = cache.guild_channel(Id::new(111)).unwrap();
 
-        let thread = cache
-            .guild_channel(ChannelId::new(222).expect("non zero"))
-            .unwrap();
+        let thread = cache.guild_channel(Id::new(222)).unwrap();
 
         // The channel was given to the cache without a guild ID, but because
         // it's part of a guild create, the cache can automatically attach the
@@ -345,14 +344,14 @@ mod tests {
         // correct value.
         match channel.resource() {
             GuildChannel::Text(c) => {
-                assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
+                assert_eq!(Some(Id::new(123)), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
 
         match thread.resource() {
             GuildChannel::PublicThread(c) => {
-                assert_eq!(Some(GuildId::new(123).expect("non zero")), c.guild_id);
+                assert_eq!(Some(Id::new(123)), c.guild_id);
             }
             _ => panic!("{:?}", channel),
         }
@@ -363,55 +362,7 @@ mod tests {
     #[test]
     fn test_guild_update() {
         let cache = InMemoryCache::new();
-        let guild = Guild {
-            afk_channel_id: None,
-            afk_timeout: 0,
-            application_id: None,
-            approximate_member_count: None,
-            approximate_presence_count: None,
-            banner: None,
-            channels: Vec::new(),
-            default_message_notifications: DefaultMessageNotificationLevel::Mentions,
-            description: None,
-            discovery_splash: None,
-            emojis: Vec::new(),
-            explicit_content_filter: ExplicitContentFilter::None,
-            features: Vec::new(),
-            icon: None,
-            id: GuildId::new(1).expect("non zero"),
-            joined_at: None,
-            large: false,
-            max_members: None,
-            max_presences: None,
-            max_video_channel_users: None,
-            member_count: None,
-            members: Vec::new(),
-            mfa_level: MfaLevel::None,
-            name: "test".to_owned(),
-            nsfw_level: NSFWLevel::Default,
-            owner_id: UserId::new(1).expect("non zero"),
-            owner: None,
-            permissions: None,
-            preferred_locale: "en_us".to_owned(),
-            premium_progress_bar_enabled: false,
-            premium_subscription_count: None,
-            premium_tier: PremiumTier::None,
-            presences: Vec::new(),
-            roles: Vec::new(),
-            rules_channel_id: None,
-            splash: None,
-            stage_instances: Vec::new(),
-            stickers: Vec::new(),
-            system_channel_flags: SystemChannelFlags::empty(),
-            system_channel_id: None,
-            threads: Vec::new(),
-            unavailable: false,
-            vanity_url_code: None,
-            verification_level: VerificationLevel::VeryHigh,
-            voice_states: Vec::new(),
-            widget_channel_id: None,
-            widget_enabled: None,
-        };
+        let guild = test::guild(Id::new(1), None);
 
         cache.update(&GuildCreate(guild.clone()));
 
@@ -434,7 +385,7 @@ mod tests {
             mfa_level: guild.mfa_level,
             name: "test2222".to_owned(),
             nsfw_level: guild.nsfw_level,
-            owner_id: UserId::new(2).expect("non zero"),
+            owner_id: Id::new(2),
             owner: guild.owner,
             permissions: guild.permissions,
             preferred_locale: guild.preferred_locale,
@@ -457,5 +408,24 @@ mod tests {
         assert_eq!(cache.guild(guild.id).unwrap().name, mutation.name);
         assert_eq!(cache.guild(guild.id).unwrap().owner_id, mutation.owner_id);
         assert_eq!(cache.guild(guild.id).unwrap().id, mutation.id);
+    }
+
+    #[test]
+    fn test_guild_member_count() {
+        let user_id = Id::new(2);
+        let guild_id = Id::new(1);
+        let cache = InMemoryCache::new();
+        let user = test::user(user_id);
+        let member = test::member(user_id, guild_id);
+        let guild = test::guild(guild_id, Some(1));
+
+        cache.update(&GuildCreate(guild));
+        cache.update(&MemberAdd(member));
+
+        assert_eq!(cache.guild(guild_id).unwrap().member_count, Some(2));
+
+        cache.update(&MemberRemove { guild_id, user });
+
+        assert_eq!(cache.guild(guild_id).unwrap().member_count, Some(1));
     }
 }

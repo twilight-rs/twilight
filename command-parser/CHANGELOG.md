@@ -2,6 +2,17 @@
 
 Changelog for `twilight-command-parser`.
 
+## [0.9.0] - 2022-01-22
+
+### Changes
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+
 ## [0.8.1] - 2021-12-27
 
 The Command Parser crate has been deprecated in favor of Gateway or HTTP
@@ -171,6 +182,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#511]: https://github.com/twilight-rs/twilight/pull/511
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.9.0
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/command-parser-0.7.0

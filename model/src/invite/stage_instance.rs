@@ -1,4 +1,9 @@
-use crate::{datetime::Timestamp, id::RoleId, user::User};
+use crate::{
+    datetime::Timestamp,
+    id::{marker::RoleMarker, Id},
+    user::User,
+    util::image_hash::ImageHash,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -19,7 +24,7 @@ pub struct InviteStageInstance {
 pub struct InviteStageInstanceMember {
     /// Guild specific avatar hash.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// When the member joined the guild.
     pub joined_at: Timestamp,
     /// Member's nickname, if there is one.
@@ -33,7 +38,7 @@ pub struct InviteStageInstanceMember {
     pub premium_since: Option<Timestamp>,
     /// List of role IDs the user has.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub roles: Vec<RoleId>,
+    pub roles: Vec<Id<RoleMarker>>,
     /// User data for the member.
     pub user: User,
 }

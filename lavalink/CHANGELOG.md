@@ -2,6 +2,38 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.9.0] - 2022-01-22
+
+### Changes
+
+All types and method signatures have been updated to use the new `Id<T>` syntax
+([#1260] - [@zeylahellyer]).
+
+Support lavalink 3.4 ([#1292] - [@james7132]). `PlayerUpdateState` now contains
+a `connected` field, and its `position` field is now `Option`al.
+
+The `rustls` feature has been removed ([#1314] - [@Gelbpunkt]). Users must
+manually select one of `rustls-native-roots` or `rustls-webpki-roots`.
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+[#1260]: https://github.com/twilight-rs/twilight/pull/1260
+[#1292]: https://github.com/twilight-rs/twilight/pull/1292
+[#1314]: https://github.com/twilight-rs/twilight/pull/1314
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+
+## [0.8.3] - 2022-01-11
+
+### Fixes
+
+Downgrade `dashmap` to `4.0`, to prevent an issue with `Ref::value` and `dashmap
+5.0` ([#1434] - [@baptiste0928]).
+
+[#1434]: https://github.com/twilight-rs/twilight/pull/1434
+
 ## [0.8.2] - 2022-01-08
 
 ### Changes
@@ -269,6 +301,7 @@ crates in the ecosystem receiving a major version bump. There are no changes.
 Initial release.
 
 [@7596ff]: https://github.com/7596ff
+[@baptiste0928]: https://github.com/baptiste0928
 [@Gelbpunkt]: https://github.com/Gelbpunkt
 [@james7132]: https://github.com/james7132
 [@MOZGIII]: https://github.com/MOZGIII
@@ -282,6 +315,8 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.9.0
+[0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.0

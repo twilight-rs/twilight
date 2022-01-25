@@ -2,13 +2,16 @@ use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
     channel::StageInstance,
     gateway::payload::incoming::{StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate},
-    id::{GuildId, StageId},
+    id::{
+        marker::{GuildMarker, StageMarker},
+        Id,
+    },
 };
 
 impl InMemoryCache {
     pub(crate) fn cache_stage_instances(
         &self,
-        guild_id: GuildId,
+        guild_id: Id<GuildMarker>,
         stage_instances: impl IntoIterator<Item = StageInstance>,
     ) {
         for stage_instance in stage_instances {
@@ -16,7 +19,7 @@ impl InMemoryCache {
         }
     }
 
-    fn cache_stage_instance(&self, guild_id: GuildId, stage_instance: StageInstance) {
+    fn cache_stage_instance(&self, guild_id: Id<GuildMarker>, stage_instance: StageInstance) {
         self.guild_stage_instances
             .entry(guild_id)
             .or_default()
@@ -30,7 +33,7 @@ impl InMemoryCache {
         );
     }
 
-    fn delete_stage_instance(&self, stage_id: StageId) {
+    fn delete_stage_instance(&self, stage_id: Id<StageMarker>) {
         if let Some((_, data)) = self.stage_instances.remove(&stage_id) {
             let guild_id = data.guild_id;
 
@@ -74,17 +77,16 @@ impl UpdateCache for StageInstanceUpdate {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use twilight_model::{channel::stage_instance::PrivacyLevel, id::ChannelId};
+    use twilight_model::{channel::stage_instance::PrivacyLevel, id::Id};
 
     #[test]
     fn test_stage_channels() {
         let cache = InMemoryCache::new();
 
         let stage_instance = StageInstance {
-            channel_id: ChannelId::new(1).expect("non zero"),
-            discoverable_disabled: true,
-            guild_id: GuildId::new(2).expect("non zero"),
-            id: StageId::new(3).expect("non zero"),
+            channel_id: Id::new(1),
+            guild_id: Id::new(2),
+            id: Id::new(3),
             privacy_level: PrivacyLevel::GuildOnly,
             topic: "topic".into(),
         };

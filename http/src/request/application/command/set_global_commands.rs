@@ -1,11 +1,14 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, RequestBuilder},
+    request::{Request, RequestBuilder, TryIntoRequest},
     response::{marker::ListBody, ResponseFuture},
     routing::Route,
 };
-use twilight_model::{application::command::Command, id::ApplicationId};
+use twilight_model::{
+    application::command::Command,
+    id::{marker::ApplicationMarker, Id},
+};
 
 /// Set global commands.
 ///
@@ -20,14 +23,14 @@ use twilight_model::{application::command::Command, id::ApplicationId};
 #[must_use = "requests must be configured and executed"]
 pub struct SetGlobalCommands<'a> {
     commands: &'a [Command],
-    application_id: ApplicationId,
+    application_id: Id<ApplicationMarker>,
     http: &'a Client,
 }
 
 impl<'a> SetGlobalCommands<'a> {
     pub(crate) const fn new(
         http: &'a Client,
-        application_id: ApplicationId,
+        application_id: Id<ApplicationMarker>,
         commands: &'a [Command],
     ) -> Self {
         Self {
@@ -37,21 +40,25 @@ impl<'a> SetGlobalCommands<'a> {
         }
     }
 
-    fn request(&self) -> Result<Request, Error> {
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<ListBody<Command>> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
+impl TryIntoRequest for SetGlobalCommands<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Request::builder(&Route::SetGlobalCommands {
             application_id: self.application_id.get(),
         })
         .json(&self.commands)
         .map(RequestBuilder::build)
-    }
-
-    /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<ListBody<Command>> {
-        match self.request() {
-            Ok(request) => self.http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }

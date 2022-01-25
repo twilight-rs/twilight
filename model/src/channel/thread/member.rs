@@ -2,7 +2,10 @@ use crate::{
     datetime::Timestamp,
     gateway::presence::{Presence, PresenceIntermediary},
     guild::{member::MemberIntermediary, Member},
-    id::{ChannelId, GuildId, UserId},
+    id::{
+        marker::{ChannelMarker, GuildMarker, UserMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
 
@@ -11,14 +14,14 @@ pub struct ThreadMember {
     // Values currently unknown and undocumented.
     pub flags: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<ChannelId>,
+    pub id: Option<Id<ChannelMarker>>,
     pub join_timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<Presence>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<UserId>,
+    pub user_id: Option<Id<UserMarker>>,
 }
 
 /// Version of [`ThreadMember`], but without a guild ID in the
@@ -28,19 +31,19 @@ pub struct ThreadMemberIntermediary {
     // Values currently unknown and undocumented.
     pub flags: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<ChannelId>,
+    pub id: Option<Id<ChannelMarker>>,
     pub join_timestamp: Timestamp,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<MemberIntermediary>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<PresenceIntermediary>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_id: Option<UserId>,
+    pub user_id: Option<Id<UserMarker>>,
 }
 
 impl ThreadMemberIntermediary {
     /// Inject a guild ID into a thread member intermediary
-    pub fn into_thread_member(self, guild_id: GuildId) -> ThreadMember {
+    pub fn into_thread_member(self, guild_id: Id<GuildMarker>) -> ThreadMember {
         let member = self.member.map(|m| m.into_member(guild_id));
         let presence = self.presence.map(|p| p.into_presence(guild_id));
         ThreadMember {
@@ -56,8 +59,11 @@ impl ThreadMemberIntermediary {
 
 #[cfg(test)]
 mod tests {
-    use super::{ChannelId, ThreadMember, UserId};
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use super::ThreadMember;
+    use crate::{
+        datetime::{Timestamp, TimestampParseError},
+        id::Id,
+    };
     use serde_test::Token;
     use std::str::FromStr;
 
@@ -69,11 +75,11 @@ mod tests {
 
         let value = ThreadMember {
             flags: 3,
-            id: Some(ChannelId::new(1).expect("non zero")),
+            id: Some(Id::new(1)),
             member: None,
             presence: None,
             join_timestamp,
-            user_id: Some(UserId::new(2).expect("non zero")),
+            user_id: Some(Id::new(2)),
         };
 
         serde_test::assert_tokens(
@@ -87,13 +93,13 @@ mod tests {
                 Token::U64(3),
                 Token::Str("id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "ChannelId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("join_timestamp"),
                 Token::Str(DATETIME),
                 Token::Str("user_id"),
                 Token::Some,
-                Token::NewtypeStruct { name: "UserId" },
+                Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::StructEnd,
             ],
