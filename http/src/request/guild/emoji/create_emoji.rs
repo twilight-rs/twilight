@@ -26,7 +26,7 @@ struct CreateEmojiFields<'a> {
 ///
 /// The emoji must be a Data URI, in the form of
 /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type and
-/// `{data}` is the base64-encoded image.  See [Discord Docs/Image Data].
+/// `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
 ///
 /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
 #[must_use = "requests must be configured and executed"]
