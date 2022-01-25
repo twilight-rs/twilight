@@ -1,4 +1,10 @@
-use crate::{client::Client, error::Error, request::{Request, TryIntoRequest}, response::ResponseFuture, routing::Route};
+use crate::{
+    client::Client,
+    error::Error,
+    request::{Request, TryIntoRequest},
+    response::ResponseFuture,
+    routing::Route,
+};
 use twilight_model::{
     guild::GuildWidgetSettings,
     id::{marker::GuildMarker, Id},

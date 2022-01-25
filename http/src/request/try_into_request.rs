@@ -65,8 +65,8 @@ mod private {
             CreateGuild, CreateGuildChannel, CreateGuildPrune, DeleteGuild, GetActiveThreads,
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
-            GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
-            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget, GetGuildWidgetSettings,
+            GetGuildWelcomeScreen, GetGuildWidget, GetGuildWidgetSettings, UpdateCurrentMember,
+            UpdateGuild, UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
         },
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
