@@ -50,7 +50,7 @@ mod large_bot_queue;
 pub use large_bot_queue::LargeBotQueue;
 
 use day_limiter::DayLimiter;
-use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
+use std::{fmt::Debug, future::{self, Future}, pin::Pin, time::Duration};
 use tokio::{
     sync::{
         mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
@@ -163,7 +163,7 @@ pub struct NoOpQueue;
 
 impl Queue for NoOpQueue {
     fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
-        Box::pin(async {})
+        Box::pin(future::ready(()))
     }
 }
 
