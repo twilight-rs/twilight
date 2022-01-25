@@ -462,7 +462,7 @@ mod tests {
     assert_impl_all!(Id<GenericMarker>:
         Clone, Copy, Debug, Deserialize<'static>, Display, Eq, From<NonZeroU64>,
         FromStr, Hash, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
-        TryFrom<i64>, TryFrom<u64>
+        TryFrom<i64>, TryFrom<u64>, Into<u64>, Into<NonZeroU64>
     );
     assert_impl_all!(IdStringDisplay<GenericMarker>: Debug, Display, Send, Serialize, Sync);
 
