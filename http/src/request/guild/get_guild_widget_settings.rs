@@ -1,4 +1,4 @@
-use crate::{client::Client, request::Request, response::ResponseFuture, routing::Route};
+use crate::{client::Client, error::Error, request::{Request, TryIntoRequest}, response::ResponseFuture, routing::Route};
 use twilight_model::{
     guild::GuildWidgetSettings,
     id::{marker::GuildMarker, Id},
@@ -29,5 +29,13 @@ impl<'a> GetGuildWidgetSettings<'a> {
         });
 
         self.http.request(request)
+    }
+}
+
+impl TryIntoRequest for GetGuildWidgetSettings<'_> {
+    fn try_into_request(self) -> Result<Request, Error> {
+        Ok(Request::from_route(&Route::GetGuildWidgetSettings {
+            guild_id: self.guild_id.get(),
+        }))
     }
 }
