@@ -50,7 +50,12 @@ mod large_bot_queue;
 pub use large_bot_queue::LargeBotQueue;
 
 use day_limiter::DayLimiter;
-use std::{fmt::Debug, future::{self, Future}, pin::Pin, time::Duration};
+use std::{
+    fmt::Debug,
+    future::{self, Future},
+    pin::Pin,
+    time::Duration,
+};
 use tokio::{
     sync::{
         mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
