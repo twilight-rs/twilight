@@ -285,6 +285,18 @@ impl<T> Display for Id<T> {
     }
 }
 
+impl<T> From<Id<T>> for u64 {
+    fn from(id: Id<T>) -> Self {
+        id.get()
+    }
+}
+
+impl<T> From<Id<T>> for NonZeroU64 {
+    fn from(id: Id<T>) -> Self {
+        id.inner()
+    }
+}
+
 impl<T> From<NonZeroU64> for Id<T> {
     fn from(id: NonZeroU64) -> Self {
         Self::from_nonzero(id)
@@ -296,18 +308,6 @@ impl<T> FromStr for Id<T> {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         NonZeroU64::from_str(s).map(Self::from_nonzero)
-    }
-}
-
-impl<T> From<Id<T>> for u64 {
-    fn from(id: Id<T>) -> Self {
-        id.get()
-    }
-}
-
-impl<T> From<Id<T>> for NonZeroU64 {
-    fn from(id: Id<T>) -> Self {
-        id.inner()
     }
 }
 
