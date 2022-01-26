@@ -498,6 +498,17 @@ mod tests {
         Ok(())
     }
 
+    /// Test that conversion methods are correct.
+    #[test]
+    fn test_conversions() {
+        // `Into`
+        assert_eq!(1, u64::from(Id::<GenericMarker>::new(1)));
+        assert_eq!(
+            NonZeroU64::new(1).expect("non zero"),
+            NonZeroU64::from(Id::<GenericMarker>::new(1))
+        );
+    }
+
     /// Test that creating an ID via [`Id::new`] with a value of zero panics.
     #[should_panic]
     #[test]
