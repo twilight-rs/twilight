@@ -205,7 +205,6 @@ pub fn embeds(embeds: &[Embed]) -> Result<(), MessageValidationError> {
     } else {
         crate::embed::embeds(embeds).map_err(|(source, idx)| {
             let (kind, source) = source.into_parts();
-
             MessageValidationError {
                 kind: MessageValidationErrorType::EmbedInvalid { idx, kind },
                 source,
@@ -243,6 +242,8 @@ pub fn stickers(stickers: &[Id<StickerMarker>]) -> Result<(), MessageValidationE
 #[cfg(test)]
 mod tests {
     use super::content;
+    use super::embeds;
+    use twilight_model::channel::embed::Embed;
 
     #[test]
     fn test_content() {
@@ -250,5 +251,27 @@ mod tests {
         assert!(content("a".repeat(2000)).is_ok());
 
         assert!(content("a".repeat(2001)).is_err());
+    }
+
+    #[test]
+    fn test_embeds() {
+        let embed = Embed {
+            author: None,
+            color: None,
+            description: Some("a".repeat(3001)),
+            fields: Vec::new(),
+            footer: None,
+            image: None,
+            kind: "rich".to_owned(),
+            provider: None,
+            thumbnail: None,
+            timestamp: None,
+            title: None,
+            url: None,
+            video: None,
+        };
+
+        assert!(embeds(&[embed.clone()]).is_ok());
+        assert!(embeds(&[embed.clone(), embed.clone()]).is_err());
     }
 }

@@ -13,7 +13,7 @@ pub const AUTHOR_NAME_LENGTH: usize = 256;
 pub const DESCRIPTION_LENGTH: usize = 4096;
 
 /// The maximum combined embed length in codepoints.
-pub const EMBED_TOTAL_LENGTH: usize = 6000;
+pub const EMBEDS_TOTAL_LENGTH: usize = 6000;
 
 /// The maximum number of fields in an embed.
 pub const FIELD_COUNT: usize = 25;
@@ -84,12 +84,12 @@ impl Display for EmbedValidationError {
 
                 Display::fmt(&DESCRIPTION_LENGTH, f)
             }
-            EmbedValidationErrorType::EmbedTooLarge { chars } => {
-                f.write_str("the combined total length of the embed is ")?;
+            EmbedValidationErrorType::EmbedsTooLarge { chars } => {
+                f.write_str("the combined total length of the embeds is ")?;
                 Display::fmt(chars, f)?;
-                f.write_str(" characters long, but the max is ")?;
+                f.write_str(" characters, but the max is ")?;
 
-                Display::fmt(&EMBED_TOTAL_LENGTH, f)
+                Display::fmt(&EMBEDS_TOTAL_LENGTH, f)
             }
             EmbedValidationErrorType::FieldNameTooLarge { chars } => {
                 f.write_str("a field name is ")?;
@@ -151,7 +151,7 @@ pub enum EmbedValidationErrorType {
     /// The combined content of all embed fields - author name, description,
     /// footer, field names and values, and title - is larger than
     /// [the maximum][`EMBED_TOTAL_LENGTH`].
-    EmbedTooLarge {
+    EmbedsTooLarge {
         /// The number of codepoints that were provided.
         chars: usize,
     },
@@ -214,9 +214,7 @@ pub enum EmbedValidationErrorType {
 /// [`FooterTextTooLarge`]: EmbedValidationErrorType::FooterTextTooLarge
 /// [`TitleTooLarge`]: EmbedValidationErrorType::TitleTooLarge
 /// [`TooManyFields`]: EmbedValidationErrorType::TooManyFields
-pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
-    let mut total = 0;
-
+pub fn embed(total_chars: &mut usize, embed: &Embed) -> Result<(), EmbedValidationError> {
     if embed.fields.len() > FIELD_COUNT {
         return Err(EmbedValidationError {
             kind: EmbedValidationErrorType::TooManyFields {
@@ -234,7 +232,7 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
             });
         }
 
-        total += chars;
+        *total_chars += chars;
     }
 
     if let Some(description) = embed.description.as_ref() {
@@ -246,7 +244,7 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
             });
         }
 
-        total += chars;
+        *total_chars += chars;
     }
 
     if let Some(footer) = embed.footer.as_ref() {
@@ -258,7 +256,7 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
             });
         }
 
-        total += chars;
+        *total_chars += chars;
     }
 
     for field in &embed.fields {
@@ -278,7 +276,7 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
             });
         }
 
-        total += name_chars + value_chars;
+        *total_chars += name_chars + value_chars;
     }
 
     if let Some(title) = embed.title.as_ref() {
@@ -290,12 +288,14 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
             });
         }
 
-        total += chars;
+        *total_chars += chars;
     }
 
-    if total > EMBED_TOTAL_LENGTH {
+    if *total_chars > EMBEDS_TOTAL_LENGTH {
         return Err(EmbedValidationError {
-            kind: EmbedValidationErrorType::EmbedTooLarge { chars: total },
+            kind: EmbedValidationErrorType::EmbedsTooLarge {
+                chars: *total_chars,
+            },
         });
     }
 
@@ -430,7 +430,7 @@ mod tests {
     fn test_embed_base() {
         let embed = base_embed();
 
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
     }
 
     #[test]
@@ -451,7 +451,7 @@ mod tests {
         });
         embed.title.replace("this is a normal title".to_owned());
 
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
     }
 
     #[test]
@@ -463,7 +463,7 @@ mod tests {
             proxy_icon_url: None,
             url: None,
         });
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
 
         embed.author.replace(EmbedAuthor {
             icon_url: None,
@@ -472,7 +472,7 @@ mod tests {
             url: None,
         });
         assert!(matches!(
-            super::embed(&embed).unwrap_err().kind(),
+            super::embed(&mut 0, &embed).unwrap_err().kind(),
             EmbedValidationErrorType::AuthorNameTooLarge { chars: 257 }
         ));
     }
@@ -481,14 +481,14 @@ mod tests {
     fn test_embed_description_limit() {
         let mut embed = base_embed();
         embed.description.replace(str::repeat("a", 2048));
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
 
         embed.description.replace(str::repeat("a", 4096));
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
 
         embed.description.replace(str::repeat("a", 4097));
         assert!(matches!(
-            super::embed(&embed).unwrap_err().kind(),
+            super::embed(&mut 0, &embed).unwrap_err().kind(),
             EmbedValidationErrorType::DescriptionTooLarge { chars: 4097 }
         ));
     }
@@ -506,7 +506,7 @@ mod tests {
         }
 
         assert!(matches!(
-            super::embed(&embed).unwrap_err().kind(),
+            super::embed(&mut 0, &embed).unwrap_err().kind(),
             EmbedValidationErrorType::TooManyFields { amount: 26 }
         ));
     }
@@ -519,7 +519,7 @@ mod tests {
             name: str::repeat("a", 256),
             value: "a".to_owned(),
         });
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
 
         embed.fields.push(EmbedField {
             inline: true,
@@ -527,7 +527,7 @@ mod tests {
             value: "a".to_owned(),
         });
         assert!(matches!(
-            super::embed(&embed).unwrap_err().kind(),
+            super::embed(&mut 0, &embed).unwrap_err().kind(),
             EmbedValidationErrorType::FieldNameTooLarge { chars: 257 }
         ));
     }
@@ -540,7 +540,7 @@ mod tests {
             name: "a".to_owned(),
             value: str::repeat("a", 1024),
         });
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
 
         embed.fields.push(EmbedField {
             inline: true,
@@ -548,7 +548,7 @@ mod tests {
             value: str::repeat("a", 1025),
         });
         assert!(matches!(
-            super::embed(&embed).unwrap_err().kind(),
+            super::embed(&mut 0, &embed).unwrap_err().kind(),
             EmbedValidationErrorType::FieldValueTooLarge { chars: 1025 }
         ));
     }
@@ -561,7 +561,7 @@ mod tests {
             proxy_icon_url: None,
             text: str::repeat("a", 2048),
         });
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
 
         embed.footer.replace(EmbedFooter {
             icon_url: None,
@@ -569,7 +569,7 @@ mod tests {
             text: str::repeat("a", 2049),
         });
         assert!(matches!(
-            super::embed(&embed).unwrap_err().kind(),
+            super::embed(&mut 0, &embed).unwrap_err().kind(),
             EmbedValidationErrorType::FooterTextTooLarge { chars: 2049 }
         ));
     }
@@ -578,11 +578,11 @@ mod tests {
     fn test_embed_title_limit() {
         let mut embed = base_embed();
         embed.title.replace(str::repeat("a", 256));
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
 
         embed.title.replace(str::repeat("a", 257));
         assert!(matches!(
-            super::embed(&embed).unwrap_err().kind(),
+            super::embed(&mut 0, &embed).unwrap_err().kind(),
             EmbedValidationErrorType::TitleTooLarge { chars: 257 }
         ));
     }
@@ -602,7 +602,7 @@ mod tests {
         }
 
         // we're at 5304 characters now
-        assert!(super::embed(&embed).is_ok());
+        assert!(super::embed(&mut 0, &embed).is_ok());
 
         embed.footer.replace(EmbedFooter {
             icon_url: None,
@@ -611,8 +611,8 @@ mod tests {
         });
 
         assert!(matches!(
-            super::embed(&embed).unwrap_err().kind(),
-            EmbedValidationErrorType::EmbedTooLarge { chars: 6304 }
+            super::embed(&mut 0, &embed).unwrap_err().kind(),
+            EmbedValidationErrorType::EmbedsTooLarge { chars: 6304 }
         ));
     }
 
