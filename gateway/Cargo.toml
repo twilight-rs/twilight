@@ -52,7 +52,6 @@ tokio = { default-features = false, features = ["macros", "rt-multi-thread"], ve
 
 [features]
 default = ["rustls-native-roots", "tracing", "zlib-stock"]
-compression = []
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
 rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
