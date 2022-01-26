@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, NullableField, Request, TryIntoRequest},
+    request::{NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -27,8 +27,8 @@ use twilight_validate::message::{
 struct UpdateMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) allowed_mentions: Option<AllowedMentions>,
-    #[serde(skip_serializing_if = "request::slice_is_empty")]
-    pub attachments: &'a [Attachment],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attachments: Option<NullableField<&'a [Attachment]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub components: Option<NullableField<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -96,7 +96,7 @@ impl<'a> UpdateMessage<'a> {
             channel_id,
             fields: UpdateMessageFields {
                 allowed_mentions: None,
-                attachments: &[],
+                attachments: None,
                 components: None,
                 content: None,
                 embeds: None,
@@ -115,7 +115,7 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// Calling this method will clear any previous calls.
     pub const fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        self.fields.attachments = attachments;
+        self.fields.attachments = Some(NullableField(Some(attachments)));
 
         self
     }
