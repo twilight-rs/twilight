@@ -432,7 +432,7 @@ impl Shard {
     /// ```
     ///
     /// [`start`]: Self::start
-    pub fn new(token: impl Into<String>, intents: Intents) -> (Self, Events) {
+    pub fn new(token: String, intents: Intents) -> (Self, Events) {
         Self::builder(token, intents).build()
     }
 
@@ -455,7 +455,7 @@ impl Shard {
     /// Create a builder to configure and construct a shard.
     ///
     /// Refer to the builder for more information.
-    pub fn builder(token: impl Into<String>, intents: Intents) -> ShardBuilder {
+    pub fn builder(token: String, intents: Intents) -> ShardBuilder {
         ShardBuilder::new(token, intents)
     }
 
@@ -542,7 +542,7 @@ impl Shard {
                     }
                 })?;
 
-        let handle = tokio::spawn(async move {
+        let handle = tokio::spawn(async {
             processor.run().await;
 
             #[cfg(feature = "tracing")]
@@ -750,9 +750,10 @@ impl Shard {
 
         let shard_id = self.config().shard()[0];
 
-        let session = match self.session() {
-            Ok(session) => session,
-            Err(_) => return (shard_id, None),
+        let session = if let Ok(session) = self.session() {
+            session
+        } else {
+            return (shard_id, None);
         };
 
         let _res = session.close(Some(TungsteniteCloseFrame {

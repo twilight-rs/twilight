@@ -347,9 +347,7 @@ impl ShardProcessor {
         }));
         let stream = Self::connect(&url, config.tls.as_ref()).await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
-        tokio::spawn(async move {
-            forwarder.run().await;
-        });
+        tokio::spawn(forwarder.run());
 
         let session = Arc::new(Session::new(tx));
         if resumable {

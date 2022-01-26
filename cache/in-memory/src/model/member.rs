@@ -96,63 +96,37 @@ impl CachedMember {
 
 impl PartialEq<Member> for CachedMember {
     fn eq(&self, other: &Member) -> bool {
-        (
-            &self.avatar,
-            &self.communication_disabled_until,
-            self.deaf,
-            self.joined_at,
-            self.mute,
-            &self.nick,
-            self.pending,
-            self.premium_since,
-            &self.roles,
-            self.user_id,
-        ) == (
-            &other.avatar,
-            &other.communication_disabled_until,
-            Some(other.deaf),
-            other.joined_at,
-            Some(other.mute),
-            &other.nick,
-            other.pending,
-            other.premium_since,
-            &other.roles,
-            self.user_id,
-        )
+        self.avatar == other.avatar
+            && self.communication_disabled_until == other.communication_disabled_until
+            && self.deaf == Some(other.deaf)
+            && self.joined_at == other.joined_at
+            && self.mute == Some(other.mute)
+            && self.nick == other.nick
+            && self.pending == other.pending
+            && self.premium_since == other.premium_since
+            && self.roles == other.roles
+            && self.user_id == other.user.id
     }
 }
 
 impl PartialEq<PartialMember> for CachedMember {
     fn eq(&self, other: &PartialMember) -> bool {
-        (
-            &self.communication_disabled_until,
-            self.deaf,
-            self.joined_at,
-            self.mute,
-            &self.nick,
-            self.premium_since,
-            &self.roles,
-        ) == (
-            &other.communication_disabled_until,
-            Some(other.deaf),
-            other.joined_at,
-            Some(other.mute),
-            &other.nick,
-            other.premium_since,
-            &other.roles,
-        )
+        self.communication_disabled_until == other.communication_disabled_until
+            && self.deaf == Some(other.deaf)
+            && self.joined_at == other.joined_at
+            && self.mute == Some(other.mute)
+            && self.nick == other.nick
+            && self.premium_since == other.premium_since
+            && self.roles == other.roles
     }
 }
 
 impl PartialEq<InteractionMember> for CachedMember {
     fn eq(&self, other: &InteractionMember) -> bool {
-        (self.joined_at, &self.nick, self.premium_since, &self.roles)
-            == (
-                other.joined_at,
-                &other.nick,
-                other.premium_since,
-                &other.roles,
-            )
+        self.joined_at == other.joined_at
+            && self.nick == other.nick
+            && self.premium_since == other.premium_since
+            && self.roles == other.roles
     }
 }
 

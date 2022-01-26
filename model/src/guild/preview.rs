@@ -1,4 +1,5 @@
 use crate::{
+    channel::message::Sticker,
     guild::Emoji,
     id::{marker::GuildMarker, Id},
     util::image_hash::ImageHash,
@@ -17,6 +18,8 @@ pub struct GuildPreview {
     pub name: String,
     pub icon: Option<ImageHash>,
     pub splash: Option<ImageHash>,
+    /// Guild's custom stickers.
+    pub stickers: Vec<Sticker>,
 }
 
 #[cfg(test)]
@@ -47,6 +50,7 @@ mod tests {
             name: "guild name".to_owned(),
             icon: Some(image_hash::ICON),
             splash: Some(image_hash::SPLASH),
+            stickers: Vec::new(),
         };
 
         serde_test::assert_tokens(
@@ -54,7 +58,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildPreview",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("approximate_member_count"),
                 Token::U64(1_000),
@@ -102,6 +106,9 @@ mod tests {
                 Token::Str("splash"),
                 Token::Some,
                 Token::Str(image_hash::SPLASH_INPUT),
+                Token::Str("stickers"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::StructEnd,
             ],
         );

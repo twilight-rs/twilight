@@ -50,7 +50,12 @@ mod large_bot_queue;
 pub use large_bot_queue::LargeBotQueue;
 
 use day_limiter::DayLimiter;
-use std::{fmt::Debug, future::Future, pin::Pin, time::Duration};
+use std::{
+    fmt::Debug,
+    future::{self, Future},
+    pin::Pin,
+    time::Duration,
+};
 use tokio::{
     sync::{
         mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender},
@@ -154,13 +159,27 @@ impl Queue for LocalQueue {
     }
 }
 
+/// An implementation of [`Queue`] that instantly allows requests.
+///
+/// Useful when running behind a proxy gateway. Running without a
+/// functional queue **will** get you ratelimited.
+#[derive(Debug)]
+pub struct NoOpQueue;
+
+impl Queue for NoOpQueue {
+    fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+        Box::pin(future::ready(()))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{LocalQueue, Queue};
+    use super::{LocalQueue, NoOpQueue, Queue};
     use static_assertions::{assert_impl_all, assert_obj_safe};
     use std::fmt::Debug;
 
     assert_impl_all!(LocalQueue: Clone, Debug, Queue, Send, Sync);
+    assert_impl_all!(NoOpQueue: Debug, Queue, Send, Sync);
     assert_impl_all!(dyn Queue: Debug, Send, Sync);
     assert_obj_safe!(Queue);
 }

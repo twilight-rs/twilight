@@ -2,6 +2,69 @@
 
 Changelog for `twilight-model`.
 
+## [0.9.0] - 2022-01-22
+
+### `Id<T>`
+
+IDs are now a unified type (`Id`) with marker generics (`ApplicationMarker`,
+...) ([#1260] - [@zeylahellyer]). The new type implements all of what each type
+used to implement, as well as `FromStr`, `TryFrom<u64>`, and `TryFrom<i64>`, and
+others. `Id::cast` aids in converting between IDs without copying. See the PR
+and the documentation for more details.
+
+### Additions
+
+Support scheduled events ([#1347] - [@7596ff]). Adds the following types:
+`EntityMetadata`, `EntityType`, `GuildScheduledEventUser`,
+`GuildScheduledEvent`, `PrivacyLevel`, and `Status`.
+
+### Changes
+
+All types and method signatures have been updated to use the new `Id<T>` syntax
+([#1260] - [@zeylahellyer]).
+
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+
+Image hashes are now parsed and stored in a more efficient struct, rather than
+deserializing as a `String` ([#1405] - [@zeylahellyer]).
+
+The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
+
+`StageInstance::discoverable_disabled` and `PrivacyLevel::Public` have been
+removed, as public stage instances are no longer supported ([#1479] -
+[@itohatweb]).
+
+`GuildWidget::channel_id` is now optional ([#1480] - [@itohatweb]).
+
+[#1260]: https://github.com/twilight-rs/twilight/pull/1260
+[#1402]: https://github.com/twilight-rs/twilight/pull/1402
+[#1405]: https://github.com/twilight-rs/twilight/pull/1405
+[#1412]: https://github.com/twilight-rs/twilight/pull/1412
+[#1479]: https://github.com/twilight-rs/twilight/pull/1479
+[#1480]: https://github.com/twilight-rs/twilight/pull/1480
+
+## [0.8.5] - 2022-01-21
+
+### Additions
+
+In interactions, support `guild_locale` and `locale` ([#1437] - [@itohatweb]).
+
+Support `Invitable` in the audit log ([#1442] - [@itohatweb]).
+
+Add `GuildPreview::stickers` ([#1467] - [@itohatweb]).
+
+Add `ThreadMetadata::created_timestamp` ([#1478] - [@itohatweb]).
+
+### Changes
+
+Depend on at least version `0.1.16` of `tracing` ([#1425] - [@vilgotf]).
+
+[#1425]: https://github.com/twilight-rs/twilight/pull/1425
+[#1437]: https://github.com/twilight-rs/twilight/pull/1437
+[#1442]: https://github.com/twilight-rs/twilight/pull/1442
+[#1467]: https://github.com/twilight-rs/twilight/pull/1467
+[#1478]: https://github.com/twilight-rs/twilight/pull/1478
+
 ## [0.8.4] - 2022-01-08
 
 ### Additions
@@ -1181,6 +1244,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.0
+[0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.2

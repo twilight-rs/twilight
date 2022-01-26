@@ -13,7 +13,7 @@ publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.57"
-version = "0.8.4"
+version = "0.9.0"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
@@ -34,7 +34,7 @@ leaky-bucket-lite = { default-features = false, features = ["tokio"], version = 
 # it does not seem to update the total_in of the function to have an offset
 # https://github.com/alexcrichton/flate2-rs/issues/217
 flate2 = { default-features = false, optional = true, version = "1.0" }
-metrics = { default-features = false, features = ["std"], optional = true, version = ">=0.14, <0.18" }
+metrics = { default-features = false, optional = true, version = "0.18" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
@@ -51,13 +51,13 @@ static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.12" }
 
 [features]
-default = ["compression", "rustls-native-roots", "tracing", "flate2/zlib"]
-compression = ["flate2"]
+default = ["rustls-native-roots", "tracing", "zlib-stock"]
+compression = []
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
 rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
-zlib-simd = ["compression", "flate2/zlib-ng-compat"]
+zlib-simd = ["flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
 # always use stock zlib instead of zlib-ng.
 # https://github.com/rust-lang/libz-sys/blob/main/README.md#zlib-ng
-zlib-stock = ["compression", "flate2/zlib"]
+zlib-stock = ["flate2/zlib"]
