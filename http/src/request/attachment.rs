@@ -103,7 +103,7 @@ const fn num_digits(index: usize) -> usize {
     let mut index = index;
     let mut len = 0;
 
-    if index == 0 {
+    if index < 10 {
         return 1;
     }
 
