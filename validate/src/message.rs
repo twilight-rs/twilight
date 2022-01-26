@@ -198,25 +198,21 @@ pub fn content(value: impl AsRef<str>) -> Result<(), MessageValidationError> {
 /// [`embed`]: crate::embed::embed
 pub fn embeds(embeds: &[Embed]) -> Result<(), MessageValidationError> {
     if embeds.len() > EMBED_COUNT_LIMIT {
-        Err(MessageValidationError {
+        return Err(MessageValidationError {
             kind: MessageValidationErrorType::TooManyEmbeds,
             source: None,
-        })
+        });
     } else {
-        let mut total = 0;
-        for (idx, embed) in embeds.iter().enumerate() {
-            crate::embed::embed(&mut total, embed).map_err(|source| {
-                let (kind, source) = source.into_parts();
-
-                MessageValidationError {
-                    kind: MessageValidationErrorType::EmbedInvalid { idx, kind },
-                    source,
-                }
-            })?;
-        }
-
-        Ok(())
+        crate::embed::embeds(embeds).map_err(|(source, idx)| {
+            let (kind, source) = source.into_parts();
+            MessageValidationError {
+                kind: MessageValidationErrorType::EmbedInvalid { idx, kind },
+                source,
+            }
+        })?;
     }
+
+    Ok(())
 }
 
 /// Ensure that the amount of stickers in a message is correct.

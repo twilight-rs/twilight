@@ -302,6 +302,102 @@ pub fn embed(total_chars: &mut usize, embed: &Embed) -> Result<(), EmbedValidati
     Ok(())
 }
 
+pub(crate) fn embeds(embeds: &[Embed]) -> Result<(), (EmbedValidationError, usize)> {
+    let mut total = 0;
+
+    for (idx, embed) in embeds.iter().enumerate() {
+        _embed(&mut total, embed).map_err(|source| (source, idx))?
+    }
+
+    Ok(())
+}
+
+fn _embed(total: &mut usize, embed: &Embed) -> Result<(), EmbedValidationError> {
+    if embed.fields.len() > FIELD_COUNT {
+        return Err(EmbedValidationError {
+            kind: EmbedValidationErrorType::TooManyFields {
+                amount: embed.fields.len(),
+            },
+        });
+    }
+
+    if let Some(name) = embed.author.as_ref().map(|author| &author.name) {
+        let chars = name.chars().count();
+
+        if chars > AUTHOR_NAME_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::AuthorNameTooLarge { chars },
+            });
+        }
+
+        *total += chars;
+    }
+
+    if let Some(description) = embed.description.as_ref() {
+        let chars = description.chars().count();
+
+        if chars > DESCRIPTION_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::DescriptionTooLarge { chars },
+            });
+        }
+
+        *total += chars;
+    }
+
+    if let Some(footer) = embed.footer.as_ref() {
+        let chars = footer.text.chars().count();
+
+        if chars > FOOTER_TEXT_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FooterTextTooLarge { chars },
+            });
+        }
+
+        *total += chars;
+    }
+
+    for field in &embed.fields {
+        let name_chars = field.name.chars().count();
+
+        if name_chars > FIELD_NAME_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FieldNameTooLarge { chars: name_chars },
+            });
+        }
+
+        let value_chars = field.value.chars().count();
+
+        if value_chars > FIELD_VALUE_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FieldValueTooLarge { chars: value_chars },
+            });
+        }
+
+        *total += name_chars + value_chars;
+    }
+
+    if let Some(title) = embed.title.as_ref() {
+        let chars = title.chars().count();
+
+        if chars > TITLE_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::TitleTooLarge { chars },
+            });
+        }
+
+        *total += chars;
+    }
+
+    if *total > EMBED_TOTAL_LENGTH {
+        return Err(EmbedValidationError {
+            kind: EmbedValidationErrorType::EmbedTooLarge { chars: *total },
+        });
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::{Embed, EmbedValidationError, EmbedValidationErrorType};
@@ -517,6 +613,23 @@ mod tests {
         assert!(matches!(
             super::embed(&mut 0, &embed).unwrap_err().kind(),
             EmbedValidationErrorType::EmbedsTooLarge { chars: 6304 }
+        ));
+    }
+
+    #[test]
+    fn test_embeds_combined_limit() {
+        let mut embed = base_embed();
+        embed.description.replace(str::repeat("a", 3000));
+
+        assert!(super::embeds(&[embed.clone(), embed.clone()]).is_ok());
+
+        embed.description.replace(str::repeat("a", 3001));
+
+        let err = super::embeds(&[embed.clone(), embed.clone()]).unwrap_err();
+
+        assert!(matches!(
+            (err.0.kind(), err.1),
+            (EmbedValidationErrorType::EmbedTooLarge { chars: 6002 }, 1)
         ));
     }
 }
