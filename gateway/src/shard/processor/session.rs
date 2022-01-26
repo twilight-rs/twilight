@@ -72,7 +72,7 @@ pub struct Session {
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
-    pub ratelimit: OnceCell<LeakyBucket>,
+    pub ratelimit: OnceCell<Option<LeakyBucket>>,
 }
 
 impl Session {
@@ -122,6 +122,10 @@ impl Session {
         self.tx.send(TungsteniteMessage::Close(close_frame))
     }
 
+    pub fn disable_ratelimiter(&self) {
+        let _result = self.ratelimit.set(None);
+    }
+
     pub fn heartbeat_interval(&self) -> u64 {
         self.heartbeat_interval.load(Ordering::Relaxed)
     }
@@ -137,14 +141,14 @@ impl Session {
         let commands_allotted = u32::from(available_commands_per_interval(new_heartbeat_interval));
 
         // We can ignore an error if the ratelimiter has already been set.
-        let _result = self.ratelimit.set(
+        let _result = self.ratelimit.set(Some(
             LeakyBucket::builder()
                 .max(commands_allotted)
                 .tokens(commands_allotted)
                 .refill_interval(REFILL_INTERVAL)
                 .refill_amount(commands_allotted)
                 .build(),
-        );
+        ));
     }
 
     /// Returns the current sequence.
