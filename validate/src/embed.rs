@@ -302,6 +302,9 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
     Ok(())
 }
 
+/// A private duplicate of [`embed`] that returns the embed's length
+///
+/// [`embed`]: embed
 pub(crate) fn _embed(embed: &Embed) -> Result<usize, EmbedValidationError> {
     let mut total = 0;
 
@@ -386,7 +389,14 @@ pub(crate) fn _embed(embed: &Embed) -> Result<usize, EmbedValidationError> {
     Ok(total)
 }
 
-pub(crate) fn length(length: usize) -> Result<(), EmbedValidationError> {
+/// Validate the given length of embeds
+///
+/// # Errors
+///
+/// Returns an error of type [`EmbedTooLarge`] if the given length is larger than the limit.
+///
+/// [`EmbedTooLarge`]: EmbedValidationErrorType::EmbedTooLarge
+pub(crate) const fn length(length: usize) -> Result<(), EmbedValidationError> {
     if length > EMBED_TOTAL_LENGTH {
         return Err(EmbedValidationError {
             kind: EmbedValidationErrorType::EmbedTooLarge { chars: length },
