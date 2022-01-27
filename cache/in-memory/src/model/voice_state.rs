@@ -13,24 +13,24 @@ use twilight_model::{
 /// [`VoiceState`]: twilight_model::voice::VoiceState
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
-    channel_id: Option<Id<ChannelMarker>>,
-    deaf: bool,
-    guild_id: Option<Id<GuildMarker>>,
-    mute: bool,
-    request_to_speak_timestamp: Option<Timestamp>,
-    self_deaf: bool,
-    self_mute: bool,
-    self_stream: bool,
-    self_video: bool,
-    session_id: String,
-    suppress: bool,
-    token: Option<String>,
-    user_id: Id<UserMarker>,
+    pub(crate) channel_id: Id<ChannelMarker>,
+    pub(crate) deaf: bool,
+    pub(crate) guild_id: Id<GuildMarker>,
+    pub(crate) mute: bool,
+    pub(crate) request_to_speak_timestamp: Option<Timestamp>,
+    pub(crate) self_deaf: bool,
+    pub(crate) self_mute: bool,
+    pub(crate) self_stream: bool,
+    pub(crate) self_video: bool,
+    pub(crate) session_id: String,
+    pub(crate) suppress: bool,
+    pub(crate) token: Option<String>,
+    pub(crate) user_id: Id<UserMarker>,
 }
 
 impl CachedVoiceState {
     /// ID of the channel that this user is connected to.
-    pub const fn channel_id(&self) -> Option<Id<ChannelMarker>> {
+    pub const fn channel_id(&self) -> Id<ChannelMarker> {
         self.channel_id
     }
 
@@ -40,7 +40,7 @@ impl CachedVoiceState {
     }
 
     /// ID of the guild that this user is connected in, if there is one.
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+    pub const fn guild_id(&self) -> Id<GuildMarker> {
         self.guild_id
     }
 
@@ -95,48 +95,11 @@ impl CachedVoiceState {
     }
 }
 
-impl From<VoiceState> for CachedVoiceState {
-    fn from(voice_state: VoiceState) -> Self {
-        let VoiceState {
-            channel_id,
-            deaf,
-            guild_id,
-            member: _,
-            mute,
-            self_deaf,
-            self_mute,
-            self_stream,
-            self_video,
-            session_id,
-            suppress,
-            token,
-            user_id,
-            request_to_speak_timestamp,
-        } = voice_state;
-
-        Self {
-            channel_id,
-            deaf,
-            guild_id,
-            mute,
-            request_to_speak_timestamp,
-            self_deaf,
-            self_mute,
-            self_stream,
-            self_video,
-            session_id,
-            suppress,
-            token,
-            user_id,
-        }
-    }
-}
-
 impl PartialEq<VoiceState> for CachedVoiceState {
     fn eq(&self, other: &VoiceState) -> bool {
-        self.channel_id == other.channel_id
+        Some(self.channel_id) == other.channel_id
             && self.deaf == other.deaf
-            && self.guild_id == other.guild_id
+            && Some(self.guild_id) == other.guild_id
             && self.mute == other.mute
             && self.request_to_speak_timestamp == other.request_to_speak_timestamp
             && self.self_deaf == other.self_deaf
@@ -153,7 +116,34 @@ impl PartialEq<VoiceState> for CachedVoiceState {
 #[cfg(test)]
 mod tests {
     use super::CachedVoiceState;
+    use serde::Serialize;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
     use twilight_model::{id::Id, voice::VoiceState};
+
+    assert_fields!(
+        CachedVoiceState: channel_id,
+        deaf,
+        guild_id,
+        mute,
+        request_to_speak_timestamp,
+        self_deaf,
+        self_mute,
+        self_stream,
+        self_video,
+        session_id,
+        suppress,
+        token,
+        user_id
+    );
+    assert_impl_all!(
+        CachedVoiceState: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        PartialEq<VoiceState>,
+        Serialize,
+    );
 
     fn voice_state() -> VoiceState {
         VoiceState {
@@ -174,10 +164,28 @@ mod tests {
         }
     }
 
+    fn cached_voice_state() -> CachedVoiceState {
+        CachedVoiceState {
+            channel_id: Id::new(1),
+            deaf: false,
+            guild_id: Id::new(2),
+            mute: true,
+            request_to_speak_timestamp: None,
+            self_deaf: false,
+            self_mute: true,
+            self_stream: false,
+            self_video: true,
+            session_id: "ba8bd70ac7239ffc710e2fc8db52f240".to_owned(),
+            suppress: false,
+            token: None,
+            user_id: Id::new(3),
+        }
+    }
+
     #[test]
     fn test_eq() {
         let voice_state = voice_state();
-        let cached = CachedVoiceState::from(voice_state.clone());
+        let cached = cached_voice_state();
 
         assert_eq!(cached, voice_state);
     }
@@ -185,11 +193,11 @@ mod tests {
     #[test]
     fn test_getters() {
         let voice_state = voice_state();
-        let cached = CachedVoiceState::from(voice_state.clone());
+        let cached = cached_voice_state();
 
-        assert_eq!(cached.channel_id(), voice_state.channel_id);
+        assert_eq!(Some(cached.channel_id()), voice_state.channel_id);
         assert_eq!(cached.deaf(), voice_state.deaf);
-        assert_eq!(cached.guild_id(), voice_state.guild_id);
+        assert_eq!(Some(cached.guild_id()), voice_state.guild_id);
         assert_eq!(cached.mute(), voice_state.mute);
         assert_eq!(
             cached.request_to_speak_timestamp(),
