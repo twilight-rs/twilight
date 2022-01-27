@@ -203,8 +203,18 @@ pub fn embeds(embeds: &[Embed]) -> Result<(), MessageValidationError> {
             source: None,
         })
     } else {
+        let mut total = 0;
         for (idx, embed) in embeds.iter().enumerate() {
-            crate::embed::embed(embed).map_err(|source| {
+            total += crate::embed::_embed(embed).map_err(|source| {
+                let (kind, source) = source.into_parts();
+
+                MessageValidationError {
+                    kind: MessageValidationErrorType::EmbedInvalid { idx, kind },
+                    source,
+                }
+            })?;
+
+            crate::embed::length(total).map_err(|source| {
                 let (kind, source) = source.into_parts();
 
                 MessageValidationError {
