@@ -36,8 +36,21 @@ impl InMemoryCache {
             }
         }
 
-        // Check if the voice channel_id does not exist, signifying that the user has left
-        if voice_state.channel_id.is_none() {
+        if let Some(channel_id) = voice_state.channel_id {
+            self.voice_states
+                .insert((guild_id, user_id), CachedVoiceState::from(voice_state));
+
+            self.voice_state_guilds
+                .entry(guild_id)
+                .or_default()
+                .insert(user_id);
+
+            self.voice_state_channels
+                .entry(channel_id)
+                .or_default()
+                .insert((guild_id, user_id));
+        } else {
+            // voice channel_id does not exist, signifying that the user has left
             {
                 let remove_guild = self
                     .voice_state_guilds
@@ -55,24 +68,6 @@ impl InMemoryCache {
             }
 
             self.voice_states.remove(&(guild_id, user_id));
-
-            return;
-        }
-
-        let maybe_channel_id = voice_state.channel_id;
-        self.voice_states
-            .insert((guild_id, user_id), CachedVoiceState::from(voice_state));
-
-        self.voice_state_guilds
-            .entry(guild_id)
-            .or_default()
-            .insert(user_id);
-
-        if let Some(channel_id) = maybe_channel_id {
-            self.voice_state_channels
-                .entry(channel_id)
-                .or_default()
-                .insert((guild_id, user_id));
         }
     }
 }
