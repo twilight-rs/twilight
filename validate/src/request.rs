@@ -19,10 +19,10 @@ pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u64 = 7;
 pub const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
 
 /// Maximum amount of messages to get.
-pub const GET_CHANNEL_MESSAGES_LIMIT_MAX: u64 = 100;
+pub const GET_CHANNEL_MESSAGES_LIMIT_MAX: u8 = 100;
 
 /// Minimum amount of messages to get.
-pub const GET_CHANNEL_MESSAGES_LIMIT_MIN: u64 = 1;
+pub const GET_CHANNEL_MESSAGES_LIMIT_MIN: u8 = 1;
 
 /// Maximum amount of guilds to get.
 pub const GET_CURRENT_USER_GUILDS_LIMIT_MAX: u64 = 200;
@@ -351,7 +351,7 @@ pub enum ValidationErrorType {
     /// Provided get channel messages limit was invalid.
     GetChannelMessages {
         /// Invalid limit.
-        limit: u64,
+        limit: u8,
     },
     /// Provided get current user guilds limit was invalid.
     GetCurrentUserGuilds {
@@ -524,7 +524,7 @@ pub fn communication_disabled_until(timestamp: Timestamp) -> Result<(), Validati
 ///
 /// [`GetChannelMessages`]: ValidationErrorType::GetChannelMessages
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#get-channel-messages
-pub const fn get_channel_messages_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_channel_messages_limit(limit: u8) -> Result<(), ValidationError> {
     if limit >= GET_CHANNEL_MESSAGES_LIMIT_MIN && limit <= GET_CHANNEL_MESSAGES_LIMIT_MAX {
         Ok(())
     } else {

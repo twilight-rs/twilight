@@ -647,7 +647,7 @@ pub enum Route<'a> {
         /// The ID of the channel.
         channel_id: u64,
         /// The maximum number of messages to get.
-        limit: Option<u64>,
+        limit: Option<u8>,
     },
     /// Route information to get a list of sticker packs available to Nitro
     /// subscribers.
