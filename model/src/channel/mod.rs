@@ -142,7 +142,7 @@ pub struct Channel {
     pub position: Option<i64>,
     /// Amount of seconds a user has to wait before sending another message.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rate_limit_per_user: Option<u64>,
+    pub rate_limit_per_user: Option<u16>,
     /// Recipients of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recipients: Option<Vec<User>>,
@@ -416,7 +416,7 @@ mod tests {
             parent_id: Some(Id::new(2)),
             permission_overwrites: None,
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000_u16),
             recipients: None,
             rtc_region: None,
             topic: None,
@@ -495,7 +495,7 @@ mod tests {
             parent_id: Some(Id::new(2)),
             permission_overwrites: None,
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000_u16),
             recipients: None,
             rtc_region: None,
             topic: None,
@@ -579,7 +579,7 @@ mod tests {
                 kind: PermissionOverwriteType::Member(Id::new(5)),
             }])),
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000_u16),
             recipients: None,
             rtc_region: None,
             topic: None,

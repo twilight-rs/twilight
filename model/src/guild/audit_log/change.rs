@@ -509,10 +509,10 @@ pub enum AuditLogChange {
     RateLimitPerUser {
         /// New ratelimit, in seconds.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u64>,
+        new: Option<u16>,
         /// Old ratelimit, in seconds.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u64>,
+        old: Option<u16>,
     },
     /// Region of a guild changed.
     Region {
