@@ -15,7 +15,7 @@ use twilight_validate::request::{
 
 struct GetGuildMembersFields {
     after: Option<Id<UserMarker>>,
-    limit: Option<u64>,
+    limit: Option<u16>,
     presences: Option<bool>,
 }
 
@@ -78,7 +78,7 @@ impl<'a> GetGuildMembers<'a> {
     /// greater than 1000.
     ///
     /// [`GetGuildMembers`]: twilight_validate::request::ValidationErrorType::GetGuildMembers
-    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_guild_members_limit(limit) {
             return Err(source);
         }

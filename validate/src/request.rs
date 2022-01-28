@@ -37,10 +37,10 @@ pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u8 = 100;
 pub const GET_GUILD_AUDIT_LOG_LIMIT_MIN: u8 = 1;
 
 /// Maximum amount of guild members to list.
-pub const GET_GUILD_MEMBERS_LIMIT_MAX: u64 = 1000;
+pub const GET_GUILD_MEMBERS_LIMIT_MAX: u16 = 1000;
 
 /// Minimum amount of guild members to list.
-pub const GET_GUILD_MEMBERS_LIMIT_MIN: u64 = 1;
+pub const GET_GUILD_MEMBERS_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of users to return when getting reactions.
 pub const GET_REACTIONS_LIMIT_MIN: u64 = 1;
@@ -366,7 +366,7 @@ pub enum ValidationErrorType {
     /// Provided get guild members limit was invalid.
     GetGuildMembers {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
     },
     /// Provided get reactions limit was invalid.
     GetReactions {
@@ -590,7 +590,7 @@ pub const fn get_guild_audit_log_limit(limit: u8) -> Result<(), ValidationError>
 ///
 /// [`GetGuildMembers`]: ValidationErrorType::GetGuildMembers
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#list-guild-members
-pub const fn get_guild_members_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_guild_members_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_GUILD_MEMBERS_LIMIT_MIN && limit <= GET_GUILD_MEMBERS_LIMIT_MAX {
         Ok(())
     } else {

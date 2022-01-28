@@ -499,7 +499,7 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
         /// The maximum number of members to get.
-        limit: Option<u64>,
+        limit: Option<u16>,
         /// Whether to get the members' presences.
         presences: Option<bool>,
     },
