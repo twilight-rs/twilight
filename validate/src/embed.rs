@@ -293,28 +293,22 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
 }
 
 /// Get the total character count of an embed
+#[must_use]
 pub fn length(embed: &Embed) -> usize {
     let mut length = 0;
 
     length += embed
         .author
         .as_ref()
-        .map(|author| author.name.as_str())
-        .unwrap_or("")
+        .map_or("", |author| author.name.as_str())
         .len();
 
-    length += embed
-        .description
-        .as_ref()
-        .map(|description| description.as_str())
-        .unwrap_or("")
-        .len();
+    length += embed.description.as_ref().map_or("", String::as_str).len();
 
     length += embed
         .footer
         .as_ref()
-        .map(|footer| footer.text.as_str())
-        .unwrap_or("")
+        .map_or("", |footer| footer.text.as_str())
         .len();
 
     for field in &embed.fields {
@@ -322,12 +316,7 @@ pub fn length(embed: &Embed) -> usize {
         length += field.value.len();
     }
 
-    length += embed
-        .title
-        .as_ref()
-        .map(|title| title.as_str())
-        .unwrap_or("")
-        .len();
+    length += embed.title.as_deref().unwrap_or("").len();
 
     length
 }
