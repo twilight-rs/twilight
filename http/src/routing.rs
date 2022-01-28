@@ -694,7 +694,7 @@ pub enum Route<'a> {
         /// The URI encoded custom or unicode emoji.
         emoji: &'a RequestReactionType<'a>,
         /// The maximum number of users to retrieve.
-        limit: Option<u64>,
+        limit: Option<u8>,
         /// The ID of the message.
         message_id: u64,
     },

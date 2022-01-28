@@ -43,10 +43,10 @@ pub const GET_GUILD_MEMBERS_LIMIT_MAX: u16 = 1000;
 pub const GET_GUILD_MEMBERS_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of users to return when getting reactions.
-pub const GET_REACTIONS_LIMIT_MIN: u64 = 1;
+pub const GET_REACTIONS_LIMIT_MIN: u8 = 1;
 
 /// Minimum amount of users to return when getting reactions.
-pub const GET_REACTIONS_LIMIT_MAX: u64 = 100;
+pub const GET_REACTIONS_LIMIT_MAX: u8 = 100;
 
 /// Maximum length of a guild's name.
 pub const GUILD_NAME_LENGTH_MAX: usize = 100;
@@ -371,7 +371,7 @@ pub enum ValidationErrorType {
     /// Provided get reactions limit was invalid.
     GetReactions {
         /// Invalid limit.
-        limit: u64,
+        limit: u8,
     },
     /// Provided guild name was invalid.
     GuildName {
@@ -611,7 +611,7 @@ pub const fn get_guild_members_limit(limit: u16) -> Result<(), ValidationError> 
 ///
 /// [`GetReactions`]: ValidationErrorType::GetReactions
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#get-reactions
-pub const fn get_reactions_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_reactions_limit(limit: u8) -> Result<(), ValidationError> {
     if limit >= GET_REACTIONS_LIMIT_MIN && limit <= GET_REACTIONS_LIMIT_MAX {
         Ok(())
     } else {

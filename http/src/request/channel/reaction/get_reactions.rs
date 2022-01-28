@@ -19,7 +19,7 @@ use twilight_validate::request::{
 
 struct GetReactionsFields {
     after: Option<Id<UserMarker>>,
-    limit: Option<u64>,
+    limit: Option<u8>,
 }
 
 /// Get a list of users that reacted to a message with an `emoji`.
@@ -72,7 +72,7 @@ impl<'a> GetReactions<'a> {
     /// 100.
     ///
     /// [`GetReactions`]: twilight_validate::request::ValidationErrorType::GetReactions
-    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+    pub const fn limit(mut self, limit: u8) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_reactions_limit(limit) {
             return Err(source);
         }
