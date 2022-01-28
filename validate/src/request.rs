@@ -13,7 +13,7 @@ use twilight_model::datetime::Timestamp;
 pub const AUDIT_REASON_MAX: usize = 512;
 
 /// Maximum amount of days for messages to be deleted upon ban.
-pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u64 = 7;
+pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u8 = 7;
 
 /// Maximum amount of time a member can be timed out for.
 pub const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
@@ -341,7 +341,7 @@ pub enum ValidationErrorType {
     /// Provided create guild ban delete message days was invalid.
     CreateGuildBanDeleteMessageDays {
         /// Invalid days.
-        days: u64,
+        days: u8,
     },
     /// Provided timestamp is too far in the future.
     CommunicationDisabledUntil {
@@ -476,7 +476,7 @@ pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError
 ///
 /// [`CreateGuildBanDeleteMessageDays`]: ValidationErrorType::CreateGuildBanDeleteMessageDays
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#create-guild-ban
-pub const fn create_guild_ban_delete_message_days(days: u64) -> Result<(), ValidationError> {
+pub const fn create_guild_ban_delete_message_days(days: u8) -> Result<(), ValidationError> {
     if days <= CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX {
         Ok(())
     } else {

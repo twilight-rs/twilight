@@ -30,7 +30,7 @@ pub enum Route<'a> {
     CreateBan {
         /// The number of days' worth of the user's messages to delete in the
         /// guild's channels.
-        delete_message_days: Option<u64>,
+        delete_message_days: Option<u8>,
         /// The ID of the guild.
         guild_id: u64,
         /// The reason for the ban.
