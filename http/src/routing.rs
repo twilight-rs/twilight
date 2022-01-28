@@ -353,7 +353,7 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
         /// The maximum number of audit logs to get.
-        limit: Option<u64>,
+        limit: Option<u8>,
         /// The ID of the user, if specified.
         user_id: Option<u64>,
     },

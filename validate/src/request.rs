@@ -31,10 +31,10 @@ pub const GET_CURRENT_USER_GUILDS_LIMIT_MAX: u64 = 200;
 pub const GET_CURRENT_USER_GUILDS_LIMIT_MIN: u64 = 1;
 
 /// Maximum amount of audit log entries to list.
-pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u64 = 100;
+pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u8 = 100;
 
 /// Minimum amount of audit log entries to list.
-pub const GET_GUILD_AUDIT_LOG_LIMIT_MIN: u64 = 1;
+pub const GET_GUILD_AUDIT_LOG_LIMIT_MIN: u8 = 1;
 
 /// Maximum amount of guild members to list.
 pub const GET_GUILD_MEMBERS_LIMIT_MAX: u64 = 1000;
@@ -361,7 +361,7 @@ pub enum ValidationErrorType {
     /// Provided get guild audit log limit was invalid.
     GetGuildAuditLog {
         /// Invalid limit.
-        limit: u64,
+        limit: u8,
     },
     /// Provided get guild members limit was invalid.
     GetGuildMembers {
@@ -568,7 +568,7 @@ pub const fn get_current_user_guilds_limit(limit: u64) -> Result<(), ValidationE
 ///
 /// [`GetGuildAuditLog`]: ValidationErrorType::GetGuildAuditLog
 /// [this documentation entry]: https://discord.com/developers/docs/resources/audit-log#get-guild-audit-log
-pub const fn get_guild_audit_log_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_guild_audit_log_limit(limit: u8) -> Result<(), ValidationError> {
     if limit >= GET_GUILD_AUDIT_LOG_LIMIT_MIN && limit <= GET_GUILD_AUDIT_LOG_LIMIT_MAX {
         Ok(())
     } else {
