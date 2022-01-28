@@ -20,7 +20,7 @@ use twilight_validate::{
 #[derive(Serialize)]
 struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    bitrate: Option<u64>,
+    bitrate: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -79,7 +79,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the bitrate of the channel. Applicable to voice channels only.
-    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.fields.bitrate = Some(bitrate);
 
         self
