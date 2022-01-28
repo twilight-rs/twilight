@@ -628,10 +628,10 @@ pub enum AuditLogChange {
     UserLimit {
         /// New limit.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u64>,
+        new: Option<u8>,
         /// Old limit.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u64>,
+        old: Option<u8>,
     },
     /// Number of uses of an invite.
     Uses {

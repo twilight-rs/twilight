@@ -212,7 +212,7 @@ pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_limit: Option<u64>,
+    pub user_limit: Option<u8>,
 }
 
 /// Create a new request to create a guild.

@@ -36,7 +36,7 @@ struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    user_limit: Option<u64>,
+    user_limit: Option<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]
     video_quality_mode: Option<VideoQualityMode>,
     #[serde(rename = "type")]
@@ -189,7 +189,7 @@ impl<'a> UpdateChannel<'a> {
     /// inclusive. See [Discord Docs/Modify Channel].
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub const fn user_limit(mut self, user_limit: u64) -> Self {
+    pub const fn user_limit(mut self, user_limit: u8) -> Self {
         self.fields.user_limit = Some(user_limit);
 
         self
