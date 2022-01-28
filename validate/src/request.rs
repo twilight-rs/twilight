@@ -55,10 +55,10 @@ pub const GUILD_NAME_LENGTH_MAX: usize = 100;
 pub const GUILD_NAME_LENGTH_MIN: usize = 2;
 
 /// Maximum amount of days to prune users from a guild.
-pub const GUILD_PRUNE_DAYS_MAX: u64 = 30;
+pub const GUILD_PRUNE_DAYS_MAX: u8 = 30;
 
 /// Minimum amount of days to prune users from a guild.
-pub const GUILD_PRUNE_DAYS_MIN: u64 = 1;
+pub const GUILD_PRUNE_DAYS_MIN: u8 = 1;
 
 /// Maximum length of an invite's age, in seconds.
 pub const INVITE_AGE_MAX: u64 = 604_800;
@@ -381,7 +381,7 @@ pub enum ValidationErrorType {
     /// Provided guild prune days was invalid.
     GuildPruneDays {
         /// Invalid days.
-        days: u64,
+        days: u8,
     },
     /// Provided invite max age was invalid.
     InviteMaxAge {
@@ -655,7 +655,7 @@ pub fn guild_name(name: impl AsRef<str>) -> Result<(), ValidationError> {
 ///
 /// [`GuildPruneDays`]: ValidationErrorType::GuildPruneDays
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#get-guild-prune-count
-pub const fn guild_prune_days(days: u64) -> Result<(), ValidationError> {
+pub const fn guild_prune_days(days: u8) -> Result<(), ValidationError> {
     if days >= GUILD_PRUNE_DAYS_MIN && days <= GUILD_PRUNE_DAYS_MAX {
         Ok(())
     } else {

@@ -78,7 +78,7 @@ pub enum Route<'a> {
         compute_prune_count: Option<bool>,
         /// The number of days that a user must be offline before being able to
         /// be pruned.
-        days: Option<u64>,
+        days: Option<u8>,
         /// The ID of the guild.
         guild_id: u64,
         /// The roles to filter the prune by.
@@ -513,7 +513,7 @@ pub enum Route<'a> {
     GetGuildPruneCount {
         /// The number of days that a user must be offline before being able to
         /// be pruned.
-        days: Option<u64>,
+        days: Option<u8>,
         /// The ID of the guild.
         guild_id: u64,
         /// The roles to filter the prune by.

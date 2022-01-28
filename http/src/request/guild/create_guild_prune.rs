@@ -19,7 +19,7 @@ use twilight_validate::request::{
 
 struct CreateGuildPruneFields<'a> {
     compute_prune_count: Option<bool>,
-    days: Option<u64>,
+    days: Option<u8>,
     include_roles: &'a [Id<RoleMarker>],
 }
 
@@ -74,7 +74,7 @@ impl<'a> CreateGuildPrune<'a> {
     /// or more than 30.
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
-    pub const fn days(mut self, days: u64) -> Result<Self, ValidationError> {
+    pub const fn days(mut self, days: u8) -> Result<Self, ValidationError> {
         if let Err(source) = validate_guild_prune_days(days) {
             return Err(source);
         }
