@@ -100,6 +100,69 @@ impl InMemoryCache {
         self.unavailable_guilds.remove(&guild.id());
         self.guilds.insert(guild.id(), guild);
     }
+
+    pub(crate) fn delete_guild(&self, id: Id<GuildMarker>, unavailable: bool) {
+        fn remove_ids<T: Eq + Hash, U>(
+            guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
+            container: &DashMap<T, U>,
+            guild_id: Id<GuildMarker>,
+        ) {
+            if let Some((_, ids)) = guild_map.remove(&guild_id) {
+                for id in ids {
+                    container.remove(&id);
+                }
+            }
+        }
+
+        if !self.wants(ResourceType::GUILD) {
+            return;
+        }
+
+        if unavailable {
+            if let Some(mut guild) = self.guilds.get_mut(&id) {
+                guild.unavailable = true;
+            }
+        } else {
+            self.guilds.remove(&id);
+        }
+
+        if self.wants(ResourceType::CHANNEL) {
+            remove_ids(&self.guild_channels, &self.channels_guild, id);
+        }
+
+        if self.wants(ResourceType::EMOJI) {
+            remove_ids(&self.guild_emojis, &self.emojis, id);
+        }
+
+        if self.wants(ResourceType::ROLE) {
+            remove_ids(&self.guild_roles, &self.roles, id);
+        }
+
+        if self.wants(ResourceType::STICKER) {
+            remove_ids(&self.guild_stickers, &self.stickers, id);
+        }
+
+        if self.wants(ResourceType::VOICE_STATE) {
+            // Clear out a guilds voice states when a guild leaves
+            self.voice_state_guilds.remove(&id);
+        }
+
+        if self.wants(ResourceType::MEMBER) {
+            if let Some((_, ids)) = self.guild_members.remove(&id) {
+                for user_id in ids {
+                    self.members.remove(&(id, user_id));
+                }
+            }
+        }
+
+        if self.wants(ResourceType::PRESENCE) {
+            if let Some((_, ids)) = self.guild_presences.remove(&id) {
+                for user_id in ids {
+                    self.presences.remove(&(id, user_id));
+                }
+            }
+        }
+    }
 }
 
 impl UpdateCache for GuildCreate {
@@ -114,62 +177,7 @@ impl UpdateCache for GuildCreate {
 
 impl UpdateCache for GuildDelete {
     fn update(&self, cache: &InMemoryCache) {
-        fn remove_ids<T: Eq + Hash, U>(
-            guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
-            container: &DashMap<T, U>,
-            guild_id: Id<GuildMarker>,
-        ) {
-            if let Some((_, ids)) = guild_map.remove(&guild_id) {
-                for id in ids {
-                    container.remove(&id);
-                }
-            }
-        }
-
-        if !cache.wants(ResourceType::GUILD) {
-            return;
-        }
-
-        let id = self.id;
-
-        cache.guilds.remove(&id);
-
-        if cache.wants(ResourceType::CHANNEL) {
-            remove_ids(&cache.guild_channels, &cache.channels_guild, id);
-        }
-
-        if cache.wants(ResourceType::EMOJI) {
-            remove_ids(&cache.guild_emojis, &cache.emojis, id);
-        }
-
-        if cache.wants(ResourceType::ROLE) {
-            remove_ids(&cache.guild_roles, &cache.roles, id);
-        }
-
-        if cache.wants(ResourceType::STICKER) {
-            remove_ids(&cache.guild_stickers, &cache.stickers, id);
-        }
-
-        if cache.wants(ResourceType::VOICE_STATE) {
-            // Clear out a guilds voice states when a guild leaves
-            cache.voice_state_guilds.remove(&id);
-        }
-
-        if cache.wants(ResourceType::MEMBER) {
-            if let Some((_, ids)) = cache.guild_members.remove(&id) {
-                for user_id in ids {
-                    cache.members.remove(&(id, user_id));
-                }
-            }
-        }
-
-        if cache.wants(ResourceType::PRESENCE) {
-            if let Some((_, ids)) = cache.guild_presences.remove(&id) {
-                for user_id in ids {
-                    cache.presences.remove(&(id, user_id));
-                }
-            }
-        }
+        cache.delete_guild(self.id, false);
     }
 }
 
@@ -222,7 +230,7 @@ mod tests {
             ChannelType, GuildChannel, TextChannel,
         },
         datetime::{Timestamp, TimestampParseError},
-        gateway::payload::incoming::{MemberAdd, MemberRemove},
+        gateway::payload::incoming::{MemberAdd, MemberRemove, UnavailableGuild},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
@@ -427,5 +435,48 @@ mod tests {
         cache.update(&MemberRemove { guild_id, user });
 
         assert_eq!(cache.guild(guild_id).unwrap().member_count, Some(1));
+    }
+
+    #[test]
+    fn test_guild_members_size_after_unavailable() {
+        let user_id = Id::new(2);
+        let guild_id = Id::new(1);
+        let cache = InMemoryCache::new();
+        let member = test::member(user_id, guild_id);
+        let mut guild = test::guild(guild_id, Some(1));
+        guild.members.push(member);
+
+        cache.update(&GuildCreate(guild.clone()));
+
+        assert_eq!(
+            1,
+            cache
+                .guild_members(guild_id)
+                .map(|members| members.len())
+                .unwrap_or_default()
+        );
+
+        cache.update(&UnavailableGuild { id: guild_id });
+
+        assert_eq!(
+            0,
+            cache
+                .guild_members(guild_id)
+                .map(|members| members.len())
+                .unwrap_or_default()
+        );
+        assert!(
+            cache.guild(guild_id).unwrap().unavailable
+        );
+
+        cache.update(&GuildCreate(guild));
+
+        assert_eq!(
+            1,
+            cache
+                .guild_members(guild_id)
+                .map(|members| members.len())
+                .unwrap_or_default()
+        );
     }
 }
