@@ -31,7 +31,7 @@ pub struct InviteCreate {
     /// Maximum age before the invite expires.
     ///
     /// This is in seconds.
-    pub max_age: u64,
+    pub max_age: u32,
     /// Maximum number of uses before the invite expires.
     pub max_uses: u64,
     /// Target of the invite.
@@ -165,7 +165,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("max_age"),
-                Token::U64(3600),
+                Token::U32(3600),
                 Token::Str("max_uses"),
                 Token::U64(5),
                 Token::Str("temporary"),

@@ -357,10 +357,10 @@ pub enum AuditLogChange {
     MaxAge {
         /// New maximum age.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u64>,
+        new: Option<u32>,
         /// Previous state, if any.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u64>,
+        old: Option<u32>,
     },
     /// Maximum uses of an invite.
     MaxUses {

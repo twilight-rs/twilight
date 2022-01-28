@@ -61,7 +61,7 @@ pub const GUILD_PRUNE_DAYS_MAX: u8 = 30;
 pub const GUILD_PRUNE_DAYS_MIN: u8 = 1;
 
 /// Maximum length of an invite's age, in seconds.
-pub const INVITE_AGE_MAX: u64 = 604_800;
+pub const INVITE_AGE_MAX: u32 = 604_800;
 
 /// Maximum uses of an invite, if not unlimited.
 pub const INVITE_USES_MAX: u64 = 100;
@@ -386,7 +386,7 @@ pub enum ValidationErrorType {
     /// Provided invite max age was invalid.
     InviteMaxAge {
         /// Invalid age.
-        max_age: u64,
+        max_age: u32,
     },
     /// Provided invite max uses was invalid.
     InviteMaxUses {
@@ -676,7 +676,7 @@ pub const fn guild_prune_days(days: u8) -> Result<(), ValidationError> {
 ///
 /// [`InviteMaxAge`]: ValidationErrorType::InviteMaxAge
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#create-channel-invite
-pub const fn invite_max_age(max_age: u64) -> Result<(), ValidationError> {
+pub const fn invite_max_age(max_age: u32) -> Result<(), ValidationError> {
     if max_age <= INVITE_AGE_MAX {
         Ok(())
     } else {

@@ -21,7 +21,7 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct CreateInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    max_age: Option<u64>,
+    max_age: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     max_uses: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -114,7 +114,7 @@ impl<'a> CreateInvite<'a> {
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
     /// ```
-    pub const fn max_age(mut self, max_age: u64) -> Result<Self, ValidationError> {
+    pub const fn max_age(mut self, max_age: u32) -> Result<Self, ValidationError> {
         if let Err(source) = validate_invite_max_age(max_age) {
             return Err(source);
         }
