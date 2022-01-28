@@ -817,7 +817,7 @@ pub enum Route<'a> {
         /// ID of the guild to search in.
         guild_id: u64,
         /// Upper limit of members to query for.
-        limit: Option<u64>,
+        limit: Option<u16>,
         /// Query to search by.
         query: &'a str,
     },

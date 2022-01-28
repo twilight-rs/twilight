@@ -91,10 +91,10 @@ pub const SCHEDULED_EVENT_NAME_MAX: usize = 100;
 pub const SCHEDULED_EVENT_NAME_MIN: usize = 1;
 
 /// Maximum amount of guild members to search for.
-pub const SEARCH_GUILD_MEMBERS_LIMIT_MAX: u64 = 1000;
+pub const SEARCH_GUILD_MEMBERS_LIMIT_MAX: u16 = 1000;
 
 /// Minimum amount of guild members to search for.
-pub const SEARCH_GUILD_MEMBERS_LIMIT_MIN: u64 = 1;
+pub const SEARCH_GUILD_MEMBERS_LIMIT_MIN: u16 = 1;
 
 /// Maximum stage instance topic length.
 pub const STAGE_TOPIC_LENGTH_MAX: usize = 120;
@@ -416,7 +416,7 @@ pub enum ValidationErrorType {
     /// Provided search guild members limit was invalid.
     SearchGuildMembers {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
     },
     /// Provided stage instance topic was invalid.
     StageTopic {
@@ -812,7 +812,7 @@ pub fn scheduled_event_name(name: impl AsRef<str>) -> Result<(), ValidationError
 ///
 /// [`SearchGuildMembers`]: ValidationErrorType::SearchGuildMembers
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#search-guild-members
-pub const fn search_guild_members_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn search_guild_members_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= SEARCH_GUILD_MEMBERS_LIMIT_MIN && limit <= SEARCH_GUILD_MEMBERS_LIMIT_MAX {
         Ok(())
     } else {
