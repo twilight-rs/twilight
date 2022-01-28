@@ -597,7 +597,7 @@ pub enum Route<'a> {
         /// The maximum ID of guilds to get.
         before: Option<u64>,
         /// The maximum number of guilds to get.
-        limit: Option<u64>,
+        limit: Option<u8>,
     },
     /// Route information to get an original interaction response message.
     GetInteractionOriginal {
