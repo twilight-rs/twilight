@@ -501,7 +501,7 @@ impl VoiceFieldsBuilder {
     }
 
     /// Set the voice channel's bitrate.
-    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.0.bitrate = Some(bitrate);
 
         self

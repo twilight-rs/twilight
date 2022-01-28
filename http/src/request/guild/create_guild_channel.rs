@@ -24,7 +24,7 @@ use twilight_validate::{
 #[derive(Serialize)]
 struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    bitrate: Option<u64>,
+    bitrate: Option<u32>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: &'a str,
@@ -84,7 +84,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the bitrate of the channel. Applicable to voice channels only.
-    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.fields.bitrate = Some(bitrate);
 
         self

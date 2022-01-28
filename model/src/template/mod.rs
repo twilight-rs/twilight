@@ -558,7 +558,7 @@ mod tests {
                 },
                 Token::Str("bitrate"),
                 Token::Some,
-                Token::U64(64000),
+                Token::U32(64000),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),

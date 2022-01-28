@@ -134,10 +134,10 @@ pub enum AuditLogChange {
     Bitrate {
         /// New bitrate.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u64>,
+        new: Option<u32>,
         /// Old bitrate.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u64>,
+        old: Option<u32>,
     },
     /// Channel for an invite code.
     ChannelId {

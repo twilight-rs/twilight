@@ -202,7 +202,7 @@ pub struct TextFields {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
+    pub bitrate: Option<u32>,
     pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
