@@ -465,9 +465,7 @@ mod tests {
                 .map(|members| members.len())
                 .unwrap_or_default()
         );
-        assert!(
-            cache.guild(guild_id).unwrap().unavailable
-        );
+        assert!(cache.guild(guild_id).unwrap().unavailable);
 
         cache.update(&GuildCreate(guild));
 
@@ -478,5 +476,6 @@ mod tests {
                 .map(|members| members.len())
                 .unwrap_or_default()
         );
+        assert!(!cache.guild(guild_id).unwrap().unavailable);
     }
 }
