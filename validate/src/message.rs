@@ -205,16 +205,19 @@ pub fn embeds(embeds: &[Embed]) -> Result<(), MessageValidationError> {
     } else {
         let mut total = 0;
         for (idx, embed) in embeds.iter().enumerate() {
-            total += crate::embed::_embed(embed).map_err(|source| {
-                let (kind, source) = source.into_parts();
+            total += crate::embed::length(embed);
 
-                MessageValidationError {
-                    kind: MessageValidationErrorType::EmbedInvalid { idx, kind },
-                    source,
-                }
-            })?;
+            if total > crate::embed::EMBED_TOTAL_LENGTH {
+                return Err(MessageValidationError {
+                    kind: MessageValidationErrorType::EmbedInvalid {
+                        idx,
+                        kind: EmbedValidationErrorType::EmbedTooLarge { chars: total },
+                    },
+                    source: None,
+                });
+            }
 
-            crate::embed::length(total).map_err(|source| {
+            crate::embed::embed(embed).map_err(|source| {
                 let (kind, source) = source.into_parts();
 
                 MessageValidationError {

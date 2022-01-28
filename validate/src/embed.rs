@@ -215,195 +215,121 @@ pub enum EmbedValidationErrorType {
 /// [`TitleTooLarge`]: EmbedValidationErrorType::TitleTooLarge
 /// [`TooManyFields`]: EmbedValidationErrorType::TooManyFields
 pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
-    let mut total = 0;
+    let length = length(embed);
 
-    if embed.fields.len() > FIELD_COUNT {
-        return Err(EmbedValidationError {
-            kind: EmbedValidationErrorType::TooManyFields {
-                amount: embed.fields.len(),
-            },
-        });
-    }
-
-    if let Some(name) = embed.author.as_ref().map(|author| &author.name) {
-        let chars = name.chars().count();
-
-        if chars > AUTHOR_NAME_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::AuthorNameTooLarge { chars },
-            });
-        }
-
-        total += chars;
-    }
-
-    if let Some(description) = embed.description.as_ref() {
-        let chars = description.chars().count();
-
-        if chars > DESCRIPTION_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::DescriptionTooLarge { chars },
-            });
-        }
-
-        total += chars;
-    }
-
-    if let Some(footer) = embed.footer.as_ref() {
-        let chars = footer.text.chars().count();
-
-        if chars > FOOTER_TEXT_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::FooterTextTooLarge { chars },
-            });
-        }
-
-        total += chars;
-    }
-
-    for field in &embed.fields {
-        let name_chars = field.name.chars().count();
-
-        if name_chars > FIELD_NAME_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::FieldNameTooLarge { chars: name_chars },
-            });
-        }
-
-        let value_chars = field.value.chars().count();
-
-        if value_chars > FIELD_VALUE_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::FieldValueTooLarge { chars: value_chars },
-            });
-        }
-
-        total += name_chars + value_chars;
-    }
-
-    if let Some(title) = embed.title.as_ref() {
-        let chars = title.chars().count();
-
-        if chars > TITLE_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::TitleTooLarge { chars },
-            });
-        }
-
-        total += chars;
-    }
-
-    if total > EMBED_TOTAL_LENGTH {
-        return Err(EmbedValidationError {
-            kind: EmbedValidationErrorType::EmbedTooLarge { chars: total },
-        });
-    }
-
-    Ok(())
-}
-
-/// A private duplicate of [`embed`] that returns the embed's length
-///
-/// [`embed`]: embed
-pub(crate) fn _embed(embed: &Embed) -> Result<usize, EmbedValidationError> {
-    let mut total = 0;
-
-    if embed.fields.len() > FIELD_COUNT {
-        return Err(EmbedValidationError {
-            kind: EmbedValidationErrorType::TooManyFields {
-                amount: embed.fields.len(),
-            },
-        });
-    }
-
-    if let Some(name) = embed.author.as_ref().map(|author| &author.name) {
-        let chars = name.chars().count();
-
-        if chars > AUTHOR_NAME_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::AuthorNameTooLarge { chars },
-            });
-        }
-
-        total += chars;
-    }
-
-    if let Some(description) = embed.description.as_ref() {
-        let chars = description.chars().count();
-
-        if chars > DESCRIPTION_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::DescriptionTooLarge { chars },
-            });
-        }
-
-        total += chars;
-    }
-
-    if let Some(footer) = embed.footer.as_ref() {
-        let chars = footer.text.chars().count();
-
-        if chars > FOOTER_TEXT_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::FooterTextTooLarge { chars },
-            });
-        }
-
-        total += chars;
-    }
-
-    for field in &embed.fields {
-        let name_chars = field.name.chars().count();
-
-        if name_chars > FIELD_NAME_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::FieldNameTooLarge { chars: name_chars },
-            });
-        }
-
-        let value_chars = field.value.chars().count();
-
-        if value_chars > FIELD_VALUE_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::FieldValueTooLarge { chars: value_chars },
-            });
-        }
-
-        total += name_chars + value_chars;
-    }
-
-    if let Some(title) = embed.title.as_ref() {
-        let chars = title.chars().count();
-
-        if chars > TITLE_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::TitleTooLarge { chars },
-            });
-        }
-
-        total += chars;
-    }
-
-    length(total)?;
-
-    Ok(total)
-}
-
-/// Validate the given length of embeds
-///
-/// # Errors
-///
-/// Returns an error of type [`EmbedTooLarge`] if the given length is larger than the limit.
-///
-/// [`EmbedTooLarge`]: EmbedValidationErrorType::EmbedTooLarge
-pub(crate) const fn length(length: usize) -> Result<(), EmbedValidationError> {
     if length > EMBED_TOTAL_LENGTH {
         return Err(EmbedValidationError {
             kind: EmbedValidationErrorType::EmbedTooLarge { chars: length },
         });
     }
 
+    if embed.fields.len() > FIELD_COUNT {
+        return Err(EmbedValidationError {
+            kind: EmbedValidationErrorType::TooManyFields {
+                amount: embed.fields.len(),
+            },
+        });
+    }
+
+    if let Some(name) = embed.author.as_ref().map(|author| &author.name) {
+        let chars = name.chars().count();
+
+        if chars > AUTHOR_NAME_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::AuthorNameTooLarge { chars },
+            });
+        }
+    }
+
+    if let Some(description) = embed.description.as_ref() {
+        let chars = description.chars().count();
+
+        if chars > DESCRIPTION_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::DescriptionTooLarge { chars },
+            });
+        }
+    }
+
+    if let Some(footer) = embed.footer.as_ref() {
+        let chars = footer.text.chars().count();
+
+        if chars > FOOTER_TEXT_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FooterTextTooLarge { chars },
+            });
+        }
+    }
+
+    for field in &embed.fields {
+        let name_chars = field.name.chars().count();
+
+        if name_chars > FIELD_NAME_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FieldNameTooLarge { chars: name_chars },
+            });
+        }
+
+        let value_chars = field.value.chars().count();
+
+        if value_chars > FIELD_VALUE_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FieldValueTooLarge { chars: value_chars },
+            });
+        }
+    }
+
+    if let Some(title) = embed.title.as_ref() {
+        let chars = title.chars().count();
+
+        if chars > TITLE_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::TitleTooLarge { chars },
+            });
+        }
+    }
+
     Ok(())
+}
+
+/// Get the total character count of an embed
+pub fn length(embed: &Embed) -> usize {
+    let mut length = 0;
+
+    length += embed
+        .author
+        .as_ref()
+        .map(|author| author.name.as_str())
+        .unwrap_or("")
+        .len();
+
+    length += embed
+        .description
+        .as_ref()
+        .map(|description| description.as_str())
+        .unwrap_or("")
+        .len();
+
+    length += embed
+        .footer
+        .as_ref()
+        .map(|footer| footer.text.as_str())
+        .unwrap_or("")
+        .len();
+
+    for field in &embed.fields {
+        length += field.name.len();
+        length += field.value.len();
+    }
+
+    length += embed
+        .title
+        .as_ref()
+        .map(|title| title.as_str())
+        .unwrap_or("")
+        .len();
+
+    length
 }
 
 #[cfg(test)]
