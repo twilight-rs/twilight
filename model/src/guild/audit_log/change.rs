@@ -366,10 +366,10 @@ pub enum AuditLogChange {
     MaxUses {
         /// New maximum uses.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u64>,
+        new: Option<u8>,
         /// Previous state, if any.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u64>,
+        old: Option<u8>,
     },
     /// Whether a role can be mentioned in a message.
     Mentionable {

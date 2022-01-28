@@ -64,7 +64,7 @@ pub const GUILD_PRUNE_DAYS_MIN: u8 = 1;
 pub const INVITE_AGE_MAX: u32 = 604_800;
 
 /// Maximum uses of an invite, if not unlimited.
-pub const INVITE_USES_MAX: u64 = 100;
+pub const INVITE_USES_MAX: u8 = 100;
 
 /// Maximum length of a maximum.
 pub const NICKNAME_LIMIT_MAX: usize = 32;
@@ -391,7 +391,7 @@ pub enum ValidationErrorType {
     /// Provided invite max uses was invalid.
     InviteMaxUses {
         /// Invalid age.
-        max_uses: u64,
+        max_uses: u8,
     },
     /// Provided nickname length was invalid.
     Nickname {
@@ -697,7 +697,7 @@ pub const fn invite_max_age(max_age: u32) -> Result<(), ValidationError> {
 ///
 /// [`InviteMaxUses`]: ValidationErrorType::InviteMaxUses
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#create-channel-invite
-pub const fn invite_max_uses(max_uses: u64) -> Result<(), ValidationError> {
+pub const fn invite_max_uses(max_uses: u8) -> Result<(), ValidationError> {
     if max_uses <= INVITE_USES_MAX {
         Ok(())
     } else {
