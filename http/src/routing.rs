@@ -552,7 +552,7 @@ pub enum Route<'a> {
         /// ID of the guild.
         guild_id: u64,
         /// Maximum amount of members to get.
-        limit: Option<u64>,
+        limit: Option<u8>,
         /// ID of the scheduled event.
         scheduled_event_id: u64,
         /// Whether to return a member object.

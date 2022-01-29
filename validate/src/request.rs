@@ -79,10 +79,10 @@ pub const SCHEDULED_EVENT_DESCRIPTION_MAX: usize = 1000;
 pub const SCHEDULED_EVENT_DESCRIPTION_MIN: usize = 1;
 
 /// Maximum amount of scheduled event users to get.
-pub const SCHEDULED_EVENT_GET_USERS_MAX: u64 = 100;
+pub const SCHEDULED_EVENT_GET_USERS_MAX: u8 = 100;
 
 /// Minimum amount of scheduled event users to get.
-pub const SCHEDULED_EVENT_GET_USERS_MIN: u64 = 1;
+pub const SCHEDULED_EVENT_GET_USERS_MIN: u8 = 1;
 
 /// Maximum length of a scheduled event's name.
 pub const SCHEDULED_EVENT_NAME_MAX: usize = 100;
@@ -406,7 +406,7 @@ pub enum ValidationErrorType {
     /// Scheduled event get users limit is invalid.
     ScheduledEventGetUsers {
         /// Invalid limit.
-        limit: u64,
+        limit: u8,
     },
     /// Scheduled event name is invalid.
     ScheduledEventName {
@@ -767,7 +767,7 @@ pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), V
 ///
 /// [`ScheduledEventGetUsers`]: ValidationErrorType::ScheduledEventGetUsers
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users-query-string-params
-pub const fn scheduled_event_get_users(limit: u64) -> Result<(), ValidationError> {
+pub const fn scheduled_event_get_users(limit: u8) -> Result<(), ValidationError> {
     if limit <= SCHEDULED_EVENT_GET_USERS_MIN && limit >= SCHEDULED_EVENT_GET_USERS_MAX {
         Ok(())
     } else {
