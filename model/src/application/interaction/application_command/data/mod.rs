@@ -5,7 +5,7 @@ pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, Int
 use crate::{
     application::command::{CommandOptionType, Number},
     id::{
-        marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker},
+        marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker, AttachmentMarker},
         Id,
     },
 };
@@ -71,6 +71,7 @@ impl Serialize for CommandDataOption {
         state.serialize_field("type", &self.value.kind())?;
 
         match &self.value {
+            CommandOptionValue::Attachment(a) => state.serialize_field("value", a)?,
             CommandOptionValue::Boolean(b) => state.serialize_field("value", b)?,
             CommandOptionValue::Channel(c) => state.serialize_field("value", c)?,
             CommandOptionValue::Integer(i) => state.serialize_field("value", i)?,
@@ -206,6 +207,18 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 let kind = kind_opt.ok_or_else(|| DeError::missing_field("type"))?;
 
                 let value = match kind {
+                    CommandOptionType::Attachment => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        if let ValueEnvelope::Id(id) = val {
+                            CommandOptionValue::Attachment(id.cast())
+                        } else {
+                            return Err(DeError::invalid_type(
+                                make_unexpected(&val),
+                                &"attachment id",
+                            ));
+                        }
+                    }
                     CommandOptionType::Boolean => {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
@@ -326,6 +339,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 /// Value of a [`CommandDataOption`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
+    Attachment(Id<AttachmentMarker>),
     Boolean(bool),
     Channel(Id<ChannelMarker>),
     Integer(i64),
@@ -341,6 +355,7 @@ pub enum CommandOptionValue {
 impl CommandOptionValue {
     pub const fn kind(&self) -> CommandOptionType {
         match self {
+            CommandOptionValue::Attachment(_) => CommandOptionType::Attachment,
             CommandOptionValue::Boolean(_) => CommandOptionType::Boolean,
             CommandOptionValue::Channel(_) => CommandOptionType::Channel,
             CommandOptionValue::Integer(_) => CommandOptionType::Integer,

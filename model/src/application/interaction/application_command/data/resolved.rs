@@ -1,9 +1,9 @@
 use crate::{
-    channel::{thread::ThreadMetadata, ChannelType, Message},
+    channel::{thread::ThreadMetadata, ChannelType, Message, Attachment},
     datetime::Timestamp,
     guild::{Permissions, Role},
     id::{
-        marker::{ChannelMarker, MessageMarker, RoleMarker, UserMarker},
+        marker::{ChannelMarker, MessageMarker, RoleMarker, UserMarker, AttachmentMarker},
         Id,
     },
     user::User,
@@ -13,6 +13,8 @@ use std::collections::hash_map::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandInteractionDataResolved {
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub attachments: HashMap<Id<AttachmentMarker>, Attachment>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub channels: HashMap<Id<ChannelMarker>, InteractionChannel>,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
