@@ -297,26 +297,26 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
 pub fn length(embed: &Embed) -> usize {
     let mut length = 0;
 
-    length += embed
-        .author
-        .as_ref()
-        .map_or("", |author| author.name.as_str())
-        .len();
+    if let Some(author) = &embed.author {
+        length += author.name.len();
+    }
 
-    length += embed.description.as_ref().map_or("", String::as_str).len();
+    if let Some(description) = &embed.description {
+        length += description.len();
+    }
 
-    length += embed
-        .footer
-        .as_ref()
-        .map_or("", |footer| footer.text.as_str())
-        .len();
+    if let Some(footer) = &embed.footer {
+        length += footer.text.len();
+    }
 
     for field in &embed.fields {
         length += field.name.len();
         length += field.value.len();
     }
 
-    length += embed.title.as_deref().unwrap_or("").len();
+    if let Some(title) = &embed.title {
+        length += title.len();
+    }
 
     length
 }
