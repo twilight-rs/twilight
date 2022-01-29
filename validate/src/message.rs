@@ -4,7 +4,7 @@
 
 use crate::{
     component::{ComponentValidationErrorType, COMPONENT_COUNT},
-    embed::EmbedValidationErrorType,
+    embed::{EmbedValidationErrorType, EMBED_TOTAL_LENGTH},
 };
 use std::{
     error::Error,
@@ -207,7 +207,7 @@ pub fn embeds(embeds: &[Embed]) -> Result<(), MessageValidationError> {
         for (idx, embed) in embeds.iter().enumerate() {
             total += crate::embed::length(embed);
 
-            if total > crate::embed::EMBED_TOTAL_LENGTH {
+            if total > EMBED_TOTAL_LENGTH {
                 return Err(MessageValidationError {
                     kind: MessageValidationErrorType::EmbedInvalid {
                         idx,
