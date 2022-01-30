@@ -66,7 +66,7 @@ pub enum AuditLogEventType {
     /// [Member]: super::super::Member
     /// [role]: super::super::Role
     MemberRoleUpdate = 25,
-    /// [Member] was moved between audio [channel]s.
+    /// [Member] was moved between voice [channel]s.
     ///
     /// [Member]: super::super::Member
     /// [channel]: crate::channel::Channel
