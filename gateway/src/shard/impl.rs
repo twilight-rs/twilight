@@ -290,6 +290,7 @@ impl Information {
     }
 
     /// When the ratelimiter will next refill the [`ratelimit_requests`].
+    ///
     /// This will be `None` if payload ratelimiting has been disabled.
     ///
     /// [`ratelimit_requests`]: Self::ratelimit_requests
@@ -703,7 +704,12 @@ impl Shard {
             kind: SendErrorType::SessionInactive,
         })?;
 
+        // Getting the value of the OnceCell will only return None if it has not been
+        // initialized yet, i.e. ratelimiting is enabled and HELLO has not been
+        // received yet.
         if let Some(maybe_ratelimiter) = session.ratelimit.get() {
+            // The value of the cell has been set, it will be Some if ratelimiting
+            // is enabled, else None. We can ignore the second case.
             if let Some(ratelimiter) = maybe_ratelimiter {
                 ratelimiter.acquire_one().await;
             }

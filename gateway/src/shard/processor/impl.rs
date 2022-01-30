@@ -349,17 +349,13 @@ impl ShardProcessor {
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(forwarder.run());
 
-        let session = Arc::new(Session::new(tx));
+        let session = Arc::new(Session::new(tx, config.ratelimit_payloads));
 
         if resumable {
             session.set_id(config.session_id.clone().unwrap());
             session
                 .seq
                 .store(config.sequence.unwrap(), Ordering::Relaxed)
-        }
-
-        if !config.ratelimit_payloads {
-            session.disable_ratelimiter();
         }
 
         let (wtx, wrx) = watch_channel(Arc::clone(&session));
@@ -1084,7 +1080,7 @@ impl ShardProcessor {
         tokio::spawn(forwarder.run());
 
         self.rx = rx;
-        self.session = Arc::new(Session::new(tx));
+        self.session = Arc::new(Session::new(tx, self.config.ratelimit_payloads));
 
         if let Err(_source) = self.wtx.send(Arc::clone(&self.session)) {
             #[cfg(feature = "tracing")]

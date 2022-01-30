@@ -189,6 +189,8 @@ impl ClusterBuilder {
     ///
     /// Useful when running behind a proxy gateway. Running without a
     /// functional ratelimiter **will** get you ratelimited.
+    ///
+    /// Defaults to being enabled.
     #[allow(clippy::missing_const_for_fn)]
     pub fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
         self.1 = self.1.ratelimit_payloads(ratelimit_payloads);
