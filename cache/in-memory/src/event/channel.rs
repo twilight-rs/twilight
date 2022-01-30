@@ -29,14 +29,12 @@ impl InMemoryCache {
     /// of channels will be deleted.
     pub(crate) fn delete_channel(&self, channel_id: Id<ChannelMarker>) {
         if let Some((_, channel)) = self.channels.remove(&channel_id) {
-            let guild_id = if let Some(guild_id) = channel.guild_id {
-                guild_id
-            } else {
-                return;
-            };
+            if let Some(guild_id) = channel.guild_id {
+                let maybe_channels = self.guild_channels.get_mut(&guild_id);
 
-            if let Some(mut guild_channels) = self.guild_channels.get_mut(&guild_id) {
-                guild_channels.remove(&channel_id);
+                if let Some(mut channels) = maybe_channels {
+                    channels.remove(&channel_id);
+                }
             }
         }
     }
