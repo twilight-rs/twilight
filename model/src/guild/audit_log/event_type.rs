@@ -71,7 +71,7 @@ pub enum AuditLogEventType {
     /// [Member]: super::super::Member
     /// [channel]: crate::channel::Channel
     MemberMove = 26,
-    /// [Member] was disconnected from an audio [channel].
+    /// [Member] was disconnected from a voice [channel].
     ///
     /// [Member]: super::super::Member
     /// [channel]: crate::channel::Channel
