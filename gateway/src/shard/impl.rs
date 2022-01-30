@@ -299,6 +299,7 @@ impl Information {
     }
 
     /// Number of requests remaining until the next [`ratelimit_refill`].
+    ///
     /// This will be `None` if payload ratelimiting has been disabled.
     ///
     /// [`ratelimit_refill`]: Self::ratelimit_refill
