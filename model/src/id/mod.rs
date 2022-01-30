@@ -291,15 +291,15 @@ impl<T> From<Id<T>> for u64 {
     }
 }
 
-impl<T> From<Id<T>> for NonZeroU64 {
-    fn from(id: Id<T>) -> Self {
-        id.inner()
-    }
-}
-
 impl<T> From<NonZeroU64> for Id<T> {
     fn from(id: NonZeroU64) -> Self {
         Self::from_nonzero(id)
+    }
+}
+
+impl<T> From<Id<T>> for NonZeroU64 {
+    fn from(id: Id<T>) -> Self {
+        id.inner()
     }
 }
 
@@ -461,8 +461,8 @@ mod tests {
     assert_impl_all!(WebhookMarker: Clone, Copy, Debug, Send, Sync);
     assert_impl_all!(Id<GenericMarker>:
         Clone, Copy, Debug, Deserialize<'static>, Display, Eq, From<NonZeroU64>,
-        FromStr, Hash, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
-        TryFrom<i64>, TryFrom<u64>, Into<u64>, Into<NonZeroU64>
+        FromStr, Hash, Into<NonZeroU64>, Into<u64>, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
+        TryFrom<i64>, TryFrom<u64>
     );
     assert_impl_all!(IdStringDisplay<GenericMarker>: Debug, Display, Send, Serialize, Sync);
 
