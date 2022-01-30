@@ -168,11 +168,11 @@ impl<T> Id<T> {
         self.value.get()
     }
 
-    /// Return the inner value directly as a [`NonZeroU64`].
+    /// Return the [`NonZeroU64`] representation of the ID.
     ///
     /// # Examples
     ///
-    /// Crate an ID with a value and then confirm its inner value:
+    /// Create an ID with a value and then confirm its nonzero value:
     ///
     /// ```
     /// use std::num::NonZeroU64;
@@ -180,9 +180,9 @@ impl<T> Id<T> {
     ///
     /// let channel_id = Id::<ChannelMarker>::new(7);
     ///
-    /// assert_eq!(NonZeroU64::new(7).unwrap(), channel_id.inner());
+    /// assert_eq!(NonZeroU64::new(7).unwrap(), channel_id.into_nonzero());
     /// ```
-    pub const fn inner(self) -> NonZeroU64 {
+    pub const fn into_nonzero(self) -> NonZeroU64 {
         self.value
     }
 
@@ -299,7 +299,7 @@ impl<T> From<NonZeroU64> for Id<T> {
 
 impl<T> From<Id<T>> for NonZeroU64 {
     fn from(id: Id<T>) -> Self {
-        id.inner()
+        id.into_nonzero()
     }
 }
 
