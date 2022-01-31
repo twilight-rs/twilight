@@ -215,11 +215,11 @@ pub enum EmbedValidationErrorType {
 /// [`TitleTooLarge`]: EmbedValidationErrorType::TitleTooLarge
 /// [`TooManyFields`]: EmbedValidationErrorType::TooManyFields
 pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
-    let length = length(embed);
+    let chars = self::chars(embed);
 
-    if length > EMBED_TOTAL_LENGTH {
+    if chars > EMBED_TOTAL_LENGTH {
         return Err(EmbedValidationError {
-            kind: EmbedValidationErrorType::EmbedTooLarge { chars: length },
+            kind: EmbedValidationErrorType::EmbedTooLarge { chars },
         });
     }
 
@@ -292,9 +292,9 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
     Ok(())
 }
 
-/// Get the total character count of an embed
+/// Calculate the total character count of an embed.
 #[must_use]
-pub fn length(embed: &Embed) -> usize {
+pub fn chars(embed: &Embed) -> usize {
     let mut length = 0;
 
     if let Some(author) = &embed.author {
