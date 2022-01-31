@@ -295,30 +295,30 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
 /// Calculate the total character count of an embed.
 #[must_use]
 pub fn chars(embed: &Embed) -> usize {
-    let mut length = 0;
+    let mut chars = 0;
 
     if let Some(author) = &embed.author {
-        length += author.name.len();
+        chars += author.name.len();
     }
 
     if let Some(description) = &embed.description {
-        length += description.len();
+        chars += description.len();
     }
 
     if let Some(footer) = &embed.footer {
-        length += footer.text.len();
+        chars += footer.text.len();
     }
 
     for field in &embed.fields {
-        length += field.name.len();
-        length += field.value.len();
+        chars += field.name.len();
+        chars += field.value.len();
     }
 
     if let Some(title) = &embed.title {
-        length += title.len();
+        chars += title.len();
     }
 
-    length
+    chars
 }
 
 #[cfg(test)]
