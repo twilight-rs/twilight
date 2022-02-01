@@ -253,3 +253,31 @@ impl TryIntoRequest for UpdateMessage<'_> {
         Ok(request.build())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_clear_attachment() -> Result<(), Box<dyn Error>> {
+        const CHANNEL_ID: Id<ChannelMarker> = Id::new(1);
+        const MESSAGE_ID: Id<MessageMarker> = Id::new(2);
+
+        let client = Client::new("token".into());
+
+        let expected = r#"{"attachments":[]}"#;
+        let actual = UpdateMessage::new(&client, CHANNEL_ID, MESSAGE_ID)
+            .attachments(&[])
+            .try_into_request()?;
+
+        assert_eq!(Some(expected.as_bytes()), actual.body());
+
+        let expected = r#"{}"#;
+        let actual = UpdateMessage::new(&client, CHANNEL_ID, MESSAGE_ID).try_into_request()?;
+
+        assert_eq!(Some(expected.as_bytes()), actual.body());
+
+        Ok(())
+    }
+}
