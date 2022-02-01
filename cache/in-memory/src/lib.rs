@@ -103,7 +103,7 @@ use dashmap::{
 };
 use iter::ChannelMessages;
 use std::{
-    collections::{BTreeSet, HashSet, VecDeque},
+    collections::{HashSet, VecDeque},
     fmt::{Debug, Formatter, Result as FmtResult},
     hash::Hash,
     ops::Deref,
@@ -118,7 +118,7 @@ use twilight_model::{
             ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker, MessageMarker, RoleMarker,
             StageMarker, StickerMarker, UserMarker,
         },
-        Id,
+        Id, IdSet,
     },
     user::{CurrentUser, User},
     voice::VoiceState,
@@ -258,14 +258,14 @@ pub struct InMemoryCache {
     emojis: DashMap<Id<EmojiMarker>, GuildResource<CachedEmoji>>,
     groups: DashMap<Id<ChannelMarker>, Group>,
     guilds: DashMap<Id<GuildMarker>, CachedGuild>,
-    guild_channels: DashMap<Id<GuildMarker>, HashSet<Id<ChannelMarker>>>,
-    guild_emojis: DashMap<Id<GuildMarker>, HashSet<Id<EmojiMarker>>>,
-    guild_integrations: DashMap<Id<GuildMarker>, HashSet<Id<IntegrationMarker>>>,
-    guild_members: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
-    guild_presences: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
-    guild_roles: DashMap<Id<GuildMarker>, HashSet<Id<RoleMarker>>>,
-    guild_stage_instances: DashMap<Id<GuildMarker>, HashSet<Id<StageMarker>>>,
-    guild_stickers: DashMap<Id<GuildMarker>, HashSet<Id<StickerMarker>>>,
+    guild_channels: DashMap<Id<GuildMarker>, IdSet<ChannelMarker>>,
+    guild_emojis: DashMap<Id<GuildMarker>, IdSet<EmojiMarker>>,
+    guild_integrations: DashMap<Id<GuildMarker>, IdSet<IntegrationMarker>>,
+    guild_members: DashMap<Id<GuildMarker>, IdSet<UserMarker>>,
+    guild_presences: DashMap<Id<GuildMarker>, IdSet<UserMarker>>,
+    guild_roles: DashMap<Id<GuildMarker>, IdSet<RoleMarker>>,
+    guild_stage_instances: DashMap<Id<GuildMarker>, IdSet<StageMarker>>,
+    guild_stickers: DashMap<Id<GuildMarker>, IdSet<StickerMarker>>,
     integrations:
         DashMap<(Id<GuildMarker>, Id<IntegrationMarker>), GuildResource<GuildIntegration>>,
     members: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedMember>,
@@ -276,12 +276,12 @@ pub struct InMemoryCache {
     stickers: DashMap<Id<StickerMarker>, GuildResource<CachedSticker>>,
     unavailable_guilds: DashSet<Id<GuildMarker>>,
     users: DashMap<Id<UserMarker>, User>,
-    user_guilds: DashMap<Id<UserMarker>, BTreeSet<Id<GuildMarker>>>,
+    user_guilds: DashMap<Id<UserMarker>, IdSet<GuildMarker>>,
     /// Mapping of channels and the users currently connected.
     #[allow(clippy::type_complexity)]
     voice_state_channels: DashMap<Id<ChannelMarker>, HashSet<(Id<GuildMarker>, Id<UserMarker>)>>,
     /// Mapping of guilds and users currently connected to its voice channels.
-    voice_state_guilds: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
+    voice_state_guilds: DashMap<Id<GuildMarker>, IdSet<UserMarker>>,
     /// Mapping of guild ID and user ID pairs to their voice states.
     voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
 }
@@ -511,7 +511,7 @@ impl InMemoryCache {
     pub fn guild_channels(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<ChannelMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<ChannelMarker>>> {
         self.guild_channels.get(&guild_id).map(Reference::new)
     }
 
@@ -524,7 +524,7 @@ impl InMemoryCache {
     pub fn guild_emojis(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<EmojiMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<EmojiMarker>>> {
         self.guild_emojis.get(&guild_id).map(Reference::new)
     }
 
@@ -537,7 +537,7 @@ impl InMemoryCache {
     pub fn guild_integrations(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<IntegrationMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<IntegrationMarker>>> {
         self.guild_integrations.get(&guild_id).map(Reference::new)
     }
 
@@ -551,7 +551,7 @@ impl InMemoryCache {
     pub fn guild_members(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<UserMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<UserMarker>>> {
         self.guild_members.get(&guild_id).map(Reference::new)
     }
 
@@ -565,7 +565,7 @@ impl InMemoryCache {
     pub fn guild_presences(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<UserMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<UserMarker>>> {
         self.guild_presences.get(&guild_id).map(Reference::new)
     }
 
@@ -577,7 +577,7 @@ impl InMemoryCache {
     pub fn guild_roles(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<RoleMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<RoleMarker>>> {
         self.guild_roles.get(&guild_id).map(Reference::new)
     }
 
@@ -589,7 +589,7 @@ impl InMemoryCache {
     pub fn guild_stage_instances(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<StageMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<StageMarker>>> {
         self.guild_stage_instances
             .get(&guild_id)
             .map(Reference::new)
@@ -606,7 +606,7 @@ impl InMemoryCache {
     pub fn guild_stickers(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<StickerMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<StickerMarker>>> {
         self.guild_stickers.get(&guild_id).map(Reference::new)
     }
 
@@ -619,7 +619,7 @@ impl InMemoryCache {
     pub fn guild_voice_states(
         &self,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, Id<GuildMarker>, HashSet<Id<UserMarker>>>> {
+    ) -> Option<Reference<'_, Id<GuildMarker>, IdSet<UserMarker>>> {
         self.voice_state_guilds.get(&guild_id).map(Reference::new)
     }
 

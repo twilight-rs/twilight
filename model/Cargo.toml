@@ -21,6 +21,7 @@ serde = { default-features = false, features = ["derive", "std"], version = "1.0
 serde-value = { default-features = false, version = "0.7" }
 serde_repr = { default-features = false, version = "0.1.5" }
 time = { default-features = false, features = ["parsing", "std"], version = "0.3" }
+tinyset = { default-features = false, version = "0.4" }
 
 # Optional dependencies.
 tracing = { default-features = false, optional = true, version = "0.1.16" }

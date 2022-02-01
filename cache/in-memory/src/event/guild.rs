@@ -4,7 +4,8 @@ use crate::{
     InMemoryCache, UpdateCache,
 };
 use dashmap::DashMap;
-use std::{collections::HashSet, hash::Hash};
+use std::hash::Hash;
+use tinyset::{Fits64, Set64};
 use twilight_model::{
     gateway::payload::incoming::{GuildCreate, GuildDelete, GuildUpdate},
     guild::Guild,
@@ -16,23 +17,23 @@ impl InMemoryCache {
         // The map and set creation needs to occur first, so caching states and
         // objects always has a place to put them.
         if self.wants(ResourceType::CHANNEL) {
-            self.guild_channels.insert(guild.id, HashSet::new());
+            self.guild_channels.insert(guild.id, Set64::new());
             self.cache_guild_channels(guild.id, guild.channels);
             self.cache_guild_channels(guild.id, guild.threads);
         }
 
         if self.wants(ResourceType::EMOJI) {
-            self.guild_emojis.insert(guild.id, HashSet::new());
+            self.guild_emojis.insert(guild.id, Set64::new());
             self.cache_emojis(guild.id, guild.emojis);
         }
 
         if self.wants(ResourceType::MEMBER) {
-            self.guild_members.insert(guild.id, HashSet::new());
+            self.guild_members.insert(guild.id, Set64::new());
             self.cache_members(guild.id, guild.members);
         }
 
         if self.wants(ResourceType::PRESENCE) {
-            self.guild_presences.insert(guild.id, HashSet::new());
+            self.guild_presences.insert(guild.id, Set64::new());
             self.cache_presences(
                 guild.id,
                 guild.presences.into_iter().map(CachedPresence::from),
@@ -40,22 +41,22 @@ impl InMemoryCache {
         }
 
         if self.wants(ResourceType::ROLE) {
-            self.guild_roles.insert(guild.id, HashSet::new());
+            self.guild_roles.insert(guild.id, Set64::new());
             self.cache_roles(guild.id, guild.roles);
         }
 
         if self.wants(ResourceType::STICKER) {
-            self.guild_stage_instances.insert(guild.id, HashSet::new());
+            self.guild_stage_instances.insert(guild.id, Set64::new());
             self.cache_stickers(guild.id, guild.stickers);
         }
 
         if self.wants(ResourceType::VOICE_STATE) {
-            self.voice_state_guilds.insert(guild.id, HashSet::new());
+            self.voice_state_guilds.insert(guild.id, Set64::new());
             self.cache_voice_states(guild.voice_states);
         }
 
         if self.wants(ResourceType::STAGE_INSTANCE) {
-            self.guild_stage_instances.insert(guild.id, HashSet::new());
+            self.guild_stage_instances.insert(guild.id, Set64::new());
             self.cache_stage_instances(guild.id, guild.stage_instances);
         }
 
@@ -114,8 +115,8 @@ impl UpdateCache for GuildCreate {
 
 impl UpdateCache for GuildDelete {
     fn update(&self, cache: &InMemoryCache) {
-        fn remove_ids<T: Eq + Hash, U>(
-            guild_map: &DashMap<Id<GuildMarker>, HashSet<T>>,
+        fn remove_ids<T: Eq + Hash + Fits64, U>(
+            guild_map: &DashMap<Id<GuildMarker>, Set64<T>>,
             container: &DashMap<T, U>,
             guild_id: Id<GuildMarker>,
         ) {

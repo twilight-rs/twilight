@@ -57,6 +57,11 @@ use std::{
     num::{NonZeroI64, NonZeroU64, ParseIntError, TryFromIntError},
     str::FromStr,
 };
+use tinyset::{Fits64, Set64};
+
+/// A space optimized set for [`Id`]s of with a given marker.
+/// Does not heap allocate until a few elements are inserted into it.
+pub type IdSet<T> = Set64<Id<T>>;
 
 /// ID of a resource, such as the ID of a [channel] or [user].
 ///
@@ -202,6 +207,30 @@ impl<T> Id<T> {
     /// ```
     pub const fn cast<New>(self) -> Id<New> {
         Id::from_nonzero(self.value)
+    }
+}
+
+// Reorder the components of a Discord snowflake so that the bottom bits change more regularly
+// than the upper bits. This allows for less memory usage when put into a Set64.
+impl<T: Copy> Fits64 for Id<T> {
+    #[allow(unsafe_code)]
+    unsafe fn from_u64(x: u64) -> Self {
+        let increment = (x >> 52) & 0xFFF;
+        let internal = (x >> 30) & 0x3FF0000;
+        let timestamp = x << 42;
+        let value = timestamp | internal | increment;
+        Self {
+            phantom: PhantomData,
+            value: NonZeroU64::new(value).unwrap(),
+        }
+    }
+
+    fn to_u64(self) -> u64 {
+        let value = self.value.get();
+        let timestamp = value >> 22;
+        let internal = (value & 0x3FF0000) << 30;
+        let increment = (value & 0xFFF) << 52;
+        increment | internal | timestamp
     }
 }
 

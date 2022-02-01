@@ -13,7 +13,6 @@ impl InMemoryCache {
 
             let removal_filter: Vec<_> = guild_emojis
                 .iter()
-                .copied()
                 .filter(|e| !incoming.contains(e))
                 .collect();
 

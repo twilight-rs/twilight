@@ -15,7 +15,6 @@ impl InMemoryCache {
 
             let removal_filter: Vec<_> = guild_stickers
                 .iter()
-                .copied()
                 .filter(|s| !incoming.contains(s))
                 .collect();
 

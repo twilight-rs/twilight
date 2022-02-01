@@ -20,6 +20,7 @@ bitflags = { default-features = false, version = "1" }
 dashmap = { default-features = false, version = "4" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 twilight-model = { default-features = false, path = "../../model" }
+tinyset = { default-features = false, version = "0.4" }
 
 # Optional dependencies.
 twilight-util = { default-features = false, features = ["permission-calculator"], optional = true, path = "../../util" }
