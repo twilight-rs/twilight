@@ -173,7 +173,7 @@ impl<'a> CreateMessage<'a> {
     /// The amount of embeds must not exceed [`EMBED_COUNT_LIMIT`]. The total
     /// character length of each embed must not exceed [`EMBED_TOTAL_LENGTH`]
     /// characters. Additionally, the internal fields also have character
-    /// limits. Refer to [Discord Docs/Embed Limits] for more information.
+    /// limits. See [Discord Docs/Embed Limits].
     ///
     /// # Errors
     ///
@@ -182,10 +182,10 @@ impl<'a> CreateMessage<'a> {
     /// Otherwise, refer to the errors section of
     /// [`twilight_validate::embed::embed`] for a list of errors that may occur.
     ///
-    /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
     /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
         validate_embeds(embeds)?;
 

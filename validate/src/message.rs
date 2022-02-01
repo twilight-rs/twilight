@@ -4,7 +4,7 @@
 
 use crate::{
     component::{ComponentValidationErrorType, COMPONENT_COUNT},
-    embed::EmbedValidationErrorType,
+    embed::{chars as embed_chars, EmbedValidationErrorType, EMBED_TOTAL_LENGTH},
 };
 use std::{
     error::Error,
@@ -203,7 +203,20 @@ pub fn embeds(embeds: &[Embed]) -> Result<(), MessageValidationError> {
             source: None,
         })
     } else {
+        let mut chars = 0;
         for (idx, embed) in embeds.iter().enumerate() {
+            chars += embed_chars(embed);
+
+            if chars > EMBED_TOTAL_LENGTH {
+                return Err(MessageValidationError {
+                    kind: MessageValidationErrorType::EmbedInvalid {
+                        idx,
+                        kind: EmbedValidationErrorType::EmbedTooLarge { chars },
+                    },
+                    source: None,
+                });
+            }
+
             crate::embed::embed(embed).map_err(|source| {
                 let (kind, source) = source.into_parts();
 

@@ -7,7 +7,7 @@ use crate::{
 };
 use twilight_model::id::{marker::ApplicationMarker, Id};
 
-/// Delete a original interaction response.
+/// Delete a followup message to an interaction, by its token and message ID.
 ///
 /// # Examples
 ///
@@ -24,19 +24,19 @@ use twilight_model::id::{marker::ApplicationMarker, Id};
 ///
 /// client
 ///     .interaction(application_id)
-///     .delete_interaction_original("token here")
+///     .delete_response("token here")
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
-pub struct DeleteOriginalResponse<'a> {
+pub struct DeleteResponse<'a> {
     application_id: Id<ApplicationMarker>,
     http: &'a Client,
     token: &'a str,
 }
 
-impl<'a> DeleteOriginalResponse<'a> {
+impl<'a> DeleteResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
@@ -62,7 +62,7 @@ impl<'a> DeleteOriginalResponse<'a> {
     }
 }
 
-impl TryIntoRequest for DeleteOriginalResponse<'_> {
+impl TryIntoRequest for DeleteResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::builder(&Route::DeleteInteractionOriginal {
             application_id: self.application_id.get(),
@@ -88,7 +88,7 @@ mod tests {
         let client = Client::new(String::new());
         let req = client
             .interaction(application_id)
-            .delete_interaction_original(&token)
+            .delete_response(&token)
             .try_into_request()?;
 
         assert!(!req.use_authorization_token());

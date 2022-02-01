@@ -1,4 +1,4 @@
-use super::{DayLimiter, Queue};
+use super::{day_limiter::DayLimiter, Queue};
 use std::{fmt::Debug, future::Future, pin::Pin, sync::Arc, time::Duration};
 use tokio::{
     sync::{

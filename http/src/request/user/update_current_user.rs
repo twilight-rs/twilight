@@ -42,11 +42,11 @@ impl<'a> UpdateCurrentUser<'a> {
 
     /// Set the user's avatar.
     ///
-    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
-    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
-    /// for more information.
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
         self.fields.avatar = Some(NullableField(avatar));
 

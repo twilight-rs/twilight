@@ -1,5 +1,3 @@
-//! Update a followup message created from a interaction.
-
 use crate::{
     client::Client,
     error::Error as HttpError,
@@ -7,17 +5,18 @@ use crate::{
         attachment::{Attachment, AttachmentManager, PartialAttachment},
         NullableField, Request, TryIntoRequest,
     },
-    response::{marker::EmptyBody, ResponseFuture},
+    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions},
-    id::{
-        marker::{ApplicationMarker, AttachmentMarker, MessageMarker},
-        Id,
+    channel::{
+        embed::Embed,
+        message::{AllowedMentions, MessageFlags},
+        Message,
     },
+    id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
@@ -25,54 +24,45 @@ use twilight_validate::message::{
 };
 
 #[derive(Serialize)]
-struct UpdateFollowupMessageFields<'a> {
+pub(crate) struct CreateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
-    /// List of attachments to keep, and new attachments to add.
     #[serde(skip_serializing_if = "Option::is_none")]
     attachments: Option<Vec<PartialAttachment<'a>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    components: Option<NullableField<&'a [Component]>>,
+    components: Option<&'a [Component]>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    content: Option<NullableField<&'a str>>,
+    content: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    embeds: Option<NullableField<&'a [Embed]>>,
+    embeds: Option<&'a [Embed]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tts: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<MessageFlags>,
 }
 
-/// Update a followup message.
+/// Create a followup message to an interaction, by its token.
 ///
-/// You can pass [`None`] to any of the methods to remove the associated field.
-/// Pass [`None`] to [`content`] to remove the content. You must ensure that the
-/// message still contains at least one of [`attachments`], [`content`], or
+/// The message must include at least one of [`attachments`], [`content`], or
 /// [`embeds`].
 ///
 /// # Examples
-///
-/// Update a followup message by setting the content to `test <@3>` -
-/// attempting to mention user ID 3 - while specifying that no entities can be
-/// mentioned.
 ///
 /// ```no_run
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::{
-///     channel::message::AllowedMentions,
-///     id::Id,
-/// };
+/// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let application_id = Id::new(1);
 ///
 /// client
 ///     .interaction(application_id)
-///     .update_followup_message("token here", Id::new(2))
-///     // By creating a default set of allowed mentions, no entity can be
-///     // mentioned.
-///     .allowed_mentions(Some(&AllowedMentions::default()))
-///     .content(Some("test <@3>"))?
+///     .create_followup("webhook token")
+///     .content("Pinkie...")?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -82,35 +72,34 @@ struct UpdateFollowupMessageFields<'a> {
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
-pub struct UpdateFollowupMessage<'a> {
+pub struct CreateFollowup<'a> {
     application_id: Id<ApplicationMarker>,
     attachment_manager: AttachmentManager<'a>,
-    fields: UpdateFollowupMessageFields<'a>,
+    fields: CreateFollowupMessageFields<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
     token: &'a str,
 }
 
-impl<'a> UpdateFollowupMessage<'a> {
+impl<'a> CreateFollowup<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
         token: &'a str,
-        message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
             application_id,
             attachment_manager: AttachmentManager::new(),
-            fields: UpdateFollowupMessageFields {
+            fields: CreateFollowupMessageFields {
                 allowed_mentions: None,
                 attachments: None,
                 components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
+                tts: None,
+                flags: None,
             },
             http,
-            message_id,
             token,
         }
     }
@@ -125,9 +114,9 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
-    /// Attach multiple new files to the message.
+    /// Attach multiple files to the message.
     ///
-    /// This method clears previous calls.
+    /// Calling this method will clear any previous calls.
     pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
         self.attachment_manager = self
             .attachment_manager
@@ -136,13 +125,9 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
-    /// Set the message's list of [`Component`]s.
+    /// Add multiple [`Component`]s to a message.
     ///
-    /// Calling this method will clear previous calls.
-    ///
-    /// # Editing
-    ///
-    /// Pass [`None`] to clear existing components.
+    /// Calling this method multiple times will clear previous calls.
     ///
     /// # Errors
     ///
@@ -151,13 +136,11 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// may be returned as a result of validating each provided component.
     pub fn components(
         mut self,
-        components: Option<&'a [Component]>,
+        components: &'a [Component],
     ) -> Result<Self, MessageValidationError> {
-        if let Some(components) = components {
-            validate_components(components)?;
-        }
+        validate_components(components)?;
 
-        self.fields.components = Some(NullableField(components));
+        self.fields.components = Some(components);
 
         Ok(self)
     }
@@ -166,23 +149,16 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// The maximum length is 2000 UTF-16 characters.
     ///
-    /// # Editing
-    ///
-    /// Pass [`None`] to remove the message content. This is impossible if it
-    /// would leave the message empty of `attachments`, `content`, or `embeds`.
-    ///
     /// # Errors
     ///
     /// Returns an error of type [`ContentInvalid`] if the content length is too
     /// long.
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
-    pub fn content(mut self, content: Option<&'a str>) -> Result<Self, MessageValidationError> {
-        if let Some(content_ref) = content.as_ref() {
-            validate_content(content_ref)?;
-        }
+    pub fn content(mut self, content: &'a str) -> Result<Self, MessageValidationError> {
+        validate_content(content)?;
 
-        self.fields.content = Some(NullableField(content));
+        self.fields.content = Some(content);
 
         Ok(self)
     }
@@ -196,46 +172,6 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// characters. Additionally, the internal fields also have character
     /// limits. Refer to [Discord Docs/Embed Limits] for more information.
     ///
-    /// # Editing
-    ///
-    /// To keep all embeds, do not call this method. To modify one or more
-    /// embeds in the message, acquire them from the previous message, mutate
-    /// them in place, then pass that list to this method. To remove all embeds,
-    /// pass [`None`]. This is impossible if it would leave the message empty of
-    /// `attachments`, `content`, or `embeds`.
-    ///
-    /// # Examples
-    ///
-    /// Create an embed and update the message with the new embed. The content
-    /// of the original message is unaffected and only the embed(s) are
-    /// modified.
-    ///
-    /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use twilight_http::Client;
-    /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::Id;
-    ///
-    /// let client = Client::new("token".to_owned());
-    /// let application_id = Id::new(1);
-    /// let message_id = Id::new(2);
-    ///
-    /// let embed = EmbedBuilder::new()
-    ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
-    ///     libraries for the Discord API.")
-    ///     .title("Twilight")
-    ///     .url("https://twilight.rs")
-    ///     .build()?;
-    ///
-    /// client
-    ///     .interaction(application_id)
-    ///     .update_followup_message("token", message_id)
-    ///     .embeds(Some(&[embed]))?
-    ///     .exec()
-    ///     .await?;
-    /// # Ok(()) }
-    /// ```
-    ///
     /// # Errors
     ///
     /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
@@ -247,29 +183,21 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
     /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
-    pub fn embeds(mut self, embeds: Option<&'a [Embed]>) -> Result<Self, MessageValidationError> {
-        if let Some(embeds) = embeds {
-            validate_embeds(embeds)?;
-        }
+    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
+        validate_embeds(embeds)?;
 
-        self.fields.embeds = Some(NullableField(embeds));
+        self.fields.embeds = Some(embeds);
 
         Ok(self)
     }
 
-    /// Specify multiple [`Id<AttachmentMarker>`]s already present in the target
-    /// message to keep.
-    ///
-    /// If called, all unspecified attachments (except ones added with
-    /// [`attachments`]) will be removed from the message. This is impossible if
-    /// it would leave the message empty of `attachments`, `content`, or
-    /// `embeds`. If not called, all attachments will be kept.
-    ///
-    /// [`attachments`]: Self::attachments
-    pub fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {
-        self.attachment_manager = self
-            .attachment_manager
-            .set_ids(attachment_ids.iter().copied().collect());
+    /// Set if the followup should be ephemeral.
+    pub const fn ephemeral(mut self, ephemeral: bool) -> Self {
+        if ephemeral {
+            self.fields.flags = Some(MessageFlags::EPHEMERAL);
+        } else {
+            self.fields.flags = None;
+        }
 
         self
     }
@@ -283,16 +211,26 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// See [`ExecuteWebhook::payload_json`] for examples.
     ///
-    /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
-    /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
     /// [`attachments`]: Self::attachments
+    /// [`ExecuteWebhook::payload_json`]: crate::request::channel::webhook::ExecuteWebhook::payload_json
+    /// [Discord Docs/Uploading Files]: https://discord.com/developers/docs/reference#uploading-files
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
 
         self
     }
 
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    /// Specify true if the message is TTS.
+    pub const fn tts(mut self, tts: bool) -> Self {
+        self.fields.tts = Some(tts);
+
+        self
+    }
+
+    /// Execute the request, returning a future resolving to a [`Response`].
+    ///
+    /// [`Response`]: crate::response::Response
+    pub fn exec(self) -> ResponseFuture<Message> {
         let http = self.http;
 
         match self.try_into_request() {
@@ -302,12 +240,12 @@ impl<'a> UpdateFollowupMessage<'a> {
     }
 }
 
-impl TryIntoRequest for UpdateFollowupMessage<'_> {
+impl TryIntoRequest for CreateFollowup<'_> {
     fn try_into_request(mut self) -> Result<Request, HttpError> {
-        let mut request = Request::builder(&Route::UpdateWebhookMessage {
-            message_id: self.message_id.get(),
+        let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: None,
             token: self.token,
+            wait: None,
             webhook_id: self.application_id.get(),
         });
 
@@ -354,21 +292,20 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_update_followup_message() -> Result<(), Box<dyn Error>> {
+    fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
         let application_id = Id::new(1);
-        let message_id = Id::new(2);
         let token = "foo".to_owned();
 
         let client = Client::new(String::new());
         let req = client
             .interaction(application_id)
-            .update_followup_message(&token, message_id)
-            .content(Some("test"))?
+            .create_followup(&token)
+            .content("test")?
             .try_into_request()?;
 
         assert!(!req.use_authorization_token());
         assert_eq!(
-            &Path::WebhooksIdTokenMessagesId(application_id.get(), token),
+            &Path::WebhooksIdToken(application_id.get(), token),
             req.ratelimit_path()
         );
 

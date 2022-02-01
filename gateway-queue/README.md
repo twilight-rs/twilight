@@ -36,6 +36,12 @@ create sessions.
 
 ## Features
 
+### Twilight-HTTP
+
+The `twilight-http` feature brings in support for [`LargeBotQueue`].
+
+This is enabled by default.
+
 ### Tracing
 
 The `tracing` feature enables logging via the [`tracing`] crate.
