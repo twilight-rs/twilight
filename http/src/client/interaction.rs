@@ -150,6 +150,56 @@ impl<'a> InteractionClient<'a> {
         )
     }
 
+    /// Create a new global command.
+    pub const fn create_global_command(&'a self) -> CreateGlobalCommand<'a> {
+        CreateGlobalCommand::new(self.client, self.application_id)
+    }
+
+    /// Delete a global command, by ID.
+    pub const fn delete_global_command(
+        &self,
+        command_id: Id<CommandMarker>,
+    ) -> DeleteGlobalCommand<'_> {
+        DeleteGlobalCommand::new(self.client, self.application_id, command_id)
+    }
+
+    /// Fetch a global command for your application.
+    pub const fn global_command(&self, command_id: Id<CommandMarker>) -> GetGlobalCommand<'_> {
+        GetGlobalCommand::new(self.client, self.application_id, command_id)
+    }
+
+    /// Fetch all global commands for your application.
+    pub const fn global_commands(&self) -> GetGlobalCommands<'_> {
+        GetGlobalCommands::new(self.client, self.application_id)
+    }
+
+    /// Set global commands.
+    ///
+    /// This method is idempotent: it can be used on every start, without being
+    /// ratelimited if there aren't changes to the commands.
+    ///
+    /// The [`Command`] struct has an [associated builder] in the
+    /// [`twilight-util`] crate.
+    ///
+    /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
+    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
+    pub const fn set_global_commands(&'a self, commands: &'a [Command]) -> SetGlobalCommands<'a> {
+        SetGlobalCommands::new(self.client, self.application_id, commands)
+    }
+
+    /// Edit a global command, by ID.
+    ///
+    /// You must specify a name and description. See
+    /// [Discord Docs/Edit Global Application Command].
+    ///
+    /// [Discord Docs/Edit Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
+    pub const fn update_global_command(
+        &self,
+        command_id: Id<CommandMarker>,
+    ) -> UpdateGlobalCommand<'_> {
+        UpdateGlobalCommand::new(self.client, self.application_id, command_id)
+    }
+
     /// Create a new command in a guild.
     pub const fn create_guild_command(
         &'a self,
@@ -211,56 +261,6 @@ impl<'a> InteractionClient<'a> {
         command_id: Id<CommandMarker>,
     ) -> UpdateGuildCommand<'_> {
         UpdateGuildCommand::new(self.client, self.application_id, guild_id, command_id)
-    }
-
-    /// Create a new global command.
-    pub const fn create_global_command(&'a self) -> CreateGlobalCommand<'a> {
-        CreateGlobalCommand::new(self.client, self.application_id)
-    }
-
-    /// Delete a global command, by ID.
-    pub const fn delete_global_command(
-        &self,
-        command_id: Id<CommandMarker>,
-    ) -> DeleteGlobalCommand<'_> {
-        DeleteGlobalCommand::new(self.client, self.application_id, command_id)
-    }
-
-    /// Fetch a global command for your application.
-    pub const fn global_command(&self, command_id: Id<CommandMarker>) -> GetGlobalCommand<'_> {
-        GetGlobalCommand::new(self.client, self.application_id, command_id)
-    }
-
-    /// Fetch all global commands for your application.
-    pub const fn global_commands(&self) -> GetGlobalCommands<'_> {
-        GetGlobalCommands::new(self.client, self.application_id)
-    }
-
-    /// Set global commands.
-    ///
-    /// This method is idempotent: it can be used on every start, without being
-    /// ratelimited if there aren't changes to the commands.
-    ///
-    /// The [`Command`] struct has an [associated builder] in the
-    /// [`twilight-util`] crate.
-    ///
-    /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
-    pub const fn set_global_commands(&'a self, commands: &'a [Command]) -> SetGlobalCommands<'a> {
-        SetGlobalCommands::new(self.client, self.application_id, commands)
-    }
-
-    /// Edit a global command, by ID.
-    ///
-    /// You must specify a name and description. See
-    /// [Discord Docs/Edit Global Application Command].
-    ///
-    /// [Discord Docs/Edit Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
-    pub const fn update_global_command(
-        &self,
-        command_id: Id<CommandMarker>,
-    ) -> UpdateGlobalCommand<'_> {
-        UpdateGlobalCommand::new(self.client, self.application_id, command_id)
     }
 
     /// Fetch command permissions for a command from the current application
