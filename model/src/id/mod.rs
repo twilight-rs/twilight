@@ -216,8 +216,8 @@ impl<T: Copy> Fits64 for Id<T> {
     #[allow(unsafe_code)]
     unsafe fn from_u64(x: u64) -> Self {
         let increment = (x >> 52) & 0xFFF;
-        let internal = (x >> 30) & 0x3FF0000;
-        let timestamp = x << 42;
+        let internal = (x >> 30) & 0x3F_F000;
+        let timestamp = x << 22;
         let value = timestamp | internal | increment;
         Self {
             phantom: PhantomData,
@@ -228,7 +228,7 @@ impl<T: Copy> Fits64 for Id<T> {
     fn to_u64(self) -> u64 {
         let value = self.value.get();
         let timestamp = value >> 22;
-        let internal = (value & 0x3FF0000) << 30;
+        let internal = (value & 0x3F_F000) << 30;
         let increment = (value & 0xFFF) << 52;
         increment | internal | timestamp
     }
@@ -442,6 +442,7 @@ mod tests {
         num::NonZeroU64,
         str::FromStr,
     };
+    use tinyset::Fits64;
 
     assert_impl_all!(ApplicationMarker: Clone, Copy, Debug, Send, Sync);
     assert_impl_all!(AttachmentMarker: Clone, Copy, Debug, Send, Sync);
@@ -506,6 +507,26 @@ mod tests {
             NonZeroU64::new(1).expect("non zero"),
             NonZeroU64::from(Id::<GenericMarker>::new(1))
         );
+    }
+
+    /// Test that creating an ID via [`Id::new`] with a value of zero panics.
+    #[test]
+    fn test_fits_u64() {
+        fn test_symmetric(id: u64) {
+            #[allow(unsafe_code)]
+            unsafe {
+                let id = Id::<GenericMarker>::new(id);
+                let converted = id.to_u64();
+                let reverted = Id::from_u64(converted);
+                assert_eq!(reverted, id);
+            }
+        }
+        test_symmetric(170094554509344770);
+        test_symmetric(937908423402590249);
+        test_symmetric(401990972113813509);
+        test_symmetric(691052431525675048);
+        test_symmetric(429065760929873922);
+        test_symmetric(489846923306467339);
     }
 
     /// Test that creating an ID via [`Id::new`] with a value of zero panics.

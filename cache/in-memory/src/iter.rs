@@ -120,7 +120,7 @@ impl<K: Eq + Hash, V> Deref for IterReference<'_, K, V> {
 ///
 /// if let Some(guild_members) = maybe_guild_members {
 ///     for user_id in guild_members.iter() {
-///         if let Some(member) = cache.member(guild_id, *user_id) {
+///         if let Some(member) = cache.member(guild_id, user_id) {
 ///             println!(
 ///                 "member id {}'s nickname: {:?}",
 ///                 member.user_id(),
