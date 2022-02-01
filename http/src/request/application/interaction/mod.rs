@@ -1,16 +1,14 @@
-mod create_followup_message;
-mod delete_followup_message;
-mod delete_original_response;
-mod get_followup_message;
-mod get_original_response;
-mod interaction_callback;
-mod update_followup_message;
-mod update_original_response;
+mod create_followup;
+mod create_response;
+mod delete_followup;
+mod delete_response;
+mod get_followup;
+mod get_response;
+mod update_followup;
+mod update_response;
 
 pub use self::{
-    create_followup_message::CreateFollowupMessage, delete_followup_message::DeleteFollowupMessage,
-    delete_original_response::DeleteOriginalResponse, get_followup_message::GetFollowupMessage,
-    get_original_response::GetOriginalResponse, interaction_callback::InteractionCallback,
-    update_followup_message::UpdateFollowupMessage,
-    update_original_response::UpdateOriginalResponse,
+    create_followup::CreateFollowup, create_response::CreateResponse,
+    delete_followup::DeleteFollowup, delete_response::DeleteResponse, get_followup::GetFollowup,
+    get_response::GetResponse, update_followup::UpdateFollowup, update_response::UpdateResponse,
 };

@@ -10,16 +10,16 @@ use twilight_model::{
     id::{marker::InteractionMarker, Id},
 };
 
-/// Respond to an interaction, by ID and token.
+/// Respond to an interaction, by its ID and token.
 #[must_use = "requests must be configured and executed"]
-pub struct InteractionCallback<'a> {
+pub struct CreateResponse<'a> {
     interaction_id: Id<InteractionMarker>,
     interaction_token: &'a str,
     response: &'a InteractionResponse,
     http: &'a Client,
 }
 
-impl<'a> InteractionCallback<'a> {
+impl<'a> CreateResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         interaction_id: Id<InteractionMarker>,
@@ -47,7 +47,7 @@ impl<'a> InteractionCallback<'a> {
     }
 }
 
-impl TryIntoRequest for InteractionCallback<'_> {
+impl TryIntoRequest for CreateResponse<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         let request = Request::builder(&Route::InteractionCallback {
             interaction_id: self.interaction_id.get(),
@@ -79,7 +79,7 @@ mod tests {
         let sent_response = InteractionResponse::DeferredUpdateMessage;
         let req = client
             .interaction(application_id)
-            .interaction_callback(interaction_id, &token, &sent_response)
+            .create_response(interaction_id, &token, &sent_response)
             .try_into_request()?;
 
         assert!(!req.use_authorization_token());

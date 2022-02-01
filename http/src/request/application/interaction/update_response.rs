@@ -1,21 +1,18 @@
-//! Update a followup message created from a interaction.
+//! Update a original response create for a interaction.
 
 use crate::{
     client::Client,
     error::Error as HttpError,
     request::{self, AttachmentFile, Form, NullableField, Request, TryIntoRequest},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions, Attachment},
-    id::{
-        marker::{ApplicationMarker, MessageMarker},
-        Id,
-    },
+    channel::{embed::Embed, message::AllowedMentions, Attachment, Message},
+    id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::message::{
     components as validate_components, content as validate_content, embeds as validate_embeds,
@@ -23,7 +20,7 @@ use twilight_validate::message::{
 };
 
 #[derive(Serialize)]
-struct UpdateFollowupMessageFields<'a> {
+struct UpdateOriginalResponseFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<AllowedMentions>,
     #[serde(skip_serializing_if = "request::slice_is_empty")]
@@ -38,15 +35,15 @@ struct UpdateFollowupMessageFields<'a> {
     payload_json: Option<&'a [u8]>,
 }
 
-/// Update a followup message.
+/// Edit the original message, by its token.
 ///
-/// A followup message must always have at least one embed or some amount of
-/// content. If you wish to delete a followup message refer to
-/// [`DeleteFollowupMessage`].
+/// A response must always have at least one embed or some amount of
+/// content. If you wish to delete a original response refer to
+/// [`DeleteResponse`].
 ///
 /// # Examples
 ///
-/// Update a followup message by setting the content to `test <@3>` -
+/// Update the original response by setting the content to `test <@3>` -
 /// attempting to mention user ID 3 - and specifying that only that the user may
 /// not be mentioned.
 ///
@@ -65,7 +62,7 @@ struct UpdateFollowupMessageFields<'a> {
 ///
 /// client
 ///     .interaction(application_id)
-///     .update_followup_message("token here", Id::new(2))
+///     .update_response("token here")
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
 ///     .allowed_mentions(AllowedMentions::default())
@@ -75,26 +72,25 @@ struct UpdateFollowupMessageFields<'a> {
 /// # Ok(()) }
 /// ```
 ///
-/// [`DeleteFollowupMessage`]: super::DeleteFollowupMessage
+/// [`DeleteResponse`]: super::DeleteResponse
 #[must_use = "requests must be configured and executed"]
-pub struct UpdateFollowupMessage<'a> {
+pub struct UpdateResponse<'a> {
     application_id: Id<ApplicationMarker>,
     attachments: Cow<'a, [AttachmentFile<'a>]>,
-    fields: UpdateFollowupMessageFields<'a>,
+    fields: UpdateOriginalResponseFields<'a>,
     http: &'a Client,
-    message_id: Id<MessageMarker>,
     token: &'a str,
 }
 
-impl<'a> UpdateFollowupMessage<'a> {
+impl<'a> UpdateResponse<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
-        token: &'a str,
-        message_id: Id<MessageMarker>,
+        interaction_token: &'a str,
     ) -> Self {
         Self {
-            fields: UpdateFollowupMessageFields {
+            application_id,
+            fields: UpdateOriginalResponseFields {
                 allowed_mentions: None,
                 attachments: &[],
                 components: None,
@@ -104,9 +100,7 @@ impl<'a> UpdateFollowupMessage<'a> {
             },
             attachments: Cow::Borrowed(&[]),
             http,
-            message_id,
-            token,
-            application_id,
+            token: interaction_token,
         }
     }
 
@@ -167,7 +161,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
     pub fn content(mut self, content: Option<&'a str>) -> Result<Self, MessageValidationError> {
-        if let Some(content_ref) = content.as_ref() {
+        if let Some(content_ref) = content {
             validate_content(content_ref)?;
         }
 
@@ -176,7 +170,7 @@ impl<'a> UpdateFollowupMessage<'a> {
         Ok(self)
     }
 
-    /// Set the list of embeds of the followup message.
+    /// Set the list of embeds of the original response.
     ///
     /// Pass `None` to remove all of the embeds.
     ///
@@ -194,7 +188,8 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// modified.
     ///
     /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_http::Client;
     /// use twilight_embed_builder::EmbedBuilder;
@@ -211,7 +206,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// client
     ///     .interaction(application_id)
-    ///     .update_followup_message("token", Id::new(2))
+    ///     .update_response("token")
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -262,11 +257,11 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// JSON encoded body of any additional request fields.
     ///
     /// If this method is called, all other fields are ignored, except for
-    /// [`attachments`]. See [Discord Docs/Create Message] and
-    /// [`CreateFollowupMessage::payload_json`].
+    /// [`attach`]. See [Discord Docs/Create Message] and
+    /// [`CreateFollowup::payload_json`].
     ///
-    /// [`attachments`]: Self::attachments
-    /// [`CreateFollowupMessage::payload_json`]: super::CreateFollowupMessage::payload_json
+    /// [`attach`]: Self::attach
+    /// [`CreateFollowup::payload_json`]: super::CreateFollowup::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
@@ -274,7 +269,7 @@ impl<'a> UpdateFollowupMessage<'a> {
         self
     }
 
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(self) -> ResponseFuture<Message> {
         let http = self.http;
 
         match self.try_into_request() {
@@ -284,13 +279,11 @@ impl<'a> UpdateFollowupMessage<'a> {
     }
 }
 
-impl TryIntoRequest for UpdateFollowupMessage<'_> {
+impl TryIntoRequest for UpdateResponse<'_> {
     fn try_into_request(mut self) -> Result<Request, HttpError> {
-        let mut request = Request::builder(&Route::UpdateWebhookMessage {
-            message_id: self.message_id.get(),
-            thread_id: None,
-            token: self.token,
-            webhook_id: self.application_id.get(),
+        let mut request = Request::builder(&Route::UpdateInteractionOriginal {
+            application_id: self.application_id.get(),
+            interaction_token: self.token,
         });
 
         if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
@@ -306,7 +299,7 @@ impl TryIntoRequest for UpdateFollowupMessage<'_> {
                 }
             }
 
-            if let Some(payload_json) = self.fields.payload_json {
+            if let Some(payload_json) = &self.fields.payload_json {
                 form.payload_json(payload_json);
             } else {
                 if self.fields.allowed_mentions.is_none() {
@@ -338,15 +331,14 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_update_followup_message() -> Result<(), Box<dyn Error>> {
+    fn test_delete_followup_message() -> Result<(), Box<dyn Error>> {
         let application_id = Id::new(1);
-        let message_id = Id::new(2);
         let token = "foo".to_owned();
 
         let client = Client::new(String::new());
         let req = client
             .interaction(application_id)
-            .update_followup_message(&token, message_id)
+            .update_response(&token)
             .content(Some("test"))?
             .try_into_request()?;
 

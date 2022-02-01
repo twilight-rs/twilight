@@ -254,7 +254,7 @@ impl Client {
     /// // Later in the process...
     /// let commands = client
     ///     .interaction(application_id)
-    ///     .get_global_commands()
+    ///     .global_commands()
     ///     .exec()
     ///     .await?
     ///     .models()
