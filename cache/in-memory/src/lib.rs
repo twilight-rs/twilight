@@ -396,7 +396,8 @@ impl InMemoryCache {
     /// guild or channel.
     ///
     /// [`ResourceType`]s must be configured for the permission interface to
-    /// properly work; See [`permission`].
+    /// properly work; refer to the [`permission`] module-level documentation
+    /// for more information.
     ///
     /// # Examples
     ///
