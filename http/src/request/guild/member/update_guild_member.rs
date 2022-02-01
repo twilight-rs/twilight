@@ -37,9 +37,9 @@ struct UpdateGuildMemberFields<'a> {
 
 /// Update a guild member.
 ///
-/// All fields are optional. Refer to [the discord docs] for more information.
+/// All fields are optional. See [Discord Docs/Modify Guild Member].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
+/// [Discord Docs/Modify Guild Member]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields<'a>,

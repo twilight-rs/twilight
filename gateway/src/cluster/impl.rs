@@ -271,10 +271,7 @@ impl Cluster {
     /// there was an HTTP error Retrieving the gateway information.
     ///
     /// [`builder`]: Self::builder
-    pub async fn new(
-        token: impl Into<String>,
-        intents: Intents,
-    ) -> Result<(Self, Events), ClusterStartError> {
+    pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ClusterStartError> {
         Self::builder(token, intents).build().await
     }
 
@@ -309,6 +306,10 @@ impl Cluster {
             if let Some(data) = config.resume_sessions.remove(&idx) {
                 shard_config.session_id = Some(data.session_id.into_boxed_str());
                 shard_config.sequence = Some(data.sequence);
+            }
+
+            if let Some(shard_presence) = &config.shard_presence {
+                shard_config.presence = shard_presence(idx)
             }
 
             let (shard, stream) = Shard::new_with_config(shard_config);
@@ -388,7 +389,7 @@ impl Cluster {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn builder(token: impl Into<String>, intents: Intents) -> ClusterBuilder {
+    pub fn builder(token: String, intents: Intents) -> ClusterBuilder {
         ClusterBuilder::new(token, intents)
     }
 

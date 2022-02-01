@@ -49,7 +49,7 @@ pub struct MessageComponentInteraction {
     pub member: Option<PartialMember>,
     /// Message object for the message this button belongs to.
     ///
-    /// This is currently *not* validated by the discord API and may be spoofed
+    /// This is currently *not* validated by the Discord API and may be spoofed
     /// by malicious users.
     pub message: Message,
     /// Token of the interaction.

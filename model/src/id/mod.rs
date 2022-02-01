@@ -44,7 +44,6 @@ mod r#type;
 
 pub use self::r#type::*;
 
-use marker::Snowflake;
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Unexpected, Visitor},
     ser::{Serialize, Serializer},
@@ -169,6 +168,24 @@ impl<T> Id<T> {
         self.value.get()
     }
 
+    /// Return the [`NonZeroU64`] representation of the ID.
+    ///
+    /// # Examples
+    ///
+    /// Create an ID with a value and then confirm its nonzero value:
+    ///
+    /// ```
+    /// use std::num::NonZeroU64;
+    /// use twilight_model::id::{marker::ChannelMarker, Id};
+    ///
+    /// let channel_id = Id::<ChannelMarker>::new(7);
+    ///
+    /// assert_eq!(NonZeroU64::new(7).unwrap(), channel_id.into_nonzero());
+    /// ```
+    pub const fn into_nonzero(self) -> NonZeroU64 {
+        self.value
+    }
+
     /// Cast an ID from one type to another.
     ///
     /// # Examples
@@ -185,65 +202,6 @@ impl<T> Id<T> {
     /// ```
     pub const fn cast<New>(self) -> Id<New> {
         Id::from_nonzero(self.value)
-    }
-}
-
-impl<T: Snowflake> Id<T> {
-    /// The Unix epoch of the Snowflake in milliseconds, indicating when it was generated.
-    ///
-    /// Derived from bits 22..63 of the id.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use twilight_model::{
-    ///     datetime::Timestamp,
-    ///     id::{marker::UserMarker, Id},
-    /// };
-    ///
-    /// let id = Id::<UserMarker>::new(105484726235607040);
-    ///
-    /// assert_eq!(id.timestamp(), 1445219918546);
-    ///
-    /// assert_eq!(
-    ///     "2015-10-19T01:58:38.546000+00:00",
-    ///     Timestamp::from_micros(id.timestamp() * 1000)?
-    ///         .iso_8601()
-    ///         .to_string()
-    /// );
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    #[allow(clippy::cast_possible_wrap)]
-    pub fn timestamp(self) -> i64 {
-        // Discord's custom epoch, the unix time in milliseconds for the first second of 2015.
-        const DISCORD_EPOCH: u64 = 1_420_070_400_000;
-
-        ((self.get() >> 22) + DISCORD_EPOCH) as i64
-    }
-
-    /// The id of the internal worker that generated the Snowflake.
-    ///
-    /// Derived from bits 17..21 of the id.
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn worker_id(self) -> u8 {
-        ((self.get() & 0x003E_0000) >> 17) as u8
-    }
-
-    /// The id of the internal process that generated the Snowflake.
-    ///
-    /// Derived from bits 12..16 of the id.
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn process_id(self) -> u8 {
-        ((self.get() & 0x1F000) >> 12) as u8
-    }
-
-    /// The increment of the Snowflake. For every id that is generated on a process, this number is
-    /// incremented.
-    ///
-    /// Derived from bits 0..11 of the id.
-    #[allow(clippy::cast_possible_truncation)]
-    pub fn increment(self) -> u16 {
-        (self.get() & 0xFFF) as u16
     }
 }
 
@@ -327,9 +285,21 @@ impl<T> Display for Id<T> {
     }
 }
 
+impl<T> From<Id<T>> for u64 {
+    fn from(id: Id<T>) -> Self {
+        id.get()
+    }
+}
+
 impl<T> From<NonZeroU64> for Id<T> {
     fn from(id: NonZeroU64) -> Self {
         Self::from_nonzero(id)
+    }
+}
+
+impl<T> From<Id<T>> for NonZeroU64 {
+    fn from(id: Id<T>) -> Self {
+        id.into_nonzero()
     }
 }
 
@@ -397,11 +367,7 @@ impl<T> PartialOrd for Id<T> {
 
 impl<T> Serialize for Id<T> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        // Avoid requiring a Copy trait bound by simply reconstructing self.
-        let copy = Self::from_nonzero(self.value);
-        let formatter = IdStringDisplay::new(copy);
-
-        serializer.serialize_newtype_struct("Id", &formatter)
+        serializer.serialize_newtype_struct("Id", &self.to_string())
     }
 }
 
@@ -426,41 +392,15 @@ impl<T> TryFrom<u64> for Id<T> {
     }
 }
 
-/// Display implementation to format an ID as a string.
-#[derive(Debug)]
-struct IdStringDisplay<T> {
-    inner: Id<T>,
-}
-
-impl<T> IdStringDisplay<T> {
-    /// Create a new formatter.
-    const fn new(id: Id<T>) -> Self {
-        Self { inner: id }
-    }
-}
-
-impl<T> Display for IdStringDisplay<T> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(&self.inner.value, f)
-    }
-}
-
-impl<T> Serialize for IdStringDisplay<T> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.collect_str(self)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
         marker::{
             ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
             CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
-            InteractionMarker, MessageMarker, RoleMarker, Snowflake, StageMarker, UserMarker,
-            WebhookMarker,
+            InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
         },
-        Id, IdStringDisplay,
+        Id,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -474,42 +414,27 @@ mod tests {
         str::FromStr,
     };
 
-    assert_impl_all!(ApplicationMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(AttachmentMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(
-        AuditLogEntryMarker: Clone,
-        Copy,
-        Debug,
-        Send,
-        Snowflake,
-        Sync
-    );
-    assert_impl_all!(ChannelMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(CommandMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(
-        CommandVersionMarker: Clone,
-        Copy,
-        Debug,
-        Send,
-        Snowflake,
-        Sync
-    );
-    assert_impl_all!(EmojiMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(GenericMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(GuildMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(IntegrationMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(InteractionMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(MessageMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(RoleMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(StageMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(UserMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
-    assert_impl_all!(WebhookMarker: Clone, Copy, Debug, Send, Snowflake, Sync);
+    assert_impl_all!(ApplicationMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(AttachmentMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(AuditLogEntryMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(ChannelMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(CommandMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(CommandVersionMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(EmojiMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(GenericMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(GuildMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(IntegrationMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(InteractionMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(MessageMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(RoleMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(StageMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(UserMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(WebhookMarker: Clone, Copy, Debug, Send, Sync);
     assert_impl_all!(Id<GenericMarker>:
         Clone, Copy, Debug, Deserialize<'static>, Display, Eq, From<NonZeroU64>,
-        FromStr, Hash, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
+        FromStr, Hash, Into<NonZeroU64>, Into<u64>, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
         TryFrom<i64>, TryFrom<u64>
     );
-    assert_impl_all!(IdStringDisplay<GenericMarker>: Debug, Display, Send, Serialize, Sync);
 
     /// Test that various methods of initializing IDs are correct, such as via
     /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
@@ -543,6 +468,17 @@ mod tests {
         Ok(())
     }
 
+    /// Test that conversion methods are correct.
+    #[test]
+    fn test_conversions() {
+        // `Into`
+        assert_eq!(1, u64::from(Id::<GenericMarker>::new(1)));
+        assert_eq!(
+            NonZeroU64::new(1).expect("non zero"),
+            NonZeroU64::from(Id::<GenericMarker>::new(1))
+        );
+    }
+
     /// Test that creating an ID via [`Id::new`] with a value of zero panics.
     #[should_panic]
     #[test]
@@ -555,38 +491,6 @@ mod tests {
     fn test_cast() {
         let id = Id::<GenericMarker>::new(123);
         assert_eq!(123_u64, id.cast::<RoleMarker>());
-    }
-
-    #[test]
-    fn test_timestamp() {
-        let expected: i64 = 1_445_219_918_546;
-        let id = Id::<GenericMarker>::new(105_484_726_235_607_040);
-
-        assert_eq!(expected, id.timestamp())
-    }
-
-    #[test]
-    fn test_worker_id() {
-        let expected: u8 = 8;
-        let id = Id::<GenericMarker>::new(762_022_344_856_174_632);
-
-        assert_eq!(expected, id.worker_id())
-    }
-
-    #[test]
-    fn test_process_id() {
-        let expected: u8 = 1;
-        let id = Id::<GenericMarker>::new(61_189_081_970_774_016);
-
-        assert_eq!(expected, id.process_id())
-    }
-
-    #[test]
-    fn test_increment() {
-        let expected: u16 = 40;
-        let id = Id::<GenericMarker>::new(762_022_344_856_174_632);
-
-        assert_eq!(expected, id.increment())
     }
 
     /// Test that debugging IDs formats the generic and value as a newtype.

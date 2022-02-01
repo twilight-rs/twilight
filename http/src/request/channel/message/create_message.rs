@@ -149,8 +149,8 @@ impl<'a> CreateMessage<'a> {
     /// Attach multiple embeds to the message.
     ///
     /// Embed total character length must not exceed 6000 characters.
-    /// Additionally, the internal fields also have character limits. Refer to
-    /// [the discord docs] for more information.
+    /// Additionally, the internal fields also have character limits. See
+    /// [Discord Docs/Embed Limits].
     ///
     /// # Errors
     ///
@@ -159,8 +159,9 @@ impl<'a> CreateMessage<'a> {
     /// Otherwise, refer to the errors section of [`embed`] for a list of errors
     /// that may occur.
     ///
-    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     /// [`embed`]: twilight_validate::embed::embed
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
         validate_embeds(embeds)?;
 

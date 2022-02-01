@@ -6,6 +6,9 @@
 //! a user's ID is required; by using markers it can be ensured that only an
 //! ID with a [`RoleMarker`] can be used where a role's ID is required.
 
+// DEVELOPMENT: When adding a new marker, be sure to add its implementation to
+// `util/snowflake`.
+
 /// Marker for application IDs.
 ///
 /// Types such as [`Message::application_id`] or [`Guild::application_id`]
@@ -237,94 +240,3 @@ pub struct UserMarker;
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
 pub struct WebhookMarker;
-
-/// Snowflake marker trait.
-///
-/// A snowflake is a globally unique ID made up of a timestamp, worker ID, process ID and increment.
-/// Types implementing this trait enable methods for extracting this information from [`Id`]s.
-///
-/// [`Id`]: super::Id
-pub trait Snowflake: private::Sealed {}
-
-impl Snowflake for ApplicationMarker {}
-
-impl Snowflake for AttachmentMarker {}
-
-impl Snowflake for AuditLogEntryMarker {}
-
-impl Snowflake for ChannelMarker {}
-
-impl Snowflake for CommandMarker {}
-
-impl Snowflake for CommandVersionMarker {}
-
-impl Snowflake for EmojiMarker {}
-
-impl Snowflake for GenericMarker {}
-
-impl Snowflake for GuildMarker {}
-
-impl Snowflake for IntegrationMarker {}
-
-impl Snowflake for InteractionMarker {}
-
-impl Snowflake for MessageMarker {}
-
-impl Snowflake for RoleMarker {}
-
-impl Snowflake for ScheduledEventMarker {}
-
-impl Snowflake for ScheduledEventEntityMarker {}
-
-impl Snowflake for StageMarker {}
-
-impl Snowflake for UserMarker {}
-
-impl Snowflake for WebhookMarker {}
-
-mod private {
-    use super::{
-        ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
-        CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
-        InteractionMarker, MessageMarker, RoleMarker, ScheduledEventEntityMarker,
-        ScheduledEventMarker, StageMarker, UserMarker, WebhookMarker,
-    };
-
-    pub trait Sealed {}
-
-    impl Sealed for ApplicationMarker {}
-
-    impl Sealed for AttachmentMarker {}
-
-    impl Sealed for AuditLogEntryMarker {}
-
-    impl Sealed for ChannelMarker {}
-
-    impl Sealed for CommandMarker {}
-
-    impl Sealed for CommandVersionMarker {}
-
-    impl Sealed for EmojiMarker {}
-
-    impl Sealed for GenericMarker {}
-
-    impl Sealed for GuildMarker {}
-
-    impl Sealed for IntegrationMarker {}
-
-    impl Sealed for InteractionMarker {}
-
-    impl Sealed for MessageMarker {}
-
-    impl Sealed for RoleMarker {}
-
-    impl Sealed for ScheduledEventMarker {}
-
-    impl Sealed for ScheduledEventEntityMarker {}
-
-    impl Sealed for StageMarker {}
-
-    impl Sealed for UserMarker {}
-
-    impl Sealed for WebhookMarker {}
-}

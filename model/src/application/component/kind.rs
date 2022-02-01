@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Type of Component.
 ///
-/// Refer to [Discord Docs/Message Components] for more information.
+/// See [Discord Docs/Message Components].
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#component-types
 #[derive(

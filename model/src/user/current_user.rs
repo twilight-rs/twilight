@@ -13,10 +13,9 @@ pub struct CurrentUser {
     pub accent_color: Option<u64>,
     /// User's avatar hash.
     ///
-    /// To retrieve the url to the avatar, you can follow [Discord's documentation] on
-    /// Image formatting.
+    /// To retrieve the url to the avatar, see [Discord Docs/Image Formatting].
     ///
-    /// [Discord's documentation]: https://discord.com/developers/docs/reference#image-formatting
+    /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     pub avatar: Option<ImageHash>,
     /// Hash of the user's banner image.
     pub banner: Option<ImageHash>,
@@ -34,10 +33,9 @@ pub struct CurrentUser {
     pub discriminator: u16,
     /// User's email address associated to the account.
     ///
-    /// Requires the `email` oauth scope. See [Discord's documentation] for
-    /// more information.
+    /// Requires the `email` oauth scope. See [Discord Docs/User Object].
     ///
-    /// [Discord's documentation]: https://discord.com/developers/docs/resources/user#user-object-user-structure
+    /// [Discord Docs/User Object]: https://discord.com/developers/docs/resources/user#user-object-user-structure
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     /// All flags on a user's account.
@@ -61,10 +59,9 @@ pub struct CurrentUser {
     pub public_flags: Option<UserFlags>,
     /// Whether the email on this account has been verified.
     ///
-    /// Requires the `email` oauth scope. See [Discord's documentation] for
-    /// more information.
+    /// Requires the `email` oauth scope. See [Discord Docs/User Object].
     ///
-    /// [Discord's documentation]: https://discord.com/developers/docs/resources/user#user-object-user-structure
+    /// [Discord Docs/User Object]: https://discord.com/developers/docs/resources/user#user-object-user-structure
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verified: Option<bool>,
 }

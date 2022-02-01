@@ -167,11 +167,7 @@ impl ShardBuilder {
     /// Create a new builder to configure and construct a shard.
     ///
     /// Refer to each method to learn their default values.
-    pub fn new(token: impl Into<String>, intents: Intents) -> Self {
-        Self::_new(token.into(), intents)
-    }
-
-    fn _new(mut token: String, intents: Intents) -> Self {
+    pub fn new(mut token: String, intents: Intents) -> Self {
         if !token.starts_with("Bot ") {
             token.insert_str(0, "Bot ");
         }
@@ -319,6 +315,7 @@ impl ShardBuilder {
     /// commands":
     ///
     /// ```no_run
+    /// use std::env;
     /// use twilight_gateway::{Intents, Shard};
     /// use twilight_model::gateway::{
     ///     payload::outgoing::update_presence::UpdatePresencePayload,
@@ -326,7 +323,7 @@ impl ShardBuilder {
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let shard = Shard::builder("token", Intents::empty())
+    /// let shard = Shard::builder(env::var("DISCORD_TOKEN")?, Intents::empty())
     ///     .presence(UpdatePresencePayload::new(
     ///         vec![MinimalActivity {
     ///             kind: ActivityType::Playing,
@@ -413,8 +410,8 @@ impl ShardBuilder {
     }
 }
 
-impl<T: Into<String>> From<(T, Intents)> for ShardBuilder {
-    fn from((token, intents): (T, Intents)) -> Self {
+impl From<(String, Intents)> for ShardBuilder {
+    fn from((token, intents): (String, Intents)) -> Self {
         Self::new(token, intents)
     }
 }

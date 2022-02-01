@@ -121,7 +121,6 @@ use twilight_model::{
         Id,
     },
     user::{CurrentUser, User},
-    voice::VoiceState,
 };
 
 /// Resource associated with a guild.
@@ -283,7 +282,7 @@ pub struct InMemoryCache {
     /// Mapping of guilds and users currently connected to its voice channels.
     voice_state_guilds: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
     /// Mapping of guild ID and user ID pairs to their voice states.
-    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
+    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>,
 }
 
 /// Implemented methods and types for the cache.
@@ -773,7 +772,7 @@ impl InMemoryCache {
         &self,
         user_id: Id<UserMarker>,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), VoiceState>> {
+    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>> {
         self.voice_states
             .get(&(guild_id, user_id))
             .map(Reference::new)
@@ -901,11 +900,11 @@ pub struct VoiceChannelStates<'a> {
     index: usize,
     #[allow(clippy::type_complexity)]
     user_ids: Ref<'a, Id<ChannelMarker>, HashSet<(Id<GuildMarker>, Id<UserMarker>)>>,
-    voice_states: &'a DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
+    voice_states: &'a DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>,
 }
 
 impl<'a> Iterator for VoiceChannelStates<'a> {
-    type Item = Reference<'a, (Id<GuildMarker>, Id<UserMarker>), VoiceState>;
+    type Item = Reference<'a, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some((guild_id, user_id)) = self.user_ids.iter().nth(self.index) {

@@ -39,8 +39,7 @@ impl CachedMember {
     /// Checking if this value is [`Some`] is not enough to know if a used is currently
     /// timed out as Discord doesn't send any events when the timeout expires, and
     /// therefore the cache is not updated accordingly. You should ensure that the
-    /// provided [`Timestamp`] is not in the past. See [discord-api-docs#4269] for
-    /// more information.
+    /// provided [`Timestamp`] is not in the past. See [discord-api-docs#4269].
     ///
     /// [discord-api-docs#4269]: https://github.com/discord/discord-api-docs/issues/4269
     pub const fn communication_disabled_until(&self) -> Option<Timestamp> {

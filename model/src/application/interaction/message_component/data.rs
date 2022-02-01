@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 
 /// Data received when an [`MessageComponent`] interaction is executed.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Interaction Object].
 ///
 /// [`MessageComponent`]: crate::application::interaction::Interaction::MessageComponent
+/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageComponentInteractionData {
     pub custom_id: String,

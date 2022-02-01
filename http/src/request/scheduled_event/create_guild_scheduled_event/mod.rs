@@ -52,8 +52,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// Once a guild is selected, you must choose one of three event types to
 /// create. The request builders will ensure you provide the correct data to
-/// Discord. See [the Discord docs] for more information on which events require
-/// which fields.
+/// Discord. See [Discord Docs/Create Guild Schedule Event].
 ///
 /// The name must be between 1 and 100 characters in length. For external
 /// events, the location must be between 1 and 100 characters in length.
@@ -112,7 +111,7 @@ struct CreateGuildScheduledEventFields<'a> {
 /// # Ok(()) }
 /// ```
 ///
-/// [the Discord docs]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
+/// [Discord Docs/Create Guild Scheduled Event]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
 pub struct CreateGuildScheduledEvent<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
