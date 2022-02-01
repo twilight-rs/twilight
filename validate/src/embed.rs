@@ -215,7 +215,13 @@ pub enum EmbedValidationErrorType {
 /// [`TitleTooLarge`]: EmbedValidationErrorType::TitleTooLarge
 /// [`TooManyFields`]: EmbedValidationErrorType::TooManyFields
 pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
-    let mut total = 0;
+    let chars = self::chars(embed);
+
+    if chars > EMBED_TOTAL_LENGTH {
+        return Err(EmbedValidationError {
+            kind: EmbedValidationErrorType::EmbedTooLarge { chars },
+        });
+    }
 
     if embed.fields.len() > FIELD_COUNT {
         return Err(EmbedValidationError {
@@ -233,8 +239,6 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
                 kind: EmbedValidationErrorType::AuthorNameTooLarge { chars },
             });
         }
-
-        total += chars;
     }
 
     if let Some(description) = embed.description.as_ref() {
@@ -245,8 +249,6 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
                 kind: EmbedValidationErrorType::DescriptionTooLarge { chars },
             });
         }
-
-        total += chars;
     }
 
     if let Some(footer) = embed.footer.as_ref() {
@@ -257,8 +259,6 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
                 kind: EmbedValidationErrorType::FooterTextTooLarge { chars },
             });
         }
-
-        total += chars;
     }
 
     for field in &embed.fields {
@@ -277,8 +277,6 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
                 kind: EmbedValidationErrorType::FieldValueTooLarge { chars: value_chars },
             });
         }
-
-        total += name_chars + value_chars;
     }
 
     if let Some(title) = embed.title.as_ref() {
@@ -289,17 +287,38 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
                 kind: EmbedValidationErrorType::TitleTooLarge { chars },
             });
         }
-
-        total += chars;
-    }
-
-    if total > EMBED_TOTAL_LENGTH {
-        return Err(EmbedValidationError {
-            kind: EmbedValidationErrorType::EmbedTooLarge { chars: total },
-        });
     }
 
     Ok(())
+}
+
+/// Calculate the total character count of an embed.
+#[must_use]
+pub fn chars(embed: &Embed) -> usize {
+    let mut chars = 0;
+
+    if let Some(author) = &embed.author {
+        chars += author.name.len();
+    }
+
+    if let Some(description) = &embed.description {
+        chars += description.len();
+    }
+
+    if let Some(footer) = &embed.footer {
+        chars += footer.text.len();
+    }
+
+    for field in &embed.fields {
+        chars += field.name.len();
+        chars += field.value.len();
+    }
+
+    if let Some(title) = &embed.title {
+        chars += title.len();
+    }
+
+    chars
 }
 
 #[cfg(test)]
