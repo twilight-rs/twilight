@@ -20,12 +20,13 @@ use twilight_validate::request::{
 ///
 /// Users are returned in ascending order by `user_id`. [`before`] and [`after`]
 /// both take a user id. If both are specified, only [`before`] is respected.
-/// The default [`limit`] is 100. See [the Discord docs] for more information.
+/// The default [`limit`] is 100. See
+/// [Discord Docs/Get Guild Scheduled Event Users].
 ///
 /// [`after`]: GetGuildScheduledEventUsers::after
 /// [`before`]: GetGuildScheduledEventUsers::before
 /// [`limit`]: GetGuildScheduledEventUsers::limit
-/// [the Discord docs]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
+/// [Discord Docs/Get Guild Scheduled Event Users]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildScheduledEventUsers<'a> {
     after: Option<Id<UserMarker>>,

@@ -12,9 +12,9 @@ use twilight_model::{
 
 /// Get the guild widget.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Get Guild Widget].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
+/// [Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWidget<'a> {
     guild_id: Id<GuildMarker>,

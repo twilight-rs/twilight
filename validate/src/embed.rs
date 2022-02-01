@@ -32,9 +32,9 @@ pub const TITLE_LENGTH: usize = 256;
 
 /// An embed is not valid.
 ///
-/// Referenced values are used from [the Discord docs][docs].
+/// Referenced values are from [Discord Docs/Embed Limits].
 ///
-/// [docs]: https://discord.com/developers/docs/resources/channel#embed-limits
+/// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
 #[derive(Debug)]
 pub struct EmbedValidationError {
     /// Type of error that occurred.

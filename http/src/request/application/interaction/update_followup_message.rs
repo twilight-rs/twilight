@@ -185,7 +185,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     ///
     /// The total character length of each embed must not exceed 6000
     /// characters. Additionally, the internal fields also have character
-    /// limits. Refer to [the discord docs] for more information.
+    /// limits. See [Discord Docs/Embed Limits].
     ///
     /// # Examples
     ///
@@ -226,9 +226,9 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// that may occur.
     ///
     /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
-    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     /// [`embed`]: twilight_validate::embed::embed
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#embed-limits
+    /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
+    /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     pub fn embeds(mut self, embeds: Option<&'a [Embed]>) -> Result<Self, MessageValidationError> {
         if let Some(embeds) = embeds {
             validate_embeds(embeds)?;

@@ -3,9 +3,9 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Type of interaction.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Interaction Object].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-interactiontype
+/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-type
 #[derive(
     Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
 )]

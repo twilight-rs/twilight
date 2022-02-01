@@ -18,10 +18,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 
 /// Data received when an [`ApplicationCommand`] interaction is executed.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Interaction Object].
 ///
 /// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#interaction-applicationcommandinteractiondata
+/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the command.
@@ -31,16 +31,16 @@ pub struct CommandData {
     /// List of parsed options specified by the user.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub options: Vec<CommandDataOption>,
-    /// Data sent if any of the options are discord types.
+    /// Data sent if any of the options are Discord types.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<CommandInteractionDataResolved>,
 }
 
 /// Data received when a user fills in a command option.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Application Command Object].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
+/// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandDataOption {
     /// [`true`] if this autocomplete option is currently highlighted.

@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 /// Information about a guild the current user is in.
 ///
 /// This is a partial guild used for the `Get Current User Guilds` endpoint.
-/// Refer to the [Discord documentation] for more information.
+/// See [Discord Docs/Get Current User Guilds].
 ///
-/// [Discord documentation]: https://discord.com/developers/docs/resources/user#get-current-user-guilds-example-partial-guild
+/// [Discord Docs/Get Current User Guilds]: https://discord.com/developers/docs/resources/user#get-current-user-guilds-example-partial-guild
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CurrentUserGuild {
     /// Unique ID.
@@ -22,9 +22,9 @@ pub struct CurrentUserGuild {
     pub name: String,
     /// Hash of the icon.
     ///
-    /// Refer to the [Discord documentation] for more information.
+    /// See [Discord Docs/Image Formatting].
     ///
-    /// [Discord documentation]: https://discord.com/developers/docs/reference#image-formatting
+    /// [Discord Docs/Image Formatting]: https://discord.com/developers/docs/reference#image-formatting
     pub icon: Option<ImageHash>,
     /// Whether the current user is the owner.
     pub owner: bool,
@@ -43,7 +43,7 @@ mod tests {
 
     #[test]
     fn test_current_user_guild() {
-        // The example partial guild from the discord docs
+        // The example partial guild from the Discord Docs
         let value = CurrentUserGuild {
             id: Id::new(80_351_110_224_678_912),
             name: "abcd".to_owned(),
