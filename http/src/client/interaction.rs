@@ -118,16 +118,16 @@ impl<'a> InteractionClient<'a> {
     ///
     /// client
     ///     .interaction(application_id)
-    ///     .create_followup_message("webhook token")
+    ///     .create_followup("webhook token")
     ///     .content("Pinkie...")?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
-    /// [`attachments`]: CreateFollowupMessage::attachments
-    /// [`content`]: CreateFollowupMessage::content
-    /// [`embeds`]: CreateFollowupMessage::embeds
+    /// [`attachments`]: CreateFollowup::attachments
+    /// [`content`]: CreateFollowup::content
+    /// [`embeds`]: CreateFollowup::embeds
     pub const fn create_followup(&'a self, interaction_token: &'a str) -> CreateFollowup<'a> {
         CreateFollowup::new(self.client, self.application_id, interaction_token)
     }
