@@ -6,7 +6,7 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    application::callback::InteractionResponse,
+    http::interaction::InteractionResponse,
     id::{marker::InteractionMarker, Id},
 };
 
@@ -66,7 +66,10 @@ mod tests {
     use crate::{client::Client, request::TryIntoRequest};
     use std::error::Error;
     use twilight_http_ratelimiting::Path;
-    use twilight_model::{application::callback::InteractionResponse, id::Id};
+    use twilight_model::{
+        http::interaction::{InteractionResponse, InteractionResponseType},
+        id::Id,
+    };
 
     #[test]
     fn test_interaction_callback() -> Result<(), Box<dyn Error>> {
@@ -76,10 +79,14 @@ mod tests {
 
         let client = Client::new(String::new());
 
-        let sent_response = InteractionResponse::DeferredUpdateMessage;
+        let response = InteractionResponse {
+            kind: InteractionResponseType::DeferredUpdateMessage,
+            data: None,
+        };
+
         let req = client
             .interaction(application_id)
-            .create_response(interaction_id, &token, &sent_response)
+            .create_response(interaction_id, &token, &response)
             .try_into_request()?;
 
         assert!(!req.use_authorization_token());

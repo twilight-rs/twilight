@@ -14,10 +14,8 @@ use crate::{
     Client,
 };
 use twilight_model::{
-    application::{
-        callback::InteractionResponse,
-        command::{permissions::CommandPermissions, Command},
-    },
+    application::command::{permissions::CommandPermissions, Command},
+    http::interaction::InteractionResponse,
     id::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker, InteractionMarker, MessageMarker},
         Id,
@@ -70,12 +68,13 @@ impl<'a> InteractionClient<'a> {
 
     /// Respond to an interaction, by its ID and token.
     ///
-    /// For variants of [`InteractionResponse`] that contain a [`CallbackData`],
-    /// there is an [associated builder] in the [`twilight-util`] crate.
+    /// For variants of [`InteractionResponse`] that contain
+    /// [`InteractionResponseData`], there is an [associated builder] in the
+    /// [`twilight-util`] crate.
     ///
-    /// [`CallbackData`]: twilight_model::application::callback::CallbackData
+    /// [`InteractionResponseData`]: twilight_model::http::interaction::InteractionResponseData
     /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/struct.CallbackDataBuilder.html
+    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/struct.InteractionResponseDataBuilder.html
     pub const fn create_response(
         &'a self,
         interaction_id: Id<InteractionMarker>,
