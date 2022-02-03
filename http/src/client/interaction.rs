@@ -101,6 +101,33 @@ impl<'a> InteractionClient<'a> {
     }
 
     /// Create a followup message to an interaction, by its token.
+    ///
+    /// The message must include at least one of [`attachments`], [`content`],
+    /// or [`embeds`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::env;
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// let client = Client::new(env::var("DISCORD_TOKEN")?);
+    /// let application_id = Id::new(1);
+    ///
+    /// client
+    ///     .interaction(application_id)
+    ///     .create_followup("webhook token")
+    ///     .content("Pinkie...")?
+    ///     .exec()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`attachments`]: CreateFollowup::attachments
+    /// [`content`]: CreateFollowup::content
+    /// [`embeds`]: CreateFollowup::embeds
     pub const fn create_followup(&'a self, interaction_token: &'a str) -> CreateFollowup<'a> {
         CreateFollowup::new(self.client, self.application_id, interaction_token)
     }

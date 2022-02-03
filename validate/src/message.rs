@@ -242,8 +242,8 @@ pub fn embeds(embeds: &[Embed]) -> Result<(), MessageValidationError> {
 ///
 /// [`StickersInvalid`]: MessageValidationErrorType::StickersInvalid
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#create-message-jsonform-params
-pub fn stickers(stickers: &[Id<StickerMarker>]) -> Result<(), MessageValidationError> {
-    let len = stickers.len();
+pub fn sticker_ids(sticker_ids: &[Id<StickerMarker>]) -> Result<(), MessageValidationError> {
+    let len = sticker_ids.len();
 
     if len <= STICKER_MAX {
         Ok(())
