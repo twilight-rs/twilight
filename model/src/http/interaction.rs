@@ -95,31 +95,6 @@ pub enum InteractionResponseType {
     ApplicationCommandAutocompleteResult = 8,
 }
 
-/// Container for file data and metadata.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct InteractionAttachmentFile {
-    /// Description of the file.
-    ///
-    /// Appears as alt-text for screen readers.
-    pub description: Option<String>,
-    /// File binary data.
-    ///
-    /// This is not serialized, and rather attached to the request using a
-    /// `multipart/form-data` form.
-    #[serde(skip)]
-    pub file: Vec<u8>,
-    /// Filename of the file.
-    ///
-    /// Must end in the extension of the file, which can be one of `gif`,
-    /// `jpg`/`jpeg`, or `png`.
-    pub filename: String,
-    /// ID of the file.
-    ///
-    /// This is a unique number which matches the file's metadata in the request
-    /// body to the file's part in the form.
-    pub id: u64,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
