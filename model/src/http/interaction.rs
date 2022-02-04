@@ -61,7 +61,8 @@ pub struct InteractionResponseData {
     pub embeds: Option<Vec<Embed>>,
     /// Interaction response data flags.
     ///
-    /// The only supported flag is [`MessageFlags::EPHEMERAL`].
+    /// The supported flags are [`MessageFlags::SUPPRESS_EMBEDS`] and
+    /// [`MessageFlags::EPHEMERAL`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
     /// Whether the response is TTS.
