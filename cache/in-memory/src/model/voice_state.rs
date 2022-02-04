@@ -13,19 +13,19 @@ use twilight_model::{
 /// [`VoiceState`]: twilight_model::voice::VoiceState
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
-    pub(crate) channel_id: Id<ChannelMarker>,
-    pub(crate) deaf: bool,
-    pub(crate) guild_id: Id<GuildMarker>,
-    pub(crate) mute: bool,
-    pub(crate) request_to_speak_timestamp: Option<Timestamp>,
-    pub(crate) self_deaf: bool,
-    pub(crate) self_mute: bool,
-    pub(crate) self_stream: bool,
-    pub(crate) self_video: bool,
-    pub(crate) session_id: String,
-    pub(crate) suppress: bool,
-    pub(crate) token: Option<String>,
-    pub(crate) user_id: Id<UserMarker>,
+    channel_id: Id<ChannelMarker>,
+    deaf: bool,
+    guild_id: Id<GuildMarker>,
+    mute: bool,
+    request_to_speak_timestamp: Option<Timestamp>,
+    self_deaf: bool,
+    self_mute: bool,
+    self_stream: bool,
+    self_video: bool,
+    session_id: String,
+    suppress: bool,
+    token: Option<String>,
+    user_id: Id<UserMarker>,
 }
 
 impl CachedVoiceState {
