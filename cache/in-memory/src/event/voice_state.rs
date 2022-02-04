@@ -35,21 +35,8 @@ impl InMemoryCache {
         }
 
         if let Some(channel_id) = voice_state.channel_id {
-            let cached_voice_state = CachedVoiceState {
-                channel_id,
-                deaf: voice_state.deaf,
-                guild_id,
-                mute: voice_state.mute,
-                request_to_speak_timestamp: voice_state.request_to_speak_timestamp,
-                self_deaf: voice_state.self_deaf,
-                self_mute: voice_state.self_mute,
-                self_stream: voice_state.self_stream,
-                self_video: voice_state.self_video,
-                session_id: voice_state.session_id,
-                suppress: voice_state.suppress,
-                token: voice_state.token,
-                user_id,
-            };
+            let cached_voice_state =
+                CachedVoiceState::from_voice_state(channel_id, guild_id, voice_state);
 
             self.voice_states
                 .insert((guild_id, user_id), cached_voice_state);
@@ -372,25 +359,9 @@ mod tests {
 
         let cache = InMemoryCache::new();
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
-        cache.update(&VoiceStateUpdate(voice_state));
+        cache.update(&VoiceStateUpdate(voice_state.clone()));
 
-        let cached = CachedVoiceState {
-            channel_id: CHANNEL_ID,
-            deaf: false,
-            guild_id: GUILD_ID,
-            mute: true,
-            request_to_speak_timestamp: Some(
-                Timestamp::from_secs(1_632_072_645).expect("non zero"),
-            ),
-            self_deaf: false,
-            self_mute: true,
-            self_stream: false,
-            self_video: false,
-            session_id: "a".to_owned(),
-            suppress: false,
-            token: None,
-            user_id: USER_ID,
-        };
+        let cached = CachedVoiceState::from_voice_state(CHANNEL_ID, GUILD_ID, voice_state);
         let in_cache = cache.voice_state(USER_ID, GUILD_ID).unwrap();
         assert_eq!(in_cache.value(), &cached);
     }
