@@ -1,7 +1,12 @@
 # Checks performed on our common library crates.
 name: Library
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+      - next
+  pull_request:
 
 env:
   # Use `haswell` instead of `native` due to some GitHub Actions runners not

@@ -51,13 +51,13 @@ static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.12" }
 
 [features]
-default = ["compression", "rustls-native-roots", "tracing", "flate2/zlib"]
-compression = ["flate2"]
+default = ["rustls-native-roots", "tracing", "zlib-stock"]
+compression = []
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
 rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
-zlib-simd = ["compression", "flate2/zlib-ng-compat"]
+zlib-simd = ["flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
 # always use stock zlib instead of zlib-ng.
 # https://github.com/rust-lang/libz-sys/blob/main/README.md#zlib-ng
-zlib-stock = ["compression", "flate2/zlib"]
+zlib-stock = ["flate2/zlib"]
