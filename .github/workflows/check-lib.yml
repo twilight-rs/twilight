@@ -116,7 +116,7 @@ jobs:
         run: git diff --exit-code
 
       - name: Commit changes
-        if: ${{ steps.check.conclusion = 'failure' }}
+        if: ${{ steps.check.conclusion == 'failure' }}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
