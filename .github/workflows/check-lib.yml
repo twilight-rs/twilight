@@ -111,19 +111,8 @@ jobs:
       - name: Run in validate
         run: cd validate && cargo sync-readme
 
-      - name: Check for changes
-        id: check
-        continue-on-error: true
-        run: git diff --exit-code
-
       - name: Commit changes
-        if: ${{ steps.check.outcome == 'failure' }}
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "sync readme"
-          git push ${{ github.repositoryName }} HEAD:${{ github.ref_name }}
+        uses: stefanzweifel/git-auto-commit-action@v4
 
   # Lints
   clippy:
