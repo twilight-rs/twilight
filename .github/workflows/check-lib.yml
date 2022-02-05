@@ -111,8 +111,12 @@ jobs:
       - name: Run in validate
         run: cd validate && cargo sync-readme
 
+      - name: Check for changes
+        id: check
+        run: git diff --exit-code
+
       - name: Commit changes
-        if: ${{ git diff --exit-code }}
+        if: ${{ steps.check.conclusion = 'failure' }}
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
