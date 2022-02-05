@@ -146,10 +146,9 @@
 //!         .await?;
 //!     let cluster = Arc::new(cluster);
 //!
-//!     // Start up the cluster.
+//!     // Create a clone of the cluster and pass it to a task to start in the
+//!     // background.
 //!     let cluster_spawn = Arc::clone(&cluster);
-//!
-//!     // Start all shards in the cluster in the background.
 //!     tokio::spawn(async move {
 //!         cluster_spawn.up().await;
 //!     });
