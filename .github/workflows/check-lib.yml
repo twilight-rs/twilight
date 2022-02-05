@@ -112,7 +112,6 @@ jobs:
         run: cd validate && cargo sync-readme
 
       - name: Commit changes
-        uses: actions/checkout@v2
         if: ${{ git diff --exit-code }}
         run: |
           git config user.name github-actions
