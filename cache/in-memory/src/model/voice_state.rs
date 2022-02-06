@@ -94,6 +94,7 @@ impl CachedVoiceState {
         self.user_id
     }
 
+    #[allow(clippy::missing_const_for_fn)]
     pub(crate) fn from_voice_state(
         channel_id: Id<ChannelMarker>,
         guild_id: Id<GuildMarker>,
