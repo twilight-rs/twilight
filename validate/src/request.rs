@@ -13,28 +13,28 @@ use twilight_model::datetime::Timestamp;
 pub const AUDIT_REASON_MAX: usize = 512;
 
 /// Maximum amount of days for messages to be deleted upon ban.
-pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u8 = 7;
+pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u16 = 7;
 
 /// Maximum amount of time a member can be timed out for.
 pub const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
 
 /// Maximum amount of messages to get.
-pub const GET_CHANNEL_MESSAGES_LIMIT_MAX: u8 = 100;
+pub const GET_CHANNEL_MESSAGES_LIMIT_MAX: u16 = 100;
 
 /// Minimum amount of messages to get.
-pub const GET_CHANNEL_MESSAGES_LIMIT_MIN: u8 = 1;
+pub const GET_CHANNEL_MESSAGES_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of guilds to get.
-pub const GET_CURRENT_USER_GUILDS_LIMIT_MAX: u8 = 200;
+pub const GET_CURRENT_USER_GUILDS_LIMIT_MAX: u16 = 200;
 
 /// Minimum amount of guilds to get.
-pub const GET_CURRENT_USER_GUILDS_LIMIT_MIN: u8 = 1;
+pub const GET_CURRENT_USER_GUILDS_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of audit log entries to list.
-pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u8 = 100;
+pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u16 = 100;
 
 /// Minimum amount of audit log entries to list.
-pub const GET_GUILD_AUDIT_LOG_LIMIT_MIN: u8 = 1;
+pub const GET_GUILD_AUDIT_LOG_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of guild members to list.
 pub const GET_GUILD_MEMBERS_LIMIT_MAX: u16 = 1000;
@@ -43,10 +43,10 @@ pub const GET_GUILD_MEMBERS_LIMIT_MAX: u16 = 1000;
 pub const GET_GUILD_MEMBERS_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of users to return when getting reactions.
-pub const GET_REACTIONS_LIMIT_MIN: u8 = 1;
+pub const GET_REACTIONS_LIMIT_MIN: u16 = 1;
 
 /// Minimum amount of users to return when getting reactions.
-pub const GET_REACTIONS_LIMIT_MAX: u8 = 100;
+pub const GET_REACTIONS_LIMIT_MAX: u16 = 100;
 
 /// Maximum length of a guild's name.
 pub const GUILD_NAME_LENGTH_MAX: usize = 100;
@@ -55,16 +55,16 @@ pub const GUILD_NAME_LENGTH_MAX: usize = 100;
 pub const GUILD_NAME_LENGTH_MIN: usize = 2;
 
 /// Maximum amount of days to prune users from a guild.
-pub const GUILD_PRUNE_DAYS_MAX: u8 = 30;
+pub const GUILD_PRUNE_DAYS_MAX: u16 = 30;
 
 /// Minimum amount of days to prune users from a guild.
-pub const GUILD_PRUNE_DAYS_MIN: u8 = 1;
+pub const GUILD_PRUNE_DAYS_MIN: u16 = 1;
 
 /// Maximum length of an invite's age, in seconds.
 pub const INVITE_AGE_MAX: u32 = 604_800;
 
 /// Maximum uses of an invite, if not unlimited.
-pub const INVITE_USES_MAX: u8 = 100;
+pub const INVITE_USES_MAX: u16 = 100;
 
 /// Maximum length of a maximum.
 pub const NICKNAME_LIMIT_MAX: usize = 32;
@@ -79,10 +79,10 @@ pub const SCHEDULED_EVENT_DESCRIPTION_MAX: usize = 1000;
 pub const SCHEDULED_EVENT_DESCRIPTION_MIN: usize = 1;
 
 /// Maximum amount of scheduled event users to get.
-pub const SCHEDULED_EVENT_GET_USERS_MAX: u8 = 100;
+pub const SCHEDULED_EVENT_GET_USERS_MAX: u16 = 100;
 
 /// Minimum amount of scheduled event users to get.
-pub const SCHEDULED_EVENT_GET_USERS_MIN: u8 = 1;
+pub const SCHEDULED_EVENT_GET_USERS_MIN: u16 = 1;
 
 /// Maximum length of a scheduled event's name.
 pub const SCHEDULED_EVENT_NAME_MAX: usize = 100;
@@ -341,7 +341,7 @@ pub enum ValidationErrorType {
     /// Provided create guild ban delete message days was invalid.
     CreateGuildBanDeleteMessageDays {
         /// Invalid days.
-        days: u8,
+        days: u16,
     },
     /// Provided timestamp is too far in the future.
     CommunicationDisabledUntil {
@@ -351,17 +351,17 @@ pub enum ValidationErrorType {
     /// Provided get channel messages limit was invalid.
     GetChannelMessages {
         /// Invalid limit.
-        limit: u8,
+        limit: u16,
     },
     /// Provided get current user guilds limit was invalid.
     GetCurrentUserGuilds {
         /// Invalid limit.
-        limit: u8,
+        limit: u16,
     },
     /// Provided get guild audit log limit was invalid.
     GetGuildAuditLog {
         /// Invalid limit.
-        limit: u8,
+        limit: u16,
     },
     /// Provided get guild members limit was invalid.
     GetGuildMembers {
@@ -371,7 +371,7 @@ pub enum ValidationErrorType {
     /// Provided get reactions limit was invalid.
     GetReactions {
         /// Invalid limit.
-        limit: u8,
+        limit: u16,
     },
     /// Provided guild name was invalid.
     GuildName {
@@ -381,7 +381,7 @@ pub enum ValidationErrorType {
     /// Provided guild prune days was invalid.
     GuildPruneDays {
         /// Invalid days.
-        days: u8,
+        days: u16,
     },
     /// Provided invite max age was invalid.
     InviteMaxAge {
@@ -391,7 +391,7 @@ pub enum ValidationErrorType {
     /// Provided invite max uses was invalid.
     InviteMaxUses {
         /// Invalid age.
-        max_uses: u8,
+        max_uses: u16,
     },
     /// Provided nickname length was invalid.
     Nickname {
@@ -406,7 +406,7 @@ pub enum ValidationErrorType {
     /// Scheduled event get users limit is invalid.
     ScheduledEventGetUsers {
         /// Invalid limit.
-        limit: u8,
+        limit: u16,
     },
     /// Scheduled event name is invalid.
     ScheduledEventName {
@@ -476,7 +476,7 @@ pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError
 ///
 /// [`CreateGuildBanDeleteMessageDays`]: ValidationErrorType::CreateGuildBanDeleteMessageDays
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#create-guild-ban
-pub const fn create_guild_ban_delete_message_days(days: u8) -> Result<(), ValidationError> {
+pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), ValidationError> {
     if days <= CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX {
         Ok(())
     } else {
@@ -524,7 +524,7 @@ pub fn communication_disabled_until(timestamp: Timestamp) -> Result<(), Validati
 ///
 /// [`GetChannelMessages`]: ValidationErrorType::GetChannelMessages
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#get-channel-messages
-pub const fn get_channel_messages_limit(limit: u8) -> Result<(), ValidationError> {
+pub const fn get_channel_messages_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_CHANNEL_MESSAGES_LIMIT_MIN && limit <= GET_CHANNEL_MESSAGES_LIMIT_MAX {
         Ok(())
     } else {
@@ -546,7 +546,7 @@ pub const fn get_channel_messages_limit(limit: u8) -> Result<(), ValidationError
 ///
 /// [`GetCurrentUserGuilds`]: ValidationErrorType::GetCurrentUserGuilds
 /// [this documentation entry]: https://discord.com/developers/docs/resources/user#get-current-user-guilds
-pub const fn get_current_user_guilds_limit(limit: u8) -> Result<(), ValidationError> {
+pub const fn get_current_user_guilds_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_CURRENT_USER_GUILDS_LIMIT_MIN && limit <= GET_CURRENT_USER_GUILDS_LIMIT_MAX {
         Ok(())
     } else {
@@ -568,7 +568,7 @@ pub const fn get_current_user_guilds_limit(limit: u8) -> Result<(), ValidationEr
 ///
 /// [`GetGuildAuditLog`]: ValidationErrorType::GetGuildAuditLog
 /// [this documentation entry]: https://discord.com/developers/docs/resources/audit-log#get-guild-audit-log
-pub const fn get_guild_audit_log_limit(limit: u8) -> Result<(), ValidationError> {
+pub const fn get_guild_audit_log_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_GUILD_AUDIT_LOG_LIMIT_MIN && limit <= GET_GUILD_AUDIT_LOG_LIMIT_MAX {
         Ok(())
     } else {
@@ -611,7 +611,7 @@ pub const fn get_guild_members_limit(limit: u16) -> Result<(), ValidationError> 
 ///
 /// [`GetReactions`]: ValidationErrorType::GetReactions
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#get-reactions
-pub const fn get_reactions_limit(limit: u8) -> Result<(), ValidationError> {
+pub const fn get_reactions_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_REACTIONS_LIMIT_MIN && limit <= GET_REACTIONS_LIMIT_MAX {
         Ok(())
     } else {
@@ -655,7 +655,7 @@ pub fn guild_name(name: impl AsRef<str>) -> Result<(), ValidationError> {
 ///
 /// [`GuildPruneDays`]: ValidationErrorType::GuildPruneDays
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#get-guild-prune-count
-pub const fn guild_prune_days(days: u8) -> Result<(), ValidationError> {
+pub const fn guild_prune_days(days: u16) -> Result<(), ValidationError> {
     if days >= GUILD_PRUNE_DAYS_MIN && days <= GUILD_PRUNE_DAYS_MAX {
         Ok(())
     } else {
@@ -697,7 +697,7 @@ pub const fn invite_max_age(max_age: u32) -> Result<(), ValidationError> {
 ///
 /// [`InviteMaxUses`]: ValidationErrorType::InviteMaxUses
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#create-channel-invite
-pub const fn invite_max_uses(max_uses: u8) -> Result<(), ValidationError> {
+pub const fn invite_max_uses(max_uses: u16) -> Result<(), ValidationError> {
     if max_uses <= INVITE_USES_MAX {
         Ok(())
     } else {
@@ -767,7 +767,7 @@ pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), V
 ///
 /// [`ScheduledEventGetUsers`]: ValidationErrorType::ScheduledEventGetUsers
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users-query-string-params
-pub const fn scheduled_event_get_users(limit: u8) -> Result<(), ValidationError> {
+pub const fn scheduled_event_get_users(limit: u16) -> Result<(), ValidationError> {
     if limit <= SCHEDULED_EVENT_GET_USERS_MIN && limit >= SCHEDULED_EVENT_GET_USERS_MAX {
         Ok(())
     } else {

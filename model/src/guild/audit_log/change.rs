@@ -366,10 +366,10 @@ pub enum AuditLogChange {
     MaxUses {
         /// New maximum uses.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u8>,
+        new: Option<u16>,
         /// Previous state, if any.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u8>,
+        old: Option<u16>,
     },
     /// Whether a role can be mentioned in a message.
     Mentionable {
@@ -628,10 +628,10 @@ pub enum AuditLogChange {
     UserLimit {
         /// New limit.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u8>,
+        new: Option<u16>,
         /// Old limit.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u8>,
+        old: Option<u16>,
     },
     /// Number of uses of an invite.
     Uses {

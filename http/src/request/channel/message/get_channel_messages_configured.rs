@@ -17,7 +17,7 @@ use twilight_validate::request::{
 };
 
 struct GetChannelMessagesConfiguredFields {
-    limit: Option<u8>,
+    limit: Option<u16>,
 }
 
 /// This struct is returned when one of `after`, `around`, or `before` is specified in
@@ -44,7 +44,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
         after: Option<Id<MessageMarker>>,
         around: Option<Id<MessageMarker>>,
         before: Option<Id<MessageMarker>>,
-        limit: Option<u8>,
+        limit: Option<u16>,
     ) -> Self {
         Self {
             after,
@@ -66,7 +66,7 @@ impl<'a> GetChannelMessagesConfigured<'a> {
     /// is less than 1 or greater than 100.
     ///
     /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
-    pub const fn limit(mut self, limit: u8) -> Result<Self, ValidationError> {
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_channel_messages_limit(limit) {
             return Err(source);
         }

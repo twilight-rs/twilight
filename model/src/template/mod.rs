@@ -583,7 +583,7 @@ mod tests {
                 Token::I64(0),
                 Token::Str("user_limit"),
                 Token::Some,
-                Token::U8(0),
+                Token::U16(0),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("default_message_notifications"),

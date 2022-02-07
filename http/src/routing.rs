@@ -30,7 +30,7 @@ pub enum Route<'a> {
     CreateBan {
         /// The number of days' worth of the user's messages to delete in the
         /// guild's channels.
-        delete_message_days: Option<u8>,
+        delete_message_days: Option<u16>,
         /// The ID of the guild.
         guild_id: u64,
         /// The reason for the ban.
@@ -78,7 +78,7 @@ pub enum Route<'a> {
         compute_prune_count: Option<bool>,
         /// The number of days that a user must be offline before being able to
         /// be pruned.
-        days: Option<u8>,
+        days: Option<u16>,
         /// The ID of the guild.
         guild_id: u64,
         /// The roles to filter the prune by.
@@ -353,7 +353,7 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
         /// The maximum number of audit logs to get.
-        limit: Option<u8>,
+        limit: Option<u16>,
         /// The ID of the user, if specified.
         user_id: Option<u64>,
     },
@@ -513,7 +513,7 @@ pub enum Route<'a> {
     GetGuildPruneCount {
         /// The number of days that a user must be offline before being able to
         /// be pruned.
-        days: Option<u8>,
+        days: Option<u16>,
         /// The ID of the guild.
         guild_id: u64,
         /// The roles to filter the prune by.
@@ -552,7 +552,7 @@ pub enum Route<'a> {
         /// ID of the guild.
         guild_id: u64,
         /// Maximum amount of members to get.
-        limit: Option<u8>,
+        limit: Option<u16>,
         /// ID of the scheduled event.
         scheduled_event_id: u64,
         /// Whether to return a member object.
@@ -597,7 +597,7 @@ pub enum Route<'a> {
         /// The maximum ID of guilds to get.
         before: Option<u64>,
         /// The maximum number of guilds to get.
-        limit: Option<u8>,
+        limit: Option<u16>,
     },
     /// Route information to get an original interaction response message.
     GetInteractionOriginal {
@@ -647,7 +647,7 @@ pub enum Route<'a> {
         /// The ID of the channel.
         channel_id: u64,
         /// The maximum number of messages to get.
-        limit: Option<u8>,
+        limit: Option<u16>,
     },
     /// Route information to get a list of sticker packs available to Nitro
     /// subscribers.
@@ -694,7 +694,7 @@ pub enum Route<'a> {
         /// The URI encoded custom or unicode emoji.
         emoji: &'a RequestReactionType<'a>,
         /// The maximum number of users to retrieve.
-        limit: Option<u8>,
+        limit: Option<u16>,
         /// The ID of the message.
         message_id: u64,
     },

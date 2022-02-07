@@ -515,7 +515,7 @@ impl VoiceFieldsBuilder {
     }
 
     /// Set the voice channel's user limit.
-    pub const fn user_limit(mut self, limit: u8) -> Self {
+    pub const fn user_limit(mut self, limit: u16) -> Self {
         self.0.user_limit = Some(limit);
 
         self

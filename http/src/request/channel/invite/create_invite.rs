@@ -23,7 +23,7 @@ struct CreateInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     max_age: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    max_uses: Option<u8>,
+    max_uses: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     temporary: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -150,7 +150,7 @@ impl<'a> CreateInvite<'a> {
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
     /// ```
-    pub const fn max_uses(mut self, max_uses: u8) -> Result<Self, ValidationError> {
+    pub const fn max_uses(mut self, max_uses: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_invite_max_uses(max_uses) {
             return Err(source);
         }

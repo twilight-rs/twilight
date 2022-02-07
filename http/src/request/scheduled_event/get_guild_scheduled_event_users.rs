@@ -33,7 +33,7 @@ pub struct GetGuildScheduledEventUsers<'a> {
     before: Option<Id<UserMarker>>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    limit: Option<u8>,
+    limit: Option<u16>,
     scheduled_event_id: Id<ScheduledEventMarker>,
     with_member: Option<bool>,
 }
@@ -88,7 +88,7 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     /// invalid.
     ///
     /// [`ScheduledEventGetUsers`]: twilight_validate::request::ValidationErrorType::ScheduledEventGetUsers
-    pub const fn limit(mut self, limit: u8) -> Result<Self, ValidationError> {
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_scheduled_event_get_users(limit) {
             return Err(source);
         }

@@ -18,7 +18,7 @@ use twilight_validate::request::{
 };
 
 struct GetChannelMessagesFields {
-    limit: Option<u8>,
+    limit: Option<u16>,
 }
 
 /// Get channel messages, by [`Id<ChannelMarker>`].
@@ -43,7 +43,7 @@ struct GetChannelMessagesFields {
 /// let messages = client
 ///     .channel_messages(channel_id)
 ///     .before(message_id)
-///     .limit(6u8)?
+///     .limit(6u16)?
 ///     .exec()
 ///     .await?;
 ///
@@ -114,7 +114,7 @@ impl<'a> GetChannelMessages<'a> {
     /// is less than 1 or greater than 100.
     ///
     /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
-    pub const fn limit(mut self, limit: u8) -> Result<Self, ValidationError> {
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_channel_messages_limit(limit) {
             return Err(source);
         }

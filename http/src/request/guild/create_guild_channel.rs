@@ -41,7 +41,7 @@ struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    user_limit: Option<u8>,
+    user_limit: Option<u16>,
 }
 
 /// Create a new request to create a guild channel.
@@ -184,7 +184,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// inclusive. See [Discord Docs/Modify Channel] for more details.
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub const fn user_limit(mut self, user_limit: u8) -> Self {
+    pub const fn user_limit(mut self, user_limit: u16) -> Self {
         self.fields.user_limit = Some(user_limit);
 
         self
