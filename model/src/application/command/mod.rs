@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 /// This struct has an [associated builder] in the [`twilight-util`] crate.
 ///
 /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-/// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
+/// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommand
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Command {
