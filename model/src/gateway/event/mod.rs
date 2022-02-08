@@ -57,6 +57,8 @@ pub enum Event {
     GuildEmojisUpdate(GuildEmojisUpdate),
     /// A guild's integrations were updated.
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
+    /// A guild's stickers were updated.
+    GuildStickersUpdate(GuildStickersUpdate),
     /// A guild was updated.
     GuildUpdate(Box<GuildUpdate>),
     /// A guild integration was created.
@@ -181,6 +183,7 @@ impl Event {
             Self::GuildDelete(_) => EventType::GuildDelete,
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
+            Self::GuildStickersUpdate(_) => EventType::GuildStickersUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
             Self::IntegrationCreate(_) => EventType::IntegrationCreate,
             Self::IntegrationDelete(_) => EventType::IntegrationDelete,
