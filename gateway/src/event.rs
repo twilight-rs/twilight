@@ -39,6 +39,8 @@ bitflags! {
         const GUILD_EMOJIS_UPDATE = 1 << 12;
         /// A guild's integrations have been updated.
         const GUILD_INTEGRATIONS_UPDATE = 1 << 13;
+        /// A guild's stickers have been updated.
+        const GUILD_STICKERS_UPDATE = 1 << 63;
         /// A guild has been updated.
         const GUILD_UPDATE = 1 << 14;
         /// A guild integration was created.
@@ -195,11 +197,14 @@ impl EventTypeFlags {
         EventTypeFlags::BAN_ADD.bits() | EventTypeFlags::BAN_REMOVE.bits(),
     );
 
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS`].
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
     ///
-    /// [`Intents::GUILD_EMOJIS`]: crate::Intents::GUILD_EMOJIS
-    pub const GUILD_EMOJIS: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::GUILD_EMOJIS_UPDATE.bits());
+    /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
+    pub const GUILD_EMOJIS_AND_STICKERS: EventTypeFlags =
+        EventTypeFlags::from_bits_truncate(
+            EventTypeFlags::GUILD_EMOJIS_UPDATE.bits()
+                | EventTypeFlags::GUILD_STICKERS_UPDATE.bits(),
+        );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
     ///
@@ -287,6 +292,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::GuildDelete => EventTypeFlags::GUILD_DELETE,
             EventType::GuildEmojisUpdate => EventTypeFlags::GUILD_EMOJIS_UPDATE,
             EventType::GuildIntegrationsUpdate => EventTypeFlags::GUILD_INTEGRATIONS_UPDATE,
+            EventType::GuildStickersUpdate => EventTypeFlags::GUILD_STICKERS_UPDATE,
             EventType::GuildUpdate => EventTypeFlags::GUILD_UPDATE,
             EventType::IntegrationCreate => EventTypeFlags::INTEGRATION_CREATE,
             EventType::IntegrationDelete => EventTypeFlags::INTEGRATION_DELETE,
