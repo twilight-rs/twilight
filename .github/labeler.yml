@@ -74,6 +74,11 @@ labels:
     matcher:
       title: "^[a-z]+(\\(.+\\))?!: .*"
 
+  - label: "t-build"
+    matcher:
+      files: ".github/workflows/*"
+      title: "^build(\\(.+\\))?!?: .*"
+
   - label: "t-ci"
     matcher:
       files: ".github/workflows/*"
