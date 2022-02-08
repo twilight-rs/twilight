@@ -940,6 +940,7 @@ impl UpdateCache for Event {
             GuildCreate(v) => c.update(v.deref()),
             GuildDelete(v) => c.update(v.deref()),
             GuildEmojisUpdate(v) => c.update(v),
+            GuildStickersUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(_) => {}
             GuildUpdate(v) => c.update(v.deref()),
             IntegrationCreate(v) => c.update(v.deref()),
