@@ -200,11 +200,9 @@ impl EventTypeFlags {
     /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
     ///
     /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
-    pub const GUILD_EMOJIS_AND_STICKERS: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(
-            EventTypeFlags::GUILD_EMOJIS_UPDATE.bits()
-                | EventTypeFlags::GUILD_STICKERS_UPDATE.bits(),
-        );
+    pub const GUILD_EMOJIS_AND_STICKERS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
+        EventTypeFlags::GUILD_EMOJIS_UPDATE.bits() | EventTypeFlags::GUILD_STICKERS_UPDATE.bits(),
+    );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
     ///
