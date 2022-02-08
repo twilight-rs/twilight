@@ -76,7 +76,6 @@ labels:
 
   - label: "t-build"
     matcher:
-      files: ".github/workflows/*"
       title: "^build(\\(.+\\))?!?: .*"
 
   - label: "t-ci"
