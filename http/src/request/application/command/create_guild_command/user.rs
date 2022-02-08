@@ -18,10 +18,10 @@ use twilight_validate::command::{name as validate_name, CommandValidationError};
 /// Create a user command in a guild.
 ///
 /// Creating a guild command with the same name as an already-existing guild
-/// command in the same guild will overwrite the old command. See [the discord
-/// docs] for more information.
+/// command in the same guild will overwrite the old command. See
+/// [Discord Docs/Create Guild Application Command].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
+/// [Discord Docs/Create Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#create-guild-application-command
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildUserCommand<'a> {
     application_id: Id<ApplicationMarker>,

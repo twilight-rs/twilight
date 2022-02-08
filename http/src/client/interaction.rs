@@ -184,10 +184,10 @@ impl<'a> InteractionClient<'a> {
 
     /// Edit a command in a guild, by ID.
     ///
-    /// You must specify a name and description. See [the discord docs] for more
-    /// information.
+    /// You must specify a name and description. See
+    /// [Discord Docs/Edit Guild Application Command].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
+    /// [Discord Docs/Edit Guild Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
     pub const fn update_guild_command(
         &self,
         guild_id: Id<GuildMarker>,
@@ -240,10 +240,10 @@ impl<'a> InteractionClient<'a> {
 
     /// Edit a global command, by ID.
     ///
-    /// You must specify a name and description. See [the discord docs] for more
-    /// information.
+    /// You must specify a name and description. See
+    /// [Discord Docs/Edit Global Application Command].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
+    /// [Discord Docs/Edit Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
     pub const fn update_global_command(
         &self,
         command_id: Id<CommandMarker>,
