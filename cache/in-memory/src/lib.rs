@@ -460,9 +460,9 @@ impl InMemoryCache {
 
     /// Gets an emoji by ID.
     ///
-    /// This requires the [`GUILD_EMOJIS`] intent.
+    /// This requires the [`GUILD_EMOJIS_AND_STICKERS`] intent.
     ///
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     pub fn emoji(
         &self,
         emoji_id: Id<EmojiMarker>,
@@ -516,10 +516,10 @@ impl InMemoryCache {
 
     /// Gets the set of emojis in a guild.
     ///
-    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS`] intents.
+    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`] intents.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     pub fn guild_emojis(
         &self,
         guild_id: Id<GuildMarker>,
