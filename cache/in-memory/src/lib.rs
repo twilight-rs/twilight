@@ -462,7 +462,7 @@ impl InMemoryCache {
     ///
     /// This requires the [`GUILD_EMOJIS`] intent.
     ///
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
+    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     pub fn emoji(
         &self,
         emoji_id: Id<EmojiMarker>,
