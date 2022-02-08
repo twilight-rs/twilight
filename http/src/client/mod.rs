@@ -92,7 +92,7 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
-    guild::Permissions,
+    http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
             ApplicationMarker, ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker,
@@ -513,24 +513,31 @@ impl Client {
     ///
     /// # Examples:
     ///
-    /// Create permission overrides for a role to view the channel, but not send messages:
+    /// Create permission overrides for a role to view the channel, but not send
+    /// messages:
     ///
     /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use twilight_http::Client;
-    /// use twilight_model::guild::Permissions;
-    /// use twilight_model::id::Id;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
+    /// #
+    /// use twilight_model::{
+    ///     guild::Permissions,
+    ///     http::permission_overwrite::{
+    ///         PermissionOverwrite, PermissionOverwriteType,
+    ///     },
+    ///     id::Id,
+    /// };
     ///
     /// let channel_id = Id::new(123);
-    /// let allow = Permissions::VIEW_CHANNEL;
-    /// let deny = Permissions::SEND_MESSAGES;
-    /// let role_id = Id::new(432);
+    /// let permission_overwrite = PermissionOverwrite {
+    ///     allow: Some(Permissions::VIEW_CHANNEL),
+    ///     deny: Some(Permissions::SEND_MESSAGES),
+    ///     id: Id::new(432),
+    ///     kind: PermissionOverwriteType::Role,
+    /// };
     ///
-    /// client.update_channel_permission(channel_id, allow, deny)
-    ///     .role(role_id)
+    /// client.update_channel_permission(channel_id, &permission_overwrite)
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
@@ -538,10 +545,9 @@ impl Client {
     pub const fn update_channel_permission(
         &self,
         channel_id: Id<ChannelMarker>,
-        allow: Permissions,
-        deny: Permissions,
+        permission_overwrite: &PermissionOverwrite,
     ) -> UpdateChannelPermission<'_> {
-        UpdateChannelPermission::new(self, channel_id, allow, deny)
+        UpdateChannelPermission::new(self, channel_id, permission_overwrite)
     }
 
     /// Get all the webhooks of a channel.

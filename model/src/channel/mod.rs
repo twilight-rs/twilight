@@ -1213,7 +1213,8 @@ mod tests {
             permission_overwrites: Vec::from([PermissionOverwrite {
                 allow: Permissions::empty(),
                 deny: Permissions::empty(),
-                kind: PermissionOverwriteType::Member(Id::new(5)),
+                id: Id::new(5),
+                kind: PermissionOverwriteType::Member,
             }]),
             rate_limit_per_user: Some(1000_u64),
             thread_metadata: ThreadMetadata {
