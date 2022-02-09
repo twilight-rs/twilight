@@ -597,10 +597,11 @@ impl InMemoryCache {
     /// Gets the set of the stickers in a guild.
     ///
     /// This is an O(m) operation, where m is the amount of stickers in the
-    /// guild. This requires the [`GUILDS`] intent and the [`STICKER`] resource
-    /// type.
+    /// guild. This requires the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`] intents and the
+    /// [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn guild_stickers(
         &self,
@@ -721,10 +722,11 @@ impl InMemoryCache {
 
     /// Gets a sticker by ID.
     ///
-    /// This is the O(1) operation. This requires the [`GUILDS`] intent and the
-    /// [`STICKER`] resource type.
+    /// This is the O(1) operation. This requires the [`GUILDS`] and the
+    /// [`GUILD_EMOJIS_AND_STICKERS`] intent and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn sticker(
         &self,
