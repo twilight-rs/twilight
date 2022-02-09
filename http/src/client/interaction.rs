@@ -76,7 +76,7 @@ impl<'a> InteractionClient<'a> {
     ///
     /// [`CallbackData`]: twilight_model::application::callback::CallbackData
     /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/struct.CallbackDataBuilder.html
+    /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/struct.CallbackDataBuilder.html
     pub const fn interaction_callback(
         &'a self,
         interaction_id: Id<InteractionMarker>,
@@ -214,7 +214,7 @@ impl<'a> InteractionClient<'a> {
     /// [`twilight-util`] crate.
     ///
     /// [`twilight-util`]: https://docs.rs/twilight_util/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
+    /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
     pub const fn set_guild_commands(
         &'a self,
         guild_id: Id<GuildMarker>,
@@ -268,7 +268,7 @@ impl<'a> InteractionClient<'a> {
     /// [`twilight-util`] crate.
     ///
     /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-    /// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
+    /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
     pub const fn set_global_commands(&'a self, commands: &'a [Command]) -> SetGlobalCommands<'a> {
         SetGlobalCommands::new(self.client, self.application_id, commands)
     }

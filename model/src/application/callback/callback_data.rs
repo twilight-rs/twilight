@@ -22,7 +22,7 @@ pub(super) enum CallbackDataEnvelope {
 /// This struct has an [associated builder] in the [`twilight-util`] crate.
 ///
 /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-/// [associated builder]: https://docs.rs/twilight-util/latest/builder/struct.CallbackDataBuilder.html
+/// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/struct.CallbackDataBuilder.html
 ///
 /// [`Interaction`]: crate::application::interaction::Interaction
 /// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
