@@ -29,6 +29,7 @@ pub struct CommandData {
     /// Name of the command.
     pub name: String,
     /// Type of the command.
+    #[serde(rename = "type")]
     pub kind: CommandType,
     /// List of parsed options specified by the user.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
