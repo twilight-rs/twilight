@@ -3,7 +3,7 @@ mod resolved;
 pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
 
 use crate::{
-    application::command::{CommandOptionType, Number},
+    application::command::{CommandOptionType, CommandType, Number},
     id::{
         marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker},
         Id,
@@ -28,12 +28,17 @@ pub struct CommandData {
     pub id: Id<CommandMarker>,
     /// Name of the command.
     pub name: String,
+    /// Type of the command.
+    pub kind: CommandType,
     /// List of parsed options specified by the user.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub options: Vec<CommandDataOption>,
     /// Data sent if any of the options are Discord types.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<CommandInteractionDataResolved>,
+    /// If this is a user or message command, the ID of the targeted user/message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_id: Option<Id<GenericMarker>>,
 }
 
 /// Data received when a user fills in a command option.
@@ -360,7 +365,7 @@ mod tests {
     use super::CommandData;
     use crate::{
         application::{
-            command::{CommandOptionType, Number},
+            command::{CommandOptionType, CommandType, Number},
             interaction::application_command::{CommandDataOption, CommandOptionValue},
         },
         id::Id,
@@ -372,8 +377,10 @@ mod tests {
         let value = CommandData {
             id: Id::new(1),
             name: "permissions".to_owned(),
+            kind: CommandType::ChatInput,
             options: Vec::new(),
             resolved: None,
+            target_id: None,
         };
         serde_test::assert_tokens(
             &value,
@@ -397,12 +404,14 @@ mod tests {
         let value = CommandData {
             id: Id::new(1),
             name: "photo".to_owned(),
+            kind: CommandType::ChatInput,
             options: Vec::from([CommandDataOption {
                 focused: false,
                 name: "cat".to_owned(),
                 value: CommandOptionValue::SubCommand(Vec::new()),
             }]),
             resolved: None,
+            target_id: None,
         };
 
         serde_test::assert_tokens(
