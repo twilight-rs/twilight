@@ -62,13 +62,15 @@
 //!     PermissionOverwrite {
 //!         allow: Permissions::ADD_REACTIONS | Permissions::EMBED_LINKS,
 //!         deny: Permissions::empty(),
-//!         kind: PermissionOverwriteType::Role(Id::new(1)),
+//!         id: Id::new(1),
+//!         kind: PermissionOverwriteType::Role,
 //!     },
 //!     // Member is denied the Send Messages permission.
 //!     PermissionOverwrite {
 //!         allow: Permissions::empty(),
 //!         deny: Permissions::SEND_MESSAGES,
-//!         kind: PermissionOverwriteType::Member(user_id),
+//!         id: user_id.cast(),
+//!         kind: PermissionOverwriteType::Member,
 //!     },
 //! ];
 //!
