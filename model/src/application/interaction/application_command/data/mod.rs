@@ -388,13 +388,15 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandData",
-                    len: 2,
+                    len: 3,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("permissions"),
+                Token::Str("type"),
+                Token::U8(CommandType::ChatInput as u8),
                 Token::StructEnd,
             ],
         )
@@ -420,13 +422,15 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandData",
-                    len: 3,
+                    len: 4,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("photo"),
+                Token::Str("type"),
+                Token::U8(CommandType::ChatInput as u8),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

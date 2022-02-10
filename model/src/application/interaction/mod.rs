@@ -477,13 +477,15 @@ mod test {
                 Token::Str("data"),
                 Token::Struct {
                     name: "CommandData",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
                 Token::Str("name"),
                 Token::Str("command name"),
+                Token::Str("type"),
+                Token::U8(1),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

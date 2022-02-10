@@ -66,10 +66,10 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
     use twilight_model::{
-        application::interaction::{
+        application::{interaction::{
             application_command::{CommandData, CommandInteractionDataResolved, InteractionMember},
             ApplicationCommand, InteractionType,
-        },
+        }, command::CommandType},
         channel::{
             message::{
                 sticker::{MessageSticker, StickerFormatType},
@@ -100,6 +100,7 @@ mod tests {
                 data: CommandData {
                     id: Id::new(5),
                     name: "command name".into(),
+                    kind: CommandType::ChatInput, // This isn't actually a valid command, so just mark it as a slash command.
                     options: Vec::new(),
                     resolved: Some(CommandInteractionDataResolved {
                         channels: HashMap::new(),
@@ -222,6 +223,7 @@ mod tests {
                         )])
                         .collect(),
                     }),
+                    target_id: None,
                 },
                 guild_id: Some(Id::new(3)),
                 guild_locale: None,
