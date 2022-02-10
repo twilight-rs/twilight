@@ -245,8 +245,6 @@ mod tests {
             Token::String("components"),
             Token::Seq { len: Some(1) },
             Token::Struct { name: "ModalInteractionDataActionRow", len: 2},
-            Token::String("type"),
-            Token::U8(ComponentType::ActionRow as u8),
             Token::String("components"),
             Token::Seq { len: Some(1) },
             Token::Struct {
@@ -261,6 +259,8 @@ mod tests {
             Token::String("Twilight is a powerful, flexible and scalable ecosystem of Rust libraries for the Discord API."),
             Token::StructEnd,
             Token::SeqEnd,
+            Token::String("type"),
+            Token::U8(ComponentType::ActionRow as u8),
             Token::StructEnd,
             Token::SeqEnd,
             Token::String("custom_id"),
