@@ -22,7 +22,7 @@ use twilight_model::{
 /// [`twilight-util`] crate.
 ///
 /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-/// [associated builder]: https://docs.rs/twilight-util/latest/builder/command/struct.CommandBuilder.html
+/// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 #[must_use = "requests must be configured and executed"]
 pub struct SetGuildCommands<'a> {
     commands: &'a [Command],

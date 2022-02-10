@@ -61,7 +61,8 @@ pub struct InteractionResponseData {
     pub embeds: Option<Vec<Embed>>,
     /// Interaction response data flags.
     ///
-    /// The only supported flag is [`MessageFlags::EPHEMERAL`].
+    /// The supported flags are [`MessageFlags::SUPPRESS_EMBEDS`] and
+    /// [`MessageFlags::EPHEMERAL`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
     /// Whether the response is TTS.
@@ -93,31 +94,6 @@ pub enum InteractionResponseType {
     UpdateMessage = 7,
     /// Respond to an autocomplete interaction with suggested choices.
     ApplicationCommandAutocompleteResult = 8,
-}
-
-/// Container for file data and metadata.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct InteractionAttachmentFile {
-    /// Description of the file.
-    ///
-    /// Appears as alt-text for screen readers.
-    pub description: Option<String>,
-    /// File binary data.
-    ///
-    /// This is not serialized, and rather attached to the request using a
-    /// `multipart/form-data` form.
-    #[serde(skip)]
-    pub file: Vec<u8>,
-    /// Filename of the file.
-    ///
-    /// Must end in the extension of the file, which can be one of `gif`,
-    /// `jpg`/`jpeg`, or `png`.
-    pub filename: String,
-    /// ID of the file.
-    ///
-    /// This is a unique number which matches the file's metadata in the request
-    /// body to the file's part in the form.
-    pub id: u64,
 }
 
 #[cfg(test)]

@@ -72,12 +72,12 @@ pub struct Session {
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
-    pub ratelimit: OnceCell<LeakyBucket>,
+    pub ratelimit: OnceCell<Option<LeakyBucket>>,
 }
 
 impl Session {
-    pub fn new(tx: UnboundedSender<TungsteniteMessage>) -> Self {
-        Self {
+    pub fn new(tx: UnboundedSender<TungsteniteMessage>, ratelimit_payloads: bool) -> Self {
+        let session = Self {
             heartbeater_handle: MutexSync::new(None),
             heartbeats: Arc::new(Heartbeats::default()),
             heartbeat_interval: AtomicU64::new(0),
@@ -86,7 +86,13 @@ impl Session {
             stage: AtomicU8::new(Stage::default() as u8),
             tx,
             ratelimit: OnceCell::new(),
+        };
+
+        if !ratelimit_payloads {
+            session.disable_ratelimiter();
         }
+
+        session
     }
 
     /// Sends a payload as a message over the socket.
@@ -122,6 +128,10 @@ impl Session {
         self.tx.send(TungsteniteMessage::Close(close_frame))
     }
 
+    fn disable_ratelimiter(&self) {
+        let _result = self.ratelimit.set(None);
+    }
+
     pub fn heartbeat_interval(&self) -> u64 {
         self.heartbeat_interval.load(Ordering::Relaxed)
     }
@@ -136,15 +146,19 @@ impl Session {
         // Number of commands allotted to the user per reset period.
         let commands_allotted = u32::from(available_commands_per_interval(new_heartbeat_interval));
 
-        // We can ignore an error if the ratelimiter has already been set.
-        let _result = self.ratelimit.set(
+        // This will attempt to set the ratelimiter to a new one based on the
+        // heartbeat interval. The OnceCell may contain either Some if
+        // ratelimiting is enabled, or None if it was disabled.
+        // If it was already disabled or previously enabled, setting the inner
+        // value will fail and therefore errors should be ignored.
+        let _result = self.ratelimit.set(Some(
             LeakyBucket::builder()
                 .max(commands_allotted)
                 .tokens(commands_allotted)
                 .refill_interval(REFILL_INTERVAL)
                 .refill_amount(commands_allotted)
                 .build(),
-        );
+        ));
     }
 
     /// Returns the current sequence.
