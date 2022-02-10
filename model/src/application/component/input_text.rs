@@ -17,20 +17,20 @@ pub struct InputText {
     pub custom_id: String,
     /// Text appearing over the input field.
     pub label: String,
-    /// Style variant of the input text.
-    pub style: InputTextStyle,
-    /// Placeholder for the text input.
-    pub placeholder: Option<String>,
     /// The minimum length of the text.
     ///
     /// Defaults to `0`.
     pub min_length: Option<u16>,
     /// The maximum length of the text.
     pub max_length: Option<u16>,
+    /// Placeholder for the text input.
+    pub placeholder: Option<String>,
     /// Whether the user is required to input a text.
     ///
     /// Defaults to `true`.
     pub required: Option<bool>,
+    /// Style variant of the input text.
+    pub style: InputTextStyle,
     /// Pre-filled value for input text.
     pub value: Option<String>,
 }
@@ -56,14 +56,14 @@ impl<'de> Deserialize<'de> for InputText {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum InputTextField {
-    Type,
-    Style,
     CustomId,
     Label,
-    Placeholder,
-    MinLength,
     MaxLength,
+    MinLength,
+    Placeholder,
     Required,
+    Style,
+    Type,
     Value,
 }
 
@@ -78,14 +78,14 @@ impl<'de> Visitor<'de> for InputTextVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut kind: Option<ComponentType> = None;
         let mut custom_id: Option<String> = None;
+        let mut kind: Option<ComponentType> = None;
         let mut label: Option<String> = None;
-        let mut style: Option<InputTextStyle> = None;
-        let mut placeholder: Option<String> = None;
-        let mut min_length: Option<u16> = None;
         let mut max_length: Option<u16> = None;
+        let mut min_length: Option<u16> = None;
+        let mut placeholder: Option<String> = None;
         let mut required: Option<bool> = None;
+        let mut style: Option<InputTextStyle> = None;
         let mut value: Option<String> = None;
 
         #[cfg(feature = "tracing")]
@@ -124,22 +124,6 @@ impl<'de> Visitor<'de> for InputTextVisitor {
             };
 
             match key {
-                InputTextField::Type => {
-                    if kind.is_some() {
-                        return Err(DeError::duplicate_field("type"));
-                    }
-
-                    let value: ComponentType = map.next_value()?;
-
-                    if value != ComponentType::InputText {
-                        return Err(DeError::invalid_value(
-                            Unexpected::Unsigned(value as u64),
-                            &"an input text type",
-                        ));
-                    }
-
-                    kind = Some(value)
-                }
                 InputTextField::CustomId => {
                     if custom_id.is_some() {
                         return Err(DeError::duplicate_field("custom_id"));
@@ -153,20 +137,6 @@ impl<'de> Visitor<'de> for InputTextVisitor {
                     }
 
                     label = Some(map.next_value()?)
-                }
-                InputTextField::Style => {
-                    if style.is_some() {
-                        return Err(DeError::duplicate_field("style"));
-                    }
-
-                    style = Some(map.next_value()?);
-                }
-                InputTextField::Placeholder => {
-                    if placeholder.is_some() {
-                        return Err(DeError::duplicate_field("placeholder"));
-                    }
-
-                    placeholder = Some(map.next_value()?)
                 }
                 InputTextField::MaxLength => {
                     if max_length.is_some() {
@@ -182,12 +152,42 @@ impl<'de> Visitor<'de> for InputTextVisitor {
 
                     min_length = Some(map.next_value()?)
                 }
+                InputTextField::Placeholder => {
+                    if placeholder.is_some() {
+                        return Err(DeError::duplicate_field("placeholder"));
+                    }
+
+                    placeholder = Some(map.next_value()?)
+                }
                 InputTextField::Required => {
                     if required.is_some() {
                         return Err(DeError::duplicate_field("required"));
                     }
 
                     required = Some(map.next_value()?)
+                }
+                InputTextField::Style => {
+                    if style.is_some() {
+                        return Err(DeError::duplicate_field("style"));
+                    }
+
+                    style = Some(map.next_value()?);
+                }
+                InputTextField::Type => {
+                    if kind.is_some() {
+                        return Err(DeError::duplicate_field("type"));
+                    }
+
+                    let value: ComponentType = map.next_value()?;
+
+                    if value != ComponentType::InputText {
+                        return Err(DeError::invalid_value(
+                            Unexpected::Unsigned(value as u64),
+                            &"an input text type",
+                        ));
+                    }
+
+                    kind = Some(value)
                 }
                 InputTextField::Value => {
                     if value.is_some() {
@@ -210,20 +210,20 @@ impl<'de> Visitor<'de> for InputTextVisitor {
         #[cfg(feature = "tracing")]
         tracing::trace!(
             %custom_id,
+            ?kind,
             %label,
             ?style,
-            ?kind,
             "all fields of InputText exist"
         );
 
         Ok(InputText {
             custom_id,
             label,
-            style,
-            placeholder,
-            min_length,
             max_length,
+            min_length,
+            placeholder,
             required,
+            style,
             value,
         })
     }
@@ -244,26 +244,27 @@ impl Serialize for InputText {
             + usize::from(self.required.is_some());
         let mut state = serializer.serialize_struct("InputText", field_count)?;
 
-        state.serialize_field("type", &ComponentType::InputText)?;
         state.serialize_field("custom_id", &self.custom_id)?;
         state.serialize_field("label", &self.label)?;
-        state.serialize_field("style", &self.style)?;
-
-        if self.placeholder.is_some() {
-            state.serialize_field("placeholder", &self.placeholder)?;
+        
+        if self.max_length.is_some() {
+            state.serialize_field("max_length", &self.max_length)?;
         }
 
         if self.min_length.is_some() {
             state.serialize_field("min_length", &self.min_length)?;
         }
 
-        if self.max_length.is_some() {
-            state.serialize_field("max_length", &self.max_length)?;
+        if self.placeholder.is_some() {
+            state.serialize_field("placeholder", &self.placeholder)?;
         }
 
         if self.required.is_some() {
             state.serialize_field("required", &self.required)?;
         }
+        
+        state.serialize_field("style", &self.style)?;
+        state.serialize_field("type", &ComponentType::InputText)?;
 
         if self.value.is_some() {
             state.serialize_field("value", &self.value)?;
@@ -331,11 +332,11 @@ mod tests {
         let value = InputText {
             custom_id: "test".to_owned(),
             label: "The label".to_owned(),
-            style: InputTextStyle::Short,
-            placeholder: Some("Taking this place".to_owned()),
-            min_length: Some(1),
             max_length: Some(100),
+            min_length: Some(1),
+            placeholder: Some("Taking this place".to_owned()),
             required: Some(true),
+            style: InputTextStyle::Short,
             value: Some("Hello World!".to_owned()),
         };
 
@@ -346,26 +347,26 @@ mod tests {
                     name: "InputText",
                     len: 8,
                 },
-                Token::String("type"),
-                Token::U8(ComponentType::InputText as u8),
                 Token::String("custom_id"),
                 Token::String("test"),
                 Token::String("label"),
                 Token::String("The label"),
-                Token::String("style"),
-                Token::U8(InputTextStyle::Short as u8),
-                Token::String("placeholder"),
-                Token::Some,
-                Token::String("Taking this place"),
-                Token::String("min_length"),
-                Token::Some,
-                Token::U16(1),
                 Token::String("max_length"),
                 Token::Some,
                 Token::U16(100),
+                Token::String("min_length"),
+                Token::Some,
+                Token::U16(1),
+                Token::String("placeholder"),
+                Token::Some,
+                Token::String("Taking this place"),
                 Token::String("required"),
                 Token::Some,
                 Token::Bool(true),
+                Token::String("style"),
+                Token::U8(InputTextStyle::Short as u8),
+                Token::String("type"),
+                Token::U8(ComponentType::InputText as u8),
                 Token::String("value"),
                 Token::Some,
                 Token::String("Hello World!"),
@@ -380,26 +381,26 @@ mod tests {
                     name: "InputText",
                     len: 8,
                 },
-                Token::String("type"),
-                Token::U8(ComponentType::InputText as u8),
                 Token::String("custom_id"),
                 Token::String("test"),
                 Token::String("label"),
                 Token::String("The label"),
-                Token::String("style"),
-                Token::U8(InputTextStyle::Short as u8),
-                Token::String("placeholder"),
-                Token::Some,
-                Token::String("Taking this place"),
-                Token::String("min_length"),
-                Token::Some,
-                Token::U16(1),
                 Token::String("max_length"),
                 Token::Some,
                 Token::U16(100),
+                Token::String("min_length"),
+                Token::Some,
+                Token::U16(1),
+                Token::String("placeholder"),
+                Token::Some,
+                Token::String("Taking this place"),
                 Token::String("required"),
                 Token::Some,
                 Token::Bool(true),
+                Token::String("style"),
+                Token::U8(InputTextStyle::Short as u8),
+                Token::String("type"),
+                Token::U8(ComponentType::InputText as u8),
                 Token::String("value"),
                 Token::Some,
                 Token::String("Hello World!"),

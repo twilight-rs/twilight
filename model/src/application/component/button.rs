@@ -84,12 +84,12 @@ impl<'de> Deserialize<'de> for Button {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum ButtonField {
-    Type,
     CustomId,
     Disabled,
-    Style,
-    Label,
     Emoji,
+    Label,
+    Style,
+    Type,
     Url,
 }
 
@@ -104,12 +104,12 @@ impl<'de> Visitor<'de> for ButtonVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut kind: Option<ComponentType> = None;
         let mut custom_id: Option<String> = None;
         let mut disabled: Option<bool> = None;
-        let mut style: Option<ButtonStyle> = None;
-        let mut label: Option<String> = None;
         let mut emoji: Option<ReactionType> = None;
+        let mut kind: Option<ComponentType> = None;
+        let mut label: Option<String> = None;
+        let mut style: Option<ButtonStyle> = None;
         let mut url: Option<String> = None;
 
         #[cfg(feature = "tracing")]
@@ -148,6 +148,41 @@ impl<'de> Visitor<'de> for ButtonVisitor {
             };
 
             match key {
+                ButtonField::CustomId => {
+                    if custom_id.is_some() {
+                        return Err(DeError::duplicate_field("custom_id"));
+                    }
+
+                    custom_id = Some(map.next_value()?);
+                }
+                ButtonField::Disabled => {
+                    if disabled.is_some() {
+                        return Err(DeError::duplicate_field("disabled"));
+                    }
+
+                    disabled = Some(map.next_value()?);
+                }
+                ButtonField::Emoji => {
+                    if emoji.is_some() {
+                        return Err(DeError::duplicate_field("emoji"));
+                    }
+
+                    emoji = Some(map.next_value()?);
+                }
+                ButtonField::Label => {
+                    if label.is_some() {
+                        return Err(DeError::duplicate_field("label"));
+                    }
+
+                    label = Some(map.next_value()?);
+                }
+                ButtonField::Style => {
+                    if style.is_some() {
+                        return Err(DeError::duplicate_field("style"));
+                    }
+
+                    style = Some(map.next_value()?);
+                }
                 ButtonField::Type => {
                     if kind.is_some() {
                         return Err(DeError::duplicate_field("type"));
@@ -163,42 +198,6 @@ impl<'de> Visitor<'de> for ButtonVisitor {
                     }
 
                     kind = Some(value)
-                }
-                ButtonField::CustomId => {
-                    if custom_id.is_some() {
-                        return Err(DeError::duplicate_field("custom_id"));
-                    }
-
-                    custom_id = Some(map.next_value()?);
-                }
-                ButtonField::Disabled => {
-                    if disabled.is_some() {
-                        return Err(DeError::duplicate_field("disabled"));
-                    }
-
-                    disabled = Some(map.next_value()?);
-                }
-                ButtonField::Style => {
-                    if style.is_some() {
-                        return Err(DeError::duplicate_field("style"));
-                    }
-
-                    style = Some(map.next_value()?);
-                }
-
-                ButtonField::Label => {
-                    if label.is_some() {
-                        return Err(DeError::duplicate_field("label"));
-                    }
-
-                    label = Some(map.next_value()?);
-                }
-                ButtonField::Emoji => {
-                    if emoji.is_some() {
-                        return Err(DeError::duplicate_field("emoji"));
-                    }
-
-                    emoji = Some(map.next_value()?);
                 }
                 ButtonField::Url => {
                     if url.is_some() {
@@ -221,8 +220,8 @@ impl<'de> Visitor<'de> for ButtonVisitor {
         #[cfg(feature = "tracing")]
         tracing::trace!(
             ?disabled,
-            ?style,
             ?kind,
+            ?style,
             "all required fields of Button exist"
         );
 

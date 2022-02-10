@@ -13,10 +13,10 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// [`ModalSubmit`]: crate::application::interaction::Interaction::ModalSubmit
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ModalInteractionData {
-    /// User defined identifier for the input text.
-    pub custom_id: String,
     /// List of parsed user inputs.
     pub components: Vec<ModalInteractionDataActionRow>,
+    /// User defined identifier for the input text.
+    pub custom_id: String,
 }
 
 /// The parsed [`ActionRow`] of the users input.
@@ -32,13 +32,13 @@ pub struct ModalInteractionDataActionRow {
 
 impl Serialize for ModalInteractionDataActionRow {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        // Reserved for `type`
+        // Reserved for `type` and `components`
         let len = 2;
 
         let mut state = serializer.serialize_struct("ModalInteractionDataActionRow", len)?;
 
-        state.serialize_field("type", &ComponentType::ActionRow)?;
         state.serialize_field("components", &self.components)?;
+        state.serialize_field("type", &ComponentType::ActionRow)?;
 
         state.end()
     }
@@ -77,8 +77,8 @@ impl<'de> Deserialize<'de> for ModalInteractionDataComponent {
         #[derive(Debug, Deserialize)]
         #[serde(field_identifier, rename_all = "snake_case")]
         enum Fields {
-            Type,
             CustomId,
+            Type,
             Value,
         }
 
@@ -242,8 +242,6 @@ mod tests {
                 name: "ModalInteractionData",
                 len: 2
             },
-            Token::String("custom_id"),
-            Token::String("test-modal"),
             Token::String("components"),
             Token::Seq { len: Some(1) },
             Token::Struct { name: "ModalInteractionDataActionRow", len: 2},
@@ -265,6 +263,8 @@ mod tests {
             Token::SeqEnd,
             Token::StructEnd,
             Token::SeqEnd,
+            Token::String("custom_id"),
+            Token::String("test-modal"),
             Token::StructEnd
         ]);
     }

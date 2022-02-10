@@ -62,13 +62,13 @@ impl<'de> Deserialize<'de> for SelectMenu {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum SelectMenuField {
-    Type,
     CustomId,
     Disabled,
+    MaxValues,
+    MinValues,
     Options,
     Placeholder,
-    MinValues,
-    MaxValues,
+    Type,
 }
 
 struct SelectMenuVisitor;
@@ -82,13 +82,13 @@ impl<'de> Visitor<'de> for SelectMenuVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
-        let mut kind: Option<ComponentType> = None;
         let mut custom_id: Option<String> = None;
         let mut disabled: Option<bool> = None;
-        let mut options: Option<Vec<SelectMenuOption>> = None;
-        let mut placeholder: Option<String> = None;
+        let mut kind: Option<ComponentType> = None;
         let mut max_values: Option<u8> = None;
         let mut min_values: Option<u8> = None;
+        let mut options: Option<Vec<SelectMenuOption>> = None;
+        let mut placeholder: Option<String> = None;
 
         #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing select menu");
@@ -126,22 +126,6 @@ impl<'de> Visitor<'de> for SelectMenuVisitor {
             };
 
             match key {
-                SelectMenuField::Type => {
-                    if kind.is_some() {
-                        return Err(DeError::duplicate_field("type"));
-                    }
-
-                    let value: ComponentType = map.next_value()?;
-
-                    if value != ComponentType::SelectMenu {
-                        return Err(DeError::invalid_value(
-                            Unexpected::Unsigned(value as u64),
-                            &"a select menu type",
-                        ));
-                    }
-
-                    kind = Some(value)
-                }
                 SelectMenuField::CustomId => {
                     if custom_id.is_some() {
                         return Err(DeError::duplicate_field("custom_id"));
@@ -183,6 +167,22 @@ impl<'de> Visitor<'de> for SelectMenuVisitor {
                     }
 
                     placeholder = Some(map.next_value()?);
+                }
+                SelectMenuField::Type => {
+                    if kind.is_some() {
+                        return Err(DeError::duplicate_field("type"));
+                    }
+
+                    let value: ComponentType = map.next_value()?;
+
+                    if value != ComponentType::SelectMenu {
+                        return Err(DeError::invalid_value(
+                            Unexpected::Unsigned(value as u64),
+                            &"a select menu type",
+                        ));
+                    }
+
+                    kind = Some(value)
                 }
             }
         }

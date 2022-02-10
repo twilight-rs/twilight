@@ -42,8 +42,8 @@ impl<'de> Deserialize<'de> for ActionRow {
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum ActionRowField {
-    Type,
     Components,
+    Type,
 }
 
 struct ActionRowVisitor;
@@ -96,6 +96,13 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
             };
 
             match key {
+                ActionRowField::Components => {
+                    if components.is_some() {
+                        return Err(DeError::duplicate_field("components"));
+                    }
+
+                    components = Some(map.next_value()?);
+                }
                 ActionRowField::Type => {
                     if kind.is_some() {
                         return Err(DeError::duplicate_field("type"));
@@ -111,13 +118,6 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
                     }
 
                     kind = Some(value)
-                }
-                ActionRowField::Components => {
-                    if components.is_some() {
-                        return Err(DeError::duplicate_field("components"));
-                    }
-
-                    components = Some(map.next_value()?);
                 }
             }
         }
