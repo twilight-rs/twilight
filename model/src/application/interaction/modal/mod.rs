@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_author_id() {
-        fn user_id() -> Id<UserMarker> {
+        const fn user_id() -> Id<UserMarker> {
             Id::<UserMarker>::new(7)
         }
 
