@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        attachment::{Attachment, AttachmentManager, PartialAttachment},
+        attachment::{AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
         NullableField, Request, TryIntoRequest,
     },
@@ -13,6 +13,7 @@ use serde::Serialize;
 use twilight_model::{
     application::component::Component,
     channel::{embed::Embed, message::AllowedMentions},
+    http::attachment::Attachment,
     id::{
         marker::{ChannelMarker, WebhookMarker},
         Id,
