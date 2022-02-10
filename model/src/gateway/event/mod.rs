@@ -350,12 +350,22 @@ impl Display for EventConversionError {
 
 impl Error for EventConversionError {}
 
+/// `EVENT_THRESHOLD` is equivalent to 24 words on a 64-bit machine, or 192
+/// bytes. This was decided based on the size of `Event` at the time of writing.
+/// The assertions here are to ensure that in the case the events themselves
+/// grow or shrink past the threshold, they are properly boxed or unboxed
+/// respectively.
+///
+/// [`large_enum_variant`]: https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
 #[cfg(test)]
 mod tests {
     use super::{super::payload::incoming::*, shard::*, Event};
     use static_assertions::const_assert;
     use std::mem;
 
+    // `dead_code`: `const_assert` operates at the compiler level, and the lint
+    // requires a variable to be used in a function, so this is a false
+    // positive.
     #[allow(dead_code)]
     const EVENT_THRESHOLD: usize = 192;
 
