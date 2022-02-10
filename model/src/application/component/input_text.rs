@@ -17,12 +17,12 @@ pub struct InputText {
     pub custom_id: String,
     /// Text appearing over the input field.
     pub label: String,
+    /// The maximum length of the text.
+    pub max_length: Option<u16>,
     /// The minimum length of the text.
     ///
     /// Defaults to `0`.
     pub min_length: Option<u16>,
-    /// The maximum length of the text.
-    pub max_length: Option<u16>,
     /// Placeholder for the text input.
     pub placeholder: Option<String>,
     /// Whether the user is required to input a text.
