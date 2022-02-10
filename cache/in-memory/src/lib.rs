@@ -724,7 +724,7 @@ impl InMemoryCache {
     /// Gets a sticker by ID.
     ///
     /// This is the O(1) operation. This requires the [`GUILDS`] and the
-    /// [`GUILD_EMOJIS_AND_STICKERS`] intent and the [`STICKER`] resource type.
+    /// [`GUILD_EMOJIS_AND_STICKERS`] intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
