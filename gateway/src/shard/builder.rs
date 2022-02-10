@@ -186,6 +186,7 @@ impl ShardBuilder {
             session_id: None,
             sequence: None,
             tls: None,
+            ratelimit_payloads: true,
         })
     }
 
@@ -357,6 +358,19 @@ impl ShardBuilder {
     /// [`queue`]: crate::queue
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
         self.0.queue = queue;
+
+        self
+    }
+
+    /// Set whether or not outgoing payloads will be ratelimited.
+    ///
+    /// Useful when running behind a proxy gateway. Running without a
+    /// functional ratelimiter **will** get you ratelimited.
+    ///
+    /// Defaults to being enabled.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
+        self.0.ratelimit_payloads = ratelimit_payloads;
 
         self
     }
