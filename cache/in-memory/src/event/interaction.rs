@@ -66,10 +66,15 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
     use twilight_model::{
-        application::{interaction::{
-            application_command::{CommandData, CommandInteractionDataResolved, InteractionMember},
-            ApplicationCommand, InteractionType,
-        }, command::CommandType},
+        application::{
+            command::CommandType,
+            interaction::{
+                application_command::{
+                    CommandData, CommandInteractionDataResolved, InteractionMember,
+                },
+                ApplicationCommand, InteractionType,
+            },
+        },
         channel::{
             message::{
                 sticker::{MessageSticker, StickerFormatType},
