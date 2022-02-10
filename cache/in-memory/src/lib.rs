@@ -516,7 +516,8 @@ impl InMemoryCache {
 
     /// Gets the set of emojis in a guild.
     ///
-    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`] intents.
+    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// intents.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
     /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
