@@ -246,7 +246,7 @@ impl Serialize for InputText {
 
         state.serialize_field("custom_id", &self.custom_id)?;
         state.serialize_field("label", &self.label)?;
-        
+
         if self.max_length.is_some() {
             state.serialize_field("max_length", &self.max_length)?;
         }
@@ -262,7 +262,7 @@ impl Serialize for InputText {
         if self.required.is_some() {
             state.serialize_field("required", &self.required)?;
         }
-        
+
         state.serialize_field("style", &self.style)?;
         state.serialize_field("type", &ComponentType::InputText)?;
 
