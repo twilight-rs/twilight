@@ -9,7 +9,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Clickable interactive components that render on messages.
 ///
-/// Refer to [Discord Docs/Message Components] for additional information.
+/// See [Discord Docs/Message Components].
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#button-object-button-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
@@ -40,9 +40,9 @@ pub struct Button {
 
 /// Style of a [`Button`].
 ///
-/// Refer to [the discord docs] for additional information.
+/// Refer to [the Discord Docs/Button Object] for additional information.
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
+/// [the Discord Docs/Button Object]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
 pub enum ButtonStyle {

@@ -57,7 +57,7 @@ impl InMemoryCache {
 
     fn unavailable_guild(&self, guild_id: Id<GuildMarker>) {
         self.unavailable_guilds.insert(guild_id);
-        self.guilds.remove(&guild_id);
+        self.delete_guild(guild_id, true);
     }
 }
 
@@ -81,8 +81,7 @@ impl UpdateCache for UnavailableGuild {
             return;
         }
 
-        cache.guilds.remove(&self.id);
-        cache.unavailable_guilds.insert(self.id);
+        cache.unavailable_guild(self.id);
     }
 }
 

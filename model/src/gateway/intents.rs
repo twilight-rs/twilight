@@ -9,10 +9,10 @@ bitflags! {
     ///
     /// Developers must specify intents when connecting to the gateway. The
     /// intents specified correspond with the events received. To specify
-    /// multiple intents, create a union using the `|` operator. See [the
-    /// discord docs] for more information.
+    /// multiple intents, create a union using the `|` operator. See
+    /// [Discord Docs/Gateway Intents].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/topics/gateway#gateway-intents
+    /// [Discord Docs/Gateway Intents]: https://discord.com/developers/docs/topics/gateway#gateway-intents
     pub struct Intents: u64 {
         /// Guilds intent.
         ///
@@ -41,14 +41,14 @@ bitflags! {
         const GUILDS = 1;
         /// Guild members intent.
         ///
-        /// This intent is privileged. See [the discord docs] for more information.
+        /// This intent is privileged. See [Discord Docs/Privileged Intents].
         ///
         /// Event(s) received:
         ///  - [`GUILD_MEMBER_ADD`]
         ///  - [`GUILD_MEMBER_UPDATE`]
         ///  - [`GUILD_MEMBER_REMOVE`]
         ///
-        /// [the discord docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
+        /// [Discord Docs/Privileged Intents]: https://discord.com/developers/docs/topics/gateway#privileged-intents
         /// [`GUILD_MEMBER_ADD`]: super::event::Event::MemberAdd
         /// [`GUILD_MEMBER_UPDATE`]: super::event::Event::MemberUpdate
         /// [`GUILD_MEMBER_REMOVE`]: super::event::Event::MemberRemove
@@ -62,13 +62,15 @@ bitflags! {
         /// [`GUILD_BAN_ADD`]: super::event::Event::BanAdd
         /// [`GUILD_BAN_REMOVE`]: super::event::Event::BanRemove
         const GUILD_BANS = 1 << 2;
-        /// Guild emojis intent.
+        /// Guild emojis and stickers intent.
         ///
         /// Event(s) received:
         ///  - [`GUILD_EMOJIS_UPDATE`]
+        ///  - [`GUILD_STICKERS_UPDATE`]
         ///
         /// [`GUILD_EMOJIS_UPDATE`]: super::event::Event::GuildEmojisUpdate
-        const GUILD_EMOJIS = 1 << 3;
+        /// [`GUILD_STICKERS_UPDATE`]: super::event::Event::GuildStickersUpdate
+        const GUILD_EMOJIS_AND_STICKERS = 1 << 3;
         /// Guild integrations intent.
         ///
         /// Event(s) received:
@@ -101,12 +103,12 @@ bitflags! {
         const GUILD_VOICE_STATES = 1 << 7;
         /// Guild presences intent.
         ///
-        /// This intent is privileged. See [the discord docs] for more information.
+        /// This intent is privileged. See [Discord Docs/Privileged Intents].
         ///
         /// Event(s) received:
         ///  - [`PRESENCE_UPDATE`]
         ///
-        /// [the discord docs]: https://discord.com/developers/docs/topics/gateway#privileged-intents
+        /// [Discord Docs/Privileged Intents]: https://discord.com/developers/docs/topics/gateway#privileged-intents
         /// [`PRESENCE_UPDATE`]: super::event::Event::PresenceUpdate
         const GUILD_PRESENCES = 1 << 8;
         /// Guild messages intent.

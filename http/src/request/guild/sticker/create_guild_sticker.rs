@@ -112,15 +112,11 @@ impl TryIntoRequest for CreateGuildSticker<'_> {
             guild_id: self.guild_id.get(),
         });
 
-        let mut form = Form::new();
-
-        form.part("name".as_bytes(), self.fields.name.as_bytes());
-
-        form.part("description".as_bytes(), self.fields.description.as_bytes());
-
-        form.part("tags".as_bytes(), self.fields.tags.as_bytes());
-
-        form.part("file".as_bytes(), self.fields.file);
+        let form = Form::new()
+            .part(b"description", self.fields.description.as_bytes())
+            .part(b"file", self.fields.file)
+            .part(b"name", self.fields.name.as_bytes())
+            .part(b"tags", self.fields.tags.as_bytes());
 
         request = request.form(form);
 

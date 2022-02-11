@@ -10,6 +10,7 @@ use super::{
     stage::Stage,
 };
 use crate::Intents;
+use leaky_bucket_lite::LeakyBucket;
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -267,8 +268,8 @@ pub enum ShardStartErrorType {
 pub struct Information {
     id: u64,
     latency: Latency,
-    ratelimit_refill: Instant,
-    ratelimit_requests: u32,
+    ratelimit_refill: Option<Instant>,
+    ratelimit_requests: Option<u32>,
     session_id: Option<Box<str>>,
     seq: u64,
     stage: Stage,
@@ -290,15 +291,19 @@ impl Information {
 
     /// When the ratelimiter will next refill the [`ratelimit_requests`].
     ///
+    /// This will be `None` if payload ratelimiting has been disabled.
+    ///
     /// [`ratelimit_requests`]: Self::ratelimit_requests
-    pub const fn ratelimit_refill(&self) -> Instant {
+    pub const fn ratelimit_refill(&self) -> Option<Instant> {
         self.ratelimit_refill
     }
 
     /// Number of requests remaining until the next [`ratelimit_refill`].
     ///
+    /// This will be `None` if payload ratelimiting has been disabled.
+    ///
     /// [`ratelimit_refill`]: Self::ratelimit_refill
-    pub const fn ratelimit_requests(&self) -> u32 {
+    pub const fn ratelimit_requests(&self) -> Option<u32> {
         self.ratelimit_requests
     }
 
@@ -432,7 +437,7 @@ impl Shard {
     /// ```
     ///
     /// [`start`]: Self::start
-    pub fn new(token: impl Into<String>, intents: Intents) -> (Self, Events) {
+    pub fn new(token: String, intents: Intents) -> (Self, Events) {
         Self::builder(token, intents).build()
     }
 
@@ -455,7 +460,7 @@ impl Shard {
     /// Create a builder to configure and construct a shard.
     ///
     /// Refer to the builder for more information.
-    pub fn builder(token: impl Into<String>, intents: Intents) -> ShardBuilder {
+    pub fn builder(token: String, intents: Intents) -> ShardBuilder {
         ShardBuilder::new(token, intents)
     }
 
@@ -566,7 +571,10 @@ impl Shard {
         let session = self.session()?;
 
         let (ratelimit_requests, ratelimit_refill) = match session.ratelimit.get() {
-            Some(limiter) => (limiter.tokens(), limiter.next_refill()),
+            Some(limiter) => (
+                limiter.as_ref().map(LeakyBucket::tokens),
+                limiter.as_ref().map(LeakyBucket::next_refill),
+            ),
             None => return Err(SessionInactiveError),
         };
 
@@ -697,8 +705,15 @@ impl Shard {
             kind: SendErrorType::SessionInactive,
         })?;
 
-        if let Some(ratelimiter) = session.ratelimit.get() {
-            ratelimiter.acquire_one().await;
+        // Getting the value of the OnceCell will only return None if it has not been
+        // initialized yet, i.e. ratelimiting is enabled and HELLO has not been
+        // received yet.
+        if let Some(maybe_ratelimiter) = session.ratelimit.get() {
+            // The value of the cell has been set, it will be Some if ratelimiting
+            // is enabled, else None. We can ignore the second case.
+            if let Some(ratelimiter) = maybe_ratelimiter {
+                ratelimiter.acquire_one().await;
+            }
         } else {
             return Err(SendError {
                 kind: SendErrorType::HeartbeaterNotStarted,

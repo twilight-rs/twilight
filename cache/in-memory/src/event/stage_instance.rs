@@ -85,7 +85,6 @@ mod tests {
 
         let stage_instance = StageInstance {
             channel_id: Id::new(1),
-            discoverable_disabled: true,
             guild_id: Id::new(2),
             id: Id::new(3),
             privacy_level: PrivacyLevel::GuildOnly,

@@ -340,10 +340,10 @@ impl<'a> CreateGuild<'a> {
         Ok(self)
     }
 
-    /// Set the default message notification level. Refer to [the discord docs] for more
-    /// information.
+    /// Set the default message notification level. See
+    /// [Discord Docs/Create Guild].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
+    /// [Discord Docs/Create Guild]: https://discord.com/developers/docs/resources/guild#create-guild
     pub const fn default_message_notifications(
         mut self,
         default_message_notifications: DefaultMessageNotificationLevel,
@@ -365,11 +365,11 @@ impl<'a> CreateGuild<'a> {
 
     /// Set the icon.
     ///
-    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
-    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
-    /// for more information.
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub fn icon(mut self, icon: String) -> Self {
         self.fields.icon.replace(icon);
 

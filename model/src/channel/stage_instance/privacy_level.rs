@@ -5,7 +5,6 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 )]
 #[repr(u8)]
 pub enum PrivacyLevel {
-    Public = 1,
     GuildOnly = 2,
 }
 
@@ -16,7 +15,6 @@ mod tests {
 
     #[test]
     fn test_variants() {
-        serde_test::assert_tokens(&PrivacyLevel::Public, &[Token::U8(1)]);
         serde_test::assert_tokens(&PrivacyLevel::GuildOnly, &[Token::U8(2)]);
     }
 }

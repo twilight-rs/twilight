@@ -16,9 +16,8 @@ mod private {
                 UpdateGuildCommand,
             },
             interaction::{
-                CreateFollowupMessage, DeleteFollowupMessage, DeleteOriginalResponse,
-                GetFollowupMessage, GetOriginalResponse, InteractionCallback,
-                UpdateFollowupMessage, UpdateOriginalResponse,
+                CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
+                GetResponse, UpdateFollowup, UpdateResponse,
             },
         },
         channel::{
@@ -94,7 +93,7 @@ mod private {
     impl Sealed for AddThreadMember<'_> {}
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
-    impl Sealed for CreateFollowupMessage<'_> {}
+    impl Sealed for CreateFollowup<'_> {}
     impl Sealed for CreateGlobalChatInputCommand<'_> {}
     impl Sealed for CreateGlobalCommand<'_> {}
     impl Sealed for CreateGlobalMessageCommand<'_> {}
@@ -117,6 +116,7 @@ mod private {
     impl Sealed for CreatePin<'_> {}
     impl Sealed for CreatePrivateChannel<'_> {}
     impl Sealed for CreateReaction<'_> {}
+    impl Sealed for CreateResponse<'_> {}
     impl Sealed for CreateRole<'_> {}
     impl Sealed for CreateStageInstance<'_> {}
     impl Sealed for CreateTemplate<'_> {}
@@ -132,7 +132,7 @@ mod private {
     impl Sealed for DeleteChannelPermission<'_> {}
     impl Sealed for DeleteChannelPermissionConfigured<'_> {}
     impl Sealed for DeleteEmoji<'_> {}
-    impl Sealed for DeleteFollowupMessage<'_> {}
+    impl Sealed for DeleteFollowup<'_> {}
     impl Sealed for DeleteGlobalCommand<'_> {}
     impl Sealed for DeleteGuild<'_> {}
     impl Sealed for DeleteGuildCommand<'_> {}
@@ -142,9 +142,9 @@ mod private {
     impl Sealed for DeleteInvite<'_> {}
     impl Sealed for DeleteMessage<'_> {}
     impl Sealed for DeleteMessages<'_> {}
-    impl Sealed for DeleteOriginalResponse<'_> {}
     impl Sealed for DeletePin<'_> {}
     impl Sealed for DeleteReaction<'_> {}
+    impl Sealed for DeleteResponse<'_> {}
     impl Sealed for DeleteRole<'_> {}
     impl Sealed for DeleteStageInstance<'_> {}
     impl Sealed for DeleteTemplate<'_> {}
@@ -169,7 +169,7 @@ mod private {
     impl Sealed for GetCurrentUserGuilds<'_> {}
     impl Sealed for GetEmoji<'_> {}
     impl Sealed for GetEmojis<'_> {}
-    impl Sealed for GetFollowupMessage<'_> {}
+    impl Sealed for GetFollowup<'_> {}
     impl Sealed for GetGateway<'_> {}
     impl Sealed for GetGatewayAuthed<'_> {}
     impl Sealed for GetGlobalCommand<'_> {}
@@ -200,11 +200,11 @@ mod private {
     impl Sealed for GetMember<'_> {}
     impl Sealed for GetMessage<'_> {}
     impl Sealed for GetNitroStickerPacks<'_> {}
-    impl Sealed for GetOriginalResponse<'_> {}
     impl Sealed for GetPins<'_> {}
     impl Sealed for GetPrivateArchivedThreads<'_> {}
     impl Sealed for GetPublicArchivedThreads<'_> {}
     impl Sealed for GetReactions<'_> {}
+    impl Sealed for GetResponse<'_> {}
     impl Sealed for GetStageInstance<'_> {}
     impl Sealed for GetSticker<'_> {}
     impl Sealed for GetTemplate<'_> {}
@@ -216,7 +216,6 @@ mod private {
     impl Sealed for GetVoiceRegions<'_> {}
     impl Sealed for GetWebhook<'_> {}
     impl Sealed for GetWebhookMessage<'_> {}
-    impl Sealed for InteractionCallback<'_> {}
     impl Sealed for JoinThread<'_> {}
     impl Sealed for LeaveGuild<'_> {}
     impl Sealed for LeaveThread<'_> {}
@@ -236,7 +235,7 @@ mod private {
     impl Sealed for UpdateCurrentUser<'_> {}
     impl Sealed for UpdateCurrentUserVoiceState<'_> {}
     impl Sealed for UpdateEmoji<'_> {}
-    impl Sealed for UpdateFollowupMessage<'_> {}
+    impl Sealed for UpdateFollowup<'_> {}
     impl Sealed for UpdateGlobalCommand<'_> {}
     impl Sealed for UpdateGuild<'_> {}
     impl Sealed for UpdateGuildChannelPositions<'_> {}
@@ -247,7 +246,7 @@ mod private {
     impl Sealed for UpdateGuildWelcomeScreen<'_> {}
     impl Sealed for UpdateGuildWidget<'_> {}
     impl Sealed for UpdateMessage<'_> {}
-    impl Sealed for UpdateOriginalResponse<'_> {}
+    impl Sealed for UpdateResponse<'_> {}
     impl Sealed for UpdateRole<'_> {}
     impl Sealed for UpdateRolePositions<'_> {}
     impl Sealed for UpdateStageInstance<'_> {}

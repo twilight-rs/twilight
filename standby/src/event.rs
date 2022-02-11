@@ -30,6 +30,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::GuildDelete(e) => Some(e.id),
         Event::GuildEmojisUpdate(e) => Some(e.guild_id),
         Event::GuildIntegrationsUpdate(e) => Some(e.guild_id),
+        Event::GuildStickersUpdate(e) => Some(e.guild_id),
         Event::GuildUpdate(e) => Some(e.0.id),
         Event::IntegrationCreate(e) => e.0.guild_id,
         Event::IntegrationDelete(e) => Some(e.guild_id),

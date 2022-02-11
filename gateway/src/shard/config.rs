@@ -21,13 +21,14 @@ pub struct Config {
     pub(super) identify_properties: Option<IdentifyProperties>,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
-    pub(super) presence: Option<UpdatePresencePayload>,
+    pub(crate) presence: Option<UpdatePresencePayload>,
     pub(super) queue: Arc<dyn Queue>,
     pub(crate) shard: [u64; 2],
     pub(super) token: Box<str>,
     pub(crate) session_id: Option<Box<str>>,
     pub(crate) sequence: Option<u64>,
     pub(crate) tls: Option<TlsContainer>,
+    pub(crate) ratelimit_payloads: bool,
 }
 
 impl Config {
@@ -71,6 +72,11 @@ impl Config {
     /// to Do Not Disturb will show the status in the bot's presence.
     pub const fn presence(&self) -> Option<&UpdatePresencePayload> {
         self.presence.as_ref()
+    }
+
+    /// Whether or not payload ratelimiting is enabled.
+    pub const fn ratelimit_payloads(&self) -> bool {
+        self.ratelimit_payloads
     }
 
     /// The shard's ID and the total number of shards used by the bot.
