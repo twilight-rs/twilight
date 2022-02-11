@@ -71,8 +71,11 @@ impl MessageValidationError {
 impl Display for MessageValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            MessageValidationErrorType::AttachmentFilename => {
-                f.write_str("attachment filename is invalid")
+            MessageValidationErrorType::AttachmentFilename { filename } => {
+                f.write_str("attachment filename `")?;
+                Display::fmt(filename, f)?;
+
+                f.write_str("`is invalid")
             }
             MessageValidationErrorType::ComponentCount { count } => {
                 Display::fmt(count, f)?;
@@ -111,7 +114,10 @@ impl Error for MessageValidationError {}
 #[derive(Debug)]
 pub enum MessageValidationErrorType {
     /// Attachment filename is not valid.
-    AttachmentFilename,
+    AttachmentFilename {
+        /// Invalid filename.
+        filename: String,
+    },
     /// Too many message components were provided.
     ComponentCount {
         /// Number of components that were provided.
@@ -161,7 +167,9 @@ pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValid
         .any(|c| !(c.is_ascii_alphanumeric() || c == DOT || c == DASH || c == UNDERSCORE))
     {
         Err(MessageValidationError {
-            kind: MessageValidationErrorType::AttachmentFilename,
+            kind: MessageValidationErrorType::AttachmentFilename {
+                filename: filename.as_ref().to_string(),
+            },
             source: None,
         })
     } else {
