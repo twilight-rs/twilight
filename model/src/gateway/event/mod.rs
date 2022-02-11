@@ -355,8 +355,6 @@ impl Error for EventConversionError {}
 /// The assertions here are to ensure that in the case the events themselves
 /// grow or shrink past the threshold, they are properly boxed or unboxed
 /// respectively.
-///
-/// [`large_enum_variant`]: https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
 #[cfg(test)]
 mod tests {
     use super::{super::payload::incoming::*, shard::*, Event};
