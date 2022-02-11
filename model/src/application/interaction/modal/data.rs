@@ -11,6 +11,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// Refer to [the discord docs] for more information.
 ///
 /// [`ModalSubmit`]: crate::application::interaction::Interaction::ModalSubmit
+/// [the discord docs]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ModalInteractionData {
     /// List of parsed user inputs.
@@ -24,6 +25,7 @@ pub struct ModalInteractionData {
 /// Refer to [the discord docs] for more information.
 ///
 /// [`ActionRow`]: crate::application::interaction::modal::ModalInteractionDataActionRow
+/// [the discord docs]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ModalInteractionDataActionRow {
     /// The parsed components.
@@ -47,6 +49,8 @@ impl Serialize for ModalInteractionDataActionRow {
 /// Data received when a user fills in a modal component.
 ///
 /// Refer to [the discord docs] for more information.
+///
+/// [the discord docs]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ModalInteractionDataComponent {
     pub custom_id: String,
