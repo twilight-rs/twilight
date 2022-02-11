@@ -39,6 +39,8 @@ struct CreateGuildScheduledEventFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    image: Option<&'a [u8]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
@@ -129,6 +131,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 description: None,
                 entity_metadata: None,
                 entity_type: None,
+                image: None,
                 name: None,
                 privacy_level: None,
                 scheduled_end_time: None,

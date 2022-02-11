@@ -33,6 +33,8 @@ struct UpdateGuildScheduledEventFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    image: Option<NullableField<&'a [u8]>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
@@ -81,6 +83,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
                 description: None,
                 entity_metadata: None,
                 entity_type: None,
+                image: None,
                 name: None,
                 privacy_level: None,
                 scheduled_end_time: None,
@@ -138,6 +141,21 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
         }
 
         self.fields.entity_type = Some(entity_type);
+
+        self
+    }
+
+    /// Set the cover image of the event.
+    ///
+    /// Pass [`None`] to clear the image.
+    ///
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
+    ///
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
+    pub const fn image(mut self, image: Option<&'a [u8]>) -> Self {
+        self.fields.image = Some(NullableField(image));
 
         self
     }
