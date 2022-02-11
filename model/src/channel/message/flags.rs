@@ -18,9 +18,6 @@ bitflags! {
         /// Comes from the urgent message system.
         const URGENT = 1 << 4;
         /// A thread has been started from this message.
-        ///
-        /// All threads must be started from a message, but can be
-        /// orphaned if the message is later deleted.
         const HAS_THREAD = 1 << 5;
         /// When used, only shows a message to the invoking user.
         ///
