@@ -101,9 +101,7 @@ mod tests {
             .unwrap()
             .contains(&channel_id));
 
-        cache.update(&Event::ChannelDelete(Box::new(ChannelDelete(
-            channel,
-        ))));
+        cache.update(&Event::ChannelDelete(Box::new(ChannelDelete(channel))));
         assert!(cache.channels.is_empty());
         assert!(cache.guild_channels.get(&guild_id).unwrap().is_empty());
     }
