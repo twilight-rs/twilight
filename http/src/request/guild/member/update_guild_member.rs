@@ -82,7 +82,9 @@ impl<'a> UpdateGuildMember<'a> {
     ///
     /// The timestamp indicates when the user will be able to communicate again.
     /// It can be up to 28 days in the future. Set to [`None`] to remove the
-    /// timeout. Requires the [`MODERATE_MEMBERS`] permission.
+    /// timeout. Requires the [`MODERATE_MEMBERS`] permission. If this is set,
+    /// and if the target member is an administrator or the owner of the guild,
+    /// this will cause the request to return a 403 error code.
     ///
     /// # Errors
     ///
