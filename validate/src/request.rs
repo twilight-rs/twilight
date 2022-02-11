@@ -692,7 +692,7 @@ pub fn nickname(nickname: impl AsRef<str>) -> Result<(), ValidationError> {
     }
 }
 
-/// Ensure that a scheduled even't description is correct.
+/// Ensure that a scheduled event's description is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_DESCRIPTION_MIN`] and at most
 /// [`SCHEDULED_EVENT_DESCRIPTION_MAX`]. This is based on
@@ -717,7 +717,7 @@ pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), V
     }
 }
 
-/// Ensure that a scheduled event get users limit amount is correct.
+/// Ensure that a scheduled event's get users limit amount is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_GET_USERS_MIN`] and at most
 /// [`SCHEDULED_EVENT_GET_USERS_MAX`]. This is based on [this documentation
@@ -739,7 +739,7 @@ pub const fn scheduled_event_get_users(limit: u64) -> Result<(), ValidationError
     }
 }
 
-/// Ensure that a scheduled even't name is correct.
+/// Ensure that a scheduled event's name is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_NAME_MIN`] and at most
 /// [`SCHEDULED_EVENT_NAME_MAX`]. This is based on [this documentation entry].
@@ -784,7 +784,7 @@ pub const fn search_guild_members_limit(limit: u64) -> Result<(), ValidationErro
     }
 }
 
-/// Ensure that the stage instance topic length is correct.
+/// Ensure that the stage instance's topic length is correct.
 ///
 /// The length must be at least [`STAGE_TOPIC_LENGTH_MIN`] and at most
 /// [`STAGE_TOPIC_LENGTH_MAX`]. This is based on [this documentation entry].
