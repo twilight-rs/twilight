@@ -350,13 +350,22 @@ impl Display for EventConversionError {
 
 impl Error for EventConversionError {}
 
-/// `EVENT_THRESHOLD` is equivalent to 24 words on a 64-bit machine, or 192
-/// bytes. This was decided based on the size of `Event` at the time of writing.
-/// The assertions here are to ensure that in the case the events themselves
-/// grow or shrink past the threshold, they are properly boxed or unboxed
-/// respectively.
 #[cfg(test)]
 mod tests {
+    //! `EVENT_THRESHOLD` is equivalent to 192 bytes. This was decided based on
+    //! the size of `Event` at the time of writing. The assertions here are to
+    //! ensure that in the case the events themselves grow or shrink past the
+    //! threshold, they are properly boxed or unboxed respectively.
+    //!
+    //! If a field has been added to an event in the "unboxed" section and its
+    //! assertion now fails, then you will need to wrap the event in a box in
+    //! the `Event` type and move the assertion to the "boxed" section.
+    //!
+    //! Likewise, if a field has been removed from an event in the "boxed"
+    //! section and the assertion now fails, you will need to remove the box
+    //! wrapping the event in the `Event` type and move the assertion to the
+    //! "unboxed" section.
+
     use super::{super::payload::incoming::*, shard::*, Event};
     use static_assertions::const_assert;
     use std::mem;
