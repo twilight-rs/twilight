@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
@@ -14,6 +14,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     communication_disabled_until as validate_communication_disabled_until,
     nickname as validate_nickname, ValidationError,
 };
@@ -166,8 +167,10 @@ impl<'a> UpdateGuildMember<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildMember<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

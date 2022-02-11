@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -12,7 +12,10 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::request::{guild_prune_days as validate_guild_prune_days, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, guild_prune_days as validate_guild_prune_days,
+    ValidationError,
+};
 
 struct CreateGuildPruneFields<'a> {
     compute_prune_count: Option<bool>,
@@ -95,8 +98,10 @@ impl<'a> CreateGuildPrune<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

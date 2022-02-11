@@ -3,7 +3,7 @@ use super::{
 };
 use crate::{
     error::Error,
-    request::{AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
 };
 use twilight_model::{
@@ -11,6 +11,7 @@ use twilight_model::{
     scheduled_event::{EntityType, GuildScheduledEvent},
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     scheduled_event_description as validate_scheduled_event_description, ValidationError,
 };
 
@@ -69,10 +70,10 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildExternalScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.0
-            .reason
-            .replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.0.reason.replace(reason);
 
         Ok(self)
     }

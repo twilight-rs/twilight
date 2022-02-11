@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -14,8 +14,8 @@ use twilight_model::{
     invite::{Invite, TargetType},
 };
 use twilight_validate::request::{
-    invite_max_age as validate_invite_max_age, invite_max_uses as validate_invite_max_uses,
-    ValidationError,
+    audit_reason as validate_audit_reason, invite_max_age as validate_invite_max_age,
+    invite_max_uses as validate_invite_max_uses, ValidationError,
 };
 
 #[derive(Serialize)]
@@ -223,8 +223,10 @@ impl<'a> CreateInvite<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateInvite<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

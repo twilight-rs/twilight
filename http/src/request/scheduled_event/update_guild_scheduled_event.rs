@@ -2,9 +2,7 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{
-        AuditLogReason, AuditLogReasonError, NullableField, Request, RequestBuilder, TryIntoRequest,
-    },
+    request::{AuditLogReason, NullableField, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -18,6 +16,7 @@ use twilight_model::{
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     scheduled_event_description as validate_scheduled_event_description,
     scheduled_event_name as validate_scheduled_event_name, ValidationError,
 };
@@ -216,8 +215,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

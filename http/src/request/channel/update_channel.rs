@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,8 +10,9 @@ use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, VideoQualityMode},
     id::{marker::ChannelMarker, Id},
 };
-use twilight_validate::channel::{
-    name as validate_name, topic as validate_topic, ChannelValidationError,
+use twilight_validate::{
+    channel::{name as validate_name, topic as validate_topic, ChannelValidationError},
+    request::{audit_reason as validate_audit_reason, ValidationError},
 };
 
 // The Discord API doesn't require the `name` and `kind` fields to be present,
@@ -228,8 +229,10 @@ impl<'a> UpdateChannel<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateChannel<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

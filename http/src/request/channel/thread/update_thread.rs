@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,9 +10,12 @@ use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
     id::{marker::ChannelMarker, Id},
 };
-use twilight_validate::channel::{
-    name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
-    ChannelValidationError,
+use twilight_validate::{
+    channel::{
+        name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
+        ChannelValidationError,
+    },
+    request::{audit_reason as validate_audit_reason, ValidationError},
 };
 
 #[derive(Serialize)]
@@ -166,8 +169,10 @@ impl<'a> UpdateThread<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }
