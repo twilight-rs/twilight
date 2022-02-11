@@ -1115,6 +1115,11 @@ impl Client {
     }
 
     /// Get the guild's welcome screen.
+    ///
+    /// If the welcome screen is not enabled, this requires the [`MANAGE_GUILD`]
+    /// permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn guild_welcome_screen(
         &self,
         guild_id: Id<GuildMarker>,
