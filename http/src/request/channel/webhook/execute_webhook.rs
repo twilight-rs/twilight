@@ -12,7 +12,10 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions},
+    channel::{
+        embed::Embed,
+        message::{AllowedMentions, MessageFlags},
+    },
     http::attachment::Attachment,
     id::{
         marker::{ChannelMarker, WebhookMarker},
@@ -38,6 +41,8 @@ pub(crate) struct ExecuteWebhookFields<'a> {
     content: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<&'a [Embed]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -97,6 +102,7 @@ impl<'a> ExecuteWebhook<'a> {
                 components: None,
                 content: None,
                 embeds: None,
+                flags: None,
                 payload_json: None,
                 tts: None,
                 username: None,
@@ -262,6 +268,26 @@ impl<'a> ExecuteWebhook<'a> {
     /// [`payload_json`]: Self::payload_json
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
+
+        self
+    }
+
+    /// Suppress the embeds in the message.
+    pub const fn suppress_embeds(mut self, suppress: bool) -> Self {
+        #[allow(clippy::option_if_let_else)]
+        let mut bits = if let Some(flags) = self.fields.flags {
+            flags.bits()
+        } else {
+            0
+        };
+
+        if suppress {
+            bits |= MessageFlags::SUPPRESS_EMBEDS.bits();
+        } else {
+            bits &= !MessageFlags::SUPPRESS_EMBEDS.bits()
+        }
+
+        self.fields.flags = Some(MessageFlags::from_bits_truncate(bits));
 
         self
     }

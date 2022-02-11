@@ -13,7 +13,7 @@ use twilight_model::{
     application::component::Component,
     channel::{
         embed::Embed,
-        message::{AllowedMentions, MessageReference},
+        message::{AllowedMentions, MessageFlags, MessageReference},
         Message,
     },
     http::attachment::Attachment,
@@ -39,6 +39,8 @@ pub(crate) struct CreateMessageFields<'a> {
     content: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<&'a [Embed]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     message_reference: Option<MessageReference>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -97,6 +99,7 @@ impl<'a> CreateMessage<'a> {
                 components: None,
                 content: None,
                 embeds: None,
+                flags: None,
                 message_reference: None,
                 nonce: None,
                 payload_json: None,
@@ -285,6 +288,26 @@ impl<'a> CreateMessage<'a> {
         self.fields.sticker_ids = Some(sticker_ids);
 
         Ok(self)
+    }
+
+    /// Suppress the embeds in the message.
+    pub const fn suppress_embeds(mut self, suppress: bool) -> Self {
+        #[allow(clippy::option_if_let_else)]
+        let mut bits = if let Some(flags) = self.fields.flags {
+            flags.bits()
+        } else {
+            0
+        };
+
+        if suppress {
+            bits |= MessageFlags::SUPPRESS_EMBEDS.bits();
+        } else {
+            bits &= !MessageFlags::SUPPRESS_EMBEDS.bits()
+        }
+
+        self.fields.flags = Some(MessageFlags::from_bits_truncate(bits));
+
+        self
     }
 
     /// Specify true if the message is TTS.
