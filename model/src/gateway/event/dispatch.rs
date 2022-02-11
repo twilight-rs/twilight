@@ -16,20 +16,20 @@ use serde::{
 pub enum DispatchEvent {
     BanAdd(BanAdd),
     BanRemove(BanRemove),
-    ChannelCreate(ChannelCreate),
-    ChannelDelete(ChannelDelete),
+    ChannelCreate(Box<ChannelCreate>),
+    ChannelDelete(Box<ChannelDelete>),
     ChannelPinsUpdate(ChannelPinsUpdate),
-    ChannelUpdate(ChannelUpdate),
+    ChannelUpdate(Box<ChannelUpdate>),
     GiftCodeUpdate,
     GuildCreate(Box<GuildCreate>),
-    GuildDelete(Box<GuildDelete>),
+    GuildDelete(GuildDelete),
     GuildEmojisUpdate(GuildEmojisUpdate),
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
     GuildUpdate(Box<GuildUpdate>),
     IntegrationCreate(Box<IntegrationCreate>),
     IntegrationDelete(IntegrationDelete),
     IntegrationUpdate(Box<IntegrationUpdate>),
-    InteractionCreate(Box<InteractionCreate>),
+    InteractionCreate(InteractionCreate),
     InviteCreate(Box<InviteCreate>),
     InviteDelete(InviteDelete),
     MemberAdd(Box<MemberAdd>),
@@ -54,12 +54,12 @@ pub enum DispatchEvent {
     StageInstanceCreate(StageInstanceCreate),
     StageInstanceDelete(StageInstanceDelete),
     StageInstanceUpdate(StageInstanceUpdate),
-    ThreadCreate(ThreadCreate),
+    ThreadCreate(Box<ThreadCreate>),
     ThreadDelete(ThreadDelete),
     ThreadListSync(ThreadListSync),
-    ThreadMemberUpdate(ThreadMemberUpdate),
+    ThreadMemberUpdate(Box<ThreadMemberUpdate>),
     ThreadMembersUpdate(ThreadMembersUpdate),
-    ThreadUpdate(ThreadUpdate),
+    ThreadUpdate(Box<ThreadUpdate>),
     TypingStart(Box<TypingStart>),
     UnavailableGuild(UnavailableGuild),
     UserUpdate(UserUpdate),
@@ -211,16 +211,16 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         Ok(match self.0 {
             "CHANNEL_CREATE" => {
-                DispatchEvent::ChannelCreate(ChannelCreate::deserialize(deserializer)?)
+                DispatchEvent::ChannelCreate(Box::new(ChannelCreate::deserialize(deserializer)?))
             }
             "CHANNEL_DELETE" => {
-                DispatchEvent::ChannelDelete(ChannelDelete::deserialize(deserializer)?)
+                DispatchEvent::ChannelDelete(Box::new(ChannelDelete::deserialize(deserializer)?))
             }
             "CHANNEL_PINS_UPDATE" => {
                 DispatchEvent::ChannelPinsUpdate(ChannelPinsUpdate::deserialize(deserializer)?)
             }
             "CHANNEL_UPDATE" => {
-                DispatchEvent::ChannelUpdate(ChannelUpdate::deserialize(deserializer)?)
+                DispatchEvent::ChannelUpdate(Box::new(ChannelUpdate::deserialize(deserializer)?))
             }
             "GIFT_CODE_UPDATE" => {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
@@ -232,9 +232,7 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "GUILD_CREATE" => {
                 DispatchEvent::GuildCreate(Box::new(GuildCreate::deserialize(deserializer)?))
             }
-            "GUILD_DELETE" => {
-                DispatchEvent::GuildDelete(Box::new(GuildDelete::deserialize(deserializer)?))
-            }
+            "GUILD_DELETE" => DispatchEvent::GuildDelete(GuildDelete::deserialize(deserializer)?),
             "GUILD_EMOJIS_UPDATE" => {
                 DispatchEvent::GuildEmojisUpdate(GuildEmojisUpdate::deserialize(deserializer)?)
             }
@@ -274,9 +272,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "INTEGRATION_UPDATE" => DispatchEvent::IntegrationUpdate(Box::new(
                 IntegrationUpdate::deserialize(deserializer)?,
             )),
-            "INTERACTION_CREATE" => DispatchEvent::InteractionCreate(Box::new(
-                InteractionCreate::deserialize(deserializer)?,
-            )),
+            "INTERACTION_CREATE" => {
+                DispatchEvent::InteractionCreate(InteractionCreate::deserialize(deserializer)?)
+            }
             "INVITE_CREATE" => {
                 DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
             }
@@ -331,7 +329,7 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
                 DispatchEvent::StageInstanceUpdate(StageInstanceUpdate::deserialize(deserializer)?)
             }
             "THREAD_CREATE" => {
-                DispatchEvent::ThreadCreate(ThreadCreate::deserialize(deserializer)?)
+                DispatchEvent::ThreadCreate(Box::new(ThreadCreate::deserialize(deserializer)?))
             }
             "THREAD_DELETE" => {
                 DispatchEvent::ThreadDelete(ThreadDelete::deserialize(deserializer)?)
@@ -339,14 +337,14 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "THREAD_LIST_SYNC" => {
                 DispatchEvent::ThreadListSync(ThreadListSync::deserialize(deserializer)?)
             }
-            "THREAD_MEMBER_UPDATE" => {
-                DispatchEvent::ThreadMemberUpdate(ThreadMemberUpdate::deserialize(deserializer)?)
-            }
+            "THREAD_MEMBER_UPDATE" => DispatchEvent::ThreadMemberUpdate(Box::new(
+                ThreadMemberUpdate::deserialize(deserializer)?,
+            )),
             "THREAD_MEMBERS_UPDATE" => {
                 DispatchEvent::ThreadMembersUpdate(ThreadMembersUpdate::deserialize(deserializer)?)
             }
             "THREAD_UPDATE" => {
-                DispatchEvent::ThreadUpdate(ThreadUpdate::deserialize(deserializer)?)
+                DispatchEvent::ThreadUpdate(Box::new(ThreadUpdate::deserialize(deserializer)?))
             }
             "TYPING_START" => {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
