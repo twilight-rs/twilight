@@ -923,8 +923,9 @@ mod tests {
         assert!(audit_reason("").is_ok());
         assert!(audit_reason("a").is_ok());
         assert!(audit_reason("a".repeat(500)).is_ok());
+        assert!(audit_reason("a".repeat(512)).is_ok());
 
-        assert!(audit_reason("a".repeat(1000)).is_err());
+        assert!(audit_reason("a".repeat(513)).is_err());
     }
 
     #[test]
