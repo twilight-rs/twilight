@@ -35,6 +35,7 @@ use crate::{
         Id,
     },
     user::User,
+    util::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -85,7 +86,7 @@ pub struct Channel {
     pub guild_id: Option<Id<GuildMarker>>,
     /// Hash of the channel's icon.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub icon: Option<String>,
+    pub icon: Option<ImageHash>,
     /// ID of the channel.
     pub id: Id<ChannelMarker>,
     /// Type of the channel.
