@@ -164,16 +164,16 @@ pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValid
     if filename
         .as_ref()
         .chars()
-        .any(|c| !(c.is_ascii_alphanumeric() || c == DOT || c == DASH || c == UNDERSCORE))
+        .all(|c| (c.is_ascii_alphanumeric() || c == DOT || c == DASH || c == UNDERSCORE))
     {
+        Ok(())
+    } else {
         Err(MessageValidationError {
             kind: MessageValidationErrorType::AttachmentFilename {
                 filename: filename.as_ref().to_string(),
             },
             source: None,
         })
-    } else {
-        Ok(())
     }
 }
 
