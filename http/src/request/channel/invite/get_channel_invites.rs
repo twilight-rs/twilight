@@ -13,10 +13,9 @@ use twilight_model::{
 /// Get the invites for a guild channel.
 ///
 /// Requires the [`MANAGE_CHANNELS`] permission. This method only works if the
-/// channel is of type [`GuildChannel`].
+/// channel is a guild channel.
 ///
 /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
-/// [`GuildChannel`]: twilight_model::channel::GuildChannel
 #[must_use = "requests must be configured and executed"]
 pub struct GetChannelInvites<'a> {
     channel_id: Id<ChannelMarker>,

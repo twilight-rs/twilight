@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, ChannelType, GuildChannel},
+    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
@@ -190,7 +190,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<GuildChannel> {
+    pub fn exec(self) -> ResponseFuture<Channel> {
         let http = self.http;
 
         match self.try_into_request() {

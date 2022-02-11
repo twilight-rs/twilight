@@ -110,7 +110,7 @@ use std::{
     sync::Mutex,
 };
 use twilight_model::{
-    channel::{Group, GuildChannel, PrivateChannel, StageInstance},
+    channel::{Channel, StageInstance},
     gateway::event::Event,
     guild::{GuildIntegration, Role},
     id::{
@@ -210,10 +210,6 @@ fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
     }
 }
 
-fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
-    map.insert(k, v);
-}
-
 /// An in-memory cache of Discord data.
 ///
 /// This is an implementation of a cache designed to be used by only the
@@ -249,13 +245,11 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
 #[derive(Debug, Default)]
 pub struct InMemoryCache {
     config: Config,
-    channels_guild: DashMap<Id<ChannelMarker>, GuildResource<GuildChannel>>,
-    channels_private: DashMap<Id<ChannelMarker>, PrivateChannel>,
+    channels: DashMap<Id<ChannelMarker>, Channel>,
     channel_messages: DashMap<Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>,
     // So long as the lock isn't held across await or panic points this is fine.
     current_user: Mutex<Option<CurrentUser>>,
     emojis: DashMap<Id<EmojiMarker>, GuildResource<CachedEmoji>>,
-    groups: DashMap<Id<ChannelMarker>, Group>,
     guilds: DashMap<Id<GuildMarker>, CachedGuild>,
     guild_channels: DashMap<Id<GuildMarker>, HashSet<Id<ChannelMarker>>>,
     guild_emojis: DashMap<Id<GuildMarker>, HashSet<Id<EmojiMarker>>>,
@@ -312,15 +306,13 @@ impl InMemoryCache {
     ///
     /// This is equal to creating a new empty cache.
     pub fn clear(&self) {
-        self.channels_guild.clear();
-        self.channels_private.clear();
+        self.channels.clear();
         self.channel_messages.clear();
         self.current_user
             .lock()
             .expect("current user poisoned")
             .take();
         self.emojis.clear();
-        self.groups.clear();
         self.guilds.clear();
         self.guild_channels.clear();
         self.guild_emojis.clear();
@@ -440,6 +432,14 @@ impl InMemoryCache {
             .clone()
     }
 
+    /// Gets a channel by ID.
+    pub fn channel(
+        &self,
+        channel_id: Id<ChannelMarker>,
+    ) -> Option<Reference<'_, Id<ChannelMarker>, Channel>> {
+        self.channels.get(&channel_id).map(Reference::new)
+    }
+
     /// Gets the set of messages in a channel.
     ///
     /// This requires the [`DIRECT_MESSAGES`] or [`GUILD_MESSAGES`] intents.
@@ -470,14 +470,6 @@ impl InMemoryCache {
         self.emojis.get(&emoji_id).map(Reference::new)
     }
 
-    /// Gets a group by ID.
-    pub fn group(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, Group>> {
-        self.groups.get(&channel_id).map(Reference::new)
-    }
-
     /// Gets a guild by ID.
     ///
     /// This requires the [`GUILDS`] intent.
@@ -488,18 +480,6 @@ impl InMemoryCache {
         guild_id: Id<GuildMarker>,
     ) -> Option<Reference<'_, Id<GuildMarker>, CachedGuild>> {
         self.guilds.get(&guild_id).map(Reference::new)
-    }
-
-    /// Gets a channel by ID.
-    ///
-    /// This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_channel(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, GuildResource<GuildChannel>>> {
-        self.channels_guild.get(&channel_id).map(Reference::new)
     }
 
     /// Gets the set of channels in a guild.
@@ -683,18 +663,6 @@ impl InMemoryCache {
         user_id: Id<UserMarker>,
     ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedPresence>> {
         self.presences.get(&(guild_id, user_id)).map(Reference::new)
-    }
-
-    /// Gets a private channel by ID.
-    ///
-    /// This requires the [`DIRECT_MESSAGES`] intent.
-    ///
-    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn private_channel(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, PrivateChannel>> {
-        self.channels_private.get(&channel_id).map(Reference::new)
     }
 
     /// Gets a role by ID.

@@ -22,7 +22,7 @@ pub use self::{
 };
 
 use crate::{
-    channel::{GuildChannel, Webhook},
+    channel::{Channel, Webhook},
     scheduled_event::GuildScheduledEvent,
     user::User,
 };
@@ -43,7 +43,7 @@ pub struct AuditLog {
     /// Information about mentioned integrations.
     pub integrations: Vec<AuditLogGuildIntegration>,
     /// Information about mentioned threads.
-    pub threads: Vec<GuildChannel>,
+    pub threads: Vec<Channel>,
     /// Information about mentioned users.
     ///
     /// For example, [users that performed the action][`AuditLogEntry::user_id`]
