@@ -163,20 +163,22 @@ impl Serialize for CommandOption {
                 required: data.required,
                 kind: self.kind(),
             },
-            Self::Boolean(data) | Self::User(data) | Self::Role(data) | Self::Mentionable(data) | Self::Attachment(data) => {
-                CommandOptionEnvelope {
-                    autocomplete: false,
-                    channel_types: None,
-                    choices: None,
-                    description: data.description.as_ref(),
-                    max_value: None,
-                    min_value: None,
-                    name: data.name.as_ref(),
-                    options: None,
-                    required: data.required,
-                    kind: self.kind(),
-                }
-            }
+            Self::Boolean(data)
+            | Self::User(data)
+            | Self::Role(data)
+            | Self::Mentionable(data)
+            | Self::Attachment(data) => CommandOptionEnvelope {
+                autocomplete: false,
+                channel_types: None,
+                choices: None,
+                description: data.description.as_ref(),
+                max_value: None,
+                min_value: None,
+                name: data.name.as_ref(),
+                options: None,
+                required: data.required,
+                kind: self.kind(),
+            },
         };
 
         envelope.serialize(serializer)

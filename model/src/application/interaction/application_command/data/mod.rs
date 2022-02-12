@@ -5,7 +5,9 @@ pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, Int
 use crate::{
     application::command::{CommandOptionType, Number},
     id::{
-        marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker, AttachmentMarker},
+        marker::{
+            AttachmentMarker, ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker,
+        },
         Id,
     },
 };

@@ -221,6 +221,7 @@ mod tests {
                             },
                         )])
                         .collect(),
+                        attachments: HashMap::new(),
                     }),
                 },
                 guild_id: Some(Id::new(3)),

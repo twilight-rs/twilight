@@ -1,9 +1,9 @@
 use crate::{
-    channel::{thread::ThreadMetadata, ChannelType, Message, Attachment},
+    channel::{thread::ThreadMetadata, Attachment, ChannelType, Message},
     datetime::Timestamp,
     guild::{Permissions, Role},
     id::{
-        marker::{ChannelMarker, MessageMarker, RoleMarker, UserMarker, AttachmentMarker},
+        marker::{AttachmentMarker, ChannelMarker, MessageMarker, RoleMarker, UserMarker},
         Id,
     },
     user::User,
@@ -68,7 +68,7 @@ mod tests {
                 sticker::{MessageSticker, StickerFormatType},
                 MessageFlags, MessageType,
             },
-            ChannelType, Message,
+            Attachment, ChannelType, Message,
         },
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions, Role},
@@ -86,6 +86,22 @@ mod tests {
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let value = CommandInteractionDataResolved {
+            attachments: IntoIterator::into_iter([(
+                Id::new(400),
+                Attachment {
+                    content_type: Some("image/png".to_owned()),
+                    ephemeral: true,
+                    filename: "rainbow_dash.png".to_owned(),
+                    description: None,
+                    height: Some(2674),
+                    id: Id::new(400),
+                    proxy_url: "https://proxy.example.com/rainbow_dash.png".to_owned(),
+                    size: 13370,
+                    url: "https://example.com/rainbow_dash.png".to_owned(),
+                    width: Some(1337),
+                },
+            )])
+            .collect(),
             channels: IntoIterator::into_iter([(
                 Id::new(100),
                 InteractionChannel {
@@ -225,8 +241,40 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandInteractionDataResolved",
-                    len: 5,
+                    len: 6,
                 },
+                Token::Str("attachments"),
+                Token::Map { len: Some(1) },
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("400"),
+                Token::Struct {
+                    name: "Attachment",
+                    len: 9,
+                },
+                Token::Str("content_type"),
+                Token::Some,
+                Token::Str("image/png"),
+                Token::Str("ephemeral"),
+                Token::Bool(true),
+                Token::Str("filename"),
+                Token::Str("rainbow_dash.png"),
+                Token::Str("height"),
+                Token::Some,
+                Token::U64(2674),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("400"),
+                Token::Str("proxy_url"),
+                Token::Str("https://proxy.example.com/rainbow_dash.png"),
+                Token::Str("size"),
+                Token::U64(13370),
+                Token::Str("url"),
+                Token::Str("https://example.com/rainbow_dash.png"),
+                Token::Str("width"),
+                Token::Some,
+                Token::U64(1337),
+                Token::StructEnd,
+                Token::MapEnd,
                 Token::Str("channels"),
                 Token::Map { len: Some(1) },
                 Token::NewtypeStruct { name: "Id" },
