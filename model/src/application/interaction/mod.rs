@@ -347,7 +347,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 mod test {
     use crate::{
         application::{
-            command::CommandOptionType,
+            command::{CommandOptionType, CommandType},
             interaction::{
                 application_command::{
                     ApplicationCommand, CommandData, CommandDataOption,
@@ -376,6 +376,7 @@ mod test {
             data: CommandData {
                 id: Id::new(300),
                 name: "command name".into(),
+                kind: CommandType::ChatInput,
                 options: Vec::from([CommandDataOption {
                     focused: false,
                     name: "member".into(),
@@ -421,6 +422,7 @@ mod test {
                     )])
                     .collect(),
                 }),
+                target_id: None,
             },
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
@@ -475,13 +477,15 @@ mod test {
                 Token::Str("data"),
                 Token::Struct {
                     name: "CommandData",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
                 Token::Str("name"),
                 Token::Str("command name"),
+                Token::Str("type"),
+                Token::U8(1),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
