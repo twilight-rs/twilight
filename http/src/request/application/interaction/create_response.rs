@@ -70,7 +70,7 @@ impl TryIntoRequest for CreateResponse<'_> {
 
             let form = AttachmentManager::new()
                 .set_files(attachments.iter().collect())
-                .build_form(fields.as_ref());
+                .build_form(&fields);
 
             request = request.form(form);
         } else {
