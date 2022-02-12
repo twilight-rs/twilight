@@ -66,28 +66,34 @@ mod tests {
 
     #[test]
     fn test_overwrite() {
-        let overwrite = PermissionOverwrite {
+        let value = PermissionOverwrite {
             allow: Some(Permissions::CREATE_INVITE),
             deny: Some(Permissions::KICK_MEMBERS),
             id: Id::new(12_345_678),
             kind: PermissionOverwriteType::Member,
         };
 
-        // We can't use serde_test because it doesn't support 128 bit integers.
-        //
-        // <https://github.com/serde-rs/serde/issues/1281>
-        let input = r#"{
-  "allow": "1",
-  "deny": "2",
-  "id": "12345678",
-  "type": 1
-}"#;
-
-        assert_eq!(
-            serde_json::from_str::<PermissionOverwrite>(input).unwrap(),
-            overwrite
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "PermissionOverwrite",
+                    len: 4,
+                },
+                Token::Str("allow"),
+                Token::Some,
+                Token::Str("1"),
+                Token::Str("deny"),
+                Token::Some,
+                Token::Str("2"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("12345678"),
+                Token::Str("type"),
+                Token::U8(PermissionOverwriteType::Member as u8),
+                Token::StructEnd,
+            ],
         );
-        assert_eq!(serde_json::to_string_pretty(&overwrite).unwrap(), input);
     }
 
     #[test]
