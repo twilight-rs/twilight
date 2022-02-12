@@ -16,12 +16,6 @@ use twilight_model::{
     id::{marker::StickerMarker, Id},
 };
 
-/// ASCII dash.
-pub const DASH: char = '-';
-
-/// ASCII dot.
-pub const DOT: char = '.';
-
 /// Maximum number of embeds that a message may have.
 pub const EMBED_COUNT_LIMIT: usize = 10;
 
@@ -31,8 +25,14 @@ pub const MESSAGE_CONTENT_LENGTH_MAX: usize = 2000;
 /// Maximum amount of stickers.
 pub const STICKER_MAX: usize = 3;
 
+/// ASCII dash.
+const DASH: char = '-';
+
+/// ASCII dot.
+const DOT: char = '.';
+
 /// ASCII underscore.
-pub const UNDERSCORE: char = '_';
+const UNDERSCORE: char = '_';
 
 /// A message is not valid.
 #[derive(Debug)]
