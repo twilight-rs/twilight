@@ -116,6 +116,7 @@ impl CachedVoiceState {
             user_id,
             request_to_speak_timestamp,
         } = voice_state;
+
         Self {
             channel_id,
             deaf,
