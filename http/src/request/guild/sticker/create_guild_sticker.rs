@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{multipart::Form, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{multipart::Form, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -9,9 +9,12 @@ use twilight_model::{
     channel::message::Sticker,
     id::{marker::GuildMarker, Id},
 };
-use twilight_validate::sticker::{
-    description as validate_description, name as validate_name, tags as validate_tags,
-    StickerValidationError,
+use twilight_validate::{
+    request::{audit_reason as validate_audit_reason, ValidationError},
+    sticker::{
+        description as validate_description, name as validate_name, tags as validate_tags,
+        StickerValidationError,
+    },
 };
 
 struct CreateGuildStickerFields<'a> {
@@ -99,8 +102,10 @@ impl<'a> CreateGuildSticker<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

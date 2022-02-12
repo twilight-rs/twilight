@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -16,7 +16,9 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::request::{guild_name as validate_guild_name, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, guild_name as validate_guild_name, ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateGuildFields<'a> {
@@ -303,8 +305,10 @@ impl<'a> UpdateGuild<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuild<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }
