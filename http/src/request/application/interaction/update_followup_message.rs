@@ -3,7 +3,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AttachmentFile, Form, NullableField, Request, TryIntoRequest},
+    request::{AttachmentFile, Form, NullableField, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -26,8 +26,8 @@ use twilight_validate::message::{
 struct UpdateFollowupMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<AllowedMentions>,
-    #[serde(skip_serializing_if = "request::slice_is_empty")]
-    attachments: &'a [Attachment],
+    #[serde(skip_serializing_if = "Option::is_none")]
+    attachments: Option<NullableField<&'a [Attachment]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     components: Option<NullableField<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -96,7 +96,7 @@ impl<'a> UpdateFollowupMessage<'a> {
         Self {
             fields: UpdateFollowupMessageFields {
                 allowed_mentions: None,
-                attachments: &[],
+                attachments: None,
                 components: None,
                 content: None,
                 embeds: None,
@@ -122,7 +122,7 @@ impl<'a> UpdateFollowupMessage<'a> {
     /// If called, all unspecified attachments will be removed from the message.
     /// If not called, all attachments will be kept.
     pub const fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        self.fields.attachments = attachments;
+        self.fields.attachments = Some(NullableField(Some(attachments)));
 
         self
     }
