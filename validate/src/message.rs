@@ -25,6 +25,15 @@ pub const MESSAGE_CONTENT_LENGTH_MAX: usize = 2000;
 /// Maximum amount of stickers.
 pub const STICKER_MAX: usize = 3;
 
+/// ASCII dash.
+const DASH: char = '-';
+
+/// ASCII dot.
+const DOT: char = '.';
+
+/// ASCII underscore.
+const UNDERSCORE: char = '_';
+
 /// A message is not valid.
 #[derive(Debug)]
 pub struct MessageValidationError {
@@ -62,6 +71,12 @@ impl MessageValidationError {
 impl Display for MessageValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            MessageValidationErrorType::AttachmentFilename { filename } => {
+                f.write_str("attachment filename `")?;
+                Display::fmt(filename, f)?;
+
+                f.write_str("`is invalid")
+            }
             MessageValidationErrorType::ComponentCount { count } => {
                 Display::fmt(count, f)?;
                 f.write_str(" components were provided, but only ")?;
@@ -98,6 +113,11 @@ impl Error for MessageValidationError {}
 /// Type of [`MessageValidationError`] that occurred.
 #[derive(Debug)]
 pub enum MessageValidationErrorType {
+    /// Attachment filename is not valid.
+    AttachmentFilename {
+        /// Invalid filename.
+        filename: String,
+    },
     /// Too many message components were provided.
     ComponentCount {
         /// Number of components that were provided.
@@ -128,6 +148,33 @@ pub enum MessageValidationErrorType {
     ///
     /// A followup message can have up to 10 embeds.
     TooManyEmbeds,
+}
+
+/// Ensure an attachment's filename is correct.
+///
+/// The filename can contain ASCII alphanumeric characters, dots, dashes, and
+/// underscores.
+///
+/// # Errors
+///
+/// Returns an error of type [`AttachmentFilename`] if the filename is invalid.
+///
+/// [`AttachmentFilename`]: MessageValidationErrorType::AttachmentFilename
+pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValidationError> {
+    if filename
+        .as_ref()
+        .chars()
+        .all(|c| (c.is_ascii_alphanumeric() || c == DOT || c == DASH || c == UNDERSCORE))
+    {
+        Ok(())
+    } else {
+        Err(MessageValidationError {
+            kind: MessageValidationErrorType::AttachmentFilename {
+                filename: filename.as_ref().to_string(),
+            },
+            source: None,
+        })
+    }
 }
 
 /// Ensure a list of components is correct.
@@ -257,7 +304,17 @@ pub fn sticker_ids(sticker_ids: &[Id<StickerMarker>]) -> Result<(), MessageValid
 
 #[cfg(test)]
 mod tests {
-    use super::content;
+    use super::*;
+
+    #[test]
+    fn test_attachment_filename() {
+        assert!(attachment_filename("one.jpg").is_ok());
+        assert!(attachment_filename("two.png").is_ok());
+        assert!(attachment_filename("three.gif").is_ok());
+        assert!(attachment_filename(".dots-dashes_underscores.gif").is_ok());
+
+        assert!(attachment_filename("????????").is_err());
+    }
 
     #[test]
     fn test_content() {

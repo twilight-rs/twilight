@@ -20,8 +20,8 @@ use twilight_model::{
     id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::message::{
-    components as validate_components, content as validate_content, embeds as validate_embeds,
-    MessageValidationError,
+    attachment_filename as validate_attachment_filename, components as validate_components,
+    content as validate_content, embeds as validate_embeds, MessageValidationError,
 };
 
 #[derive(Serialize)]
@@ -118,12 +118,26 @@ impl<'a> CreateFollowup<'a> {
     /// Attach multiple files to the message.
     ///
     /// Calling this method will clear any previous calls.
-    pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`AttachmentFilename`] if any filename is
+    /// invalid.
+    ///
+    /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
+    pub fn attachments(
+        mut self,
+        attachments: &'a [Attachment],
+    ) -> Result<Self, MessageValidationError> {
+        attachments
+            .iter()
+            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+
         self.attachment_manager = self
             .attachment_manager
             .set_files(attachments.iter().collect());
 
-        self
+        Ok(self)
     }
 
     /// Add multiple [`Component`]s to a message.

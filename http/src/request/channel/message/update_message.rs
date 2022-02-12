@@ -23,8 +23,8 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    components as validate_components, content as validate_content, embeds as validate_embeds,
-    MessageValidationError,
+    attachment_filename as validate_attachment_filename, components as validate_components,
+    content as validate_content, embeds as validate_embeds, MessageValidationError,
 };
 
 #[derive(Serialize)]
@@ -134,12 +134,26 @@ impl<'a> UpdateMessage<'a> {
     /// Attach multiple new files to the message.
     ///
     /// This method clears previous calls.
-    pub fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`AttachmentFilename`] if any filename is
+    /// invalid.
+    ///
+    /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
+    pub fn attachments(
+        mut self,
+        attachments: &'a [Attachment],
+    ) -> Result<Self, MessageValidationError> {
+        attachments
+            .iter()
+            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+
         self.attachment_manager = self
             .attachment_manager
             .set_files(attachments.iter().collect());
 
-        self
+        Ok(self)
     }
 
     /// Set the message's list of [`Component`]s.
