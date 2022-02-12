@@ -3,7 +3,7 @@ mod resolved;
 pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
 
 use crate::{
-    application::command::{CommandOptionType, Number},
+    application::command::{CommandOptionType, CommandType, Number},
     id::{
         marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker},
         Id,
@@ -28,12 +28,18 @@ pub struct CommandData {
     pub id: Id<CommandMarker>,
     /// Name of the command.
     pub name: String,
+    /// Type of the command.
+    #[serde(rename = "type")]
+    pub kind: CommandType,
     /// List of parsed options specified by the user.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub options: Vec<CommandDataOption>,
     /// Data sent if any of the options are Discord types.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<CommandInteractionDataResolved>,
+    /// If this is a user or message command, the ID of the targeted user/message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_id: Option<Id<GenericMarker>>,
 }
 
 /// Data received when a user fills in a command option.
@@ -360,7 +366,7 @@ mod tests {
     use super::CommandData;
     use crate::{
         application::{
-            command::{CommandOptionType, Number},
+            command::{CommandOptionType, CommandType, Number},
             interaction::application_command::{CommandDataOption, CommandOptionValue},
         },
         id::Id,
@@ -372,39 +378,11 @@ mod tests {
         let value = CommandData {
             id: Id::new(1),
             name: "permissions".to_owned(),
+            kind: CommandType::ChatInput,
             options: Vec::new(),
             resolved: None,
+            target_id: None,
         };
-        serde_test::assert_tokens(
-            &value,
-            &[
-                Token::Struct {
-                    name: "CommandData",
-                    len: 2,
-                },
-                Token::Str("id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
-                Token::Str("name"),
-                Token::Str("permissions"),
-                Token::StructEnd,
-            ],
-        )
-    }
-
-    #[test]
-    fn subcommand_without_option() {
-        let value = CommandData {
-            id: Id::new(1),
-            name: "photo".to_owned(),
-            options: Vec::from([CommandDataOption {
-                focused: false,
-                name: "cat".to_owned(),
-                value: CommandOptionValue::SubCommand(Vec::new()),
-            }]),
-            resolved: None,
-        };
-
         serde_test::assert_tokens(
             &value,
             &[
@@ -416,7 +394,43 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
+                Token::Str("permissions"),
+                Token::Str("type"),
+                Token::U8(CommandType::ChatInput as u8),
+                Token::StructEnd,
+            ],
+        )
+    }
+
+    #[test]
+    fn subcommand_without_option() {
+        let value = CommandData {
+            id: Id::new(1),
+            name: "photo".to_owned(),
+            kind: CommandType::ChatInput,
+            options: Vec::from([CommandDataOption {
+                focused: false,
+                name: "cat".to_owned(),
+                value: CommandOptionValue::SubCommand(Vec::new()),
+            }]),
+            resolved: None,
+            target_id: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandData",
+                    len: 4,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("name"),
                 Token::Str("photo"),
+                Token::Str("type"),
+                Token::U8(CommandType::ChatInput as u8),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

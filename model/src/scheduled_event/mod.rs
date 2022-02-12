@@ -14,6 +14,7 @@ use crate::{
         Id,
     },
     user::User,
+    util::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -60,6 +61,9 @@ pub struct GuildScheduledEvent {
     pub guild_id: Id<GuildMarker>,
     /// ID of the event.
     pub id: Id<ScheduledEventMarker>,
+    /// Hash of the event's cover image, if it has one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image: Option<ImageHash>,
     /// Name of the event.
     pub name: String,
     /// Privacy level of the event.
@@ -127,6 +131,7 @@ pub enum Status {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test::image_hash::{COVER, COVER_INPUT};
     use serde_test::Token;
     use std::error::Error;
 
@@ -144,6 +149,7 @@ mod tests {
             entity_type: EntityType::StageInstance,
             guild_id: Id::new(3),
             id: Id::new(4),
+            image: Some(COVER),
             name: "garfield dance party".into(),
             privacy_level: PrivacyLevel::GuildOnly,
             scheduled_end_time: None,
@@ -157,7 +163,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildScheduledEvent",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -178,6 +184,9 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
+                Token::Str("image"),
+                Token::Some,
+                Token::Str(COVER_INPUT),
                 Token::Str("name"),
                 Token::Str("garfield dance party"),
                 Token::Str("privacy_level"),

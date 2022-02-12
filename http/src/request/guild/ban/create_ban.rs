@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{AuditLogReason, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -10,6 +10,7 @@ use twilight_model::id::{
     Id,
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     create_guild_ban_delete_message_days as validate_create_guild_ban_delete_message_days,
     ValidationError,
 };
@@ -103,10 +104,10 @@ impl<'a> CreateBan<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateBan<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.fields
-            .reason
-            .replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.fields.reason.replace(reason);
 
         Ok(self)
     }

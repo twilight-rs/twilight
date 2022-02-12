@@ -9,6 +9,9 @@ use std::{
 };
 use twilight_model::datetime::Timestamp;
 
+/// The maximum audit log reason length in UTF-16 codepoints.
+pub const AUDIT_REASON_MAX: usize = 512;
+
 /// Maximum amount of days for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u64 = 7;
 
@@ -146,6 +149,13 @@ impl Display for ValidationError {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            ValidationErrorType::AuditReason { len } => {
+                f.write_str("provided audit reason length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUDIT_REASON_MAX, f)
+            }
             ValidationErrorType::CreateGuildBanDeleteMessageDays {
                 days: delete_message_days,
             } => {
@@ -323,6 +333,11 @@ impl Error for ValidationError {}
 /// Type of [`ValidationError`] that occurred.
 #[derive(Debug)]
 pub enum ValidationErrorType {
+    /// Provided audit reason was too large.
+    AuditReason {
+        /// Invalid length.
+        len: usize,
+    },
     /// Provided create guild ban delete message days was invalid.
     CreateGuildBanDeleteMessageDays {
         /// Invalid days.
@@ -423,6 +438,29 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
+}
+
+/// Ensure that an audit reason is correct.
+///
+/// The length must be at most [`AUDIT_REASON_MAX`]. This is based on
+/// [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AuditReason`] if the length is invalid.
+///
+/// [`AuditReason`]: ValidationErrorType::AuditReason
+/// [this documentation entry]: https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-audit-log-entry-structure
+pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError> {
+    let len = audit_reason.as_ref().chars().count();
+
+    if len <= AUDIT_REASON_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AuditReason { len },
+        })
+    }
 }
 
 /// Ensure that the delete message days amount for the Create Guild Ban request
@@ -692,7 +730,7 @@ pub fn nickname(nickname: impl AsRef<str>) -> Result<(), ValidationError> {
     }
 }
 
-/// Ensure that a scheduled even't description is correct.
+/// Ensure that a scheduled event's description is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_DESCRIPTION_MIN`] and at most
 /// [`SCHEDULED_EVENT_DESCRIPTION_MAX`]. This is based on
@@ -717,7 +755,7 @@ pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), V
     }
 }
 
-/// Ensure that a scheduled event get users limit amount is correct.
+/// Ensure that a scheduled event's get users limit amount is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_GET_USERS_MIN`] and at most
 /// [`SCHEDULED_EVENT_GET_USERS_MAX`]. This is based on [this documentation
@@ -739,7 +777,7 @@ pub const fn scheduled_event_get_users(limit: u64) -> Result<(), ValidationError
     }
 }
 
-/// Ensure that a scheduled even't name is correct.
+/// Ensure that a scheduled event's name is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_NAME_MIN`] and at most
 /// [`SCHEDULED_EVENT_NAME_MAX`]. This is based on [this documentation entry].
@@ -784,7 +822,7 @@ pub const fn search_guild_members_limit(limit: u64) -> Result<(), ValidationErro
     }
 }
 
-/// Ensure that the stage instance topic length is correct.
+/// Ensure that the stage instance's topic length is correct.
 ///
 /// The length must be at least [`STAGE_TOPIC_LENGTH_MIN`] and at most
 /// [`STAGE_TOPIC_LENGTH_MAX`]. This is based on [this documentation entry].
@@ -879,6 +917,16 @@ pub fn username(value: impl AsRef<str>) -> Result<(), ValidationError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_audit_reason() {
+        assert!(audit_reason("").is_ok());
+        assert!(audit_reason("a").is_ok());
+        assert!(audit_reason("a".repeat(500)).is_ok());
+        assert!(audit_reason("a".repeat(512)).is_ok());
+
+        assert!(audit_reason("a".repeat(513)).is_err());
+    }
 
     #[test]
     fn test_create_guild_ban_delete_message_days() {

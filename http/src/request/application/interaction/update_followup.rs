@@ -31,7 +31,7 @@ struct UpdateFollowupMessageFields<'a> {
     allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
     /// List of attachments to keep, and new attachments to add.
     #[serde(skip_serializing_if = "Option::is_none")]
-    attachments: Option<Vec<PartialAttachment<'a>>>,
+    attachments: Option<NullableField<Vec<PartialAttachment<'a>>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     components: Option<NullableField<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -272,6 +272,10 @@ impl<'a> UpdateFollowup<'a> {
             .attachment_manager
             .set_ids(attachment_ids.iter().copied().collect());
 
+        // Set an empty list. This will be overwritten in `TryIntoRequest` if
+        // the actual list is not empty.
+        self.fields.attachments = Some(NullableField(Some(Vec::new())));
+
         self
     }
 
@@ -329,7 +333,9 @@ impl TryIntoRequest for UpdateFollowup<'_> {
             let form = if let Some(payload_json) = self.fields.payload_json {
                 self.attachment_manager.build_form(payload_json)
             } else {
-                self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
+                self.fields.attachments = Some(NullableField(Some(
+                    self.attachment_manager.get_partial_attachments(),
+                )));
 
                 let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
 

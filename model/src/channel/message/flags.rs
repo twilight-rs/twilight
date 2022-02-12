@@ -6,22 +6,30 @@ use serde::{
 
 bitflags! {
     pub struct MessageFlags: u64 {
+        /// Has been published to subscribed channels via Channel Following.
         const CROSSPOSTED = 1;
+        /// Is a crosspost from another channel via Channel Following.
         const IS_CROSSPOST = 1 << 1;
+        /// Do not include any embeds when serializing this message.
         const SUPPRESS_EMBEDS = 1 << 2;
+        /// Source message for this message has been deleted via Channel
+        /// Following.
         const SOURCE_MESSAGE_DELETED = 1 << 3;
+        /// Comes from the urgent message system.
         const URGENT = 1 << 4;
+        /// A thread has been started from this message.
+        const HAS_THREAD = 1 << 5;
         /// When used, only shows a message to the invoking user.
         ///
         /// Used when responding to an [`Interaction`].
         ///
         /// [`Interaction`]: crate::application::interaction::Interaction
         const EPHEMERAL = 1 << 6;
-        /// A thread has been started from this message.
-        ///
-        /// All threads must be started from a message, but can be
-        /// orphaned if the message is later deleted.
-        const HAS_THREAD = 1 << 5;
+        /// This message is an Interaction Response, and the bot is "thinking".
+        const LOADING = 1 << 7;
+        /// This message failed to mention some roles in a thread, which
+        /// subsequently failed to add the role's members to the thread.
+        const FAILED_TO_MENTION_SOME_ROLES_IN_THREAD  = 1 << 8;
     }
 }
 

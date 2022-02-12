@@ -13,9 +13,9 @@ use twilight_model::{
 /// [`VoiceState`]: twilight_model::voice::VoiceState
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
-    channel_id: Option<Id<ChannelMarker>>,
+    channel_id: Id<ChannelMarker>,
     deaf: bool,
-    guild_id: Option<Id<GuildMarker>>,
+    guild_id: Id<GuildMarker>,
     mute: bool,
     request_to_speak_timestamp: Option<Timestamp>,
     self_deaf: bool,
@@ -30,7 +30,7 @@ pub struct CachedVoiceState {
 
 impl CachedVoiceState {
     /// ID of the channel that this user is connected to.
-    pub const fn channel_id(&self) -> Option<Id<ChannelMarker>> {
+    pub const fn channel_id(&self) -> Id<ChannelMarker> {
         self.channel_id
     }
 
@@ -40,7 +40,7 @@ impl CachedVoiceState {
     }
 
     /// ID of the guild that this user is connected in, if there is one.
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+    pub const fn guild_id(&self) -> Id<GuildMarker> {
         self.guild_id
     }
 
@@ -93,14 +93,17 @@ impl CachedVoiceState {
     pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
     }
-}
 
-impl From<VoiceState> for CachedVoiceState {
-    fn from(voice_state: VoiceState) -> Self {
+    #[allow(clippy::missing_const_for_fn)]
+    pub(crate) fn from_voice_state(
+        channel_id: Id<ChannelMarker>,
+        guild_id: Id<GuildMarker>,
+        voice_state: VoiceState,
+    ) -> Self {
         let VoiceState {
-            channel_id,
+            channel_id: _,
             deaf,
-            guild_id,
+            guild_id: _,
             member: _,
             mute,
             self_deaf,
@@ -134,9 +137,9 @@ impl From<VoiceState> for CachedVoiceState {
 
 impl PartialEq<VoiceState> for CachedVoiceState {
     fn eq(&self, other: &VoiceState) -> bool {
-        self.channel_id == other.channel_id
+        Some(self.channel_id) == other.channel_id
             && self.deaf == other.deaf
-            && self.guild_id == other.guild_id
+            && Some(self.guild_id) == other.guild_id
             && self.mute == other.mute
             && self.request_to_speak_timestamp == other.request_to_speak_timestamp
             && self.self_deaf == other.self_deaf
@@ -153,43 +156,62 @@ impl PartialEq<VoiceState> for CachedVoiceState {
 #[cfg(test)]
 mod tests {
     use super::CachedVoiceState;
-    use twilight_model::{id::Id, voice::VoiceState};
+    use crate::test;
+    use serde::Serialize;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
+    use twilight_model::{
+        id::{
+            marker::{ChannelMarker, GuildMarker, UserMarker},
+            Id,
+        },
+        voice::VoiceState,
+    };
 
-    fn voice_state() -> VoiceState {
-        VoiceState {
-            channel_id: Some(Id::new(1)),
-            deaf: false,
-            guild_id: Some(Id::new(2)),
-            member: None,
-            mute: true,
-            self_deaf: false,
-            self_mute: true,
-            self_stream: false,
-            self_video: true,
-            session_id: "ba8bd70ac7239ffc710e2fc8db52f240".to_owned(),
-            suppress: false,
-            token: None,
-            user_id: Id::new(3),
-            request_to_speak_timestamp: None,
-        }
-    }
+    assert_fields!(
+        CachedVoiceState: channel_id,
+        deaf,
+        guild_id,
+        mute,
+        request_to_speak_timestamp,
+        self_deaf,
+        self_mute,
+        self_stream,
+        self_video,
+        session_id,
+        suppress,
+        token,
+        user_id
+    );
+    assert_impl_all!(
+        CachedVoiceState: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        PartialEq<VoiceState>,
+        Serialize,
+    );
+
+    const CHANNEL_ID: Id<ChannelMarker> = Id::new(1);
+    const GUILD_ID: Id<GuildMarker> = Id::new(2);
+    const USER_ID: Id<UserMarker> = Id::new(3);
 
     #[test]
     fn test_eq() {
-        let voice_state = voice_state();
-        let cached = CachedVoiceState::from(voice_state.clone());
+        let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
+        let cached = CachedVoiceState::from_voice_state(CHANNEL_ID, GUILD_ID, voice_state.clone());
 
         assert_eq!(cached, voice_state);
     }
 
     #[test]
     fn test_getters() {
-        let voice_state = voice_state();
-        let cached = CachedVoiceState::from(voice_state.clone());
+        let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
+        let cached = CachedVoiceState::from_voice_state(CHANNEL_ID, GUILD_ID, voice_state.clone());
 
-        assert_eq!(cached.channel_id(), voice_state.channel_id);
+        assert_eq!(Some(cached.channel_id()), voice_state.channel_id);
         assert_eq!(cached.deaf(), voice_state.deaf);
-        assert_eq!(cached.guild_id(), voice_state.guild_id);
+        assert_eq!(Some(cached.guild_id()), voice_state.guild_id);
         assert_eq!(cached.mute(), voice_state.mute);
         assert_eq!(
             cached.request_to_speak_timestamp(),

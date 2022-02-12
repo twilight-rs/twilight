@@ -449,10 +449,9 @@ impl Client {
     /// Get the invites for a guild channel.
     ///
     /// Requires the [`MANAGE_CHANNELS`] permission. This method only works if
-    /// the channel is of type [`GuildChannel`].
+    /// the channel is a guild channel.
     ///
     /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
-    /// [`GuildChannel`]: twilight_model::channel::GuildChannel
     pub const fn channel_invites(&self, channel_id: Id<ChannelMarker>) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
@@ -1121,6 +1120,11 @@ impl Client {
     }
 
     /// Get the guild's welcome screen.
+    ///
+    /// If the welcome screen is not enabled, this requires the [`MANAGE_GUILD`]
+    /// permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn guild_welcome_screen(
         &self,
         guild_id: Id<GuildMarker>,

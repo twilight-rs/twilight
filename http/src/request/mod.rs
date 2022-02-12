@@ -17,7 +17,7 @@ mod multipart;
 mod try_into_request;
 
 pub use self::{
-    audit_reason::{AuditLogReason, AuditLogReasonError},
+    audit_reason::AuditLogReason,
     base::{Request, RequestBuilder},
     get_gateway::GetGateway,
     get_gateway_authed::GetGatewayAuthed,
