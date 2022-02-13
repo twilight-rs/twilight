@@ -2,6 +2,44 @@
 
 Changelog for `twilight-model`.
 
+## [0.9.1] - 2022-02-12
+
+### Additions
+
+Add new `Id<T>` implementations ([#1493] - [@dnaka91]):
+- `From<Id<T>> for NonZeroU64`
+- `From<Id<T>> for u64`
+- `Id::into_nonzero`
+
+Add `CommandData::{kind, target_id}` ([#1522] - [@Liamolucko]).
+
+Add `ScheduledEvent::image` ([#1525] - [@7596ff]).
+
+Add `MessageFlags::{LOADING, FAILED_TO_MENTION_SOME_ROLES_IN_THREAD}` ([#1526] -
+[@7596ff]).
+
+Add `MessageInteraction::member` ([#1532] - [@7596ff]).
+
+### Changes
+
+Update many links to Discord documentation with consistent capitalization and
+page titles ([#1429] - [@itohatweb], [@7596ff]).
+
+Implement `Display` directly on `Id` ([#1494] - [@vilgotf]).
+
+### Fixes
+
+Update links to builders in `twilight-util` ([#1516] - [@laralove143]).
+
+[#1429]: https://github.com/twilight-rs/twilight/pull/1429
+[#1493]: https://github.com/twilight-rs/twilight/pull/1493
+[#1494]: https://github.com/twilight-rs/twilight/pull/1494
+[#1516]: https://github.com/twilight-rs/twilight/pull/1516
+[#1522]: https://github.com/twilight-rs/twilight/pull/1522
+[#1525]: https://github.com/twilight-rs/twilight/pull/1525
+[#1526]: https://github.com/twilight-rs/twilight/pull/1526
+[#1532]: https://github.com/twilight-rs/twilight/pull/1532
+
 ## [0.9.0] - 2022-01-22
 
 ### `Id<T>`
@@ -1203,6 +1241,7 @@ Initial release.
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
+[@dnaka91]: https://github.com/dnaka91
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
@@ -1211,7 +1250,9 @@ Initial release.
 [@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
+[@laralove143]: https://github.com/laralove143
 [@LeSeulArtichaut]: https://github.com/LeSeulArtichaut
+[@Liamolucko]: https://github.com/Liamolucko
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@PyroTechniac]: https://github.com/PyroTechniac

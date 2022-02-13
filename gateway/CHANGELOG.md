@@ -2,6 +2,16 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.9.1] - 2022-02-12
+
+### Fixes
+
+The `compression` feature was broken, so "fix" it by making it do nothing at all
+([#1482] - [@vilgotf]). Feature gates that previously required `compression` now
+require one of `zlib-stock` or `zlib-simd`. See the readme for more details.
+
+[#1482]: https://github.com/twilight-rs/twilight/pull/1482
+
 ## [0.9.0] - 2022-01-22
 
 ### Additions
@@ -747,6 +757,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.0
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.4

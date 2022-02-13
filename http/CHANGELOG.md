@@ -2,6 +2,28 @@
 
 Changelog for `twilight-http`.
 
+## [0.9.1] - 2022-02-12
+
+### Additions
+
+Support setting a cover image for scheduled events ([#1525] - [@7596ff]).
+
+### Changes
+
+Update many links to Discord documentation with consistent capitalization and
+page titles ([#1429] - [@itohatweb], [@7596ff]).
+
+### Fixes
+
+Properly clear attachments on edit-message-like requests ([#1499] - [@7596ff]).
+
+Update links to builders in `twilight-util` ([#1516] - [@laralove143]).
+
+[#1429]: https://github.com/twilight-rs/twilight/pull/1429
+[#1499]: https://github.com/twilight-rs/twilight/pull/1499
+[#1516]: https://github.com/twilight-rs/twilight/pull/1516
+[#1525]: https://github.com/twilight-rs/twilight/pull/1525
+
 ## [0.9.0] - 2022-01-22
 
 ### Validation
@@ -1604,6 +1626,7 @@ Initial release.
 [@HTG-YT]: https://github.com/HTG-YT
 [@itohatweb]: https://github.com/itohatweb
 [@jazevedo620]: https://github.com/jazevedo620
+[@laralove143]: https://github.com/laralove143
 [@Learath2]: https://github.com/Learath2
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
@@ -1652,6 +1675,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.9.0
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.4

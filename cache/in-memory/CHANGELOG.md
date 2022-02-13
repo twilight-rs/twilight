@@ -2,6 +2,24 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.9.1] - 2022-02-12
+
+### Changes
+
+Update `dashmap` to `5.1`, which fixes unsoundness present in `5.0` (which
+previously forced a downgrade to `4.0`) ([#1517] - [@Gelbpunkt]).
+
+### Fixes
+
+Update `member_count` on `MEMBER_ADD`/`MEMBER_REMOVE` events ([#1461] -
+[@Gelbpunkt]).
+
+Properly remove unavailable guilds from the cache ([#1506] - [@Gelbpunkt]).
+
+[#1461]: https://github.com/twilight-rs/twilight/pull/1461
+[#1506]: https://github.com/twilight-rs/twilight/pull/1506
+[#1517]: https://github.com/twilight-rs/twilight/pull/1517
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
@@ -631,6 +649,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.9.0
 [0.8.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.6
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.5
