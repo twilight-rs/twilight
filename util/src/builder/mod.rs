@@ -3,5 +3,6 @@
 
 mod callback_data;
 pub mod command;
+pub mod embed;
 
 pub use self::callback_data::CallbackDataBuilder;
