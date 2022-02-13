@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
-    error::Error,
-    request::{Request, TryIntoRequest},
+    error::Error as HttpError,
+    request::{attachment::AttachmentManager, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -48,16 +48,36 @@ impl<'a> CreateResponse<'a> {
 }
 
 impl TryIntoRequest for CreateResponse<'_> {
-    fn try_into_request(self) -> Result<Request, Error> {
-        let request = Request::builder(&Route::InteractionCallback {
+    fn try_into_request(self) -> Result<Request, HttpError> {
+        let mut request = Request::builder(&Route::InteractionCallback {
             interaction_id: self.interaction_id.get(),
             interaction_token: self.interaction_token,
-        })
-        .json(self.response)?
-        .use_authorization_token(false)
-        .build();
+        });
 
-        Ok(request)
+        // Interaction executions don't need the authorization token, only the
+        // interaction token.
+        request = request.use_authorization_token(false);
+
+        // Determine whether we need to use a multipart/form-data body or a JSON
+        // body.
+        if let Some(attachments) = self
+            .response
+            .data
+            .as_ref()
+            .and_then(|data| data.attachments.as_ref())
+        {
+            let fields = crate::json::to_vec(&self.response).map_err(HttpError::json)?;
+
+            let form = AttachmentManager::new()
+                .set_files(attachments.iter().collect())
+                .build_form(&fields);
+
+            request = request.form(form);
+        } else {
+            request = request.json(&self.response)?;
+        }
+
+        Ok(request.build())
     }
 }
 
