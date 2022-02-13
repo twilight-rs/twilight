@@ -45,7 +45,6 @@ pub fn create() -> Connector {
         .enable_http1()
         .enable_http2()
         .wrap_connector(connector);
-
     #[cfg(all(feature = "rustls-webpki-roots", not(feature = "rustls-native-roots")))]
     let connector = hyper_rustls::HttpsConnectorBuilder::new()
         .with_webpki_roots()
@@ -53,7 +52,6 @@ pub fn create() -> Connector {
         .enable_http1()
         .enable_http2()
         .wrap_connector(connector);
-
     #[cfg(all(
         feature = "hyper-tls",
         not(feature = "rustls-native-roots"),
