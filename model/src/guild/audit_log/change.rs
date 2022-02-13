@@ -134,10 +134,10 @@ pub enum AuditLogChange {
     Bitrate {
         /// New bitrate.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u32>,
+        new: Option<u64>,
         /// Old bitrate.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u32>,
+        old: Option<u64>,
     },
     /// Channel for an invite code.
     ChannelId {
@@ -357,19 +357,19 @@ pub enum AuditLogChange {
     MaxAge {
         /// New maximum age.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u32>,
+        new: Option<u64>,
         /// Previous state, if any.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u32>,
+        old: Option<u64>,
     },
     /// Maximum uses of an invite.
     MaxUses {
         /// New maximum uses.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u16>,
+        new: Option<u64>,
         /// Previous state, if any.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u16>,
+        old: Option<u64>,
     },
     /// Whether a role can be mentioned in a message.
     Mentionable {
@@ -509,10 +509,10 @@ pub enum AuditLogChange {
     RateLimitPerUser {
         /// New ratelimit, in seconds.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u16>,
+        new: Option<u64>,
         /// Old ratelimit, in seconds.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u16>,
+        old: Option<u64>,
     },
     /// Region of a guild changed.
     Region {
@@ -628,10 +628,10 @@ pub enum AuditLogChange {
     UserLimit {
         /// New limit.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<u16>,
+        new: Option<u64>,
         /// Old limit.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<u16>,
+        old: Option<u64>,
     },
     /// Number of uses of an invite.
     Uses {

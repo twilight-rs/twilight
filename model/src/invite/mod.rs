@@ -33,9 +33,9 @@ pub struct Invite {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub inviter: Option<User>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_age: Option<u32>,
+    pub max_age: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_uses: Option<u16>,
+    pub max_uses: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stage_instance: Option<InviteStageInstance>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -406,10 +406,10 @@ mod tests {
                 Token::StructEnd,
                 Token::Str("max_age"),
                 Token::Some,
-                Token::U32(86_400),
+                Token::U64(86_400),
                 Token::Str("max_uses"),
                 Token::Some,
-                Token::U16(10),
+                Token::U64(10),
                 Token::Str("stage_instance"),
                 Token::Some,
                 Token::Struct {

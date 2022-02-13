@@ -31,9 +31,9 @@ pub struct InviteCreate {
     /// Maximum age before the invite expires.
     ///
     /// This is in seconds.
-    pub max_age: u32,
+    pub max_age: u64,
     /// Maximum number of uses before the invite expires.
-    pub max_uses: u16,
+    pub max_uses: u64,
     /// Target of the invite.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_user_type: Option<TargetType>,
@@ -165,9 +165,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("max_age"),
-                Token::U32(3600),
+                Token::U64(3600),
                 Token::Str("max_uses"),
-                Token::U16(5),
+                Token::U64(5),
                 Token::Str("temporary"),
                 Token::Bool(false),
                 Token::Str("uses"),
