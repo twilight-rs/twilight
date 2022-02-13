@@ -1,4 +1,4 @@
-use super::Client;
+use crate::{client::connector, Client};
 use hyper::header::HeaderMap;
 use std::{
     sync::{atomic::AtomicBool, Arc},
@@ -28,35 +28,7 @@ impl ClientBuilder {
 
     /// Build the [`Client`].
     pub fn build(self) -> Client {
-        #[cfg(not(feature = "trust-dns"))]
-        let mut connector = hyper::client::HttpConnector::new();
-        #[cfg(feature = "trust-dns")]
-        let mut connector = hyper_trust_dns::new_trust_dns_http_connector();
-
-        connector.enforce_http(false);
-
-        #[cfg(feature = "rustls-native-roots")]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .wrap_connector(connector);
-
-        #[cfg(all(feature = "rustls-webpki-roots", not(feature = "rustls-native-roots")))]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_webpki_roots()
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .wrap_connector(connector);
-
-        #[cfg(all(
-            feature = "hyper-tls",
-            not(feature = "rustls-native-roots"),
-            not(feature = "rustls-webpki-roots")
-        ))]
-        let connector = hyper_tls::HttpsConnector::new_with_connector(connector);
+        let connector = connector::create();
 
         let http = hyper::Client::builder().build(connector);
 

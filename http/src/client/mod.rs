@@ -1,7 +1,8 @@
 mod builder;
+mod connector;
 mod interaction;
 
-pub use self::{builder::ClientBuilder, interaction::InteractionClient};
+pub use self::{builder::ClientBuilder, connector::Connector, interaction::InteractionClient};
 
 #[allow(deprecated)]
 use crate::{
@@ -105,29 +106,6 @@ use twilight_model::{
 use twilight_validate::{
     channel::ChannelValidationError, request::ValidationError, sticker::StickerValidationError,
 };
-
-#[cfg(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
-type Connector = HttpsConnector<HttpConnector>;
-#[cfg(not(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-)))]
-type Connector = HttpConnector;
-
-#[cfg(feature = "hyper-rustls")]
-type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
-#[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
-type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
-
-#[cfg(feature = "trust-dns")]
-type HttpConnector = hyper_trust_dns::TrustDnsHttpConnector;
-#[cfg(not(feature = "trust-dns"))]
-type HttpConnector = hyper::client::HttpConnector;
 
 /// Twilight's http client.
 ///
