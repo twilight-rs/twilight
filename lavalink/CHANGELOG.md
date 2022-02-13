@@ -2,6 +2,15 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.9.1] - 2022-02-12
+
+### Changes
+
+Update `dashmap` to `5.1`, which fixes unsoundness present in `5.0` (which
+previously forced a downgrade to `4.0`) ([#1517] - [@Gelbpunkt]).
+
+[#1517]: https://github.com/twilight-rs/twilight/pull/1517
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
