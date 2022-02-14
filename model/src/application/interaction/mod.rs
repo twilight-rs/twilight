@@ -382,6 +382,7 @@ mod test {
                     value: CommandOptionValue::User(Id::new(600)),
                 }]),
                 resolved: Some(CommandInteractionDataResolved {
+                    attachments: HashMap::new(),
                     channels: HashMap::new(),
                     members: IntoIterator::into_iter([(
                         Id::new(600),
@@ -420,7 +421,6 @@ mod test {
                         },
                     )])
                     .collect(),
-                    attachments: HashMap::new(),
                 }),
             },
             guild_id: Some(Id::new(400)),

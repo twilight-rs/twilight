@@ -102,6 +102,7 @@ mod tests {
                     name: "command name".into(),
                     options: Vec::new(),
                     resolved: Some(CommandInteractionDataResolved {
+                        attachments: HashMap::new(),
                         channels: HashMap::new(),
                         members: IntoIterator::into_iter([(
                             Id::new(7),
@@ -221,7 +222,6 @@ mod tests {
                             },
                         )])
                         .collect(),
-                        attachments: HashMap::new(),
                     }),
                 },
                 guild_id: Some(Id::new(3)),
