@@ -403,7 +403,8 @@ pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
         CommandOption::Boolean(data)
         | CommandOption::User(data)
         | CommandOption::Role(data)
-        | CommandOption::Mentionable(data) => (&data.description, &data.name),
+        | CommandOption::Mentionable(data)
+        | CommandOption::Attachment(data) => (&data.description, &data.name),
     };
 
     let description_len = description.chars().count();
