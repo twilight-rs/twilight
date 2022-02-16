@@ -10,7 +10,7 @@ use super::{
     session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
 };
-use crate::{event::EventTypeFlags, shard::tls::TlsContainer};
+use crate::{event::EventTypeFlags, shard::tls::TlsContainer, API_VERSION};
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -329,7 +329,8 @@ impl ShardProcessor {
             tracing::debug!("shard {:?} finished queue", config.shard());
         }
 
-        url.push_str("?v=9");
+        url.push_str("?v=");
+        url.push_str(&API_VERSION.to_string());
 
         // Discord's documentation states:
         //
