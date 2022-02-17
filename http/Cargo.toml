@@ -46,7 +46,7 @@ trust-dns = ["hyper-trust-dns"]
 criterion = { default-features = false, version = "0.3" }
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-embed-builder = { default-features = false, path = "../embed-builder" }
+twilight-util = { default-features = false, features = ["builder"], path = "../util" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 
 [[bench]]

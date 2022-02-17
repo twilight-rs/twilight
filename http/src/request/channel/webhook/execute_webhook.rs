@@ -206,16 +206,16 @@ impl<'a> ExecuteWebhook<'a> {
     /// Without [`payload_json`]:
     ///
     /// ```no_run
-    /// use twilight_embed_builder::EmbedBuilder;
-    /// # use twilight_http::Client;
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
     /// use twilight_model::id::Id;
+    /// use twilight_util::builder::embed::EmbedBuilder;
     ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token".to_owned());
+    /// let client = Client::new("token".to_owned());
+    ///
     /// let message = client.execute_webhook(Id::new(1), "token here")
     ///     .content("some content")?
-    ///     .embeds(&[EmbedBuilder::new().title("title").build()?])?
+    ///     .embeds(&[EmbedBuilder::new().title("title").validate()?.build()])?
     ///     .wait()
     ///     .exec()
     ///     .await?

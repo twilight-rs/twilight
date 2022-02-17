@@ -199,17 +199,19 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// modified.
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
-    /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::Id;
-    ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token".to_owned());
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    /// use twilight_util::builder::embed::EmbedBuilder;
+    ///
+    /// let client = Client::new("token".to_owned());
+    ///
     /// let embed = EmbedBuilder::new()
     ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
     ///     .title("Twilight")
     ///     .url("https://twilight.rs")
-    ///     .build()?;
+    ///     .validate()?
+    ///     .build();
     ///
     /// client.update_webhook_message(Id::new(1), "token", Id::new(2))
     ///     .embeds(Some(&[embed]))?
