@@ -1,23 +1,26 @@
 # Issues
 
-Issues have three types: bug, feature request, and support. When reporting a bug, you must include
-the operating system used, any relevant information about the tech stack, and the feature flags
-used, as specified in the issue template. Feature requests also have an issue template, containing
-questions that should be answered in the issue. We aim for 100% coverage of the Discord API; we will
-wait until a new feature is supported in the [Discord API documentation] before adding its support
-to Twilight. Before making an issue, be sure to consider joining the [Twilight Discord] and bringing
-up your topic in the `#support` channel.
+Issues have three types: bug, feature request, and support. When reporting a
+bug, you must include the operating system used, any relevant information about
+the tech stack, and the feature flags used, as specified in the issue template.
+Feature requests also have an issue template, containing questions that should
+be answered in the issue. We aim for 100% coverage of the Discord API; we will
+wait until a new feature is supported in the [Discord API documentation] before
+adding its support to Twilight. Before making an issue, be sure to consider
+joining the [Twilight Discord] and bringing up your topic in the `#support`
+channel.
 
 # Errors
 
-Twilight's `Error` system is a struct with one required field (`kind`) and one optional field
-(`source`). It includes three methods (`kind`, `into_source`, and `into_parts`) which allow the user
-to access data within the error. The return types for any source errors are `dyn Error`, which
-allows us to update dependencies without breaking the public API.
+Twilight's `Error` system is a struct with one required field (`kind`) and one
+optional field (`source`). It includes three methods (`kind`, `into_source`, and
+`into_parts`) which allow the user to access data within the error. The return
+types for any source errors are `dyn Error`, which allows us to update
+dependencies without breaking the public API.
 
-Normally, the fields of the error struct are not public, as they can be accessed through the
-provided methods. However, in some cases, you may need to make the struct fields `pub` or
-`pub(crate)`.
+Normally, the fields of the error struct are not public, as they can be accessed
+through the provided methods. However, in some cases, you may need to make the
+struct fields `pub` or `pub(crate)`.
 
 Any new error implementations must follow this pattern:
 
@@ -127,23 +130,26 @@ impl Display for Foo {
 
 # Pull Requests
 
-Pull requests must be named with a short description of the contained changes. Pull requests must be
-made from a new branch. Please avoid making pull requests from the HEAD branch.
+Pull requests must be named with a short description of the contained changes.
+Pull requests must be made from a new branch. Please avoid making pull requests
+from the HEAD branch.
 
-Avoid force-pushing to a pull request branch, as this erases review comment history. You can merge
-the HEAD branch into your feature branch instead.
+Avoid force-pushing to a pull request branch, as this erases review comment
+history. You can merge the HEAD branch into your feature branch instead.
 
 Contributors should add tests and documentation that reflects their changes.
 
 ## Tests
 
-Feature and bugfix commits must always include unit tests to ensure the correctness of the relevant
-feature and prevent breakage. Enhancements to existing features without tests should include new
-unit tests, especially when the implementation of something is being modified.
+Feature and bugfix commits must always include unit tests to ensure the
+correctness of the relevant feature and prevent breakage. Enhancements to
+existing features without tests should include new unit tests, especially when
+the implementation of something is being modified.
 
-Public API types must be tested with the [`static_assertions`] crate. `static_assertions`'
-`assert_fields`, `assert_impl_all`, and `assert_obj_safe` functionality are notable. Asserting the
-implementation of `Send` and `Sync` are of particular importance.
+Public API types must be tested with the [`static_assertions`] crate.
+`static_assertions`' `assert_fields`, `assert_impl_all`, and `assert_obj_safe`
+functionality are notable. Asserting the implementation of `Send` and `Sync` are
+of particular importance.
 
 An example of assertions on an Enum may look like this:
 
@@ -170,10 +176,10 @@ mod tests {
 }
 ```
 
-Tests should be concise and non-repetitive: a function doesn't need to be tested with different
-inputs multiple times if variance in the input doesn't affect the functionality. The logic of a code
-path only needs to be uniquely tested once; testing the same conditions multiple times has no
-benefit.
+Tests should be concise and non-repetitive: a function doesn't need to be tested
+with different inputs multiple times if variance in the input doesn't affect the
+functionality. The logic of a code path only needs to be uniquely tested once;
+testing the same conditions multiple times has no benefit.
 
 ## Documentation
 
@@ -181,12 +187,12 @@ Structs are to be documented as follows:
 ```rust
 /// Short description of the struct, limited to one sentence.
 ///
-/// Some more information about the struct, specifying all behavior. This can be more than one
-/// sentence, and can span multiple lines. It can also contain [named anchors], which should be
-/// specified below.
+/// Some more information about the struct, specifying all behavior. This can be
+/// more than one sentence, and can span multiple lines. It can also contain
+/// [named anchors], which should be specified below.
 ///
-/// When documenting struct fields, don't prefix with "The", otherwise most documentation lines
-/// would start with "the".
+/// When documenting struct fields, don't prefix with "The", otherwise most
+/// documentation lines would start with "the".
 ///
 /// [named anchors]: https://api.twilight.rs
 struct Structy {
@@ -209,27 +215,32 @@ impl Structy {
 }
 ```
 
-Examples of other documentation can be found throughout the project. There isn't an exact standard,
-but changes that are needed will be requested, on a path towards eventual consistency.
+Examples of other documentation can be found throughout the project. There isn't
+an exact standard, but changes that are needed will be requested, on a path
+towards eventual consistency.
 
 # Labeling
 
-If you are able, you must label your issues and pull requests appropriately. This includes adding a
-label for each applicable crate, or if the issue/change is project-wide, using `c-all`. `t-feature`s
-are new additions, and they are distinct from `t-enhancement`s, which are improvements on existing
-features. `t-bugfix`es are self-evident. Changes that aren't features, enhancements, or bugfixes are
-marked as `t-chore`. Any change relating to documentation must use the `t-docs` label. The `discord
-api` label is used for changes that must be verified against the Discord API for correctness. The
-`d-unmerged` label is used when writing functionality based on an unmerged PR in the [Discord API
-documentation].
+If you are able, you must label your issues and pull requests appropriately.
+This includes adding a label for each applicable crate, or if the issue/change
+is project-wide, using `c-all`. `t-feature`s are new additions, and they are
+distinct from `t-enhancement`s, which are improvements on existing features.
+`t-bugfix`es are self-evident. Changes that aren't features, enhancements, or
+bugfixes are marked as `t-chore`. Any change relating to documentation must use
+the `t-docs` label. The `discord api` label is used for changes that must be
+verified against the Discord API for correctness. The `d-unmerged` label is used
+when writing functionality based on an unmerged PR in the 
+[Discord API documentation].
 
 # Merging
 
-Pull requests require two approvals before merging. The only possible merge option is squash and
-merge. Commits must be named with the format `type({crate}): {short description of change} (#PR)`,
-and should use lower case letters. If the change spans more than one crate, separate the crate
-names with a comma and a space: `type({crate1},{crate2}): {short description of change} (#PR)`. In
-this format, `type` is the type of the commit according to the `t-*` label set.
+Pull requests require two approvals before merging. The only possible merge
+option is squash and merge. Commits must be named with the format
+`type({crate}): {short description of change} (#PR)`, and should use lower case
+letters. If the change spans more than one crate, separate the crate names with
+a comma and a space: `type({crate1},{crate2}): {short description of change}
+(#PR)`. In this format, `type` is the type of the commit according to the `t-*`
+label set.
 
 [Discord API documentation]: https://github.com/discord/discord-api-docs
 [Twilight Discord]: https://discord.gg/twilight-rs
