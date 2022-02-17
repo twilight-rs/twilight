@@ -30,7 +30,7 @@ since we squash every commit before merging, force-pushing a branch with new
 changes or updates is not always required. This helps with maintaining a
 chronological history in the PR story.
 
-Contributors should add tests and documentation that reflects their changes.
+Contributors must add tests and documentation that reflects their changes.
 
 Twilight follows a [Conventional Commit] style for pull request titles and
 commits. A Github Actions workflow automatically labels pull requests based on
@@ -48,7 +48,7 @@ Labels that must be added manually:
   maintainers
 
 Pull requests require two approvals before merging. The squashed commit
-description should contain a summary of the changes. 
+description must contain a summary of the changes. 
 
 ## Code Style
 
@@ -172,15 +172,15 @@ impl Display for Foo {
 
 ## Tests
 
-Feature and bugfix commits should include unit tests to ensure the correctness
-of the relevant feature and prevent breakage. Enhancements to existing features
-without tests should include new unit tests, especially when the implementation
-of something is being modified.
+Feature and bugfix commits must include unit tests to ensure the correctness of
+the relevant feature and prevent breakage. Enhancements to existing features
+without tests must include new unit tests, especially when the implementation of
+something is being modified.
 
 When importing structs into a test module, one should use a wildcard to import
 all items from the parent module: `use super::*;`
 
-Public API types should be tested with the [`static_assertions`] crate.
+Public API types must be tested with the [`static_assertions`] crate.
 `static_assertions`' `assert_fields`, `assert_impl_all`, and `assert_obj_safe`
 functionality are notable. Asserting the implementation of `Send` and `Sync` are
 of particular importance.
@@ -266,7 +266,7 @@ impl Structy {
 
 ### Discord API Docs links
 
-When linking to the Discord API documentation, the link should be prefixed with
+When linking to the Discord API documentation, the link must be prefixed with
 the word "See", and the anchor must be formatted as "Discord Docs/Page Title":
 ```rust
 /// Edit a global command, by ID.
