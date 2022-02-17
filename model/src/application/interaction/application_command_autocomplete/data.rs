@@ -6,10 +6,7 @@ use crate::{
             application_command_autocomplete::ApplicationCommandAutocompleteDataOption,
         },
     },
-    id::{
-        marker::{CommandMarker, GenericMarker},
-        Id,
-    },
+    id::{marker::CommandMarker, Id},
 };
 use serde::{Deserialize, Serialize};
 
