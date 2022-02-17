@@ -1,14 +1,16 @@
 //! Used when receiving interactions through gateway or webhooks.
 
 pub mod application_command;
+pub mod application_command_autocomplete;
 pub mod message_component;
 
 mod interaction_type;
 mod ping;
 
 pub use self::{
-    application_command::ApplicationCommand, interaction_type::InteractionType,
-    message_component::MessageComponentInteraction, ping::Ping,
+    application_command::ApplicationCommand,
+    application_command_autocomplete::ApplicationCommandAutocomplete,
+    interaction_type::InteractionType, message_component::MessageComponentInteraction, ping::Ping,
 };
 
 use crate::{
@@ -42,7 +44,7 @@ pub enum Interaction {
     /// Application command variant.
     ApplicationCommand(Box<ApplicationCommand>),
     /// Application command autocomplete variant.
-    ApplicationCommandAutocomplete(Box<ApplicationCommand>),
+    ApplicationCommandAutocomplete(Box<ApplicationCommandAutocomplete>),
     /// Message component variant.
     MessageComponent(Box<MessageComponentInteraction>),
 }
@@ -51,9 +53,8 @@ impl Interaction {
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
-            Self::ApplicationCommand(inner) | Self::ApplicationCommandAutocomplete(inner) => {
-                inner.guild_id
-            }
+            Self::ApplicationCommand(inner) => inner.guild_id,
+            Self::ApplicationCommandAutocomplete(inner) => inner.guild_id,
             Self::MessageComponent(inner) => inner.guild_id,
         }
     }
@@ -62,9 +63,8 @@ impl Interaction {
     pub const fn id(&self) -> Id<InteractionMarker> {
         match self {
             Self::Ping(ping) => ping.id,
-            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
-                command.id
-            }
+            Self::ApplicationCommand(command) => command.id,
+            Self::ApplicationCommandAutocomplete(command) => command.id,
             Self::MessageComponent(component) => component.id,
         }
     }
@@ -269,8 +269,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     token,
                 }))
             }
-            InteractionType::ApplicationCommandAutocomplete
-            | InteractionType::ApplicationCommand => {
+            InteractionType::ApplicationCommand => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
@@ -300,13 +299,39 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     user,
                 });
 
-                match kind {
-                    InteractionType::ApplicationCommand => Self::Value::ApplicationCommand(command),
-                    InteractionType::ApplicationCommandAutocomplete => {
-                        Self::Value::ApplicationCommandAutocomplete(command)
-                    }
-                    _ => unreachable!(),
-                }
+                Self::Value::ApplicationCommand(command)
+            }
+            InteractionType::ApplicationCommandAutocomplete => {
+                let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
+                let data = data
+                    .ok_or_else(|| DeError::missing_field("data"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                let guild_id = guild_id.unwrap_or_default();
+                let guild_locale = guild_locale.unwrap_or_default();
+                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
+                let member = member.unwrap_or_default();
+                let user = user.unwrap_or_default();
+
+                #[cfg(feature = "tracing")]
+                tracing::trace!(%channel_id, "handling application command");
+
+                let command = Box::new(ApplicationCommandAutocomplete {
+                    application_id,
+                    channel_id,
+                    data,
+                    guild_id,
+                    guild_locale,
+                    id,
+                    kind,
+                    locale,
+                    member,
+                    token,
+                    user,
+                });
+
+                Self::Value::ApplicationCommandAutocomplete(command)
             }
             InteractionType::MessageComponent => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
