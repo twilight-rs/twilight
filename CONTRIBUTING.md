@@ -1,18 +1,60 @@
-# Issues
+# Contributing
 
-Issues have three types: bug, feature request, and support. When reporting a
-bug, you must include the operating system used, any relevant information about
-the tech stack, and the feature flags used, as specified in the issue template.
-Feature requests also have an issue template, containing questions that should
-be answered in the issue. We aim for 100% coverage of the Discord API; we will
-wait until a new feature is supported in the [Discord API documentation] before
-adding its support to Twilight. Before making an issue, be sure to consider
-joining the [Twilight Discord] and bringing up your topic in the `#support`
+Thank you for considering adding your contribution to Twilight! This project
+would not be what it is without the support of the community. This document
+contains rules and guidelines that should be followed when making contributions
+to Twilight. 
+
+## Project Management
+
+### Issues
+
+There are two major kinds of issues in Twilight, user-created and
+developer-created. Of the user-created issues, they are usually bug reports,
+feature requests, or support requests. If reporting a bug, please include the
+operating system used, any relevant information about the tech stack, and the
+feature flags used. Before making a support issue, be sure to consider joining
+the [Twilight Discord] and making a thread for your question in the `#support`
 channel.
 
-# Errors
+Developer-created issues are most often bugs or tracking issues for supporting
+Discord API features. We aim for 100% coverage of the Discord API; we will wait
+until a new feature is supported in the [Discord API] before adding its support
+to Twilight.
 
-Twilight's `Error` system is a struct with one required field (`kind`) and one
+### Pull Requests
+
+In order to ease developer cooperation, please make a pull request from a
+feature branch on your own fork instead of from `main` or `next`. Additionally,
+since we squash every commit before merging, force-pushing a branch with new
+changes or updates is not always required. This helps with maintaining a
+chronological history in the PR story.
+
+Contributors should add tests and documentation that reflects their changes.
+
+Twilight follows a [Conventional Commit] style for pull request titles and
+commits. A Github Actions workflow automatically labels pull requests based on
+parsing the title. For more information, see [this discussion][#1439].
+
+Labels that must be added manually:
+- `d-api`: for changes that correspond with the [Discord API]
+- `d-breaking`: for API changes that cause a breaking change in library code
+- `d-unmerged`: changes that have not yet been merged into the documentation
+- `w-do-not-merge`: merge is blocked on another PR
+- `w-needs-more-docs`: a change needs more documentation in the code itself or
+  in the PR description
+- `w-needs-testing`: a change needs more tests added or proof of manual testing
+- `w-unapproved`: a design change has not yet been approved by library
+  maintainers
+
+Pull requests require two approvals before merging. The squashed commit
+description should contain a summary of the changes. 
+
+## Code Style
+
+### Errors
+
+Twilight's `Error` design is a struct with one required field (`kind`) and one
 optional field (`source`). It includes three methods (`kind`, `into_source`, and
 `into_parts`) which allow the user to access data within the error. The return
 types for any source errors are `dyn Error`, which allows us to update
@@ -22,7 +64,7 @@ Normally, the fields of the error struct are not public, as they can be accessed
 through the provided methods. However, in some cases, you may need to make the
 struct fields `pub` or `pub(crate)`.
 
-Any new error implementations must follow this pattern:
+New error implementations must follow this pattern:
 
 ```rust
 use std::{
@@ -93,10 +135,10 @@ pub enum TwilightErrorType {
 }
 ```
 
-# Formatters
+### Formatters
 
 Macros like `format_args!` and `write!` have runtime performance hits. Instead,
-use `core::fmt::Formatter` methods such as `Formatter::write_str` and calling
+use `core::fmt::Formatter` methods such as `Formatter::write_str`, or call
 `Display::fmt` directly.
 
 An example of what *not* to do:
@@ -128,25 +170,17 @@ impl Display for Foo {
 }
 ```
 
-# Pull Requests
-
-Pull requests must be named with a short description of the contained changes.
-Pull requests must be made from a new branch. Please avoid making pull requests
-from the HEAD branch.
-
-Avoid force-pushing to a pull request branch, as this erases review comment
-history. You can merge the HEAD branch into your feature branch instead.
-
-Contributors should add tests and documentation that reflects their changes.
-
 ## Tests
 
-Feature and bugfix commits must always include unit tests to ensure the
-correctness of the relevant feature and prevent breakage. Enhancements to
-existing features without tests should include new unit tests, especially when
-the implementation of something is being modified.
+Feature and bugfix commits should include unit tests to ensure the correctness
+of the relevant feature and prevent breakage. Enhancements to existing features
+without tests should include new unit tests, especially when the implementation
+of something is being modified.
 
-Public API types must be tested with the [`static_assertions`] crate.
+When importing structs into a test module, one should use a wildcard to import
+all items from the parent module: `use super::*;`
+
+Public API types should be tested with the [`static_assertions`] crate.
 `static_assertions`' `assert_fields`, `assert_impl_all`, and `assert_obj_safe`
 functionality are notable. Asserting the implementation of `Send` and `Sync` are
 of particular importance.
@@ -167,7 +201,7 @@ pub enum PublicEnumType {
 
 #[cfg(test)]
 mod tests {
-    use super::PublicEnumType;
+    use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
 
     assert_fields!(PublicEnumType::Foo: bar);
@@ -181,20 +215,28 @@ with different inputs multiple times if variance in the input doesn't affect the
 functionality. The logic of a code path only needs to be uniquely tested once;
 testing the same conditions multiple times has no benefit.
 
+We strive to follow these guidelines, however, some parts of the code have not
+been updated to do so.
+
 ## Documentation
 
-Structs are to be documented as follows:
+We are slowly approaching a standard documentation style. Changes that are
+needed will be requested, on a path towards eventual consistency. Below are some
+examples of what we require.
+
+### Structs
+
 ```rust
 /// Short description of the struct, limited to one sentence.
 ///
 /// Some more information about the struct, specifying all behavior. This can be
 /// more than one sentence, and can span multiple lines. It can also contain
-/// [named anchors], which should be specified below.
+/// [shortcut reference links].
 ///
 /// When documenting struct fields, don't prefix with "The", otherwise most
 /// documentation lines would start with "the".
 ///
-/// [named anchors]: https://api.twilight.rs
+/// [shortcut reference links]: https://spec.commonmark.org/0.30/#shortcut-reference-link
 struct Structy {
     /// Something.
     pub some: String,
@@ -203,45 +245,41 @@ struct Structy {
 }
 ```
 
-Methods are to be documented as follows:
+### Methods
+
 ```rust
 impl Structy {
     /// Short description of the method, limited to one sentence.
     ///
     /// More important information or clarification.
-    pub fn method(&self) -> Option<Something> {
+    /// 
+    /// # Errors
+    /// 
+    /// Returns an error of type [`SomethingWentWrong`] if something went wrong.
+    /// 
+    /// [`SomethingWentWrong`]: SomethingErrorType::SomethingWentWrong
+    pub fn method(&self) -> Result<Something, SomethingError> {
 
     }
 }
 ```
 
-Examples of other documentation can be found throughout the project. There isn't
-an exact standard, but changes that are needed will be requested, on a path
-towards eventual consistency.
+### Discord API Docs links
 
-# Labeling
+When linking to the Discord API documentation, the link should be prefixed with
+the word "See", and the anchor must be formatted as "Discord Docs/Page Title":
+```rust
+/// Edit a global command, by ID.
+///
+/// You must specify a name and description. See
+/// [Discord Docs/Edit Global Application Command].
+///
+/// [Discord Docs/Edit Global Application Command]: https://discord.com/developers/docs/interactions/application-commands#edit-global-application-command
+pub const fn update_global_command(
+```
 
-If you are able, you must label your issues and pull requests appropriately.
-This includes adding a label for each applicable crate, or if the issue/change
-is project-wide, using `c-all`. `t-feature`s are new additions, and they are
-distinct from `t-enhancement`s, which are improvements on existing features.
-`t-bugfix`es are self-evident. Changes that aren't features, enhancements, or
-bugfixes are marked as `t-chore`. Any change relating to documentation must use
-the `t-docs` label. The `discord api` label is used for changes that must be
-verified against the Discord API for correctness. The `d-unmerged` label is used
-when writing functionality based on an unmerged PR in the 
-[Discord API documentation].
-
-# Merging
-
-Pull requests require two approvals before merging. The only possible merge
-option is squash and merge. Commits must be named with the format
-`type({crate}): {short description of change} (#PR)`, and should use lower case
-letters. If the change spans more than one crate, separate the crate names with
-a comma and a space: `type({crate1},{crate2}): {short description of change}
-(#PR)`. In this format, `type` is the type of the commit according to the `t-*`
-label set.
-
-[Discord API documentation]: https://github.com/discord/discord-api-docs
-[Twilight Discord]: https://discord.gg/twilight-rs
+[#1439]: https://github.com/twilight-rs/twilight/discussions/1439
 [`static_assertions`]: https://crates.io/crates/static_assertions
+[Conventional Commit]: https://www.conventionalcommits.org/en/v1.0.0/
+[Discord API]: https://github.com/discord/discord-api-docs
+[Twilight Discord]: https://discord.gg/twilight-rs
