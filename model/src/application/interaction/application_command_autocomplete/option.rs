@@ -13,7 +13,7 @@ pub struct ApplicationCommandAutocompleteDataOption {
     pub name: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub options: Vec<ApplicationCommandAutocompleteDataOption>,
-    pub value: String,
+    pub value: Option<String>,
 }
 
 /// Type of option data received.
