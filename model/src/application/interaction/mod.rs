@@ -315,7 +315,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let user = user.unwrap_or_default();
 
                 #[cfg(feature = "tracing")]
-                tracing::trace!(%channel_id, "handling application command");
+                tracing::trace!(%channel_id, "handling application command autocomplete");
 
                 let command = Box::new(ApplicationCommandAutocomplete {
                     application_id,

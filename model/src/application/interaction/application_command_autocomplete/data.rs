@@ -34,7 +34,4 @@ pub struct ApplicationCommandAutocompleteData {
     /// Data sent if any of the options are Discord types.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<CommandInteractionDataResolved>,
-    /// If this is a user or message command, the ID of the targeted user/message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub target_id: Option<Id<GenericMarker>>,
 }

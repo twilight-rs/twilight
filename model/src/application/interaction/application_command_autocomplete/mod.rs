@@ -94,7 +94,6 @@ mod tests {
                         value: Some("1234".into()),
                     }]),
                     resolved: None,
-                    target_id: None,
                 },
                 guild_id: Some(Id::new(4)),
                 guild_locale: None,
