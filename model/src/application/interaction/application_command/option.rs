@@ -1,13 +1,7 @@
-mod resolved;
-
-pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
-
 use crate::{
-    application::command::{CommandOptionType, CommandType, Number},
+    application::command::{CommandOptionType, Number},
     id::{
-        marker::{
-            AttachmentMarker, ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker,
-        },
+        marker::{AttachmentMarker, ChannelMarker, GenericMarker, RoleMarker, UserMarker},
         Id,
     },
 };
@@ -16,33 +10,7 @@ use serde::{
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::fmt::{Formatter, Result as FmtResult};
-
-/// Data received when an [`ApplicationCommand`] interaction is executed.
-///
-/// See [Discord Docs/Interaction Object].
-///
-/// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
-/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct CommandData {
-    /// ID of the command.
-    pub id: Id<CommandMarker>,
-    /// Name of the command.
-    pub name: String,
-    /// Type of the command.
-    #[serde(rename = "type")]
-    pub kind: CommandType,
-    /// List of parsed options specified by the user.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub options: Vec<CommandDataOption>,
-    /// Data sent if any of the options are Discord types.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub resolved: Option<CommandInteractionDataResolved>,
-    /// If this is a user or message command, the ID of the targeted user/message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub target_id: Option<Id<GenericMarker>>,
-}
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Data received when a user fills in a command option.
 ///
@@ -380,11 +348,12 @@ impl CommandOptionValue {
 
 #[cfg(test)]
 mod tests {
-    use super::CommandData;
     use crate::{
         application::{
             command::{CommandOptionType, CommandType, Number},
-            interaction::application_command::{CommandDataOption, CommandOptionValue},
+            interaction::application_command::{
+                CommandData, CommandDataOption, CommandOptionValue,
+            },
         },
         id::Id,
     };
