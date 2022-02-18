@@ -191,6 +191,14 @@ bitflags! {
         /// [`TYPING_START`]: super::event::Event::TypingStart
         /// [`GUILD_MESSAGE_TYPING`]: Self::GUILD_MESSAGE_TYPING
         const DIRECT_MESSAGE_TYPING = 1 << 14;
+        /// Message content intent.
+        ///
+        /// This intent is privileged. See [Discord Docs/Privileged Intents].
+        ///
+        /// This intent allows you to receive the contents of all messages.
+        ///
+        /// [Discord Docs/Privileged Intents]: https://discord.com/developers/docs/topics/gateway#privileged-intents
+        const MESSAGE_CONTENT = 1 << 15;
     }
 }
 

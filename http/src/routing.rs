@@ -1,7 +1,6 @@
 pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
 
 use crate::request::{channel::reaction::RequestReactionType, Method};
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{marker::RoleMarker, Id};
 
@@ -33,8 +32,6 @@ pub enum Route<'a> {
         delete_message_days: Option<u64>,
         /// The ID of the guild.
         guild_id: u64,
-        /// The reason for the ban.
-        reason: Option<&'a str>,
         /// The ID of the user.
         user_id: u64,
     },
@@ -1607,7 +1604,6 @@ impl Display for Route<'_> {
             Route::CreateBan {
                 guild_id,
                 delete_message_days,
-                reason,
                 user_id,
             } => {
                 f.write_str("guilds/")?;
@@ -1619,17 +1615,6 @@ impl Display for Route<'_> {
                 if let Some(delete_message_days) = delete_message_days {
                     f.write_str("delete_message_days=")?;
                     Display::fmt(delete_message_days, f)?;
-
-                    if reason.is_some() {
-                        f.write_str("&")?;
-                    }
-                }
-
-                if let Some(reason) = reason {
-                    f.write_str("reason=")?;
-                    let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC);
-
-                    Display::fmt(&encoded_reason, f)?;
                 }
 
                 Ok(())
@@ -4445,7 +4430,6 @@ mod tests {
         let mut route = Route::CreateBan {
             guild_id: GUILD_ID,
             delete_message_days: None,
-            reason: None,
             user_id: USER_ID,
         };
         assert_eq!(
@@ -4460,43 +4444,12 @@ mod tests {
         route = Route::CreateBan {
             guild_id: GUILD_ID,
             delete_message_days: Some(3),
-            reason: None,
             user_id: USER_ID,
         };
         assert_eq!(
             route.to_string(),
             format!(
                 "guilds/{guild_id}/bans/{user_id}?delete_message_days=3",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
-        );
-
-        route = Route::CreateBan {
-            guild_id: GUILD_ID,
-            delete_message_days: None,
-            reason: Some("test"),
-            user_id: USER_ID,
-        };
-        assert_eq!(
-            route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans/{user_id}?reason=test",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
-        );
-
-        route = Route::CreateBan {
-            guild_id: GUILD_ID,
-            delete_message_days: Some(3),
-            reason: Some("test"),
-            user_id: USER_ID,
-        };
-        assert_eq!(
-            route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans/{user_id}?delete_message_days=3&reason=test",
                 guild_id = GUILD_ID,
                 user_id = USER_ID
             )
