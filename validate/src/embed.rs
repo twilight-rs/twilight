@@ -148,7 +148,7 @@ impl Error for EmbedValidationError {}
 pub enum EmbedValidationErrorType {
     /// Embed author's name is larger than [`AUTHOR_NAME_LENGTH`].
     AuthorNameTooLarge {
-        /// Provided count.
+        /// Provided number of codepoints.
         chars: usize,
     },
     /// Color is larger than a valid RGB hexadecimal value.
@@ -172,12 +172,12 @@ pub enum EmbedValidationErrorType {
     },
     /// A field's name is larger than [`FIELD_NAME_LENGTH`].
     FieldNameTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
     /// A field's value is larger than [`FIELD_VALUE_LENGTH`].
     FieldValueTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
     /// Footer text is larger than [`FOOTER_TEXT_LENGTH`].

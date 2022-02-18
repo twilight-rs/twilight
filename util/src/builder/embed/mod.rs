@@ -152,8 +152,8 @@ impl EmbedBuilder {
     /// ```
     ///
     /// [`COLOR_MAXIMUM`]: twilight_validate::embed::COLOR_MAXIMUM
-    pub fn color(mut self, color: u32) -> Self {
-        self.0.color.replace(color);
+    pub const fn color(mut self, color: u32) -> Self {
+        self.0.color = Some(color);
 
         self
     }
@@ -360,7 +360,8 @@ impl TryFrom<EmbedBuilder> for Embed {
 
     /// Convert an embed builder into an embed, validating its contents.
     ///
-    /// This is equivalent to calling [`EmbedBuilder::build`].
+    /// This is equivalent to calling [`EmbedBuilder::validate`], then
+    /// [`EmbedBuilder::build`].
     fn try_from(builder: EmbedBuilder) -> Result<Self, Self::Error> {
         Ok(builder.validate()?.build())
     }
