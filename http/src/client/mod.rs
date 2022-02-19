@@ -1638,10 +1638,29 @@ impl Client {
         UpdateTemplate::new(self, guild_id, template_code)
     }
 
-    /// Returns all active threads in the channel.
+    /// Returns all active threads in the guild.
     ///
     /// Includes public and private threads. Threads are ordered by their ID in
     /// descending order.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = Client::new("my token".to_owned());
+    /// let guild_id = Id::new(234);
+    ///
+    /// let threads: ThreadListing = http.active_threads(guild_id)
+    ///     .exec()
+    ///     .await?
+    ///     .model()
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub const fn active_threads(&self, guild_id: Id<GuildMarker>) -> GetActiveThreads<'_> {
         GetActiveThreads::new(self, guild_id)
     }
