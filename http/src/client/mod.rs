@@ -525,7 +525,7 @@ impl Client {
     ///     http::permission_overwrite::{
     ///         PermissionOverwrite, PermissionOverwriteType,
     ///     },
-    ///     id::Id,
+    ///     id::{marker::RoleMarker, Id},
     /// };
     ///
     /// let channel_id = Id::new(123);
