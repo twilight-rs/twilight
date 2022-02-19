@@ -529,10 +529,11 @@ impl Client {
     /// };
     ///
     /// let channel_id = Id::new(123);
+    /// let role_id: Id<RoleMarker> = Id::new(432);
     /// let permission_overwrite = PermissionOverwrite {
     ///     allow: Some(Permissions::VIEW_CHANNEL),
     ///     deny: Some(Permissions::SEND_MESSAGES),
-    ///     id: Id::new(432),
+    ///     id: role_id.cast(),
     ///     kind: PermissionOverwriteType::Role,
     /// };
     ///
