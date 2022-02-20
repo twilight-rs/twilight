@@ -98,6 +98,45 @@ impl CommandBuilder {
     }
 }
 
+/// Create an attachment option with a builder.
+#[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
+pub struct AttachmentBuilder(BaseCommandOptionData);
+
+impl AttachmentBuilder {
+    /// Create a new default [`AttachmentBuilder`].
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
+        Self(BaseCommandOptionData {
+            description,
+            name,
+            required: false,
+        })
+    }
+
+    /// Consume the builder, returning the built command option.
+    #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
+    pub fn build(self) -> CommandOption {
+        CommandOption::Attachment(self.0)
+    }
+
+    /// Set whether this option is required.
+    ///
+    /// Defaults to false.
+    pub const fn required(mut self, required: bool) -> Self {
+        self.0.required = required;
+
+        self
+    }
+}
+
+impl From<AttachmentBuilder> for CommandOption {
+    fn from(builder: AttachmentBuilder) -> CommandOption {
+        builder.build()
+    }
+}
+
 /// Create a boolean option with a builder.
 #[derive(Clone, Debug)]
 #[must_use = "should be used in a command builder"]
@@ -624,6 +663,7 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
+    assert_impl_all!(AttachmentBuilder: Clone, Debug, Send, Sync);
     assert_impl_all!(CommandBuilder: Clone, Debug, Send, Sync);
     assert_impl_all!(BooleanBuilder: Clone, Debug, Send, Sync);
     assert_impl_all!(ChannelBuilder: Clone, Debug, Send, Sync);
