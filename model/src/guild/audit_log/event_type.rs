@@ -159,24 +159,6 @@ pub enum AuditLogEventType {
     ///
     /// [Integration]: super::super::GuildIntegration
     IntegrationDelete = 82,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was created.
-    ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
-    ThreadCreate = 110,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was deleted.
-    ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
-    ThreadDelete = 112,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was updated.
-    ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
-    ThreadUpdate = 111,
     /// [Stage instance] was created.
     ///
     /// [Stage instance]: crate::channel::stage_instance::StageInstance
@@ -213,6 +195,24 @@ pub enum AuditLogEventType {
     ///
     /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
     GuildScheduledEventUpdate = 101,
+    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was created.
+    ///
+    /// [`NewsThread`]: crate::channel::thread::NewsThread
+    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
+    /// [`PublicThread`]: crate::channel::thread::PublicThread
+    ThreadCreate = 110,
+    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was deleted.
+    ///
+    /// [`NewsThread`]: crate::channel::thread::NewsThread
+    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
+    /// [`PublicThread`]: crate::channel::thread::PublicThread
+    ThreadDelete = 112,
+    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was updated.
+    ///
+    /// [`NewsThread`]: crate::channel::thread::NewsThread
+    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
+    /// [`PublicThread`]: crate::channel::thread::PublicThread
+    ThreadUpdate = 111,
 }
 
 #[cfg(test)]
