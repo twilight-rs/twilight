@@ -32,25 +32,63 @@ chronological history in the PR story.
 
 Contributors must add tests and documentation that reflects their changes.
 
+#### Format
+
 Twilight follows a [Conventional Commit] style for pull request titles and
-commits. A Github Actions workflow automatically labels pull requests based on
-parsing the title. For more information, see [this discussion][#1439].
+commits, using [Angular]'s types.
+
+The title of the PR must follow this style:
+
+`<type>(<scope>)<! if breaking>: <short summary>`
+
+Acceptable values of the `type` field:
+- `build`: Changes that affect the build system or external dependencies (example
+  scopes: gulp, broccoli, npm)
+- `ci`: Changes to our CI configuration files and scripts (examples: CircleCi,
+  SauceLabs)
+- `docs`: Documentation only changes
+- `feat`: A new feature
+- `fix`: A bug fix
+- `perf`: A code change that improves performance
+- `refactor`: A code change that neither fixes a bug nor adds a feature
+- `test`: Adding missing tests or correcting existing tests
+
+Acceptable scopes are any crate in the project. Add an exclamation point after
+the scope (outside the parentheses) if the change is breaking.
+
+The PR description must contain a short description of the changes.
+
+#### Labeling
 
 Labels that must be added manually:
 - `d-api`: for changes that correspond with the [Discord API]
 - `d-breaking`: for API changes that cause a breaking change in library code
 - `d-unmerged`: changes that have not yet been merged into the documentation
-- `w-do-not-merge`: merge is blocked on another PR
+- `w-do-not-merge`: merge is blocked on another PR, or is not ready for review
 - `w-needs-more-docs`: a change needs more documentation in the code itself or
   in the PR description
 - `w-needs-testing`: a change needs more tests added or proof of manual testing
 - `w-unapproved`: a design change has not yet been approved by library
   maintainers
 
-Pull requests require two approvals before merging. The squashed commit
-description must contain a summary of the changes. 
+#### Branches
+
+Any kind of change can be made to the `main` branch, unless it is breaking.
+`fix` changes may target `main` if the current functionality is broken.
+Generally, `ci`, `docs`, `feat`, `fix`, `perf`, and `test` pull requests are
+made targeting the `main` branch, while larger `refactor` pull requests target
+`next`. 
+
+#### Merging
+
+Pull requests require two approvals before merging.
 
 ## Code Style
+
+Not all of our codebase follows this style. But, in an effort to reach
+consistency and clarity, we require all new PRs to follow it. For parts of the
+codebase that do not yet follow this document, they may be updated
+module-by-module or crate-by-crate, depending on the size of the target.
 
 ### Errors
 
@@ -62,7 +100,7 @@ dependencies without breaking the public API.
 
 Normally, the fields of the error struct are not public, as they can be accessed
 through the provided methods. However, in some cases, you may need to make the
-struct fields `pub` or `pub(crate)`.
+struct fields `pub(crate)`.
 
 New error implementations must follow this pattern:
 
@@ -278,8 +316,8 @@ the word "See", and the anchor must be formatted as "Discord Docs/Page Title":
 pub const fn update_global_command(
 ```
 
-[#1439]: https://github.com/twilight-rs/twilight/discussions/1439
 [`static_assertions`]: https://crates.io/crates/static_assertions
+[Angular]: https://github.com/angular/angular/blob/13.2.x/CONTRIBUTING.md#type
 [Conventional Commit]: https://www.conventionalcommits.org/en/v1.0.0/
 [Discord API]: https://github.com/discord/discord-api-docs
 [Twilight Discord]: https://discord.gg/twilight-rs
