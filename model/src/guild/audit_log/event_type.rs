@@ -187,32 +187,32 @@ pub enum AuditLogEventType {
     ///
     /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
     GuildScheduledEventCreate = 100,
-    /// [`GuildScheduledEvent`] was deleted.
-    ///
-    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
-    GuildScheduledEventDelete = 102,
     /// [`GuildScheduledEvent`] was updated.
     ///
     /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
     GuildScheduledEventUpdate = 101,
+    /// [`GuildScheduledEvent`] was deleted.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventDelete = 102,
     /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was created.
     ///
     /// [`NewsThread`]: crate::channel::thread::NewsThread
     /// [`PrivateThread`]: crate::channel::thread::PrivateThread
     /// [`PublicThread`]: crate::channel::thread::PublicThread
     ThreadCreate = 110,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was deleted.
-    ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
-    ThreadDelete = 112,
     /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was updated.
     ///
     /// [`NewsThread`]: crate::channel::thread::NewsThread
     /// [`PrivateThread`]: crate::channel::thread::PrivateThread
     /// [`PublicThread`]: crate::channel::thread::PublicThread
     ThreadUpdate = 111,
+    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was deleted.
+    ///
+    /// [`NewsThread`]: crate::channel::thread::NewsThread
+    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
+    /// [`PublicThread`]: crate::channel::thread::PublicThread
+    ThreadDelete = 112,
 }
 
 #[cfg(test)]
