@@ -201,6 +201,18 @@ pub enum AuditLogEventType {
     ///
     /// [Sticker]: crate::channel::message::sticker::Sticker
     StickerDelete = 92,
+    /// [`GuildScheduledEvent`] was created.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventCreate = 100,
+    /// [`GuildScheduledEvent`] was deleted.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventDelete = 102,
+    /// [`GuildScheduledEvent`] was updated.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventUpdate = 101,
 }
 
 #[cfg(test)]
