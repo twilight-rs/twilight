@@ -98,13 +98,13 @@ impl CommandBuilder {
     }
 }
 
-/// Create a attachment option with a builder
+/// Create an attachment option with a builder.
 #[derive(Clone, Debug)]
 #[must_use = "should be used in a command builder"]
 pub struct AttachmentBuilder(BaseCommandOptionData);
 
 impl AttachmentBuilder {
-    /// Create a new default [`AttachmentBuilder`]
+    /// Create a new default [`AttachmentBuilder`].
     #[must_use = "builders have no effect if unused"]
     pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
