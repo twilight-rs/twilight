@@ -90,6 +90,12 @@ consistency and clarity, we require all new PRs to follow it. For parts of the
 codebase that do not yet follow this document, they may be updated
 module-by-module or crate-by-crate, depending on the size of the target.
 
+### Enums and Structs
+
+Struct fields should be sorted alphabetically. Enum variants should be as well,
+except in some cases, where the enum represents an integer value, in which case
+the enum variants should be sorted by that value.
+
 ### Errors
 
 Twilight's `Error` design is a struct with one required field (`kind`) and one
