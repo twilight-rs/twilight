@@ -206,13 +206,13 @@ impl<'a> CreateFollowup<'a> {
         Ok(self)
     }
 
-    /// Set if the followup should be ephemeral.
-    pub const fn ephemeral(mut self, ephemeral: bool) -> Self {
-        if ephemeral {
-            self.fields.flags = Some(MessageFlags::EPHEMERAL);
-        } else {
-            self.fields.flags = None;
-        }
+    /// Set the message's flags.
+    ///
+    /// The only supported flag is [`EPHEMERAL`].
+    ///
+    /// [`EPHEMERAL`]: MessageFlags::EPHEMERAL
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
+        self.fields.flags = Some(flags);
 
         self
     }

@@ -246,6 +246,17 @@ impl<'a> UpdateMessage<'a> {
         Ok(self)
     }
 
+    /// Set the message's flags.
+    ///
+    /// The only supported flag is [`SUPPRESS_EMBEDS`].
+    ///
+    /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
+        self.fields.flags = Some(flags);
+
+        self
+    }
+
     /// Specify multiple [`Id<AttachmentMarker>`]s already present in the target
     /// message to keep.
     ///
@@ -281,26 +292,6 @@ impl<'a> UpdateMessage<'a> {
     /// [`attachments`]: Self::attachments
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
         self.fields.payload_json = Some(payload_json);
-
-        self
-    }
-
-    /// Suppress the embeds in the message.
-    pub const fn suppress_embeds(mut self, suppress: bool) -> Self {
-        #[allow(clippy::option_if_let_else)]
-        let mut bits = if let Some(flags) = self.fields.flags {
-            flags.bits()
-        } else {
-            0
-        };
-
-        if suppress {
-            bits |= MessageFlags::SUPPRESS_EMBEDS.bits();
-        } else {
-            bits &= !MessageFlags::SUPPRESS_EMBEDS.bits()
-        }
-
-        self.fields.flags = Some(MessageFlags::from_bits_truncate(bits));
 
         self
     }

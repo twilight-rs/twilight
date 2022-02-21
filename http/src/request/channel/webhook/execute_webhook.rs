@@ -12,7 +12,10 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions},
+    channel::{
+        embed::Embed,
+        message::{AllowedMentions, MessageFlags},
+    },
     http::attachment::Attachment,
     id::{
         marker::{ChannelMarker, WebhookMarker},
@@ -38,6 +41,8 @@ pub(crate) struct ExecuteWebhookFields<'a> {
     content: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<&'a [Embed]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -97,6 +102,7 @@ impl<'a> ExecuteWebhook<'a> {
                 components: None,
                 content: None,
                 embeds: None,
+                flags: None,
                 payload_json: None,
                 tts: None,
                 username: None,
@@ -218,6 +224,17 @@ impl<'a> ExecuteWebhook<'a> {
         self.fields.embeds = Some(embeds);
 
         Ok(self)
+    }
+
+    /// Set the message's flags.
+    ///
+    /// The only supported flag is [`SUPPRESS_EMBEDS`].
+    ///
+    /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
+        self.fields.flags = Some(flags);
+
+        self
     }
 
     /// JSON encoded body of any additional request fields.

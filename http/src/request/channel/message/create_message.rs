@@ -13,7 +13,7 @@ use twilight_model::{
     application::component::Component,
     channel::{
         embed::Embed,
-        message::{AllowedMentions, MessageReference},
+        message::{AllowedMentions, MessageFlags, MessageReference},
         Message,
     },
     http::attachment::Attachment,
@@ -40,6 +40,8 @@ pub(crate) struct CreateMessageFields<'a> {
     content: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     embeds: Option<&'a [Embed]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     message_reference: Option<MessageReference>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -98,6 +100,7 @@ impl<'a> CreateMessage<'a> {
                 components: None,
                 content: None,
                 embeds: None,
+                flags: None,
                 message_reference: None,
                 nonce: None,
                 payload_json: None,
@@ -229,6 +232,17 @@ impl<'a> CreateMessage<'a> {
         };
 
         self.fields.message_reference = Some(reference);
+
+        self
+    }
+
+    /// Set the message's flags.
+    ///
+    /// The only supported flag is [`SUPPRESS_EMBEDS`].
+    ///
+    /// [`SUPPRESS_EMBEDS`]: MessageFlags::SUPPRESS_EMBEDS
+    pub const fn flags(mut self, flags: MessageFlags) -> Self {
+        self.fields.flags = Some(flags);
 
         self
     }
