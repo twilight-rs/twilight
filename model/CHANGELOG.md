@@ -2,6 +2,27 @@
 
 Changelog for `twilight-model`.
 
+## [0.9.2] - 2022-02-12
+
+### Additions
+
+Support the `Attachment` command option type ([#1537] - [@Erk-]). This includes
+a new variant of `CommandOption` and a new field in
+`CommandInteractionDataResolved`.
+
+### Fixes
+
+Autocomplete values no longer use the `ApplicationCommand` structure, they
+rather use a separate struct that parses all `options` as `String`s ([#1542] -
+[@7596ff]).
+
+Add missing variants of `AuditLogEventType` pertaining to Stage Instances
+([#1547] - [@7596ff]).
+
+[#1537]: https://github.com/twilight-rs/twilight/pull/1537
+[#1542]: https://github.com/twilight-rs/twilight/pull/1542
+[#1547]: https://github.com/twilight-rs/twilight/pull/1547
+
 ## [0.9.1] - 2022-02-12
 
 ### Additions
@@ -1285,6 +1306,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.9.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.2
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.0
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.4

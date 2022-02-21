@@ -2,6 +2,15 @@
 
 Changelog for `twilight-validate`.
 
+## [0.9.2] - 2022-02-21
+
+### Changes
+
+Support the new `Attachment` variant of `CommandOption` in validation ([#1537] -
+[@Erk-]).
+
+[#1537]: https://github.com/twilight-rs/twilight/pull/1537
+
 ## [0.9.1] - 2022-02-12
 
 ### Additions
@@ -22,7 +31,9 @@ Initial release ([#1331], [#1395] - [@7596ff], [@baptiste0928]).
 
 [@7596ff]: https://github.com/7596ff
 [@baptiste0928]: https://github.com/baptiste0928
+[@Erk-]: https://github.com/Erk-
 [@laralove143]: https://github.com/laralove143
 
+[0.9.2]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.9.2
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.9.0

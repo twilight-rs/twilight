@@ -2,6 +2,14 @@
 
 Changelog for `twilight-util`.
 
+## [0.9.1] - 2022-02-21
+
+### Additions
+
+Add an `AttachmentBuilder` option to `CommandBuilder` ([#1545] - [@Erk-]).
+
+[#1545]: https://github.com/twilight-rs/twilight/pull/1545
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
@@ -184,6 +192,7 @@ Initial release.
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.9.0
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.8.1
