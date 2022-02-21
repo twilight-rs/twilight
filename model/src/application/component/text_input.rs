@@ -1,18 +1,17 @@
-use std::fmt::{Formatter, Result as FmtResult};
-
-use super::ComponentType;
+use crate::application::component::ComponentType;
 use serde::{
     de::{Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor},
     ser::{SerializeStruct, Serializer},
     Deserialize, Deserializer, Serialize,
 };
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::fmt::{Formatter, Result as FmtResult};
 
 /// Modal component to prompt users for a text input.
 ///
 /// Refer to [Discord Docs/Input Text] for additional information.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct InputText {
+pub struct TextInput {
     /// User defined identifier for the input text.
     pub custom_id: String,
     /// Text appearing over the input field.
@@ -30,7 +29,7 @@ pub struct InputText {
     /// Defaults to `true`.
     pub required: Option<bool>,
     /// Style variant of the input text.
-    pub style: InputTextStyle,
+    pub style: TextInputStyle,
     /// Pre-filled value for input text.
     pub value: Option<String>,
 }
@@ -40,14 +39,14 @@ pub struct InputText {
 /// Refer to [the discord docs] for additional information.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Serialize_repr)]
 #[repr(u8)]
-pub enum InputTextStyle {
+pub enum TextInputStyle {
     /// Intended for short single-line text.
     Short = 1,
     /// Intended for much longer inputs.
     Paragraph = 2,
 }
 
-impl<'de> Deserialize<'de> for InputText {
+impl<'de> Deserialize<'de> for TextInput {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_map(InputTextVisitor)
     }
@@ -55,7 +54,7 @@ impl<'de> Deserialize<'de> for InputText {
 
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
-enum InputTextField {
+enum TextInputField {
     CustomId,
     Label,
     MaxLength,
@@ -70,10 +69,10 @@ enum InputTextField {
 struct InputTextVisitor;
 
 impl<'de> Visitor<'de> for InputTextVisitor {
-    type Value = InputText;
+    type Value = TextInput;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("struct InputText")
+        f.write_str("struct TextInput")
     }
 
     #[allow(clippy::too_many_lines)]
@@ -85,7 +84,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
         let mut min_length: Option<u16> = None;
         let mut placeholder: Option<String> = None;
         let mut required: Option<bool> = None;
-        let mut style: Option<InputTextStyle> = None;
+        let mut style: Option<TextInputStyle> = None;
         let mut value: Option<String> = None;
 
         #[cfg(feature = "tracing")]
@@ -124,56 +123,56 @@ impl<'de> Visitor<'de> for InputTextVisitor {
             };
 
             match key {
-                InputTextField::CustomId => {
+                TextInputField::CustomId => {
                     if custom_id.is_some() {
                         return Err(DeError::duplicate_field("custom_id"));
                     }
 
                     custom_id = Some(map.next_value()?);
                 }
-                InputTextField::Label => {
+                TextInputField::Label => {
                     if label.is_some() {
                         return Err(DeError::duplicate_field("label"));
                     }
 
                     label = Some(map.next_value()?)
                 }
-                InputTextField::MaxLength => {
+                TextInputField::MaxLength => {
                     if max_length.is_some() {
                         return Err(DeError::duplicate_field("max_length"));
                     }
 
                     max_length = Some(map.next_value()?)
                 }
-                InputTextField::MinLength => {
+                TextInputField::MinLength => {
                     if min_length.is_some() {
                         return Err(DeError::duplicate_field("min_length"));
                     }
 
                     min_length = Some(map.next_value()?)
                 }
-                InputTextField::Placeholder => {
+                TextInputField::Placeholder => {
                     if placeholder.is_some() {
                         return Err(DeError::duplicate_field("placeholder"));
                     }
 
                     placeholder = Some(map.next_value()?)
                 }
-                InputTextField::Required => {
+                TextInputField::Required => {
                     if required.is_some() {
                         return Err(DeError::duplicate_field("required"));
                     }
 
                     required = Some(map.next_value()?)
                 }
-                InputTextField::Style => {
+                TextInputField::Style => {
                     if style.is_some() {
                         return Err(DeError::duplicate_field("style"));
                     }
 
                     style = Some(map.next_value()?);
                 }
-                InputTextField::Type => {
+                TextInputField::Type => {
                     if kind.is_some() {
                         return Err(DeError::duplicate_field("type"));
                     }
@@ -189,7 +188,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
 
                     kind = Some(value)
                 }
-                InputTextField::Value => {
+                TextInputField::Value => {
                     if value.is_some() {
                         return Err(DeError::duplicate_field("value"));
                     }
@@ -200,7 +199,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
         }
 
         if kind.is_none() {
-            return Err(DeError::missing_field("kind"));
+            return Err(DeError::missing_field("type"));
         }
 
         let custom_id = custom_id.ok_or_else(|| DeError::missing_field("custom_id"))?;
@@ -216,7 +215,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
             "all fields of InputText exist"
         );
 
-        Ok(InputText {
+        Ok(TextInput {
             custom_id,
             label,
             max_length,
@@ -229,7 +228,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
     }
 }
 
-impl Serialize for InputText {
+impl Serialize for TextInput {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         // Base of 4 to account for the fields that are always present:
         //
@@ -242,7 +241,7 @@ impl Serialize for InputText {
             + usize::from(self.min_length.is_some())
             + usize::from(self.max_length.is_some())
             + usize::from(self.required.is_some());
-        let mut state = serializer.serialize_struct("InputText", field_count)?;
+        let mut state = serializer.serialize_struct("TextInput", field_count)?;
 
         state.serialize_field("custom_id", &self.custom_id)?;
         state.serialize_field("label", &self.label)?;
@@ -276,17 +275,13 @@ impl Serialize for InputText {
 
 #[cfg(test)]
 mod tests {
-    use serde::{Deserialize, Serialize};
+    use super::*;
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all, const_assert_eq};
-
-    use crate::application::component::{input_text::InputTextStyle, ComponentType};
-
-    use super::InputText;
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(
-        InputText: custom_id,
+        TextInput: custom_id,
         label,
         style,
         placeholder,
@@ -295,7 +290,7 @@ mod tests {
         value
     );
     assert_impl_all!(
-        InputText: Clone,
+        TextInput: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
@@ -306,7 +301,7 @@ mod tests {
         Sync
     );
     assert_impl_all!(
-        InputTextStyle: Clone,
+        TextInputStyle: Clone,
         Copy,
         Debug,
         Deserialize<'static>,
@@ -318,25 +313,25 @@ mod tests {
         Serialize,
         Sync
     );
-    const_assert_eq!(1, InputTextStyle::Short as u8);
-    const_assert_eq!(2, InputTextStyle::Paragraph as u8);
+    const_assert_eq!(1, TextInputStyle::Short as u8);
+    const_assert_eq!(2, TextInputStyle::Paragraph as u8);
 
     #[test]
     fn test_input_text_style() {
-        serde_test::assert_tokens(&InputTextStyle::Short, &[Token::U8(1)]);
-        serde_test::assert_tokens(&InputTextStyle::Paragraph, &[Token::U8(2)]);
+        serde_test::assert_tokens(&TextInputStyle::Short, &[Token::U8(1)]);
+        serde_test::assert_tokens(&TextInputStyle::Paragraph, &[Token::U8(2)]);
     }
 
     #[test]
     fn test_input_text() {
-        let value = InputText {
+        let value = TextInput {
             custom_id: "test".to_owned(),
             label: "The label".to_owned(),
             max_length: Some(100),
             min_length: Some(1),
             placeholder: Some("Taking this place".to_owned()),
             required: Some(true),
-            style: InputTextStyle::Short,
+            style: TextInputStyle::Short,
             value: Some("Hello World!".to_owned()),
         };
 
@@ -344,7 +339,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "InputText",
+                    name: "TextInput",
                     len: 8,
                 },
                 Token::String("custom_id"),
@@ -364,7 +359,7 @@ mod tests {
                 Token::Some,
                 Token::Bool(true),
                 Token::String("style"),
-                Token::U8(InputTextStyle::Short as u8),
+                Token::U8(TextInputStyle::Short as u8),
                 Token::String("type"),
                 Token::U8(ComponentType::InputText as u8),
                 Token::String("value"),
@@ -378,7 +373,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "InputText",
+                    name: "TextInput",
                     len: 8,
                 },
                 Token::String("custom_id"),
@@ -398,7 +393,7 @@ mod tests {
                 Token::Some,
                 Token::Bool(true),
                 Token::String("style"),
-                Token::U8(InputTextStyle::Short as u8),
+                Token::U8(TextInputStyle::Short as u8),
                 Token::String("type"),
                 Token::U8(ComponentType::InputText as u8),
                 Token::String("value"),

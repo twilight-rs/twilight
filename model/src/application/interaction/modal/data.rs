@@ -57,24 +57,6 @@ pub struct ModalInteractionDataComponent {
     pub value: ModalComponentValue,
 }
 
-impl Serialize for ModalInteractionDataComponent {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        // Reserved for `type`, `custom_id` and `value`
-        let len = 3;
-
-        let mut state = serializer.serialize_struct("ModalInteractionDataComponent", len)?;
-
-        state.serialize_field("custom_id", &self.custom_id)?;
-        state.serialize_field("type", &self.value.kind())?;
-
-        match &self.value {
-            ModalComponentValue::InputText(i) => state.serialize_field("value", i)?,
-        }
-
-        state.end()
-    }
-}
-
 impl<'de> Deserialize<'de> for ModalInteractionDataComponent {
     #[allow(clippy::too_many_lines)]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
@@ -180,6 +162,24 @@ impl<'de> Deserialize<'de> for ModalInteractionDataComponent {
     }
 }
 
+impl Serialize for ModalInteractionDataComponent {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        // Reserved for `type`, `custom_id` and `value`
+        let len = 3;
+
+        let mut state = serializer.serialize_struct("ModalInteractionDataComponent", len)?;
+
+        state.serialize_field("custom_id", &self.custom_id)?;
+        state.serialize_field("type", &self.value.kind())?;
+
+        match &self.value {
+            ModalComponentValue::InputText(i) => state.serialize_field("value", i)?,
+        }
+
+        state.end()
+    }
+}
+
 /// Value of a [`ModalInteractionDataComponent`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ModalComponentValue {
@@ -196,17 +196,10 @@ impl ModalComponentValue {
 
 #[cfg(test)]
 mod tests {
-    use serde::{Deserialize, Serialize};
+    use super::*;
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
-
-    use crate::application::component::ComponentType;
-
-    use super::{
-        ModalComponentValue, ModalInteractionData, ModalInteractionDataActionRow,
-        ModalInteractionDataComponent,
-    };
 
     assert_fields!(ModalInteractionData: custom_id, components);
     assert_impl_all!(
@@ -232,44 +225,55 @@ mod tests {
         let value = ModalInteractionData {
             custom_id: "test-modal".to_owned(),
             components: Vec::from([ModalInteractionDataActionRow {
-                components: Vec::from([
-                ModalInteractionDataComponent {
+                components: Vec::from([ModalInteractionDataComponent {
                     custom_id: "the-data-id".to_owned(),
-                    value: ModalComponentValue::InputText("Twilight is a powerful, flexible and scalable ecosystem of Rust libraries for the Discord API.".to_owned())
-                }
-            ])
-        },  ])
+                    value: ModalComponentValue::InputText(
+                        "Twilight is a powerful, flexible and scalable \
+                        ecosystem of Rust libraries for the Discord API."
+                            .to_owned(),
+                    ),
+                }]),
+            }]),
         };
 
-        serde_test::assert_tokens(&value, &[
-            Token::Struct {
-                name: "ModalInteractionData",
-                len: 2
-            },
-            Token::String("components"),
-            Token::Seq { len: Some(1) },
-            Token::Struct { name: "ModalInteractionDataActionRow", len: 2},
-            Token::String("components"),
-            Token::Seq { len: Some(1) },
-            Token::Struct {
-                name: "ModalInteractionDataComponent",
-                len: 3
-            },
-            Token::String("custom_id"),
-            Token::String("the-data-id"),
-            Token::String("type"),
-            Token::U8(ComponentType::InputText as u8),
-            Token::String("value"),
-            Token::String("Twilight is a powerful, flexible and scalable ecosystem of Rust libraries for the Discord API."),
-            Token::StructEnd,
-            Token::SeqEnd,
-            Token::String("type"),
-            Token::U8(ComponentType::ActionRow as u8),
-            Token::StructEnd,
-            Token::SeqEnd,
-            Token::String("custom_id"),
-            Token::String("test-modal"),
-            Token::StructEnd
-        ]);
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "ModalInteractionData",
+                    len: 2,
+                },
+                Token::String("components"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "ModalInteractionDataActionRow",
+                    len: 2,
+                },
+                Token::String("components"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "ModalInteractionDataComponent",
+                    len: 3,
+                },
+                Token::String("custom_id"),
+                Token::String("the-data-id"),
+                Token::String("type"),
+                Token::U8(ComponentType::InputText as u8),
+                Token::String("value"),
+                Token::String(
+                    "Twilight is a powerful, flexible and scalable ecosystem \
+                    of Rust libraries for the Discord API.",
+                ),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::String("type"),
+                Token::U8(ComponentType::ActionRow as u8),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::String("custom_id"),
+                Token::String("test-modal"),
+                Token::StructEnd,
+            ],
+        );
     }
 }

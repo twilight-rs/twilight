@@ -1,14 +1,11 @@
-use std::fmt::{Formatter, Result as FmtResult};
-
-use crate::channel::ReactionType;
-
-use super::ComponentType;
+use crate::{application::component::ComponentType, channel::ReactionType};
 use serde::{
     de::{Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor},
     ser::{SerializeStruct, Serializer},
     Deserialize, Deserializer, Serialize,
 };
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::fmt::{Formatter, Result as FmtResult};
 
 /// Clickable interactive components that render on messages.
 ///
@@ -280,9 +277,7 @@ mod tests {
     // Required due to the use of a unicode emoji in a constant.
     #![allow(clippy::non_ascii_literal)]
 
-    use super::{Button, ButtonStyle};
-    use crate::{application::component::ComponentType, channel::ReactionType};
-    use serde::{Deserialize, Serialize};
+    use super::*;
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all, const_assert_eq};
     use std::{fmt::Debug, hash::Hash};

@@ -10,14 +10,14 @@
 
 pub mod action_row;
 pub mod button;
-pub mod input_text;
 pub mod select_menu;
+pub mod text_input;
 
 mod kind;
 
 pub use self::{
-    action_row::ActionRow, button::Button, input_text::InputText, kind::ComponentType,
-    select_menu::SelectMenu,
+    action_row::ActionRow, button::Button, kind::ComponentType, select_menu::SelectMenu,
+    text_input::TextInput,
 };
 
 use serde::{Deserialize, Serialize};
@@ -33,7 +33,7 @@ pub enum Component {
     ActionRow(ActionRow),
     Button(Button),
     SelectMenu(SelectMenu),
-    InputText(InputText),
+    TextInput(TextInput),
 }
 
 impl Component {
@@ -62,18 +62,15 @@ impl Component {
             Self::ActionRow(_) => ComponentType::ActionRow,
             Self::Button(_) => ComponentType::Button,
             Self::SelectMenu(_) => ComponentType::SelectMenu,
-            Self::InputText(_) => ComponentType::InputText,
+            Self::TextInput(_) => ComponentType::InputText,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        button::{Button, ButtonStyle},
-        select_menu::{SelectMenu, SelectMenuOption},
-        ActionRow, Component, ComponentType,
-    };
+    use super::*;
+    use crate::application::component::{button::ButtonStyle, select_menu::SelectMenuOption};
     use serde_test::Token;
 
     #[test]

@@ -5,8 +5,8 @@ pub use self::data::{
     ModalInteractionDataComponent,
 };
 
-use super::InteractionType;
 use crate::{
+    application::interaction::InteractionType,
     guild::PartialMember,
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
@@ -75,27 +75,10 @@ impl ModalSubmitInteraction {
 
 #[cfg(test)]
 mod tests {
-    use serde::Serialize;
+    use super::*;
+    use crate::datetime::{Timestamp, TimestampParseError};
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, str::FromStr};
-
-    use crate::{
-        application::interaction::{modal::data::ModalInteractionDataActionRow, InteractionType},
-        datetime::Timestamp,
-        guild::PartialMember,
-        id::{
-            marker::{
-                ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker,
-            },
-            Id,
-        },
-        user::User,
-    };
-
-    use super::{
-        data::{ModalComponentValue, ModalInteractionData, ModalInteractionDataComponent},
-        ModalSubmitInteraction,
-    };
 
     assert_fields!(
         ModalSubmitInteraction: application_id,
@@ -115,6 +98,8 @@ mod tests {
         PartialEq,
         Serialize,
     );
+
+    const USER_ID: Id<UserMarker> = Id::new(7);
 
     fn user(id: Id<UserMarker>) -> User {
         User {
@@ -137,10 +122,8 @@ mod tests {
     }
 
     #[test]
-    fn test_author_id() {
-        const fn user_id() -> Id<UserMarker> {
-            Id::<UserMarker>::new(7)
-        }
+    fn test_author_id() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = ModalSubmitInteraction {
             application_id: Id::<ApplicationMarker>::new(1),
@@ -160,27 +143,28 @@ mod tests {
             member: Some(PartialMember {
                 avatar: None,
                 deaf: false,
-                joined_at: Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")
-                    .expect("invalid timestamp"),
+                joined_at,
                 mute: false,
                 nick: None,
                 permissions: None,
                 premium_since: None,
                 roles: Vec::new(),
-                user: Some(user(user_id())),
+                user: Some(user(USER_ID)),
                 communication_disabled_until: None,
             }),
             token: "TOKEN".to_owned(),
             user: None,
         };
 
-        assert_eq!(Some(user_id()), in_guild.author_id());
+        assert_eq!(Some(USER_ID), in_guild.author_id());
 
         let in_dm = ModalSubmitInteraction {
             member: None,
-            user: Some(user(user_id())),
+            user: Some(user(USER_ID)),
             ..in_guild
         };
-        assert_eq!(Some(user_id()), in_dm.author_id());
+        assert_eq!(Some(USER_ID), in_dm.author_id());
+
+        Ok(())
     }
 }

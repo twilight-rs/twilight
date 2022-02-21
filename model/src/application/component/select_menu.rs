@@ -1,13 +1,10 @@
-use std::fmt::{Formatter, Result as FmtResult};
-
+use crate::{application::component::ComponentType, channel::ReactionType};
 use serde::{
     de::{Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor},
     ser::{SerializeStruct, Serializer},
     Deserialize, Deserializer, Serialize,
 };
-
-use super::ComponentType;
-use crate::channel::ReactionType;
+use std::fmt::{Formatter, Result as FmtResult};
 
 /// Dropdown-style interactive components that render on messages.
 ///
@@ -250,8 +247,7 @@ impl Serialize for SelectMenu {
 
 #[cfg(test)]
 mod tests {
-    use super::{SelectMenu, SelectMenuOption};
-    use serde::{Deserialize, Serialize};
+    use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
 

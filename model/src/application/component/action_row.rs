@@ -1,11 +1,10 @@
-use std::fmt::{Formatter, Result as FmtResult};
-
-use super::{Component, ComponentType};
+use crate::application::component::{Component, ComponentType};
 use serde::{
     de::{Error as DeError, IgnoredAny, MapAccess, Unexpected, Visitor},
     ser::{SerializeStruct, Serializer},
     Deserialize, Deserializer, Serialize,
 };
+use std::fmt::{Formatter, Result as FmtResult};
 
 /// A non-interactive component that acts as a container for other components.
 ///
@@ -16,21 +15,6 @@ use serde::{
 pub struct ActionRow {
     /// List of components in the action row.
     pub components: Vec<Component>,
-}
-
-impl Serialize for ActionRow {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let field_count = 1 + usize::from(!self.components.is_empty());
-        let mut state = serializer.serialize_struct("ActionRow", field_count)?;
-
-        if !self.components.is_empty() {
-            state.serialize_field("components", &self.components)?;
-        }
-
-        state.serialize_field("type", &ComponentType::ActionRow)?;
-
-        state.end()
-    }
 }
 
 impl<'de> Deserialize<'de> for ActionRow {
@@ -123,7 +107,7 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
         }
 
         if kind.is_none() {
-            return Err(DeError::missing_field("kind"));
+            return Err(DeError::missing_field("type"));
         }
 
         let components = components.ok_or_else(|| DeError::missing_field("components"))?;
@@ -135,12 +119,25 @@ impl<'de> Visitor<'de> for ActionRowVisitor {
     }
 }
 
+impl Serialize for ActionRow {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let field_count = 1 + usize::from(!self.components.is_empty());
+        let mut state = serializer.serialize_struct("ActionRow", field_count)?;
+
+        if !self.components.is_empty() {
+            state.serialize_field("components", &self.components)?;
+        }
+
+        state.serialize_field("type", &ComponentType::ActionRow)?;
+
+        state.end()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::application::component::{button::ButtonStyle, Button, Component};
-
-    use super::ActionRow;
-    use serde::{Deserialize, Serialize};
+    use super::*;
+    use crate::application::component::{button::ButtonStyle, Button};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
