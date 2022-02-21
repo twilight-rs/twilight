@@ -130,7 +130,7 @@ pub const SELECT_PLACEHOLDER_LENGTH: usize = 100;
 ///
 /// This is based on [Discord Docs/Text Inputs].
 ///
-/// [`TextInput::min_length`]: twilight_model::application::component::text_input::TextInput::value
+/// [`TextInput::value`]: twilight_model::application::component::text_input::TextInput::value
 /// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
 pub const TEXT_INPUT_LENGTH_MAX: usize = 4000;
 
@@ -138,7 +138,7 @@ pub const TEXT_INPUT_LENGTH_MAX: usize = 4000;
 ///
 /// This is based on [Discord Docs/Text Inputs].
 ///
-/// [`TextInput::min_length`]: twilight_model::application::component::text_input::TextInput::value
+/// [`TextInput::value`]: twilight_model::application::component::text_input::TextInput::value
 /// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
 pub const TEXT_INPUT_LENGTH_MIN: usize = 1;
 
@@ -414,6 +414,8 @@ pub enum ComponentValidationErrorType {
     },
     /// Placeholder of a [`TextInput`] component is larger than
     /// [`TEXT_INPUT_PLACEHOLDER_MAX`].
+    ///
+    /// [`TextInput`]: twilight_model::application::component::text_input::TextInput
     TextInputPlaceholderLength {
         /// Provided number of codepoints.
         chars: usize,
