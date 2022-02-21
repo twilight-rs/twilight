@@ -133,7 +133,7 @@ mod tests {
                 components: Vec::from([ModalInteractionDataActionRow {
                     components: Vec::from([ModalInteractionDataComponent {
                         custom_id: "input-1".to_owned(),
-                        value: ModalComponentValue::InputText("got it".to_owned()),
+                        value: ModalComponentValue::TextInput("got it".to_owned()),
                     }]),
                 }]),
             },

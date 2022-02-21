@@ -62,7 +62,7 @@ impl Component {
             Self::ActionRow(_) => ComponentType::ActionRow,
             Self::Button(_) => ComponentType::Button,
             Self::SelectMenu(_) => ComponentType::SelectMenu,
-            Self::TextInput(_) => ComponentType::InputText,
+            Self::TextInput(_) => ComponentType::TextInput,
         }
     }
 }

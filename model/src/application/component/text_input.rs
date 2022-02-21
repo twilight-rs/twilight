@@ -34,7 +34,7 @@ pub struct TextInput {
     pub value: Option<String>,
 }
 
-/// Style of an [`InputText`].
+/// Style of an [`TextInput`].
 ///
 /// Refer to [the discord docs] for additional information.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Serialize_repr)]
@@ -48,7 +48,7 @@ pub enum TextInputStyle {
 
 impl<'de> Deserialize<'de> for TextInput {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer.deserialize_map(InputTextVisitor)
+        deserializer.deserialize_map(TextInputVisitor)
     }
 }
 
@@ -66,9 +66,9 @@ enum TextInputField {
     Value,
 }
 
-struct InputTextVisitor;
+struct TextInputVisitor;
 
-impl<'de> Visitor<'de> for InputTextVisitor {
+impl<'de> Visitor<'de> for TextInputVisitor {
     type Value = TextInput;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -179,7 +179,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
 
                     let value: ComponentType = map.next_value()?;
 
-                    if value != ComponentType::InputText {
+                    if value != ComponentType::TextInput {
                         return Err(DeError::invalid_value(
                             Unexpected::Unsigned(value as u64),
                             &"an input text type",
@@ -212,7 +212,7 @@ impl<'de> Visitor<'de> for InputTextVisitor {
             ?kind,
             %label,
             ?style,
-            "all fields of InputText exist"
+            "all fields of TextInput exist"
         );
 
         Ok(TextInput {
@@ -263,7 +263,7 @@ impl Serialize for TextInput {
         }
 
         state.serialize_field("style", &self.style)?;
-        state.serialize_field("type", &ComponentType::InputText)?;
+        state.serialize_field("type", &ComponentType::TextInput)?;
 
         if self.value.is_some() {
             state.serialize_field("value", &self.value)?;
@@ -361,7 +361,7 @@ mod tests {
                 Token::String("style"),
                 Token::U8(TextInputStyle::Short as u8),
                 Token::String("type"),
-                Token::U8(ComponentType::InputText as u8),
+                Token::U8(ComponentType::TextInput as u8),
                 Token::String("value"),
                 Token::Some,
                 Token::String("Hello World!"),
@@ -395,7 +395,7 @@ mod tests {
                 Token::String("style"),
                 Token::U8(TextInputStyle::Short as u8),
                 Token::String("type"),
-                Token::U8(ComponentType::InputText as u8),
+                Token::U8(ComponentType::TextInput as u8),
                 Token::String("value"),
                 Token::Some,
                 Token::String("Hello World!"),

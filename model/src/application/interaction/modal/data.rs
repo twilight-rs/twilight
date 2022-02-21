@@ -139,18 +139,18 @@ impl<'de> Deserialize<'de> for ModalInteractionDataComponent {
 
                 let value = match kind {
                     ComponentType::ActionRow => {
-                        return Err(DeError::unknown_variant("ActionRow", &["InputText"]))
+                        return Err(DeError::unknown_variant("ActionRow", &["TextInput"]))
                     }
                     ComponentType::Button => {
-                        return Err(DeError::unknown_variant("Button", &["InputText"]))
+                        return Err(DeError::unknown_variant("Button", &["TextInput"]))
                     }
                     ComponentType::SelectMenu => {
-                        return Err(DeError::unknown_variant("SelectMenu", &["InputText"]))
+                        return Err(DeError::unknown_variant("SelectMenu", &["TextInput"]))
                     }
-                    ComponentType::InputText => {
+                    ComponentType::TextInput => {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                        ModalComponentValue::InputText(val)
+                        ModalComponentValue::TextInput(val)
                     }
                 };
 
@@ -173,7 +173,7 @@ impl Serialize for ModalInteractionDataComponent {
         state.serialize_field("type", &self.value.kind())?;
 
         match &self.value {
-            ModalComponentValue::InputText(i) => state.serialize_field("value", i)?,
+            ModalComponentValue::TextInput(i) => state.serialize_field("value", i)?,
         }
 
         state.end()
@@ -183,13 +183,13 @@ impl Serialize for ModalInteractionDataComponent {
 /// Value of a [`ModalInteractionDataComponent`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ModalComponentValue {
-    InputText(String),
+    TextInput(String),
 }
 
 impl ModalComponentValue {
     pub const fn kind(&self) -> ComponentType {
         match self {
-            ModalComponentValue::InputText(_) => ComponentType::InputText,
+            ModalComponentValue::TextInput(_) => ComponentType::TextInput,
         }
     }
 }
@@ -227,7 +227,7 @@ mod tests {
             components: Vec::from([ModalInteractionDataActionRow {
                 components: Vec::from([ModalInteractionDataComponent {
                     custom_id: "the-data-id".to_owned(),
-                    value: ModalComponentValue::InputText(
+                    value: ModalComponentValue::TextInput(
                         "Twilight is a powerful, flexible and scalable \
                         ecosystem of Rust libraries for the Discord API."
                             .to_owned(),
@@ -258,7 +258,7 @@ mod tests {
                 Token::String("custom_id"),
                 Token::String("the-data-id"),
                 Token::String("type"),
-                Token::U8(ComponentType::InputText as u8),
+                Token::U8(ComponentType::TextInput as u8),
                 Token::String("value"),
                 Token::String(
                     "Twilight is a powerful, flexible and scalable ecosystem \

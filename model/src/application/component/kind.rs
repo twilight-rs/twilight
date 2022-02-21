@@ -26,10 +26,10 @@ pub enum ComponentType {
     /// [`SelectMenu`]: super::SelectMenu
     SelectMenu = 3,
 
-    /// Component is an [`InputText`].
+    /// Component is an [`TextInput`].
     ///
-    /// [`InputText`]: super::InputText
-    InputText = 4,
+    /// [`TextInput`]: super::TextInput
+    TextInput = 4,
 }
 
 impl ComponentType {
@@ -53,7 +53,7 @@ impl ComponentType {
             Self::ActionRow => "ActionRow",
             Self::Button => "Button",
             Self::SelectMenu => "SelectMenu",
-            Self::InputText => "InputText",
+            Self::TextInput => "TextInput",
         }
     }
 }
