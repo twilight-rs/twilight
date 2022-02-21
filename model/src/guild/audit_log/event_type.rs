@@ -159,18 +159,6 @@ pub enum AuditLogEventType {
     ///
     /// [Integration]: super::super::GuildIntegration
     IntegrationDelete = 82,
-    /// Thread [channel] was created.
-    ///
-    /// [channel]: crate::channel::Channel
-    ThreadCreate = 110,
-    /// Thread [channel] was deleted.
-    ///
-    /// [channel]: crate::channel::Channel
-    ThreadDelete = 112,
-    /// Thread [channel] was updated.
-    ///
-    /// [channel]: crate::channel::Channel
-    ThreadUpdate = 111,
     /// [Stage instance] was created.
     ///
     /// [Stage instance]: crate::channel::stage_instance::StageInstance
@@ -195,6 +183,30 @@ pub enum AuditLogEventType {
     ///
     /// [Sticker]: crate::channel::message::sticker::Sticker
     StickerDelete = 92,
+    /// [`GuildScheduledEvent`] was created.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventCreate = 100,
+    /// [`GuildScheduledEvent`] was updated.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventUpdate = 101,
+    /// [`GuildScheduledEvent`] was deleted.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventDelete = 102,
+    /// Thread [channel] was created.
+    ///
+    /// [channel]: crate::channel::Channel
+    ThreadCreate = 110,
+    /// Thread [channel] was updated.
+    ///
+    /// [channel]: crate::channel::Channel
+    ThreadUpdate = 111,
+    /// Thread [channel] was deleted.
+    ///
+    /// [channel]: crate::channel::Channel
+    ThreadDelete = 112,
 }
 
 #[cfg(test)]
