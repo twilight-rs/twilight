@@ -16,7 +16,7 @@ use twilight_validate::request::{
 };
 
 struct CreateBanFields<'a> {
-    delete_message_days: Option<u64>,
+    delete_message_days: Option<u16>,
     reason: Option<&'a str>,
 }
 
@@ -80,7 +80,7 @@ impl<'a> CreateBan<'a> {
     /// number of days is greater than 7.
     ///
     /// [`CreateGuildBanDeleteMessageDays`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageDays
-    pub const fn delete_message_days(mut self, days: u64) -> Result<Self, ValidationError> {
+    pub const fn delete_message_days(mut self, days: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_create_guild_ban_delete_message_days(days) {
             return Err(source);
         }

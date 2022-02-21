@@ -191,7 +191,7 @@ pub struct TextFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rate_limit_per_user: Option<u64>,
+    pub rate_limit_per_user: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub topic: Option<String>,
 }
@@ -202,7 +202,7 @@ pub struct TextFields {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
+    pub bitrate: Option<u32>,
     pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
@@ -212,7 +212,7 @@ pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_limit: Option<u64>,
+    pub user_limit: Option<u16>,
 }
 
 /// Create a new request to create a guild.

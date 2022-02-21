@@ -13,7 +13,7 @@ pub const CHANNEL_NAME_LENGTH_MAX: usize = 100;
 pub const CHANNEL_NAME_LENGTH_MIN: usize = 1;
 
 /// Maximum length of a channel's rate limit per user.
-pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u64 = 21_600;
+pub const CHANNEL_RATE_LIMIT_PER_USER_MAX: u16 = 21_600;
 
 /// Maximum length of a channel's topic.
 pub const CHANNEL_TOPIC_LENGTH_MAX: usize = 1024;
@@ -82,7 +82,7 @@ pub enum ChannelValidationErrorType {
     /// The seconds of the rate limit per user is more than 21600.
     RateLimitPerUserInvalid {
         /// Provided ratelimit is invalid.
-        rate_limit_per_user: u64,
+        rate_limit_per_user: u16,
     },
     /// The length of the topic is more than 1024 UTF-16 characters.
     TopicInvalid,
@@ -150,7 +150,7 @@ pub fn name(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
 ///
 /// [`RateLimitPerUserInvalid`]: ChannelValidationErrorType::RateLimitPerUserInvalid
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#channels-resource
-pub const fn rate_limit_per_user(value: u64) -> Result<(), ChannelValidationError> {
+pub const fn rate_limit_per_user(value: u16) -> Result<(), ChannelValidationError> {
     if value <= CHANNEL_RATE_LIMIT_PER_USER_MAX {
         Ok(())
     } else {

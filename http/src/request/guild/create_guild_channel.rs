@@ -24,7 +24,7 @@ use twilight_validate::{
 #[derive(Serialize)]
 struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    bitrate: Option<u64>,
+    bitrate: Option<u32>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: &'a str,
@@ -37,11 +37,11 @@ struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    rate_limit_per_user: Option<u64>,
+    rate_limit_per_user: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    user_limit: Option<u64>,
+    user_limit: Option<u16>,
 }
 
 /// Create a new request to create a guild channel.
@@ -84,7 +84,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the bitrate of the channel. Applicable to voice channels only.
-    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.fields.bitrate = Some(bitrate);
 
         self
@@ -147,7 +147,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub const fn rate_limit_per_user(
         mut self,
-        rate_limit_per_user: u64,
+        rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
         if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
@@ -184,7 +184,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// inclusive. See [Discord Docs/Modify Channel] for more details.
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub const fn user_limit(mut self, user_limit: u64) -> Self {
+    pub const fn user_limit(mut self, user_limit: u16) -> Self {
         self.fields.user_limit = Some(user_limit);
 
         self

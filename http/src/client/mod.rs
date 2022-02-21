@@ -474,7 +474,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     /// let channel_id = Id::new(123);
     /// let message_id = Id::new(234);
-    /// let limit: u64 = 6;
+    /// let limit: u16 = 6;
     ///
     /// let messages = client
     ///     .channel_messages(channel_id)

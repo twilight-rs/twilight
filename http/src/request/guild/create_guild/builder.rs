@@ -245,7 +245,7 @@ pub enum TextFieldsErrorType {
     /// The rate limit is invalid.
     RateLimitInvalid {
         /// The incorrect rate limit.
-        limit: u64,
+        limit: u16,
     },
     /// The topic is too long.
     TopicTooLong {
@@ -279,7 +279,7 @@ impl TextFieldsBuilder {
     /// This is used by [`rate_limit_per_user`].
     ///
     /// [`rate_limit_per_user`]: Self::rate_limit_per_user
-    pub const MAX_RATE_LIMIT: u64 = 21600;
+    pub const MAX_RATE_LIMIT: u16 = 21600;
 
     /// The maximum number of UTF-16 code points that can be in a channel topic.
     ///
@@ -348,7 +348,7 @@ impl TextFieldsBuilder {
     ///
     /// Returns a [`TextFieldsErrorType::RateLimitInvalid`] error type if the
     /// rate limit is invalid.
-    pub fn rate_limit_per_user(mut self, limit: u64) -> Result<Self, TextFieldsError> {
+    pub fn rate_limit_per_user(mut self, limit: u16) -> Result<Self, TextFieldsError> {
         if limit > Self::MAX_RATE_LIMIT {
             return Err(TextFieldsError {
                 kind: TextFieldsErrorType::RateLimitInvalid { limit },
@@ -501,7 +501,7 @@ impl VoiceFieldsBuilder {
     }
 
     /// Set the voice channel's bitrate.
-    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.0.bitrate = Some(bitrate);
 
         self
@@ -515,7 +515,7 @@ impl VoiceFieldsBuilder {
     }
 
     /// Set the voice channel's user limit.
-    pub const fn user_limit(mut self, limit: u64) -> Self {
+    pub const fn user_limit(mut self, limit: u16) -> Self {
         self.0.user_limit = Some(limit);
 
         self
