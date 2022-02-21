@@ -45,7 +45,7 @@ mod private {
             },
             CreatePin, CreateTypingTrigger, DeleteChannel, DeleteChannelPermission,
             DeleteChannelPermissionConfigured, DeletePin, FollowNewsChannel, GetChannel, GetPins,
-            UpdateChannel, UpdateChannelPermission, UpdateChannelPermissionConfigured,
+            UpdateChannel, UpdateChannelPermission,
         },
         guild::{
             ban::{CreateBan, DeleteBan, GetBan, GetBans},
@@ -229,7 +229,6 @@ mod private {
     impl Sealed for SyncTemplate<'_> {}
     impl Sealed for UpdateChannel<'_> {}
     impl Sealed for UpdateChannelPermission<'_> {}
-    impl Sealed for UpdateChannelPermissionConfigured<'_> {}
     impl Sealed for UpdateCommandPermissions<'_> {}
     impl Sealed for UpdateCurrentMember<'_> {}
     impl Sealed for UpdateCurrentUser<'_> {}

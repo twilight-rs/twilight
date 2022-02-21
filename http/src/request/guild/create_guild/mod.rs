@@ -11,11 +11,12 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
+    channel::ChannelType,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions,
         SystemChannelFlags, VerificationLevel,
     },
+    http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{ChannelMarker, RoleMarker},
         Id,

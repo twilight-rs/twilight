@@ -14,7 +14,7 @@ mod private {
             thread::UpdateThread,
             webhook::{CreateWebhook, DeleteWebhook, DeleteWebhookMessage, UpdateWebhook},
             CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
-            UpdateChannelPermissionConfigured,
+            UpdateChannelPermission,
         },
         guild::{
             ban::{CreateBan, DeleteBan},
@@ -65,7 +65,7 @@ mod private {
     impl Sealed for RemoveMember<'_> {}
     impl Sealed for RemoveRoleFromMember<'_> {}
     impl Sealed for UpdateChannel<'_> {}
-    impl Sealed for UpdateChannelPermissionConfigured<'_> {}
+    impl Sealed for UpdateChannelPermission<'_> {}
     impl Sealed for UpdateCurrentMember<'_> {}
     impl Sealed for UpdateCurrentUser<'_> {}
     impl Sealed for UpdateEmoji<'_> {}
@@ -87,7 +87,7 @@ mod test {
             message::{DeleteMessage, DeleteMessages},
             webhook::{CreateWebhook, DeleteWebhook, UpdateWebhook},
             CreatePin, DeleteChannel, DeleteChannelPermissionConfigured, DeletePin, UpdateChannel,
-            UpdateChannelPermissionConfigured,
+            UpdateChannelPermission,
         },
         guild::{
             ban::{CreateBan, DeleteBan},
@@ -128,7 +128,7 @@ mod test {
     assert_impl_all!(RemoveMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(RemoveRoleFromMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateChannel<'_>: AuditLogReason<'static>);
-    assert_impl_all!(UpdateChannelPermissionConfigured<'_>: AuditLogReason<'static>);
+    assert_impl_all!(UpdateChannelPermission<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateCurrentMember<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateCurrentUser<'_>: AuditLogReason<'static>);
     assert_impl_all!(UpdateEmoji<'_>: AuditLogReason<'static>);

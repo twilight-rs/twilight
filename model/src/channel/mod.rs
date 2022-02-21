@@ -576,7 +576,8 @@ mod tests {
             permission_overwrites: Some(Vec::from([PermissionOverwrite {
                 allow: Permissions::empty(),
                 deny: Permissions::empty(),
-                kind: PermissionOverwriteType::Member(Id::new(5)),
+                id: Id::new(5),
+                kind: PermissionOverwriteType::Member,
             }])),
             position: None,
             rate_limit_per_user: Some(1000_u64),

@@ -657,12 +657,14 @@ mod tests {
                 PermissionOverwrite {
                     allow: Permissions::empty(),
                     deny: Permissions::CREATE_INVITE,
-                    kind: PermissionOverwriteType::Role(EVERYONE_ROLE_ID),
+                    id: EVERYONE_ROLE_ID.cast(),
+                    kind: PermissionOverwriteType::Role,
                 },
                 PermissionOverwrite {
                     allow: Permissions::EMBED_LINKS,
                     deny: Permissions::empty(),
-                    kind: PermissionOverwriteType::Member(USER_ID),
+                    id: USER_ID.cast(),
+                    kind: PermissionOverwriteType::Member,
                 },
             ])),
             position: Some(0),

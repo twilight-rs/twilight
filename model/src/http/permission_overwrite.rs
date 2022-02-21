@@ -1,3 +1,5 @@
+//! Models for sending permission overwrites to Discord.
+
 use crate::{
     guild::Permissions,
     id::{marker::GenericMarker, Id},
@@ -8,8 +10,10 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// Permission overwrite data for a role or member.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PermissionOverwrite {
-    pub allow: Permissions,
-    pub deny: Permissions,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allow: Option<Permissions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deny: Option<Permissions>,
     pub id: Id<GenericMarker>,
     #[serde(rename = "type")]
     pub kind: PermissionOverwriteType,
@@ -35,7 +39,7 @@ mod tests {
     use static_assertions::{assert_fields, assert_impl_all, const_assert_eq};
     use std::{fmt::Debug, hash::Hash};
 
-    assert_fields!(PermissionOverwrite: allow, deny, id, kind);
+    assert_fields!(PermissionOverwrite: allow, deny, kind);
     assert_impl_all!(
         PermissionOverwrite: Clone,
         Debug,
@@ -63,8 +67,8 @@ mod tests {
     #[test]
     fn test_overwrite() {
         let value = PermissionOverwrite {
-            allow: Permissions::CREATE_INVITE,
-            deny: Permissions::KICK_MEMBERS,
+            allow: Some(Permissions::CREATE_INVITE),
+            deny: Some(Permissions::KICK_MEMBERS),
             id: Id::new(12_345_678),
             kind: PermissionOverwriteType::Member,
         };
@@ -77,8 +81,10 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("allow"),
+                Token::Some,
                 Token::Str("1"),
                 Token::Str("deny"),
+                Token::Some,
                 Token::Str("2"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -101,8 +107,8 @@ mod tests {
 }"#;
 
         let value = PermissionOverwrite {
-            allow: Permissions::CREATE_INVITE,
-            deny: Permissions::KICK_MEMBERS,
+            allow: Some(Permissions::CREATE_INVITE),
+            deny: Some(Permissions::KICK_MEMBERS),
             id: Id::new(1),
             kind: PermissionOverwriteType::Member,
         };
@@ -119,8 +125,10 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("allow"),
+                Token::Some,
                 Token::Str("1"),
                 Token::Str("deny"),
+                Token::Some,
                 Token::Str("2"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
