@@ -422,6 +422,8 @@ pub enum ComponentValidationErrorType {
     },
     /// Value of a [`TextInput`] component is larger than
     /// [`TEXT_INPUT_LENGTH_MAX`].
+    ///
+    /// [`TextInput`]: twilight_model::application::component::text_input::TextInput
     TextInputValueLength {
         /// Provided number of codepoints.
         chars: usize,
