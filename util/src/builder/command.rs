@@ -35,6 +35,8 @@ use twilight_model::{
     channel::ChannelType,
     id::{marker::GuildMarker, Id},
 };
+
+#[cfg(feature = "validate")]
 use twilight_validate::command::{command as validate_command, CommandValidationError};
 
 /// Builder to create a [`Command`].
@@ -73,6 +75,7 @@ impl CommandBuilder {
     ///
     /// Refer to the errors section of [`twilight_validate::command::command`]
     /// for possible errors.
+    #[cfg(feature = "validate")]
     pub fn validate(self) -> Result<Self, CommandValidationError> {
         validate_command(&self.0)?;
 
