@@ -35,6 +35,7 @@ use twilight_model::{
     channel::ChannelType,
     id::{marker::GuildMarker, Id},
 };
+use twilight_validate::command::{command as validate_command, CommandValidationError};
 
 /// Builder to create a [`Command`].
 #[allow(clippy::module_name_repetitions)]
@@ -64,6 +65,18 @@ impl CommandBuilder {
     #[must_use = "must be built into a command"]
     pub fn build(self) -> Command {
         self.0
+    }
+
+    /// Ensure the command is valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the errors section of [`twilight_validate::command::command`]
+    /// for possible errors.
+    pub fn validate(self) -> Result<Self, CommandValidationError> {
+        validate_command(&self.0)?;
+
+        Ok(self)
     }
 
     /// Set the guild ID of the command.
