@@ -355,6 +355,13 @@ impl Default for EmbedBuilder {
     }
 }
 
+impl From<Embed> for EmbedBuilder {
+    /// Create an embed builder from an already existing embed.
+    fn from(value: Embed) -> Self {
+        Self(value)
+    }
+}
+
 impl TryFrom<EmbedBuilder> for Embed {
     type Error = EmbedValidationError;
 
