@@ -47,8 +47,10 @@ impl InteractionResponseDataBuilder {
             choices: None,
             components: None,
             content: None,
+            custom_id: None,
             embeds: None,
             flags: None,
+            title: None,
             tts: None,
         })
     }
@@ -110,6 +112,16 @@ impl InteractionResponseDataBuilder {
         self
     }
 
+    /// Set the custom ID of the callback.
+    ///
+    /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn custom_id(mut self, custom_id: String) -> Self {
+        self.0.custom_id = Some(custom_id);
+
+        self
+    }
+
     /// Set the [`Embed`]s of the callback.
     ///
     /// Defaults to an empty list.
@@ -128,6 +140,16 @@ impl InteractionResponseDataBuilder {
     /// [`EPHEMERAL`]: twilight_model::channel::message::MessageFlags::EPHEMERAL
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
         self.0.flags = Some(flags);
+
+        self
+    }
+
+    /// Set the title of the callback.
+    ///
+    /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn title(mut self, title: String) -> Self {
+        self.0.title = Some(title);
 
         self
     }
@@ -210,8 +232,10 @@ mod tests {
             choices: None,
             components: Some(vec![component]),
             content: Some("a content".to_owned()),
+            custom_id: None,
             embeds: Some(vec![embed]),
             flags: Some(MessageFlags::empty()),
+            title: None,
             tts: Some(false),
         };
 

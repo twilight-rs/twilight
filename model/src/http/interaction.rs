@@ -56,6 +56,9 @@ pub struct InteractionResponseData {
     /// Content of the response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
+    /// For [`InteractionResponseType::Modal`], user defined identifier.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_id: Option<String>,
     /// Embeds of the response.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub embeds: Option<Vec<Embed>>,
@@ -65,6 +68,9 @@ pub struct InteractionResponseData {
     /// [`MessageFlags::EPHEMERAL`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
+    /// For [`InteractionResponseType::Modal`], title of the modal.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
     /// Whether the response is TTS.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tts: Option<bool>,
@@ -94,6 +100,8 @@ pub enum InteractionResponseType {
     UpdateMessage = 7,
     /// Respond to an autocomplete interaction with suggested choices.
     ApplicationCommandAutocompleteResult = 8,
+    /// Respond to an interaction with a popup modal.
+    Modal = 9,
 }
 
 #[cfg(test)]
@@ -135,8 +143,10 @@ mod tests {
                 choices: None,
                 components: None,
                 content: Some("test".into()),
+                custom_id: None,
                 embeds: None,
                 flags: Some(MessageFlags::EPHEMERAL),
+                title: None,
                 tts: None,
             }),
         };
