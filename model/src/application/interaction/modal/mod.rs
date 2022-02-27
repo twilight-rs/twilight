@@ -1,8 +1,7 @@
 mod data;
 
 pub use self::data::{
-    ModalComponentValue, ModalInteractionData, ModalInteractionDataActionRow,
-    ModalInteractionDataComponent,
+    ModalInteractionData, ModalInteractionDataActionRow, ModalInteractionDataComponent,
 };
 
 use crate::{
@@ -76,7 +75,10 @@ impl ModalSubmitInteraction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use crate::{
+        application::component::ComponentType,
+        datetime::{Timestamp, TimestampParseError},
+    };
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, str::FromStr};
 
@@ -96,7 +98,9 @@ mod tests {
         Debug,
         Eq,
         PartialEq,
+        Send,
         Serialize,
+        Sync
     );
 
     const USER_ID: Id<UserMarker> = Id::new(7);
@@ -133,7 +137,8 @@ mod tests {
                 components: Vec::from([ModalInteractionDataActionRow {
                     components: Vec::from([ModalInteractionDataComponent {
                         custom_id: "input-1".to_owned(),
-                        value: ModalComponentValue::TextInput("got it".to_owned()),
+                        kind: ComponentType::TextInput,
+                        value: "got it".into(),
                     }]),
                 }]),
             },
