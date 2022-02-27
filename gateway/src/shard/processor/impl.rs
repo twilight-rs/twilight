@@ -825,7 +825,9 @@ impl ShardProcessor {
             }
             // Discord doesn't appear to send Text messages, so we can ignore
             // these.
-            Message::Ping(_) | Message::Pong(_) => Ok(false),
+            // Message::Frame is send-only and therefore falls into the same group,
+            // see https://docs.rs/tungstenite/latest/tungstenite/enum.Message.html#variant.Frame
+            Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => Ok(false),
         }
     }
 
