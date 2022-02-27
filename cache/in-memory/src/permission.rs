@@ -482,20 +482,29 @@ impl<'a> InMemoryCachePermissions<'a> {
             source: None,
         })?;
 
-        if let GuildChannel::Text(c) = channel.resource() {
-            if let Some(parent_overwrites) = parent_overwrites {
-                Ok([c.permission_overwrites.clone(), parent_overwrites.to_vec()].concat())
-            } else {
-                Ok(c.permission_overwrites.clone())
+        let permission_overwrites = match channel.resource() {
+            GuildChannel::Category(c) => c.permission_overwrites.clone(),
+            GuildChannel::PrivateThread(c) => c.permission_overwrites.clone(),
+            GuildChannel::Text(c) => c.permission_overwrites.clone(),
+            GuildChannel::Voice(c) => c.permission_overwrites.clone(),
+            GuildChannel::Stage(c) => c.permission_overwrites.clone(),
+            GuildChannel::NewsThread(c) => {
+                if let Some(parent) = c.parent_id {
+                    self.parent_overwrites(&parent, parent_overwrites.clone())?
+                } else {
+                    Vec::new()
+                }
             }
-        } else {
-            Err(ChannelError {
-                kind: ChannelErrorType::ChannelUnavailable {
-                    channel_id: *channel_id,
-                },
-                source: None,
-            })
-        }
+            GuildChannel::PublicThread(c) => {
+                if let Some(parent) = c.parent_id {
+                    self.parent_overwrites(&parent, parent_overwrites.clone())?
+                } else {
+                    Vec::new()
+                }
+            }
+        };
+
+        Ok([permission_overwrites, parent_overwrites.unwrap_or_default()].concat())
     }
 }
 
