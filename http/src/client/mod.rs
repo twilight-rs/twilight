@@ -2,10 +2,11 @@ mod builder;
 mod connector;
 mod interaction;
 
-pub use self::{builder::ClientBuilder, connector::Connector, interaction::InteractionClient};
+pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 #[allow(deprecated)]
 use crate::{
+    client::connector::Connector,
     error::{Error, ErrorType},
     request::{
         channel::{
