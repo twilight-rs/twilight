@@ -65,7 +65,8 @@
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned
+    clippy::semicolon_if_nothing_returned,
+    clippy::used_underscore_binding
 )]
 
 pub mod application;

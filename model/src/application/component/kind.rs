@@ -25,6 +25,11 @@ pub enum ComponentType {
     ///
     /// [`SelectMenu`]: super::SelectMenu
     SelectMenu = 3,
+
+    /// Component is an [`TextInput`].
+    ///
+    /// [`TextInput`]: super::TextInput
+    TextInput = 4,
 }
 
 impl ComponentType {
@@ -48,6 +53,7 @@ impl ComponentType {
             Self::ActionRow => "ActionRow",
             Self::Button => "Button",
             Self::SelectMenu => "SelectMenu",
+            Self::TextInput => "TextInput",
         }
     }
 }
@@ -60,7 +66,7 @@ impl Display for ComponentType {
 
 #[cfg(test)]
 mod tests {
-    use super::ComponentType;
+    use super::*;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_impl_all, const_assert_eq};
