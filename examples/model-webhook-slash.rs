@@ -144,16 +144,8 @@ async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {
-            allowed_mentions: None,
-            attachments: None,
-            choices: None,
-            components: None,
             content: Some(format!("```rust\n{:?}\n```", i)),
-            custom_id: None,
-            embeds: None,
-            flags: None,
-            title: None,
-            tts: None,
+            ..Default::default()
         }),
     })
 }
@@ -163,16 +155,8 @@ async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {
-            allowed_mentions: None,
-            attachments: None,
-            choices: None,
-            components: None,
             content: Some("Vroom vroom".to_owned()),
-            custom_id: None,
-            embeds: None,
-            flags: None,
-            title: None,
-            tts: None,
+            ..Default::default()
         }),
     })
 }
