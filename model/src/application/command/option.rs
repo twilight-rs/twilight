@@ -33,6 +33,7 @@ pub enum CommandOption {
     Role(BaseCommandOptionData),
     Mentionable(BaseCommandOptionData),
     Number(NumberCommandOptionData),
+    Attachment(BaseCommandOptionData),
 }
 
 impl CommandOption {
@@ -48,6 +49,7 @@ impl CommandOption {
             CommandOption::Role(_) => CommandOptionType::Role,
             CommandOption::Mentionable(_) => CommandOptionType::Mentionable,
             CommandOption::Number(_) => CommandOptionType::Number,
+            CommandOption::Attachment(_) => CommandOptionType::Attachment,
         }
     }
 
@@ -62,7 +64,8 @@ impl CommandOption {
             | CommandOption::Mentionable(_)
             | CommandOption::SubCommand(_)
             | CommandOption::SubCommandGroup(_)
-            | CommandOption::Channel(_) => false,
+            | CommandOption::Channel(_)
+            | CommandOption::Attachment(_) => false,
         }
     }
 
@@ -75,7 +78,8 @@ impl CommandOption {
             CommandOption::Boolean(data)
             | CommandOption::User(data)
             | CommandOption::Role(data)
-            | CommandOption::Mentionable(data) => data.required,
+            | CommandOption::Mentionable(data)
+            | CommandOption::Attachment(data) => data.required,
         }
     }
 }
@@ -159,20 +163,22 @@ impl Serialize for CommandOption {
                 required: data.required,
                 kind: self.kind(),
             },
-            Self::Boolean(data) | Self::User(data) | Self::Role(data) | Self::Mentionable(data) => {
-                CommandOptionEnvelope {
-                    autocomplete: false,
-                    channel_types: None,
-                    choices: None,
-                    description: data.description.as_ref(),
-                    max_value: None,
-                    min_value: None,
-                    name: data.name.as_ref(),
-                    options: None,
-                    required: data.required,
-                    kind: self.kind(),
-                }
-            }
+            Self::Boolean(data)
+            | Self::User(data)
+            | Self::Role(data)
+            | Self::Mentionable(data)
+            | Self::Attachment(data) => CommandOptionEnvelope {
+                autocomplete: false,
+                channel_types: None,
+                choices: None,
+                description: data.description.as_ref(),
+                max_value: None,
+                min_value: None,
+                name: data.name.as_ref(),
+                options: None,
+                required: data.required,
+                kind: self.kind(),
+            },
         };
 
         envelope.serialize(serializer)
@@ -410,6 +416,11 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 name,
                 required,
             }),
+            CommandOptionType::Attachment => CommandOption::Attachment(BaseCommandOptionData {
+                description,
+                name,
+                required,
+            }),
         })
     }
 }
@@ -531,9 +542,9 @@ pub struct NumberCommandOptionData {
 
 /// Specifies an option that a user must choose from in a dropdown.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Application Command Object].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#applicationcommandoptionchoice
+/// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-choice-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoice {
@@ -544,9 +555,9 @@ pub enum CommandOptionChoice {
 
 /// Type used in `max_value` and `min_value` command option field.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Application Command Object].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
+/// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionValue {
@@ -570,6 +581,7 @@ pub enum CommandOptionType {
     Role = 8,
     Mentionable = 9,
     Number = 10,
+    Attachment = 11,
 }
 
 impl CommandOptionType {
@@ -585,6 +597,7 @@ impl CommandOptionType {
             CommandOptionType::Role => "Role",
             CommandOptionType::Mentionable => "Mentionable",
             CommandOptionType::Number => "Number",
+            CommandOptionType::Attachment => "Attachment",
         }
     }
 }

@@ -2,9 +2,7 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{
-        AuditLogReason, AuditLogReasonError, NullableField, Request, RequestBuilder, TryIntoRequest,
-    },
+    request::{AuditLogReason, NullableField, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -18,6 +16,7 @@ use twilight_model::{
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     scheduled_event_description as validate_scheduled_event_description,
     scheduled_event_name as validate_scheduled_event_name, ValidationError,
 };
@@ -32,6 +31,8 @@ struct UpdateGuildScheduledEventFields<'a> {
     entity_metadata: Option<EntityMetadataFields<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    image: Option<NullableField<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,6 +82,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
                 description: None,
                 entity_metadata: None,
                 entity_type: None,
+                image: None,
                 name: None,
                 privacy_level: None,
                 scheduled_end_time: None,
@@ -138,6 +140,21 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
         }
 
         self.fields.entity_type = Some(entity_type);
+
+        self
+    }
+
+    /// Set the cover image of the event.
+    ///
+    /// Pass [`None`] to clear the image.
+    ///
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
+    ///
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
+    pub const fn image(mut self, image: Option<&'a [u8]>) -> Self {
+        self.fields.image = Some(NullableField(image));
 
         self
     }
@@ -216,8 +233,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

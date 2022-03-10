@@ -168,6 +168,24 @@ impl<T> Id<T> {
         self.value.get()
     }
 
+    /// Return the [`NonZeroU64`] representation of the ID.
+    ///
+    /// # Examples
+    ///
+    /// Create an ID with a value and then confirm its nonzero value:
+    ///
+    /// ```
+    /// use std::num::NonZeroU64;
+    /// use twilight_model::id::{marker::ChannelMarker, Id};
+    ///
+    /// let channel_id = Id::<ChannelMarker>::new(7);
+    ///
+    /// assert_eq!(NonZeroU64::new(7).unwrap(), channel_id.into_nonzero());
+    /// ```
+    pub const fn into_nonzero(self) -> NonZeroU64 {
+        self.value
+    }
+
     /// Cast an ID from one type to another.
     ///
     /// # Examples
@@ -267,9 +285,21 @@ impl<T> Display for Id<T> {
     }
 }
 
+impl<T> From<Id<T>> for u64 {
+    fn from(id: Id<T>) -> Self {
+        id.get()
+    }
+}
+
 impl<T> From<NonZeroU64> for Id<T> {
     fn from(id: NonZeroU64) -> Self {
         Self::from_nonzero(id)
+    }
+}
+
+impl<T> From<Id<T>> for NonZeroU64 {
+    fn from(id: Id<T>) -> Self {
+        id.into_nonzero()
     }
 }
 
@@ -337,11 +367,7 @@ impl<T> PartialOrd for Id<T> {
 
 impl<T> Serialize for Id<T> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        // Avoid requiring a Copy trait bound by simply reconstructing self.
-        let copy = Self::from_nonzero(self.value);
-        let formatter = IdStringDisplay::new(copy);
-
-        serializer.serialize_newtype_struct("Id", &formatter)
+        serializer.serialize_newtype_struct("Id", &self.to_string())
     }
 }
 
@@ -366,31 +392,6 @@ impl<T> TryFrom<u64> for Id<T> {
     }
 }
 
-/// Display implementation to format an ID as a string.
-#[derive(Debug)]
-struct IdStringDisplay<T> {
-    inner: Id<T>,
-}
-
-impl<T> IdStringDisplay<T> {
-    /// Create a new formatter.
-    const fn new(id: Id<T>) -> Self {
-        Self { inner: id }
-    }
-}
-
-impl<T> Display for IdStringDisplay<T> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(&self.inner.value, f)
-    }
-}
-
-impl<T> Serialize for IdStringDisplay<T> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.collect_str(self)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
@@ -399,7 +400,7 @@ mod tests {
             CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
             InteractionMarker, MessageMarker, RoleMarker, StageMarker, UserMarker, WebhookMarker,
         },
-        Id, IdStringDisplay,
+        Id,
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -431,10 +432,9 @@ mod tests {
     assert_impl_all!(WebhookMarker: Clone, Copy, Debug, Send, Sync);
     assert_impl_all!(Id<GenericMarker>:
         Clone, Copy, Debug, Deserialize<'static>, Display, Eq, From<NonZeroU64>,
-        FromStr, Hash, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
+        FromStr, Hash, Into<NonZeroU64>, Into<u64>, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
         TryFrom<i64>, TryFrom<u64>
     );
-    assert_impl_all!(IdStringDisplay<GenericMarker>: Debug, Display, Send, Serialize, Sync);
 
     /// Test that various methods of initializing IDs are correct, such as via
     /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
@@ -466,6 +466,17 @@ mod tests {
         assert_eq!(123_u64, Id::<GenericMarker>::try_from(123_u64)?);
 
         Ok(())
+    }
+
+    /// Test that conversion methods are correct.
+    #[test]
+    fn test_conversions() {
+        // `Into`
+        assert_eq!(1, u64::from(Id::<GenericMarker>::new(1)));
+        assert_eq!(
+            NonZeroU64::new(1).expect("non zero"),
+            NonZeroU64::from(Id::<GenericMarker>::new(1))
+        );
     }
 
     /// Test that creating an ID via [`Id::new`] with a value of zero panics.

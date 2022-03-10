@@ -94,7 +94,7 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
-    guild::Permissions,
+    http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
             ApplicationMarker, ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker,
@@ -245,7 +245,7 @@ impl Client {
     /// // Later in the process...
     /// let commands = client
     ///     .interaction(application_id)
-    ///     .get_global_commands()
+    ///     .global_commands()
     ///     .exec()
     ///     .await?
     ///     .models()
@@ -263,9 +263,10 @@ impl Client {
         InteractionClient::new(self, application_id)
     }
 
-    /// Get the default [`AllowedMentions`] for sent messages.
-    pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
-        self.default_allowed_mentions.clone()
+    /// Get an immutable reference to the default [`AllowedMentions`] for sent
+    /// messages.
+    pub const fn default_allowed_mentions(&self) -> Option<&AllowedMentions> {
+        self.default_allowed_mentions.as_ref()
     }
 
     /// Get the Ratelimiter used by the client internally.
@@ -439,10 +440,9 @@ impl Client {
     /// Get the invites for a guild channel.
     ///
     /// Requires the [`MANAGE_CHANNELS`] permission. This method only works if
-    /// the channel is of type [`GuildChannel`].
+    /// the channel is a guild channel.
     ///
     /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
-    /// [`GuildChannel`]: twilight_model::channel::GuildChannel
     pub const fn channel_invites(&self, channel_id: Id<ChannelMarker>) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
@@ -465,7 +465,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     /// let channel_id = Id::new(123);
     /// let message_id = Id::new(234);
-    /// let limit: u64 = 6;
+    /// let limit: u16 = 6;
     ///
     /// let messages = client
     ///     .channel_messages(channel_id)
@@ -503,24 +503,32 @@ impl Client {
     ///
     /// # Examples:
     ///
-    /// Create permission overrides for a role to view the channel, but not send messages:
+    /// Create permission overrides for a role to view the channel, but not send
+    /// messages:
     ///
     /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use twilight_http::Client;
-    /// use twilight_model::guild::Permissions;
-    /// use twilight_model::id::Id;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
+    /// #
+    /// use twilight_model::{
+    ///     guild::Permissions,
+    ///     http::permission_overwrite::{
+    ///         PermissionOverwrite, PermissionOverwriteType,
+    ///     },
+    ///     id::{marker::RoleMarker, Id},
+    /// };
     ///
     /// let channel_id = Id::new(123);
-    /// let allow = Permissions::VIEW_CHANNEL;
-    /// let deny = Permissions::SEND_MESSAGES;
-    /// let role_id = Id::new(432);
+    /// let role_id: Id<RoleMarker> = Id::new(432);
+    /// let permission_overwrite = PermissionOverwrite {
+    ///     allow: Some(Permissions::VIEW_CHANNEL),
+    ///     deny: Some(Permissions::SEND_MESSAGES),
+    ///     id: role_id.cast(),
+    ///     kind: PermissionOverwriteType::Role,
+    /// };
     ///
-    /// client.update_channel_permission(channel_id, allow, deny)
-    ///     .role(role_id)
+    /// client.update_channel_permission(channel_id, &permission_overwrite)
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
@@ -528,10 +536,9 @@ impl Client {
     pub const fn update_channel_permission(
         &self,
         channel_id: Id<ChannelMarker>,
-        allow: Permissions,
-        deny: Permissions,
+        permission_overwrite: &PermissionOverwrite,
     ) -> UpdateChannelPermission<'_> {
-        UpdateChannelPermission::new(self, channel_id, allow, deny)
+        UpdateChannelPermission::new(self, channel_id, permission_overwrite)
     }
 
     /// Get all the webhooks of a channel.
@@ -670,11 +677,11 @@ impl Client {
 
     /// Create an emoji in a guild.
     ///
-    /// The emoji must be a Data URI, in the form of `data:image/{type};base64,{data}` where
-    /// `{type}` is the image MIME type and `{data}` is the base64-encoded image.  Refer to [the
-    /// discord docs] for more information about image data.
+    /// The emoji must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn create_emoji<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
@@ -767,9 +774,9 @@ impl Client {
 
     /// Update a guild.
     ///
-    /// All endpoints are optional. Refer to [the discord docs] for more information.
+    /// All endpoints are optional. See [Discord Docs/Modify Guild].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
+    /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn update_guild(&self, guild_id: Id<GuildMarker>) -> UpdateGuild<'_> {
         UpdateGuild::new(self, guild_id)
     }
@@ -827,9 +834,9 @@ impl Client {
 
     /// Get the guild widget.
     ///
-    /// Refer to [the discord docs] for more information.
+    /// See [Discord Docs/Get Guild Widget].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#get-guild-widget
+    /// [Discord Docs/Get Guild Widget]: https://discord.com/developers/docs/resources/guild#get-guild-widget
     pub const fn guild_widget(&self, guild_id: Id<GuildMarker>) -> GetGuildWidget<'_> {
         GetGuildWidget::new(self, guild_id)
     }
@@ -946,8 +953,7 @@ impl Client {
     /// Add a user to a guild.
     ///
     /// An access token for the user with `guilds.join` scope is required. All
-    /// other fields are optional. Refer to [the discord docs] for more
-    /// information.
+    /// other fields are optional. See [Discord Docs/Add Guild Member].
     ///
     /// # Errors
     ///
@@ -955,7 +961,7 @@ impl Client {
     /// nickname is too short or too long.
     ///
     /// [`ValidationErrorType::Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#add-guild-member
+    /// [Discord Docs/Add Guild Member]: https://discord.com/developers/docs/resources/guild#add-guild-member
     pub const fn add_guild_member<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
@@ -976,7 +982,7 @@ impl Client {
 
     /// Update a guild member.
     ///
-    /// All fields are optional. Refer to [the discord docs] for more information.
+    /// All fields are optional. See [Discord Docs/Modify Guild Member].
     ///
     /// # Examples
     ///
@@ -1007,7 +1013,7 @@ impl Client {
     /// nickname length is too short or too long.
     ///
     /// [`ValidationErrorType::Nickname`]: twilight_validate::request::ValidationErrorType::Nickname
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
+    /// [Discord Docs/Modify Guild Member]: https://discord.com/developers/docs/resources/guild#modify-guild-member
     pub const fn update_guild_member(
         &self,
         guild_id: Id<GuildMarker>,
@@ -1081,9 +1087,9 @@ impl Client {
 
     /// Begin a guild prune.
     ///
-    /// Refer to [the discord docs] for more information.
+    /// See [Discord Docs/Begin Guild Prune].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
+    /// [Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
     pub const fn create_guild_prune(&self, guild_id: Id<GuildMarker>) -> CreateGuildPrune<'_> {
         CreateGuildPrune::new(self, guild_id)
     }
@@ -1106,6 +1112,11 @@ impl Client {
     }
 
     /// Get the guild's welcome screen.
+    ///
+    /// If the welcome screen is not enabled, this requires the [`MANAGE_GUILD`]
+    /// permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn guild_welcome_screen(
         &self,
         guild_id: Id<GuildMarker>,
@@ -1204,16 +1215,18 @@ impl Client {
 
     /// Send a message to a channel.
     ///
+    /// The message must include at least one of [`attachments`], [`content`],
+    /// [`embeds`], or [`sticker_ids`].
+    ///
     /// # Example
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
-    /// # use twilight_model::id::Id;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("my token".to_owned());
-    /// #
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// let client = Client::new("my token".to_owned());
+    ///
     /// let channel_id = Id::new(123);
     /// let message = client
     ///     .create_message(channel_id)
@@ -1224,19 +1237,10 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// # Errors
-    ///
-    /// The method [`content`] returns an error of type
-    /// [`MessageValidationErrorType::ContentInvalid`] if the content is over 2000
-    /// UTF-16 characters.
-    ///
-    /// The method [`embeds`] returns an error of type
-    /// [`MessageValidationErrorType::EmbedInvalid`] if the embed is invalid.
-    ///
-    /// [`MessageValidationErrorType::ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
-    /// [`MessageValidationErrorType::EmbedInvalid`]: twilight_validate::message::MessageValidationErrorType::EmbedInvalid
-    /// [`content`]: crate::request::channel::message::create_message::CreateMessage::content
-    /// [`embeds`]: crate::request::channel::message::create_message::CreateMessage::embeds
+    /// [`attachments`]: CreateMessage::attachments
+    /// [`content`]: CreateMessage::content
+    /// [`embeds`]: CreateMessage::embeds
+    /// [`sticker_ids`]: CreateMessage::sticker_ids
     pub const fn create_message(&self, channel_id: Id<ChannelMarker>) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
@@ -1252,11 +1256,12 @@ impl Client {
 
     /// Delete messages by [`Id<ChannelMarker>`] and Vec<[`Id<MessageMarker>`]>.
     ///
-    /// The vec count can be between 2 and 100. If the supplied [`Id<MessageMarker>`]s are invalid, they
-    /// still count towards the lower and upper limits. This method will not delete messages older
-    /// than two weeks. Refer to [the discord docs] for more information.
+    /// The vec count can be between 2 and 100. If the supplied
+    /// [`Id<MessageMarker>`]s are invalid, they still count towards the lower
+    /// and upper limits. This method will not delete messages older than two
+    /// weeks. See [Discord Docs/Bulk Delete Messages].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
+    /// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
     pub const fn delete_messages<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
@@ -1267,20 +1272,20 @@ impl Client {
 
     /// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
     ///
-    /// You can pass `None` to any of the methods to remove the associated field.
-    /// For example, if you have a message with an embed you want to remove, you can
-    /// use `.[embed](None)` to remove the embed.
+    /// You can pass [`None`] to any of the methods to remove the associated
+    /// field. Pass [`None`] to [`content`] to remove the content. You must
+    /// ensure that the message still contains at least one of [`attachments`],
+    /// [`content`], [`embeds`], or stickers.
     ///
     /// # Examples
     ///
     /// Replace the content with `"test update"`:
     ///
     /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_http::Client;
     /// use twilight_model::id::Id;
     ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     /// client.update_message(Id::new(1), Id::new(2))
     ///     .content(Some("test update"))?
@@ -1305,7 +1310,9 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [embed]: Self::embed
+    /// [`attachments`]: UpdateMessage::attachments
+    /// [`content`]: UpdateMessage::content
+    /// [`embeds`]: UpdateMessage::embeds
     pub const fn update_message(
         &self,
         channel_id: Id<ChannelMarker>,
@@ -1874,21 +1881,21 @@ impl Client {
         UpdateWebhookWithToken::new(self, webhook_id, token)
     }
 
-    /// Executes a webhook, sending a message to its channel.
+    /// Execute a webhook, sending a message to its channel.
     ///
-    /// You can only specify one of [`content`], [`embeds`], or [`files`].
+    /// The message must include at least one of [`attachments`], [`content`],
+    /// or [`embeds`].
     ///
     /// # Examples
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
-    /// # use twilight_model::id::Id;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("my token".to_owned());
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// let client = Client::new("my token".to_owned());
     /// let id = Id::new(432);
-    /// #
+    ///
     /// let webhook = client
     ///     .execute_webhook(id, "webhook token")
     ///     .content("Pinkie...")?
@@ -1897,9 +1904,9 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`content`]: crate::request::channel::webhook::ExecuteWebhook::content
-    /// [`embeds`]: crate::request::channel::webhook::ExecuteWebhook::embeds
-    /// [`files`]: crate::request::channel::webhook::ExecuteWebhook::files
+    /// [`attachments`]: ExecuteWebhook::attachments
+    /// [`content`]: ExecuteWebhook::content
+    /// [`embeds`]: ExecuteWebhook::embeds
     pub const fn execute_webhook<'a>(
         &'a self,
         webhook_id: Id<WebhookMarker>,
@@ -1920,21 +1927,29 @@ impl Client {
 
     /// Update a message executed by a webhook.
     ///
+    /// You can pass [`None`] to any of the methods to remove the associated
+    /// field. Pass [`None`] to [`content`] to remove the content. You must
+    /// ensure that the message still contains at least one of [`attachments`],
+    /// [`content`], or [`embeds`].
+    ///
     /// # Examples
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
     /// use twilight_model::id::Id;
     ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token".to_owned());
+    /// let client = Client::new("token".to_owned());
     /// client.update_webhook_message(Id::new(1), "token here", Id::new(2))
     ///     .content(Some("new message content"))?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`attachments`]: UpdateWebhookMessage::attachments
+    /// [`content`]: UpdateWebhookMessage::content
+    /// [`embeds`]: UpdateWebhookMessage::embeds
     pub const fn update_webhook_message<'a>(
         &'a self,
         webhook_id: Id<WebhookMarker>,
@@ -2001,8 +2016,7 @@ impl Client {
     ///
     /// Once a guild is selected, you must choose one of three event types to
     /// create. The request builders will ensure you provide the correct data to
-    /// Discord. See [the Discord docs] for more information on which events
-    /// require which fields.
+    /// Discord. See [Discord Docs/Create Guild Scheduled Event].
     ///
     /// The name must be between 1 and 100 characters in length. For external
     /// events, the location must be between 1 and 100 characters in length.
@@ -2061,7 +2075,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
+    /// [Discord Docs/Create Guild Scheduled Event]: https://discord.com/developers/docs/resources/guild-scheduled-event#create-guild-scheduled-event
     pub const fn create_guild_scheduled_event(
         &self,
         guild_id: Id<GuildMarker>,
@@ -2082,13 +2096,13 @@ impl Client {
     ///
     /// Users are returned in ascending order by `user_id`. [`before`] and
     /// [`after`] both take a user id. If both are specified, only [`before`] is
-    /// respected. The default [`limit`] is 100. See [the Discord docs] for more
-    /// information.
+    /// respected. The default [`limit`] is 100. See
+    /// [Discord Docs/Get Guild Scheduled Event Users].
     ///
     /// [`after`]: GetGuildScheduledEventUsers::after
     /// [`before`]: GetGuildScheduledEventUsers::before
     /// [`limit`]: GetGuildScheduledEventUsers::limit
-    /// [the Discord docs]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
+    /// [Discord Docs/Get Guild Scheduled Event Users]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users
     pub const fn guild_scheduled_event_users(
         &self,
         guild_id: Id<GuildMarker>,
@@ -2441,9 +2455,11 @@ impl Client {
 
         let req = if let Some(form) = form {
             let form_bytes = form.build();
+
             if let Some(headers) = builder.headers_mut() {
                 headers.insert(CONTENT_LENGTH, HeaderValue::from(form_bytes.len()));
             };
+
             builder
                 .body(Body::from(form_bytes))
                 .map_err(|source| Error {

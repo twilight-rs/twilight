@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
@@ -14,6 +14,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     communication_disabled_until as validate_communication_disabled_until,
     nickname as validate_nickname, ValidationError,
 };
@@ -37,9 +38,9 @@ struct UpdateGuildMemberFields<'a> {
 
 /// Update a guild member.
 ///
-/// All fields are optional. Refer to [the discord docs] for more information.
+/// All fields are optional. See [Discord Docs/Modify Guild Member].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild-member
+/// [Discord Docs/Modify Guild Member]: https://discord.com/developers/docs/resources/guild#modify-guild-member
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuildMember<'a> {
     fields: UpdateGuildMemberFields<'a>,
@@ -82,7 +83,9 @@ impl<'a> UpdateGuildMember<'a> {
     ///
     /// The timestamp indicates when the user will be able to communicate again.
     /// It can be up to 28 days in the future. Set to [`None`] to remove the
-    /// timeout. Requires the [`MODERATE_MEMBERS`] permission.
+    /// timeout. Requires the [`MODERATE_MEMBERS`] permission. If this is set,
+    /// and if the target member is an administrator or the owner of the guild,
+    /// the response status code will be 403.
     ///
     /// # Errors
     ///
@@ -166,8 +169,10 @@ impl<'a> UpdateGuildMember<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildMember<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

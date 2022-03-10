@@ -110,7 +110,7 @@ use std::{
     sync::Mutex,
 };
 use twilight_model::{
-    channel::{Group, GuildChannel, PrivateChannel, StageInstance},
+    channel::{Channel, StageInstance},
     gateway::event::Event,
     guild::{GuildIntegration, Role},
     id::{
@@ -121,7 +121,6 @@ use twilight_model::{
         Id,
     },
     user::{CurrentUser, User},
-    voice::VoiceState,
 };
 
 /// Resource associated with a guild.
@@ -211,10 +210,6 @@ fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
     }
 }
 
-fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
-    map.insert(k, v);
-}
-
 /// An in-memory cache of Discord data.
 ///
 /// This is an implementation of a cache designed to be used by only the
@@ -250,13 +245,11 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
 #[derive(Debug, Default)]
 pub struct InMemoryCache {
     config: Config,
-    channels_guild: DashMap<Id<ChannelMarker>, GuildResource<GuildChannel>>,
-    channels_private: DashMap<Id<ChannelMarker>, PrivateChannel>,
+    channels: DashMap<Id<ChannelMarker>, Channel>,
     channel_messages: DashMap<Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>,
     // So long as the lock isn't held across await or panic points this is fine.
     current_user: Mutex<Option<CurrentUser>>,
     emojis: DashMap<Id<EmojiMarker>, GuildResource<CachedEmoji>>,
-    groups: DashMap<Id<ChannelMarker>, Group>,
     guilds: DashMap<Id<GuildMarker>, CachedGuild>,
     guild_channels: DashMap<Id<GuildMarker>, HashSet<Id<ChannelMarker>>>,
     guild_emojis: DashMap<Id<GuildMarker>, HashSet<Id<EmojiMarker>>>,
@@ -283,7 +276,7 @@ pub struct InMemoryCache {
     /// Mapping of guilds and users currently connected to its voice channels.
     voice_state_guilds: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
     /// Mapping of guild ID and user ID pairs to their voice states.
-    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
+    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>,
 }
 
 /// Implemented methods and types for the cache.
@@ -313,15 +306,13 @@ impl InMemoryCache {
     ///
     /// This is equal to creating a new empty cache.
     pub fn clear(&self) {
-        self.channels_guild.clear();
-        self.channels_private.clear();
+        self.channels.clear();
         self.channel_messages.clear();
         self.current_user
             .lock()
             .expect("current user poisoned")
             .take();
         self.emojis.clear();
-        self.groups.clear();
         self.guilds.clear();
         self.guild_channels.clear();
         self.guild_emojis.clear();
@@ -441,6 +432,14 @@ impl InMemoryCache {
             .clone()
     }
 
+    /// Gets a channel by ID.
+    pub fn channel(
+        &self,
+        channel_id: Id<ChannelMarker>,
+    ) -> Option<Reference<'_, Id<ChannelMarker>, Channel>> {
+        self.channels.get(&channel_id).map(Reference::new)
+    }
+
     /// Gets the set of messages in a channel.
     ///
     /// This requires the [`DIRECT_MESSAGES`] or [`GUILD_MESSAGES`] intents.
@@ -461,22 +460,14 @@ impl InMemoryCache {
 
     /// Gets an emoji by ID.
     ///
-    /// This requires the [`GUILD_EMOJIS`] intent.
+    /// This requires the [`GUILD_EMOJIS_AND_STICKERS`] intent.
     ///
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     pub fn emoji(
         &self,
         emoji_id: Id<EmojiMarker>,
     ) -> Option<Reference<'_, Id<EmojiMarker>, GuildResource<CachedEmoji>>> {
         self.emojis.get(&emoji_id).map(Reference::new)
-    }
-
-    /// Gets a group by ID.
-    pub fn group(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, Group>> {
-        self.groups.get(&channel_id).map(Reference::new)
     }
 
     /// Gets a guild by ID.
@@ -489,18 +480,6 @@ impl InMemoryCache {
         guild_id: Id<GuildMarker>,
     ) -> Option<Reference<'_, Id<GuildMarker>, CachedGuild>> {
         self.guilds.get(&guild_id).map(Reference::new)
-    }
-
-    /// Gets a channel by ID.
-    ///
-    /// This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_channel(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, GuildResource<GuildChannel>>> {
-        self.channels_guild.get(&channel_id).map(Reference::new)
     }
 
     /// Gets the set of channels in a guild.
@@ -517,10 +496,11 @@ impl InMemoryCache {
 
     /// Gets the set of emojis in a guild.
     ///
-    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS`] intents.
+    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// intents.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     pub fn guild_emojis(
         &self,
         guild_id: Id<GuildMarker>,
@@ -598,10 +578,11 @@ impl InMemoryCache {
     /// Gets the set of the stickers in a guild.
     ///
     /// This is an O(m) operation, where m is the amount of stickers in the
-    /// guild. This requires the [`GUILDS`] intent and the [`STICKER`] resource
-    /// type.
+    /// guild. This requires the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn guild_stickers(
         &self,
@@ -684,18 +665,6 @@ impl InMemoryCache {
         self.presences.get(&(guild_id, user_id)).map(Reference::new)
     }
 
-    /// Gets a private channel by ID.
-    ///
-    /// This requires the [`DIRECT_MESSAGES`] intent.
-    ///
-    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn private_channel(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, PrivateChannel>> {
-        self.channels_private.get(&channel_id).map(Reference::new)
-    }
-
     /// Gets a role by ID.
     ///
     /// This requires the [`GUILDS`] intent.
@@ -722,10 +691,11 @@ impl InMemoryCache {
 
     /// Gets a sticker by ID.
     ///
-    /// This is the O(1) operation. This requires the [`GUILDS`] intent and the
-    /// [`STICKER`] resource type.
+    /// This is the O(1) operation. This requires the [`GUILDS`] and the
+    /// [`GUILD_EMOJIS_AND_STICKERS`] intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn sticker(
         &self,
@@ -773,7 +743,7 @@ impl InMemoryCache {
         &self,
         user_id: Id<UserMarker>,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), VoiceState>> {
+    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>> {
         self.voice_states
             .get(&(guild_id, user_id))
             .map(Reference::new)
@@ -901,11 +871,11 @@ pub struct VoiceChannelStates<'a> {
     index: usize,
     #[allow(clippy::type_complexity)]
     user_ids: Ref<'a, Id<ChannelMarker>, HashSet<(Id<GuildMarker>, Id<UserMarker>)>>,
-    voice_states: &'a DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
+    voice_states: &'a DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>,
 }
 
 impl<'a> Iterator for VoiceChannelStates<'a> {
-    type Item = Reference<'a, (Id<GuildMarker>, Id<UserMarker>), VoiceState>;
+    type Item = Reference<'a, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some((guild_id, user_id)) = self.user_ids.iter().nth(self.index) {
@@ -928,10 +898,10 @@ impl UpdateCache for Event {
         match self {
             BanAdd(_) => {}
             BanRemove(_) => {}
-            ChannelCreate(v) => c.update(v),
-            ChannelDelete(v) => c.update(v),
+            ChannelCreate(v) => c.update(v.deref()),
+            ChannelDelete(v) => c.update(v.deref()),
             ChannelPinsUpdate(v) => c.update(v),
-            ChannelUpdate(v) => c.update(v),
+            ChannelUpdate(v) => c.update(v.deref()),
             GatewayHeartbeat(_) => {}
             GatewayHeartbeatAck => {}
             GatewayHello(_) => {}
@@ -939,14 +909,15 @@ impl UpdateCache for Event {
             GatewayReconnect => {}
             GiftCodeUpdate => {}
             GuildCreate(v) => c.update(v.deref()),
-            GuildDelete(v) => c.update(v.deref()),
+            GuildDelete(v) => c.update(v),
             GuildEmojisUpdate(v) => c.update(v),
+            GuildStickersUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(_) => {}
             GuildUpdate(v) => c.update(v.deref()),
             IntegrationCreate(v) => c.update(v.deref()),
             IntegrationDelete(v) => c.update(v.deref()),
             IntegrationUpdate(v) => c.update(v.deref()),
-            InteractionCreate(v) => c.update(v.deref()),
+            InteractionCreate(v) => c.update(v),
             InviteCreate(_) => {}
             InviteDelete(_) => {}
             MemberAdd(v) => c.update(v.deref()),
@@ -978,8 +949,8 @@ impl UpdateCache for Event {
             StageInstanceCreate(v) => c.update(v),
             StageInstanceDelete(v) => c.update(v),
             StageInstanceUpdate(v) => c.update(v),
-            ThreadCreate(v) => c.update(v),
-            ThreadUpdate(v) => c.update(v),
+            ThreadCreate(v) => c.update(v.deref()),
+            ThreadUpdate(v) => c.update(v.deref()),
             ThreadDelete(v) => c.update(v),
             ThreadListSync(v) => c.update(v),
             ThreadMemberUpdate(_) => {}

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -16,7 +16,9 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::request::{guild_name as validate_guild_name, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, guild_name as validate_guild_name, ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateGuildFields<'a> {
@@ -60,9 +62,9 @@ struct UpdateGuildFields<'a> {
 
 /// Update a guild.
 ///
-/// All endpoints are optional. Refer to [the discord docs] for more information.
+/// All endpoints are optional. See [Discord Docs/Modify Guild].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
+/// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateGuild<'a> {
     fields: UpdateGuildFields<'a>,
@@ -126,10 +128,10 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    /// Set the default message notification level. Refer to [the discord docs] for more
-    /// information.
+    /// Set the default message notification level. See
+    /// [Discord Docs/Create Guild] for more information.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#create-guild
+    /// [Discord Docs/Create Guild]: https://discord.com/developers/docs/resources/guild#create-guild
     pub const fn default_message_notifications(
         mut self,
         default_message_notifications: Option<DefaultMessageNotificationLevel>,
@@ -168,11 +170,11 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the icon.
     ///
-    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
-    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
-    /// for more information.
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
         self.fields.icon = Some(NullableField(icon));
 
@@ -235,9 +237,9 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the rules channel.
     ///
-    /// Requires the guild to be `PUBLIC`. Refer to [the discord docs] for more information.
+    /// Requires the guild to be `PUBLIC`. See [Discord Docs/Modify Guild].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#modify-guild
+    /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn rules_channel(mut self, rules_channel_id: Option<Id<ChannelMarker>>) -> Self {
         self.fields.rules_channel_id = Some(NullableField(rules_channel_id));
 
@@ -265,9 +267,11 @@ impl<'a> UpdateGuild<'a> {
         self
     }
 
-    /// Set the verification level. Refer to [the discord docs] for more information.
+    /// Set the verification level.
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
+    /// See [Discord Docs/Guild Object].
+    ///
+    /// [Discord Docs/Guild Object]: https://discord.com/developers/docs/resources/guild#guild-object-verification-level
     pub const fn verification_level(
         mut self,
         verification_level: Option<VerificationLevel>,
@@ -301,8 +305,10 @@ impl<'a> UpdateGuild<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuild<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -10,6 +10,7 @@ use twilight_model::id::{
     marker::{ChannelMarker, MessageMarker},
     Id,
 };
+use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 #[derive(Serialize)]
 struct DeleteMessagesFields<'a> {
@@ -20,10 +21,10 @@ struct DeleteMessagesFields<'a> {
 ///
 /// The number of message IDs must be between 2 and 100. If the supplied message
 /// IDs are invalid, they still count towards the lower and upper limits. This
-/// method will not delete messages older than two weeks. Refer to
-/// [the discord docs] for more information.
+/// method will not delete messages older than two weeks. See
+/// [Discord Docs/Bulk Delete Messages].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
+/// [Discord Docs/Bulk Delete Messages]: https://discord.com/developers/docs/resources/channel#bulk-delete-messages
 #[must_use = "requests must be configured and executed"]
 pub struct DeleteMessages<'a> {
     channel_id: Id<ChannelMarker>,
@@ -60,8 +61,10 @@ impl<'a> DeleteMessages<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for DeleteMessages<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

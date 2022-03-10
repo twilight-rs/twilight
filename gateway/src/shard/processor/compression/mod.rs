@@ -1,34 +1,36 @@
-#[cfg(feature = "compression")]
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 mod inflater;
 
 use super::r#impl::ReceivingEventError;
 
-#[cfg(feature = "compression")]
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 use inflater::Inflater;
 
-/// Interface for working with buffers variable on the `compression` feature flag.
+/// Interface for working with buffers variable on the `zlib-stock` and
+/// `zlib-simd` feature flags.
 #[derive(Debug)]
 pub struct Compression {
     /// Inflater for use with compression.
-    #[cfg(feature = "compression")]
+    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     inner: Inflater,
     /// Buffer for use without compression.
-    #[cfg(not(feature = "compression"))]
+    #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
     inner: Vec<u8>,
 }
 
 impl Compression {
-    /// Create a new buffer, abstracting over an inflater if the `compression`
-    /// feature is enabled or a simple `Vec` if the feature is disabled.
+    /// Create a new buffer, abstracting over an inflater if `zlib-stock` or
+    /// `zlib-simd` features are enabled or a simple `Vec` if the features are
+    /// disabled.
     #[cfg_attr(
-        not(feature = "compression"),
+        not(any(feature = "zlib-stock", feature = "zlib-simd")),
         allow(clippy::missing_const_for_fn, unused_variables)
     )]
     pub fn new(shard_id: [u64; 2]) -> Self {
         Self {
-            #[cfg(feature = "compression")]
+            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
             inner: Inflater::new(shard_id),
-            #[cfg(not(feature = "compression"))]
+            #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
             inner: Vec::new(),
         }
     }
@@ -41,12 +43,12 @@ impl Compression {
     /// When compression is disabled this will mutably reference the standard
     /// buffer.
     pub fn buffer_slice_mut(&mut self) -> &mut [u8] {
-        #[cfg(feature = "compression")]
+        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         {
             self.inner.buffer_mut()
         }
 
-        #[cfg(not(feature = "compression"))]
+        #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
         self.inner.as_mut_slice()
     }
 
@@ -61,18 +63,18 @@ impl Compression {
     ///
     /// Returns whether the inner buffer was extended.
     #[cfg_attr(
-        not(feature = "compression"),
+        not(any(feature = "zlib-stock", feature = "zlib-simd")),
         allow(clippy::unused_self, unused_variables)
     )]
     pub fn extend_binary(&mut self, bytes: &[u8]) -> bool {
-        #[cfg(feature = "compression")]
+        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         {
             self.inner.extend(bytes);
 
             true
         }
 
-        #[cfg(not(feature = "compression"))]
+        #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
         // Binary payloads are not received when compression is disabled.
         false
     }
@@ -82,16 +84,19 @@ impl Compression {
     /// If compression is enabled then this will do nothing.
     ///
     /// Returns whether the inner buffer was extended.
-    #[cfg_attr(feature = "compression", allow(clippy::unused_self, unused_variables))]
+    #[cfg_attr(
+        any(feature = "zlib-stock", feature = "zlib-simd"),
+        allow(clippy::unused_self, unused_variables)
+    )]
     pub fn extend_text(&mut self, bytes: &[u8]) -> bool {
-        #[cfg(not(feature = "compression"))]
+        #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
         {
             self.inner.extend_from_slice(bytes);
 
             true
         }
 
-        #[cfg(feature = "compression")]
+        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         // Text payloads are not received when compression is enabled.
         false
     }
@@ -113,11 +118,11 @@ impl Compression {
     /// `ReceivingEventErrorType::Decompressing` error type if decompressing the
     /// message failed.
     #[cfg_attr(
-        not(feature = "compression"),
+        not(any(feature = "zlib-stock", feature = "zlib-simd")),
         allow(clippy::unnecessary_wraps, clippy::unused_self)
     )]
     pub fn message_mut(&mut self) -> Result<Option<&mut [u8]>, ReceivingEventError> {
-        #[cfg(feature = "compression")]
+        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         {
             use super::r#impl::ReceivingEventErrorType;
 
@@ -127,16 +132,16 @@ impl Compression {
             })
         }
 
-        #[cfg(not(feature = "compression"))]
+        #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
         Ok(None)
     }
 
     /// Reset the buffer for a new gateway session.
     pub fn reset(&mut self) {
-        #[cfg(feature = "compression")]
+        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         self.inner.reset();
 
-        #[cfg(not(feature = "compression"))]
+        #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
         self.clear();
     }
 }
@@ -146,9 +151,12 @@ impl Compression {
 ///
 /// If compression is enabled then the `compress` query parameter is appended
 /// with a value of `zlib-stream`.
-#[cfg_attr(not(feature = "compression"), allow(unused_variables))]
+#[cfg_attr(
+    not(any(feature = "zlib-stock", feature = "zlib-simd")),
+    allow(unused_variables)
+)]
 pub fn add_url_feature(buf: &mut String) {
-    #[cfg(feature = "compression")]
+    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     buf.push_str("&compress=zlib-stream");
 }
 
@@ -159,12 +167,12 @@ mod tests {
         let mut buf = String::new();
         super::add_url_feature(&mut buf);
 
-        #[cfg(feature = "compression")]
+        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         {
             assert_eq!("&compress=zlib-stream", buf);
         }
 
-        #[cfg(not(feature = "compression"))]
+        #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
         assert!(buf.is_empty());
     }
 }

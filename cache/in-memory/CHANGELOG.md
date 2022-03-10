@@ -2,6 +2,45 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.10.0] - 2022-03-10
+
+### Changes
+
+Update cache accessor methods and internal logic to support the new `Channel`
+type ([#1449] - [@zeylahellyer]). `InMemoryCache::{group, guild_channel,
+private_channel}` have been replaced with `channel`,
+`InMemoryCacheIter::{groups, guild_channels, private_channels}` have been
+replaced with `channels`, and `InMemoryCacheStats::{groups, private_channels}`
+have been replaced with `channels`.
+
+Use a previously unused `CachedVoiceState` type ([#1491] - [@zeylahellyer]), add
+the `self_video` and `request_to_speak_timestamp` to it ([#1492] -
+[@zeylahellyer]), and make `channel_id` and `guild_id` non-optional ([#1503] -
+[@vilgotf]).
+
+[#1449]: https://github.com/twilight-rs/twilight/pull/1449
+[#1491]: https://github.com/twilight-rs/twilight/pull/1491
+[#1492]: https://github.com/twilight-rs/twilight/pull/1492
+[#1503]: https://github.com/twilight-rs/twilight/pull/1503
+
+## [0.9.1] - 2022-02-12
+
+### Changes
+
+Update `dashmap` to `5.1`, which fixes unsoundness present in `5.0` (which
+previously forced a downgrade to `4.0`) ([#1517] - [@Gelbpunkt]).
+
+### Fixes
+
+Update `member_count` on `MEMBER_ADD`/`MEMBER_REMOVE` events ([#1461] -
+[@Gelbpunkt]).
+
+Properly remove unavailable guilds from the cache ([#1506] - [@Gelbpunkt]).
+
+[#1461]: https://github.com/twilight-rs/twilight/pull/1461
+[#1506]: https://github.com/twilight-rs/twilight/pull/1506
+[#1517]: https://github.com/twilight-rs/twilight/pull/1517
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
@@ -631,6 +670,8 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.0
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.9.0
 [0.8.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.6
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.5

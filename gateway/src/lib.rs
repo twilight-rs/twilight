@@ -10,8 +10,8 @@
 //!
 //! The Shard handles a single websocket connection and can manage up to 2500
 //! guilds. If you manage a small bot in under about 2000 guilds, then this is
-//! what you use. See the [Discord docs][docs:discord:sharding] for more
-//! information on sharding.
+//! what you use. See the [Discord Docs/Sharding][docs:discord:sharding] for
+//! more information on sharding.
 //!
 //! The Cluster is an interface which manages the health of the shards it
 //! manages and proxies all of their events under one unified stream. This is
@@ -86,14 +86,12 @@
 //!
 //! ### zlib
 //!
-//! zlib is enabled with the feature `compression` and one of the two `zlib` features
-//! described below. Enabling any of the two features below will also enable
-//! `compression`. `compression` is enabled by default.
+//! zlib compression is enabled with one of the two `zlib` features described below.
 //!
-//! There are 2 zlib features `zlib-stock` and `zlib-simd` for the library to work
-//! one of them has to be enabled. If both are enabled it will use `zlib-stock`
+//! There are 2 zlib features `zlib-stock` and `zlib-simd`, if both are enabled it
+//! will use `zlib-stock`.
 //!
-//! `zlib-stock` enabled by default.
+//! `zlib-stock` is enabled by default.
 //!
 //! Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
 //! fork of zlib that is faster and more effective, but it needs `cmake` to compile.
@@ -173,6 +171,9 @@ pub use self::{
 pub use twilight_gateway_queue as queue;
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
+
+/// Discord API version used by this crate.
+pub const API_VERSION: u8 = 10;
 
 #[cfg(not(any(
     feature = "native",

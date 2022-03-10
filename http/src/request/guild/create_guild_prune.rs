@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -12,19 +12,22 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::request::{guild_prune_days as validate_guild_prune_days, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, guild_prune_days as validate_guild_prune_days,
+    ValidationError,
+};
 
 struct CreateGuildPruneFields<'a> {
     compute_prune_count: Option<bool>,
-    days: Option<u64>,
+    days: Option<u16>,
     include_roles: &'a [Id<RoleMarker>],
 }
 
 /// Begin a guild prune.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Begin Guild Prune].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
+/// [Discord Docs/Begin Guild Prune]: https://discord.com/developers/docs/resources/guild#begin-guild-prune
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildPrune<'a> {
     fields: CreateGuildPruneFields<'a>,
@@ -71,7 +74,7 @@ impl<'a> CreateGuildPrune<'a> {
     /// or more than 30.
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
-    pub const fn days(mut self, days: u64) -> Result<Self, ValidationError> {
+    pub const fn days(mut self, days: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_guild_prune_days(days) {
             return Err(source);
         }
@@ -95,8 +98,10 @@ impl<'a> CreateGuildPrune<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildPrune<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

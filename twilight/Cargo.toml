@@ -13,14 +13,13 @@ publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "../README.md"
 rust-version = "1.57"
-version = "0.9.0"
+version = "0.10.0"
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing-log = { default-features = false, features = ["log-tracer", "std"], version = "0.1" }
 twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory" }
-twilight-command-parser = { default-features = false, path = "../command-parser" }
 twilight-embed-builder = { default-features = false, path = "../embed-builder" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
 twilight-gateway-queue = { default-features = false, features = ["rustls-native-roots"], path = "../gateway-queue" }

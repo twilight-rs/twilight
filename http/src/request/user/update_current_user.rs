@@ -1,13 +1,15 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::user::User;
-use twilight_validate::request::{username as validate_username, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, username as validate_username, ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateCurrentUserFields<'a> {
@@ -42,11 +44,11 @@ impl<'a> UpdateCurrentUser<'a> {
 
     /// Set the user's avatar.
     ///
-    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
-    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
-    /// for more information.
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
         self.fields.avatar = Some(NullableField(avatar));
 
@@ -84,6 +86,16 @@ impl<'a> UpdateCurrentUser<'a> {
     }
 }
 
+impl<'a> AuditLogReason<'a> for UpdateCurrentUser<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
+
+        Ok(self)
+    }
+}
+
 impl TryIntoRequest for UpdateCurrentUser<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateCurrentUser);
@@ -95,13 +107,5 @@ impl TryIntoRequest for UpdateCurrentUser<'_> {
         }
 
         Ok(request.build())
-    }
-}
-
-impl<'a> AuditLogReason<'a> for UpdateCurrentUser<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
     }
 }

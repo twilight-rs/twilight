@@ -2,11 +2,15 @@ use crate::InMemoryCache;
 use twilight_model::{
     channel::{
         message::{Message, MessageFlags, MessageType},
-        ChannelType, GuildChannel, Reaction, ReactionType, TextChannel,
+        Channel, ChannelType, Reaction, ReactionType,
     },
     datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
-    guild::{Emoji, Member, PartialMember, Permissions, Role},
+    guild::{
+        DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
+        NSFWLevel, PartialMember, Permissions, PremiumTier, Role, SystemChannelFlags,
+        VerificationLevel,
+    },
     id::{
         marker::{ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, UserMarker},
         Id,
@@ -200,23 +204,37 @@ pub fn emoji(id: Id<EmojiMarker>, user: Option<User>) -> Emoji {
     }
 }
 
-pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, GuildChannel) {
+pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
     let guild_id = Id::new(1);
     let channel_id = Id::new(2);
-    let channel = GuildChannel::Text(TextChannel {
+    let channel = Channel {
+        application_id: None,
+        bitrate: None,
+        default_auto_archive_duration: None,
         guild_id: Some(guild_id),
+        icon: None,
         id: channel_id,
         kind: ChannelType::GuildText,
+        name: Some("test".to_owned()),
+        invitable: None,
         last_message_id: None,
         last_pin_timestamp: None,
-        name: "test".to_owned(),
-        nsfw: false,
+        nsfw: Some(false),
+        member: None,
+        member_count: None,
+        message_count: None,
+        owner_id: None,
         parent_id: None,
-        permission_overwrites: Vec::new(),
-        position: 3,
+        permission_overwrites: Some(Vec::new()),
+        position: Some(3),
         rate_limit_per_user: None,
+        recipients: None,
+        rtc_region: None,
         topic: None,
-    });
+        thread_metadata: None,
+        user_limit: None,
+        video_quality_mode: None,
+    };
 
     (guild_id, channel_id, channel)
 }
@@ -298,5 +316,57 @@ pub fn user(id: Id<UserMarker>) -> User {
         public_flags: None,
         system: None,
         verified: None,
+    }
+}
+
+pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
+    Guild {
+        afk_channel_id: None,
+        afk_timeout: 0,
+        application_id: None,
+        approximate_member_count: None,
+        approximate_presence_count: None,
+        banner: None,
+        channels: Vec::new(),
+        default_message_notifications: DefaultMessageNotificationLevel::Mentions,
+        description: None,
+        discovery_splash: None,
+        emojis: Vec::new(),
+        explicit_content_filter: ExplicitContentFilter::None,
+        features: Vec::new(),
+        icon: None,
+        id,
+        joined_at: None,
+        large: false,
+        max_members: None,
+        max_presences: None,
+        max_video_channel_users: None,
+        member_count,
+        members: Vec::new(),
+        mfa_level: MfaLevel::None,
+        name: "test".to_owned(),
+        nsfw_level: NSFWLevel::Default,
+        owner_id: Id::new(1),
+        owner: None,
+        permissions: None,
+        preferred_locale: "en_us".to_owned(),
+        premium_progress_bar_enabled: false,
+        premium_subscription_count: None,
+        premium_tier: PremiumTier::None,
+        presences: Vec::new(),
+        roles: Vec::new(),
+        rules_channel_id: None,
+        splash: None,
+        stage_instances: Vec::new(),
+        stickers: Vec::new(),
+        system_channel_flags: SystemChannelFlags::empty(),
+        system_channel_id: None,
+        threads: Vec::new(),
+        unavailable: false,
+        vanity_url_code: None,
+        verification_level: VerificationLevel::VeryHigh,
+        voice_states: Vec::new(),
+        widget_channel_id: None,
+        widget_enabled: None,
     }
 }

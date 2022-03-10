@@ -146,6 +146,6 @@ pub mod routing;
 mod json;
 
 /// Discord API version used by this crate.
-pub const API_VERSION: u8 = 9;
+pub const API_VERSION: u8 = 10;
 
 pub use crate::{client::Client, error::Error, response::Response};

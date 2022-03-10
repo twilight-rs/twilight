@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,8 +10,9 @@ use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, VideoQualityMode},
     id::{marker::ChannelMarker, Id},
 };
-use twilight_validate::channel::{
-    name as validate_name, topic as validate_topic, ChannelValidationError,
+use twilight_validate::{
+    channel::{name as validate_name, topic as validate_topic, ChannelValidationError},
+    request::{audit_reason as validate_audit_reason, ValidationError},
 };
 
 // The Discord API doesn't require the `name` and `kind` fields to be present,
@@ -19,7 +20,7 @@ use twilight_validate::channel::{
 #[derive(Serialize)]
 struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    bitrate: Option<u64>,
+    bitrate: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -31,11 +32,11 @@ struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    rate_limit_per_user: Option<u64>,
+    rate_limit_per_user: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    user_limit: Option<u64>,
+    user_limit: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     video_quality_mode: Option<VideoQualityMode>,
     #[serde(rename = "type")]
@@ -78,7 +79,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the bitrate of the channel. Applicable to voice channels only.
-    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.fields.bitrate = Some(bitrate);
 
         self
@@ -139,8 +140,8 @@ impl<'a> UpdateChannel<'a> {
     /// Set the number of seconds that a user must wait before before they are able to send another
     /// message.
     ///
-    /// The minimum is 0 and the maximum is 21600. Refer to [the discord docs] for more details.
-    /// This is also known as "Slow Mode".
+    /// The minimum is 0 and the maximum is 21600. This is also known as "Slow
+    /// Mode". See [Discord Docs/Channel Object].
     ///
     /// # Errors
     ///
@@ -148,10 +149,10 @@ impl<'a> UpdateChannel<'a> {
     /// invalid.
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
-    /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure>
+    /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub const fn rate_limit_per_user(
         mut self,
-        rate_limit_per_user: u64,
+        rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
         if let Err(source) = twilight_validate::channel::rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
@@ -164,15 +165,16 @@ impl<'a> UpdateChannel<'a> {
 
     /// Set the topic.
     ///
-    /// The maximum length is 1024 UTF-16 characters. Refer to [the discord docs] for more details.
+    /// The maximum length is 1024 UTF-16 characters. See
+    /// [Discord Docs/Channel Object].
     ///
     /// # Errors
     ///
     /// Returns an error of type [`TopicInvalid`] if the name is
     /// invalid.
     ///
+    /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     /// [`TopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TopicInvalid
-    /// [the discord docs]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub fn topic(mut self, topic: &'a str) -> Result<Self, ChannelValidationError> {
         validate_topic(topic)?;
 
@@ -183,11 +185,11 @@ impl<'a> UpdateChannel<'a> {
 
     /// For voice channels, set the user limit.
     ///
-    /// Set to 0 for no limit. Limit can otherwise be between 1 and 99 inclusive. Refer to [the
-    /// discord docs] for more details.
+    /// Set to 0 for no limit. Limit can otherwise be between 1 and 99
+    /// inclusive. See [Discord Docs/Modify Channel].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params
-    pub const fn user_limit(mut self, user_limit: u64) -> Self {
+    /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
+    pub const fn user_limit(mut self, user_limit: u16) -> Self {
         self.fields.user_limit = Some(user_limit);
 
         self
@@ -202,11 +204,11 @@ impl<'a> UpdateChannel<'a> {
 
     /// Set the kind of channel.
     ///
-    /// Only conversion between `ChannelType::GuildText` and `ChannelType::GuildNews` is possible,
-    /// and only if the guild has the `NEWS` feature enabled. Refer to [the discord docs] for more
-    /// details.
+    /// Only conversion between `ChannelType::GuildText` and
+    /// `ChannelType::GuildNews` is possible, and only if the guild has the
+    /// `NEWS` feature enabled. See [Discord Docs/Modify Channel].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params
+    /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
     pub const fn kind(mut self, kind: ChannelType) -> Self {
         self.fields.kind = Some(kind);
 
@@ -227,8 +229,10 @@ impl<'a> UpdateChannel<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateChannel<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

@@ -6,7 +6,7 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    channel::GuildChannel,
+    channel::Channel,
     id::{marker::GuildMarker, Id},
 };
 
@@ -25,7 +25,7 @@ impl<'a> GetGuildChannels<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<ListBody<GuildChannel>> {
+    pub fn exec(self) -> ResponseFuture<ListBody<Channel>> {
         let http = self.http;
 
         match self.try_into_request() {

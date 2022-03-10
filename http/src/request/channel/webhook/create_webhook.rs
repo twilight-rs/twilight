@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,6 +10,7 @@ use twilight_model::{
     channel::Webhook,
     id::{marker::ChannelMarker, Id},
 };
+use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 #[derive(Serialize)]
 struct CreateWebhookFields<'a> {
@@ -61,11 +62,11 @@ impl<'a> CreateWebhook<'a> {
 
     /// Set the avatar of the webhook.
     ///
-    /// This must be a Data URI, in the form of `data:image/{type};base64,{data}` where `{type}` is
-    /// the image MIME type and `{data}` is the base64-encoded image. Refer to [the discord docs]
-    /// for more information.
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
-    /// [the discord docs]: https://discord.com/developers/docs/reference#image-data
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: &'a str) -> Self {
         self.fields.avatar = Some(avatar);
 
@@ -86,8 +87,10 @@ impl<'a> CreateWebhook<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateWebhook<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

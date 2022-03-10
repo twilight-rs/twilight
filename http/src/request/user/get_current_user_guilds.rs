@@ -16,7 +16,7 @@ use twilight_validate::request::{
 struct GetCurrentUserGuildsFields {
     after: Option<Id<GuildMarker>>,
     before: Option<Id<GuildMarker>>,
-    limit: Option<u64>,
+    limit: Option<u16>,
 }
 
 /// Returns a list of guilds for the current user.
@@ -78,7 +78,8 @@ impl<'a> GetCurrentUserGuilds<'a> {
 
     /// Set the maximum number of guilds to retrieve.
     ///
-    /// The minimum is 1 and the maximum is 200. Refer to [the discord docs] for more information.
+    /// The minimum is 1 and the maximum is 200. See
+    /// [Discord Docs/Get Current User Guilds].
     ///
     /// # Errors
     ///
@@ -86,8 +87,8 @@ impl<'a> GetCurrentUserGuilds<'a> {
     /// too short or too long.
     ///
     /// [`GetCurrentUserGuilds`]: twilight_validate::request::ValidationErrorType::GetCurrentUserGuilds
-    /// [the discord docs]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
-    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+    /// [Discord Docs/Get Current User Guilds]: https://discordapp.com/developers/docs/resources/user#get-current-user-guilds-query-string-params
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_current_user_guilds_limit(limit) {
             return Err(source);
         }
