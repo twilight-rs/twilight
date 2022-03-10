@@ -54,12 +54,14 @@ impl<'a> AttachmentManager<'a> {
         self.files.is_empty() && self.ids.is_empty()
     }
 
+    #[must_use = "has no effect if not built into a Form"]
     pub fn set_files(mut self, files: Vec<&'a Attachment>) -> Self {
         self.files = files;
 
         self
     }
 
+    #[must_use = "has no effect if not built into a Form"]
     pub fn set_ids(mut self, ids: Vec<Id<AttachmentMarker>>) -> Self {
         self.ids = ids;
 

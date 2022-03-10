@@ -426,11 +426,11 @@ impl Serialize for Component {
             // - label
             // - url
             Component::Button(button) => {
-                1 + button.custom_id.is_some() as usize
-                    + button.disabled as usize
-                    + button.emoji.is_some() as usize
-                    + button.label.is_some() as usize
-                    + button.url.is_some() as usize
+                1 + usize::from(button.custom_id.is_some())
+                    + usize::from(button.disabled)
+                    + usize::from(button.emoji.is_some())
+                    + usize::from(button.label.is_some())
+                    + usize::from(button.url.is_some())
             }
             // Required fields:
             // - custom_id
@@ -443,10 +443,10 @@ impl Serialize for Component {
             // - min_values
             // - placeholder
             Component::SelectMenu(select_menu) => {
-                3 + select_menu.disabled as usize
-                    + select_menu.max_values.is_some() as usize
-                    + select_menu.min_values.is_some() as usize
-                    + select_menu.placeholder.is_some() as usize
+                3 + usize::from(select_menu.disabled)
+                    + usize::from(select_menu.max_values.is_some())
+                    + usize::from(select_menu.min_values.is_some())
+                    + usize::from(select_menu.placeholder.is_some())
             }
             // Required fields:
             // - custom_id
@@ -461,11 +461,11 @@ impl Serialize for Component {
             // - required
             // - value
             Component::TextInput(text_input) => {
-                4 + text_input.max_length.is_some() as usize
-                    + text_input.min_length.is_some() as usize
-                    + text_input.placeholder.is_some() as usize
-                    + text_input.required.is_some() as usize
-                    + text_input.value.is_some() as usize
+                4 + usize::from(text_input.max_length.is_some())
+                    + usize::from(text_input.min_length.is_some())
+                    + usize::from(text_input.placeholder.is_some())
+                    + usize::from(text_input.required.is_some())
+                    + usize::from(text_input.value.is_some())
             }
         };
 
