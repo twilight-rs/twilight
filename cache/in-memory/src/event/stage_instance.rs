@@ -86,7 +86,8 @@ mod tests {
         let stage_instance = StageInstance {
             channel_id: Id::new(1),
             guild_id: Id::new(2),
-            id: Id::new(3),
+            guild_scheduled_event_id: Some(Id::new(3)),
+            id: Id::new(4),
             privacy_level: PrivacyLevel::GuildOnly,
             topic: "topic".into(),
         };
@@ -102,6 +103,7 @@ mod tests {
 
         {
             let cached_instance = cache.stage_instance(stage_instance.id).unwrap();
+            assert_eq!(stage_instance.guild_scheduled_event_id, cached_instance.guild_scheduled_event_id);
             assert_eq!(stage_instance.topic, cached_instance.topic);
         }
 
