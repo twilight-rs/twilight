@@ -108,6 +108,7 @@ mod tests {
                     kind: CommandType::ChatInput, // This isn't actually a valid command, so just mark it as a slash command.
                     options: Vec::new(),
                     resolved: Some(CommandInteractionDataResolved {
+                        attachments: HashMap::new(),
                         channels: HashMap::new(),
                         members: IntoIterator::into_iter([(
                             Id::new(7),

@@ -1,16 +1,17 @@
 use twilight_model::{
-    application::{callback::CallbackData, component::Component},
+    application::{command::CommandOptionChoice, component::Component},
     channel::{
         embed::Embed,
         message::{AllowedMentions, MessageFlags},
     },
+    http::{attachment::Attachment, interaction::InteractionResponseData},
 };
 
-/// Create a [`CallbackData`] with a builder.
+/// Create an [`InteractionResponseData`] with a builder.
 ///
 /// # Example
 /// ```
-/// use twilight_util::builder::CallbackDataBuilder;
+/// use twilight_util::builder::InteractionResponseDataBuilder;
 /// use twilight_model::{
 ///     channel::message::MessageFlags,
 ///     application::component::{button::ButtonStyle, Component, Button}
@@ -25,35 +26,39 @@ use twilight_model::{
 ///    disabled: false,
 /// });
 ///
-/// let callback_data = CallbackDataBuilder::new()
+/// let interaction_response_data = InteractionResponseDataBuilder::new()
 ///     .content("Callback message".to_string())
 ///     .flags(MessageFlags::EPHEMERAL)
 ///     .components([component.clone()])
 ///     .build();
 ///
-/// assert_eq!(callback_data.components, Some(vec![component]));
+/// assert_eq!(interaction_response_data.components, Some(vec![component]));
 /// ```
 #[derive(Clone, Debug)]
 #[must_use = "builders have no effect if unused"]
-pub struct CallbackDataBuilder(CallbackData);
+pub struct InteractionResponseDataBuilder(InteractionResponseData);
 
-impl CallbackDataBuilder {
-    /// Create a new builder to construct a [`CallbackData`].
+impl InteractionResponseDataBuilder {
+    /// Create a new builder to construct an [`InteractionResponseData`].
     pub const fn new() -> Self {
-        Self(CallbackData {
+        Self(InteractionResponseData {
             allowed_mentions: None,
+            attachments: None,
+            choices: None,
             components: None,
             content: None,
+            custom_id: None,
             embeds: None,
             flags: None,
+            title: None,
             tts: None,
         })
     }
 
-    /// Consume the builder, returning a [`CallbackData`].
+    /// Consume the builder, returning an [`InteractionResponseData`].
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
-    pub fn build(self) -> CallbackData {
+    pub fn build(self) -> InteractionResponseData {
         self.0
     }
 
@@ -63,6 +68,27 @@ impl CallbackDataBuilder {
     #[allow(clippy::missing_const_for_fn)]
     pub fn allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
         self.0.allowed_mentions = Some(allowed_mentions);
+
+        self
+    }
+
+    /// Set the attachments of the message.
+    ///
+    /// Defaults to [`None`].
+    pub fn attachments(mut self, attachments: impl IntoIterator<Item = Attachment>) -> Self {
+        self.0.attachments = Some(attachments.into_iter().collect());
+
+        self
+    }
+
+    /// Set the autocomplete choices of the response.
+    ///
+    /// Only valid when the type of the interaction is
+    /// [`ApplicationCommandAutocompleteResult`].
+    ///
+    /// [`ApplicationCommandAutocompleteResult`]: twilight_model::http::interaction::InteractionResponseType::ApplicationCommandAutocompleteResult
+    pub fn choices(mut self, choices: impl IntoIterator<Item = CommandOptionChoice>) -> Self {
+        self.0.choices = Some(choices.into_iter().collect());
 
         self
     }
@@ -82,6 +108,16 @@ impl CallbackDataBuilder {
     #[allow(clippy::missing_const_for_fn)]
     pub fn content(mut self, content: String) -> Self {
         self.0.content = Some(content);
+
+        self
+    }
+
+    /// Set the custom ID of the callback.
+    ///
+    /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn custom_id(mut self, custom_id: String) -> Self {
+        self.0.custom_id = Some(custom_id);
 
         self
     }
@@ -108,6 +144,16 @@ impl CallbackDataBuilder {
         self
     }
 
+    /// Set the title of the callback.
+    ///
+    /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn title(mut self, title: String) -> Self {
+        self.0.title = Some(title);
+
+        self
+    }
+
     /// Set whether the response has text-to-speech enabled.
     ///
     /// Defaults to [`None`].
@@ -118,7 +164,7 @@ impl CallbackDataBuilder {
     }
 }
 
-impl Default for CallbackDataBuilder {
+impl Default for InteractionResponseDataBuilder {
     fn default() -> Self {
         Self::new()
     }
@@ -126,23 +172,21 @@ impl Default for CallbackDataBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::CallbackDataBuilder;
-
+    use super::*;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
-        application::{
-            callback::CallbackData,
-            component::{button::ButtonStyle, Button, Component},
-        },
-        channel::{
-            embed::Embed,
-            message::{AllowedMentions, MessageFlags},
-        },
+        application::component::{button::ButtonStyle, Button},
         datetime::Timestamp,
     };
 
-    assert_impl_all!(CallbackDataBuilder: Clone, Debug, Default, Send, Sync);
+    assert_impl_all!(
+        InteractionResponseDataBuilder: Clone,
+        Debug,
+        Default,
+        Send,
+        Sync
+    );
 
     #[test]
     fn callback_data_builder() {
@@ -173,7 +217,7 @@ mod tests {
             video: None,
         };
 
-        let value = CallbackDataBuilder::new()
+        let value = InteractionResponseDataBuilder::new()
             .allowed_mentions(allowed_mentions.clone())
             .components([component.clone()])
             .content("a content".into())
@@ -182,12 +226,16 @@ mod tests {
             .tts(false)
             .build();
 
-        let expected = CallbackData {
+        let expected = InteractionResponseData {
             allowed_mentions: Some(allowed_mentions),
+            attachments: None,
+            choices: None,
             components: Some(vec![component]),
             content: Some("a content".to_owned()),
+            custom_id: None,
             embeds: Some(vec![embed]),
             flags: Some(MessageFlags::empty()),
+            title: None,
             tts: Some(false),
         };
 

@@ -2,6 +2,11 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.10.0] - 2022-03-10
+
+This major version bump of the Lavalink crate is done to match all of the other
+crates in the ecosystem receiving a major version bump. There are no changes.
+
 ## [0.9.1] - 2022-02-12
 
 ### Changes
@@ -324,6 +329,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.9.0
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.2

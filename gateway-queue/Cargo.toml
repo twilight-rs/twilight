@@ -13,14 +13,14 @@ publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.57"
-version = "0.9.1"
+version = "0.10.0"
 
 [dependencies]
 tokio = { default-features = false, features = ["rt", "sync", "time"], version = "1.0" }
-twilight-http = { default-features = false, path = "../http" }
 
 # Optional dependencies.
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
+twilight-http = { default-features = false, optional = true, path = "../http" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
@@ -30,3 +30,7 @@ default = ["rustls-native-roots", "tracing"]
 native = ["twilight-http/native"]
 rustls-native-roots = ["twilight-http/rustls-native-roots"]
 rustls-webpki-roots = ["twilight-http/rustls-webpki-roots"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
