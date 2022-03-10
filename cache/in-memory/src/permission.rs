@@ -29,7 +29,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, GuildChannel},
+    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
     guild::Permissions,
     id::{
         marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
@@ -83,6 +83,12 @@ impl ChannelError {
 impl Display for ChannelError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
+            ChannelErrorType::ChannelNotInGuild { channel_id } => {
+                f.write_str("channel ")?;
+                Display::fmt(&channel_id, f)?;
+
+                f.write_str(" is not in a guild")
+            }
             ChannelErrorType::ChannelUnavailable { channel_id } => f.write_fmt(format_args!(
                 "channel {} is either not in the cache or is not a guild channel",
                 channel_id
@@ -105,6 +111,13 @@ impl Error for ChannelError {}
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ChannelErrorType {
+    /// Channel is not in a guild.
+    ///
+    /// This may be because the channel is a private channel.
+    ChannelNotInGuild {
+        /// ID of the channel.
+        channel_id: Id<ChannelMarker>,
+    },
     /// Guild channel is not present in the cache.
     ChannelUnavailable {
         /// ID of the channel.
@@ -314,12 +327,15 @@ impl<'a> InMemoryCachePermissions<'a> {
         user_id: Id<UserMarker>,
         channel_id: Id<ChannelMarker>,
     ) -> Result<Permissions, ChannelError> {
-        let channel = self.0.channels_guild.get(&channel_id).ok_or(ChannelError {
+        let channel = self.0.channels.get(&channel_id).ok_or(ChannelError {
             kind: ChannelErrorType::ChannelUnavailable { channel_id },
             source: None,
         })?;
 
-        let guild_id = channel.guild_id();
+        let guild_id = channel.guild_id.ok_or(ChannelError {
+            kind: ChannelErrorType::ChannelNotInGuild { channel_id },
+            source: None,
+        })?;
 
         if self.is_owner(user_id, guild_id) {
             return Ok(Permissions::all());
@@ -329,22 +345,20 @@ impl<'a> InMemoryCachePermissions<'a> {
             .member_roles(user_id, guild_id)
             .map_err(ChannelError::from_member_roles)?;
 
-        let overwrites = match channel.value().resource() {
-            GuildChannel::Category(c) => c.permission_overwrites.clone(),
-            GuildChannel::NewsThread(c) => self.parent_overwrites(&c.id, None)?,
-            GuildChannel::PrivateThread(c) => {
-                self.parent_overwrites(&c.id, Some(c.permission_overwrites.clone()))?
+        let overwrites = match channel.kind {
+            ChannelType::GuildPrivateThread => {
+                self.parent_overwrites(&channel.id, channel.permission_overwrites.clone())?
             }
-            GuildChannel::PublicThread(c) => self.parent_overwrites(&c.id, None)?,
-            GuildChannel::Stage(c) => c.permission_overwrites.clone(),
-            GuildChannel::Text(c) => c.permission_overwrites.clone(),
-            GuildChannel::Voice(c) => c.permission_overwrites.clone(),
+            ChannelType::GuildNewsThread | ChannelType::GuildPublicThread => {
+                self.parent_overwrites(&channel.id, None)?
+            }
+            _ => channel.permission_overwrites.clone().unwrap_or_default(),
         };
 
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
-        Ok(calculator.in_channel(channel.resource().kind(), overwrites.as_slice()))
+        Ok(calculator.in_channel(channel.kind, overwrites.as_slice()))
     }
 
     /// Calculate the guild-level permissions of a member.
@@ -475,18 +489,22 @@ impl<'a> InMemoryCachePermissions<'a> {
         channel_id: &Id<ChannelMarker>,
         parent_overwrites: Option<Vec<PermissionOverwrite>>,
     ) -> Result<Vec<PermissionOverwrite>, ChannelError> {
-        let channel = self.0.channels_guild.get(channel_id).ok_or(ChannelError {
+        let channel = self.0.channels.get(channel_id).ok_or(ChannelError {
             kind: ChannelErrorType::ChannelUnavailable {
                 channel_id: *channel_id,
             },
             source: None,
         })?;
 
-        if let GuildChannel::Text(c) = channel.resource() {
+        if channel.guild_id.is_some() {
             if let Some(parent_overwrites) = parent_overwrites {
-                Ok([c.permission_overwrites.clone(), parent_overwrites.to_vec()].concat())
+                Ok([
+                    channel.permission_overwrites.clone().unwrap_or_default(),
+                    parent_overwrites.to_vec(),
+                ]
+                .concat())
             } else {
-                Ok(c.permission_overwrites.clone())
+                Ok(channel.permission_overwrites.clone().unwrap_or_default())
             }
         } else {
             Err(ChannelError {
@@ -510,7 +528,7 @@ mod tests {
     use twilight_model::{
         channel::{
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
-            Channel, ChannelType, GuildChannel, TextChannel,
+            Channel, ChannelType,
         },
         datetime::Timestamp,
         gateway::payload::incoming::{
@@ -617,31 +635,47 @@ mod tests {
     }
 
     fn channel() -> Channel {
-        Channel::Guild(GuildChannel::Text(TextChannel {
+        Channel {
+            application_id: None,
+            bitrate: None,
+            default_auto_archive_duration: None,
             guild_id: Some(GUILD_ID),
+            icon: None,
             id: CHANNEL_ID,
             kind: ChannelType::GuildText,
+            name: Some("test".to_owned()),
+            invitable: None,
             last_message_id: None,
             last_pin_timestamp: None,
-            name: "test".to_owned(),
-            nsfw: false,
+            nsfw: Some(false),
+            member: None,
+            member_count: None,
+            message_count: None,
+            owner_id: None,
             parent_id: None,
-            permission_overwrites: Vec::from([
+            permission_overwrites: Some(Vec::from([
                 PermissionOverwrite {
                     allow: Permissions::empty(),
                     deny: Permissions::CREATE_INVITE,
-                    kind: PermissionOverwriteType::Role(EVERYONE_ROLE_ID),
+                    id: EVERYONE_ROLE_ID.cast(),
+                    kind: PermissionOverwriteType::Role,
                 },
                 PermissionOverwrite {
                     allow: Permissions::EMBED_LINKS,
                     deny: Permissions::empty(),
-                    kind: PermissionOverwriteType::Member(USER_ID),
+                    id: USER_ID.cast(),
+                    kind: PermissionOverwriteType::Member,
                 },
-            ]),
-            position: 0,
+            ])),
+            position: Some(0),
             rate_limit_per_user: None,
+            recipients: None,
+            rtc_region: None,
             topic: None,
-        }))
+            thread_metadata: None,
+            user_limit: None,
+            video_quality_mode: None,
+        }
     }
 
     fn role_with_permissions(id: Id<RoleMarker>, permissions: Permissions) -> Role {

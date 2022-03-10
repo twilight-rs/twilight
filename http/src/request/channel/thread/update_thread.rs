@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,9 +10,12 @@ use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
     id::{marker::ChannelMarker, Id},
 };
-use twilight_validate::channel::{
-    name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
-    ChannelValidationError,
+use twilight_validate::{
+    channel::{
+        name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
+        ChannelValidationError,
+    },
+    request::{audit_reason as validate_audit_reason, ValidationError},
 };
 
 #[derive(Serialize)]
@@ -28,7 +31,7 @@ struct UpdateThreadFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    rate_limit_per_user: Option<u64>,
+    rate_limit_per_user: Option<u16>,
 }
 
 /// Update a thread.
@@ -141,7 +144,7 @@ impl<'a> UpdateThread<'a> {
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub const fn rate_limit_per_user(
         mut self,
-        rate_limit_per_user: u64,
+        rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
         if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
@@ -166,8 +169,10 @@ impl<'a> UpdateThread<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateThread<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

@@ -1,7 +1,6 @@
 pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
 
 use crate::request::{channel::reaction::RequestReactionType, Method};
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::id::{marker::RoleMarker, Id};
 
@@ -30,11 +29,9 @@ pub enum Route<'a> {
     CreateBan {
         /// The number of days' worth of the user's messages to delete in the
         /// guild's channels.
-        delete_message_days: Option<u64>,
+        delete_message_days: Option<u16>,
         /// The ID of the guild.
         guild_id: u64,
-        /// The reason for the ban.
-        reason: Option<&'a str>,
         /// The ID of the user.
         user_id: u64,
     },
@@ -78,7 +75,7 @@ pub enum Route<'a> {
         compute_prune_count: Option<bool>,
         /// The number of days that a user must be offline before being able to
         /// be pruned.
-        days: Option<u64>,
+        days: Option<u16>,
         /// The ID of the guild.
         guild_id: u64,
         /// The roles to filter the prune by.
@@ -353,7 +350,7 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
         /// The maximum number of audit logs to get.
-        limit: Option<u64>,
+        limit: Option<u16>,
         /// The ID of the user, if specified.
         user_id: Option<u64>,
     },
@@ -499,7 +496,7 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
         /// The maximum number of members to get.
-        limit: Option<u64>,
+        limit: Option<u16>,
         /// Whether to get the members' presences.
         presences: Option<bool>,
     },
@@ -513,7 +510,7 @@ pub enum Route<'a> {
     GetGuildPruneCount {
         /// The number of days that a user must be offline before being able to
         /// be pruned.
-        days: Option<u64>,
+        days: Option<u16>,
         /// The ID of the guild.
         guild_id: u64,
         /// The roles to filter the prune by.
@@ -552,7 +549,7 @@ pub enum Route<'a> {
         /// ID of the guild.
         guild_id: u64,
         /// Maximum amount of members to get.
-        limit: Option<u64>,
+        limit: Option<u16>,
         /// ID of the scheduled event.
         scheduled_event_id: u64,
         /// Whether to return a member object.
@@ -597,7 +594,7 @@ pub enum Route<'a> {
         /// The maximum ID of guilds to get.
         before: Option<u64>,
         /// The maximum number of guilds to get.
-        limit: Option<u64>,
+        limit: Option<u16>,
     },
     /// Route information to get an original interaction response message.
     GetInteractionOriginal {
@@ -647,7 +644,7 @@ pub enum Route<'a> {
         /// The ID of the channel.
         channel_id: u64,
         /// The maximum number of messages to get.
-        limit: Option<u64>,
+        limit: Option<u16>,
     },
     /// Route information to get a list of sticker packs available to Nitro
     /// subscribers.
@@ -694,7 +691,7 @@ pub enum Route<'a> {
         /// The URI encoded custom or unicode emoji.
         emoji: &'a RequestReactionType<'a>,
         /// The maximum number of users to retrieve.
-        limit: Option<u64>,
+        limit: Option<u16>,
         /// The ID of the message.
         message_id: u64,
     },
@@ -817,7 +814,7 @@ pub enum Route<'a> {
         /// ID of the guild to search in.
         guild_id: u64,
         /// Upper limit of members to query for.
-        limit: Option<u64>,
+        limit: Option<u16>,
         /// Query to search by.
         query: &'a str,
     },
@@ -1607,7 +1604,6 @@ impl Display for Route<'_> {
             Route::CreateBan {
                 guild_id,
                 delete_message_days,
-                reason,
                 user_id,
             } => {
                 f.write_str("guilds/")?;
@@ -1619,17 +1615,6 @@ impl Display for Route<'_> {
                 if let Some(delete_message_days) = delete_message_days {
                     f.write_str("delete_message_days=")?;
                     Display::fmt(delete_message_days, f)?;
-
-                    if reason.is_some() {
-                        f.write_str("&")?;
-                    }
-                }
-
-                if let Some(reason) = reason {
-                    f.write_str("reason=")?;
-                    let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC);
-
-                    Display::fmt(&encoded_reason, f)?;
                 }
 
                 Ok(())
@@ -4445,7 +4430,6 @@ mod tests {
         let mut route = Route::CreateBan {
             guild_id: GUILD_ID,
             delete_message_days: None,
-            reason: None,
             user_id: USER_ID,
         };
         assert_eq!(
@@ -4460,43 +4444,12 @@ mod tests {
         route = Route::CreateBan {
             guild_id: GUILD_ID,
             delete_message_days: Some(3),
-            reason: None,
             user_id: USER_ID,
         };
         assert_eq!(
             route.to_string(),
             format!(
                 "guilds/{guild_id}/bans/{user_id}?delete_message_days=3",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
-        );
-
-        route = Route::CreateBan {
-            guild_id: GUILD_ID,
-            delete_message_days: None,
-            reason: Some("test"),
-            user_id: USER_ID,
-        };
-        assert_eq!(
-            route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans/{user_id}?reason=test",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
-        );
-
-        route = Route::CreateBan {
-            guild_id: GUILD_ID,
-            delete_message_days: Some(3),
-            reason: Some("test"),
-            user_id: USER_ID,
-        };
-        assert_eq!(
-            route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans/{user_id}?delete_message_days=3&reason=test",
                 guild_id = GUILD_ID,
                 user_id = USER_ID
             )

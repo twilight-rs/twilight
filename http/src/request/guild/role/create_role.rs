@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,6 +10,7 @@ use twilight_model::{
     guild::{Permissions, Role},
     id::{marker::GuildMarker, Id},
 };
+use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 #[derive(Serialize)]
 struct CreateRoleFields<'a> {
@@ -146,8 +147,10 @@ impl<'a> CreateRole<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateRole<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

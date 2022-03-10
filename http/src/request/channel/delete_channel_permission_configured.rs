@@ -1,11 +1,12 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use twilight_model::id::{marker::ChannelMarker, Id};
+use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 /// Clear the permissions for a target ID in a channel.
 ///
@@ -46,8 +47,10 @@ impl<'a> DeleteChannelPermissionConfigured<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for DeleteChannelPermissionConfigured<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

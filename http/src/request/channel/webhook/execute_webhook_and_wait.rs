@@ -1,5 +1,6 @@
 use super::execute_webhook::ExecuteWebhook;
 use crate::{
+    client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
     response::ResponseFuture,
@@ -38,19 +39,20 @@ use twilight_model::channel::Message;
 /// [`file`]: Self::file
 #[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhookAndWait<'a> {
+    http: &'a Client,
     inner: ExecuteWebhook<'a>,
 }
 
 impl<'a> ExecuteWebhookAndWait<'a> {
-    pub(crate) const fn new(inner: ExecuteWebhook<'a>) -> Self {
-        Self { inner }
+    pub(crate) const fn new(http: &'a Client, inner: ExecuteWebhook<'a>) -> Self {
+        Self { http, inner }
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<Message> {
-        let http = self.inner.http;
+        let http = self.http;
 
         match self.try_into_request() {
             Ok(request) => http.request(request),
@@ -60,7 +62,7 @@ impl<'a> ExecuteWebhookAndWait<'a> {
 }
 
 impl TryIntoRequest for ExecuteWebhookAndWait<'_> {
-    fn try_into_request(mut self) -> Result<Request, Error> {
-        self.inner.request(true)
+    fn try_into_request(self) -> Result<Request, Error> {
+        self.inner.try_into_request()
     }
 }
