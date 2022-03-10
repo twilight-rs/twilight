@@ -48,9 +48,9 @@ bitflags! {
         const CREATE_PRIVATE_THREADS = 1 << 36;
         /// Allows for sending messages in threads.
         const SEND_MESSAGES_IN_THREADS = 1 << 38;
-        /// Allows for launching activities (applications with the `EMBEDDED`
+        /// Allows for using activities (applications with the `EMBEDDED`
         /// flag) in a voice channel.
-        const START_EMBEDDED_ACTIVITIES = 1 << 39;
+        const USE_EMBEDDED_ACTIVITIES = 1 << 39;
         /// Allows for timing out users to prevent them from sending or reacting
         /// to messages in chat and threads, and from speaking in voice and
         /// stage channels.
