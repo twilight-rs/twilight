@@ -1,13 +1,15 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::id::{marker::GuildMarker, Id};
-use twilight_validate::request::{nickname as validate_nickname, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, nickname as validate_nickname, ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateCurrentMemberFields<'a> {
@@ -70,8 +72,10 @@ impl<'a> UpdateCurrentMember<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateCurrentMember<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

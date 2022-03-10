@@ -13,7 +13,7 @@ use twilight_model::{
     },
 };
 
-/// Get a followup message of an interaction.
+/// Get a followup message of an interaction, by its token and the message ID.
 ///
 /// # Examples
 ///
@@ -30,20 +30,20 @@ use twilight_model::{
 ///
 /// let response = client
 ///     .interaction(application_id)
-///     .followup_message("token here", Id::new(2))
+///     .followup("token here", Id::new(2))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
-pub struct GetFollowupMessage<'a> {
+pub struct GetFollowup<'a> {
     application_id: Id<ApplicationMarker>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
     interaction_token: &'a str,
 }
 
-impl<'a> GetFollowupMessage<'a> {
+impl<'a> GetFollowup<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
@@ -71,7 +71,7 @@ impl<'a> GetFollowupMessage<'a> {
     }
 }
 
-impl TryIntoRequest for GetFollowupMessage<'_> {
+impl TryIntoRequest for GetFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::builder(&Route::GetFollowupMessage {
             application_id: self.application_id.get(),
@@ -86,7 +86,7 @@ impl TryIntoRequest for GetFollowupMessage<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::GetFollowupMessage;
+    use super::GetFollowup;
     use crate::{
         client::Client,
         request::{Request, TryIntoRequest},
@@ -99,7 +99,7 @@ mod tests {
         Id,
     };
 
-    assert_impl_all!(GetFollowupMessage<'_>: Send, Sync);
+    assert_impl_all!(GetFollowup<'_>: Send, Sync);
 
     #[test]
     fn test_request() -> Result<(), Box<dyn Error>> {
@@ -111,7 +111,7 @@ mod tests {
 
         let actual = client
             .interaction(APPLICATION_ID)
-            .followup_message(TOKEN, MESSAGE_ID)
+            .followup(TOKEN, MESSAGE_ID)
             .try_into_request()?;
         let expected = Request::builder(&Route::GetFollowupMessage {
             application_id: APPLICATION_ID.get(),

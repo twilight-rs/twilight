@@ -3,10 +3,12 @@
 pub mod application_command;
 pub mod application_command_autocomplete;
 pub mod message_component;
+pub mod modal;
 
 mod interaction_type;
 mod ping;
 
+use self::modal::ModalSubmitInteraction;
 pub use self::{
     application_command::ApplicationCommand,
     application_command_autocomplete::ApplicationCommandAutocomplete,
@@ -47,6 +49,8 @@ pub enum Interaction {
     ApplicationCommandAutocomplete(Box<ApplicationCommandAutocomplete>),
     /// Message component variant.
     MessageComponent(Box<MessageComponentInteraction>),
+    /// Modal submit variant.
+    ModalSubmit(Box<ModalSubmitInteraction>),
 }
 
 impl Interaction {
@@ -56,6 +60,7 @@ impl Interaction {
             Self::ApplicationCommand(inner) => inner.guild_id,
             Self::ApplicationCommandAutocomplete(inner) => inner.guild_id,
             Self::MessageComponent(inner) => inner.guild_id,
+            Self::ModalSubmit(inner) => inner.guild_id,
         }
     }
 
@@ -66,6 +71,7 @@ impl Interaction {
             Self::ApplicationCommand(command) => command.id,
             Self::ApplicationCommandAutocomplete(command) => command.id,
             Self::MessageComponent(component) => component.id,
+            Self::ModalSubmit(modal) => modal.id,
         }
     }
 }
@@ -360,6 +366,29 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     locale,
                     member,
                     message,
+                    token,
+                    user,
+                }))
+            }
+            InteractionType::ModalSubmit => {
+                let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
+                let data = data
+                    .ok_or_else(|| DeError::missing_field("data"))?
+                    .deserialize_into()
+                    .map_err(|_| DeError::custom("expected ModalInteractionData struct"))?;
+
+                let guild_id = guild_id.unwrap_or_default();
+                let member = member.unwrap_or_default();
+                let user = user.unwrap_or_default();
+
+                Self::Value::ModalSubmit(Box::new(ModalSubmitInteraction {
+                    application_id,
+                    channel_id,
+                    data,
+                    guild_id,
+                    id,
+                    kind,
+                    member,
                     token,
                     user,
                 }))

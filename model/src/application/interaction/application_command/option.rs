@@ -34,7 +34,7 @@ impl Serialize for CommandDataOption {
                 if o.is_empty()
         );
 
-        let len = 2 + !subcommand_is_empty as usize + self.focused as usize;
+        let len = 2 + usize::from(!subcommand_is_empty) + usize::from(self.focused);
 
         let mut state = serializer.serialize_struct("CommandDataOption", len)?;
 

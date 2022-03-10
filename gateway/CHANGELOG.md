@@ -2,6 +2,30 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.10.0] - 2022-03-10
+
+### Additions
+
+Add `{ClusterBuilder, ShardBuilder}::ratelimit_payloads`, which if set to false,
+enables the sending of un-ratelimited payloads ([#1501] - [@Gelbpunkt]). This is
+`true` by default. Additionally, `Information::{ratelimit_refill,
+ratelimit_requests}` are now optional.
+
+Add `EventTypeFlags::GUILD_STICKERS_UPDATE`, and rename/update
+`GUILD_EMOJIS_AND_STICKERS` ([#1520] - [@HTG-YT]).
+
+### Changes
+
+Remove the `compression` feature, which was not used in any code ([#1497] -
+[@vilgotf]).
+
+Update to Discord API version 10 ([#1540] - [@zeylahellyer]).
+
+[#1497]: https://github.com/twilight-rs/twilight/pull/1497
+[#1501]: https://github.com/twilight-rs/twilight/pull/1501
+[#1520]: https://github.com/twilight-rs/twilight/pull/1520
+[#1540]: https://github.com/twilight-rs/twilight/pull/1540
+
 ## [0.9.1] - 2022-02-12
 
 ### Fixes
@@ -730,6 +754,7 @@ Initial release.
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@HTG-YT]: https://github.com/HTG-YT
 [@itohatweb]: https://github.com/itohatweb
 [@james7132]: https://github.com/james7132
 [@kotx]: https://github.com/kotx
@@ -757,6 +782,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.0
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.5

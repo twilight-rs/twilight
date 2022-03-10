@@ -1606,8 +1606,8 @@ mod tests {
     /// the matching of a later event.
     #[tokio::test]
     async fn test_wait_for_component() {
-        let event = Event::InteractionCreate(Box::new(InteractionCreate(
-            Interaction::MessageComponent(Box::new(button())),
+        let event = Event::InteractionCreate(InteractionCreate(Interaction::MessageComponent(
+            Box::new(button()),
         )));
 
         let standby = Standby::new();
@@ -1630,20 +1630,20 @@ mod tests {
         let standby = Standby::new();
         let mut stream =
             standby.wait_for_component_stream(Id::new(3), |_: &MessageComponentInteraction| true);
-        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+        standby.process(&Event::InteractionCreate(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
-        ))));
-        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+        )));
+        standby.process(&Event::InteractionCreate(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
-        ))));
+        )));
 
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
         assert_eq!(1, standby.components.len());
-        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+        standby.process(&Event::InteractionCreate(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
-        ))));
+        )));
         assert!(standby.components.is_empty());
     }
 

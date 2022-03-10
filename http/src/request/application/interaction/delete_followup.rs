@@ -10,7 +10,7 @@ use twilight_model::id::{
     Id,
 };
 
-/// Delete a followup message created from a interaction.
+/// Delete the original message, by its token.
 ///
 /// # Examples
 ///
@@ -25,20 +25,20 @@ use twilight_model::id::{
 ///
 /// client
 ///     .interaction(application_id)
-///     .delete_followup_message("token here", Id::new(2))
+///     .delete_followup("token here", Id::new(2))
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
-pub struct DeleteFollowupMessage<'a> {
+pub struct DeleteFollowup<'a> {
     http: &'a Client,
     message_id: Id<MessageMarker>,
     token: &'a str,
     application_id: Id<ApplicationMarker>,
 }
 
-impl<'a> DeleteFollowupMessage<'a> {
+impl<'a> DeleteFollowup<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         application_id: Id<ApplicationMarker>,
@@ -66,7 +66,7 @@ impl<'a> DeleteFollowupMessage<'a> {
     }
 }
 
-impl TryIntoRequest for DeleteFollowupMessage<'_> {
+impl TryIntoRequest for DeleteFollowup<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::builder(&Route::DeleteWebhookMessage {
             message_id: self.message_id.get(),
@@ -81,7 +81,7 @@ impl TryIntoRequest for DeleteFollowupMessage<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::DeleteFollowupMessage;
+    use super::DeleteFollowup;
     use crate::{
         client::Client,
         request::{Request, TryIntoRequest},
@@ -94,7 +94,7 @@ mod tests {
     fn test_request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
 
-        let builder = DeleteFollowupMessage::new(&client, Id::new(1), "token", Id::new(2));
+        let builder = DeleteFollowup::new(&client, Id::new(1), "token", Id::new(2));
         let actual = builder.try_into_request()?;
 
         let expected = Request::from_route(&Route::DeleteWebhookMessage {

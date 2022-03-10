@@ -1,27 +1,30 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, ChannelType, GuildChannel},
+    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
     },
 };
-use twilight_validate::channel::{
-    name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
-    topic as validate_topic, ChannelValidationError,
+use twilight_validate::{
+    channel::{
+        name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
+        topic as validate_topic, ChannelValidationError,
+    },
+    request::{audit_reason as validate_audit_reason, ValidationError},
 };
 
 #[derive(Serialize)]
 struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    bitrate: Option<u64>,
+    bitrate: Option<u32>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: &'a str,
@@ -34,11 +37,11 @@ struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    rate_limit_per_user: Option<u64>,
+    rate_limit_per_user: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    user_limit: Option<u64>,
+    user_limit: Option<u16>,
 }
 
 /// Create a new request to create a guild channel.
@@ -81,7 +84,7 @@ impl<'a> CreateGuildChannel<'a> {
     }
 
     /// Set the bitrate of the channel. Applicable to voice channels only.
-    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.fields.bitrate = Some(bitrate);
 
         self
@@ -144,7 +147,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub const fn rate_limit_per_user(
         mut self,
-        rate_limit_per_user: u64,
+        rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
         if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
@@ -181,7 +184,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// inclusive. See [Discord Docs/Modify Channel] for more details.
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub const fn user_limit(mut self, user_limit: u64) -> Self {
+    pub const fn user_limit(mut self, user_limit: u16) -> Self {
         self.fields.user_limit = Some(user_limit);
 
         self
@@ -190,7 +193,7 @@ impl<'a> CreateGuildChannel<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<GuildChannel> {
+    pub fn exec(self) -> ResponseFuture<Channel> {
         let http = self.http;
 
         match self.try_into_request() {
@@ -201,8 +204,10 @@ impl<'a> CreateGuildChannel<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildChannel<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

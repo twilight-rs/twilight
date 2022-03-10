@@ -1,4 +1,5 @@
 pub mod application;
+pub mod attachment;
 pub mod channel;
 pub mod guild;
 pub mod scheduled_event;
@@ -6,7 +7,6 @@ pub mod sticker;
 pub mod template;
 pub mod user;
 
-mod attachment;
 mod audit_reason;
 mod base;
 mod get_gateway;
@@ -17,8 +17,7 @@ mod multipart;
 mod try_into_request;
 
 pub use self::{
-    attachment::AttachmentFile,
-    audit_reason::{AuditLogReason, AuditLogReasonError},
+    audit_reason::AuditLogReason,
     base::{Request, RequestBuilder},
     get_gateway::GetGateway,
     get_gateway_authed::GetGatewayAuthed,
@@ -34,6 +33,9 @@ use hyper::header::{HeaderName, HeaderValue};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Serialize, Serializer};
 use std::iter;
+
+/// Name of the audit log reason header.
+const REASON_HEADER_NAME: &str = "x-audit-log-reason";
 
 /// Field that either serializes to null or a value.
 ///
@@ -54,17 +56,10 @@ impl<T: Serialize> Serialize for NullableField<T> {
     }
 }
 
-#[derive(Serialize)]
-pub(crate) struct PartialAttachment<'a> {
-    pub description: Option<&'a str>,
-    pub filename: &'a str,
-    pub id: u64,
-}
-
 pub(crate) fn audit_header(
     reason: &str,
 ) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>, Error> {
-    let header_name = HeaderName::from_static("x-audit-log-reason");
+    let header_name = HeaderName::from_static(REASON_HEADER_NAME);
     let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC).to_string();
     let header_value = HeaderValue::from_str(&encoded_reason).map_err(|e| Error {
         kind: ErrorType::CreatingHeader {
