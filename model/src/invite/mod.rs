@@ -47,8 +47,8 @@ pub struct Invite {
 #[cfg(test)]
 mod tests {
     use super::{
-        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild,
-         TargetType, User, WelcomeScreen,
+        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild, TargetType, User,
+        WelcomeScreen,
     };
     use crate::{
         channel::ChannelType,
