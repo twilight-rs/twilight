@@ -13,7 +13,7 @@ pub struct StageInstance {
     pub channel_id: Id<ChannelMarker>,
     pub guild_id: Id<GuildMarker>,
     /// The id of the [`GuildScheduledEvent`].
-    /// 
+    ///
     /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
     pub guild_scheduled_event_id: Option<Id<ScheduledEventMarker>>,
     pub id: Id<StageMarker>,

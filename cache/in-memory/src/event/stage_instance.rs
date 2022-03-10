@@ -103,7 +103,10 @@ mod tests {
 
         {
             let cached_instance = cache.stage_instance(stage_instance.id).unwrap();
-            assert_eq!(stage_instance.guild_scheduled_event_id, cached_instance.guild_scheduled_event_id);
+            assert_eq!(
+                stage_instance.guild_scheduled_event_id,
+                cached_instance.guild_scheduled_event_id
+            );
             assert_eq!(stage_instance.topic, cached_instance.topic);
         }
 
