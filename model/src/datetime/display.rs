@@ -77,6 +77,7 @@ impl TimestampIso8601Display {
     /// assert_eq!("2021-08-10T11:16:37+00:00", formatter.to_string());
     /// # Ok(()) }
     /// ```
+    #[must_use]
     pub const fn with_microseconds(mut self, with_microseconds: bool) -> Self {
         self.with_microseconds = with_microseconds;
 

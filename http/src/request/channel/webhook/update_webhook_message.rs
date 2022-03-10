@@ -278,9 +278,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// [`attachments`]: Self::attachments
     pub fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {
-        self.attachment_manager = self
-            .attachment_manager
-            .set_ids(attachment_ids.iter().copied().collect());
+        self.attachment_manager = self.attachment_manager.set_ids(attachment_ids.to_vec());
 
         // Set an empty list. This will be overwritten in `TryIntoRequest` if
         // the actual list is not empty.

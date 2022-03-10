@@ -149,8 +149,10 @@ async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
             choices: None,
             components: None,
             content: Some(format!("```rust\n{:?}\n```", i)),
+            custom_id: None,
             embeds: None,
             flags: None,
+            title: None,
             tts: None,
         }),
     })
@@ -166,8 +168,10 @@ async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
             choices: None,
             components: None,
             content: Some("Vroom vroom".to_owned()),
+            custom_id: None,
             embeds: None,
             flags: None,
+            title: None,
             tts: None,
         }),
     })
