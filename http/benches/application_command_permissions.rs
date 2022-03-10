@@ -7,7 +7,7 @@ use twilight_model::{
 
 fn commands(commands: usize, permissions: usize) -> Vec<(Id<CommandMarker>, CommandPermissions)> {
     (0..commands)
-        .map(|id| {
+        .flat_map(|id| {
             (0..permissions).map(move |_| {
                 (
                     Id::new(id as u64),
@@ -18,7 +18,6 @@ fn commands(commands: usize, permissions: usize) -> Vec<(Id<CommandMarker>, Comm
                 )
             })
         })
-        .flatten()
         .collect()
 }
 

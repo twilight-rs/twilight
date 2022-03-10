@@ -2,6 +2,21 @@
 
 Changelog for `twilight-util`.
 
+## [0.10.0] - 2022-03-10
+
+### Changes
+
+Rename `CallbackDataBuilder` to `InteractionResponseDataBuilder`, and add the
+methods `attachments`, `choices`, `custom_id`, and `title` ([#1300], [#1508] -
+[@itohatweb], [@7596ff]).
+
+Update the permission calculator to use the new `PermissionOverwrite` type
+([#1521] - [@7596ff]).
+
+[#1300]: https://github.com/twilight-rs/twilight/pull/1300
+[#1508]: https://github.com/twilight-rs/twilight/pull/1508
+[#1521]: https://github.com/twilight-rs/twilight/pull/1521
+
 ## [0.9.1] - 2022-02-21
 
 ### Additions
@@ -192,6 +207,7 @@ Initial release.
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.9.0
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.8.2

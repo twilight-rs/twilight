@@ -107,6 +107,7 @@ impl RequestGuildMembersBuilder {
     /// Set the nonce to identify the member chunk response.
     ///
     /// By default, this uses Discord's default.
+    #[must_use = "has no effect if not built into a RequestGuildMembers"]
     pub fn nonce(self, nonce: impl Into<String>) -> Self {
         self._nonce(nonce.into())
     }
@@ -120,6 +121,7 @@ impl RequestGuildMembersBuilder {
     /// Request that guild members' presences are included in member chunks.
     ///
     /// By default, this uses Discord's default.
+    #[must_use = "has no effect if not built into a RequestGuildMembers"]
     pub fn presences(mut self, presences: bool) -> Self {
         self.presences.replace(presences);
 
