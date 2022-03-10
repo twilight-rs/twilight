@@ -270,8 +270,8 @@ impl<'a> ExecuteWebhook<'a> {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_http::Client;
-    /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::Id;
+    /// use twilight_util::builder::embed::EmbedBuilder;
     ///
     /// let client = Client::new("token".to_owned());
     ///
