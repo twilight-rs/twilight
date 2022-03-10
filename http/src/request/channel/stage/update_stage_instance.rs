@@ -2,12 +2,12 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{ ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
-    channel::stage_instance::PrivacyLevel,
+    channel::{stage_instance::PrivacyLevel, StageInstance},
     id::{marker::ChannelMarker, Id},
 };
 use twilight_validate::request::{stage_topic as validate_stage_topic, ValidationError};
@@ -61,7 +61,7 @@ impl<'a> UpdateStageInstance<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<EmptyBody> {
+    pub fn exec(self) -> ResponseFuture<StageInstance> {
         let http = self.http;
 
         match self.try_into_request() {
