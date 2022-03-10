@@ -124,7 +124,7 @@ pub const SELECT_OPTION_VALUE_LENGTH: usize = 100;
 ///
 /// [`SelectMenu::placeholder`]: twilight_model::application::component::select_menu::SelectMenu::placeholder
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
-pub const SELECT_PLACEHOLDER_LENGTH: usize = 100;
+pub const SELECT_PLACEHOLDER_LENGTH: usize = 150;
 
 /// Maximum length of [`TextInput::value`].
 ///
@@ -1053,9 +1053,9 @@ mod tests {
     fn test_component_select_placeholder() {
         assert!(component_select_placeholder("").is_ok());
         assert!(component_select_placeholder("a").is_ok());
-        assert!(component_select_placeholder("a".repeat(100)).is_ok());
+        assert!(component_select_placeholder("a".repeat(150)).is_ok());
 
-        assert!(component_select_placeholder("a".repeat(101)).is_err());
+        assert!(component_select_placeholder("a".repeat(151)).is_err());
     }
 
     #[test]
