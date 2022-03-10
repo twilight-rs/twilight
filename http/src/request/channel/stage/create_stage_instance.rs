@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{Request, TryIntoRequest},
-    response::{ ResponseFuture},
+    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
