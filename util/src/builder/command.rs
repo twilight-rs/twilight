@@ -878,4 +878,12 @@ mod tests {
 
         assert_eq!(command, command_manual);
     }
+
+    #[cfg(feature = "validate")]
+    #[test]
+    fn test_validate() {
+        let result = CommandBuilder::new("".into(), "".into(), CommandType::ChatInput).validate();
+
+        assert!(result.is_err());
+    }
 }
