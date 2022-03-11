@@ -2,6 +2,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod command;
+pub mod embed;
 
 mod interaction_response_data;
 

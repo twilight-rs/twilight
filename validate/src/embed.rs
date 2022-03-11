@@ -9,6 +9,9 @@ use twilight_model::channel::embed::Embed;
 /// The maximum embed author name length in codepoints.
 pub const AUTHOR_NAME_LENGTH: usize = 256;
 
+/// The maximum accepted color value.
+pub const COLOR_MAXIMUM: u32 = 0xff_ff_ff;
+
 /// The maximum embed description length in codepoints.
 pub const DESCRIPTION_LENGTH: usize = 4096;
 
@@ -77,6 +80,13 @@ impl Display for EmbedValidationError {
 
                 Display::fmt(&AUTHOR_NAME_LENGTH, f)
             }
+            EmbedValidationErrorType::ColorNotRgb { color } => {
+                f.write_str("the color is ")?;
+                Display::fmt(color, f)?;
+                f.write_str(", but it must be less than ")?;
+
+                Display::fmt(&COLOR_MAXIMUM, f)
+            }
             EmbedValidationErrorType::DescriptionTooLarge { chars } => {
                 f.write_str("the description is ")?;
                 Display::fmt(chars, f)?;
@@ -136,49 +146,53 @@ impl Error for EmbedValidationError {}
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum EmbedValidationErrorType {
-    /// The embed author's name is larger than
-    /// [the maximum][`AUTHOR_NAME_LENGTH`].
+    /// Embed author's name is larger than [`AUTHOR_NAME_LENGTH`].
     AuthorNameTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
-    /// The embed description is larger than
-    /// [the maximum][`DESCRIPTION_LENGTH`].
+    /// Color is larger than a valid RGB hexadecimal value.
+    ColorNotRgb {
+        /// Provided color hex value.
+        color: u32,
+    },
+    /// Embed description is larger than [`DESCRIPTION_LENGTH`].
     DescriptionTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
-    /// The combined content of all embed fields - author name, description,
-    /// footer, field names and values, and title - is larger than
-    /// [the maximum][`EMBED_TOTAL_LENGTH`].
+    /// Combined content of all embed fields is larger than
+    /// [`EMBED_TOTAL_LENGTH`].
+    ///
+    /// This includes author name, description, footer, field names and values,
+    /// and title.
     EmbedTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
-    /// A field's name is larger than [the maximum][`FIELD_NAME_LENGTH`].
+    /// A field's name is larger than [`FIELD_NAME_LENGTH`].
     FieldNameTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
-    /// A field's value is larger than [the maximum][`FIELD_VALUE_LENGTH`].
+    /// A field's value is larger than [`FIELD_VALUE_LENGTH`].
     FieldValueTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
-    /// The footer text is larger than [the maximum][`FOOTER_TEXT_LENGTH`].
+    /// Footer text is larger than [`FOOTER_TEXT_LENGTH`].
     FooterTextTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
-    /// The title is larger than [the maximum][`TITLE_LENGTH`].
+    /// Title is larger than [`TITLE_LENGTH`].
     TitleTooLarge {
-        /// The number of codepoints that were provided.
+        /// Provided number of codepoints.
         chars: usize,
     },
-    /// There are more than [the maximum][`FIELD_COUNT`] number of fields in the
-    /// embed.
+    /// There are more than [`FIELD_COUNT`] number of fields in the embed.
     TooManyFields {
-        /// The number of fields that were provided.
+        /// Provided number of fields.
         amount: usize,
     },
 }
@@ -189,6 +203,13 @@ pub enum EmbedValidationErrorType {
 ///
 /// Returns an error of type [`AuthorNameTooLarge`] if
 /// the author's name is too large.
+///
+/// Returns an error of type [`ColorNotRgb`] if if the provided color is not a
+/// valid RGB integer. Refer to [`COLOR_MAXIMUM`] to know what the maximum
+/// accepted value is.
+///
+/// Returns an error of type [`DescriptionTooLarge`] if the description is too
+/// large.
 ///
 /// Returns an error of type [`EmbedTooLarge`] if the embed in total is too
 /// large.
@@ -208,6 +229,8 @@ pub enum EmbedValidationErrorType {
 /// there are too many fields.
 ///
 /// [`AuthorNameTooLarge`]: EmbedValidationErrorType::AuthorNameTooLarge
+/// [`ColorNotRgb`]: EmbedValidationErrorType::ColorNotRgb
+/// [`DescriptionTooLarge`]: EmbedValidationErrorType::DescriptionTooLarge
 /// [`EmbedTooLarge`]: EmbedValidationErrorType::EmbedTooLarge
 /// [`FieldNameTooLarge`]: EmbedValidationErrorType::FieldNameTooLarge
 /// [`FieldValueTooLarge`]: EmbedValidationErrorType::FieldValueTooLarge
@@ -223,20 +246,10 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         });
     }
 
-    if embed.fields.len() > FIELD_COUNT {
-        return Err(EmbedValidationError {
-            kind: EmbedValidationErrorType::TooManyFields {
-                amount: embed.fields.len(),
-            },
-        });
-    }
-
-    if let Some(name) = embed.author.as_ref().map(|author| &author.name) {
-        let chars = name.chars().count();
-
-        if chars > AUTHOR_NAME_LENGTH {
+    if let Some(color) = embed.color {
+        if color > COLOR_MAXIMUM {
             return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::AuthorNameTooLarge { chars },
+                kind: EmbedValidationErrorType::ColorNotRgb { color },
             });
         }
     }
@@ -251,14 +264,12 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         }
     }
 
-    if let Some(footer) = embed.footer.as_ref() {
-        let chars = footer.text.chars().count();
-
-        if chars > FOOTER_TEXT_LENGTH {
-            return Err(EmbedValidationError {
-                kind: EmbedValidationErrorType::FooterTextTooLarge { chars },
-            });
-        }
+    if embed.fields.len() > FIELD_COUNT {
+        return Err(EmbedValidationError {
+            kind: EmbedValidationErrorType::TooManyFields {
+                amount: embed.fields.len(),
+            },
+        });
     }
 
     for field in &embed.fields {
@@ -275,6 +286,26 @@ pub fn embed(embed: &Embed) -> Result<(), EmbedValidationError> {
         if value_chars > FIELD_VALUE_LENGTH {
             return Err(EmbedValidationError {
                 kind: EmbedValidationErrorType::FieldValueTooLarge { chars: value_chars },
+            });
+        }
+    }
+
+    if let Some(footer) = embed.footer.as_ref() {
+        let chars = footer.text.chars().count();
+
+        if chars > FOOTER_TEXT_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::FooterTextTooLarge { chars },
+            });
+        }
+    }
+
+    if let Some(name) = embed.author.as_ref().map(|author| &author.name) {
+        let chars = name.chars().count();
+
+        if chars > AUTHOR_NAME_LENGTH {
+            return Err(EmbedValidationError {
+                kind: EmbedValidationErrorType::AuthorNameTooLarge { chars },
             });
         }
     }
