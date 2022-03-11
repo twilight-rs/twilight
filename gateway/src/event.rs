@@ -26,7 +26,7 @@ bitflags! {
         ///
         /// A payload containing a boolean is included. If `true` the session is
         /// resumable. If not, then the shard must initialize a new session.
-        const GATEWAY_INVALIDATE_SESSION = 1 << 8;
+        const GATEWAY_INVALIDATE_SESSION = 1 << 69;
         /// Gateway is indicating that a shard should perform a reconnect.
         const GATEWAY_RECONNECT = 1 << 9;
         /// Gift code sent in a channel has been updated.
