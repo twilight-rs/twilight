@@ -111,7 +111,7 @@ bitflags! {
         /// [`GUILD_SCHEDULED_EVENT_DELETE`]: super::event::Event::GuildScheduledEventUpdate
         /// [`GUILD_SCHEDULED_EVENT_USER_ADD`]: super::event::Event::GuildScheduledEventUserAdd
         /// [`GUILD_SCHEDULED_EVENT_USER_REMOVE`]: super::event::Event::GuildScheduledEventUserRemove
-        const GUILD_SCHEDULED_EVENTS = 1 << 6;
+        const GUILD_SCHEDULED_EVENTS = 1 << 16;
         /// Guild voice states intent.
         ///
         /// Event(s) received:
