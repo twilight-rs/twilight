@@ -15,7 +15,7 @@ use twilight_model::channel::embed::EmbedField;
 pub struct EmbedFieldBuilder(EmbedField);
 
 impl EmbedFieldBuilder {
-    /// Create a new default embed field builder.
+    /// Create a new embed field builder.
     ///
     /// Refer to [`FIELD_NAME_LENGTH`] for the maximum number of UTF-16 code
     /// points that can be in a field name.

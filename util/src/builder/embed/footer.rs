@@ -13,7 +13,7 @@ use twilight_model::channel::embed::EmbedFooter;
 pub struct EmbedFooterBuilder(EmbedFooter);
 
 impl EmbedFooterBuilder {
-    /// Create a new default embed footer builder.
+    /// Create a new embed footer builder.
     ///
     /// Refer to [`FOOTER_TEXT_LENGTH`] for the maximum number of UTF-16 code
     /// points that can be in a footer's text.
