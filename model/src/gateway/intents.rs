@@ -104,8 +104,6 @@ bitflags! {
         /// - [`GUILD_SCHEDULED_EVENT_USER_ADD`]
         /// - [`GUILD_SCHEDULED_EVENT_USER_REMOVE`]
         ///
-        /// [`INVITE_CREATE`]: super::event::Event::InviteCreate
-        /// [`INVITE_DELETE`]: super::event::Event::InviteDelete
         /// [`GUILD_SCHEDULED_EVENT_CREATE`]: super::event::Event::GuildScheduledEventCreate
         /// [`GUILD_SCHEDULED_EVENT_UPDATE`]: super::event::Event::GuildScheduledEventDelete
         /// [`GUILD_SCHEDULED_EVENT_DELETE`]: super::event::Event::GuildScheduledEventUpdate
