@@ -13,18 +13,15 @@ impl InMemoryCache {
         if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
             let incoming: Vec<_> = stickers.iter().map(|s| s.id).collect();
 
-            let removal_filter: Vec<_> = guild_stickers
+            let removed_ids: Vec<_> = guild_stickers
                 .iter()
                 .copied()
                 .filter(|s| !incoming.contains(s))
                 .collect();
 
-            for to_remove in &removal_filter {
-                guild_stickers.remove(to_remove);
-            }
-
-            for to_remove in &removal_filter {
-                self.stickers.remove(to_remove);
+            for removed_id in &removed_ids {
+                guild_stickers.remove(removed_id);
+                self.stickers.remove(removed_id);
             }
         }
 
