@@ -126,7 +126,7 @@ pub enum ImageSourceUrlErrorType {
 /// Image sourcing for embed images.
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
-pub struct ImageSource(pub(crate) String);
+pub struct ImageSource(pub(super) String);
 
 impl ImageSource {
     /// Create an attachment image source.
