@@ -3,9 +3,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// Action to cause an [`AuditLogEntry`].
 ///
 /// [`AuditLogEntry`]: super::AuditLogEntry
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
 pub enum AuditLogEventType {
@@ -224,8 +222,6 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
-        PartialOrd,
-        Ord,
         Send,
         Serialize,
         Sync,
