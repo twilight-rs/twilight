@@ -22,7 +22,7 @@ impl AutoArchiveDuration {
     /// ```
     /// use twilight_model::channel::thread::AutoArchiveDuration;
     ///
-    /// assert_eq!(60, AutoArchiveDuration::Hour.number());
+    /// assert_eq!(60, AutoArchiveDuration::Hour.minutes());
     /// ```
     pub const fn minutes(self) -> u16 {
         match self {
