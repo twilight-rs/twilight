@@ -343,6 +343,15 @@ impl Default for EmbedBuilder {
     }
 }
 
+impl From<Embed> for EmbedBuilder {
+    fn from(value: Embed) -> Self {
+        Self(Embed {
+            kind: "rich".into(),
+            ..value
+        })
+    }
+}
+
 impl TryFrom<EmbedBuilder> for Embed {
     type Error = EmbedValidationError;
 
