@@ -7,9 +7,7 @@ use std::{
 /// Type of a [`Sticker`].
 ///
 /// [`Sticker`]: super::Sticker
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 pub enum StickerType {
     /// Official sticker in a pack.

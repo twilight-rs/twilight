@@ -1,4 +1,5 @@
 #![doc = include_str!("../README.md")]
+#![deprecated(since = "0.10.1", note = "use twilight_util::builder::embed")]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,

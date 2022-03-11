@@ -225,8 +225,8 @@ impl<'a> UpdateResponse<'a> {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_http::Client;
-    /// use twilight_embed_builder::EmbedBuilder;
     /// use twilight_model::id::Id;
+    /// use twilight_util::builder::embed::EmbedBuilder;
     ///
     /// let client = Client::new("token".to_owned());
     /// let application_id = Id::new(1);
@@ -236,7 +236,8 @@ impl<'a> UpdateResponse<'a> {
     ///     libraries for the Discord API.")
     ///     .title("Twilight")
     ///     .url("https://twilight.rs")
-    ///     .build()?;
+    ///     .validate()?
+    ///     .build();
     ///
     /// client
     ///     .interaction(application_id)

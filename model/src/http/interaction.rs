@@ -36,7 +36,7 @@ pub struct InteractionResponse {
 }
 
 /// Data included in an interaction response.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InteractionResponseData {
     /// Allowed mentions of the response.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -77,9 +77,7 @@ pub struct InteractionResponseData {
 }
 
 /// Type of interaction response.
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 pub enum InteractionResponseType {
     /// Used when responding to a Ping from Discord.
