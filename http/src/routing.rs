@@ -1,3 +1,4 @@
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 pub use twilight_http_ratelimiting::request::{Path, PathParseError, PathParseErrorType};
 
 use crate::request::{channel::reaction::RequestReactionType, Method};
@@ -2646,7 +2647,7 @@ impl Display for Route<'_> {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
                 f.write_str("/members/search?query=")?;
-                f.write_str(query)?;
+                Display::fmt(&utf8_percent_encode(query, NON_ALPHANUMERIC), f)?;
 
                 if let Some(limit) = limit {
                     f.write_str("&limit=")?;
@@ -4735,6 +4736,37 @@ mod tests {
                 scheduled_event_id = SCHEDULED_EVENT_ID,
                 user_id = USER_ID,
             )
-        )
+        );
+    }
+
+    #[test]
+    fn test_search_guild_members() {
+        let route = Route::SearchGuildMembers {
+            guild_id: GUILD_ID,
+            limit: Some(99),
+            query: "foo bar",
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/members/search?query=foo%20bar&limit=99",
+                guild_id = GUILD_ID,
+            )
+        );
+
+        let route = Route::SearchGuildMembers {
+            guild_id: GUILD_ID,
+            limit: Some(99),
+            query: "foo/bar",
+        };
+
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/members/search?query=foo%2Fbar&limit=99",
+                guild_id = GUILD_ID,
+            )
+        );
     }
 }
