@@ -15,7 +15,7 @@ pub enum AutoArchiveDuration {
 }
 
 impl AutoArchiveDuration {
-    /// Retrieve the length of the duration in seconds, used by the API
+    /// Retrieve the length of the duration in minutes, used by the API
     ///
     /// # Examples
     ///
@@ -24,7 +24,7 @@ impl AutoArchiveDuration {
     ///
     /// assert_eq!(60, AutoArchiveDuration::Hour.number());
     /// ```
-    pub const fn number(self) -> u16 {
+    pub const fn minutes(self) -> u16 {
         match self {
             Self::Hour => 60,
             Self::Day => 1440,
@@ -49,7 +49,7 @@ impl From<u16> for AutoArchiveDuration {
 
 impl From<AutoArchiveDuration> for Duration {
     fn from(value: AutoArchiveDuration) -> Self {
-        Self::from_secs(u64::from(value.number()) * 60)
+        Self::from_secs(u64::from(value.minutes()) * 60)
     }
 }
 
@@ -63,7 +63,7 @@ impl<'de> Deserialize<'de> for AutoArchiveDuration {
 
 impl Serialize for AutoArchiveDuration {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_u16(self.number())
+        serializer.serialize_u16(self.minutes())
     }
 }
 
@@ -85,7 +85,7 @@ mod tests {
         for (kind, num) in MAP {
             serde_test::assert_tokens(kind, &[Token::U16(*num)]);
             assert_eq!(*kind, AutoArchiveDuration::from(*num));
-            assert_eq!(*num, kind.number());
+            assert_eq!(*num, kind.minutes());
         }
     }
 
@@ -101,7 +101,7 @@ mod tests {
     fn test_std_time_duration() {
         for (kind, _) in MAP {
             let std_duration = Duration::from(*kind);
-            assert_eq!(u64::from(kind.number()) * 60, std_duration.as_secs());
+            assert_eq!(u64::from(kind.minutes()) * 60, std_duration.as_secs());
         }
     }
 }
