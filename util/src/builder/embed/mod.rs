@@ -54,12 +54,8 @@ use twilight_validate::embed::{embed as validate_embed, EmbedValidationError};
 pub struct EmbedBuilder(Embed);
 
 impl EmbedBuilder {
-    /// Create a new default embed builder.
-    ///
-    /// This is equivalent to the [default implementation].
-    ///
-    /// [default implementation]: Self::default
-    pub const fn new() -> Self {
+    /// Create a new embed builder.
+    pub fn new() -> Self {
         EmbedBuilder(Embed {
             author: None,
             color: None,
@@ -67,7 +63,7 @@ impl EmbedBuilder {
             fields: Vec::new(),
             footer: None,
             image: None,
-            kind: String::new(),
+            kind: "rich".to_owned(),
             provider: None,
             thumbnail: None,
             timestamp: None,
@@ -80,11 +76,7 @@ impl EmbedBuilder {
     /// Build this into an embed.
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "should be used as part of something like a message"]
-    pub fn build(mut self) -> Embed {
-        if self.0.kind.is_empty() {
-            self.0.kind = "rich".into();
-        }
-
+    pub fn build(self) -> Embed {
         self.0
     }
 
@@ -94,11 +86,7 @@ impl EmbedBuilder {
     ///
     /// Refer to the documentation of [`twilight_validate::embed::embed`] for
     /// possible errors.
-    pub fn validate(mut self) -> Result<Self, EmbedValidationError> {
-        if self.0.kind.is_empty() {
-            self.0.kind = "rich".into();
-        }
-
+    pub fn validate(self) -> Result<Self, EmbedValidationError> {
         if let Err(source) = validate_embed(&self.0) {
             return Err(source);
         }
@@ -352,13 +340,6 @@ impl Default for EmbedBuilder {
     /// All embeds have a "rich" type.
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl From<Embed> for EmbedBuilder {
-    /// Create an embed builder from an already existing embed.
-    fn from(value: Embed) -> Self {
-        Self(value)
     }
 }
 
