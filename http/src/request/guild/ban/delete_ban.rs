@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -9,6 +9,7 @@ use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
     Id,
 };
+use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 /// Remove a ban from a user in a guild.
 ///
@@ -66,8 +67,10 @@ impl<'a> DeleteBan<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for DeleteBan<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

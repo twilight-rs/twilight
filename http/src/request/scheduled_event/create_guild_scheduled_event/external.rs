@@ -3,7 +3,7 @@ use super::{
 };
 use crate::{
     error::Error,
-    request::{AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
 };
 use twilight_model::{
@@ -11,6 +11,7 @@ use twilight_model::{
     scheduled_event::{EntityType, GuildScheduledEvent},
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     scheduled_event_description as validate_scheduled_event_description, ValidationError,
 };
 
@@ -60,6 +61,19 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
         Ok(self)
     }
 
+    /// Set the cover image of the event.
+    ///
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
+    ///
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
+    pub const fn image(mut self, image: &'a [u8]) -> Self {
+        self.0.fields.image = Some(image);
+
+        self
+    }
+
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
@@ -69,10 +83,10 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildExternalScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.0
-            .reason
-            .replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.0.reason.replace(reason);
 
         Ok(self)
     }

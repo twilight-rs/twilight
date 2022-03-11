@@ -14,7 +14,7 @@
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let token = env::var("DISCORD_TOKEN")?;
-//!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
+//!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
 //!     let (cluster, mut events) = Cluster::new(token, intents).await?;
 //!     let cluster = Arc::new(cluster);
 //!     cluster.up().await;

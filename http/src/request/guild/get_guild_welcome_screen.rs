@@ -11,6 +11,11 @@ use twilight_model::{
 };
 
 /// Get the guild's welcome screen.
+///
+/// If the welcome screen is not enabled, this requires the [`MANAGE_GUILD`]
+/// permission.
+///
+/// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
 #[must_use = "requests must be configured and executed"]
 pub struct GetGuildWelcomeScreen<'a> {
     guild_id: Id<GuildMarker>,

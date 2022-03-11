@@ -11,7 +11,7 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, AuditLogReasonError, Request, RequestBuilder, TryIntoRequest},
+    request::{AuditLogReason, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -25,7 +25,8 @@ use twilight_model::{
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
 };
 use twilight_validate::request::{
-    scheduled_event_name as validate_scheduled_event_name, ValidationError,
+    audit_reason as validate_audit_reason, scheduled_event_name as validate_scheduled_event_name,
+    ValidationError,
 };
 
 #[derive(Serialize)]
@@ -38,6 +39,8 @@ struct CreateGuildScheduledEventFields<'a> {
     entity_metadata: Option<EntityMetadataFields<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    image: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -129,6 +132,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 description: None,
                 entity_metadata: None,
                 entity_type: None,
+                image: None,
                 name: None,
                 privacy_level: None,
                 scheduled_end_time: None,
@@ -226,8 +230,10 @@ impl<'a> CreateGuildScheduledEvent<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

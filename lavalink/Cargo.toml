@@ -13,16 +13,16 @@ publish = false
 readme = "README.md"
 rust-version = "1.57"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.9.0"
+version = "0.10.0"
 
 [dependencies]
-dashmap = { default-features = false, version = "4" }
+dashmap = { default-features = false, version = "5.1" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
 http = { default-features = false, version = "0.2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
-tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.16" }
+tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
 twilight-model = { default-features = false, path = "../model" }
 
 # Optional dependencies.

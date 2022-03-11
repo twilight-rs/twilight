@@ -49,6 +49,9 @@ twilight-http = { default-features = false, features = ["rustls-native-roots", "
 
 ### TLS
 
+**Note**: not enabling any TLS feature is supported for use behind a proxy;
+Discord's API is HTTPS only.
+
 `twilight-http` has features to enable HTTPS connectivity with [`hyper`]. These
 features are mutually exclusive. `rustls-native-roots` is enabled by default.
 

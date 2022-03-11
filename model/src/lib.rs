@@ -14,7 +14,8 @@
 #![allow(
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned
+    clippy::semicolon_if_nothing_returned,
+    clippy::used_underscore_binding
 )]
 
 pub mod application;
@@ -22,6 +23,7 @@ pub mod channel;
 pub mod datetime;
 pub mod gateway;
 pub mod guild;
+pub mod http;
 pub mod id;
 pub mod invite;
 pub mod oauth;

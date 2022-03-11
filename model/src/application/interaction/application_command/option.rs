@@ -1,11 +1,7 @@
-mod resolved;
-
-pub use self::resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
-
 use crate::{
     application::command::{CommandOptionType, Number},
     id::{
-        marker::{ChannelMarker, CommandMarker, GenericMarker, RoleMarker, UserMarker},
+        marker::{AttachmentMarker, ChannelMarker, GenericMarker, RoleMarker, UserMarker},
         Id,
     },
 };
@@ -14,27 +10,7 @@ use serde::{
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::fmt::{Formatter, Result as FmtResult};
-
-/// Data received when an [`ApplicationCommand`] interaction is executed.
-///
-/// See [Discord Docs/Interaction Object].
-///
-/// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
-/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct CommandData {
-    /// ID of the command.
-    pub id: Id<CommandMarker>,
-    /// Name of the command.
-    pub name: String,
-    /// List of parsed options specified by the user.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub options: Vec<CommandDataOption>,
-    /// Data sent if any of the options are Discord types.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub resolved: Option<CommandInteractionDataResolved>,
-}
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Data received when a user fills in a command option.
 ///
@@ -58,7 +34,7 @@ impl Serialize for CommandDataOption {
                 if o.is_empty()
         );
 
-        let len = 2 + !subcommand_is_empty as usize + self.focused as usize;
+        let len = 2 + usize::from(!subcommand_is_empty) + usize::from(self.focused);
 
         let mut state = serializer.serialize_struct("CommandDataOption", len)?;
 
@@ -71,6 +47,7 @@ impl Serialize for CommandDataOption {
         state.serialize_field("type", &self.value.kind())?;
 
         match &self.value {
+            CommandOptionValue::Attachment(a) => state.serialize_field("value", a)?,
             CommandOptionValue::Boolean(b) => state.serialize_field("value", b)?,
             CommandOptionValue::Channel(c) => state.serialize_field("value", c)?,
             CommandOptionValue::Integer(i) => state.serialize_field("value", i)?,
@@ -206,6 +183,18 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 let kind = kind_opt.ok_or_else(|| DeError::missing_field("type"))?;
 
                 let value = match kind {
+                    CommandOptionType::Attachment => {
+                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                        if let ValueEnvelope::Id(id) = val {
+                            CommandOptionValue::Attachment(id.cast())
+                        } else {
+                            return Err(DeError::invalid_type(
+                                make_unexpected(&val),
+                                &"attachment id",
+                            ));
+                        }
+                    }
                     CommandOptionType::Boolean => {
                         let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
@@ -326,6 +315,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 /// Value of a [`CommandDataOption`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
+    Attachment(Id<AttachmentMarker>),
     Boolean(bool),
     Channel(Id<ChannelMarker>),
     Integer(i64),
@@ -341,6 +331,7 @@ pub enum CommandOptionValue {
 impl CommandOptionValue {
     pub const fn kind(&self) -> CommandOptionType {
         match self {
+            CommandOptionValue::Attachment(_) => CommandOptionType::Attachment,
             CommandOptionValue::Boolean(_) => CommandOptionType::Boolean,
             CommandOptionValue::Channel(_) => CommandOptionType::Channel,
             CommandOptionValue::Integer(_) => CommandOptionType::Integer,
@@ -357,11 +348,12 @@ impl CommandOptionValue {
 
 #[cfg(test)]
 mod tests {
-    use super::CommandData;
     use crate::{
         application::{
-            command::{CommandOptionType, Number},
-            interaction::application_command::{CommandDataOption, CommandOptionValue},
+            command::{CommandOptionType, CommandType, Number},
+            interaction::application_command::{
+                CommandData, CommandDataOption, CommandOptionValue,
+            },
         },
         id::Id,
     };
@@ -372,39 +364,11 @@ mod tests {
         let value = CommandData {
             id: Id::new(1),
             name: "permissions".to_owned(),
+            kind: CommandType::ChatInput,
             options: Vec::new(),
             resolved: None,
+            target_id: None,
         };
-        serde_test::assert_tokens(
-            &value,
-            &[
-                Token::Struct {
-                    name: "CommandData",
-                    len: 2,
-                },
-                Token::Str("id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("1"),
-                Token::Str("name"),
-                Token::Str("permissions"),
-                Token::StructEnd,
-            ],
-        )
-    }
-
-    #[test]
-    fn subcommand_without_option() {
-        let value = CommandData {
-            id: Id::new(1),
-            name: "photo".to_owned(),
-            options: Vec::from([CommandDataOption {
-                focused: false,
-                name: "cat".to_owned(),
-                value: CommandOptionValue::SubCommand(Vec::new()),
-            }]),
-            resolved: None,
-        };
-
         serde_test::assert_tokens(
             &value,
             &[
@@ -416,7 +380,43 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("name"),
+                Token::Str("permissions"),
+                Token::Str("type"),
+                Token::U8(CommandType::ChatInput as u8),
+                Token::StructEnd,
+            ],
+        )
+    }
+
+    #[test]
+    fn subcommand_without_option() {
+        let value = CommandData {
+            id: Id::new(1),
+            name: "photo".to_owned(),
+            kind: CommandType::ChatInput,
+            options: Vec::from([CommandDataOption {
+                focused: false,
+                name: "cat".to_owned(),
+                value: CommandOptionValue::SubCommand(Vec::new()),
+            }]),
+            resolved: None,
+            target_id: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandData",
+                    len: 4,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("name"),
                 Token::Str("photo"),
+                Token::Str("type"),
+                Token::U8(CommandType::ChatInput as u8),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

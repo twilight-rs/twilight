@@ -1,12 +1,15 @@
 mod data;
+mod option;
+mod resolved;
 
-pub use self::data::{
-    CommandData, CommandDataOption, CommandInteractionDataResolved, CommandOptionValue,
-    InteractionChannel, InteractionMember,
+pub use self::{
+    data::CommandData,
+    option::{CommandDataOption, CommandOptionValue},
+    resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember},
 };
 
-use super::InteractionType;
 use crate::{
+    application::interaction::InteractionType,
     guild::PartialMember,
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker},

@@ -15,7 +15,7 @@ use twilight_model::{
 use twilight_validate::request::{guild_prune_days as validate_guild_prune_days, ValidationError};
 
 struct GetGuildPruneCountFields<'a> {
-    days: Option<u64>,
+    days: Option<u16>,
     include_roles: &'a [Id<RoleMarker>],
 }
 
@@ -50,7 +50,7 @@ impl<'a> GetGuildPruneCount<'a> {
     /// or more than 30.
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
-    pub const fn days(mut self, days: u64) -> Result<Self, ValidationError> {
+    pub const fn days(mut self, days: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_guild_prune_days(days) {
             return Err(source);
         }
@@ -98,7 +98,7 @@ mod test {
 
     #[test]
     fn test_days() {
-        fn days_valid(days: u64) -> bool {
+        fn days_valid(days: u16) -> bool {
             let client = Client::new("".to_owned());
             let count = GetGuildPruneCount::new(&client, Id::new(1));
             let days_result = count.days(days);
@@ -107,6 +107,6 @@ mod test {
 
         assert!(!days_valid(0));
         assert!(days_valid(1));
-        assert!(!days_valid(u64::max_value()));
+        assert!(!days_valid(u16::max_value()));
     }
 }

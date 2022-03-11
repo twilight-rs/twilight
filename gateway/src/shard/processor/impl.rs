@@ -10,7 +10,7 @@ use super::{
     session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
 };
-use crate::{event::EventTypeFlags, shard::tls::TlsContainer};
+use crate::{event::EventTypeFlags, shard::tls::TlsContainer, API_VERSION};
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -329,7 +329,8 @@ impl ShardProcessor {
             tracing::debug!("shard {:?} finished queue", config.shard());
         }
 
-        url.push_str("?v=9");
+        url.push_str("?v=");
+        url.push_str(&API_VERSION.to_string());
 
         // Discord's documentation states:
         //
@@ -349,7 +350,8 @@ impl ShardProcessor {
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(forwarder.run());
 
-        let session = Arc::new(Session::new(tx));
+        let session = Arc::new(Session::new(tx, config.ratelimit_payloads));
+
         if resumable {
             session.set_id(config.session_id.clone().unwrap());
             session
@@ -825,7 +827,9 @@ impl ShardProcessor {
             }
             // Discord doesn't appear to send Text messages, so we can ignore
             // these.
-            Message::Ping(_) | Message::Pong(_) => Ok(false),
+            // Message::Frame is send-only and therefore falls into the same group,
+            // see https://docs.rs/tungstenite/latest/tungstenite/enum.Message.html#variant.Frame
+            Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => Ok(false),
         }
     }
 
@@ -1079,7 +1083,7 @@ impl ShardProcessor {
         tokio::spawn(forwarder.run());
 
         self.rx = rx;
-        self.session = Arc::new(Session::new(tx));
+        self.session = Arc::new(Session::new(tx, self.config.ratelimit_payloads));
 
         if let Err(_source) = self.wtx.send(Arc::clone(&self.session)) {
             #[cfg(feature = "tracing")]

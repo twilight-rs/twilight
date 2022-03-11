@@ -8,9 +8,9 @@ use hyper::{
 };
 use once_cell::sync::Lazy;
 use std::future::Future;
-use twilight_model::application::{
-    callback::{CallbackData, InteractionResponse},
-    interaction::Interaction,
+use twilight_model::{
+    application::interaction::Interaction,
+    http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
 
 type GenericError = Box<dyn std::error::Error + Send + Sync>;
@@ -94,7 +94,10 @@ where
     match interaction {
         // Return a Pong if a Ping is received.
         Interaction::Ping(_) => {
-            let response = InteractionResponse::Pong;
+            let response = InteractionResponse {
+                kind: InteractionResponseType::Pong,
+                data: None,
+            };
 
             let json = serde_json::to_vec(&response)?;
 
@@ -138,30 +141,40 @@ async fn handler(i: Interaction) -> Result<InteractionResponse, GenericError> {
 
 /// Example of a handler that returns the formatted version of the interaction.
 async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
-    Ok(InteractionResponse::ChannelMessageWithSource(
-        CallbackData {
+    Ok(InteractionResponse {
+        kind: InteractionResponseType::ChannelMessageWithSource,
+        data: Some(InteractionResponseData {
             allowed_mentions: None,
+            attachments: None,
+            choices: None,
             components: None,
-            flags: None,
-            tts: None,
             content: Some(format!("```rust\n{:?}\n```", i)),
+            custom_id: None,
             embeds: None,
-        },
-    ))
+            flags: None,
+            title: None,
+            tts: None,
+        }),
+    })
 }
 
 /// Example of interaction that responds with a message saying "Vroom vroom".
 async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
-    Ok(InteractionResponse::ChannelMessageWithSource(
-        CallbackData {
+    Ok(InteractionResponse {
+        kind: InteractionResponseType::ChannelMessageWithSource,
+        data: Some(InteractionResponseData {
             allowed_mentions: None,
+            attachments: None,
+            choices: None,
             components: None,
-            flags: None,
-            tts: None,
             content: Some("Vroom vroom".to_owned()),
+            custom_id: None,
             embeds: None,
-        },
-    ))
+            flags: None,
+            title: None,
+            tts: None,
+        }),
+    })
 }
 
 #[tokio::main]

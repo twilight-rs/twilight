@@ -1,12 +1,15 @@
 #![doc = include_str!("../README.md")]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(unsafe_code)]
 
+#[cfg(feature = "twilight-http")]
 mod day_limiter;
+#[cfg(feature = "twilight-http")]
 mod large_bot_queue;
 
+#[cfg(feature = "twilight-http")]
 pub use large_bot_queue::LargeBotQueue;
 
-use day_limiter::DayLimiter;
 use std::{
     fmt::Debug,
     future::{self, Future},
