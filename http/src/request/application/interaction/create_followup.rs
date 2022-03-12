@@ -208,9 +208,10 @@ impl<'a> CreateFollowup<'a> {
 
     /// Set the message's flags.
     ///
-    /// The only supported flag is [`EPHEMERAL`].
+    /// The only supported flags are [`EPHEMERAL`] and [`SUPPRESS_EMBEDS`].
     ///
     /// [`EPHEMERAL`]: MessageFlags::EPHEMERAL
+    /// [`SUPPRESS_EMBEDS`]: twilight_model::channel::message::MessageFlags::SUPPRESS_EMBEDS
     pub const fn flags(mut self, flags: MessageFlags) -> Self {
         self.fields.flags = Some(flags);
 
