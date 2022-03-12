@@ -221,9 +221,6 @@ the relevant feature and prevent breakage. Enhancements to existing features
 without tests must include new unit tests, especially when the implementation of
 something is being modified.
 
-When importing structs into a test module, one should use a wildcard to import
-all items from the parent module: `use super::*;`
-
 Public API types must be tested with the [`static_assertions`] crate.
 `static_assertions`' `assert_fields`, `assert_impl_all`, and `assert_obj_safe`
 functionality are notable. Asserting the implementation of `Send` and `Sync` are
@@ -245,7 +242,7 @@ pub enum PublicEnumType {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::PublicEnumType;
     use static_assertions::{assert_fields, assert_impl_all};
 
     assert_fields!(PublicEnumType::Foo: bar);
