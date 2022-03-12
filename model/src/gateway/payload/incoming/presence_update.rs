@@ -35,7 +35,23 @@ mod tests {
     use super::PresenceUpdate;
     use serde::{Deserialize, Serialize};
     use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, hash::Hash, ops::{Deref, DerefMut}};
+    use std::{
+        fmt::Debug,
+        hash::Hash,
+        ops::{Deref, DerefMut},
+    };
 
-    assert_impl_all!(PresenceUpdate: Clone, Debug, Deref, DerefMut, Deserialize<'static>, Eq, Hash, PartialEq, Serialize, Send, Sync);
+    assert_impl_all!(
+        PresenceUpdate: Clone,
+        Debug,
+        Deref,
+        DerefMut,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize,
+        Send,
+        Sync
+    );
 }
