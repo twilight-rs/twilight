@@ -117,6 +117,38 @@ pub const USERNAME_LIMIT_MAX: usize = 32;
 /// Minimum length of a username.
 pub const USERNAME_LIMIT_MIN: usize = 2;
 
+/// Maximum length of a webhook username.
+pub const WEBHOOK_USERNAME_LIMIT_MAX: usize = 80;
+
+/// Minimum length of a webhook username.
+pub const WEBHOOK_USERNAME_LIMIT_MIN: usize = 2;
+
+/// String value of an at sign.
+const AT_SIGN: &str = "@";
+
+/// String value of a backslash and three grave symbols.
+const BACKSLASH_THREE_GRAVES: &str = r#"\```"#;
+
+/// String value of 'clyde'.
+const CLYDE: &str = "clyde";
+
+/// String value of a colon.
+const COLON: &str = ":";
+
+/// String value of 'discord'.
+const DISCORD: &str = "discord";
+
+/// String value of 'everyone'.
+const EVERYONE: &str = "everyone";
+
+/// String value of 'here'.
+const HERE: &str = "here";
+
+/// String value of an [octothorp].
+///
+/// [octothorp]: https://en.wikipedia.org/wiki/Number_sign#Names
+const OCTOTHORP: &str = "#";
+
 /// A field is not valid.
 #[derive(Debug)]
 pub struct ValidationError {
@@ -315,14 +347,29 @@ impl Display for ValidationError {
 
                 Display::fmt(&TEMPLATE_NAME_LENGTH_MAX, f)
             }
-            ValidationErrorType::Username { len } => {
-                f.write_str("provided username length is ")?;
-                Display::fmt(len, f)?;
-                f.write_str(", but it must be at least ")?;
-                Display::fmt(&USERNAME_LIMIT_MIN, f)?;
-                f.write_str(" and at most ")?;
+            ValidationErrorType::Username { len, substring }
+            | ValidationErrorType::WebhookUsername { len, substring } => {
+                f.write_str("provided username ")?;
 
-                Display::fmt(&USERNAME_LIMIT_MAX, f)
+                if let Some(len) = len {
+                    f.write_str("length is ")?;
+                    Display::fmt(len, f)?;
+                    f.write_str(", but it must be at least ")?;
+                    Display::fmt(&USERNAME_LIMIT_MIN, f)?;
+                    f.write_str(" and at most ")?;
+                    Display::fmt(&USERNAME_LIMIT_MAX, f)?;
+                }
+
+                if let Some(substring) = substring {
+                    if len.is_some() {
+                        f.write_str(", and")?;
+                    }
+
+                    f.write_str(" cannot contain ")?;
+                    Display::fmt(substring, f)?;
+                }
+
+                Ok(())
             }
         }
     }
@@ -433,10 +480,19 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
-    /// Provided username length was invalid.
+    /// Provided username was invalid.
     Username {
         /// Invalid length.
-        len: usize,
+        len: Option<usize>,
+        /// Invalid substring.
+        substring: Option<&'static str>,
+    },
+    /// Provided webhook username was invalid.
+    WebhookUsername {
+        /// Invalid length.
+        len: Option<usize>,
+        /// Invalid substring.
+        substring: Option<&'static str>,
     },
 }
 
@@ -891,10 +947,11 @@ pub fn template_name(name: impl AsRef<str>) -> Result<(), ValidationError> {
     }
 }
 
-/// Ensure that the username length is correct.
+/// Ensure that a username is correct.
 ///
 /// The length must be at least [`USERNAME_LIMIT_MIN`] and at most
-/// [`USERNAME_LIMIT_MAX`]. This is based on [this documentation entry].
+/// [`USERNAME_LIMIT_MAX`]. It must also be free of certain substrings. This is
+/// based on [this documentation entry].
 ///
 /// # Errors
 ///
@@ -903,15 +960,102 @@ pub fn template_name(name: impl AsRef<str>) -> Result<(), ValidationError> {
 /// [`Username`]: ValidationErrorType::Username
 /// [this documentation entry]: https://discord.com/developers/docs/resources/user#usernames-and-nicknames
 pub fn username(value: impl AsRef<str>) -> Result<(), ValidationError> {
-    let len = value.as_ref().chars().count();
+    let value = value.as_ref();
+    let len = value.chars().count();
 
-    if (USERNAME_LIMIT_MIN..=USERNAME_LIMIT_MAX).contains(&len) {
+    let invalid_len = if (USERNAME_LIMIT_MIN..=USERNAME_LIMIT_MAX).contains(&len) {
+        None
+    } else {
+        Some(len)
+    };
+
+    let invalid_substring = self::invalid_substring(value);
+
+    if invalid_len.is_none() && invalid_substring.is_none() {
         Ok(())
     } else {
         Err(ValidationError {
-            kind: ValidationErrorType::Username { len },
+            kind: ValidationErrorType::Username {
+                len: invalid_len,
+                substring: invalid_substring,
+            },
         })
     }
+}
+
+/// Ensure that a webhook is correct.
+///
+/// The length must be at least [`WEBHOOK_USERNAME_LIMIT_MIN`] and at most
+/// [`WEBHOOK_USERNAME_LIMIT_MAX`]. It must also be free of certain substrings.
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`WebhookUsername`] if the length is invalid.
+///
+/// [`WebhookUsername`]: ValidationErrorType::WebhookUsername
+/// [this documentation entry]: https://discord.com/developers/docs/resources/webhook#create-webhook
+pub fn webhook_username(value: impl AsRef<str>) -> Result<(), ValidationError> {
+    let value = value.as_ref();
+    let len = value.chars().count();
+
+    let invalid_len = if (WEBHOOK_USERNAME_LIMIT_MIN..=WEBHOOK_USERNAME_LIMIT_MAX).contains(&len) {
+        None
+    } else {
+        Some(len)
+    };
+
+    let invalid_substring = if value.to_ascii_lowercase() == CLYDE {
+        Some(CLYDE)
+    } else {
+        self::invalid_substring(value)
+    };
+
+    if invalid_len.is_none() && invalid_substring.is_none() {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::WebhookUsername {
+                len: invalid_len,
+                substring: invalid_substring,
+            },
+        })
+    }
+}
+
+/// Return whether a string contains some given substrings.
+fn invalid_substring(value: impl AsRef<str>) -> Option<&'static str> {
+    let value = value.as_ref();
+
+    if value.contains(AT_SIGN) {
+        return Some(AT_SIGN);
+    }
+
+    if value.contains(OCTOTHORP) {
+        return Some(OCTOTHORP);
+    }
+
+    if value.contains(COLON) {
+        return Some(COLON);
+    }
+
+    if value.contains(BACKSLASH_THREE_GRAVES) {
+        return Some(BACKSLASH_THREE_GRAVES);
+    }
+
+    if value.contains(DISCORD) {
+        return Some(DISCORD);
+    }
+
+    if value == EVERYONE {
+        return Some(EVERYONE);
+    }
+
+    if value == HERE {
+        return Some(HERE);
+    }
+
+    None
 }
 
 #[cfg(test)]
@@ -1106,5 +1250,24 @@ mod tests {
 
         assert!(username("a").is_err());
         assert!(username("a".repeat(33)).is_err());
+
+        assert!(username("no @ in username").is_err());
+        assert!(username("no # in username").is_err());
+        assert!(username("no : in username").is_err());
+        assert!(username(r#"no \``` in username"#).is_err());
+        assert!(username("no discord in username").is_err());
+        assert!(username("everyone").is_err());
+        assert!(username("here").is_err());
+    }
+
+    #[test]
+    fn test_webhook_username() {
+        assert!(webhook_username("aa").is_ok());
+        assert!(webhook_username("a".repeat(80)).is_ok());
+
+        assert!(webhook_username("a").is_err());
+        assert!(webhook_username("a".repeat(81)).is_err());
+
+        assert!(webhook_username("clyde").is_err());
     }
 }

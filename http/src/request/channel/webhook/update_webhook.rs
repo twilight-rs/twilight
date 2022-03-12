@@ -13,7 +13,10 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, webhook_username as validate_webhook_username,
+    ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateWebhookFields<'a> {
@@ -70,10 +73,21 @@ impl<'a> UpdateWebhook<'a> {
     }
 
     /// Change the name of the webhook.
-    pub const fn name(mut self, name: Option<&'a str>) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`WebhookUsername`] if the webhook's name is
+    /// invalid.
+    ///
+    /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
+    pub fn name(mut self, name: Option<&'a str>) -> Result<Self, ValidationError> {
+        if let Some(name) = name {
+            validate_webhook_username(name)?;
+        }
+
         self.fields.name = Some(NullableField(name));
 
-        self
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].

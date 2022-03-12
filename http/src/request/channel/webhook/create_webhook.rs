@@ -10,7 +10,10 @@ use twilight_model::{
     channel::Webhook,
     id::{marker::ChannelMarker, Id},
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, webhook_username as validate_webhook_username,
+    ValidationError,
+};
 
 #[derive(Serialize)]
 struct CreateWebhookFields<'a> {
@@ -47,17 +50,19 @@ pub struct CreateWebhook<'a> {
 }
 
 impl<'a> CreateWebhook<'a> {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         http: &'a Client,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, ValidationError> {
+        validate_webhook_username(name)?;
+
+        Ok(Self {
             channel_id,
             fields: CreateWebhookFields { avatar: None, name },
             http,
             reason: None,
-        }
+        })
     }
 
     /// Set the avatar of the webhook.
