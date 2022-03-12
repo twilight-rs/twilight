@@ -281,7 +281,7 @@ pub fn role(id: Id<RoleMarker>) -> Role {
     }
 }
 
-pub fn sticker(id: Id<StickerMarker>, guild_id: Id<GuildMarker>) -> Sticker {
+pub const fn sticker(id: Id<StickerMarker>, guild_id: Id<GuildMarker>) -> Sticker {
     Sticker {
         available: false,
         description: None,
