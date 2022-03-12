@@ -142,7 +142,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let scheme = ShardScheme::Auto;
 
     // Use intents to only receive guild message events.
-    let (cluster, mut events) = Cluster::builder(token.to_owned(), Intents::GUILD_MESSAGES)
+    let (cluster, mut events) = Cluster::builder(token.to_owned(), Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT)
         .shard_scheme(scheme)
         .build()
         .await?;
