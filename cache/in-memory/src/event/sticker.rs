@@ -93,6 +93,13 @@ mod tests {
     use crate::{InMemoryCache, test};
     use twilight_model::id::{marker::{GuildMarker, StickerMarker}, Id};
 
+    /// Test that caching an updated list of a guild's stickers removes one of
+    /// the existing stickers if not in the updated list, meaning the sticker no
+    /// longer exists.
+    ///
+    /// For example, if two stickers for a guild named "foo" and "bar" are
+    /// cached and a new list of stickers with only "foo" is cached, then "bar"
+    /// will be removed.
     #[test]
     fn test_sticker_removal() {
         const GUILD_ID: Id<GuildMarker> = Id::new(1);
