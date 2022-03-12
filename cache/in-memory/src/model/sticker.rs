@@ -130,7 +130,7 @@ impl CachedSticker {
 impl PartialEq<Sticker> for CachedSticker {
     fn eq(&self, other: &Sticker) -> bool {
         self.available == other.available
-            && self.description == other.description
+            && self.description.as_str() == other.description.as_ref().map_or("", String::as_str)
             && self.format_type == other.format_type
             && self.guild_id == other.guild_id
             && self.id == other.id
@@ -221,7 +221,7 @@ mod tests {
 
         let cached = CachedSticker {
             available: true,
-            description: Some("sticker".into()),
+            description: "sticker".into(),
             format_type: StickerFormatType::Png,
             guild_id: Some(Id::new(1)),
             id: Id::new(2),
