@@ -1,5 +1,9 @@
 use crate::InMemoryCache;
 use twilight_model::{
+    channel::message::sticker::{Sticker, StickerFormatType, StickerType},
+    id::marker::StickerMarker,
+};
+use twilight_model::{
     channel::{
         message::{Message, MessageFlags, MessageType},
         Channel, ChannelType, Reaction, ReactionType,
@@ -18,10 +22,6 @@ use twilight_model::{
     user::{CurrentUser, User},
     util::image_hash::ImageHash,
     voice::VoiceState,
-};
-use twilight_model::{
-    channel::message::sticker::{StickerFormatType, StickerType, Sticker},
-    id::marker::StickerMarker,
 };
 
 pub fn cache() -> InMemoryCache {
@@ -293,7 +293,7 @@ pub const fn sticker(id: Id<StickerMarker>, guild_id: Id<GuildMarker>) -> Sticke
         pack_id: None,
         sort_value: None,
         tags: String::new(),
-        user: None
+        user: None,
     }
 }
 

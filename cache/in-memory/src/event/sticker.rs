@@ -11,7 +11,8 @@ use twilight_model::{
 impl InMemoryCache {
     pub(crate) fn cache_stickers(&self, guild_id: Id<GuildMarker>, stickers: Vec<Sticker>) {
         if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
-            let incoming_sticker_ids = stickers.iter()
+            let incoming_sticker_ids = stickers
+                .iter()
                 .map(|sticker| sticker.id)
                 .collect::<HashSet<_>>();
 
@@ -90,8 +91,11 @@ impl UpdateCache for GuildStickersUpdate {
 
 #[cfg(test)]
 mod tests {
-    use crate::{InMemoryCache, test};
-    use twilight_model::id::{marker::{GuildMarker, StickerMarker}, Id};
+    use crate::{test, InMemoryCache};
+    use twilight_model::id::{
+        marker::{GuildMarker, StickerMarker},
+        Id,
+    };
 
     const GUILD_ID: Id<GuildMarker> = Id::new(1);
     const STICKER_ONE_ID: Id<StickerMarker> = Id::new(2);
@@ -115,10 +119,19 @@ mod tests {
         assert_eq!(cache.stickers.len(), 2);
         let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
         let two = test::sticker(STICKER_TWO_ID, GUILD_ID);
-        assert!(cache.stickers.get(&STICKER_ONE_ID).map(|r| r.id == STICKER_ONE_ID).unwrap_or_default());
-        assert!(cache.stickers.get(&STICKER_TWO_ID).map(|r| r.id == STICKER_TWO_ID).unwrap_or_default());
+        assert!(cache
+            .stickers
+            .get(&STICKER_ONE_ID)
+            .map(|r| r.id == STICKER_ONE_ID)
+            .unwrap_or_default());
+        assert!(cache
+            .stickers
+            .get(&STICKER_TWO_ID)
+            .map(|r| r.id == STICKER_TWO_ID)
+            .unwrap_or_default());
 
-        let guild_stickers = cache.guild_stickers
+        let guild_stickers = cache
+            .guild_stickers
             .get(&GUILD_ID)
             .expect("cache has stickers for guild");
         assert_eq!(guild_stickers.len(), 2);
@@ -139,8 +152,13 @@ mod tests {
         let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
         cache.cache_stickers(GUILD_ID, Vec::from([one]));
         assert_eq!(cache.stickers.len(), 1);
-        assert!(cache.stickers.get(&STICKER_ONE_ID).map(|r| r.id == STICKER_ONE_ID).unwrap_or_default());
-        let guild_stickers = cache.guild_stickers
+        assert!(cache
+            .stickers
+            .get(&STICKER_ONE_ID)
+            .map(|r| r.id == STICKER_ONE_ID)
+            .unwrap_or_default());
+        let guild_stickers = cache
+            .guild_stickers
             .get(&GUILD_ID)
             .expect("cache has stickers for guild");
         assert_eq!(guild_stickers.len(), 1);
