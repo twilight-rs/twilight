@@ -2,6 +2,7 @@ use crate::{
     config::ResourceType, model::CachedSticker, GuildResource, InMemoryCache, UpdateCache,
 };
 use std::borrow::Cow;
+use std::collections::HashSet;
 use twilight_model::{
     channel::message::sticker::Sticker,
     gateway::payload::incoming::GuildStickersUpdate,
@@ -11,18 +12,25 @@ use twilight_model::{
 impl InMemoryCache {
     pub(crate) fn cache_stickers(&self, guild_id: Id<GuildMarker>, stickers: Vec<Sticker>) {
         if let Some(mut guild_stickers) = self.guild_stickers.get_mut(&guild_id) {
-            let incoming: Vec<_> = stickers.iter().map(|s| s.id).collect();
+            let incoming_sticker_ids = stickers.iter()
+                .map(|sticker| sticker.id)
+                .collect::<HashSet<_>>();
 
-            let removed_ids: Vec<_> = guild_stickers
-                .iter()
-                .copied()
-                .filter(|s| !incoming.contains(s))
-                .collect();
+            // Iterate over the set of a guild's stickers, retaining only the
+            // existing stickers that are still present in the updated list of
+            // stickers.
+            //
+            // If one is not, then we remove it both from the guild's set of
+            // stickers and the sticker cache.
+            guild_stickers.retain(|sticker_id| {
+                let retain = incoming_sticker_ids.contains(sticker_id);
 
-            for removed_id in &removed_ids {
-                guild_stickers.remove(removed_id);
-                self.stickers.remove(removed_id);
-            }
+                if !retain {
+                    self.stickers.remove(sticker_id);
+                }
+
+                retain
+            });
         }
 
         for sticker in stickers {
@@ -78,5 +86,37 @@ impl UpdateCache for GuildStickersUpdate {
         }
 
         cache.cache_stickers(self.guild_id, self.stickers.clone());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{InMemoryCache, test};
+    use twilight_model::id::{marker::{GuildMarker, StickerMarker}, Id};
+
+    #[test]
+    fn test_sticker_removal() {
+        const GUILD_ID: Id<GuildMarker> = Id::new(1);
+        const STICKER_ONE_ID: Id<StickerMarker> = Id::new(2);
+        const STICKER_TWO_ID: Id<StickerMarker> = Id::new(3);
+
+        fn guild_sticker_count(cache: &InMemoryCache) -> Option<usize> {
+            cache.
+                guild_stickers
+                .get(&GUILD_ID)
+                .map(|guild_stickers| guild_stickers.len())
+        }
+
+        let cache = test::cache();
+        let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
+        let two = test::sticker(STICKER_TWO_ID, GUILD_ID);
+        cache.cache_sticker(GUILD_ID, one.clone());
+        cache.cache_sticker(GUILD_ID, two);
+        assert_eq!(2, cache.stickers.len());
+        assert_eq!(Some(2), guild_sticker_count(&cache));
+
+        cache.cache_stickers(GUILD_ID, Vec::from([one]));
+        assert_eq!(1, cache.stickers.len());
+        assert_eq!(Some(1), guild_sticker_count(&cache));
     }
 }
