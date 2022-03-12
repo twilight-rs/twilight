@@ -94,12 +94,43 @@ impl CachedSticker {
     pub const fn user_id(&self) -> Option<Id<UserMarker>> {
         self.user_id
     }
+
+    /// Construct a cached sticker from its [`twilight_model`] form.
+    pub(crate) fn from_model(sticker: Sticker) -> Self {
+        let Sticker {
+            available,
+            description,
+            format_type,
+            guild_id,
+            id,
+            kind,
+            name,
+            pack_id,
+            sort_value,
+            tags,
+            user,
+        } = sticker;
+
+        Self {
+            available,
+            description: description.unwrap_or_default(),
+            format_type,
+            guild_id,
+            id,
+            kind,
+            name,
+            pack_id,
+            sort_value,
+            tags,
+            user_id: user.map(|user| user.id),
+        }
+    }
 }
 
 impl PartialEq<Sticker> for CachedSticker {
     fn eq(&self, other: &Sticker) -> bool {
         self.available == other.available
-            && self.description.as_str() == other.description.as_ref().map_or("", String::as_str)
+            && self.description == other.description
             && self.format_type == other.format_type
             && self.guild_id == other.guild_id
             && self.id == other.id
@@ -115,6 +146,7 @@ impl PartialEq<Sticker> for CachedSticker {
 #[cfg(test)]
 mod tests {
     use super::CachedSticker;
+    use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
     use twilight_model::{
@@ -140,7 +172,16 @@ mod tests {
         tags,
         user_id
     );
-    assert_impl_all!(CachedSticker: Clone, Debug, Eq, PartialEq);
+    assert_impl_all!(
+        CachedSticker: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        PartialEq<Sticker>,
+        Send,
+        Serialize,
+        Sync
+    );
 
     #[test]
     fn test_eq_sticker() -> Result<(), ImageHashParseError> {
@@ -180,7 +221,7 @@ mod tests {
 
         let cached = CachedSticker {
             available: true,
-            description: "sticker".into(),
+            description: Some("sticker".into()),
             format_type: StickerFormatType::Png,
             guild_id: Some(Id::new(1)),
             id: Id::new(2),

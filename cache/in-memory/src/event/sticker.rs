@@ -39,25 +39,12 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
 
-        let user_id = sticker.user.as_ref().map(|user| user.id);
-
-        if let Some(user) = sticker.user {
+        if let Some(user) = sticker.user.clone() {
             self.cache_user(Cow::Owned(user), Some(guild_id));
         }
 
-        let cached = CachedSticker {
-            available: sticker.available,
-            description: sticker.description.unwrap_or_default(),
-            format_type: sticker.format_type,
-            guild_id: sticker.guild_id,
-            id: sticker.id,
-            kind: sticker.kind,
-            name: sticker.name,
-            pack_id: sticker.pack_id,
-            sort_value: sticker.sort_value,
-            tags: sticker.tags,
-            user_id,
-        };
+        let sticker_id = sticker.id;
+        let cached = CachedSticker::from_model(sticker);
 
         self.stickers.insert(
             cached.id,
@@ -70,7 +57,7 @@ impl InMemoryCache {
         self.guild_stickers
             .entry(guild_id)
             .or_default()
-            .insert(sticker.id);
+            .insert(sticker_id);
     }
 }
 

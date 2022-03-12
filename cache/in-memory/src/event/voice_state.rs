@@ -36,7 +36,7 @@ impl InMemoryCache {
 
         if let Some(channel_id) = voice_state.channel_id {
             let cached_voice_state =
-                CachedVoiceState::from_voice_state(channel_id, guild_id, voice_state);
+                CachedVoiceState::from_model(channel_id, guild_id, voice_state);
 
             self.voice_states
                 .insert((guild_id, user_id), cached_voice_state);
@@ -361,7 +361,7 @@ mod tests {
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
         cache.update(&VoiceStateUpdate(voice_state.clone()));
 
-        let cached = CachedVoiceState::from_voice_state(CHANNEL_ID, GUILD_ID, voice_state);
+        let cached = CachedVoiceState::from_model(CHANNEL_ID, GUILD_ID, voice_state);
         let in_cache = cache.voice_state(USER_ID, GUILD_ID).unwrap();
         assert_eq!(in_cache.value(), &cached);
     }

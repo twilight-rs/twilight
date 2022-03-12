@@ -94,12 +94,18 @@ impl CachedVoiceState {
         self.user_id
     }
 
+    /// Construct a cached voice state from its [`twilight_model`] form.
     #[allow(clippy::missing_const_for_fn)]
-    pub(crate) fn from_voice_state(
+    pub(crate) fn from_model(
         channel_id: Id<ChannelMarker>,
         guild_id: Id<GuildMarker>,
         voice_state: VoiceState,
     ) -> Self {
+        // Reasons for dropping fields:
+        //
+        // - `channel_id`: provided as a function parameter
+        // - `guild_id`: provided as a function parameter
+        // - `member`: we have the user's ID from the `user_id` field
         let VoiceState {
             channel_id: _,
             deaf,
@@ -199,7 +205,7 @@ mod tests {
     #[test]
     fn test_eq() {
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
-        let cached = CachedVoiceState::from_voice_state(CHANNEL_ID, GUILD_ID, voice_state.clone());
+        let cached = CachedVoiceState::from_model(CHANNEL_ID, GUILD_ID, voice_state.clone());
 
         assert_eq!(cached, voice_state);
     }
@@ -207,7 +213,7 @@ mod tests {
     #[test]
     fn test_getters() {
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
-        let cached = CachedVoiceState::from_voice_state(CHANNEL_ID, GUILD_ID, voice_state.clone());
+        let cached = CachedVoiceState::from_model(CHANNEL_ID, GUILD_ID, voice_state.clone());
 
         assert_eq!(Some(cached.channel_id()), voice_state.channel_id);
         assert_eq!(cached.deaf(), voice_state.deaf);
