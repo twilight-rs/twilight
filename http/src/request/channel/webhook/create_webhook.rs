@@ -36,7 +36,7 @@ struct CreateWebhookFields<'a> {
 /// let channel_id = Id::new(123);
 ///
 /// let webhook = client
-///     .create_webhook(channel_id, "Twily Bot")
+///     .create_webhook(channel_id, "Twily Bot")?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
