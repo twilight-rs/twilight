@@ -466,9 +466,10 @@ pub enum ComponentValidationErrorType {
 /// Returns an error of type [`ButtonConflict`] if both a custom ID and URL are
 /// specified.
 ///
-/// Returns an error of type [`ButtonStyle`] if [`ButtonStyle::Link`] is
-/// provided and a URL is provided, or if the style is not [`ButtonStyle::Link`]
-/// and a custom ID is not provided.
+/// Returns an error of type
+/// [`ButtonStyle`][`ComponentValidationErrorType::ButtonStyle`] if
+/// [`ButtonStyle::Link`] is provided and a URL is provided, or if the style is
+/// not [`ButtonStyle::Link`] and a custom ID is not provided.
 ///
 /// Returns an error of type [`InvalidChildComponent`] if the provided nested
 /// component is an [`ActionRow`]. Action rows can not contain another action
