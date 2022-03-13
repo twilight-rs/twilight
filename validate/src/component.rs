@@ -5,7 +5,8 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 use twilight_model::application::component::{
-    button::ButtonStyle, select_menu::SelectMenuOption, Component, ComponentType,
+    button::ButtonStyle, select_menu::SelectMenuOption, ActionRow, Button, Component,
+    ComponentType, SelectMenu, TextInput,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -456,12 +457,82 @@ pub enum ComponentValidationErrorType {
     },
 }
 
-/// Ensure a component is correct.
+/// Ensure that a top-level request component is correct.
+///
+/// Intended to ensure that a fully formed top-level component for requests
+/// is an action row.
+///
+/// Refer to other validators like [`button`] if you need to validate other
+/// components.
 ///
 /// # Errors
 ///
-/// Returns an error of type [`ActionRowComponentCount`] if the provided list of
-/// components is too many for an [`ActionRow`].
+/// Returns an error of type [`InvalidRootComponent`] if the component is not an
+/// [`ActionRow`].
+///
+/// Refer to [`action_row`] for potential errors when validating an action row
+/// component.
+///
+/// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
+pub fn component(component: &Component) -> Result<(), ComponentValidationError> {
+    match component {
+        Component::ActionRow(action_row) => self::action_row(action_row)?,
+        other => {
+            return Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
+            });
+        }
+    }
+
+    Ok(())
+}
+
+/// Ensure that an action row is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`ActionRowComponentCount`] if the action row has
+/// too many components in it.
+///
+/// Returns an error of type [`InvalidChildComponent`] if the provided nested
+/// component is an [`ActionRow`]. Action rows can not contain another action
+/// row.
+///
+/// Refer to [`button`] for potential errors when validating a button in the
+/// action row.
+///
+/// Refer to [`select_menu`] for potential errors when validating a select menu
+/// in the action row.
+///
+/// Refer to [`text_input`] for potential errors when validating a text input in
+/// the action row.
+///
+/// [`ActionRowComponentCount`]: ComponentValidationErrorType::ActionRowComponentCount
+/// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
+pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError> {
+    self::component_action_row_components(&action_row.components)?;
+
+    for component in &action_row.components {
+        match component {
+            Component::ActionRow(_) => {
+                return Err(ComponentValidationError {
+                    kind: ComponentValidationErrorType::InvalidChildComponent {
+                        kind: ComponentType::ActionRow,
+                    },
+                });
+            }
+            Component::Button(button) => self::button(button)?,
+            Component::SelectMenu(select_menu) => self::select_menu(select_menu)?,
+            Component::TextInput(text_input) => self::text_input(text_input)?,
+        }
+    }
+
+    Ok(())
+}
+
+/// Ensure that a button is correct.
+///
+/// # Errors
 ///
 /// Returns an error of type [`ButtonConflict`] if both a custom ID and URL are
 /// specified.
@@ -471,12 +542,61 @@ pub enum ComponentValidationErrorType {
 /// [`ButtonStyle::Link`] is provided and a URL is provided, or if the style is
 /// not [`ButtonStyle::Link`] and a custom ID is not provided.
 ///
-/// Returns an error of type [`InvalidChildComponent`] if the provided nested
-/// component is an [`ActionRow`]. Action rows can not contain another action
-/// row.
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
 ///
-/// Returns an error of type [`InvalidRootComponent`] if the root component is
-/// not an [`ActionRow`].
+/// Returns an error of type [`ComponentLabelLength`] if the provided button
+/// label is too long.
+///
+/// [`ButtonConflict`]: ComponentValidationErrorType::ButtonConflict
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
+/// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
+pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
+    let has_custom_id = button.custom_id.is_some();
+    let has_url = button.url.is_some();
+
+    // First check if a custom ID and URL are both set. If so this
+    // results in a conflict, as no valid button may have both set.
+    if has_custom_id && has_url {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::ButtonConflict,
+        });
+    }
+
+    // Next, we check if the button is a link and a URL is not set.
+    //
+    // Lastly, we check if the button is not a link and a custom ID is
+    // not set.
+    let is_link = button.style == ButtonStyle::Link;
+
+    if (is_link && !has_url) || (!is_link && !has_custom_id) {
+        return Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::ButtonStyle {
+                style: button.style,
+            },
+        });
+    }
+
+    if let Some(custom_id) = button.custom_id.as_ref() {
+        self::component_custom_id(custom_id)?;
+    }
+
+    if let Some(label) = button.label.as_ref() {
+        self::component_label(label)?;
+    }
+
+    Ok(())
+}
+
+/// Ensure that a select menu is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
+///
+/// Returns an error of type [`ComponentLabelLength`] if the provided button
+/// label is too long.
 ///
 /// Returns an error of type [`SelectMaximumValuesCount`] if the provided number
 /// of select menu values that can be chosen is smaller than the minimum or
@@ -497,133 +617,86 @@ pub enum ComponentValidationErrorType {
 /// Returns an error of type [`SelectPlaceholderLength`] if a provided select
 /// placeholder is too long.
 ///
-/// [`ActionRowComponentCount`]: ComponentValidationErrorType::ActionRowComponentCount
-/// [`ActionRow`]: twilight_model::application::component::ActionRow
-/// [`ButtonConflict`]: ComponentValidationErrorType::ButtonConflict
-/// [`ButtonStyle`]: ComponentValidationErrorType::ButtonStyle
-/// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
-/// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
+/// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 /// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
 /// [`SelectMinimumValuesCount`]: ComponentValidationErrorType::SelectMinimumValuesCount
 /// [`SelectOptionDescriptionLength`]: ComponentValidationErrorType::SelectOptionDescriptionLength
 /// [`SelectOptionLabelLength`]: ComponentValidationErrorType::SelectOptionLabelLength
 /// [`SelectOptionValueLength`]: ComponentValidationErrorType::SelectOptionValueLength
 /// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
-pub fn component(component: &Component) -> Result<(), ComponentValidationError> {
-    match component {
-        Component::ActionRow(action_row) => {
-            self::component_action_row_components(&action_row.components)?;
+pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationError> {
+    self::component_custom_id(&select_menu.custom_id)?;
+    self::component_select_options(&select_menu.options)?;
 
-            for inner in &action_row.components {
-                self::component_inner(inner)?;
-            }
-        }
-        other => {
-            return Err(ComponentValidationError {
-                kind: ComponentValidationErrorType::InvalidRootComponent { kind: other.kind() },
-            });
+    if let Some(placeholder) = select_menu.placeholder.as_ref() {
+        self::component_select_placeholder(placeholder)?;
+    }
+
+    if let Some(max_values) = select_menu.max_values {
+        self::component_select_max_values(usize::from(max_values))?;
+    }
+
+    if let Some(min_values) = select_menu.min_values {
+        self::component_select_min_values(usize::from(min_values))?;
+    }
+
+    for option in &select_menu.options {
+        self::component_select_option_label(&option.label)?;
+        self::component_select_option_value(&option.value)?;
+
+        if let Some(description) = option.description.as_ref() {
+            self::component_option_description(description)?;
         }
     }
 
     Ok(())
 }
 
-/// Validate the contents of a component that is within another component, i.e.
-/// one that is not a root component.
+/// Ensure that a text input is correct.
 ///
 /// # Errors
 ///
-/// Refer to the errors section of [`component`] for a list of errors that may
-/// occur.
-fn component_inner(component: &Component) -> Result<(), ComponentValidationError> {
-    match component {
-        Component::ActionRow(_) => {
-            return Err(ComponentValidationError {
-                kind: ComponentValidationErrorType::InvalidChildComponent {
-                    kind: ComponentType::ActionRow,
-                },
-            })
-        }
-        Component::Button(button) => {
-            let has_custom_id = button.custom_id.is_some();
-            let has_url = button.url.is_some();
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
+///
+/// Returns an error of type [`ComponentLabelLength`] if the provided button
+/// label is too long.
+///
+/// Returns an error of type [`TextInputMaxLength`] if the length is invalid.
+///
+/// Returns an error of type [`TextInputMinLength`] if the length is invalid.
+///
+/// Returns an error of type [`TextInputPlaceholderLength`] if the provided
+/// placeholder is too long.
+///
+/// Returns an error of type [`TextInputValueLength`] if the length is invalid.
+///
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
+/// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
+/// [`TextInputMaxLength`]: ComponentValidationErrorType::TextInputMaxLength
+/// [`TextInputMinLength`]: ComponentValidationErrorType::TextInputMinLength
+/// [`TextInputPlaceholderLength`]: ComponentValidationErrorType::TextInputPlaceholderLength
+/// [`TextInputValueLength`]: ComponentValidationErrorType::TextInputValueLength
+pub fn text_input(text_input: &TextInput) -> Result<(), ComponentValidationError> {
+    self::component_custom_id(&text_input.custom_id)?;
 
-            // First check if a custom ID and URL are both set. If so this
-            // results in a conflict, as no valid button may have both set.
-            if has_custom_id && has_url {
-                return Err(ComponentValidationError {
-                    kind: ComponentValidationErrorType::ButtonConflict,
-                });
-            }
+    self::component_label(&text_input.label)?;
 
-            // Next, we check if the button is a link and a URL is not set.
-            //
-            // Lastly, we check if the button is not a link and a custom ID is
-            // not set.
-            let is_link = button.style == ButtonStyle::Link;
+    if let Some(max_length) = text_input.max_length {
+        self::component_text_input_max(max_length)?;
+    }
 
-            if (is_link && !has_url) || (!is_link && !has_custom_id) {
-                return Err(ComponentValidationError {
-                    kind: ComponentValidationErrorType::ButtonStyle {
-                        style: button.style,
-                    },
-                });
-            }
+    if let Some(min_length) = text_input.min_length {
+        self::component_text_input_min(min_length)?;
+    }
 
-            if let Some(custom_id) = button.custom_id.as_ref() {
-                self::component_custom_id(custom_id)?;
-            }
+    if let Some(placeholder) = text_input.placeholder.as_ref() {
+        self::component_text_input_placeholder(placeholder)?;
+    }
 
-            if let Some(label) = button.label.as_ref() {
-                self::component_label(label)?;
-            }
-        }
-        Component::SelectMenu(select_menu) => {
-            self::component_custom_id(&select_menu.custom_id)?;
-            self::component_select_options(&select_menu.options)?;
-
-            if let Some(placeholder) = select_menu.placeholder.as_ref() {
-                self::component_select_placeholder(placeholder)?;
-            }
-
-            if let Some(max_values) = select_menu.max_values {
-                self::component_select_max_values(usize::from(max_values))?;
-            }
-
-            if let Some(min_values) = select_menu.min_values {
-                self::component_select_min_values(usize::from(min_values))?;
-            }
-
-            for option in &select_menu.options {
-                self::component_select_option_label(&option.label)?;
-                self::component_select_option_value(&option.value)?;
-
-                if let Some(description) = option.description.as_ref() {
-                    self::component_option_description(description)?;
-                }
-            }
-        }
-        Component::TextInput(text_input) => {
-            self::component_custom_id(&text_input.custom_id)?;
-
-            self::component_label(&text_input.label)?;
-
-            if let Some(max_length) = text_input.max_length {
-                self::component_text_input_max(max_length)?;
-            }
-
-            if let Some(min_length) = text_input.min_length {
-                self::component_text_input_min(min_length)?;
-            }
-
-            if let Some(placeholder) = text_input.placeholder.as_ref() {
-                self::component_text_input_placeholder(placeholder)?;
-            }
-
-            if let Some(value) = text_input.value.as_ref() {
-                self::component_text_input_value(value)?;
-            }
-        }
+    if let Some(value) = text_input.value.as_ref() {
+        self::component_text_input_value(value)?;
     }
 
     Ok(())
@@ -1024,18 +1097,18 @@ mod tests {
             placeholder: Some("Choose a book".into()),
         };
 
-        let action_row = Component::ActionRow(ActionRow {
+        let action_row = ActionRow {
             components: Vec::from([
                 Component::SelectMenu(select_menu.clone()),
                 Component::Button(button),
             ]),
-        });
+        };
 
-        assert!(component(&action_row).is_ok());
+        assert!(component(&Component::ActionRow(action_row.clone())).is_ok());
 
         assert!(component(&Component::SelectMenu(select_menu.clone())).is_err());
 
-        assert!(component_inner(&action_row).is_err());
+        assert!(super::action_row(&action_row).is_ok());
 
         let invalid_action_row = Component::ActionRow(ActionRow {
             components: Vec::from([
@@ -1063,10 +1136,9 @@ mod tests {
             style: ButtonStyle::Primary,
             url: Some("https://twilight.rs".to_owned()),
         };
-        let component = Component::Button(button);
 
         assert!(matches!(
-            super::component_inner(&component),
+            super::button(&button),
             Err(ComponentValidationError {
                 kind: ComponentValidationErrorType::ButtonConflict,
             }),
@@ -1086,10 +1158,9 @@ mod tests {
                 style: *style,
                 url: None,
             };
-            let component = Component::Button(button);
 
             assert!(matches!(
-                super::component_inner(&component),
+                super::button(&button),
                 Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::ButtonStyle {
                         style: error_style,
