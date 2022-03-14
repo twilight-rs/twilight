@@ -36,6 +36,9 @@ use twilight_model::{
     id::{marker::GuildMarker, Id},
 };
 
+#[cfg(feature = "validate")]
+use twilight_validate::command::{command as validate_command, CommandValidationError};
+
 /// Builder to create a [`Command`].
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
@@ -64,6 +67,19 @@ impl CommandBuilder {
     #[must_use = "must be built into a command"]
     pub fn build(self) -> Command {
         self.0
+    }
+
+    /// Ensure the command is valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the errors section of [`twilight_validate::command::command`]
+    /// for possible errors.
+    #[cfg(feature = "validate")]
+    pub fn validate(self) -> Result<Self, CommandValidationError> {
+        validate_command(&self.0)?;
+
+        Ok(self)
     }
 
     /// Set the guild ID of the command.
@@ -861,5 +877,13 @@ mod tests {
         };
 
         assert_eq!(command, command_manual);
+    }
+
+    #[cfg(feature = "validate")]
+    #[test]
+    fn test_validate() {
+        let result = CommandBuilder::new("".into(), "".into(), CommandType::ChatInput).validate();
+
+        assert!(result.is_err());
     }
 }

@@ -48,6 +48,7 @@
 //! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
 //! [the discord docs]: https://discord.com/developers/docs/resources/channel#create-message-using-attachments-within-embeds
 
+#![deprecated(since = "0.10.1", note = "use twilight_util::builder::embed")]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
