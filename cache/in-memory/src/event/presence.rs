@@ -32,7 +32,7 @@ impl UpdateCache for PresenceUpdate {
             return;
         }
 
-        let presence = CachedPresence::from_update(self.clone());
+        let presence = CachedPresence::from_model(self.0.clone());
 
         cache.cache_presence(self.guild_id, presence);
     }
