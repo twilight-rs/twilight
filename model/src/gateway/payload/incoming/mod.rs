@@ -24,6 +24,11 @@ mod guild_create;
 mod guild_delete;
 mod guild_emojis_update;
 mod guild_integrations_update;
+mod guild_scheduled_event_create;
+mod guild_scheduled_event_delete;
+mod guild_scheduled_event_update;
+mod guild_scheduled_event_user_add;
+mod guild_scheduled_event_user_remove;
 mod guild_stickers_update;
 mod guild_update;
 mod integration_create;
@@ -68,6 +73,11 @@ pub use self::{
     channel_delete::ChannelDelete, channel_pins_update::ChannelPinsUpdate,
     channel_update::ChannelUpdate, guild_create::GuildCreate, guild_delete::GuildDelete,
     guild_emojis_update::GuildEmojisUpdate, guild_integrations_update::GuildIntegrationsUpdate,
+    guild_scheduled_event_create::GuildScheduledEventCreate,
+    guild_scheduled_event_delete::GuildScheduledEventDelete,
+    guild_scheduled_event_update::GuildScheduledEventUpdate,
+    guild_scheduled_event_user_add::GuildScheduledEventUserAdd,
+    guild_scheduled_event_user_remove::GuildScheduledEventUserRemove,
     guild_stickers_update::GuildStickersUpdate, guild_update::GuildUpdate,
     integration_create::IntegrationCreate, integration_delete::IntegrationDelete,
     integration_update::IntegrationUpdate, interaction_create::InteractionCreate,
