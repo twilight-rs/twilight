@@ -48,7 +48,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::MemberRemove(e) => Some(e.guild_id),
         Event::MemberUpdate(e) => Some(e.guild_id),
         Event::MessageCreate(e) => e.0.guild_id,
-        Event::PresenceUpdate(e) => Some(e.guild_id),
+        Event::PresenceUpdate(e) => Some(e.0.guild_id),
         Event::ReactionAdd(e) => e.0.guild_id,
         Event::ReactionRemove(e) => e.0.guild_id,
         Event::ReactionRemoveAll(e) => e.guild_id,
