@@ -1,14 +1,14 @@
+#[cfg(feature = "simd-json")]
+pub use dep_simd_json::{to_vec, Deserializer as JsonDeserializer, Error as JsonError};
 #[cfg(not(feature = "simd-json"))]
 pub use serde_json::{to_vec, Deserializer as JsonDeserializer, Error as JsonError};
-#[cfg(feature = "simd-json")]
-pub use simd_json::{to_vec, Deserializer as JsonDeserializer, Error as JsonError};
 
 use serde::de::DeserializeOwned;
 
+#[cfg(feature = "simd-json")]
+use dep_simd_json::Result as JsonResult;
 #[cfg(not(feature = "simd-json"))]
 use serde_json::Result as JsonResult;
-#[cfg(feature = "simd-json")]
-use simd_json::Result as JsonResult;
 
 pub fn from_bytes<T: DeserializeOwned>(bytes: &[u8]) -> JsonResult<T> {
     #[cfg(not(feature = "simd-json"))]

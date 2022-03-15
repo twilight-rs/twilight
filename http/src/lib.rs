@@ -136,6 +136,9 @@
     clippy::unnecessary_wraps
 )]
 
+#[cfg(feature = "simd-json")]
+extern crate dep_simd_json;
+
 pub mod api_error;
 pub mod client;
 pub mod error;
