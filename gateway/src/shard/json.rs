@@ -1,7 +1,7 @@
-#[cfg(feature = "simd-json")]
-pub use dep_simd_json::{from_slice, to_vec};
 #[cfg(not(feature = "simd-json"))]
 pub use serde_json::{from_slice, to_vec};
+#[cfg(feature = "simd-json")]
+pub use simd_json::{from_slice, to_vec};
 
 use serde::de::DeserializeSeed;
 use std::{
