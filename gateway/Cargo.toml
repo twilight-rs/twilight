@@ -35,8 +35,11 @@ leaky-bucket-lite = { default-features = false, features = ["tokio"], version = 
 # https://github.com/alexcrichton/flate2-rs/issues/217
 flate2 = { default-features = false, optional = true, version = "1.0" }
 metrics = { default-features = false, optional = true, version = "0.18" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
+dep-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, package = "simd-json", version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
+
+# `value-trait` updated its MSRV in a minor release, so use previous versions.
+value-trait = { default-features = false, features = ["128bit"], optional = true, version = "<=0.2.10" }
 
 # TLS libraries
 # They are needed to track what is used in tokio-tungstenite
@@ -44,10 +47,6 @@ native-tls = { default-features = false, optional = true, version = "0.2.8" }
 rustls-tls = { default-features = false, optional = true, package = "rustls", version = "0.20" }
 rustls-native-certs = { default-features = false, optional = true, version = "0.6" }
 webpki-roots = { default-features = false, optional = true, version = "0.22" }
-
-# `value-trait` updated its MSRV in a minor release, so use previous versions.
-[patch.crates-io]
-value-trait = { optional = true, version = "<=0.2.10" }
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
@@ -59,6 +58,7 @@ default = ["rustls-native-roots", "tracing", "zlib-stock"]
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
 rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
+simd-json = ["dep-simd-json", "value-trait"]
 zlib-simd = ["flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
 # always use stock zlib instead of zlib-ng.
