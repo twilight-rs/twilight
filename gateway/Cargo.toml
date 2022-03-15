@@ -45,6 +45,10 @@ rustls-tls = { default-features = false, optional = true, package = "rustls", ve
 rustls-native-certs = { default-features = false, optional = true, version = "0.6" }
 webpki-roots = { default-features = false, optional = true, version = "0.22" }
 
+# `value-trait` updated its MSRV in a minor release, so use previous versions.
+[patch.crates-io]
+value-trait = { optional = true, version = "<=0.2.10" }
+
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }

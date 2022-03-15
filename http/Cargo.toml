@@ -34,6 +34,10 @@ brotli = { default-features = false, features = ["std"], optional = true, versio
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
+# `value-trait` updated its MSRV in a minor release, so use previous versions.
+[patch.crates-io]
+value-trait = { optional = true, version = "<=0.2.10" }
+
 [features]
 default = ["decompression", "rustls-native-roots", "tracing"]
 decompression = ["brotli"]
