@@ -289,13 +289,13 @@ mod tests {
             thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
             Channel, ChannelType,
         },
-        datetime::{Timestamp, TimestampParseError},
         gateway::payload::incoming::{MemberAdd, MemberRemove, UnavailableGuild},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
         },
         id::Id,
+        util::datetime::{Timestamp, TimestampParseError},
     };
 
     #[test]

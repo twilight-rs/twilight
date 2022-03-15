@@ -4,7 +4,6 @@ use crate::{
         message::sticker::StickerFormatType, permission_overwrite::PermissionOverwrite,
         stage_instance::PrivacyLevel, thread::AutoArchiveDuration,
     },
-    datetime::Timestamp,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         VerificationLevel,
@@ -15,6 +14,7 @@ use crate::{
         },
         Id,
     },
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 

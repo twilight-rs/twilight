@@ -29,13 +29,12 @@ pub use self::{
 
 use crate::{
     channel::thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
-    datetime::Timestamp,
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, MessageMarker, UserMarker},
         Id,
     },
     user::User,
-    util::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -172,9 +171,9 @@ mod tests {
     use super::{AutoArchiveDuration, Channel, ChannelType, ThreadMember, ThreadMetadata};
     use crate::{
         channel::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
-        datetime::Timestamp,
         guild::Permissions,
         id::Id,
+        util::Timestamp,
     };
 
     // The deserializer for GuildChannel should skip over fields names that

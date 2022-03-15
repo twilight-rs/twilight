@@ -1229,7 +1229,6 @@ mod tests {
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
-        datetime::Timestamp,
         gateway::{
             event::{Event, EventType},
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
@@ -1237,6 +1236,7 @@ mod tests {
         id::{marker::GuildMarker, Id},
         oauth::{current_application_info::ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
+        util::Timestamp,
     };
 
     assert_impl_all!(Standby: Debug, Default, Send, Sync);

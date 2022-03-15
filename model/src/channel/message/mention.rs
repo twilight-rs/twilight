@@ -47,8 +47,8 @@ impl Mention {
 mod tests {
     use super::{Mention, PartialMember, UserFlags};
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

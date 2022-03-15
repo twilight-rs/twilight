@@ -22,7 +22,6 @@ use self::sticker::MessageSticker;
 use crate::{
     application::component::Component,
     channel::{embed::Embed, Attachment, Channel, ChannelMention},
-    datetime::Timestamp,
     guild::PartialMember,
     id::{
         marker::{
@@ -31,6 +30,7 @@ use crate::{
         Id,
     },
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
@@ -102,11 +102,11 @@ mod tests {
     };
     use crate::{
         channel::{ChannelType, ReactionType},
-        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::Id,
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

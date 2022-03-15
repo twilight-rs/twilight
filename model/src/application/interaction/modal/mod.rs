@@ -77,7 +77,7 @@ mod tests {
     use super::*;
     use crate::{
         application::component::ComponentType,
-        datetime::{Timestamp, TimestampParseError},
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, str::FromStr};

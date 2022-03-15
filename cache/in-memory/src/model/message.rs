@@ -11,7 +11,6 @@ use twilight_model::{
         },
         Attachment, ChannelMention,
     },
-    datetime::Timestamp,
     guild::PartialMember,
     id::{
         marker::{
@@ -20,6 +19,7 @@ use twilight_model::{
         },
         Id,
     },
+    util::Timestamp,
 };
 
 /// Information about the message interaction.

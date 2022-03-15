@@ -1,9 +1,8 @@
 use crate::{
-    datetime::Timestamp,
     guild::Permissions,
     id::{marker::RoleMarker, Id},
     user::User,
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
 
@@ -33,8 +32,8 @@ pub struct PartialMember {
 mod tests {
     use super::PartialMember;
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

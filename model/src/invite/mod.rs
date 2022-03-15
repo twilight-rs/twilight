@@ -11,7 +11,7 @@ pub use self::{
 };
 
 use super::user::User;
-use crate::datetime::Timestamp;
+use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -52,10 +52,10 @@ mod tests {
     };
     use crate::{
         channel::ChannelType,
-        datetime::{Timestamp, TimestampParseError},
         guild::VerificationLevel,
         id::Id,
         test::image_hash,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;

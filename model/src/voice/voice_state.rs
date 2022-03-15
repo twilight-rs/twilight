@@ -1,10 +1,10 @@
 use crate::{
-    datetime::Timestamp,
     guild::member::{Member, OptionalMemberDeserializer},
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
+    util::Timestamp,
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -305,9 +305,9 @@ impl<'de> Deserialize<'de> for VoiceState {
 mod tests {
     use super::{Member, VoiceState};
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

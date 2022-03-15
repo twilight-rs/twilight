@@ -68,7 +68,7 @@ mod tests {
     use super::*;
     use crate::{
         application::{command::CommandType, interaction::Interaction},
-        datetime::{Timestamp, TimestampParseError},
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

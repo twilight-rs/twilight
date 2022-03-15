@@ -5,12 +5,12 @@ pub use guild::TemplateGuild;
 pub use role::TemplateRole;
 
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{GuildMarker, UserMarker},
         Id,
     },
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
@@ -40,7 +40,6 @@ mod tests {
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             Channel, ChannelType,
         },
-        datetime::{Timestamp, TimestampParseError},
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Permissions,
             SystemChannelFlags, VerificationLevel,
@@ -48,6 +47,7 @@ mod tests {
         id::Id,
         test::image_hash,
         user::{User, UserFlags},
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

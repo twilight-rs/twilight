@@ -91,10 +91,10 @@ mod tests {
     use crate::{
         application::{component::ComponentType, interaction::InteractionType},
         channel::message::{Message, MessageType},
-        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{marker::UserMarker, Id},
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};

@@ -2027,7 +2027,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{datetime::Timestamp, id::Id};
+    /// use twilight_model::{id::Id, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2052,7 +2052,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{datetime::Timestamp, id::Id};
+    /// use twilight_model::{id::Id, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());

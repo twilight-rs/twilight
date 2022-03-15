@@ -7,7 +7,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
-use twilight_model::datetime::Timestamp;
+use twilight_model::util::Timestamp;
 
 /// The maximum audit log reason length in UTF-16 codepoints.
 pub const AUDIT_REASON_MAX: usize = 512;

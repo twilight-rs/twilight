@@ -1,12 +1,12 @@
 use crate::{
     channel::{thread::ThreadMetadata, Attachment, ChannelType, Message},
-    datetime::Timestamp,
     guild::{Permissions, Role},
     id::{
         marker::{AttachmentMarker, ChannelMarker, MessageMarker, RoleMarker, UserMarker},
         Id,
     },
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
@@ -70,11 +70,11 @@ mod tests {
             },
             Attachment, ChannelType, Message,
         },
-        datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions, Role},
         id::Id,
         test::image_hash,
         user::{PremiumType, User, UserFlags},
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
