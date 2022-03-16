@@ -1,4 +1,4 @@
-use super::{builder::ClusterBuilder, config::Config, event::Events, scheme::ShardScheme};
+use super::{builder::ClusterBuilder, config::Config, event::Events};
 use crate::{
     cluster::event::ShardEventsWithId,
     shard::{
@@ -13,7 +13,6 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     iter::FusedIterator,
 };
-use twilight_http::Client as HttpClient;
 
 /// Sending a command to a shard failed.
 #[derive(Debug)]
@@ -285,13 +284,8 @@ impl Cluster {
             streams: Vec<ShardEventsWithId>,
         }
 
-        let scheme = match config.shard_scheme() {
-            ShardScheme::Auto => Self::retrieve_shard_count(&shard_config.http_client).await?,
-            other => other.clone(),
-        };
-
-        let iter = scheme.iter().expect("shard scheme is not auto");
-        let total = scheme.total().expect("shard scheme is not auto");
+        let iter = config.shard_scheme().iter();
+        let total = config.shard_scheme().total();
 
         #[cfg(feature = "metrics")]
         #[allow(clippy::cast_precision_loss)]
@@ -324,33 +318,6 @@ impl Cluster {
         let select_all = SelectAll::from_iter(streams);
 
         Ok((Self { config, shards }, Events::new(select_all)))
-    }
-
-    /// Retrieve the recommended number of shards from the HTTP API.
-    ///
-    /// The returned shard scheme is a [`ShardScheme::Range`].
-    async fn retrieve_shard_count(http: &HttpClient) -> Result<ShardScheme, ClusterStartError> {
-        let gateway = http
-            .gateway()
-            .authed()
-            .exec()
-            .await
-            .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
-                source: Some(Box::new(source)),
-            })?
-            .model()
-            .await
-            .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
-                source: Some(Box::new(source)),
-            })?;
-
-        Ok(ShardScheme::Range {
-            from: 0,
-            to: gateway.shards - 1,
-            total: gateway.shards,
-        })
     }
 
     /// Create a builder to configure and construct a cluster.
