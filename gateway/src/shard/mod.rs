@@ -33,9 +33,7 @@ mod processor;
 pub(crate) mod tls;
 
 pub use self::{
-    builder::{
-        LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
-    },
+    builder::ShardBuilder,
     command::Command,
     config::Config,
     event::Events,
