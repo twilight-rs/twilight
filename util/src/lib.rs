@@ -1,4 +1,3 @@
-#![allow(clippy::semicolon_if_nothing_returned)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
     clippy::all,
@@ -13,6 +12,7 @@
     warnings
 )]
 #![doc = include_str!("../README.md")]
+#![allow(clippy::semicolon_if_nothing_returned)]
 
 #[cfg(feature = "builder")]
 pub mod builder;

@@ -1,4 +1,3 @@
-#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -16,6 +15,7 @@
     note = "use interactions via `twilight-http` or `twilight-gateway`"
 )]
 #![doc = include_str!("../README.md")]
+#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 
 pub mod config;
 

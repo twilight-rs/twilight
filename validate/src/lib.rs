@@ -1,4 +1,3 @@
-#![allow(clippy::module_name_repetitions)]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -13,6 +12,7 @@
     warnings
 )]
 #![doc = include_str!("../README.md")]
+#![allow(clippy::module_name_repetitions)]
 
 pub mod channel;
 pub mod command;
