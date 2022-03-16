@@ -1,4 +1,4 @@
-#![doc = include_str!("../README.md")]
+#![allow(clippy::module_name_repetitions)]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -12,7 +12,7 @@
     unused,
     warnings
 )]
-#![allow(clippy::module_name_repetitions)]
+#![doc = include_str!("../README.md")]
 
 pub mod fmt;
 pub mod parse;

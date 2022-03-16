@@ -1,4 +1,3 @@
-#![doc = include_str!("../README.md")]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -12,6 +11,7 @@
     unused,
     warnings
 )]
+#![doc = include_str!("../README.md")]
 
 pub mod future;
 

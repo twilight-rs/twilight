@@ -1,4 +1,9 @@
-#![doc = include_str!("../README.md")]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::semicolon_if_nothing_returned,
+    clippy::used_underscore_binding
+)]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -11,12 +16,7 @@
     unused,
     warnings
 )]
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned,
-    clippy::used_underscore_binding
-)]
+#![doc = include_str!("../README.md")]
 
 pub mod application;
 pub mod channel;

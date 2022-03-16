@@ -1,8 +1,4 @@
-#![doc = include_str!("../README.md")]
-#![deprecated(
-    since = "0.8.1",
-    note = "use interactions via `twilight-http` or `twilight-gateway`"
-)]
+#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -15,7 +11,11 @@
     unused,
     warnings
 )]
-#![allow(clippy::module_name_repetitions, clippy::must_use_candidate)]
+#![deprecated(
+    since = "0.8.1",
+    note = "use interactions via `twilight-http` or `twilight-gateway`"
+)]
+#![doc = include_str!("../README.md")]
 
 pub mod config;
 

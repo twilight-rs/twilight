@@ -1,4 +1,10 @@
-#![doc = include_str!("../README.md")]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::semicolon_if_nothing_returned,
+    clippy::unnecessary_wraps
+)]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -11,13 +17,7 @@
     unused,
     warnings
 )]
-#![allow(
-    clippy::missing_errors_doc,
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned,
-    clippy::unnecessary_wraps
-)]
+#![doc = include_str!("../README.md")]
 
 pub mod api_error;
 pub mod client;
