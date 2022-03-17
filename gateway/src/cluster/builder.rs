@@ -73,8 +73,6 @@ impl ClusterBuilder {
             source: Some(Box::new(err)),
         })?;
 
-        let mut shard_scheme = None;
-
         if self.shard.gateway_url.is_none() || self.shard_scheme.is_none() {
             let gateway = Self::retrieve_connect_info(&self.shard.http_client).await?;
 
@@ -83,16 +81,12 @@ impl ClusterBuilder {
             }
 
             if self.shard_scheme.is_none() {
-                shard_scheme = Some(ShardScheme::Range {
+                self.shard_scheme = Some(ShardScheme::Range {
                     from: 0,
                     to: gateway.shards - 1,
                     total: gateway.shards,
                 });
             }
-        }
-
-        if let Some(scheme) = self.shard_scheme {
-            shard_scheme = Some(scheme);
         }
 
         let mut shard_config = self.shard.into_config();
@@ -103,7 +97,7 @@ impl ClusterBuilder {
             queue: self.queue,
             resume_sessions: self.resume_sessions,
             shard_presence: self.shard_presence,
-            shard_scheme: shard_scheme.expect("always set"),
+            shard_scheme: self.shard_scheme.expect("always set"),
         };
 
         Cluster::new_with_config(config, shard_config).await
