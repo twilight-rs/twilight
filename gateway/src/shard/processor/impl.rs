@@ -1,9 +1,3 @@
-#[cfg(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
-use super::super::tls::TlsContainer;
 use super::{
     super::{
         emitter::{EmitJsonErrorType, Emitter},
@@ -48,6 +42,13 @@ use twilight_model::gateway::{
     Intents, OpCode,
 };
 use url::Url;
+
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use crate::shard::tls::TlsContainer;
 
 /// Connecting to the gateway failed.
 #[derive(Debug)]

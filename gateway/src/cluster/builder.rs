@@ -4,12 +4,6 @@ use super::{
     r#impl::{Cluster, ClusterStartError},
     scheme::ShardScheme,
 };
-#[cfg(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
-use crate::shard::tls::TlsContainer;
 use crate::{
     shard::{LargeThresholdError, ResumeSession, ShardBuilder},
     EventTypeFlags,
@@ -21,6 +15,13 @@ use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use crate::shard::tls::TlsContainer;
 
 /// Builder to configure and construct a [`Cluster`].
 ///

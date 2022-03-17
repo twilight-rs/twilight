@@ -1,9 +1,3 @@
-#[cfg(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
-use super::tls::TlsContainer;
 use crate::EventTypeFlags;
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
@@ -12,6 +6,13 @@ use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use super::tls::TlsContainer;
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
