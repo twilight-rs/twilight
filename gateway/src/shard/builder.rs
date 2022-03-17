@@ -164,7 +164,7 @@ pub enum ShardIdErrorType {
 pub struct ShardBuilder {
     event_types: EventTypeFlags,
     pub(crate) gateway_url: Option<Box<str>>,
-    pub(crate) http_client: Arc<Client>,
+    pub(crate) http_client: Client,
     identify_properties: Option<IdentifyProperties>,
     intents: Intents,
     large_threshold: u64,
@@ -187,7 +187,7 @@ impl ShardBuilder {
         Self {
             event_types: EventTypeFlags::default(),
             gateway_url: None,
-            http_client: Arc::new(Client::new(token.clone())),
+            http_client: Client::new(token.clone()),
             identify_properties: None,
             intents,
             large_threshold: 50,
@@ -206,7 +206,6 @@ impl ShardBuilder {
         let Self {
             event_types,
             gateway_url,
-            http_client,
             identify_properties,
             intents,
             large_threshold,
@@ -215,12 +214,12 @@ impl ShardBuilder {
             shard,
             token,
             ratelimit_payloads,
+            ..
         } = self;
 
         Config {
             event_types,
             gateway_url: gateway_url.expect("always set"),
-            http_client,
             identify_properties,
             intents,
             large_threshold,
@@ -300,7 +299,7 @@ impl ShardBuilder {
     /// Default is a new, unconfigured instance of an HTTP client.
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
-    pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
+    pub fn http_client(mut self, http_client: Client) -> Self {
         self.http_client = http_client;
 
         self
