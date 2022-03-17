@@ -1,4 +1,4 @@
-use super::{builder::ClusterBuilder, config::Config, event::Events};
+use super::{ClusterBuilder, Config, Events};
 use crate::{
     cluster::event::ShardEventsWithId,
     shard::{
