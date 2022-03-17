@@ -32,7 +32,7 @@ use twilight_model::gateway::{
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
 /// let cluster = Cluster::builder(token, Intents::GUILD_MESSAGES)
-///     .large_threshold(100)?
+///     .large_threshold(100)
 ///     .build()
 ///     .await?;
 /// # Ok(()) }
