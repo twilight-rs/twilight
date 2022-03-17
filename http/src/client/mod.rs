@@ -1639,15 +1639,14 @@ impl Client {
     /// # Examples
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
     /// use twilight_model::id::Id;
     ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("my token".to_owned());
+    /// let client = Client::new("my token".to_owned());
     /// let guild_id = Id::new(234);
     ///
-    /// let threads: ThreadListing = http.active_threads(guild_id)
+    /// let threads = client.active_threads(guild_id)
     ///     .exec()
     ///     .await?
     ///     .model()
