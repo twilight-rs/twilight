@@ -76,8 +76,10 @@ impl ClusterBuilder {
             feature = "rustls-webpki-roots"
         ))]
         {
+            use super::ClusterStartErrorType;
+
             let tls = TlsContainer::new().map_err(|err| ClusterStartError {
-                kind: super::ClusterStartErrorType::Tls,
+                kind: ClusterStartErrorType::Tls,
                 source: Some(Box::new(err)),
             })?;
 
