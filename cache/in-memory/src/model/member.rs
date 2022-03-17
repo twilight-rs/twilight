@@ -10,6 +10,14 @@ use twilight_model::{
     util::image_hash::ImageHash,
 };
 
+/// Computed fields required to complete a full cached member via
+/// [`CachedMember::from_interaction_member`] that are not otherwise present.
+pub(crate) struct ComputedInteractionMemberFields {
+    pub avatar: Option<ImageHash>,
+    pub deaf: Option<bool>,
+    pub mute: Option<bool>,
+}
+
 /// Represents a cached [`Member`].
 ///
 /// [`Member`]: twilight_model::guild::Member
@@ -90,6 +98,106 @@ impl CachedMember {
     /// ID of the user relating to the member.
     pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
+    }
+
+    /// Construct a cached member from its [`twilight_model`] form.
+    #[allow(clippy::missing_const_for_fn)]
+    pub(crate) fn from_model(member: Member) -> Self {
+        let Member {
+            avatar,
+            communication_disabled_until,
+            deaf,
+            guild_id,
+            joined_at,
+            mute,
+            nick,
+            pending,
+            premium_since,
+            roles,
+            user,
+        } = member;
+
+        Self {
+            avatar,
+            communication_disabled_until,
+            deaf: Some(deaf),
+            guild_id,
+            joined_at,
+            mute: Some(mute),
+            nick,
+            pending,
+            premium_since,
+            roles,
+            user_id: user.id,
+        }
+    }
+
+    // clippy: the member field's destructor needs to drop
+    #[allow(clippy::missing_const_for_fn)]
+    pub(crate) fn from_interaction_member(
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+        member: InteractionMember,
+        fields: ComputedInteractionMemberFields,
+    ) -> Self {
+        let InteractionMember {
+            avatar: _,
+            communication_disabled_until,
+            joined_at,
+            nick,
+            pending,
+            permissions: _,
+            premium_since,
+            roles,
+        } = member;
+        let ComputedInteractionMemberFields { avatar, deaf, mute } = fields;
+
+        Self {
+            avatar,
+            communication_disabled_until,
+            deaf,
+            guild_id,
+            joined_at,
+            mute,
+            nick,
+            pending,
+            premium_since,
+            roles,
+            user_id,
+        }
+    }
+
+    pub(crate) fn from_partial_member(
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+        member: PartialMember,
+    ) -> Self {
+        let PartialMember {
+            avatar,
+            communication_disabled_until,
+            deaf,
+            joined_at,
+            mute,
+            nick,
+            permissions: _,
+            premium_since,
+            roles,
+            user,
+        } = member;
+
+        Self {
+            avatar,
+            communication_disabled_until,
+            deaf: Some(deaf),
+            guild_id,
+            joined_at,
+            mute: Some(mute),
+            nick,
+            pending: false,
+            premium_since,
+            roles,
+            user_id: user.map(|user| user.id).unwrap_or(user_id),
+        }
     }
 }
 

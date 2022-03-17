@@ -32,13 +32,7 @@ impl UpdateCache for PresenceUpdate {
             return;
         }
 
-        let presence = CachedPresence {
-            activities: self.activities.clone(),
-            client_status: self.client_status.clone(),
-            guild_id: self.guild_id,
-            status: self.status,
-            user_id: self.user.id(),
-        };
+        let presence = CachedPresence::from_model(self.0.clone());
 
         cache.cache_presence(self.guild_id, presence);
     }
@@ -50,7 +44,7 @@ mod tests {
     use crate::test;
     use twilight_model::gateway::{
         event::Event,
-        presence::{ClientStatus, Status, UserOrId},
+        presence::{ClientStatus, Presence, Status, UserOrId},
     };
 
     #[test]
@@ -60,18 +54,18 @@ mod tests {
         let guild_id = Id::new(1);
         let user_id = Id::new(1);
 
-        cache.update(&Event::PresenceUpdate(Box::new(PresenceUpdate {
+        let payload = PresenceUpdate(Presence {
             activities: Vec::new(),
             client_status: ClientStatus {
                 desktop: Some(Status::Online),
                 mobile: None,
                 web: None,
             },
-            game: None,
             guild_id,
             status: Status::Online,
             user: UserOrId::User(test::user(user_id)),
-        })));
+        });
+        cache.update(&Event::PresenceUpdate(Box::new(payload)));
 
         assert_eq!(1, cache.presences.len());
         assert_eq!(1, cache.guild_presences.len());

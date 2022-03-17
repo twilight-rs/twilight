@@ -89,26 +89,20 @@ pub struct Channel {
     pub icon: Option<ImageHash>,
     /// ID of the channel.
     pub id: Id<ChannelMarker>,
+    /// Whether users can be invited.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invitable: Option<bool>,
     /// Type of the channel.
     ///
     /// This can be used to determine what fields *might* be available.
     #[serde(rename = "type")]
     pub kind: ChannelType,
-    /// Name of the channel.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    /// Whether users can be invited.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invitable: Option<bool>,
     /// ID of the last message sent in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<Id<MessageMarker>>,
     /// ID of the last message pinned in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
-    /// Whether the channel has been configured to be NSFW.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub nsfw: Option<bool>,
     /// Member that created the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<ThreadMember>,
@@ -124,6 +118,15 @@ pub struct Channel {
     /// higher.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_count: Option<u8>,
+    /// Name of the channel.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// Whether a thread was newly created.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub newly_created: Option<bool>,
+    /// Whether the channel has been configured to be NSFW.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nsfw: Option<bool>,
     /// ID of the creator of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner_id: Option<Id<UserMarker>>,
@@ -151,12 +154,12 @@ pub struct Channel {
     /// Defaults to automatic for applicable channels.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rtc_region: Option<String>,
-    /// Topic of the channel.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub topic: Option<String>,
     /// Metadata about a thread.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_metadata: Option<ThreadMetadata>,
+    /// Topic of the channel.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub topic: Option<String>,
     /// Number of users that may be in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u64>,
@@ -215,15 +218,16 @@ mod tests {
             guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(2),
-            kind: ChannelType::GuildText,
-            name: Some("hey".to_owned()),
             invitable: None,
+            kind: ChannelType::GuildText,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
-            nsfw: Some(false),
             member: None,
             member_count: None,
             message_count: None,
+            name: Some("hey".to_owned()),
+            newly_created: None,
+            nsfw: Some(false),
             owner_id: None,
             parent_id: None,
             permission_overwrites: Some(Vec::new()),
@@ -231,8 +235,8 @@ mod tests {
             rate_limit_per_user: Some(0),
             recipients: None,
             rtc_region: None,
-            topic: Some("a".to_owned()),
             thread_metadata: None,
+            topic: Some("a".to_owned()),
             user_limit: None,
             video_quality_mode: None,
         };
@@ -249,15 +253,16 @@ mod tests {
             guild_id: Some(Id::new(2)),
             icon: None,
             id: Id::new(1),
-            kind: ChannelType::GuildCategory,
-            name: Some("foo".to_owned()),
             invitable: None,
+            kind: ChannelType::GuildCategory,
             last_message_id: None,
             last_pin_timestamp: None,
-            nsfw: None,
             member: None,
             member_count: None,
             message_count: None,
+            name: Some("foo".to_owned()),
+            newly_created: None,
+            nsfw: None,
             owner_id: None,
             parent_id: None,
             permission_overwrites: Some(Vec::new()),
@@ -265,8 +270,8 @@ mod tests {
             rate_limit_per_user: None,
             recipients: None,
             rtc_region: None,
-            topic: None,
             thread_metadata: None,
+            topic: None,
             user_limit: None,
             video_quality_mode: None,
         };
@@ -295,15 +300,16 @@ mod tests {
             guild_id: Some(Id::new(2)),
             icon: None,
             id: Id::new(1),
-            kind: ChannelType::GuildNews,
-            name: Some("news".to_owned()),
             invitable: None,
+            kind: ChannelType::GuildNews,
             last_message_id: Some(Id::new(4)),
             last_pin_timestamp: None,
-            nsfw: Some(true),
             member: None,
             member_count: None,
             message_count: None,
+            name: Some("news".to_owned()),
+            newly_created: None,
+            nsfw: Some(true),
             owner_id: None,
             parent_id: Some(Id::new(5)),
             permission_overwrites: Some(Vec::new()),
@@ -311,8 +317,8 @@ mod tests {
             rate_limit_per_user: None,
             recipients: None,
             rtc_region: None,
-            topic: Some("a news channel".to_owned()),
             thread_metadata: None,
+            topic: Some("a news channel".to_owned()),
             user_limit: None,
             video_quality_mode: None,
         };
@@ -345,15 +351,16 @@ mod tests {
             guild_id: Some(Id::new(2)),
             icon: None,
             id: Id::new(1),
-            kind: ChannelType::GuildStore,
-            name: Some("store".to_owned()),
             invitable: None,
+            kind: ChannelType::GuildStore,
             last_message_id: None,
             last_pin_timestamp: None,
-            nsfw: Some(false),
             member: None,
             member_count: None,
             message_count: None,
+            name: Some("store".to_owned()),
+            newly_created: None,
+            nsfw: Some(false),
             owner_id: None,
             parent_id: None,
             permission_overwrites: Some(Vec::new()),
@@ -361,8 +368,8 @@ mod tests {
             rate_limit_per_user: None,
             recipients: None,
             rtc_region: None,
-            topic: Some("a store channel".to_owned()),
             thread_metadata: None,
+            topic: Some("a store channel".to_owned()),
             user_limit: None,
             video_quality_mode: None,
         };
@@ -396,12 +403,10 @@ mod tests {
             guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(6),
-            kind: ChannelType::GuildNewsThread,
-            name: Some("newsthread".into()),
             invitable: None,
+            kind: ChannelType::GuildNewsThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
-            nsfw: None,
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(Id::new(4)),
@@ -412,6 +417,9 @@ mod tests {
             }),
             member_count: Some(50_u8),
             message_count: Some(50_u8),
+            name: Some("newsthread".into()),
+            newly_created: Some(true),
+            nsfw: None,
             owner_id: Some(Id::new(5)),
             parent_id: Some(Id::new(2)),
             permission_overwrites: None,
@@ -419,7 +427,6 @@ mod tests {
             rate_limit_per_user: Some(1000_u64),
             recipients: None,
             rtc_region: None,
-            topic: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
@@ -428,6 +435,7 @@ mod tests {
                 invitable: None,
                 locked: false,
             }),
+            topic: None,
             user_limit: None,
             video_quality_mode: None,
         };
@@ -449,6 +457,7 @@ mod tests {
                 "member_count": 50,
                 "message_count": 50,
                 "name": "newsthread",
+                "newly_created": true,
                 "owner_id": "5",
                 "parent_id": "2",
                 "rate_limit_per_user": 1000,
@@ -475,12 +484,10 @@ mod tests {
             guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(6),
-            kind: ChannelType::GuildPublicThread,
-            name: Some("publicthread".into()),
             invitable: None,
+            kind: ChannelType::GuildPublicThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
-            nsfw: None,
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(Id::new(4)),
@@ -491,6 +498,9 @@ mod tests {
             }),
             member_count: Some(50_u8),
             message_count: Some(50_u8),
+            name: Some("publicthread".into()),
+            newly_created: Some(true),
+            nsfw: None,
             owner_id: Some(Id::new(5)),
             parent_id: Some(Id::new(2)),
             permission_overwrites: None,
@@ -498,7 +508,6 @@ mod tests {
             rate_limit_per_user: Some(1000_u64),
             recipients: None,
             rtc_region: None,
-            topic: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
@@ -507,6 +516,7 @@ mod tests {
                 invitable: None,
                 locked: false,
             }),
+            topic: None,
             user_limit: None,
             video_quality_mode: None,
         };
@@ -528,6 +538,7 @@ mod tests {
                 "member_count": 50,
                 "message_count": 50,
                 "name": "publicthread",
+                "newly_created": true,
                 "owner_id": "5",
                 "parent_id": "2",
                 "rate_limit_per_user": 1000,
@@ -555,12 +566,10 @@ mod tests {
             guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(6),
-            kind: ChannelType::GuildPrivateThread,
-            name: Some("privatethread".into()),
             invitable: Some(true),
+            kind: ChannelType::GuildPrivateThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
-            nsfw: None,
             member: Some(ThreadMember {
                 flags: 0_u64,
                 id: Some(Id::new(4)),
@@ -571,6 +580,9 @@ mod tests {
             }),
             member_count: Some(50_u8),
             message_count: Some(50_u8),
+            name: Some("privatethread".into()),
+            newly_created: Some(true),
+            nsfw: None,
             owner_id: Some(Id::new(5)),
             parent_id: Some(Id::new(2)),
             permission_overwrites: Some(Vec::from([PermissionOverwrite {
@@ -583,7 +595,6 @@ mod tests {
             rate_limit_per_user: Some(1000_u64),
             recipients: None,
             rtc_region: None,
-            topic: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
                 auto_archive_duration: AutoArchiveDuration::Day,
@@ -592,6 +603,7 @@ mod tests {
                 invitable: None,
                 locked: false,
             }),
+            topic: None,
             user_limit: None,
             video_quality_mode: None,
         };
@@ -614,6 +626,7 @@ mod tests {
                 "member_count": 50,
                 "message_count": 50,
                 "name": "privatethread",
+                "newly_created": true,
                 "owner_id": "5",
                 "parent_id": "2",
                 "rate_limit_per_user": 1000,

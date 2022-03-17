@@ -94,6 +94,37 @@ impl CachedSticker {
     pub const fn user_id(&self) -> Option<Id<UserMarker>> {
         self.user_id
     }
+
+    /// Construct a cached sticker from its [`twilight_model`] form.
+    pub(crate) fn from_model(sticker: Sticker) -> Self {
+        let Sticker {
+            available,
+            description,
+            format_type,
+            guild_id,
+            id,
+            kind,
+            name,
+            pack_id,
+            sort_value,
+            tags,
+            user,
+        } = sticker;
+
+        Self {
+            available,
+            description: description.unwrap_or_default(),
+            format_type,
+            guild_id,
+            id,
+            kind,
+            name,
+            pack_id,
+            sort_value,
+            tags,
+            user_id: user.map(|user| user.id),
+        }
+    }
 }
 
 impl PartialEq<Sticker> for CachedSticker {
@@ -115,6 +146,7 @@ impl PartialEq<Sticker> for CachedSticker {
 #[cfg(test)]
 mod tests {
     use super::CachedSticker;
+    use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
     use twilight_model::{
@@ -140,7 +172,16 @@ mod tests {
         tags,
         user_id
     );
-    assert_impl_all!(CachedSticker: Clone, Debug, Eq, PartialEq);
+    assert_impl_all!(
+        CachedSticker: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        PartialEq<Sticker>,
+        Send,
+        Serialize,
+        Sync
+    );
 
     #[test]
     fn test_eq_sticker() -> Result<(), ImageHashParseError> {

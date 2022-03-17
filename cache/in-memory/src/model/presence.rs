@@ -44,6 +44,26 @@ impl CachedPresence {
     pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
     }
+
+    /// Construct a cached presence from its [`twilight_model`] form.
+    #[allow(clippy::missing_const_for_fn)]
+    pub(crate) fn from_model(presence: Presence) -> Self {
+        let Presence {
+            activities,
+            client_status,
+            guild_id,
+            status,
+            user,
+        } = presence;
+
+        Self {
+            activities,
+            client_status,
+            guild_id,
+            status,
+            user_id: user.id(),
+        }
+    }
 }
 
 impl PartialEq<Presence> for CachedPresence {
@@ -58,12 +78,34 @@ impl PartialEq<Presence> for CachedPresence {
 
 impl From<Presence> for CachedPresence {
     fn from(presence: Presence) -> Self {
-        Self {
-            activities: presence.activities,
-            client_status: presence.client_status,
-            guild_id: presence.guild_id,
-            status: presence.status,
-            user_id: presence.user.id(),
-        }
+        Self::from_model(presence)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CachedPresence;
+    use serde::Serialize;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
+    use twilight_model::gateway::presence::Presence;
+
+    assert_fields!(
+        CachedPresence: activities,
+        client_status,
+        guild_id,
+        status,
+        user_id
+    );
+    assert_impl_all!(
+        CachedPresence: Clone,
+        Debug,
+        Eq,
+        From<Presence>,
+        PartialEq,
+        PartialEq<Presence>,
+        Send,
+        Serialize,
+        Sync,
+    );
 }

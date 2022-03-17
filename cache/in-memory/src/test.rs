@@ -1,5 +1,9 @@
 use crate::InMemoryCache;
 use twilight_model::{
+    channel::message::sticker::{Sticker, StickerFormatType, StickerType},
+    id::marker::StickerMarker,
+};
+use twilight_model::{
     channel::{
         message::{Message, MessageFlags, MessageType},
         Channel, ChannelType, Reaction, ReactionType,
@@ -19,6 +23,10 @@ use twilight_model::{
     util::image_hash::ImageHash,
     voice::VoiceState,
 };
+
+pub fn cache() -> InMemoryCache {
+    InMemoryCache::new()
+}
 
 pub fn cache_with_message_and_reactions() -> InMemoryCache {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
@@ -214,15 +222,16 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         guild_id: Some(guild_id),
         icon: None,
         id: channel_id,
-        kind: ChannelType::GuildText,
-        name: Some("test".to_owned()),
         invitable: None,
+        kind: ChannelType::GuildText,
         last_message_id: None,
         last_pin_timestamp: None,
-        nsfw: Some(false),
         member: None,
         member_count: None,
         message_count: None,
+        name: Some("test".to_owned()),
+        newly_created: None,
+        nsfw: Some(false),
         owner_id: None,
         parent_id: None,
         permission_overwrites: Some(Vec::new()),
@@ -230,8 +239,8 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         rate_limit_per_user: None,
         recipients: None,
         rtc_region: None,
-        topic: None,
         thread_metadata: None,
+        topic: None,
         user_limit: None,
         video_quality_mode: None,
     };
@@ -270,6 +279,22 @@ pub fn role(id: Id<RoleMarker>) -> Role {
         position: 0,
         tags: None,
         unicode_emoji: None,
+    }
+}
+
+pub const fn sticker(id: Id<StickerMarker>, guild_id: Id<GuildMarker>) -> Sticker {
+    Sticker {
+        available: false,
+        description: None,
+        format_type: StickerFormatType::Png,
+        guild_id: Some(guild_id),
+        id,
+        kind: StickerType::Standard,
+        name: String::new(),
+        pack_id: None,
+        sort_value: None,
+        tags: String::new(),
+        user: None,
     }
 }
 
