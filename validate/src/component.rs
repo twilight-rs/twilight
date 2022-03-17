@@ -2,10 +2,10 @@
 
 use std::{
     error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 use twilight_model::application::component::{
-    select_menu::SelectMenuOption, Component, ComponentType,
+    button::ButtonStyle, select_menu::SelectMenuOption, Component, ComponentType,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -197,6 +197,22 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&ACTION_ROW_COMPONENT_COUNT, f)
             }
+            ComponentValidationErrorType::ButtonConflict => {
+                f.write_str("button has both a custom id and url, which is never valid")
+            }
+            ComponentValidationErrorType::ButtonStyle { style } => {
+                f.write_str("button has a type of ")?;
+                Debug::fmt(style, f)?;
+                f.write_str(", which must have a ")?;
+
+                f.write_str(if *style == ButtonStyle::Link {
+                    "url"
+                } else {
+                    "custom id"
+                })?;
+
+                f.write_str(" configured")
+            }
             ComponentValidationErrorType::ComponentCount { count } => {
                 Display::fmt(count, f)?;
                 f.write_str(" components were provided, but the max is ")?;
@@ -328,6 +344,16 @@ pub enum ComponentValidationErrorType {
         /// Number of components within the action row.
         count: usize,
     },
+    /// Button has both a custom ID and URL set.
+    ButtonConflict,
+    /// Button does not have the required field based on its style.
+    ///
+    /// A button with a style of [`ButtonStyle::Link`] must have a URL set,
+    /// while buttons of other styles must have a custom ID set.
+    ButtonStyle {
+        /// Style of the button.
+        style: ButtonStyle,
+    },
     /// Number of components provided is larger than
     /// [the maximum][`COMPONENT_COUNT`].
     ComponentCount {
@@ -437,6 +463,13 @@ pub enum ComponentValidationErrorType {
 /// Returns an error of type [`ActionRowComponentCount`] if the provided list of
 /// components is too many for an [`ActionRow`].
 ///
+/// Returns an error of type [`ButtonConflict`] if both a custom ID and URL are
+/// specified.
+///
+/// Returns an error of type [`ButtonStyle`] if [`ButtonStyle::Link`] is
+/// provided and a URL is provided, or if the style is not [`ButtonStyle::Link`]
+/// and a custom ID is not provided.
+///
 /// Returns an error of type [`InvalidChildComponent`] if the provided nested
 /// component is an [`ActionRow`]. Action rows can not contain another action
 /// row.
@@ -465,6 +498,8 @@ pub enum ComponentValidationErrorType {
 ///
 /// [`ActionRowComponentCount`]: ComponentValidationErrorType::ActionRowComponentCount
 /// [`ActionRow`]: twilight_model::application::component::ActionRow
+/// [`ButtonConflict`]: ComponentValidationErrorType::ButtonConflict
+/// [`ButtonStyle`]: ComponentValidationErrorType::ButtonStyle
 /// [`InvalidChildComponent`]: ComponentValidationErrorType::InvalidChildComponent
 /// [`InvalidRootComponent`]: ComponentValidationErrorType::InvalidRootComponent
 /// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
@@ -509,6 +544,31 @@ fn component_inner(component: &Component) -> Result<(), ComponentValidationError
             })
         }
         Component::Button(button) => {
+            let has_custom_id = button.custom_id.is_some();
+            let has_url = button.url.is_some();
+
+            // First check if a custom ID and URL are both set. If so this
+            // results in a conflict, as no valid button may have both set.
+            if has_custom_id && has_url {
+                return Err(ComponentValidationError {
+                    kind: ComponentValidationErrorType::ButtonConflict,
+                });
+            }
+
+            // Next, we check if the button is a link and a URL is not set.
+            //
+            // Lastly, we check if the button is not a link and a custom ID is
+            // not set.
+            let is_link = button.style == ButtonStyle::Link;
+
+            if (is_link && !has_url) || (!is_link && !has_custom_id) {
+                return Err(ComponentValidationError {
+                    kind: ComponentValidationErrorType::ButtonStyle {
+                        style: button.style,
+                    },
+                });
+            }
+
             if let Some(custom_id) = button.custom_id.as_ref() {
                 self::component_custom_id(custom_id)?;
             }
@@ -911,16 +971,40 @@ mod tests {
     assert_impl_all!(ComponentValidationErrorType: Debug, Send, Sync);
     assert_impl_all!(ComponentValidationError: Debug, Send, Sync);
 
+    // All styles of buttons.
+    const fn all_button_styles() -> &'static [ButtonStyle] {
+        const BUTTON_STYLES: &[ButtonStyle] = &[
+            ButtonStyle::Primary,
+            ButtonStyle::Secondary,
+            ButtonStyle::Success,
+            ButtonStyle::Danger,
+            ButtonStyle::Link,
+        ];
+
+        // No-op match to ensure we've registered all styles.
+        //
+        // If a new variant has been added please add it to the above constant.
+        match ButtonStyle::Primary {
+            ButtonStyle::Primary
+            | ButtonStyle::Secondary
+            | ButtonStyle::Success
+            | ButtonStyle::Danger
+            | ButtonStyle::Link => {}
+        }
+
+        BUTTON_STYLES
+    }
+
     #[test]
     fn test_component() {
         let button = Button {
-            custom_id: Some("custom id 1".into()),
+            custom_id: None,
             disabled: false,
             emoji: Some(ReactionType::Unicode {
                 name: "📚".into()
             }),
             label: Some("Read".into()),
-            style: ButtonStyle::Danger,
+            style: ButtonStyle::Link,
             url: Some("https://abebooks.com".into()),
         };
 
@@ -964,6 +1048,55 @@ mod tests {
         });
 
         assert!(component(&invalid_action_row).is_err());
+    }
+
+    // Test that a button with both a custom ID and URL results in a
+    // [`ComponentValidationErrorType::ButtonConflict`] error type.
+    #[test]
+    fn test_button_conflict() {
+        let button = Button {
+            custom_id: Some("a".to_owned()),
+            disabled: false,
+            emoji: None,
+            label: None,
+            style: ButtonStyle::Primary,
+            url: Some("https://twilight.rs".to_owned()),
+        };
+        let component = Component::Button(button);
+
+        assert!(matches!(
+            super::component_inner(&component),
+            Err(ComponentValidationError {
+                kind: ComponentValidationErrorType::ButtonConflict,
+            }),
+        ));
+    }
+
+    // Test that all button styles with no custom ID or URL results in a
+    // [`ComponentValidationErrorType::ButtonStyle`] error type.
+    #[test]
+    fn test_button_style() {
+        for style in all_button_styles().iter() {
+            let button = Button {
+                custom_id: None,
+                disabled: false,
+                emoji: None,
+                label: Some("some label".to_owned()),
+                style: *style,
+                url: None,
+            };
+            let component = Component::Button(button);
+
+            assert!(matches!(
+                super::component_inner(&component),
+                Err(ComponentValidationError {
+                    kind: ComponentValidationErrorType::ButtonStyle {
+                        style: error_style,
+                    }
+                })
+                if error_style == *style
+            ));
+        }
     }
 
     #[test]
