@@ -1,9 +1,10 @@
 //! Models built for utilizing efficient caching.
 
+pub mod message;
+
 mod emoji;
 mod guild;
-mod member;
-mod message;
+pub(crate) mod member;
 mod presence;
 mod sticker;
 mod voice_state;

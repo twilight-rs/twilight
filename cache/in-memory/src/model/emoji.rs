@@ -64,6 +64,31 @@ impl CachedEmoji {
     pub const fn user_id(&self) -> Option<Id<UserMarker>> {
         self.user_id
     }
+
+    /// Construct a cached emoji from its [`twilight_model`] form.
+    pub(crate) fn from_model(emoji: Emoji) -> Self {
+        let Emoji {
+            animated,
+            available,
+            id,
+            managed,
+            name,
+            require_colons,
+            roles,
+            user,
+        } = emoji;
+
+        CachedEmoji {
+            animated,
+            available,
+            id,
+            managed,
+            name,
+            require_colons,
+            roles,
+            user_id: user.map(|user| user.id),
+        }
+    }
 }
 
 impl PartialEq<Emoji> for CachedEmoji {
@@ -82,6 +107,7 @@ impl PartialEq<Emoji> for CachedEmoji {
 #[cfg(test)]
 mod tests {
     use super::CachedEmoji;
+    use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
     use twilight_model::{guild::Emoji, id::Id};
@@ -95,7 +121,16 @@ mod tests {
         roles,
         user_id
     );
-    assert_impl_all!(CachedEmoji: Clone, Debug, Eq, PartialEq);
+    assert_impl_all!(
+        CachedEmoji: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        PartialEq<Emoji>,
+        Send,
+        Serialize,
+        Sync
+    );
 
     #[test]
     fn test_eq_emoji() {

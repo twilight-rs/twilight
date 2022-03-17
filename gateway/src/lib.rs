@@ -154,6 +154,9 @@
     clippy::used_underscore_binding
 )]
 
+#[cfg(feature = "simd-json")]
+extern crate dep_simd_json as simd_json;
+
 pub mod cluster;
 pub mod shard;
 
