@@ -33,7 +33,7 @@ use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::{Intents, Shard};
 
 let token = env::var("DISCORD_TOKEN")?;
-let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
+let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES).await?;
 shard.start().await?;
 
 // Create a cache, caching up to 10 messages per channel:

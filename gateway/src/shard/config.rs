@@ -15,9 +15,9 @@ use twilight_model::gateway::{
 /// [`Shard::builder`]: super::Shard::builder
 #[derive(Clone, Debug)]
 pub struct Config {
-    pub(crate) event_types: EventTypeFlags,
-    pub(super) gateway_url: Option<Box<str>>,
-    pub(crate) http_client: Arc<Client>,
+    pub(super) event_types: EventTypeFlags,
+    pub(super) gateway_url: Box<str>,
+    pub(super) http_client: Arc<Client>,
     pub(super) identify_properties: Option<IdentifyProperties>,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
@@ -38,8 +38,8 @@ impl Config {
     }
 
     /// Return an immutable reference to the url used to connect to the gateway.
-    pub fn gateway_url(&self) -> Option<&str> {
-        self.gateway_url.as_deref()
+    pub const fn gateway_url(&self) -> &str {
+        &self.gateway_url
     }
 
     /// Return an immutable reference to the `twilight_http` client to be used

@@ -5,16 +5,16 @@ use twilight_gateway::{
     Event, Intents,
 };
 
-fn shard() -> Result<(Shard, Events), Box<dyn Error>> {
+async fn shard() -> Result<(Shard, Events), Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN")?;
 
-    Ok(Shard::new(token, Intents::empty()))
+    Ok(Shard::new(token, Intents::empty()).await?)
 }
 
 #[ignore]
 #[tokio::test]
 async fn test_shard_event_emits() -> Result<(), Box<dyn Error>> {
-    let (shard, mut events) = shard()?;
+    let (shard, mut events) = shard().await?;
     shard.start().await?;
 
     assert!(matches!(events.next().await.unwrap(), Event::ShardConnecting(c) if c.shard_id == 0));

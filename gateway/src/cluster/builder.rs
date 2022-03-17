@@ -77,7 +77,7 @@ impl ClusterBuilder {
             let gateway = Self::retrieve_connect_info(&self.shard.http_client).await?;
 
             if self.shard.gateway_url.is_none() {
-                self = self.gateway_url(Some(gateway.url));
+                self = self.gateway_url(gateway.url);
             }
 
             if self.shard_scheme.is_none() {
@@ -137,8 +137,10 @@ impl ClusterBuilder {
     }
 
     /// Set the URL that will be used to connect to the gateway.
+    ///
+    /// Default is to fetch it from the HTTP API.
     #[must_use = "has no effect if not built"]
-    pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
+    pub fn gateway_url(mut self, gateway_url: String) -> Self {
         self.shard = self.shard.gateway_url(gateway_url);
 
         self

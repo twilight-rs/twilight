@@ -32,7 +32,7 @@
 //!
 //! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let token = env::var("DISCORD_TOKEN")?;
-//! let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
+//! let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES).await?;
 //! shard.start().await?;
 //!
 //! // Create a cache, caching up to 10 messages per channel:
