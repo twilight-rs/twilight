@@ -8,9 +8,9 @@ use hyper::{
 };
 use once_cell::sync::Lazy;
 use std::future::Future;
-use twilight_model::application::{
-    callback::{CallbackData, InteractionResponse},
-    interaction::Interaction,
+use twilight_model::{
+    application::interaction::Interaction,
+    http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
 
 type GenericError = Box<dyn std::error::Error + Send + Sync>;
@@ -94,7 +94,10 @@ where
     match interaction {
         // Return a Pong if a Ping is received.
         Interaction::Ping(_) => {
-            let response = InteractionResponse::Pong;
+            let response = InteractionResponse {
+                kind: InteractionResponseType::Pong,
+                data: None,
+            };
 
             let json = serde_json::to_vec(&response)?;
 
@@ -138,30 +141,24 @@ async fn handler(i: Interaction) -> Result<InteractionResponse, GenericError> {
 
 /// Example of a handler that returns the formatted version of the interaction.
 async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
-    Ok(InteractionResponse::ChannelMessageWithSource(
-        CallbackData {
-            allowed_mentions: None,
-            components: None,
-            flags: None,
-            tts: None,
+    Ok(InteractionResponse {
+        kind: InteractionResponseType::ChannelMessageWithSource,
+        data: Some(InteractionResponseData {
             content: Some(format!("```rust\n{:?}\n```", i)),
-            embeds: None,
-        },
-    ))
+            ..Default::default()
+        }),
+    })
 }
 
 /// Example of interaction that responds with a message saying "Vroom vroom".
 async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
-    Ok(InteractionResponse::ChannelMessageWithSource(
-        CallbackData {
-            allowed_mentions: None,
-            components: None,
-            flags: None,
-            tts: None,
+    Ok(InteractionResponse {
+        kind: InteractionResponseType::ChannelMessageWithSource,
+        data: Some(InteractionResponseData {
             content: Some("Vroom vroom".to_owned()),
-            embeds: None,
-        },
-    ))
+            ..Default::default()
+        }),
+    })
 }
 
 #[tokio::main]

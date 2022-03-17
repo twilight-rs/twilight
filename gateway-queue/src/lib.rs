@@ -34,6 +34,12 @@
 //!
 //! ## Features
 //!
+//! ### Twilight-HTTP
+//!
+//! The `twilight-http` feature brings in support for [`LargeBotQueue`].
+//!
+//! This is enabled by default.
+//!
 //! ### Tracing
 //!
 //! The `tracing` feature enables logging via the [`tracing`] crate.
@@ -42,14 +48,17 @@
 //!
 //! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(unsafe_code)]
 
+#[cfg(feature = "twilight-http")]
 mod day_limiter;
+#[cfg(feature = "twilight-http")]
 mod large_bot_queue;
 
+#[cfg(feature = "twilight-http")]
 pub use large_bot_queue::LargeBotQueue;
 
-use day_limiter::DayLimiter;
 use std::{
     fmt::Debug,
     future::{self, Future},

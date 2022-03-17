@@ -49,6 +49,9 @@
 //!
 //! ### TLS
 //!
+//! **Note**: not enabling any TLS feature is supported for use behind a proxy;
+//! Discord's API is HTTPS only.
+//!
 //! `twilight-http` has features to enable HTTPS connectivity with [`hyper`]. These
 //! features are mutually exclusive. `rustls-native-roots` is enabled by default.
 //!
@@ -132,7 +135,9 @@
     clippy::semicolon_if_nothing_returned,
     clippy::unnecessary_wraps
 )]
-#![cfg_attr(docsrs, feature(doc_cfg))]
+
+#[cfg(feature = "simd-json")]
+extern crate dep_simd_json as simd_json;
 
 pub mod api_error;
 pub mod client;
@@ -144,15 +149,6 @@ pub mod routing;
 mod json;
 
 /// Discord API version used by this crate.
-pub const API_VERSION: u8 = 9;
+pub const API_VERSION: u8 = 10;
 
 pub use crate::{client::Client, error::Error, response::Response};
-
-#[cfg(not(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-)))]
-compile_error!(
-    "Either the `native`, `rustls-native-roots` or `rustls-webpki-roots` feature must be enabled."
-);

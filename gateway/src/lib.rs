@@ -154,6 +154,9 @@
     clippy::used_underscore_binding
 )]
 
+#[cfg(feature = "simd-json")]
+extern crate dep_simd_json as simd_json;
+
 pub mod cluster;
 pub mod shard;
 
@@ -171,6 +174,9 @@ pub use self::{
 pub use twilight_gateway_queue as queue;
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
+
+/// Discord API version used by this crate.
+pub const API_VERSION: u8 = 10;
 
 #[cfg(not(any(
     feature = "native",

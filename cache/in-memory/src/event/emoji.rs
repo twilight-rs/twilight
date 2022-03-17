@@ -37,25 +37,15 @@ impl InMemoryCache {
             Some(_) | None => {}
         }
 
-        let user_id = emoji.user.as_ref().map(|user| user.id);
-
-        if let Some(user) = emoji.user {
-            self.cache_user(Cow::Owned(user), Some(guild_id));
+        if let Some(user) = emoji.user.as_ref() {
+            self.cache_user(Cow::Borrowed(user), Some(guild_id));
         }
 
-        let cached = CachedEmoji {
-            id: emoji.id,
-            animated: emoji.animated,
-            name: emoji.name,
-            managed: emoji.managed,
-            require_colons: emoji.require_colons,
-            roles: emoji.roles,
-            user_id,
-            available: emoji.available,
-        };
+        let emoji_id = emoji.id;
+        let cached = CachedEmoji::from_model(emoji);
 
         self.emojis.insert(
-            cached.id,
+            emoji_id,
             GuildResource {
                 guild_id,
                 value: cached,
@@ -65,7 +55,7 @@ impl InMemoryCache {
         self.guild_emojis
             .entry(guild_id)
             .or_default()
-            .insert(emoji.id);
+            .insert(emoji_id);
     }
 }
 

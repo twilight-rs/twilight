@@ -13,7 +13,7 @@ publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.57"
-version = "0.9.1"
+version = "0.10.0"
 
 [dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
@@ -31,8 +31,11 @@ twilight-validate = { default-features = false, path = "../validate" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
+dep-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, package = "simd-json", version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
+
+# `value-trait` updated its MSRV in a minor release, so use previous versions.
+value-trait = { default-features = false, optional = true, version = ">=0.2, <0.2.11" }
 
 [features]
 default = ["decompression", "rustls-native-roots", "tracing"]
@@ -40,13 +43,14 @@ decompression = ["brotli"]
 native = ["hyper-tls"]
 rustls-native-roots = ["hyper-rustls/native-tokio"]
 rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
+simd-json = ["dep-simd-json", "value-trait"]
 trust-dns = ["hyper-trust-dns"]
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.3" }
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-embed-builder = { default-features = false, path = "../embed-builder" }
+twilight-util = { default-features = false, features = ["builder"], path = "../util" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 
 [[bench]]

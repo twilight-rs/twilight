@@ -62,13 +62,15 @@ bitflags! {
         /// [`GUILD_BAN_ADD`]: super::event::Event::BanAdd
         /// [`GUILD_BAN_REMOVE`]: super::event::Event::BanRemove
         const GUILD_BANS = 1 << 2;
-        /// Guild emojis intent.
+        /// Guild emojis and stickers intent.
         ///
         /// Event(s) received:
         ///  - [`GUILD_EMOJIS_UPDATE`]
+        ///  - [`GUILD_STICKERS_UPDATE`]
         ///
         /// [`GUILD_EMOJIS_UPDATE`]: super::event::Event::GuildEmojisUpdate
-        const GUILD_EMOJIS = 1 << 3;
+        /// [`GUILD_STICKERS_UPDATE`]: super::event::Event::GuildStickersUpdate
+        const GUILD_EMOJIS_AND_STICKERS = 1 << 3;
         /// Guild integrations intent.
         ///
         /// Event(s) received:
@@ -189,6 +191,14 @@ bitflags! {
         /// [`TYPING_START`]: super::event::Event::TypingStart
         /// [`GUILD_MESSAGE_TYPING`]: Self::GUILD_MESSAGE_TYPING
         const DIRECT_MESSAGE_TYPING = 1 << 14;
+        /// Message content intent.
+        ///
+        /// This intent is privileged. See [Discord Docs/Privileged Intents].
+        ///
+        /// This intent allows you to receive the contents of all messages.
+        ///
+        /// [Discord Docs/Privileged Intents]: https://discord.com/developers/docs/topics/gateway#privileged-intents
+        const MESSAGE_CONTENT = 1 << 15;
     }
 }
 

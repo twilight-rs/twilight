@@ -15,7 +15,7 @@ pub enum AutoArchiveDuration {
 }
 
 impl AutoArchiveDuration {
-    /// Retrieve the length of the duration in seconds, used by the API
+    /// Retrieve the length of the duration in minutes, used by the API
     ///
     /// # Examples
     ///

@@ -1,4 +1,4 @@
-use super::Client;
+use crate::{client::connector, Client};
 use hyper::header::HeaderMap;
 use std::{
     sync::{atomic::AtomicBool, Arc},
@@ -28,37 +28,9 @@ impl ClientBuilder {
 
     /// Build the [`Client`].
     pub fn build(self) -> Client {
-        #[cfg(not(feature = "trust-dns"))]
-        let mut http_connector = hyper::client::HttpConnector::new();
-        #[cfg(feature = "trust-dns")]
-        let mut http_connector = hyper_trust_dns::new_trust_dns_http_connector();
+        let connector = connector::create();
 
-        http_connector.enforce_http(false);
-
-        #[cfg(feature = "rustls-native-roots")]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .wrap_connector(http_connector);
-
-        #[cfg(all(feature = "rustls-webpki-roots", not(feature = "rustls-native-roots")))]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_webpki_roots()
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .wrap_connector(http_connector);
-
-        #[cfg(all(
-            feature = "hyper-tls",
-            not(feature = "rustls-native-roots"),
-            not(feature = "rustls-webpki-roots")
-        ))]
-        let connector = hyper_tls::HttpsConnector::new_with_connector(http_connector);
-
-        let http = hyper::client::Builder::default().build(connector);
+        let http = hyper::Client::builder().build(connector);
 
         let token_invalidated = if self.remember_invalid_token {
             Some(Arc::new(AtomicBool::new(false)))
@@ -81,6 +53,7 @@ impl ClientBuilder {
 
     /// Set the default allowed mentions setting to use on all messages sent through the HTTP
     /// client.
+    #[must_use = "has no effect if not built into a Client"]
     pub fn default_allowed_mentions(mut self, allowed_mentions: AllowedMentions) -> Self {
         self.default_allowed_mentions.replace(allowed_mentions);
 
@@ -107,6 +80,7 @@ impl ClientBuilder {
     /// ```
     ///
     /// [twilight's HTTP proxy server]: https://github.com/twilight-rs/http-proxy
+    #[must_use = "has no effect if not built into a Client"]
     pub fn proxy(mut self, proxy_url: String, use_http: bool) -> Self {
         self.proxy.replace(proxy_url.into_boxed_str());
         self.use_http = use_http;
@@ -122,6 +96,7 @@ impl ClientBuilder {
     /// If this method is not called at all then a default [`InMemoryRatelimiter`] will be
     /// created by [`ClientBuilder::build`].
     #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "has no effect if not built into a Client"]
     pub fn ratelimiter(mut self, ratelimiter: Option<Box<dyn Ratelimiter>>) -> Self {
         self.ratelimiter = ratelimiter;
 
@@ -131,6 +106,7 @@ impl ClientBuilder {
     /// Set the timeout for HTTP requests.
     ///
     /// The default is 10 seconds.
+    #[must_use = "has no effect if not built into a Client"]
     pub const fn timeout(mut self, duration: Duration) -> Self {
         self.timeout = duration;
 
@@ -138,6 +114,7 @@ impl ClientBuilder {
     }
 
     /// Set a group headers which are sent in every request.
+    #[must_use = "has no effect if not built into a Client"]
     pub fn default_headers(mut self, headers: HeaderMap) -> Self {
         self.default_headers.replace(headers);
 
@@ -151,6 +128,7 @@ impl ClientBuilder {
     /// will not process future requests.
     ///
     /// Defaults to true.
+    #[must_use = "has no effect if not built into a Client"]
     pub const fn remember_invalid_token(mut self, remember: bool) -> Self {
         self.remember_invalid_token = remember;
 
@@ -158,6 +136,7 @@ impl ClientBuilder {
     }
 
     /// Set the token to use for HTTP requests.
+    #[must_use = "has no effect if not built into a Client"]
     pub fn token(mut self, mut token: String) -> Self {
         let is_bot = token.starts_with("Bot ");
         let is_bearer = token.starts_with("Bearer ");

@@ -3,7 +3,7 @@ mod privacy_level;
 pub use self::privacy_level::PrivacyLevel;
 
 use crate::id::{
-    marker::{ChannelMarker, GuildMarker, StageMarker},
+    marker::{ChannelMarker, GuildMarker, ScheduledEventMarker, StageMarker},
     Id,
 };
 use serde::{Deserialize, Serialize};
@@ -12,6 +12,10 @@ use serde::{Deserialize, Serialize};
 pub struct StageInstance {
     pub channel_id: Id<ChannelMarker>,
     pub guild_id: Id<GuildMarker>,
+    /// The id of the [`GuildScheduledEvent`].
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    pub guild_scheduled_event_id: Option<Id<ScheduledEventMarker>>,
     pub id: Id<StageMarker>,
     pub privacy_level: PrivacyLevel,
     pub topic: String,
@@ -28,7 +32,8 @@ mod test {
         let value = StageInstance {
             channel_id: Id::new(100),
             guild_id: Id::new(200),
-            id: Id::new(300),
+            guild_scheduled_event_id: Some(Id::new(300)),
+            id: Id::new(400),
             privacy_level: PrivacyLevel::GuildOnly,
             topic: "a topic".into(),
         };
@@ -38,7 +43,7 @@ mod test {
             &[
                 Token::Struct {
                     name: "StageInstance",
-                    len: 5,
+                    len: 6,
                 },
                 Token::Str("channel_id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -46,9 +51,13 @@ mod test {
                 Token::Str("guild_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("200"),
-                Token::Str("id"),
+                Token::Str("guild_scheduled_event_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("400"),
                 Token::Str("privacy_level"),
                 Token::U8(2),
                 Token::Str("topic"),

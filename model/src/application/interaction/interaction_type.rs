@@ -6,9 +6,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 /// See [Discord Docs/Interaction Object].
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-type
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 pub enum InteractionType {
     Ping = 1,
@@ -17,8 +15,10 @@ pub enum InteractionType {
     ///
     /// [`Component`]: super::super::component::Component
     MessageComponent = 3,
-    /// Interaction involves a autocomplete request.
+    /// Interaction involves an autocomplete request.
     ApplicationCommandAutocomplete = 4,
+    /// Interaction involves a modal submit.
+    ModalSubmit = 5,
 }
 
 impl InteractionType {
@@ -28,6 +28,7 @@ impl InteractionType {
             Self::ApplicationCommand => "ApplicationCommand",
             Self::MessageComponent => "MessageComponent",
             Self::ApplicationCommandAutocomplete => "ApplicationCommandAutocomplete",
+            Self::ModalSubmit => "ModalSubmit",
         }
     }
 }
@@ -54,6 +55,7 @@ impl TryFrom<u8> for InteractionType {
             2 => Ok(Self::ApplicationCommand),
             3 => Ok(Self::MessageComponent),
             4 => Ok(Self::ApplicationCommandAutocomplete),
+            5 => Ok(Self::ModalSubmit),
             other => Err(UnknownInteractionTypeError { value: other }),
         }
     }
@@ -73,9 +75,7 @@ mod tests {
         Deserialize<'static>,
         Eq,
         Hash,
-        Ord,
         PartialEq,
-        PartialOrd,
         Serialize,
         Send,
         Sync
@@ -84,6 +84,7 @@ mod tests {
     const_assert_eq!(2, InteractionType::ApplicationCommand as u8);
     const_assert_eq!(3, InteractionType::MessageComponent as u8);
     const_assert_eq!(4, InteractionType::ApplicationCommandAutocomplete as u8);
+    const_assert_eq!(5, InteractionType::ModalSubmit as u8);
 
     #[test]
     fn test_kind() {
@@ -97,6 +98,7 @@ mod tests {
             "ApplicationCommandAutocomplete",
             InteractionType::ApplicationCommandAutocomplete.kind()
         );
+        assert_eq!("ModalSubmit", InteractionType::ModalSubmit.kind());
     }
 
     #[test]
@@ -114,6 +116,7 @@ mod tests {
             InteractionType::ApplicationCommandAutocomplete,
             InteractionType::try_from(4)?,
         );
+        assert_eq!(InteractionType::ModalSubmit, InteractionType::try_from(5)?);
         assert!(InteractionType::try_from(u8::MAX).is_err());
 
         Ok(())

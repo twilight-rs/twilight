@@ -6,9 +6,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 /// See [Discord Docs/Message Components].
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#component-types
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 pub enum ComponentType {
     /// Component is an [`ActionRow`].
@@ -25,6 +23,11 @@ pub enum ComponentType {
     ///
     /// [`SelectMenu`]: super::SelectMenu
     SelectMenu = 3,
+
+    /// Component is an [`TextInput`].
+    ///
+    /// [`TextInput`]: super::TextInput
+    TextInput = 4,
 }
 
 impl ComponentType {
@@ -48,6 +51,7 @@ impl ComponentType {
             Self::ActionRow => "ActionRow",
             Self::Button => "Button",
             Self::SelectMenu => "SelectMenu",
+            Self::TextInput => "TextInput",
         }
     }
 }
@@ -60,7 +64,7 @@ impl Display for ComponentType {
 
 #[cfg(test)]
 mod tests {
-    use super::ComponentType;
+    use super::*;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_impl_all, const_assert_eq};
@@ -73,9 +77,7 @@ mod tests {
         Deserialize<'static>,
         Eq,
         Hash,
-        Ord,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sync

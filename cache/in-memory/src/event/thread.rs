@@ -1,7 +1,6 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
-use twilight_model::{
-    channel::{Channel, GuildChannel},
-    gateway::payload::incoming::{ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate},
+use twilight_model::gateway::payload::incoming::{
+    ThreadCreate, ThreadDelete, ThreadListSync, ThreadUpdate,
 };
 
 impl UpdateCache for ThreadCreate {
@@ -10,11 +9,7 @@ impl UpdateCache for ThreadCreate {
             return;
         }
 
-        if let Channel::Guild(c) = &self.0 {
-            if let Some(gid) = c.guild_id() {
-                cache.cache_guild_channel(gid, c.clone());
-            }
-        }
+        cache.cache_channel(self.0.clone());
     }
 }
 
@@ -24,7 +19,7 @@ impl UpdateCache for ThreadDelete {
             return;
         }
 
-        cache.delete_guild_channel(self.id);
+        cache.delete_channel(self.id);
     }
 }
 
@@ -34,16 +29,7 @@ impl UpdateCache for ThreadListSync {
             return;
         }
 
-        let threads: Vec<GuildChannel> = self
-            .threads
-            .iter()
-            .filter_map(|c| match &c {
-                Channel::Guild(c) => Some(c.clone()),
-                _ => None,
-            })
-            .collect();
-
-        cache.cache_guild_channels(self.guild_id, threads);
+        cache.cache_channels(self.threads.clone());
     }
 }
 
@@ -53,10 +39,6 @@ impl UpdateCache for ThreadUpdate {
             return;
         }
 
-        if let Channel::Guild(c) = &self.0 {
-            if let Some(gid) = c.guild_id() {
-                cache.cache_guild_channel(gid, c.clone());
-            }
-        }
+        cache.cache_channel(self.0.clone());
     }
 }

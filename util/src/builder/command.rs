@@ -36,6 +36,9 @@ use twilight_model::{
     id::{marker::GuildMarker, Id},
 };
 
+#[cfg(feature = "validate")]
+use twilight_validate::command::{command as validate_command, CommandValidationError};
+
 /// Builder to create a [`Command`].
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
@@ -64,6 +67,19 @@ impl CommandBuilder {
     #[must_use = "must be built into a command"]
     pub fn build(self) -> Command {
         self.0
+    }
+
+    /// Ensure the command is valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the errors section of [`twilight_validate::command::command`]
+    /// for possible errors.
+    #[cfg(feature = "validate")]
+    pub fn validate(self) -> Result<Self, CommandValidationError> {
+        validate_command(&self.0)?;
+
+        Ok(self)
     }
 
     /// Set the guild ID of the command.
@@ -95,6 +111,45 @@ impl CommandBuilder {
         self.0.options.push(option);
 
         self
+    }
+}
+
+/// Create an attachment option with a builder.
+#[derive(Clone, Debug)]
+#[must_use = "should be used in a command builder"]
+pub struct AttachmentBuilder(BaseCommandOptionData);
+
+impl AttachmentBuilder {
+    /// Create a new default [`AttachmentBuilder`].
+    #[must_use = "builders have no effect if unused"]
+    pub const fn new(name: String, description: String) -> Self {
+        Self(BaseCommandOptionData {
+            description,
+            name,
+            required: false,
+        })
+    }
+
+    /// Consume the builder, returning the built command option.
+    #[allow(clippy::missing_const_for_fn)]
+    #[must_use = "should be used in a command builder"]
+    pub fn build(self) -> CommandOption {
+        CommandOption::Attachment(self.0)
+    }
+
+    /// Set whether this option is required.
+    ///
+    /// Defaults to false.
+    pub const fn required(mut self, required: bool) -> Self {
+        self.0.required = required;
+
+        self
+    }
+}
+
+impl From<AttachmentBuilder> for CommandOption {
+    fn from(builder: AttachmentBuilder) -> CommandOption {
+        builder.build()
     }
 }
 
@@ -624,6 +679,7 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
+    assert_impl_all!(AttachmentBuilder: Clone, Debug, Send, Sync);
     assert_impl_all!(CommandBuilder: Clone, Debug, Send, Sync);
     assert_impl_all!(BooleanBuilder: Clone, Debug, Send, Sync);
     assert_impl_all!(ChannelBuilder: Clone, Debug, Send, Sync);
@@ -821,5 +877,13 @@ mod tests {
         };
 
         assert_eq!(command, command_manual);
+    }
+
+    #[cfg(feature = "validate")]
+    #[test]
+    fn test_validate() {
+        let result = CommandBuilder::new("".into(), "".into(), CommandType::ChatInput).validate();
+
+        assert!(result.is_err());
     }
 }

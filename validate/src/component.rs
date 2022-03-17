@@ -124,7 +124,31 @@ pub const SELECT_OPTION_VALUE_LENGTH: usize = 100;
 ///
 /// [`SelectMenu::placeholder`]: twilight_model::application::component::select_menu::SelectMenu::placeholder
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
-pub const SELECT_PLACEHOLDER_LENGTH: usize = 100;
+pub const SELECT_PLACEHOLDER_LENGTH: usize = 150;
+
+/// Maximum length of [`TextInput::value`].
+///
+/// This is based on [Discord Docs/Text Inputs].
+///
+/// [`TextInput::value`]: twilight_model::application::component::text_input::TextInput::value
+/// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
+pub const TEXT_INPUT_LENGTH_MAX: usize = 4000;
+
+/// Minimum length of [`TextInput::value`].
+///
+/// This is based on [Discord Docs/Text Inputs].
+///
+/// [`TextInput::value`]: twilight_model::application::component::text_input::TextInput::value
+/// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
+pub const TEXT_INPUT_LENGTH_MIN: usize = 1;
+
+/// Maximum length of a [`TextInput::placeholder`] in codepoints.
+///
+/// This is based on [Discord Docs/Text Inputs].
+///
+/// [`TextInput::placeholder`]: twilight_model::application::component::text_input::TextInput::placeholder
+/// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
+pub const TEXT_INPUT_PLACEHOLDER_MAX: usize = 100;
 
 /// A provided [`Component`] is invalid.
 ///
@@ -163,6 +187,7 @@ impl ComponentValidationError {
 }
 
 impl Display for ComponentValidationError {
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
             ComponentValidationErrorType::ActionRowComponentCount { count } => {
@@ -255,6 +280,36 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&SELECT_OPTION_COUNT, f)
             }
+            ComponentValidationErrorType::TextInputMaxLength { len: count } => {
+                f.write_str("a text input max length is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&TEXT_INPUT_LENGTH_MIN, f)?;
+                f.write_str(" and at most ")?;
+
+                Display::fmt(&TEXT_INPUT_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::TextInputMinLength { len: count } => {
+                f.write_str("a text input min length is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&TEXT_INPUT_LENGTH_MAX, f)
+            }
+            ComponentValidationErrorType::TextInputPlaceholderLength { chars } => {
+                f.write_str("a text input's placeholder is ")?;
+                Display::fmt(&chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
+            }
+            ComponentValidationErrorType::TextInputValueLength { chars } => {
+                f.write_str("a text input's value is ")?;
+                Display::fmt(&chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&TEXT_INPUT_PLACEHOLDER_MAX, f)
+            }
         }
     }
 }
@@ -341,6 +396,36 @@ pub enum ComponentValidationErrorType {
     /// [maximum][`SELECT_PLACEHOLDER_LENGTH`].
     SelectPlaceholderLength {
         /// Number of codepoints that were provided.
+        chars: usize,
+    },
+    /// [`TextInput::max_length`] is invalid.
+    ///
+    /// [`TextInput::max_length`]: twilight_model::application::component::text_input::TextInput::max_length
+    TextInputMaxLength {
+        /// Provided length.
+        len: usize,
+    },
+    /// [`TextInput::min_length`] is too long.
+    ///
+    /// [`TextInput::min_length`]: twilight_model::application::component::text_input::TextInput::min_length
+    TextInputMinLength {
+        /// Provided length.
+        len: usize,
+    },
+    /// Placeholder of a [`TextInput`] component is larger than
+    /// [`TEXT_INPUT_PLACEHOLDER_MAX`].
+    ///
+    /// [`TextInput`]: twilight_model::application::component::text_input::TextInput
+    TextInputPlaceholderLength {
+        /// Provided number of codepoints.
+        chars: usize,
+    },
+    /// Value of a [`TextInput`] component is larger than
+    /// [`TEXT_INPUT_LENGTH_MAX`].
+    ///
+    /// [`TextInput`]: twilight_model::application::component::text_input::TextInput
+    TextInputValueLength {
+        /// Provided number of codepoints.
         chars: usize,
     },
 }
@@ -455,6 +540,27 @@ fn component_inner(component: &Component) -> Result<(), ComponentValidationError
                 if let Some(description) = option.description.as_ref() {
                     self::component_option_description(description)?;
                 }
+            }
+        }
+        Component::TextInput(text_input) => {
+            self::component_custom_id(&text_input.custom_id)?;
+
+            self::component_label(&text_input.label)?;
+
+            if let Some(max_length) = text_input.max_length {
+                self::component_text_input_max(max_length)?;
+            }
+
+            if let Some(min_length) = text_input.min_length {
+                self::component_text_input_min(min_length)?;
+            }
+
+            if let Some(placeholder) = text_input.placeholder.as_ref() {
+                self::component_text_input_placeholder(placeholder)?;
+            }
+
+            if let Some(value) = text_input.value.as_ref() {
+                self::component_text_input_value(value)?;
             }
         }
     }
@@ -691,6 +797,91 @@ fn component_select_placeholder(
     Ok(())
 }
 
+/// Ensure a [`TextInput::max_length`]'s value is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`TextInputMaxLength`] if the length is invalid.
+///
+/// [`TextInput::max_length`]: twilight_model::application::component::text_input::TextInput::max_length
+/// [`TextInputMaxLength`]: ComponentValidationErrorType::TextInputMaxLength
+const fn component_text_input_max(len: u16) -> Result<(), ComponentValidationError> {
+    let len = len as usize;
+
+    if len >= TEXT_INPUT_LENGTH_MIN && len <= TEXT_INPUT_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::TextInputMaxLength { len },
+        })
+    }
+}
+
+/// Ensure a [`TextInput::min_length`]'s value is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`TextInputMinLength`] if the length is invalid.
+///
+/// [`TextInput::min_length`]: twilight_model::application::component::text_input::TextInput::min_length
+/// [`TextInputMinLength`]: ComponentValidationErrorType::TextInputMinLength
+const fn component_text_input_min(len: u16) -> Result<(), ComponentValidationError> {
+    let len = len as usize;
+
+    if len <= TEXT_INPUT_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::TextInputMinLength { len },
+        })
+    }
+}
+
+/// Ensure a [`TextInput::placeholder`]'s length is correct.
+///
+/// The length must be at most [`TEXT_INPUT_PLACEHOLDER_MAX`].
+///
+/// # Errors
+///
+/// Returns an error of type [`TextInputPlaceholderLength`] if the provided
+/// placeholder is too long.
+///
+/// [`TextInput::placeholder`]: twilight_model::application::component::text_input::TextInput::placeholder
+/// [`TextInputPlaceholderLength`]: ComponentValidationErrorType::TextInputPlaceholderLength
+fn component_text_input_placeholder(
+    placeholder: impl AsRef<str>,
+) -> Result<(), ComponentValidationError> {
+    let chars = placeholder.as_ref().chars().count();
+
+    if chars <= TEXT_INPUT_PLACEHOLDER_MAX {
+        Ok(())
+    } else {
+        Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::TextInputPlaceholderLength { chars },
+        })
+    }
+}
+
+/// Ensure a [`TextInput::value`]'s length is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`TextInputValueLength`] if the length is invalid.
+///
+/// [`TextInput::value_length`]: twilight_model::application::component::text_input::TextInput::value
+/// [`TextInputValueLength`]: ComponentValidationErrorType::TextInputValueLength
+fn component_text_input_value(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let chars = value.as_ref().chars().count();
+
+    if chars <= TEXT_INPUT_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::TextInputValueLength { chars },
+        })
+    }
+}
+
 #[allow(clippy::non_ascii_literal)]
 #[cfg(test)]
 mod tests {
@@ -862,8 +1053,44 @@ mod tests {
     fn test_component_select_placeholder() {
         assert!(component_select_placeholder("").is_ok());
         assert!(component_select_placeholder("a").is_ok());
-        assert!(component_select_placeholder("a".repeat(100)).is_ok());
+        assert!(component_select_placeholder("a".repeat(150)).is_ok());
 
-        assert!(component_select_placeholder("a".repeat(101)).is_err());
+        assert!(component_select_placeholder("a".repeat(151)).is_err());
+    }
+
+    #[test]
+    fn test_component_text_input_max() {
+        assert!(component_text_input_max(1).is_ok());
+        assert!(component_text_input_max(4000).is_ok());
+
+        assert!(component_text_input_max(0).is_err());
+        assert!(component_text_input_max(4001).is_err());
+    }
+
+    #[test]
+    fn test_component_text_input_min() {
+        assert!(component_text_input_min(0).is_ok());
+        assert!(component_text_input_min(1).is_ok());
+        assert!(component_text_input_min(4000).is_ok());
+
+        assert!(component_text_input_min(4001).is_err());
+    }
+
+    #[test]
+    fn test_component_text_input_placeholder() {
+        assert!(component_text_input_placeholder("").is_ok());
+        assert!(component_text_input_placeholder("a").is_ok());
+        assert!(component_text_input_placeholder("a".repeat(100)).is_ok());
+
+        assert!(component_text_input_placeholder("a".repeat(101)).is_err());
+    }
+
+    #[test]
+    fn test_component_text_input_value() {
+        assert!(component_text_input_min(0).is_ok());
+        assert!(component_text_input_min(1).is_ok());
+        assert!(component_text_input_min(4000).is_ok());
+
+        assert!(component_text_input_min(4001).is_err());
     }
 }

@@ -1,10 +1,12 @@
 mod builder;
+mod connector;
 mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 #[allow(deprecated)]
 use crate::{
+    client::connector::Connector,
     error::{Error, ErrorType},
     request::{
         channel::{
@@ -92,7 +94,7 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
-    guild::Permissions,
+    http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
             ApplicationMarker, ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker,
@@ -105,16 +107,6 @@ use twilight_model::{
 use twilight_validate::{
     channel::ChannelValidationError, request::ValidationError, sticker::StickerValidationError,
 };
-
-#[cfg(feature = "hyper-rustls")]
-type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
-#[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
-type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
-
-#[cfg(feature = "trust-dns")]
-type HttpConnector = hyper_trust_dns::TrustDnsHttpConnector;
-#[cfg(not(feature = "trust-dns"))]
-type HttpConnector = hyper::client::HttpConnector;
 
 /// Twilight's http client.
 ///
@@ -191,7 +183,7 @@ type HttpConnector = hyper::client::HttpConnector;
 pub struct Client {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     default_headers: Option<HeaderMap>,
-    http: HyperClient<HttpsConnector<HttpConnector>, Body>,
+    http: HyperClient<Connector>,
     proxy: Option<Box<str>>,
     ratelimiter: Option<Box<dyn Ratelimiter>>,
     timeout: Duration,
@@ -205,8 +197,7 @@ pub struct Client {
 }
 
 impl Client {
-    /// Create a new `hyper-rustls` or `hyper-tls` backed client with a token.
-    #[cfg_attr(docsrs, doc(cfg(any(feature = "hyper-rustls", feature = "hyper-tls"))))]
+    /// Create a new client with a token.
     pub fn new(token: String) -> Self {
         ClientBuilder::default().token(token).build()
     }
@@ -254,7 +245,7 @@ impl Client {
     /// // Later in the process...
     /// let commands = client
     ///     .interaction(application_id)
-    ///     .get_global_commands()
+    ///     .global_commands()
     ///     .exec()
     ///     .await?
     ///     .models()
@@ -272,9 +263,10 @@ impl Client {
         InteractionClient::new(self, application_id)
     }
 
-    /// Get the default [`AllowedMentions`] for sent messages.
-    pub fn default_allowed_mentions(&self) -> Option<AllowedMentions> {
-        self.default_allowed_mentions.clone()
+    /// Get an immutable reference to the default [`AllowedMentions`] for sent
+    /// messages.
+    pub const fn default_allowed_mentions(&self) -> Option<&AllowedMentions> {
+        self.default_allowed_mentions.as_ref()
     }
 
     /// Get the Ratelimiter used by the client internally.
@@ -448,10 +440,9 @@ impl Client {
     /// Get the invites for a guild channel.
     ///
     /// Requires the [`MANAGE_CHANNELS`] permission. This method only works if
-    /// the channel is of type [`GuildChannel`].
+    /// the channel is a guild channel.
     ///
     /// [`MANAGE_CHANNELS`]: twilight_model::guild::Permissions::MANAGE_CHANNELS
-    /// [`GuildChannel`]: twilight_model::channel::GuildChannel
     pub const fn channel_invites(&self, channel_id: Id<ChannelMarker>) -> GetChannelInvites<'_> {
         GetChannelInvites::new(self, channel_id)
     }
@@ -474,7 +465,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     /// let channel_id = Id::new(123);
     /// let message_id = Id::new(234);
-    /// let limit: u64 = 6;
+    /// let limit: u16 = 6;
     ///
     /// let messages = client
     ///     .channel_messages(channel_id)
@@ -512,24 +503,32 @@ impl Client {
     ///
     /// # Examples:
     ///
-    /// Create permission overrides for a role to view the channel, but not send messages:
+    /// Create permission overrides for a role to view the channel, but not send
+    /// messages:
     ///
     /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # use twilight_http::Client;
-    /// use twilight_model::guild::Permissions;
-    /// use twilight_model::id::Id;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
+    /// #
+    /// use twilight_model::{
+    ///     guild::Permissions,
+    ///     http::permission_overwrite::{
+    ///         PermissionOverwrite, PermissionOverwriteType,
+    ///     },
+    ///     id::{marker::RoleMarker, Id},
+    /// };
     ///
     /// let channel_id = Id::new(123);
-    /// let allow = Permissions::VIEW_CHANNEL;
-    /// let deny = Permissions::SEND_MESSAGES;
-    /// let role_id = Id::new(432);
+    /// let role_id: Id<RoleMarker> = Id::new(432);
+    /// let permission_overwrite = PermissionOverwrite {
+    ///     allow: Some(Permissions::VIEW_CHANNEL),
+    ///     deny: Some(Permissions::SEND_MESSAGES),
+    ///     id: role_id.cast(),
+    ///     kind: PermissionOverwriteType::Role,
+    /// };
     ///
-    /// client.update_channel_permission(channel_id, allow, deny)
-    ///     .role(role_id)
+    /// client.update_channel_permission(channel_id, &permission_overwrite)
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
@@ -537,10 +536,9 @@ impl Client {
     pub const fn update_channel_permission(
         &self,
         channel_id: Id<ChannelMarker>,
-        allow: Permissions,
-        deny: Permissions,
+        permission_overwrite: &PermissionOverwrite,
     ) -> UpdateChannelPermission<'_> {
-        UpdateChannelPermission::new(self, channel_id, allow, deny)
+        UpdateChannelPermission::new(self, channel_id, permission_overwrite)
     }
 
     /// Get all the webhooks of a channel.
@@ -1217,16 +1215,18 @@ impl Client {
 
     /// Send a message to a channel.
     ///
+    /// The message must include at least one of [`attachments`], [`content`],
+    /// [`embeds`], or [`sticker_ids`].
+    ///
     /// # Example
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
-    /// # use twilight_model::id::Id;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("my token".to_owned());
-    /// #
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// let client = Client::new("my token".to_owned());
+    ///
     /// let channel_id = Id::new(123);
     /// let message = client
     ///     .create_message(channel_id)
@@ -1237,19 +1237,10 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// # Errors
-    ///
-    /// The method [`content`] returns an error of type
-    /// [`MessageValidationErrorType::ContentInvalid`] if the content is over 2000
-    /// UTF-16 characters.
-    ///
-    /// The method [`embeds`] returns an error of type
-    /// [`MessageValidationErrorType::EmbedInvalid`] if the embed is invalid.
-    ///
-    /// [`MessageValidationErrorType::ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
-    /// [`MessageValidationErrorType::EmbedInvalid`]: twilight_validate::message::MessageValidationErrorType::EmbedInvalid
-    /// [`content`]: crate::request::channel::message::create_message::CreateMessage::content
-    /// [`embeds`]: crate::request::channel::message::create_message::CreateMessage::embeds
+    /// [`attachments`]: CreateMessage::attachments
+    /// [`content`]: CreateMessage::content
+    /// [`embeds`]: CreateMessage::embeds
+    /// [`sticker_ids`]: CreateMessage::sticker_ids
     pub const fn create_message(&self, channel_id: Id<ChannelMarker>) -> CreateMessage<'_> {
         CreateMessage::new(self, channel_id)
     }
@@ -1281,20 +1272,20 @@ impl Client {
 
     /// Update a message by [`Id<ChannelMarker>`] and [`Id<MessageMarker>`].
     ///
-    /// You can pass `None` to any of the methods to remove the associated field.
-    /// For example, if you have a message with an embed you want to remove, you can
-    /// use `.[embed](None)` to remove the embed.
+    /// You can pass [`None`] to any of the methods to remove the associated
+    /// field. Pass [`None`] to [`content`] to remove the content. You must
+    /// ensure that the message still contains at least one of [`attachments`],
+    /// [`content`], [`embeds`], or stickers.
     ///
     /// # Examples
     ///
     /// Replace the content with `"test update"`:
     ///
     /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_http::Client;
     /// use twilight_model::id::Id;
     ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     /// client.update_message(Id::new(1), Id::new(2))
     ///     .content(Some("test update"))?
@@ -1319,7 +1310,9 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [embed]: Self::embed
+    /// [`attachments`]: UpdateMessage::attachments
+    /// [`content`]: UpdateMessage::content
+    /// [`embeds`]: UpdateMessage::embeds
     pub const fn update_message(
         &self,
         channel_id: Id<ChannelMarker>,
@@ -1907,21 +1900,21 @@ impl Client {
         UpdateWebhookWithToken::new(self, webhook_id, token)
     }
 
-    /// Executes a webhook, sending a message to its channel.
+    /// Execute a webhook, sending a message to its channel.
     ///
-    /// You can only specify one of [`content`], [`embeds`], or [`files`].
+    /// The message must include at least one of [`attachments`], [`content`],
+    /// or [`embeds`].
     ///
     /// # Examples
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
-    /// # use twilight_model::id::Id;
-    /// #
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("my token".to_owned());
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    ///
+    /// let client = Client::new("my token".to_owned());
     /// let id = Id::new(432);
-    /// #
+    ///
     /// let webhook = client
     ///     .execute_webhook(id, "webhook token")
     ///     .content("Pinkie...")?
@@ -1930,9 +1923,9 @@ impl Client {
     /// # Ok(()) }
     /// ```
     ///
-    /// [`content`]: crate::request::channel::webhook::ExecuteWebhook::content
-    /// [`embeds`]: crate::request::channel::webhook::ExecuteWebhook::embeds
-    /// [`files`]: crate::request::channel::webhook::ExecuteWebhook::files
+    /// [`attachments`]: ExecuteWebhook::attachments
+    /// [`content`]: ExecuteWebhook::content
+    /// [`embeds`]: ExecuteWebhook::embeds
     pub const fn execute_webhook<'a>(
         &'a self,
         webhook_id: Id<WebhookMarker>,
@@ -1953,21 +1946,29 @@ impl Client {
 
     /// Update a message executed by a webhook.
     ///
+    /// You can pass [`None`] to any of the methods to remove the associated
+    /// field. Pass [`None`] to [`content`] to remove the content. You must
+    /// ensure that the message still contains at least one of [`attachments`],
+    /// [`content`], or [`embeds`].
+    ///
     /// # Examples
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
     /// use twilight_model::id::Id;
     ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token".to_owned());
+    /// let client = Client::new("token".to_owned());
     /// client.update_webhook_message(Id::new(1), "token here", Id::new(2))
     ///     .content(Some("new message content"))?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
+    ///
+    /// [`attachments`]: UpdateWebhookMessage::attachments
+    /// [`content`]: UpdateWebhookMessage::content
+    /// [`embeds`]: UpdateWebhookMessage::embeds
     pub const fn update_webhook_message<'a>(
         &'a self,
         webhook_id: Id<WebhookMarker>,
@@ -2473,9 +2474,11 @@ impl Client {
 
         let req = if let Some(form) = form {
             let form_bytes = form.build();
+
             if let Some(headers) = builder.headers_mut() {
                 headers.insert(CONTENT_LENGTH, HeaderValue::from(form_bytes.len()));
             };
+
             builder
                 .body(Body::from(form_bytes))
                 .map_err(|source| Error {

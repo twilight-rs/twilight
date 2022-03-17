@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -14,16 +14,16 @@ use twilight_model::{
     invite::{Invite, TargetType},
 };
 use twilight_validate::request::{
-    invite_max_age as validate_invite_max_age, invite_max_uses as validate_invite_max_uses,
-    ValidationError,
+    audit_reason as validate_audit_reason, invite_max_age as validate_invite_max_age,
+    invite_max_uses as validate_invite_max_uses, ValidationError,
 };
 
 #[derive(Serialize)]
 struct CreateInviteFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    max_age: Option<u64>,
+    max_age: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    max_uses: Option<u64>,
+    max_uses: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     temporary: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -114,7 +114,7 @@ impl<'a> CreateInvite<'a> {
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
     /// ```
-    pub const fn max_age(mut self, max_age: u64) -> Result<Self, ValidationError> {
+    pub const fn max_age(mut self, max_age: u32) -> Result<Self, ValidationError> {
         if let Err(source) = validate_invite_max_age(max_age) {
             return Err(source);
         }
@@ -150,7 +150,7 @@ impl<'a> CreateInvite<'a> {
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
     /// ```
-    pub const fn max_uses(mut self, max_uses: u64) -> Result<Self, ValidationError> {
+    pub const fn max_uses(mut self, max_uses: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_invite_max_uses(max_uses) {
             return Err(source);
         }
@@ -223,8 +223,10 @@ impl<'a> CreateInvite<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateInvite<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

@@ -2,6 +2,15 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.10.0] - 2022-03-10
+
+### Changes
+
+`twilight-http` is now an optional feature, and enabled by default ([#1489] -
+[@Gelbpunkt]).
+
+[#1489]: https://github.com/twilight-rs/twilight/pull/1489
+
 ## [0.9.1] - 2022-02-12
 
 ### Additions
@@ -125,6 +134,7 @@ Initial release.
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.9.0
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.8.1

@@ -1,24 +1,18 @@
-use serde::{
-    ser::{SerializeStruct, Serializer},
-    Deserialize, Serialize,
-};
-
-use super::ComponentType;
 use crate::channel::ReactionType;
+use serde::{Deserialize, Serialize};
 
 /// Dropdown-style interactive components that render on messages.
 ///
 /// Refer to [Discord Docs/Message Components] for additional information.
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#select-menus
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SelectMenu {
     /// Developer defined identifier.
     pub custom_id: String,
     /// Whether the select menu is disabled.
     ///
     /// Defaults to `false`.
-    #[serde(default)]
     pub disabled: bool,
     /// Maximum number of options that may be chosen.
     pub max_values: Option<u8>,
@@ -51,52 +45,12 @@ pub struct SelectMenuOption {
     pub value: String,
 }
 
-impl Serialize for SelectMenu {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        // Base of 4 to account for the fields that are always present:
-        //
-        // - `custom_id`
-        // - `disabled`
-        // - `options`
-        // - `type`
-        let field_count = 4
-            + usize::from(self.placeholder.is_some())
-            + usize::from(self.min_values.is_some())
-            + usize::from(self.max_values.is_some());
-        let mut state = serializer.serialize_struct("SelectMenu", field_count)?;
-
-        state.serialize_field("custom_id", &self.custom_id)?;
-
-        state.serialize_field("disabled", &self.disabled)?;
-
-        if self.max_values.is_some() {
-            state.serialize_field("max_values", &self.max_values)?;
-        }
-
-        if self.min_values.is_some() {
-            state.serialize_field("min_values", &self.min_values)?;
-        }
-
-        state.serialize_field("options", &self.options)?;
-
-        if self.placeholder.is_some() {
-            state.serialize_field("placeholder", &self.placeholder)?;
-        }
-
-        state.serialize_field("type", &ComponentType::SelectMenu)?;
-
-        state.end()
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{SelectMenu, SelectMenuOption};
-    use serde::{Deserialize, Serialize};
+    use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
 
-    assert_fields!(SelectMenuOption: default, description, emoji, label, value);
     assert_fields!(
         SelectMenu: custom_id,
         disabled,
@@ -105,6 +59,8 @@ mod tests {
         options,
         placeholder
     );
+    assert_impl_all!(SelectMenu: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
+
     assert_impl_all!(
         SelectMenuOption: Clone,
         Debug,
@@ -116,15 +72,5 @@ mod tests {
         Serialize,
         Sync
     );
-    assert_impl_all!(
-        SelectMenu: Clone,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        Hash,
-        PartialEq,
-        Send,
-        Serialize,
-        Sync
-    );
+    assert_fields!(SelectMenuOption: default, description, emoji, label, value);
 }

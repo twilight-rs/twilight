@@ -3,9 +3,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// Action to cause an [`AuditLogEntry`].
 ///
 /// [`AuditLogEntry`]: super::AuditLogEntry
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
 pub enum AuditLogEventType {
@@ -13,31 +11,31 @@ pub enum AuditLogEventType {
     ///
     /// [Guild]: super::super::Guild
     GuildUpdate = 1,
-    /// [Guild channel] was created.
+    /// [Channel] was created.
     ///
-    /// [Guild channel]: crate::channel::GuildChannel
+    /// [Channel]: crate::channel::Channel
     ChannelCreate = 10,
-    /// [Guild channel] was updated.
+    /// [Channel] was updated.
     ///
-    /// [Guild channel]: crate::channel::GuildChannel
+    /// [Channel]: crate::channel::Channel
     ChannelUpdate = 11,
-    /// [Guild channel] was deleted.
+    /// [Channel] was deleted.
     ///
-    /// [Guild channel]: crate::channel::GuildChannel
+    /// [Channel]: crate::channel::Channel
     ChannelDelete = 12,
-    /// [Permission overwrite] for a [guild channel] was created.
+    /// [Permission overwrite] for a [channel] was created.
     ///
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
     ChannelOverwriteCreate = 13,
-    /// [Permission overwrite] for a [guild channel] was updated.
+    /// [Permission overwrite] for a [channel] was updated.
     ///
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
     ChannelOverwriteUpdate = 14,
-    /// [Permission overwrite] for a [guild channel] was deleted.
+    /// [Permission overwrite] for a [channel] was deleted.
     ///
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     /// [Permission overwrite]: crate::channel::permission_overwrite::PermissionOverwrite
     ChannelOverwriteDelete = 15,
     /// [Member] was kicked.
@@ -66,15 +64,15 @@ pub enum AuditLogEventType {
     /// [Member]: super::super::Member
     /// [role]: super::super::Role
     MemberRoleUpdate = 25,
-    /// [Member] was moved to a [voice channel].
+    /// [Member] was moved between voice [channel]s.
     ///
     /// [Member]: super::super::Member
-    /// [voice channel]: crate::channel::VoiceChannel
+    /// [channel]: crate::channel::Channel
     MemberMove = 26,
-    /// [Member] was disconnected from a [voice channel].
+    /// [Member] was disconnected from a voice [channel].
     ///
     /// [Member]: super::super::Member
-    /// [voice channel]: crate::channel::VoiceChannel
+    /// [channel]: crate::channel::Channel
     MemberDisconnect = 27,
     /// [Bot user] was added to a [guild].
     ///
@@ -137,15 +135,15 @@ pub enum AuditLogEventType {
     ///
     /// [messages]: crate::channel::message::Message
     MessageBulkDelete = 73,
-    /// [Message] was pinned to a [guild channel].
+    /// [Message] was pinned to a [channel].
     ///
     /// [Message]: crate::channel::message::Message
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     MessagePin = 74,
-    /// [Message] was unpinned from a [guild channel].
+    /// [Message] was unpinned from a [channel].
     ///
     /// [Message]: crate::channel::message::Message
-    /// [guild channel]: crate::channel::GuildChannel
+    /// [channel]: crate::channel::Channel
     MessageUnpin = 75,
     /// [Integration] was created.
     ///
@@ -159,24 +157,6 @@ pub enum AuditLogEventType {
     ///
     /// [Integration]: super::super::GuildIntegration
     IntegrationDelete = 82,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was created.
-    ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
-    ThreadCreate = 110,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was deleted.
-    ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
-    ThreadDelete = 112,
-    /// [`NewsThread`], [`PrivateThread`], or [`PublicThread]` was updated.
-    ///
-    /// [`NewsThread`]: crate::channel::thread::NewsThread
-    /// [`PrivateThread`]: crate::channel::thread::PrivateThread
-    /// [`PublicThread`]: crate::channel::thread::PublicThread
-    ThreadUpdate = 111,
     /// [Stage instance] was created.
     ///
     /// [Stage instance]: crate::channel::stage_instance::StageInstance
@@ -201,6 +181,30 @@ pub enum AuditLogEventType {
     ///
     /// [Sticker]: crate::channel::message::sticker::Sticker
     StickerDelete = 92,
+    /// [`GuildScheduledEvent`] was created.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventCreate = 100,
+    /// [`GuildScheduledEvent`] was updated.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventUpdate = 101,
+    /// [`GuildScheduledEvent`] was deleted.
+    ///
+    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    GuildScheduledEventDelete = 102,
+    /// Thread [channel] was created.
+    ///
+    /// [channel]: crate::channel::Channel
+    ThreadCreate = 110,
+    /// Thread [channel] was updated.
+    ///
+    /// [channel]: crate::channel::Channel
+    ThreadUpdate = 111,
+    /// Thread [channel] was deleted.
+    ///
+    /// [channel]: crate::channel::Channel
+    ThreadDelete = 112,
 }
 
 #[cfg(test)]
@@ -218,8 +222,6 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
-        PartialOrd,
-        Ord,
         Send,
         Serialize,
         Sync,

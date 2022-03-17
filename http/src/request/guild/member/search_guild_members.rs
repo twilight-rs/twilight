@@ -12,7 +12,7 @@ use twilight_validate::request::{
 
 struct SearchGuildMembersFields<'a> {
     query: &'a str,
-    limit: Option<u64>,
+    limit: Option<u16>,
 }
 
 /// Search the members of a specific guild by a query.
@@ -71,7 +71,7 @@ impl<'a> SearchGuildMembers<'a> {
     /// greater than 1000.
     ///
     /// [`SearchGuildMembers`]: twilight_validate::request::ValidationErrorType::SearchGuildMembers
-    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_search_guild_members_limit(limit) {
             return Err(source);
         }
