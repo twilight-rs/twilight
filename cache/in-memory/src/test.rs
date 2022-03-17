@@ -230,6 +230,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         member_count: None,
         message_count: None,
         name: Some("test".to_owned()),
+        newly_created: None,
         nsfw: Some(false),
         owner_id: None,
         parent_id: None,
