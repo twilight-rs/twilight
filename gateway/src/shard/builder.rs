@@ -170,9 +170,9 @@ pub struct ShardBuilder {
     large_threshold: u64,
     presence: Option<UpdatePresencePayload>,
     queue: Arc<dyn Queue>,
+    ratelimit_payloads: bool,
     shard: [u64; 2],
     token: Box<str>,
-    ratelimit_payloads: bool,
 }
 
 impl ShardBuilder {
@@ -193,9 +193,9 @@ impl ShardBuilder {
             large_threshold: 50,
             presence: None,
             queue: Arc::new(LocalQueue::new()),
+            ratelimit_payloads: true,
             shard: [0, 1],
             token: token.into_boxed_str(),
-            ratelimit_payloads: true,
         }
     }
 
@@ -209,12 +209,12 @@ impl ShardBuilder {
             large_threshold: self.large_threshold,
             presence: self.presence,
             queue: self.queue,
+            ratelimit_payloads: self.ratelimit_payloads,
             session_id: None,
             sequence: None,
             shard: self.shard,
             tls: None,
             token: self.token,
-            ratelimit_payloads: self.ratelimit_payloads,
         }
     }
 
