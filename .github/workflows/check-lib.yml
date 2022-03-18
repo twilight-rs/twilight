@@ -219,7 +219,7 @@ jobs:
         uses: taiki-e/install-action@nextest
 
       - name: Run tests with nextest
-        run: cargo nextest --config-file nextest.toml run --profile ci
+        run: cargo nextest run --profile ci
 
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
@@ -279,4 +279,4 @@ jobs:
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
         run: |
-          cargo nextest --config-file nextest.toml run --profile ci --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+          cargo nextest run --profile ci --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
