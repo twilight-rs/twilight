@@ -36,10 +36,6 @@ pub struct IdentifyProperties {
     pub device: String,
     #[serde(rename = "$os")]
     pub os: String,
-    #[serde(rename = "$referrer")]
-    pub referrer: String,
-    #[serde(rename = "$referring_domain")]
-    pub referring_domain: String,
 }
 
 impl IdentifyProperties {
@@ -47,15 +43,11 @@ impl IdentifyProperties {
         browser: impl Into<String>,
         device: impl Into<String>,
         os: impl Into<String>,
-        referrer: impl Into<String>,
-        referring_domain: impl Into<String>,
     ) -> Self {
         Self {
             browser: browser.into(),
             device: device.into(),
             os: os.into(),
-            referrer: referrer.into(),
-            referring_domain: referring_domain.into(),
         }
     }
 }

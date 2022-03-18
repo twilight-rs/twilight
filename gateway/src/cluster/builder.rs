@@ -139,13 +139,7 @@ impl ClusterBuilder {
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let properties = IdentifyProperties::new(
-    ///     "twilight.rs",
-    ///     "twilight.rs",
-    ///     OS,
-    ///     "",
-    ///     "",
-    /// );
+    /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
     /// let builder = Cluster::builder(token, Intents::empty())
     ///     .identify_properties(properties);
