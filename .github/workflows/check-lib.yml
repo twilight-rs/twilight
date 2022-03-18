@@ -256,6 +256,8 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ matrix.package }} ${{ matrix.features }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
