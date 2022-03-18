@@ -41,8 +41,7 @@
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
 #![allow(clippy::module_name_repetitions)]
 
