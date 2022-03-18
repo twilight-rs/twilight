@@ -34,6 +34,8 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}
 
       - name: Output processor info
         run: cat /proc/cpuinfo
@@ -123,6 +125,8 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -184,6 +188,8 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -203,6 +209,8 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -257,7 +265,7 @@ jobs:
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
         with:
-          key: ${{ matrix.package }} ${{ matrix.features }}
+          key: ${{ github.ref_name }}-${{ matrix.package }}-${{ matrix.features }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
