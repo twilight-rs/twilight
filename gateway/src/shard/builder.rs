@@ -200,35 +200,21 @@ impl ShardBuilder {
     }
 
     pub(crate) fn into_config(self) -> Config {
-        let Self {
-            event_types,
-            gateway_url,
-            http_client,
-            identify_properties,
-            intents,
-            large_threshold,
-            presence,
-            queue,
-            shard,
-            token,
-            ratelimit_payloads,
-        } = self;
-
         Config {
-            event_types,
-            gateway_url,
-            http_client,
-            identify_properties,
-            intents,
-            large_threshold,
-            presence,
-            queue,
+            event_types: self.event_types,
+            gateway_url: self.gateway_url,
+            http_client: self.http_client,
+            identify_properties: self.identify_properties,
+            intents: self.intents,
+            large_threshold: self.large_threshold,
+            presence: self.presence,
+            queue: self.queue,
             session_id: None,
             sequence: None,
-            shard,
+            shard: self.shard,
             tls: None,
-            token,
-            ratelimit_payloads,
+            token: self.token,
+            ratelimit_payloads: self.ratelimit_payloads,
         }
     }
 
