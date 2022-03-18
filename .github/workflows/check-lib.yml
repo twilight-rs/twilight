@@ -215,8 +215,11 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - name: Run cargo test
-        run: cargo test
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Run tests with nextest
+        run: cargo nextest --profile ci
 
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
@@ -270,7 +273,10 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
         run: |
-          cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+          cargo nextest --profile ci --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
