@@ -29,7 +29,7 @@ use twilight_model::{
 ///         })
 ///     ]
 /// });
-/// 
+///
 ///
 /// let interaction_response_data = InteractionResponseDataBuilder::new()
 ///     .content("Callback message".to_string())
