@@ -14,17 +14,22 @@ use twilight_model::{
 /// use twilight_util::builder::InteractionResponseDataBuilder;
 /// use twilight_model::{
 ///     channel::message::MessageFlags,
-///     application::component::{button::ButtonStyle, Component, Button}
+///     application::component::{ActionRow, button::ButtonStyle, Component, Button}
 /// };
 ///
-/// let component = Component::Button(Button {
-///    style: ButtonStyle::Primary,
-///    emoji: None,
-///    label: Some("Button label".to_string()),
-///    custom_id: Some("button_id".to_string()),
-///    url: None,
-///    disabled: false,
+/// let component = Component::ActionRow(ActionRow {
+///     components: vec![
+///         Component::Button(Button {
+///             style: ButtonStyle::Primary,
+///             emoji: None,
+///             label: Some("Button label".to_string()),
+///             custom_id: Some("button_id".to_string()),
+///             url: None,
+///             disabled: false,
+///         })
+///     ]
 /// });
+/// 
 ///
 /// let interaction_response_data = InteractionResponseDataBuilder::new()
 ///     .content("Callback message".to_string())
