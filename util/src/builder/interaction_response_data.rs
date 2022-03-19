@@ -18,7 +18,7 @@ use twilight_model::{
 /// };
 ///
 /// let component = Component::ActionRow(ActionRow {
-///     components: vec![
+///     components: Vec::from([
 ///         Component::Button(Button {
 ///             style: ButtonStyle::Primary,
 ///             emoji: None,
@@ -27,7 +27,7 @@ use twilight_model::{
 ///             url: None,
 ///             disabled: false,
 ///         })
-///     ]
+///     ])
 /// });
 ///
 ///
