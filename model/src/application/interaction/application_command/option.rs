@@ -50,7 +50,7 @@ impl Serialize for CommandDataOption {
             CommandOptionValue::Attachment(a) => state.serialize_field("value", a)?,
             CommandOptionValue::Boolean(b) => state.serialize_field("value", b)?,
             CommandOptionValue::Channel(c) => state.serialize_field("value", c)?,
-            CommandOptionValue::Focused(f) => state.serialize_field("value", f)?,
+            CommandOptionValue::Focused(f, _) => state.serialize_field("value", f)?,
             CommandOptionValue::Integer(i) => state.serialize_field("value", i)?,
             CommandOptionValue::Mentionable(m) => state.serialize_field("value", m)?,
             CommandOptionValue::Number(n) => state.serialize_field("value", n)?,
@@ -177,18 +177,19 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 
                 let name = name_opt.ok_or_else(|| DeError::missing_field("name"))?;
                 let kind = kind_opt.ok_or_else(|| DeError::missing_field("type"))?;
+                let focused = focused.unwrap_or_default();
 
-                let value = if focused.unwrap_or_default() {
+                let value = if focused {
                     let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                     match val {
                         ValueEnvelope::Integer(i) => {
-                            CommandOptionValue::Focused((i.to_string(), kind))
+                            CommandOptionValue::Focused(i.to_string(), kind)
                         }
                         ValueEnvelope::Number(f) => {
-                            CommandOptionValue::Focused((f.to_string(), kind))
+                            CommandOptionValue::Focused(f.to_string(), kind)
                         }
-                        ValueEnvelope::String(s) => CommandOptionValue::Focused((s, kind)),
+                        ValueEnvelope::String(s) => CommandOptionValue::Focused(s, kind),
                         _ => return Err(DeError::invalid_type(val.as_unexpected(), &"focused")),
                     }
                 } else {
@@ -325,7 +326,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 Ok(CommandDataOption {
                     name,
                     value,
-                    focused: focused.unwrap_or_default(),
+                    focused,
                 })
             }
         }
@@ -348,7 +349,7 @@ pub enum CommandOptionValue {
     SubCommand(Vec<CommandDataOption>),
     SubCommandGroup(Vec<CommandDataOption>),
     User(Id<UserMarker>),
-    Focused((String, CommandOptionType)),
+    Focused(String, CommandOptionType),
 }
 
 impl CommandOptionValue {
@@ -357,7 +358,7 @@ impl CommandOptionValue {
             CommandOptionValue::Attachment(_) => CommandOptionType::Attachment,
             CommandOptionValue::Boolean(_) => CommandOptionType::Boolean,
             CommandOptionValue::Channel(_) => CommandOptionType::Channel,
-            CommandOptionValue::Focused((_, t)) => *t,
+            CommandOptionValue::Focused(_, t) => *t,
             CommandOptionValue::Integer(_) => CommandOptionType::Integer,
             CommandOptionValue::Mentionable(_) => CommandOptionType::Mentionable,
             CommandOptionValue::Number(_) => CommandOptionType::Number,
@@ -475,10 +476,10 @@ mod tests {
                 CommandDataOption {
                     focused: true,
                     name: "dog".to_owned(),
-                    value: CommandOptionValue::Focused((
+                    value: CommandOptionValue::Focused(
                         "Shiba".to_owned(),
                         CommandOptionType::String,
-                    )),
+                    ),
                 },
             ]),
             resolved: None,
@@ -609,10 +610,10 @@ mod tests {
         let value = CommandDataOption {
             focused: true,
             name: "opt".to_string(),
-            value: CommandOptionValue::Focused((
+            value: CommandOptionValue::Focused(
                 "not a number".to_owned(),
                 CommandOptionType::Number,
-            )),
+            ),
         };
 
         serde_test::assert_de_tokens(
