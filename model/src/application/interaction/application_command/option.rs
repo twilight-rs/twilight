@@ -330,9 +330,9 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 };
 
                 Ok(CommandDataOption {
+                    focused,
                     name,
                     value,
-                    focused,
                 })
             }
         }
