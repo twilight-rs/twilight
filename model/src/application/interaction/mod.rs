@@ -1,7 +1,6 @@
 //! Used when receiving interactions through gateway or webhooks.
 
 pub mod application_command;
-pub mod application_command_autocomplete;
 pub mod message_component;
 pub mod modal;
 
@@ -10,9 +9,8 @@ mod ping;
 
 use self::modal::ModalSubmitInteraction;
 pub use self::{
-    application_command::ApplicationCommand,
-    application_command_autocomplete::ApplicationCommandAutocomplete,
-    interaction_type::InteractionType, message_component::MessageComponentInteraction, ping::Ping,
+    application_command::ApplicationCommand, interaction_type::InteractionType,
+    message_component::MessageComponentInteraction, ping::Ping,
 };
 
 use crate::{
@@ -46,7 +44,7 @@ pub enum Interaction {
     /// Application command variant.
     ApplicationCommand(Box<ApplicationCommand>),
     /// Application command autocomplete variant.
-    ApplicationCommandAutocomplete(Box<ApplicationCommandAutocomplete>),
+    ApplicationCommandAutocomplete(Box<ApplicationCommand>),
     /// Message component variant.
     MessageComponent(Box<MessageComponentInteraction>),
     /// Modal submit variant.
@@ -57,8 +55,9 @@ impl Interaction {
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
-            Self::ApplicationCommand(inner) => inner.guild_id,
-            Self::ApplicationCommandAutocomplete(inner) => inner.guild_id,
+            Self::ApplicationCommand(inner) | Self::ApplicationCommandAutocomplete(inner) => {
+                inner.guild_id
+            }
             Self::MessageComponent(inner) => inner.guild_id,
             Self::ModalSubmit(inner) => inner.guild_id,
         }
@@ -68,8 +67,9 @@ impl Interaction {
     pub const fn id(&self) -> Id<InteractionMarker> {
         match self {
             Self::Ping(ping) => ping.id,
-            Self::ApplicationCommand(command) => command.id,
-            Self::ApplicationCommandAutocomplete(command) => command.id,
+            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
+                command.id
+            }
             Self::MessageComponent(component) => component.id,
             Self::ModalSubmit(modal) => modal.id,
         }
@@ -323,7 +323,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 #[cfg(feature = "tracing")]
                 tracing::trace!(%channel_id, "handling application command autocomplete");
 
-                let command = Box::new(ApplicationCommandAutocomplete {
+                let command = Box::new(ApplicationCommand {
                     application_id,
                     channel_id,
                     data,
