@@ -118,6 +118,10 @@ impl InMemoryCache {
             self.cache_stage_instances(id, stage_instances);
         }
 
+        if !self.wants(ResourceType::GUILD) {
+            return;
+        }
+
         let guild = CachedGuild {
             id,
             afk_channel_id,
@@ -174,16 +178,14 @@ impl InMemoryCache {
             }
         }
 
-        if !self.wants(ResourceType::GUILD) {
-            return;
-        }
-
-        if unavailable {
-            if let Some(mut guild) = self.guilds.get_mut(&id) {
-                guild.unavailable = true;
+        if self.wants(ResourceType::GUILD) {
+            if unavailable {
+                if let Some(mut guild) = self.guilds.get_mut(&id) {
+                    guild.unavailable = true;
+                }
+            } else {
+                self.guilds.remove(&id);
             }
-        } else {
-            self.guilds.remove(&id);
         }
 
         if self.wants(ResourceType::CHANNEL) {
@@ -227,10 +229,6 @@ impl InMemoryCache {
 
 impl UpdateCache for GuildCreate {
     fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::GUILD) {
-            return;
-        }
-
         cache.cache_guild(self.0.clone());
     }
 }
