@@ -69,8 +69,7 @@
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
 
 pub mod iter;
@@ -913,6 +912,11 @@ impl UpdateCache for Event {
             GuildEmojisUpdate(v) => c.update(v),
             GuildStickersUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(_) => {}
+            GuildScheduledEventCreate(_) => {}
+            GuildScheduledEventDelete(_) => {}
+            GuildScheduledEventUpdate(_) => {}
+            GuildScheduledEventUserAdd(_) => {}
+            GuildScheduledEventUserRemove(_) => {}
             GuildUpdate(v) => c.update(v.deref()),
             IntegrationCreate(v) => c.update(v.deref()),
             IntegrationDelete(v) => c.update(v.deref()),

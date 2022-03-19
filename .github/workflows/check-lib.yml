@@ -11,7 +11,7 @@ on:
 env:
   # Use `haswell` instead of `native` due to some GitHub Actions runners not
   # supporting some `avx512` instructions.
-  RUSTFLAGS: -C target-cpu=haswell
+  RUSTFLAGS: -C target-cpu=haswell -D warnings
 
 jobs:
   # Run MSRV first to save Actions time if the code doesn't compile at all.
