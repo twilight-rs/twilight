@@ -30,8 +30,7 @@ builder = ["twilight-model", "twilight-validate"]
 link = ["twilight-model"]
 permission-calculator = ["twilight-model"]
 snowflake = ["twilight-model"]
-validate = ["twilight-validate"]
-full = ["builder", "link", "permission-calculator", "snowflake", "validate"]
+full = ["builder", "link", "permission-calculator", "snowflake"]
 
 [package.metadata.docs.rs]
 all-features = true
