@@ -219,7 +219,7 @@ impl ShardBuilder {
 
         Config {
             event_types,
-            gateway_url: gateway_url.expect("always set"),
+            gateway_url: gateway_url.unwrap(),
             http_client,
             identify_properties,
             intents,
