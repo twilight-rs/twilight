@@ -19,7 +19,7 @@ use crate::{
     channel::Message,
     guild::PartialMember,
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker},
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
     },
     user::User,
@@ -54,6 +54,17 @@ pub enum Interaction {
 }
 
 impl Interaction {
+    /// ID of the user that invoked the interaction.
+    pub const fn author_id(&self) -> Option<Id<UserMarker>> {
+        match self {
+            Interaction::Ping(_) => None,
+            Interaction::ApplicationCommand(command) => command.author_id(),
+            Interaction::ApplicationCommandAutocomplete(command) => command.author_id(),
+            Interaction::MessageComponent(component) => component.author_id(),
+            Interaction::ModalSubmit(modal) => modal.author_id(),
+        }
+    }
+
     /// Return the guild ID the interaction was run in.
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
