@@ -42,7 +42,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[non_exhaustive]
 pub enum Interaction {
     /// Ping variant.
-    Ping(Box<Ping>),
+    Ping(Ping),
     /// Application command variant.
     ApplicationCommand(Box<ApplicationCommand>),
     /// Application command autocomplete variant.
@@ -268,12 +268,12 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 #[cfg(feature = "tracing")]
                 tracing::trace!("handling ping");
 
-                Self::Value::Ping(Box::new(Ping {
+                Self::Value::Ping(Ping {
                     application_id,
                     id,
                     kind,
                     token,
-                }))
+                })
             }
             InteractionType::ApplicationCommand => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
