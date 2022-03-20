@@ -89,7 +89,13 @@ impl Interaction {
 
     /// Returns `true` if the interaction was run in a DM.
     pub const fn is_dm(&self) -> bool {
-        !self.is_guild()
+        match self {
+            Interaction::Ping(_) => false,
+            Interaction::ApplicationCommand(command) => command.user.is_some(),
+            Interaction::ApplicationCommandAutocomplete(command) => command.user.is_some(),
+            Interaction::MessageComponent(component) => component.user.is_some(),
+            Interaction::ModalSubmit(modal) => modal.user.is_some(),
+        }
     }
 
     /// Returns `true` if the interaction was run in a guild.
