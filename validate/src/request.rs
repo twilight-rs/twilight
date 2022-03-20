@@ -126,9 +126,6 @@ pub const WEBHOOK_USERNAME_LIMIT_MIN: usize = 2;
 /// String value of an at sign.
 const AT_SIGN: &str = "@";
 
-/// String value of a backslash and three grave symbols.
-const BACKSLASH_THREE_GRAVES: &str = r#"\```"#;
-
 /// String value of 'clyde'.
 const CLYDE: &str = "clyde";
 
@@ -148,6 +145,9 @@ const HERE: &str = "here";
 ///
 /// [octothorp]: https://en.wikipedia.org/wiki/Number_sign#Names
 const OCTOTHORP: &str = "#";
+
+/// String value of three grave symbols.
+const THREE_GRAVES: &str = r#"```"#;
 
 /// A field is not valid.
 #[derive(Debug)]
@@ -1008,7 +1008,7 @@ pub fn webhook_username(value: impl AsRef<str>) -> Result<(), ValidationError> {
     let invalid_substring = if value.to_ascii_lowercase() == CLYDE {
         Some(CLYDE)
     } else {
-        self::invalid_substring(value)
+        None
     };
 
     if invalid_len.is_none() && invalid_substring.is_none() {
@@ -1039,12 +1039,12 @@ fn invalid_substring(value: impl AsRef<str>) -> Option<&'static str> {
         return Some(COLON);
     }
 
-    if value.contains(BACKSLASH_THREE_GRAVES) {
-        return Some(BACKSLASH_THREE_GRAVES);
-    }
-
     if value.contains(DISCORD) {
         return Some(DISCORD);
+    }
+
+    if value.contains(THREE_GRAVES) {
+        return Some(THREE_GRAVES);
     }
 
     if value == EVERYONE {
@@ -1254,7 +1254,7 @@ mod tests {
         assert!(username("no @ in username").is_err());
         assert!(username("no # in username").is_err());
         assert!(username("no : in username").is_err());
-        assert!(username(r#"no \``` in username"#).is_err());
+        assert!(username(r#"no ``` in username"#).is_err());
         assert!(username("no discord in username").is_err());
         assert!(username("everyone").is_err());
         assert!(username("here").is_err());
