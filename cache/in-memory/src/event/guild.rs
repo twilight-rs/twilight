@@ -118,51 +118,49 @@ impl InMemoryCache {
             self.cache_stage_instances(id, stage_instances);
         }
 
-        if !self.wants(ResourceType::GUILD) {
-            return;
+        if self.wants(ResourceType::GUILD) {
+            let guild = CachedGuild {
+                id,
+                afk_channel_id,
+                afk_timeout,
+                application_id,
+                banner,
+                default_message_notifications,
+                description,
+                discovery_splash,
+                explicit_content_filter,
+                features,
+                icon,
+                joined_at,
+                large,
+                max_members,
+                max_presences,
+                max_video_channel_users,
+                member_count,
+                mfa_level,
+                name,
+                nsfw_level,
+                owner,
+                owner_id,
+                permissions,
+                preferred_locale,
+                premium_progress_bar_enabled,
+                premium_subscription_count,
+                premium_tier,
+                rules_channel_id,
+                splash,
+                system_channel_id,
+                system_channel_flags,
+                unavailable,
+                verification_level,
+                vanity_url_code,
+                widget_channel_id,
+                widget_enabled,
+            };
+
+            self.unavailable_guilds.remove(&guild.id());
+            self.guilds.insert(guild.id(), guild);
         }
-
-        let guild = CachedGuild {
-            id,
-            afk_channel_id,
-            afk_timeout,
-            application_id,
-            banner,
-            default_message_notifications,
-            description,
-            discovery_splash,
-            explicit_content_filter,
-            features,
-            icon,
-            joined_at,
-            large,
-            max_members,
-            max_presences,
-            max_video_channel_users,
-            member_count,
-            mfa_level,
-            name,
-            nsfw_level,
-            owner,
-            owner_id,
-            permissions,
-            preferred_locale,
-            premium_progress_bar_enabled,
-            premium_subscription_count,
-            premium_tier,
-            rules_channel_id,
-            splash,
-            system_channel_id,
-            system_channel_flags,
-            unavailable,
-            verification_level,
-            vanity_url_code,
-            widget_channel_id,
-            widget_enabled,
-        };
-
-        self.unavailable_guilds.remove(&guild.id());
-        self.guilds.insert(guild.id(), guild);
     }
 
     pub(crate) fn delete_guild(&self, id: Id<GuildMarker>, unavailable: bool) {
