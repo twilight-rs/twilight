@@ -6,6 +6,7 @@ pub use self::data::{
 
 use crate::{
     application::interaction::InteractionType,
+    channel::Message,
     guild::PartialMember,
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
@@ -29,16 +30,30 @@ pub struct ModalSubmitInteraction {
     pub data: ModalInteractionData,
     /// ID of the guild the interaction was triggered from.
     pub guild_id: Option<Id<GuildMarker>>,
+    /// Guild's preferred locale.
+    ///
+    /// Present when the command is used in a guild.
+    ///
+    /// Defaults to `en-US`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_locale: Option<String>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,
+    /// Selected language of the user who triggered the interaction.
+    pub locale: String,
     /// Member that triggered the interaction.
     ///
     /// Present when the command is used in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<PartialMember>,
+    /// Message object, if the modal comes from a message component interaction.
+    ///
+    /// This is currently *not* validated by the Discord API and may be spoofed
+    /// by malicious users.
+    pub message: Option<Message>,
     /// Token of the interaction.
     pub token: String,
     /// User that triggered the interaction.
@@ -143,8 +158,10 @@ mod tests {
                 }]),
             },
             guild_id: Some(Id::<GuildMarker>::new(1)),
+            guild_locale: Some("de".to_owned()),
             id: Id::<InteractionMarker>::new(1),
             kind: InteractionType::ModalSubmit,
+            locale: "en-GB".to_owned(),
             member: Some(PartialMember {
                 avatar: None,
                 deaf: false,
@@ -157,6 +174,7 @@ mod tests {
                 user: Some(user(USER_ID)),
                 communication_disabled_until: None,
             }),
+            message: None,
             token: "TOKEN".to_owned(),
             user: None,
         };
