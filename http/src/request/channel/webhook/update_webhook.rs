@@ -18,7 +18,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 #[derive(Serialize)]
 struct UpdateWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a str>>,
+    avatar: Option<NullableField<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -56,7 +56,7 @@ impl<'a> UpdateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+    pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
         self.fields.avatar = Some(NullableField(avatar));
 
         self

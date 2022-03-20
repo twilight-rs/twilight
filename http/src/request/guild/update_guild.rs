@@ -37,7 +37,7 @@ struct UpdateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     features: Option<&'a [&'a str]>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    icon: Option<NullableField<&'a str>>,
+    icon: Option<NullableField<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -175,7 +175,7 @@ impl<'a> UpdateGuild<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn icon(mut self, icon: Option<&'a str>) -> Self {
+    pub const fn icon(mut self, icon: Option<&'a [u8]>) -> Self {
         self.fields.icon = Some(NullableField(icon));
 
         self
