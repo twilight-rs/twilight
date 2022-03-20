@@ -54,13 +54,14 @@ pub enum Interaction {
 }
 
 impl Interaction {
+    /// Return the guild ID the interaction was run in.
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
-            Self::ApplicationCommand(inner) => inner.guild_id,
-            Self::ApplicationCommandAutocomplete(inner) => inner.guild_id,
-            Self::MessageComponent(inner) => inner.guild_id,
-            Self::ModalSubmit(inner) => inner.guild_id,
+            Self::ApplicationCommand(command) => command.guild_id,
+            Self::ApplicationCommandAutocomplete(command) => command.guild_id,
+            Self::MessageComponent(component) => component.guild_id,
+            Self::ModalSubmit(modal) => modal.guild_id,
         }
     }
 
@@ -72,6 +73,27 @@ impl Interaction {
             Self::ApplicationCommandAutocomplete(command) => command.id,
             Self::MessageComponent(component) => component.id,
             Self::ModalSubmit(modal) => modal.id,
+        }
+    }
+
+    /// Returns `true` if the interaction was run in a DM.
+    pub const fn is_dm(&self) -> bool {
+        !self.is_guild()
+    }
+
+    /// Returns `true` if the interaction was run in a guild.
+    pub const fn is_guild(&self) -> bool {
+        self.guild_id().is_some()
+    }
+
+    /// Return the [`InteractionType`] of the inner interaction.
+    pub const fn kind(&self) -> InteractionType {
+        match self {
+            Interaction::Ping(ping) => ping.kind,
+            Interaction::ApplicationCommand(command) => command.kind,
+            Interaction::ApplicationCommandAutocomplete(command) => command.kind,
+            Interaction::MessageComponent(component) => component.kind,
+            Interaction::ModalSubmit(modal) => modal.kind,
         }
     }
 }
