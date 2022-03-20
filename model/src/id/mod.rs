@@ -73,6 +73,7 @@ use std::{
 /// [marker documentation]: marker
 /// [user]: marker::UserMarker
 #[derive(Clone, Copy)]
+#[repr(transparent)]
 pub struct Id<T> {
     phantom: PhantomData<T>,
     value: NonZeroU64,
