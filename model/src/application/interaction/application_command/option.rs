@@ -19,8 +19,6 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandDataOption {
-    /// [`true`] if this autocomplete option is currently highlighted.
-    pub focused: bool,
     pub name: String,
     pub value: CommandOptionValue,
 }
@@ -34,12 +32,14 @@ impl Serialize for CommandDataOption {
                 if o.is_empty()
         );
 
-        let len = 2 + usize::from(!subcommand_is_empty) + usize::from(self.focused);
+        let focused = matches!(&self.value, CommandOptionValue::Focused(_, _));
+
+        let len = 2 + usize::from(!subcommand_is_empty) + usize::from(focused);
 
         let mut state = serializer.serialize_struct("CommandDataOption", len)?;
 
-        if self.focused {
-            state.serialize_field("focused", &self.focused)?;
+        if focused {
+            state.serialize_field("focused", &focused)?;
         }
 
         state.serialize_field("name", &self.name)?;
@@ -323,11 +323,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     }
                 };
 
-                Ok(CommandDataOption {
-                    focused,
-                    name,
-                    value,
-                })
+                Ok(CommandDataOption { name, value })
             }
         }
 
@@ -420,7 +416,6 @@ mod tests {
             name: "permissions".to_owned(),
             kind: CommandType::ChatInput,
             options: Vec::from([CommandDataOption {
-                focused: false,
                 name: "cat".to_owned(),
                 value: CommandOptionValue::Integer(42),
             }]),
@@ -469,12 +464,10 @@ mod tests {
             kind: CommandType::ChatInput,
             options: Vec::from([
                 CommandDataOption {
-                    focused: false,
                     name: "cat".to_owned(),
                     value: CommandOptionValue::Integer(42),
                 },
                 CommandDataOption {
-                    focused: true,
                     name: "dog".to_owned(),
                     value: CommandOptionValue::Focused(
                         "Shiba".to_owned(),
@@ -540,7 +533,6 @@ mod tests {
             name: "photo".to_owned(),
             kind: CommandType::ChatInput,
             options: Vec::from([CommandDataOption {
-                focused: false,
                 name: "cat".to_owned(),
                 value: CommandOptionValue::SubCommand(Vec::new()),
             }]),
@@ -582,7 +574,6 @@ mod tests {
     #[test]
     fn numbers() {
         let value = CommandDataOption {
-            focused: false,
             name: "opt".to_string(),
             value: CommandOptionValue::Number(Number(5.0)),
         };
@@ -608,7 +599,6 @@ mod tests {
     #[test]
     fn autocomplete() {
         let value = CommandDataOption {
-            focused: true,
             name: "opt".to_string(),
             value: CommandOptionValue::Focused(
                 "not a number".to_owned(),
