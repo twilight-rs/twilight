@@ -432,7 +432,6 @@ mod test {
                 name: "command name".into(),
                 kind: CommandType::ChatInput,
                 options: Vec::from([CommandDataOption {
-                    focused: false,
                     name: "member".into(),
                     value: CommandOptionValue::User(Id::new(600)),
                 }]),
