@@ -2,6 +2,14 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.10.1] - 2022-03-20
+
+### Changes
+
+`tokio-tungstenite` has been updated to `0.17` ([#1551] - [@Gelbpunkt]).
+
+[#1551]: https://github.com/twilight-rs/twilight/pull/1551
+
 ## [0.10.0] - 2022-03-10
 
 This major version bump of the Lavalink crate is done to match all of the other
@@ -329,6 +337,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.9.0
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.3
