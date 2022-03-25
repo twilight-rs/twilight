@@ -38,6 +38,7 @@ use twilight_model::gateway::{
 /// ```
 ///
 /// [`large_threshold`]: Self::large_threshold
+// Remember to sync this with the custom Debug implementation.
 pub struct ClusterBuilder {
     queue: Arc<dyn Queue>,
     resume_sessions: HashMap<u64, ResumeSession>,
