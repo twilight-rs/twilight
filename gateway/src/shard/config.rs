@@ -23,12 +23,12 @@ pub struct Config {
     pub(super) large_threshold: u64,
     pub(crate) presence: Option<UpdatePresencePayload>,
     pub(super) queue: Arc<dyn Queue>,
+    pub(crate) ratelimit_payloads: bool,
     pub(crate) session_id: Option<Box<str>>,
     pub(crate) sequence: Option<u64>,
     pub(crate) shard: [u64; 2],
     pub(crate) tls: Option<TlsContainer>,
     pub(super) token: Box<str>,
-    pub(crate) ratelimit_payloads: bool,
 }
 
 impl Config {

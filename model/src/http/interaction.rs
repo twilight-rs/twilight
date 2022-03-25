@@ -26,10 +26,12 @@ pub struct InteractionResponse {
     /// This is required if the type is any of the following:
     /// - [`ChannelMessageWithSource`]
     /// - [`UpdateMessage`]
+    /// - [`Modal`]
     /// - [`ApplicationCommandAutocompleteResult`]
     ///
     /// [`ApplicationCommandAutocompleteResult`]: InteractionResponseType::ApplicationCommandAutocompleteResult
     /// [`ChannelMessageWithSource`]: InteractionResponseType::ChannelMessageWithSource
+    /// [`Modal`]: InteractionResponseType::Modal
     /// [`UpdateMessage`]: InteractionResponseType::UpdateMessage
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<InteractionResponseData>,

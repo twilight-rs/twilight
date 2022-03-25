@@ -1,4 +1,4 @@
-use super::{builder::ClusterBuilder, config::Config, event::Events};
+use super::{ClusterBuilder, Config, Events};
 use crate::{
     cluster::event::ShardEventsWithId,
     shard::{
@@ -284,7 +284,6 @@ impl Cluster {
             streams: Vec<ShardEventsWithId>,
         }
 
-        let iter = config.shard_scheme().iter();
         let total = config.shard_scheme().total();
 
         #[cfg(feature = "metrics")]
@@ -293,26 +292,30 @@ impl Cluster {
             metrics::gauge!("Cluster-Shard-Count", total as f64);
         }
 
-        let ShardFold { shards, streams } = iter.fold(ShardFold::default(), |mut fold, idx| {
-            let mut shard_config = shard_config.clone();
-            shard_config.shard = [idx, total];
+        let ShardFold { shards, streams } =
+            config
+                .shard_scheme()
+                .iter()
+                .fold(ShardFold::default(), |mut fold, idx| {
+                    let mut shard_config = shard_config.clone();
+                    shard_config.shard = [idx, total];
 
-            if let Some(data) = config.resume_sessions.remove(&idx) {
-                shard_config.session_id = Some(data.session_id.into_boxed_str());
-                shard_config.sequence = Some(data.sequence);
-            }
+                    if let Some(data) = config.resume_sessions.remove(&idx) {
+                        shard_config.session_id = Some(data.session_id.into_boxed_str());
+                        shard_config.sequence = Some(data.sequence);
+                    }
 
-            if let Some(shard_presence) = &config.shard_presence {
-                shard_config.presence = shard_presence(idx)
-            }
+                    if let Some(shard_presence) = &config.shard_presence {
+                        shard_config.presence = shard_presence(idx)
+                    }
 
-            let (shard, stream) = Shard::new_with_config(shard_config);
+                    let (shard, stream) = Shard::new_with_config(shard_config);
 
-            fold.shards.insert(idx, shard);
-            fold.streams.push(ShardEventsWithId::new(idx, stream));
+                    fold.shards.insert(idx, shard);
+                    fold.streams.push(ShardEventsWithId::new(idx, stream));
 
-            fold
-        });
+                    fold
+                });
 
         #[allow(clippy::from_iter_instead_of_collect)]
         let select_all = SelectAll::from_iter(streams);

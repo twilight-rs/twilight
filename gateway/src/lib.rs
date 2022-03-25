@@ -143,8 +143,7 @@
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
 #![allow(
     clippy::let_unit_value,
@@ -153,6 +152,9 @@
     clippy::semicolon_if_nothing_returned,
     clippy::used_underscore_binding
 )]
+
+#[cfg(feature = "simd-json")]
+extern crate dep_simd_json as simd_json;
 
 pub mod cluster;
 pub mod shard;

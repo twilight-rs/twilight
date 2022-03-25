@@ -38,6 +38,7 @@ use twilight_model::gateway::{
 /// ```
 ///
 /// [`large_threshold`]: Self::large_threshold
+// Remember to sync this with the custom Debug implementation.
 pub struct ClusterBuilder {
     queue: Arc<dyn Queue>,
     resume_sessions: HashMap<u64, ResumeSession>,
@@ -103,6 +104,8 @@ impl ClusterBuilder {
         Cluster::new_with_config(config, shard_config).await
     }
 
+    /// Retrieves [`BotConnectionInfo`], containing the gateway url and
+    /// recommended shard count.
     async fn retrieve_connect_info(http: &Client) -> Result<BotConnectionInfo, ClusterStartError> {
         http.gateway()
             .authed()
