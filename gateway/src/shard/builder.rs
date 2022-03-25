@@ -1,12 +1,73 @@
 use super::{config::Config, Events, Shard};
 use crate::EventTypeFlags;
-use std::sync::Arc;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+    sync::Arc,
+};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+/// Shard ID configuration is invalid.
+///
+/// Returned by [`ShardBuilder::shard`].
+#[derive(Debug)]
+pub struct ShardIdError {
+    kind: ShardIdErrorType,
+}
+
+impl ShardIdError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &ShardIdErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[allow(clippy::unused_self)]
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        None
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ShardIdErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+}
+
+impl Display for ShardIdError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.kind {
+            ShardIdErrorType::IdTooLarge { id, total } => {
+                f.write_str("provided shard ID ")?;
+                Display::fmt(id, f)?;
+                f.write_str(" is larger than the total ")?;
+
+                Display::fmt(total, f)
+            }
+        }
+    }
+}
+
+impl Error for ShardIdError {}
+
+/// Type of [`ShardIdError`] that occurred.
+#[derive(Debug)]
+pub enum ShardIdErrorType {
+    /// Provided shard ID is higher than provided total shard count.
+    IdTooLarge {
+        /// Shard ID.
+        id: u64,
+        /// Total shard count.
+        total: u64,
+    },
+}
 
 /// Builder to configure and construct a shard.
 ///
@@ -151,6 +212,7 @@ impl ShardBuilder {
     /// # Panics
     ///
     /// Panics if the provided value is below 50 or above 250.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         match large_threshold {
             0..=49 => panic!(
@@ -263,24 +325,28 @@ impl ShardBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let shard = Shard::builder(token, Intents::empty()).shard(18, 19).build();
+    /// let shard = Shard::builder(token, Intents::empty()).shard(18, 19)?.build();
     /// # Ok(()) }
     /// ```
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the shard ID is larger or equal to the total.
-    pub fn shard(mut self, shard_id: u64, shard_total: u64) -> Self {
-        assert!(
-            shard_id < shard_total,
-            "provided shard ID {} is larger than the total {}",
-            shard_id,
-            shard_total
-        );
+    /// Returns a [`ShardIdErrorType::IdTooLarge`] error type if the shard ID to
+    /// connect as is larger than the total.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn shard(mut self, shard_id: u64, shard_total: u64) -> Result<Self, ShardIdError> {
+        if shard_id >= shard_total {
+            return Err(ShardIdError {
+                kind: ShardIdErrorType::IdTooLarge {
+                    id: shard_id,
+                    total: shard_total,
+                },
+            });
+        }
 
         self.0.shard = [shard_id, shard_total];
 
-        self
+        Ok(self)
     }
 }
 
@@ -292,10 +358,13 @@ impl From<(String, Intents)> for ShardBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::ShardBuilder;
+    use super::{ShardBuilder, ShardIdError, ShardIdErrorType};
     use crate::Intents;
-    use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
 
     assert_impl_all!(ShardBuilder: Debug, From<(String, Intents)>, Send, Sync);
+    assert_impl_all!(ShardIdErrorType: Debug, Send, Sync);
+    assert_fields!(ShardIdErrorType::IdTooLarge: id, total);
+    assert_impl_all!(ShardIdError: Error, Send, Sync);
 }
