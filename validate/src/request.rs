@@ -123,31 +123,14 @@ pub const WEBHOOK_USERNAME_LIMIT_MAX: usize = 80;
 /// Minimum length of a webhook username.
 pub const WEBHOOK_USERNAME_LIMIT_MIN: usize = 2;
 
-/// String value of an at sign.
-const AT_SIGN: &str = "@";
+/// Forbidden substrings in usernames.
+const USERNAME_INVALID_SUBSTRINGS: [&str; 5] = ["@", "#", ":", "```", "discord"];
 
-/// String value of 'clyde'.
-const CLYDE: &str = "clyde";
+/// Forbidden usernames.
+const USERNAME_INVALID_STRINGS: [&str; 2] = ["everyone", "here"];
 
-/// String value of a colon.
-const COLON: &str = ":";
-
-/// String value of 'discord'.
-const DISCORD: &str = "discord";
-
-/// String value of 'everyone'.
-const EVERYONE: &str = "everyone";
-
-/// String value of 'here'.
-const HERE: &str = "here";
-
-/// String value of an [octothorp].
-///
-/// [octothorp]: https://en.wikipedia.org/wiki/Number_sign#Names
-const OCTOTHORP: &str = "#";
-
-/// String value of three grave symbols.
-const THREE_GRAVES: &str = r#"```"#;
+/// Forbidden webhook usernames.
+const WEBHOOK_INVALID_STRINGS: [&str; 1] = ["clyde"];
 
 /// A field is not valid.
 #[derive(Debug)]
@@ -349,10 +332,10 @@ impl Display for ValidationError {
             }
             ValidationErrorType::Username { len, substring }
             | ValidationErrorType::WebhookUsername { len, substring } => {
-                f.write_str("provided username ")?;
+                f.write_str("provided username")?;
 
                 if let Some(len) = len {
-                    f.write_str("length is ")?;
+                    f.write_str(" length is ")?;
                     Display::fmt(len, f)?;
                     f.write_str(", but it must be at least ")?;
                     Display::fmt(&USERNAME_LIMIT_MIN, f)?;
@@ -963,13 +946,17 @@ pub fn username(value: impl AsRef<str>) -> Result<(), ValidationError> {
     let value = value.as_ref();
     let len = value.chars().count();
 
-    let invalid_len = if (USERNAME_LIMIT_MIN..=USERNAME_LIMIT_MAX).contains(&len) {
-        None
-    } else {
-        Some(len)
-    };
+    let range = USERNAME_LIMIT_MIN..=USERNAME_LIMIT_MAX;
+    let invalid_len = (!range.contains(&len)).then(|| len);
 
-    let invalid_substring = self::invalid_substring(value);
+    let invalid_substring = USERNAME_INVALID_SUBSTRINGS
+        .into_iter()
+        .find(|invalid_substring| value.contains(invalid_substring))
+        .or_else(|| {
+            USERNAME_INVALID_STRINGS
+                .into_iter()
+                .find(|invalid_string| value == *invalid_string)
+        });
 
     if invalid_len.is_none() && invalid_substring.is_none() {
         Ok(())
@@ -999,17 +986,12 @@ pub fn webhook_username(value: impl AsRef<str>) -> Result<(), ValidationError> {
     let value = value.as_ref();
     let len = value.chars().count();
 
-    let invalid_len = if (WEBHOOK_USERNAME_LIMIT_MIN..=WEBHOOK_USERNAME_LIMIT_MAX).contains(&len) {
-        None
-    } else {
-        Some(len)
-    };
+    let range = WEBHOOK_USERNAME_LIMIT_MIN..=WEBHOOK_USERNAME_LIMIT_MAX;
+    let invalid_len = (!range.contains(&len)).then(|| len);
 
-    let invalid_substring = if value.to_ascii_lowercase() == CLYDE {
-        Some(CLYDE)
-    } else {
-        None
-    };
+    let invalid_substring = WEBHOOK_INVALID_STRINGS
+        .into_iter()
+        .find(|invalid_string| value == *invalid_string);
 
     if invalid_len.is_none() && invalid_substring.is_none() {
         Ok(())
@@ -1023,44 +1005,46 @@ pub fn webhook_username(value: impl AsRef<str>) -> Result<(), ValidationError> {
     }
 }
 
-/// Return whether a string contains some given substrings.
-fn invalid_substring(value: impl AsRef<str>) -> Option<&'static str> {
-    let value = value.as_ref();
-
-    if value.contains(AT_SIGN) {
-        return Some(AT_SIGN);
-    }
-
-    if value.contains(OCTOTHORP) {
-        return Some(OCTOTHORP);
-    }
-
-    if value.contains(COLON) {
-        return Some(COLON);
-    }
-
-    if value.contains(DISCORD) {
-        return Some(DISCORD);
-    }
-
-    if value.contains(THREE_GRAVES) {
-        return Some(THREE_GRAVES);
-    }
-
-    if value == EVERYONE {
-        return Some(EVERYONE);
-    }
-
-    if value == HERE {
-        return Some(HERE);
-    }
-
-    None
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_username_variants() {
+        let expected = format!(
+            "provided username length is 200, but it must be at least {} and at most {}, and \
+            cannot contain :",
+            USERNAME_LIMIT_MIN, USERNAME_LIMIT_MAX
+        );
+        let actual = ValidationError {
+            kind: ValidationErrorType::Username {
+                len: Some(200),
+                substring: Some(":"),
+            },
+        };
+        assert_eq!(expected, actual.to_string());
+
+        let expected = format!(
+            "provided username length is 200, but it must be at least {} and at most {}",
+            USERNAME_LIMIT_MIN, USERNAME_LIMIT_MAX
+        );
+        let actual = ValidationError {
+            kind: ValidationErrorType::Username {
+                len: Some(200),
+                substring: None,
+            },
+        };
+        assert_eq!(expected, actual.to_string());
+
+        let expected = "provided username cannot contain :".to_string();
+        let actual = ValidationError {
+            kind: ValidationErrorType::Username {
+                len: None,
+                substring: Some(":"),
+            },
+        };
+        assert_eq!(expected, actual.to_string());
+    }
 
     #[test]
     fn test_audit_reason() {
