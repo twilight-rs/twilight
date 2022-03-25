@@ -34,6 +34,8 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}
 
       - name: Output processor info
         run: cat /proc/cpuinfo
@@ -123,6 +125,8 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -184,6 +188,8 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -203,12 +209,17 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - name: Run cargo test
-        run: cargo test
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Run tests with nextest
+        run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci
 
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
@@ -256,11 +267,16 @@ jobs:
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ github.ref_name }}-${{ matrix.package }}-${{ matrix.features }}
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
         run: |
-          cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+          cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
