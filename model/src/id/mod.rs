@@ -72,6 +72,7 @@ use std::{
 /// [channel]: marker::ChannelMarker
 /// [marker documentation]: marker
 /// [user]: marker::UserMarker
+#[repr(transparent)]
 pub struct Id<T> {
     phantom: PhantomData<T>,
     value: NonZeroU64,
