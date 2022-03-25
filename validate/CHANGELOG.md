@@ -2,6 +2,30 @@
 
 Changelog for `twilight-validate`.
 
+## [0.10.1] - 2022-03-20
+
+### Additions
+
+Validate the maximum hex color for embeds ([#1539] - [@7596ff], [@vilgotf]).
+
+Add validation for `Button` required fields, adding
+`ComponentValidationErrorType::{ButtonConflict, ButtonStyle}` ([#1591] -
+[@zeylahellyer]).
+
+Separate out the validation logic for each type of component from the
+`component` function to individual `action_row`, `button`, `select_menu`, and
+`text_input` functions ([#1592] - [@zeylahellyer]). This allows users to
+validate components that aren't wrapped in action rows.
+
+### Changes
+
+Update `SELECT_PLACEHOLDER_LENGTH` to 150 ([#1566] - [@itohatweb]).
+
+[#1539]: https://github.com/twilight-rs/twilight/pull/1539
+[#1566]: https://github.com/twilight-rs/twilight/pull/1566
+[#1591]: https://github.com/twilight-rs/twilight/pull/1591
+[#1592]: https://github.com/twilight-rs/twilight/pull/1592
+
 ## [0.10.0] - 2022-03-10
 
 ### Additions
@@ -66,9 +90,11 @@ Initial release ([#1331], [#1395] - [@7596ff], [@baptiste0928]).
 
 [@7596ff]: https://github.com/7596ff
 [@baptiste0928]: https://github.com/baptiste0928
+[@itohatweb]: https://github.com/itohatweb
 [@Erk-]: https://github.com/Erk-
 [@laralove143]: https://github.com/laralove143
 
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.10.0
 [0.9.2]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.9.2
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.9.1

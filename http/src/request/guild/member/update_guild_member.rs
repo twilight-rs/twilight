@@ -25,7 +25,7 @@ struct UpdateGuildMemberFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<NullableField<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    communication_disabled_util: Option<NullableField<Timestamp>>,
+    communication_disabled_until: Option<NullableField<Timestamp>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -59,7 +59,7 @@ impl<'a> UpdateGuildMember<'a> {
         Self {
             fields: UpdateGuildMemberFields {
                 channel_id: None,
-                communication_disabled_util: None,
+                communication_disabled_until: None,
                 deaf: None,
                 mute: None,
                 nick: None,
@@ -103,7 +103,7 @@ impl<'a> UpdateGuildMember<'a> {
             validate_communication_disabled_until(timestamp)?;
         }
 
-        self.fields.communication_disabled_util = Some(NullableField(timestamp));
+        self.fields.communication_disabled_until = Some(NullableField(timestamp));
 
         Ok(self)
     }
@@ -221,7 +221,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
-            communication_disabled_util: None,
+            communication_disabled_until: None,
             deaf: Some(true),
             mute: Some(true),
             nick: None,
@@ -247,7 +247,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
-            communication_disabled_util: None,
+            communication_disabled_until: None,
             deaf: None,
             mute: None,
             nick: Some(NullableField(None)),
@@ -272,7 +272,7 @@ mod tests {
 
         let body = UpdateGuildMemberFields {
             channel_id: None,
-            communication_disabled_util: None,
+            communication_disabled_until: None,
             deaf: None,
             mute: None,
             nick: Some(NullableField(Some("foo"))),
