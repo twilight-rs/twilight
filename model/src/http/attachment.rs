@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 /// Attachment for when creating and updating messages.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Attachment {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip)]
     pub file: Vec<u8>,
