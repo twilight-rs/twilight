@@ -47,8 +47,7 @@
     nonstandard_style,
     rust_2018_idioms,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
 #![allow(clippy::semicolon_if_nothing_returned)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]

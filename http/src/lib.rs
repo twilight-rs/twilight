@@ -125,8 +125,7 @@
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
 #![allow(
     clippy::missing_errors_doc,
@@ -135,6 +134,9 @@
     clippy::semicolon_if_nothing_returned,
     clippy::unnecessary_wraps
 )]
+
+#[cfg(feature = "simd-json")]
+extern crate dep_simd_json as simd_json;
 
 pub mod api_error;
 pub mod client;

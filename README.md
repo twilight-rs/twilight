@@ -138,6 +138,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let token = env::var("DISCORD_TOKEN")?;
 
     // Use intents to only receive guild message events.
+
+    // A cluster is a manager for multiple shards that by default
+    // creates as many shards as Discord recommends.
     let (cluster, mut events) = Cluster::new(token.to_owned(), Intents::GUILD_MESSAGES).await?;
     let cluster = Arc::new(cluster);
 

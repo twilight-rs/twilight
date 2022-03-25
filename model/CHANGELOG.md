@@ -2,6 +2,59 @@
 
 Changelog for `twilight-model`.
 
+## [0.10.1] - 2022-03-20
+
+### Additions
+
+Add `StageInstance::guild_scheduled_event_id` ([#1567] - [@itohatweb]).
+
+Document `ApplicationFlags` ([#1578] - [@7596ff]).
+
+Add `Channel::newly_created` ([#1588] - [@7596ff]).
+
+Add `guild_locale`, `locale`, and `message` to `ModalSubmitInteraction` ([#1613]
+- [@itohatweb]).
+
+### Changes
+
+Rename `Permissions::START_EMBEDDED_ACTIVITIES` to `USE_EMBEDDED_ACTIVITIES`
+([#1568] - [@itohatweb]).
+
+Remove `Invite::stage_instance` ([#1569] - [@itohatweb]).
+
+Remove `Ord` and `PartialOrd` implementations on the following ([#1572] -
+[@vilgotf]):
+- `ActivityType`
+- `ApplicationCommandAutocompleteDataOptionType`
+- `AuditLogEventType`
+- `ChannelType`
+- `CommandOptionType`
+- `CommandType`
+- `ComponentType`
+- `InteractionResponseType`
+- `InteractionType`
+- `MessageActivityType`
+- `MessageType`
+- `PremiumType`
+- `Status`
+- `StickerFormatType`
+- `StickerType`
+- `TargetType`
+- `WebhookType`
+
+### Fixes
+
+Correct time unit on `AutoArchiveDuration::number` ([#1571] - [@vilgotf]).
+
+[#1567]: https://github.com/twilight-rs/twilight/pull/1567
+[#1568]: https://github.com/twilight-rs/twilight/pull/1568
+[#1569]: https://github.com/twilight-rs/twilight/pull/1569
+[#1571]: https://github.com/twilight-rs/twilight/pull/1571
+[#1572]: https://github.com/twilight-rs/twilight/pull/1572
+[#1578]: https://github.com/twilight-rs/twilight/pull/1578
+[#1588]: https://github.com/twilight-rs/twilight/pull/1588
+[#1613]: https://github.com/twilight-rs/twilight/pull/1613
+
 ## [0.10.0] - 2022-03-10
 
 ### Channels
@@ -1371,6 +1424,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.0
 [0.9.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.2
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.1
