@@ -87,7 +87,7 @@ impl Interaction {
         }
     }
 
-    /// Returns `true` if the interaction was invoked in a DM.
+    /// Whether the interaction was invoked in a DM.
     pub const fn is_dm(&self) -> bool {
         match self {
             Interaction::Ping(_) => false,
@@ -98,7 +98,7 @@ impl Interaction {
         }
     }
 
-    /// Returns `true` if the interaction was invoked in a guild.
+    /// Whether the interaction was invoked in a guild.
     pub const fn is_guild(&self) -> bool {
         self.guild_id().is_some()
     }
