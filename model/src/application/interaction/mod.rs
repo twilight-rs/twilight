@@ -65,7 +65,7 @@ impl Interaction {
         }
     }
 
-    /// Return the guild ID the interaction was invoked in.
+    /// ID of the guild the interaction was invoked in.
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
@@ -103,7 +103,7 @@ impl Interaction {
         self.guild_id().is_some()
     }
 
-    /// Return the [`InteractionType`] of the inner interaction.
+    /// Type of interaction.
     pub const fn kind(&self) -> InteractionType {
         match self {
             Interaction::Ping(ping) => ping.kind,
