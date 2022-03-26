@@ -582,7 +582,7 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     }
 
     if let Some(label) = button.label.as_ref() {
-        self::component_label(label)?;
+        self::component_button_label(label)?;
     }
 
     Ok(())
@@ -681,7 +681,7 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 pub fn text_input(text_input: &TextInput) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&text_input.custom_id)?;
 
-    self::component_label(&text_input.label)?;
+    self::component_button_label(&text_input.label)?;
 
     if let Some(max_length) = text_input.max_length {
         self::component_text_input_max(max_length)?;
@@ -736,7 +736,7 @@ const fn component_action_row_components(
 /// label is too long.
 ///
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
-fn component_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+fn component_button_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = label.as_ref().chars().count();
 
     if chars > COMPONENT_LABEL_LENGTH {
@@ -1173,11 +1173,11 @@ mod tests {
 
     #[test]
     fn test_component_label() {
-        assert!(component_label("").is_ok());
-        assert!(component_label("a").is_ok());
-        assert!(component_label("a".repeat(80)).is_ok());
+        assert!(component_button_label("").is_ok());
+        assert!(component_button_label("a").is_ok());
+        assert!(component_button_label("a".repeat(80)).is_ok());
 
-        assert!(component_label("a".repeat(81)).is_err());
+        assert!(component_button_label("a".repeat(81)).is_err());
     }
 
     #[test]
