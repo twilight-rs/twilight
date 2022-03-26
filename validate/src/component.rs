@@ -127,6 +127,22 @@ pub const SELECT_OPTION_VALUE_LENGTH: usize = 100;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_PLACEHOLDER_LENGTH: usize = 150;
 
+/// Maximum length of [`TextInput::label`].
+///
+/// This is based on [Discord Docs/Text Inputs].
+///
+/// [`TextInput::label`]: twilight_model::application::component::text_input::TextInput::label
+/// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
+pub const TEXT_INPUT_LABEL_MAX: usize = 45;
+
+/// Minimum length of [`TextInput::label`].
+///
+/// This is based on [Discord Docs/Text Inputs].
+///
+/// [`TextInput::label`]: twilight_model::application::component::text_input::TextInput::label
+/// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
+pub const TEXT_INPUT_LABEL_MIN: usize = 1;
+
 /// Maximum length of [`TextInput::value`].
 ///
 /// This is based on [Discord Docs/Text Inputs].
@@ -297,6 +313,13 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&SELECT_OPTION_COUNT, f)
             }
+            ComponentValidationErrorType::TextInputLabelLength { len: count } => {
+                f.write_str("a text input label length is ")?;
+                Display::fmt(count, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&TEXT_INPUT_LABEL_MAX, f)
+            }
             ComponentValidationErrorType::TextInputMaxLength { len: count } => {
                 f.write_str("a text input max length is ")?;
                 Display::fmt(count, f)?;
@@ -424,6 +447,13 @@ pub enum ComponentValidationErrorType {
     SelectPlaceholderLength {
         /// Number of codepoints that were provided.
         chars: usize,
+    },
+    /// [`TextInput::label`] is invalid.
+    ///
+    /// [`TextInput::label`]: twilight_model::application::component::text_input::TextInput::label
+    TextInputLabelLength {
+        /// Provided length.
+        len: usize,
     },
     /// [`TextInput::max_length`] is invalid.
     ///
@@ -681,7 +711,7 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 pub fn text_input(text_input: &TextInput) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&text_input.custom_id)?;
 
-    self::component_label(&text_input.label)?;
+    self::component_text_input_label(&text_input.label)?;
 
     if let Some(max_length) = text_input.max_length {
         self::component_text_input_max(max_length)?;
@@ -929,6 +959,29 @@ fn component_select_placeholder(
     }
 
     Ok(())
+}
+
+/// Ensure a [`TextInput::label`]'s length is correct.
+///
+/// The length must be at most [`TEXT_INPUT_LABEL_MAX`].
+///
+/// # Errors
+///
+/// Returns an error of type [`TextInputLabelLength`] if the provided
+/// label is too long.
+///
+/// [`TextInput::label`]: twilight_model::application::component::text_input::TextInput::label
+/// [`TextInputLabelLength`]: ComponentValidationErrorType::TextInputLabelLength
+fn component_text_input_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+    let len = label.as_ref().len();
+
+    if (TEXT_INPUT_LABEL_MIN..=TEXT_INPUT_LABEL_MAX).contains(&len) {
+        Ok(())
+    } else {
+        Err(ComponentValidationError {
+            kind: ComponentValidationErrorType::TextInputLabelLength { len },
+        })
+    }
 }
 
 /// Ensure a [`TextInput::max_length`]'s value is correct.
@@ -1261,6 +1314,15 @@ mod tests {
         assert!(component_select_placeholder("a".repeat(150)).is_ok());
 
         assert!(component_select_placeholder("a".repeat(151)).is_err());
+    }
+
+    #[test]
+    fn test_component_text_input_label() {
+        assert!(component_text_input_label("a").is_ok());
+        assert!(component_text_input_label("a".repeat(45)).is_ok());
+
+        assert!(component_text_input_label("").is_err());
+        assert!(component_text_input_label("a".repeat(46)).is_err());
     }
 
     #[test]
