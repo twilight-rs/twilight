@@ -31,7 +31,7 @@ impl Serialize for ModalInteractionDataActionRow {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("ModalInteractionDataActionRow", 2)?;
 
-        state.serialize_field("type", &ComponentType::ActionRow)?;
+        state.serialize_field("component_type", &ComponentType::ActionRow)?;
         state.serialize_field("components", &self.components)?;
 
         state.end()
@@ -120,7 +120,7 @@ mod tests {
                     name: "ModalInteractionDataActionRow",
                     len: 2,
                 },
-                Token::String("type"),
+                Token::String("component_type"),
                 Token::U8(ComponentType::ActionRow as u8),
                 Token::String("components"),
                 Token::Seq { len: Some(1) },
