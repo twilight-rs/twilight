@@ -65,7 +65,7 @@ impl Interaction {
         }
     }
 
-    /// Return the guild ID the interaction was run in.
+    /// Return the guild ID the interaction was invoked in.
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
@@ -87,7 +87,7 @@ impl Interaction {
         }
     }
 
-    /// Returns `true` if the interaction was run in a DM.
+    /// Returns `true` if the interaction was invoked in a DM.
     pub const fn is_dm(&self) -> bool {
         match self {
             Interaction::Ping(_) => false,
@@ -98,7 +98,7 @@ impl Interaction {
         }
     }
 
-    /// Returns `true` if the interaction was run in a guild.
+    /// Returns `true` if the interaction was invoked in a guild.
     pub const fn is_guild(&self) -> bool {
         self.guild_id().is_some()
     }
