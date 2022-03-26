@@ -121,6 +121,20 @@ impl<'de> Deserialize<'de> for Interaction {
     }
 }
 
+const fn author_id(user: Option<&User>, member: Option<&PartialMember>) -> Option<Id<UserMarker>> {
+    if let Some(member) = member {
+        if let Some(user) = &member.user {
+            return Some(user.id);
+        }
+    }
+
+    if let Some(user) = user {
+        return Some(user.id);
+    }
+
+    None
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum InteractionField {

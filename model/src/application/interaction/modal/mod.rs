@@ -58,17 +58,7 @@ impl ModalSubmitInteraction {
     /// [`member`]: Self::member
     /// [`user`]: Self::user
     pub const fn author_id(&self) -> Option<Id<UserMarker>> {
-        if let Some(member) = &self.member {
-            if let Some(user) = &member.user {
-                return Some(user.id);
-            }
-        }
-
-        if let Some(user) = &self.user {
-            return Some(user.id);
-        }
-
-        None
+        super::author_id(self.user.as_ref(), self.member.as_ref())
     }
 }
 
