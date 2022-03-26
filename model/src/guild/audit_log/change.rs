@@ -14,7 +14,8 @@ use crate::{
             ApplicationMarker, ChannelMarker, GenericMarker, GuildMarker, RoleMarker, UserMarker,
         },
         Id,
-    }, util::ImageHash,
+    },
+    util::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
