@@ -89,12 +89,14 @@ impl MessageComponentInteraction {
 mod tests {
     use super::{MessageComponentInteraction, MessageComponentInteractionData};
     use crate::{
-        application::{component::ComponentType, interaction::InteractionType},
+        application::{
+            component::ComponentType,
+            interaction::{tests::user, InteractionType},
+        },
         channel::message::{Message, MessageType},
         datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{marker::UserMarker, Id},
-        user::User,
     };
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -122,26 +124,6 @@ mod tests {
         Serialize,
         Sync
     );
-
-    fn user(id: Id<UserMarker>) -> User {
-        User {
-            accent_color: None,
-            avatar: None,
-            banner: None,
-            bot: false,
-            discriminator: 4444,
-            email: None,
-            flags: None,
-            id,
-            locale: None,
-            mfa_enabled: None,
-            name: "twilight".to_owned(),
-            premium_type: None,
-            public_flags: None,
-            system: None,
-            verified: None,
-        }
-    }
 
     #[test]
     fn test_author_id() -> Result<(), TimestampParseError> {

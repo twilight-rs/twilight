@@ -74,11 +74,25 @@ impl ModalSubmitInteraction {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::{
-        application::component::ComponentType,
-        datetime::{Timestamp, TimestampParseError},
+    use super::{
+        ModalInteractionData, ModalInteractionDataActionRow, ModalInteractionDataComponent,
+        ModalSubmitInteraction,
     };
+    use crate::{
+        application::{
+            component::ComponentType,
+            interaction::{tests::user, InteractionType},
+        },
+        datetime::{Timestamp, TimestampParseError},
+        guild::PartialMember,
+        id::{
+            marker::{
+                ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker,
+            },
+            Id,
+        },
+    };
+    use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, str::FromStr};
 
@@ -104,26 +118,6 @@ mod tests {
     );
 
     const USER_ID: Id<UserMarker> = Id::new(7);
-
-    fn user(id: Id<UserMarker>) -> User {
-        User {
-            accent_color: None,
-            avatar: None,
-            banner: None,
-            bot: false,
-            discriminator: 4444,
-            email: None,
-            flags: None,
-            id,
-            locale: None,
-            mfa_enabled: None,
-            name: "twilight".to_owned(),
-            premium_type: None,
-            public_flags: None,
-            system: None,
-            verified: None,
-        }
-    }
 
     #[test]
     fn test_author_id() -> Result<(), TimestampParseError> {

@@ -426,7 +426,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use crate::{
         application::{
             command::{CommandOptionType, CommandType},
@@ -440,12 +440,32 @@ mod test {
         },
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
-        id::Id,
+        id::{marker::UserMarker, Id},
         test::image_hash,
         user::User,
     };
     use serde_test::Token;
     use std::{collections::HashMap, str::FromStr};
+
+    pub(super) fn user(id: Id<UserMarker>) -> User {
+        User {
+            accent_color: None,
+            avatar: None,
+            banner: None,
+            bot: false,
+            discriminator: 4444,
+            email: None,
+            flags: None,
+            id,
+            locale: None,
+            mfa_enabled: None,
+            name: "twilight".to_owned(),
+            premium_type: None,
+            public_flags: None,
+            system: None,
+            verified: None,
+        }
+    }
 
     #[test]
     #[allow(clippy::too_many_lines)]
