@@ -54,6 +54,17 @@ pub enum Interaction {
 }
 
 impl Interaction {
+    /// Id of the associated application.
+    pub const fn application_id(&self) -> Id<ApplicationMarker> {
+        match self {
+            Self::Ping(ping) => ping.application_id,
+            Self::ApplicationCommand(command) => command.application_id,
+            Self::ApplicationCommandAutocomplete(command) => command.application_id,
+            Self::MessageComponent(component) => component.application_id,
+            Self::ModalSubmit(modal) => modal.application_id,
+        }
+    }
+
     /// ID of the user that invoked the interaction.
     pub const fn author_id(&self) -> Option<Id<UserMarker>> {
         match self {
@@ -91,16 +102,22 @@ impl Interaction {
     pub const fn is_dm(&self) -> bool {
         match self {
             Interaction::Ping(_) => false,
-            Interaction::ApplicationCommand(command) => command.user.is_some(),
-            Interaction::ApplicationCommandAutocomplete(command) => command.user.is_some(),
-            Interaction::MessageComponent(component) => component.user.is_some(),
-            Interaction::ModalSubmit(modal) => modal.user.is_some(),
+            Interaction::ApplicationCommand(command) => command.is_dm(),
+            Interaction::ApplicationCommandAutocomplete(command) => command.is_dm(),
+            Interaction::MessageComponent(component) => component.is_dm(),
+            Interaction::ModalSubmit(modal) => modal.is_dm(),
         }
     }
 
     /// Whether the interaction was invoked in a guild.
     pub const fn is_guild(&self) -> bool {
-        self.guild_id().is_some()
+        match self {
+            Interaction::Ping(_) => false,
+            Interaction::ApplicationCommand(command) => command.is_guild(),
+            Interaction::ApplicationCommandAutocomplete(command) => command.is_guild(),
+            Interaction::MessageComponent(component) => component.is_guild(),
+            Interaction::ModalSubmit(modal) => modal.is_guild(),
+        }
     }
 
     /// Type of interaction.

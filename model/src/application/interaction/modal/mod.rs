@@ -60,6 +60,16 @@ impl ModalSubmitInteraction {
     pub const fn author_id(&self) -> Option<Id<UserMarker>> {
         super::author_id(self.user.as_ref(), self.member.as_ref())
     }
+
+    /// Whether the interaction was invoked in a DM.
+    pub const fn is_dm(&self) -> bool {
+        self.user.is_some()
+    }
+
+    /// Whether the interaction was invoked in a guild.
+    pub const fn is_guild(&self) -> bool {
+        self.member.is_some()
+    }
 }
 
 #[cfg(test)]
