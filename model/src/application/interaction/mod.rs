@@ -65,28 +65,6 @@ impl Interaction {
         }
     }
 
-    /// ID of the user that invoked the interaction.
-    pub const fn author_id(&self) -> Option<Id<UserMarker>> {
-        match self {
-            Interaction::Ping(_) => None,
-            Interaction::ApplicationCommand(command) => command.author_id(),
-            Interaction::ApplicationCommandAutocomplete(command) => command.author_id(),
-            Interaction::MessageComponent(component) => component.author_id(),
-            Interaction::ModalSubmit(modal) => modal.author_id(),
-        }
-    }
-
-    /// ID of the guild the interaction was invoked in.
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
-        match self {
-            Self::Ping(_) => None,
-            Self::ApplicationCommand(command) => command.guild_id,
-            Self::ApplicationCommandAutocomplete(command) => command.guild_id,
-            Self::MessageComponent(component) => component.guild_id,
-            Self::ModalSubmit(modal) => modal.guild_id,
-        }
-    }
-
     /// Return the ID of the inner interaction.
     pub const fn id(&self) -> Id<InteractionMarker> {
         match self {
@@ -95,28 +73,6 @@ impl Interaction {
             Self::ApplicationCommandAutocomplete(command) => command.id,
             Self::MessageComponent(component) => component.id,
             Self::ModalSubmit(modal) => modal.id,
-        }
-    }
-
-    /// Whether the interaction was invoked in a DM.
-    pub const fn is_dm(&self) -> bool {
-        match self {
-            Interaction::Ping(_) => false,
-            Interaction::ApplicationCommand(command) => command.is_dm(),
-            Interaction::ApplicationCommandAutocomplete(command) => command.is_dm(),
-            Interaction::MessageComponent(component) => component.is_dm(),
-            Interaction::ModalSubmit(modal) => modal.is_dm(),
-        }
-    }
-
-    /// Whether the interaction was invoked in a guild.
-    pub const fn is_guild(&self) -> bool {
-        match self {
-            Interaction::Ping(_) => false,
-            Interaction::ApplicationCommand(command) => command.is_guild(),
-            Interaction::ApplicationCommandAutocomplete(command) => command.is_guild(),
-            Interaction::MessageComponent(component) => component.is_guild(),
-            Interaction::ModalSubmit(modal) => modal.is_guild(),
         }
     }
 
