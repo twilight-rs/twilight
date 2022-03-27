@@ -106,11 +106,13 @@ impl Interaction {
     /// Type of interaction.
     pub const fn kind(&self) -> InteractionType {
         match self {
-            Interaction::Ping(ping) => ping.kind,
-            Interaction::ApplicationCommand(command) => command.kind,
-            Interaction::ApplicationCommandAutocomplete(command) => command.kind,
-            Interaction::MessageComponent(component) => component.kind,
-            Interaction::ModalSubmit(modal) => modal.kind,
+            Interaction::Ping(_) => InteractionType::Ping,
+            Interaction::ApplicationCommand(_) => InteractionType::ApplicationCommand,
+            Interaction::ApplicationCommandAutocomplete(_) => {
+                InteractionType::ApplicationCommandAutocomplete
+            }
+            Interaction::MessageComponent(_) => InteractionType::MessageComponent,
+            Interaction::ModalSubmit(_) => InteractionType::ModalSubmit,
         }
     }
 }
