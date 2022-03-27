@@ -387,7 +387,7 @@ mod test {
                     ApplicationCommand, CommandData, CommandDataOption,
                     CommandInteractionDataResolved, CommandOptionValue, InteractionMember,
                 },
-                Interaction,
+                Interaction, InteractionType,
             },
         },
         datetime::{Timestamp, TimestampParseError},
@@ -398,8 +398,6 @@ mod test {
     };
     use serde_test::Token;
     use std::{collections::HashMap, str::FromStr};
-
-    use super::InteractionType;
 
     #[test]
     #[allow(clippy::too_many_lines)]
