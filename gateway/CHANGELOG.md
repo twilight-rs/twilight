@@ -2,6 +2,21 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.10.1] - 2022-03-20
+
+### Changes
+
+`tokio-tungstenite` has been updated to `0.17` ([#1551] - [@Gelbpunkt]).
+
+### Fixes
+
+`value-trait`, a dependency of `simd-json`, has been limited to at most `0.2.10`
+([#1596] - [@7596ff], [@vilgotf]). The crate updated its MSRV in a minor
+version, which Twilight is unable to follow.
+
+[#1551]: https://github.com/twilight-rs/twilight/pull/1551
+[#1596]: https://github.com/twilight-rs/twilight/pull/1596
+
 ## [0.10.0] - 2022-03-10
 
 ### Additions
@@ -782,6 +797,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.0

@@ -406,6 +406,8 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     .map_err(|_| DeError::custom("expected ModalInteractionData struct"))?;
 
                 let guild_id = guild_id.unwrap_or_default();
+                let guild_locale = guild_locale.unwrap_or_default();
+                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
                 let member = member.unwrap_or_default();
                 let user = user.unwrap_or_default();
 
@@ -414,9 +416,12 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     channel_id,
                     data,
                     guild_id,
+                    guild_locale,
                     id,
                     kind,
+                    locale,
                     member,
+                    message,
                     token,
                     user,
                 }))
