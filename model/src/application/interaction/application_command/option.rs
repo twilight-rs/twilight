@@ -180,9 +180,9 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     }
                 }
 
+                let focused = focused.unwrap_or_default();
                 let name = name_opt.ok_or_else(|| DeError::missing_field("name"))?;
                 let kind = kind_opt.ok_or_else(|| DeError::missing_field("type"))?;
-                let focused = focused.unwrap_or_default();
 
                 let value = if focused {
                     let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
@@ -343,6 +343,18 @@ pub enum CommandOptionValue {
     Attachment(Id<AttachmentMarker>),
     Boolean(bool),
     Channel(Id<ChannelMarker>),
+    /// Value of a focused field.
+    ///
+    /// Since Discord does not validate focused fields, they are sent as strings.
+    /// This means that you will not necessarily get a valid number from number options.
+    ///
+    /// See [Discord Docs/Autocomplete].
+    ///
+    /// The actual [`CommandOptionType`] is available through the second tuple value.
+    ///
+    /// [Discord Docs/Autocomplete]: https://discord.com/developers/docs/interactions/application-commands#autocomplete
+    /// [`CommandOptionType`]: crate::application::command::CommandOptionType
+    Focused(String, CommandOptionType),
     Integer(i64),
     Mentionable(Id<GenericMarker>),
     Number(Number),
@@ -351,7 +363,6 @@ pub enum CommandOptionValue {
     SubCommand(Vec<CommandDataOption>),
     SubCommandGroup(Vec<CommandDataOption>),
     User(Id<UserMarker>),
-    Focused(String, CommandOptionType),
 }
 
 impl CommandOptionValue {
