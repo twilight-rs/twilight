@@ -113,15 +113,15 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut application_id: Option<Id<ApplicationMarker>> = None;
         let mut channel_id: Option<Id<ChannelMarker>> = None;
         let mut data: Option<Value> = None;
-        let mut guild_id: Option<Option<Id<GuildMarker>>> = None;
-        let mut guild_locale: Option<Option<String>> = None;
+        let mut guild_id: Option<Id<GuildMarker>> = None;
+        let mut guild_locale: Option<String> = None;
         let mut id: Option<Id<InteractionMarker>> = None;
-        let mut member: Option<Option<PartialMember>> = None;
+        let mut member: Option<PartialMember> = None;
         let mut message: Option<Message> = None;
         let mut token: Option<String> = None;
         let mut kind: Option<InteractionType> = None;
         let mut locale: Option<String> = None;
-        let mut user: Option<Option<User>> = None;
+        let mut user: Option<User> = None;
 
         #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing interaction");
@@ -281,12 +281,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
-
-                let guild_id = guild_id.unwrap_or_default();
-                let guild_locale = guild_locale.unwrap_or_default();
                 let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
-                let member = member.unwrap_or_default();
-                let user = user.unwrap_or_default();
 
                 #[cfg(feature = "tracing")]
                 tracing::trace!(%channel_id, "handling application command");
@@ -313,12 +308,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
-
-                let guild_id = guild_id.unwrap_or_default();
-                let guild_locale = guild_locale.unwrap_or_default();
                 let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
-                let member = member.unwrap_or_default();
-                let user = user.unwrap_or_default();
 
                 #[cfg(feature = "tracing")]
                 tracing::trace!(%channel_id, "handling application command autocomplete");
@@ -348,12 +338,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                         DeError::custom("expected MessageComponentInteractionData struct")
                     })?;
                 let message = message.ok_or_else(|| DeError::missing_field("message"))?;
-
-                let guild_id = guild_id.unwrap_or_default();
-                let guild_locale = guild_locale.unwrap_or_default();
                 let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
-                let member = member.unwrap_or_default();
-                let user = user.unwrap_or_default();
 
                 Self::Value::MessageComponent(Box::new(MessageComponentInteraction {
                     application_id,
@@ -376,12 +361,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
                     .map_err(|_| DeError::custom("expected ModalInteractionData struct"))?;
-
-                let guild_id = guild_id.unwrap_or_default();
-                let guild_locale = guild_locale.unwrap_or_default();
                 let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
-                let member = member.unwrap_or_default();
-                let user = user.unwrap_or_default();
 
                 Self::Value::ModalSubmit(Box::new(ModalSubmitInteraction {
                     application_id,
@@ -620,11 +600,9 @@ mod test {
                 Token::StructEnd,
                 Token::StructEnd,
                 Token::Str("guild_id"),
-                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("400"),
                 Token::Str("guild_locale"),
-                Token::Some,
                 Token::String("de"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -634,7 +612,6 @@ mod test {
                 Token::Str("locale"),
                 Token::Str("en-GB"),
                 Token::Str("member"),
-                Token::Some,
                 Token::Struct {
                     name: "PartialMember",
                     len: 8,

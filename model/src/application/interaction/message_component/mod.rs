@@ -12,13 +12,12 @@ use crate::{
     },
     user::User,
 };
-use serde::Serialize;
+use serde::{ser::SerializeStruct, Serialize};
 
 /// Information present in an [`Interaction::MessageComponent`].
 ///
 /// [`Interaction::MessageComponent`]: super::Interaction::MessageComponent
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
-#[serde(rename(serialize = "Interaction"))]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct MessageComponentInteraction {
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
@@ -33,19 +32,16 @@ pub struct MessageComponentInteraction {
     /// Present when the command is used in a guild.
     ///
     /// Defaults to `en-US`.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_locale: Option<String>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of the interaction.
-    #[serde(rename = "type")]
     pub kind: InteractionType,
     /// Selected language of the user who triggered the interaction.
     pub locale: String,
     /// Member that triggered the interaction.
     ///
     /// Present when the command is used in a guild.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<PartialMember>,
     /// Message object for the message this button belongs to.
     ///
@@ -57,7 +53,6 @@ pub struct MessageComponentInteraction {
     /// User that triggered the interaction.
     ///
     /// Present when the command is used in a direct message.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 }
 
@@ -82,6 +77,42 @@ impl MessageComponentInteraction {
         }
 
         None
+    }
+}
+
+impl Serialize for MessageComponentInteraction {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let len = 8
+            + usize::from(self.guild_id.is_some())
+            + usize::from(self.guild_locale.is_some())
+            + usize::from(self.member.is_some())
+            + usize::from(self.user.is_some());
+
+        let mut state = serializer.serialize_struct("Interaction", len)?;
+        state.serialize_field("application_id", &self.application_id)?;
+        state.serialize_field("channel_id", &self.channel_id)?;
+        state.serialize_field("data", &self.data)?;
+        if let Some(guild_id) = self.guild_id {
+            state.serialize_field("guild_id", &guild_id)?;
+        }
+        if let Some(guild_locale) = &self.guild_locale {
+            state.serialize_field("guild_locale", &guild_locale)?;
+        }
+        state.serialize_field("id", &self.id)?;
+        state.serialize_field("type", &InteractionType::MessageComponent)?;
+        state.serialize_field("locale", &self.locale)?;
+        if let Some(member) = &self.member {
+            state.serialize_field("member", &member)?;
+        }
+        state.serialize_field("message", &self.message)?;
+        state.serialize_field("token", &self.token)?;
+        if let Some(user) = &self.user {
+            state.serialize_field("user", &user)?;
+        }
+        state.end()
     }
 }
 
