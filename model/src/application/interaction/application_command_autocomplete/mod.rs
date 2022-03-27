@@ -91,7 +91,10 @@ impl ApplicationCommandAutocomplete {
 mod tests {
     use super::*;
     use crate::{
-        application::{command::CommandType, interaction::Interaction},
+        application::{
+            command::CommandType,
+            interaction::{tests::user, Interaction},
+        },
         datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
@@ -226,6 +229,63 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+
+        Ok(())
+    }
+
+    const USER_ID: Id<UserMarker> = Id::new(7);
+
+    #[test]
+    fn test_author_id() -> Result<(), TimestampParseError> {
+        let joined_at = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
+
+        let in_guild = ApplicationCommandAutocomplete {
+            application_id: Id::<ApplicationMarker>::new(1),
+            channel_id: Id::<ChannelMarker>::new(1),
+            data: ApplicationCommandAutocompleteData {
+                id: Id::new(3),
+                name: "search".to_owned(),
+                kind: CommandType::ChatInput,
+                options: Vec::from([ApplicationCommandAutocompleteDataOption {
+                    focused: true,
+                    kind: ApplicationCommandAutocompleteDataOptionType::Integer,
+                    name: "issue".to_owned(),
+                    options: Vec::new(),
+                    value: Some("1234".to_owned()),
+                }]),
+                resolved: None,
+            },
+            guild_id: Some(Id::<GuildMarker>::new(1)),
+            guild_locale: None,
+            id: Id::<InteractionMarker>::new(1),
+            kind: InteractionType::ApplicationCommandAutocomplete,
+            locale: "en-US".to_owned(),
+            member: Some(PartialMember {
+                avatar: None,
+                deaf: false,
+                joined_at,
+                mute: false,
+                nick: None,
+                permissions: None,
+                premium_since: None,
+                roles: Vec::new(),
+                user: Some(user(USER_ID)),
+                communication_disabled_until: None,
+            }),
+            token: "TOKEN".to_owned(),
+            user: None,
+        };
+
+        assert_eq!(Some(USER_ID), in_guild.author_id());
+        assert!(in_guild.is_guild());
+
+        let in_dm = ApplicationCommandAutocomplete {
+            member: None,
+            user: Some(user(USER_ID)),
+            ..in_guild
+        };
+        assert_eq!(Some(USER_ID), in_dm.author_id());
+        assert!(in_dm.is_dm());
 
         Ok(())
     }

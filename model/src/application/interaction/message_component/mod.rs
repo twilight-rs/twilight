@@ -192,6 +192,7 @@ mod tests {
         };
 
         assert_eq!(Some(USER_ID), in_guild.author_id());
+        assert!(in_guild.is_guild());
 
         let in_dm = MessageComponentInteraction {
             member: None,
@@ -203,6 +204,7 @@ mod tests {
             ..in_guild
         };
         assert_eq!(Some(USER_ID), in_dm.author_id());
+        assert!(in_dm.is_dm());
 
         Ok(())
     }
