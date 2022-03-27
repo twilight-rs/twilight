@@ -15,8 +15,6 @@ pub struct Ping {
     pub application_id: Id<ApplicationMarker>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
-    /// Kind of the interaction.
-    pub kind: InteractionType,
     /// Token of the interaction.
     pub token: String,
 }

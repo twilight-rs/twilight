@@ -35,8 +35,6 @@ pub struct MessageComponentInteraction {
     pub guild_locale: Option<String>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
-    /// Type of the interaction.
-    pub kind: InteractionType,
     /// Selected language of the user who triggered the interaction.
     pub locale: String,
     /// Member that triggered the interaction.
@@ -120,7 +118,7 @@ impl Serialize for MessageComponentInteraction {
 mod tests {
     use super::{MessageComponentInteraction, MessageComponentInteractionData};
     use crate::{
-        application::{component::ComponentType, interaction::InteractionType},
+        application::component::ComponentType,
         channel::message::{Message, MessageType},
         datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
@@ -137,7 +135,6 @@ mod tests {
         data,
         guild_id,
         id,
-        kind,
         member,
         message,
         token,
@@ -191,7 +188,6 @@ mod tests {
             guild_id: Some(Id::new(3)),
             guild_locale: None,
             id: Id::new(4),
-            kind: InteractionType::MessageComponent,
             locale: "en-GB".to_owned(),
             member: Some(PartialMember {
                 avatar: None,

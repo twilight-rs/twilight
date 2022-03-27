@@ -41,8 +41,6 @@ pub struct ApplicationCommand {
     pub guild_locale: Option<String>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
-    /// Kind of the interaction.
-    pub kind: InteractionType,
     /// Selected language of the user who triggered the interaction.
     pub locale: String,
     /// Member that triggered the interaction.

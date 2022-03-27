@@ -37,8 +37,6 @@ pub struct ModalSubmitInteraction {
     pub guild_locale: Option<String>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
-    /// Type of the interaction.
-    pub kind: InteractionType,
     /// Selected language of the user who triggered the interaction.
     pub locale: String,
     /// Member that triggered the interaction.
@@ -137,7 +135,6 @@ mod tests {
         data,
         guild_id,
         id,
-        kind,
         member,
         token,
         user
@@ -194,7 +191,6 @@ mod tests {
             guild_id: Some(Id::<GuildMarker>::new(1)),
             guild_locale: Some("de".to_owned()),
             id: Id::<InteractionMarker>::new(1),
-            kind: InteractionType::ModalSubmit,
             locale: "en-GB".to_owned(),
             member: Some(PartialMember {
                 avatar: None,

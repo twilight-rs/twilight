@@ -72,7 +72,7 @@ mod tests {
                 application_command::{
                     CommandData, CommandInteractionDataResolved, InteractionMember,
                 },
-                ApplicationCommand, InteractionType,
+                ApplicationCommand,
             },
         },
         channel::{
@@ -234,7 +234,6 @@ mod tests {
                 guild_id: Some(Id::new(3)),
                 guild_locale: None,
                 id: Id::new(4),
-                kind: InteractionType::ApplicationCommand,
                 locale: "en-GB".to_owned(),
                 member: Some(PartialMember {
                     avatar: None,

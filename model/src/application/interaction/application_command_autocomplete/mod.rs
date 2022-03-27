@@ -41,8 +41,6 @@ pub struct ApplicationCommandAutocomplete {
     pub guild_locale: Option<String>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
-    /// Kind of the interaction.
-    pub kind: InteractionType,
     /// Selected language of the user who triggered the interaction.
     pub locale: String,
     /// Member that triggered the interaction.
@@ -127,7 +125,6 @@ mod tests {
                 guild_id: Some(Id::new(4)),
                 guild_locale: None,
                 id: Id::new(5),
-                kind: InteractionType::ApplicationCommandAutocomplete,
                 locale: "en-US".into(),
                 member: Some(PartialMember {
                     avatar: None,

@@ -271,7 +271,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 Self::Value::Ping(Box::new(Ping {
                     application_id,
                     id,
-                    kind,
                     token,
                 }))
             }
@@ -293,7 +292,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     guild_id,
                     guild_locale,
                     id,
-                    kind,
                     locale,
                     member,
                     token,
@@ -320,7 +318,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     guild_id,
                     guild_locale,
                     id,
-                    kind,
                     locale,
                     member,
                     token,
@@ -347,7 +344,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     guild_id,
                     guild_locale,
                     id,
-                    kind,
                     locale,
                     member,
                     message,
@@ -370,7 +366,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     guild_id,
                     guild_locale,
                     id,
-                    kind,
                     locale,
                     member,
                     message,
@@ -392,7 +387,7 @@ mod test {
                     ApplicationCommand, CommandData, CommandDataOption,
                     CommandInteractionDataResolved, CommandOptionValue, InteractionMember,
                 },
-                Interaction, InteractionType,
+                Interaction,
             },
         },
         datetime::{Timestamp, TimestampParseError},
@@ -403,6 +398,8 @@ mod test {
     };
     use serde_test::Token;
     use std::{collections::HashMap, str::FromStr};
+
+    use super::InteractionType;
 
     #[test]
     #[allow(clippy::too_many_lines)]
@@ -467,7 +464,6 @@ mod test {
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
             id: Id::new(500),
-            kind: InteractionType::ApplicationCommand,
             locale: "en-GB".to_owned(),
             member: Some(PartialMember {
                 avatar: None,
@@ -608,7 +604,7 @@ mod test {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("500"),
                 Token::Str("type"),
-                Token::U8(2),
+                Token::U8(InteractionType::ApplicationCommand as u8),
                 Token::Str("locale"),
                 Token::Str("en-GB"),
                 Token::Str("member"),
