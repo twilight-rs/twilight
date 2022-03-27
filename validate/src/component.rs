@@ -316,7 +316,9 @@ impl Display for ComponentValidationError {
             ComponentValidationErrorType::TextInputLabelLength { len: count } => {
                 f.write_str("a text input label length is ")?;
                 Display::fmt(count, f)?;
-                f.write_str(", but it must be at most ")?;
+                f.write_str(", but it must be at least ")?;
+                Display::fmt(&TEXT_INPUT_LABEL_MIN, f)?;
+                f.write_str(" and at most ")?;
 
                 Display::fmt(&TEXT_INPUT_LABEL_MAX, f)
             }
