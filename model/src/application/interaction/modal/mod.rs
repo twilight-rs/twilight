@@ -23,25 +23,25 @@ use serde::Serialize;
 pub struct ModalSubmitInteraction {
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
-    /// ID of the channel the interaction was triggered from.
+    /// ID of the channel the interaction was invoked in.
     pub channel_id: Id<ChannelMarker>,
     /// Data from the submitted modal.
     pub data: ModalInteractionData,
-    /// ID of the guild the interaction was triggered from.
+    /// ID of the guild the interaction was invoked in.
     pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,
-    /// Member that triggered the interaction.
+    /// Member that invoked the interaction.
     ///
     /// Present when the command is used in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<PartialMember>,
     /// Token of the interaction.
     pub token: String,
-    /// User that triggered the interaction.
+    /// User that invoked the interaction.
     ///
     /// Present when the command is used in a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,7 +49,7 @@ pub struct ModalSubmitInteraction {
 }
 
 impl ModalSubmitInteraction {
-    /// ID of the user that submitted the modal.
+    /// ID of the user that invoked the interaction.
     ///
     /// This will first check for the [`member`]'s
     /// [`user`][`PartialMember::user`]'s ID and, if not present, then check the

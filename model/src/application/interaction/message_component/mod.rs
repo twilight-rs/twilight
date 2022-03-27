@@ -22,11 +22,11 @@ use serde::Serialize;
 pub struct MessageComponentInteraction {
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
-    /// ID of the channel the interaction was triggered from.
+    /// ID of the channel the interaction was invoked in.
     pub channel_id: Id<ChannelMarker>,
     /// Data from the invoked command.
     pub data: MessageComponentInteractionData,
-    /// ID of the guild the interaction was triggered from.
+    /// ID of the guild the interaction was invoked in.
     pub guild_id: Option<Id<GuildMarker>>,
     /// Guild's preferred locale.
     ///
@@ -40,9 +40,9 @@ pub struct MessageComponentInteraction {
     /// Type of the interaction.
     #[serde(rename = "type")]
     pub kind: InteractionType,
-    /// Selected language of the user who triggered the interaction.
+    /// Selected language of the user who invoked the interaction.
     pub locale: String,
-    /// Member that triggered the interaction.
+    /// Member that invoked the interaction.
     ///
     /// Present when the command is used in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,7 +54,7 @@ pub struct MessageComponentInteraction {
     pub message: Message,
     /// Token of the interaction.
     pub token: String,
-    /// User that triggered the interaction.
+    /// User that invoked the interaction.
     ///
     /// Present when the command is used in a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
