@@ -65,6 +65,17 @@ impl Interaction {
         }
     }
 
+    /// ID of the guild the interaction was invoked in.
+    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+        match self {
+            Self::Ping(_) => None,
+            Self::ApplicationCommand(command) => command.guild_id,
+            Self::ApplicationCommandAutocomplete(command) => command.guild_id,
+            Self::MessageComponent(component) => component.guild_id,
+            Self::ModalSubmit(modal) => modal.guild_id,
+        }
+    }
+
     /// Return the ID of the inner interaction.
     pub const fn id(&self) -> Id<InteractionMarker> {
         match self {
