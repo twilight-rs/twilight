@@ -47,7 +47,7 @@ pub const COMPONENT_CUSTOM_ID_LENGTH: usize = 100;
 ///
 /// [`Button::label`]: twilight_model::application::component::button::Button::label
 /// [1]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
-pub const COMPONENT_LABEL_LENGTH: usize = 80;
+pub const COMPONENT_BUTTON_LABEL_LENGTH: usize = 80;
 
 /// Maximum number of [`SelectMenuOption`]s that can be chosen in a
 /// [`SelectMenu`].
@@ -248,7 +248,7 @@ impl Display for ComponentValidationError {
                 Display::fmt(&chars, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
-                Display::fmt(&COMPONENT_LABEL_LENGTH, f)
+                Display::fmt(&COMPONENT_BUTTON_LABEL_LENGTH, f)
             }
             ComponentValidationErrorType::InvalidChildComponent { kind } => {
                 f.write_str("a '")?;
@@ -392,7 +392,7 @@ pub enum ComponentValidationErrorType {
         /// Number of codepoints that were provided.
         chars: usize,
     },
-    /// Component label is larger than [the maximum][`COMPONENT_LABEL_LENGTH`].
+    /// Component label is larger than [the maximum][`COMPONENT_BUTTON_LABEL_LENGTH`].
     ComponentLabelLength {
         /// Number of codepoints that were provided.
         chars: usize,
@@ -614,7 +614,7 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     }
 
     if let Some(label) = button.label.as_ref() {
-        self::component_label(label)?;
+        self::component_button_label(label)?;
     }
 
     Ok(())
@@ -712,7 +712,6 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 /// [`TextInputValueLength`]: ComponentValidationErrorType::TextInputValueLength
 pub fn text_input(text_input: &TextInput) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&text_input.custom_id)?;
-
     self::component_text_input_label(&text_input.label)?;
 
     if let Some(max_length) = text_input.max_length {
@@ -768,10 +767,10 @@ const fn component_action_row_components(
 /// label is too long.
 ///
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
-fn component_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
+fn component_button_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = label.as_ref().chars().count();
 
-    if chars > COMPONENT_LABEL_LENGTH {
+    if chars > COMPONENT_BUTTON_LABEL_LENGTH {
         return Err(ComponentValidationError {
             kind: ComponentValidationErrorType::ComponentLabelLength { chars },
         });
@@ -1228,11 +1227,11 @@ mod tests {
 
     #[test]
     fn test_component_label() {
-        assert!(component_label("").is_ok());
-        assert!(component_label("a").is_ok());
-        assert!(component_label("a".repeat(80)).is_ok());
+        assert!(component_button_label("").is_ok());
+        assert!(component_button_label("a").is_ok());
+        assert!(component_button_label("a".repeat(80)).is_ok());
 
-        assert!(component_label("a".repeat(81)).is_err());
+        assert!(component_button_label("a".repeat(81)).is_err());
     }
 
     #[test]
