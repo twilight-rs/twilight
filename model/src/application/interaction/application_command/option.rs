@@ -96,11 +96,11 @@ impl<'de> Deserialize<'de> for CommandDataOption {
         impl ValueEnvelope {
             fn as_unexpected(&self) -> Unexpected<'_> {
                 match self {
-                    ValueEnvelope::Boolean(b) => Unexpected::Bool(*b),
-                    ValueEnvelope::Integer(i) => Unexpected::Signed(*i),
-                    ValueEnvelope::Number(f) => Unexpected::Float(*f),
-                    ValueEnvelope::Id(_) => Unexpected::Other("ID"),
-                    ValueEnvelope::String(s) => Unexpected::Str(s),
+                    Self::Boolean(b) => Unexpected::Bool(*b),
+                    Self::Integer(i) => Unexpected::Signed(*i),
+                    Self::Number(f) => Unexpected::Float(*f),
+                    Self::Id(_) => Unexpected::Other("ID"),
+                    Self::String(s) => Unexpected::Str(s),
                 }
             }
         }
