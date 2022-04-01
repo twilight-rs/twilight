@@ -510,10 +510,12 @@ impl<'a> InMemoryCachePermissions<'a> {
         })?;
 
         if channel.guild_id.is_some() {
-            let channel_overwrites = channel.permission_overwrites.clone().unwrap_or_default();
-            let thread_overwrites = thread.permission_overwrites.clone().unwrap_or_default();
+            let mut overwrites = Vec::new();
 
-            Ok([channel_overwrites, thread_overwrites].concat())
+            overwrites.extend_from_slice(channel.permission_overwrites.as_deref().unwrap_or(&[]));
+            overwrites.extend_from_slice(thread.permission_overwrites.as_deref().unwrap_or(&[]));
+
+            Ok(overwrites)
         } else {
             Err(ChannelError {
                 kind: ChannelErrorType::ChannelNotInGuild {
