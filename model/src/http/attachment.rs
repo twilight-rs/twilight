@@ -5,18 +5,22 @@ use serde::{Deserialize, Serialize};
 /// Attachment for when creating and updating messages.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Attachment {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(skip)]
     pub file: Vec<u8>,
     pub filename: String,
+    pub id: u64,
 }
 
 impl Attachment {
     /// Create a attachment from a filename and bytes.
-    pub const fn from_bytes(filename: String, file: Vec<u8>) -> Self {
+    pub const fn from_bytes(filename: String, file: Vec<u8>, id: u64) -> Self {
         Self {
             description: None,
             file,
             filename,
+            id,
         }
     }
 

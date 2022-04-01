@@ -106,7 +106,13 @@ pub enum InteractionResponseType {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{
+        channel::message::MessageFlags,
+        http::{
+            attachment::Attachment,
+            interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
+        },
+    };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -172,6 +178,55 @@ mod tests {
                 Token::Str("flags"),
                 Token::Some,
                 Token::U64(64),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_interaction_response_with_attachments() {
+        let value = InteractionResponse {
+            kind: InteractionResponseType::ChannelMessageWithSource,
+            data: Some(InteractionResponseData {
+                attachments: Some(Vec::from([Attachment {
+                    description: None,
+                    file: "file data".into(),
+                    filename: "filename.jpg".into(),
+                    id: 1,
+                }])),
+                ..InteractionResponseData::default()
+            }),
+        };
+
+        serde_test::assert_ser_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "InteractionResponse",
+                    len: 2,
+                },
+                Token::Str("type"),
+                Token::U8(InteractionResponseType::ChannelMessageWithSource as u8),
+                Token::Str("data"),
+                Token::Some,
+                Token::Struct {
+                    name: "InteractionResponseData",
+                    len: 1,
+                },
+                Token::Str("attachments"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "Attachment",
+                    len: 2,
+                },
+                Token::Str("filename"),
+                Token::Str("filename.jpg"),
+                Token::Str("id"),
+                Token::U64(1),
+                Token::StructEnd,
+                Token::SeqEnd,
                 Token::StructEnd,
                 Token::StructEnd,
             ],

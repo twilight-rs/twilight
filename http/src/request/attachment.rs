@@ -21,10 +21,10 @@ impl<'a> AttachmentManager<'a> {
     pub fn build_form(&self, fields: &'a [u8]) -> Form {
         let mut form = Form::new().json_part(b"payload_json", fields);
 
-        for (index, file) in self.files.iter().enumerate() {
-            let mut name = Vec::with_capacity(7 + num_digits(index));
+        for file in &self.files {
+            let mut name = Vec::with_capacity(7 + num_digits(file.id));
             name.extend(b"files[");
-            push_digits(index as u64, &mut name);
+            push_digits(file.id, &mut name);
             name.extend(b"]");
 
             form = form.file_part(name.as_ref(), file.filename.as_bytes(), file.file.as_ref())
@@ -36,11 +36,10 @@ impl<'a> AttachmentManager<'a> {
     pub fn get_partial_attachments(&self) -> Vec<PartialAttachment<'a>> {
         self.files
             .iter()
-            .enumerate()
-            .map(|(index, attachment)| PartialAttachment {
+            .map(|attachment| PartialAttachment {
                 description: attachment.description.as_deref(),
                 filename: Some(attachment.filename.as_ref()),
-                id: index as u64,
+                id: attachment.id,
             })
             .chain(self.ids.iter().map(|id| PartialAttachment {
                 description: None,
@@ -79,7 +78,7 @@ pub struct PartialAttachment<'a> {
 }
 
 /// Count the number of digits in a given number.
-const fn num_digits(index: usize) -> usize {
+const fn num_digits(index: u64) -> usize {
     let mut index = index;
     let mut len = 0;
 
