@@ -98,7 +98,10 @@ impl Display for ChannelError {
                 guild_id, user_id
             )),
             ChannelErrorType::ParentChannelNotPresent { thread_id } => {
-                f.write_fmt(format_args!("thread {} has no parent", thread_id))
+                f.write_str("thread ")?;
+                Display::fmt(&thread_id, f)?;
+
+                f.write_str(" has no parent")
             }
             ChannelErrorType::RoleUnavailable { role_id } => f.write_fmt(format_args!(
                 "member has role {} but it is not present in the cache",
