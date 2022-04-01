@@ -29,7 +29,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
+    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
     guild::Permissions,
     id::{
         marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
@@ -97,6 +97,9 @@ impl Display for ChannelError {
                 "member (guild: {}; user: {}) is not present in the cache",
                 guild_id, user_id
             )),
+            ChannelErrorType::ParentChannelNotPresent { thread_id } => {
+                f.write_fmt(format_args!("thread {} has no parent", thread_id))
+            }
             ChannelErrorType::RoleUnavailable { role_id } => f.write_fmt(format_args!(
                 "member has role {} but it is not present in the cache",
                 role_id
@@ -132,6 +135,11 @@ pub enum ChannelErrorType {
         guild_id: Id<GuildMarker>,
         /// ID of the user.
         user_id: Id<UserMarker>,
+    },
+    /// A thread's parent ID is not present.
+    ParentChannelNotPresent {
+        /// ID of the thread.
+        thread_id: Id<ChannelMarker>,
     },
     /// One of the user's roles is not available in the guild.
     ///
@@ -346,12 +354,9 @@ impl<'a> InMemoryCachePermissions<'a> {
             .map_err(ChannelError::from_member_roles)?;
 
         let overwrites = match channel.kind {
-            ChannelType::GuildPrivateThread => {
-                self.parent_overwrites(&channel.id, channel.permission_overwrites.clone())?
-            }
-            ChannelType::GuildNewsThread | ChannelType::GuildPublicThread => {
-                self.parent_overwrites(&channel.id, None)?
-            }
+            ChannelType::GuildPrivateThread
+            | ChannelType::GuildNewsThread
+            | ChannelType::GuildPublicThread => self.parent_overwrites(&channel)?,
             _ => channel.permission_overwrites.clone().unwrap_or_default(),
         };
 
@@ -484,32 +489,35 @@ impl<'a> InMemoryCachePermissions<'a> {
         }
     }
 
+    /// Given a thread channel, retrieve its parent from the cache, and combine
+    /// parent and child permissions.
     fn parent_overwrites(
         &self,
-        channel_id: &Id<ChannelMarker>,
-        parent_overwrites: Option<Vec<PermissionOverwrite>>,
+        thread: &Channel,
     ) -> Result<Vec<PermissionOverwrite>, ChannelError> {
-        let channel = self.0.channels.get(channel_id).ok_or(ChannelError {
+        let parent_id = thread.parent_id.ok_or(ChannelError {
+            kind: ChannelErrorType::ParentChannelNotPresent {
+                thread_id: thread.id,
+            },
+            source: None,
+        })?;
+
+        let channel = self.0.channels.get(&parent_id).ok_or(ChannelError {
             kind: ChannelErrorType::ChannelUnavailable {
-                channel_id: *channel_id,
+                channel_id: parent_id,
             },
             source: None,
         })?;
 
         if channel.guild_id.is_some() {
-            if let Some(parent_overwrites) = parent_overwrites {
-                Ok([
-                    channel.permission_overwrites.clone().unwrap_or_default(),
-                    parent_overwrites.to_vec(),
-                ]
-                .concat())
-            } else {
-                Ok(channel.permission_overwrites.clone().unwrap_or_default())
-            }
+            let channel_overwrites = channel.permission_overwrites.clone().unwrap_or_default();
+            let thread_overwrites = thread.permission_overwrites.clone().unwrap_or_default();
+
+            Ok([channel_overwrites, thread_overwrites].concat())
         } else {
             Err(ChannelError {
-                kind: ChannelErrorType::ChannelUnavailable {
-                    channel_id: *channel_id,
+                kind: ChannelErrorType::ChannelNotInGuild {
+                    channel_id: channel.id,
                 },
                 source: None,
             })
@@ -532,7 +540,7 @@ mod tests {
         },
         datetime::Timestamp,
         gateway::payload::incoming::{
-            ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate,
+            ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate, ThreadCreate,
         },
         guild::{
             DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
@@ -574,6 +582,9 @@ mod tests {
     ///
     /// This has the same ID as the [`GUILD_ID`].
     const CHANNEL_ID: Id<ChannelMarker> = GUILD_ID.cast();
+
+    /// ID of a thread created in the general channel.
+    const THREAD_ID: Id<ChannelMarker> = Id::new(5);
 
     fn base_guild() -> Guild {
         Guild {
@@ -668,6 +679,43 @@ mod tests {
                     kind: PermissionOverwriteType::Member,
                 },
             ])),
+            position: Some(0),
+            rate_limit_per_user: None,
+            recipients: None,
+            rtc_region: None,
+            thread_metadata: None,
+            topic: None,
+            user_limit: None,
+            video_quality_mode: None,
+        }
+    }
+
+    fn thread() -> Channel {
+        Channel {
+            application_id: None,
+            bitrate: None,
+            default_auto_archive_duration: None,
+            guild_id: Some(GUILD_ID),
+            icon: None,
+            id: THREAD_ID,
+            invitable: None,
+            kind: ChannelType::GuildPublicThread,
+            last_message_id: None,
+            last_pin_timestamp: None,
+            member: None,
+            member_count: None,
+            message_count: None,
+            name: Some("test thread".to_owned()),
+            newly_created: None,
+            nsfw: Some(false),
+            owner_id: None,
+            parent_id: Some(CHANNEL_ID),
+            permission_overwrites: Some(Vec::from([PermissionOverwrite {
+                allow: Permissions::ATTACH_FILES,
+                deny: Permissions::empty(),
+                id: EVERYONE_ROLE_ID.cast(),
+                kind: PermissionOverwriteType::Role,
+            }])),
             position: Some(0),
             rate_limit_per_user: None,
             recipients: None,
@@ -807,6 +855,13 @@ mod tests {
         assert_eq!(
             Permissions::EMBED_LINKS | Permissions::SEND_MESSAGES,
             permissions.in_channel(USER_ID, CHANNEL_ID)?,
+        );
+
+        cache.update(&ThreadCreate(thread()));
+
+        assert_eq!(
+            Permissions::EMBED_LINKS | Permissions::SEND_MESSAGES | Permissions::ATTACH_FILES,
+            permissions.in_channel(USER_ID, THREAD_ID)?
         );
 
         Ok(())
