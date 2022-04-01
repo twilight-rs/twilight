@@ -510,10 +510,14 @@ impl<'a> InMemoryCachePermissions<'a> {
         })?;
 
         if channel.guild_id.is_some() {
-            let mut overwrites = Vec::new();
+            let channel_overwrites = channel.permission_overwrites.as_deref().unwrap_or(&[]);
+            let thread_overwrites = thread.permission_overwrites.as_deref().unwrap_or(&[]);
 
-            overwrites.extend_from_slice(channel.permission_overwrites.as_deref().unwrap_or(&[]));
-            overwrites.extend_from_slice(thread.permission_overwrites.as_deref().unwrap_or(&[]));
+            let mut overwrites =
+                Vec::with_capacity(channel_overwrites.len() + thread_overwrites.len());
+
+            overwrites.extend_from_slice(channel_overwrites);
+            overwrites.extend_from_slice(thread_overwrites);
 
             Ok(overwrites)
         } else {
