@@ -36,6 +36,9 @@ pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u16 = 100;
 /// Minimum amount of audit log entries to list.
 pub const GET_GUILD_AUDIT_LOG_LIMIT_MIN: u16 = 1;
 
+/// Maximum amount of guild bans to list.
+pub const GET_GUILD_BANS_LIMIT_MAX: u16 = 1000;
+
 /// Maximum amount of guild members to list.
 pub const GET_GUILD_MEMBERS_LIMIT_MAX: u16 = 1000;
 
@@ -194,6 +197,13 @@ impl Display for ValidationError {
                 f.write_str(" and at most ")?;
 
                 Display::fmt(&GET_GUILD_MEMBERS_LIMIT_MAX, f)
+            }
+            ValidationErrorType::GetGuildBans { limit } => {
+                f.write_str("provided get guild bans limit is ")?;
+                Display::fmt(limit, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&GET_GUILD_BANS_LIMIT_MAX, f)
             }
             ValidationErrorType::GetGuildMembers { limit } => {
                 f.write_str("provided get guild members limit is ")?;
@@ -360,6 +370,11 @@ pub enum ValidationErrorType {
     },
     /// Provided get guild audit log limit was invalid.
     GetGuildAuditLog {
+        /// Invalid limit.
+        limit: u16,
+    },
+    /// Provided get guild bans limit was invalid.
+    GetGuildBans {
         /// Invalid limit.
         limit: u16,
     },
@@ -574,6 +589,27 @@ pub const fn get_guild_audit_log_limit(limit: u16) -> Result<(), ValidationError
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::GetGuildAuditLog { limit },
+        })
+    }
+}
+
+/// Ensure that the limit for the Get Guild Bans endpoint is correct.
+///
+/// The limit must be at most [`GET_GUILD_BANS_LIMIT_MAX`]. This is based on
+/// [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`GetGuildBans`] if the limit is invalid.
+///
+/// [`GetGuildBans`]: ValidationErrorType::GetGuildBans
+/// [this documentation entry]: https://discord.com/developers/docs/resources/guild#get-guild-bans
+pub const fn get_guild_bans_limit(limit: u16) -> Result<(), ValidationError> {
+    if limit <= GET_GUILD_BANS_LIMIT_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::GetGuildBans { limit },
         })
     }
 }
@@ -979,6 +1015,14 @@ mod tests {
 
         assert!(get_guild_audit_log_limit(0).is_err());
         assert!(get_guild_audit_log_limit(101).is_err());
+    }
+
+    #[test]
+    fn test_get_guild_bans_limit() {
+        assert!(get_guild_audit_log_limit(0).is_ok());
+        assert!(get_guild_audit_log_limit(1000).is_ok());
+
+        assert!(get_guild_audit_log_limit(1001).is_err());
     }
 
     #[test]
