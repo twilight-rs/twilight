@@ -162,6 +162,11 @@ impl<'a> UpdateGuild<'a> {
     }
 
     /// Set the enabled features of the guild.
+    ///
+    /// Attempting to add or remove the "COMMUNITY" feature requires the
+    /// [`Permissions::ADMINISTRATOR`] permission.
+    ///
+    /// [`Permissions::ADMINISTRATOR`]: twilight_model::guild::Permissions::ADMINISTRATOR
     pub const fn features(mut self, features: &'a [&'a str]) -> Self {
         self.fields.features = Some(features);
 
