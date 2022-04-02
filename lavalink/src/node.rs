@@ -621,7 +621,7 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     let mut builder = Request::get(format!("ws://{}", state.address));
     builder = builder.header("Authorization", &state.authorization);
     builder = builder.header("Num-Shards", state.shard_count);
-    builder = builder.header("Sec-Websocket-Key", generate_key());
+    builder = builder.header("Sec-WebSocket-Key", generate_key());
     builder = builder.header("User-Id", state.user_id.get());
 
     if state.resume.is_some() {
