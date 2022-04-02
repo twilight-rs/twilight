@@ -20,6 +20,8 @@ pub struct InviteGuild {
     pub id: Id<GuildMarker>,
     /// Name of the guild.
     pub name: String,
+    /// Number of boosts the guild has.
+    pub premium_subscription_count: Option<u64>,
     /// Hash of the splash image.
     pub splash: Option<ImageHash>,
     /// Vanity code unique to the guild for invites.
@@ -46,6 +48,7 @@ mod tests {
             icon: Some(image_hash::ICON),
             id: Id::new(1),
             name: "guild name".to_owned(),
+            premium_subscription_count: Some(14),
             splash: Some(image_hash::SPLASH),
             vanity_url_code: Some("twilight".to_owned()),
             verification_level: VerificationLevel::Medium,
@@ -73,7 +76,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "InviteGuild",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("banner"),
                 Token::Some,
@@ -93,6 +96,9 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("guild name"),
+                Token::Str("premium_subscription_count"),
+                Token::Some,
+                Token::U64(14),
                 Token::Str("splash"),
                 Token::Some,
                 Token::Str(image_hash::SPLASH_INPUT),
