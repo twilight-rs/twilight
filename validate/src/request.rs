@@ -1019,10 +1019,10 @@ mod tests {
 
     #[test]
     fn test_get_guild_bans_limit() {
-        assert!(get_guild_audit_log_limit(0).is_ok());
-        assert!(get_guild_audit_log_limit(1000).is_ok());
+        assert!(get_guild_bans_limit(0).is_ok());
+        assert!(get_guild_bans_limit(1000).is_ok());
 
-        assert!(get_guild_audit_log_limit(1001).is_err());
+        assert!(get_guild_bans_limit(1001).is_err());
     }
 
     #[test]
