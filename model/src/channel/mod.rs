@@ -343,55 +343,6 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_store_channel_deserialization() {
-        let value = Channel {
-            application_id: None,
-            bitrate: None,
-            default_auto_archive_duration: None,
-            guild_id: Some(Id::new(2)),
-            icon: None,
-            id: Id::new(1),
-            invitable: None,
-            kind: ChannelType::GuildStore,
-            last_message_id: None,
-            last_pin_timestamp: None,
-            member: None,
-            member_count: None,
-            message_count: None,
-            name: Some("store".to_owned()),
-            newly_created: None,
-            nsfw: Some(false),
-            owner_id: None,
-            parent_id: None,
-            permission_overwrites: Some(Vec::new()),
-            position: Some(2),
-            rate_limit_per_user: None,
-            recipients: None,
-            rtc_region: None,
-            thread_metadata: None,
-            topic: Some("a store channel".to_owned()),
-            user_limit: None,
-            video_quality_mode: None,
-        };
-        let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
-
-        assert_eq!(
-            value,
-            serde_json::from_value(serde_json::json!({
-                "id": "1",
-                "guild_id": "2",
-                "name": "store",
-                "nsfw": false,
-                "permission_overwrites": permission_overwrites,
-                "position": 2,
-                "topic": "a store channel",
-                "type": ChannelType::GuildStore,
-            }))
-            .unwrap()
-        );
-    }
-
-    #[test]
     fn test_guild_news_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
