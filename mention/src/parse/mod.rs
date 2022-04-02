@@ -105,10 +105,6 @@ use twilight_model::id::{
 ///     MentionType::Role(Id::<RoleMarker>::new(123)),
 ///     MentionType::parse("<@&123>")?,
 /// );
-/// assert_eq!(
-///     MentionType::User(Id::<UserMarker>::new(123)),
-///     MentionType::parse("<@!123>")?,
-/// );
 ///
 /// let timestamp = Timestamp::new(123, None);
 /// assert_eq!(MentionType::Timestamp(timestamp), MentionType::parse("<t:123>")?);
