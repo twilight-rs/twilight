@@ -41,7 +41,7 @@ use tokio::{
     time as tokio_time,
 };
 use tokio_tungstenite::{
-    tungstenite::{Error as TungsteniteError, Message},
+    tungstenite::{handshake::client::generate_key, Error as TungsteniteError, Message},
     MaybeTlsStream, WebSocketStream,
 };
 use twilight_model::id::{marker::UserMarker, Id};
@@ -621,6 +621,7 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     let mut builder = Request::get(format!("ws://{}", state.address));
     builder = builder.header("Authorization", &state.authorization);
     builder = builder.header("Num-Shards", state.shard_count);
+    builder = builder.header("Sec-Websocket-Key", generate_key());
     builder = builder.header("User-Id", state.user_id.get());
 
     if state.resume.is_some() {
