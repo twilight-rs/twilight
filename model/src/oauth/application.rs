@@ -1,4 +1,4 @@
-use super::{team::Team, ApplicationFlags};
+use super::{team::Team, ApplicationFlags, InstallParams};
 use crate::{
     id::{
         marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
@@ -14,12 +14,18 @@ pub struct Application {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
     pub cover_image: Option<ImageHash>,
+    /// Application's default custom authorization link, if enabled.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_install_url: Option<String>,
     pub description: String,
     pub guild_id: Option<Id<GuildMarker>>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
     pub icon: Option<ImageHash>,
     pub id: Id<ApplicationMarker>,
+    /// Settings for the application's default in-app authorization, if enabled.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub install_params: Option<InstallParams>,
     pub name: String,
     pub owner: User,
     pub primary_sku_id: Option<Id<OauthSkuMarker>>,
@@ -29,6 +35,9 @@ pub struct Application {
     #[serde(default)]
     pub rpc_origins: Vec<String>,
     pub slug: Option<String>,
+    /// Tags describing the content and functionality of the application.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
     pub team: Option<Team>,
     /// URL of the application's terms of service.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,17 +58,20 @@ mod tests {
         Application: bot_public,
         bot_require_code_grant,
         cover_image,
+        custom_install_url,
         description,
         guild_id,
         flags,
         icon,
         id,
+        install_params,
         name,
         owner,
         primary_sku_id,
         privacy_policy_url,
         rpc_origins,
         slug,
+        tags,
         team,
         terms_of_service_url,
         verify_key
@@ -82,11 +94,13 @@ mod tests {
             bot_public: true,
             bot_require_code_grant: false,
             cover_image: Some(image_hash::COVER),
+            custom_install_url: None,
             description: "a pretty cool application".to_owned(),
             guild_id: Some(Id::new(1)),
             flags: Some(ApplicationFlags::EMBEDDED),
             icon: Some(image_hash::ICON),
             id: Id::new(2),
+            install_params: None,
             name: "cool application".to_owned(),
             owner: User {
                 accent_color: None,
@@ -109,6 +123,12 @@ mod tests {
             privacy_policy_url: Some("https://privacypolicy".into()),
             rpc_origins: vec!["one".to_owned()],
             slug: Some("app slug".to_owned()),
+            tags: Some(Vec::from([
+                "ponies".to_owned(),
+                "horses".to_owned(),
+                "friendship".to_owned(),
+                "magic".to_owned(),
+            ])),
             team: Some(Team {
                 icon: None,
                 id: Id::new(5),
@@ -125,7 +145,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Application",
-                    len: 17,
+                    len: 18,
                 },
                 Token::Str("bot_public"),
                 Token::Bool(true),
@@ -186,6 +206,14 @@ mod tests {
                 Token::Str("slug"),
                 Token::Some,
                 Token::Str("app slug"),
+                Token::Str("tags"),
+                Token::Some,
+                Token::Seq { len: Some(4) },
+                Token::Str("ponies"),
+                Token::Str("horses"),
+                Token::Str("friendship"),
+                Token::Str("magic"),
+                Token::SeqEnd,
                 Token::Str("team"),
                 Token::Some,
                 Token::Struct {
