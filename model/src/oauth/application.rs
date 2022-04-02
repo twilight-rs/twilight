@@ -21,7 +21,7 @@ pub struct Application {
     pub icon: Option<ImageHash>,
     pub id: Id<ApplicationMarker>,
     pub name: String,
-    pub owner: User,
+    pub owner: Option<User>,
     pub primary_sku_id: Option<Id<OauthSkuMarker>>,
     /// URL of the application's privacy policy.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -88,7 +88,7 @@ mod tests {
             icon: Some(image_hash::ICON),
             id: Id::new(2),
             name: "cool application".to_owned(),
-            owner: User {
+            owner: Some(User {
                 accent_color: None,
                 avatar: None,
                 banner: None,
@@ -104,7 +104,7 @@ mod tests {
                 public_flags: None,
                 system: None,
                 verified: None,
-            },
+            }),
             primary_sku_id: Some(Id::new(4)),
             privacy_policy_url: Some("https://privacypolicy".into()),
             rpc_origins: vec!["one".to_owned()],
@@ -152,6 +152,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("cool application"),
                 Token::Str("owner"),
+                Token::Some,
                 Token::Struct {
                     name: "User",
                     len: 7,
