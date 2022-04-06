@@ -1,20 +1,16 @@
-mod flags;
-
-pub use self::flags::ApplicationFlags;
-
+use super::{team::Team, ApplicationFlags};
 use crate::{
     id::{
         marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
         Id,
     },
-    oauth::team::Team,
     user::User,
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct CurrentApplicationInfo {
+pub struct Application {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
     pub cover_image: Option<ImageHash>,
@@ -42,7 +38,7 @@ pub struct CurrentApplicationInfo {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApplicationFlags, CurrentApplicationInfo, Team, User};
+    use super::{Application, ApplicationFlags, Team, User};
     use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -50,7 +46,7 @@ mod tests {
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(
-        CurrentApplicationInfo: bot_public,
+        Application: bot_public,
         bot_require_code_grant,
         cover_image,
         description,
@@ -70,7 +66,7 @@ mod tests {
     );
 
     assert_impl_all!(
-        CurrentApplicationInfo: Clone,
+        Application: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
@@ -82,7 +78,7 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_current_application_info() {
-        let value = CurrentApplicationInfo {
+        let value = Application {
             bot_public: true,
             bot_require_code_grant: false,
             cover_image: Some(image_hash::COVER),
@@ -128,7 +124,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "CurrentApplicationInfo",
+                    name: "Application",
                     len: 17,
                 },
                 Token::Str("bot_public"),

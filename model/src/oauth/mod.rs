@@ -1,8 +1,21 @@
-pub mod current_application_info;
 pub mod team;
 
+pub mod current_application_info {
+    #[deprecated(since = "0.10.2", note = "use `oauth::ApplicationFlags` instead")]
+    pub type ApplicationFlags = super::ApplicationFlags;
+
+    #[deprecated(since = "0.10.2", note = "use `oauth::Application` instead")]
+    pub type CurrentApplicationInfo = super::Application;
+}
+
+mod application;
+mod application_flags;
 mod partial_application;
 
 pub use self::{
-    current_application_info::CurrentApplicationInfo, partial_application::PartialApplication,
+    application::Application, application_flags::ApplicationFlags,
+    partial_application::PartialApplication,
 };
+
+#[allow(deprecated)]
+pub use self::current_application_info::CurrentApplicationInfo;

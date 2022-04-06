@@ -1234,7 +1234,7 @@ mod tests {
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         id::{marker::GuildMarker, Id},
-        oauth::{current_application_info::ApplicationFlags, PartialApplication},
+        oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
     };
 
