@@ -378,7 +378,15 @@ impl<'a> InMemoryCachePermissions<'a> {
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
-        Ok(calculator.in_channel(channel.kind, overwrites.as_slice()))
+        let permissions = calculator.in_channel(channel.kind, overwrites.as_slice());
+
+        if !permissions.contains(Permissions::ADMINISTRATOR)
+            && self.is_communication_disabled(user_id, guild_id)
+        {
+            return Ok(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY);
+        }
+
+        Ok(permissions)
     }
 
     /// Calculate the guild-level permissions of a member.
@@ -438,7 +446,15 @@ impl<'a> InMemoryCachePermissions<'a> {
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
-        Ok(calculator.root())
+        let permissions = calculator.root();
+
+        if !permissions.contains(Permissions::ADMINISTRATOR)
+            && self.is_communication_disabled(user_id, guild_id)
+        {
+            return Ok(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY);
+        }
+
+        Ok(permissions)
     }
 
     /// Determine whether a given user is the owner of a guild.
@@ -450,6 +466,17 @@ impl<'a> InMemoryCachePermissions<'a> {
             .guilds
             .get(&guild_id)
             .map(|r| r.owner_id == user_id)
+            .unwrap_or_default()
+    }
+
+    fn is_communication_disabled(
+        &self,
+        user_id: Id<UserMarker>,
+        guild_id: Id<GuildMarker>,
+    ) -> bool {
+        self.0
+            .member(guild_id, user_id)
+            .map(|r| r.communication_disabled_until.is_some())
             .unwrap_or_default()
     }
 
@@ -903,6 +930,58 @@ mod tests {
 
         cache.update(&ChannelCreate(channel()));
         assert!(permissions.in_channel(OWNER_ID, CHANNEL_ID)?.is_all());
+
+        Ok(())
+    }
+
+    /// Test that [`in_channel`] and [`root`] both return [`Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY`]
+    /// if the user is timed out and does not have [`Permissions::ADMINISTRATOR`]
+    ///
+    /// [`in_channel`]: super::InMemoryCachePermissions::in_channel
+    /// [`root`]: super::InMemoryCachePermissions::root
+    #[test]
+    fn test_communication_disabled() -> Result<(), Box<dyn Error>> {
+        let cache = InMemoryCache::new();
+        let permissions = cache.permissions();
+
+        cache.update(&GuildCreate(base_guild()));
+        cache.update(&MemberAdd({
+            let mut member = test::member(USER_ID, GUILD_ID);
+            member.communication_disabled_until = Some(Timestamp::from_secs(1).unwrap());
+            member
+        }));
+        assert_eq!(
+            Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY,
+            permissions.root(USER_ID, GUILD_ID)?
+        );
+
+        cache.update(&ChannelCreate(channel()));
+        assert_eq!(
+            Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY,
+            permissions.in_channel(USER_ID, CHANNEL_ID)?
+        );
+
+        cache.update(&MemberUpdate {
+            avatar: None,
+            communication_disabled_until: None,
+            guild_id: GUILD_ID,
+            deaf: None,
+            joined_at: Timestamp::from_secs(1).unwrap(),
+            mute: None,
+            nick: None,
+            pending: false,
+            premium_since: None,
+            roles: Vec::from([OTHER_ROLE_ID]),
+            user: test::user(USER_ID),
+        });
+        cache.update(&role_create(
+            GUILD_ID,
+            role_with_permissions(OTHER_ROLE_ID, Permissions::ADMINISTRATOR),
+        ));
+        assert_eq!(
+            Permissions::ADMINISTRATOR,
+            permissions.root(USER_ID, GUILD_ID)?
+        );
 
         Ok(())
     }
