@@ -383,7 +383,8 @@ impl<'a> InMemoryCachePermissions<'a> {
         if !permissions.contains(Permissions::ADMINISTRATOR)
             && self.is_communication_disabled(user_id, guild_id)
         {
-            return Ok(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY);
+            return Ok(permissions
+                .intersection(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY));
         }
 
         Ok(permissions)
@@ -451,7 +452,8 @@ impl<'a> InMemoryCachePermissions<'a> {
         if !permissions.contains(Permissions::ADMINISTRATOR)
             && self.is_communication_disabled(user_id, guild_id)
         {
-            return Ok(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY);
+            return Ok(permissions
+                .intersection(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY));
         }
 
         Ok(permissions)
