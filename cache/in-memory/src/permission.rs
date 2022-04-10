@@ -380,14 +380,9 @@ impl<'a> InMemoryCachePermissions<'a> {
 
         let permissions = calculator.in_channel(channel.kind, overwrites.as_slice());
 
-        if !permissions.contains(Permissions::ADMINISTRATOR)
-            && self.is_communication_disabled(user_id, guild_id)
-        {
-            return Ok(permissions
-                .intersection(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY));
-        }
-
-        Ok(permissions)
+        Ok(self
+            .communication_disabled_perms(permissions, user_id, guild_id)
+            .unwrap_or(permissions))
     }
 
     /// Calculate the guild-level permissions of a member.
@@ -449,14 +444,9 @@ impl<'a> InMemoryCachePermissions<'a> {
 
         let permissions = calculator.root();
 
-        if !permissions.contains(Permissions::ADMINISTRATOR)
-            && self.is_communication_disabled(user_id, guild_id)
-        {
-            return Ok(permissions
-                .intersection(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY));
-        }
-
-        Ok(permissions)
+        Ok(self
+            .communication_disabled_perms(permissions, user_id, guild_id)
+            .unwrap_or(permissions))
     }
 
     /// Determine whether a given user is the owner of a guild.
@@ -471,15 +461,20 @@ impl<'a> InMemoryCachePermissions<'a> {
             .unwrap_or_default()
     }
 
-    fn is_communication_disabled(
+    fn communication_disabled_perms(
         &self,
+        permissions: Permissions,
         user_id: Id<UserMarker>,
         guild_id: Id<GuildMarker>,
-    ) -> bool {
-        self.0
-            .member(guild_id, user_id)
-            .map(|r| r.communication_disabled_until.is_some())
-            .unwrap_or_default()
+    ) -> Option<Permissions> {
+        (!permissions.contains(Permissions::ADMINISTRATOR)
+            && self
+                .0
+                .member(guild_id, user_id)
+                .map_or(false, |r| r.communication_disabled_until.is_some()))
+        .then(|| {
+            permissions.intersection(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY)
+        })
     }
 
     /// Retrieve a member's roles' permissions and the guild's `@everyone`
