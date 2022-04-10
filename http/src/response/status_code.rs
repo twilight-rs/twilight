@@ -91,13 +91,13 @@ impl Display for StatusCode {
 
 impl PartialEq<u16> for StatusCode {
     fn eq(&self, other: &u16) -> bool {
-        self.raw() == *other
+        self.get() == *other
     }
 }
 
 impl PartialEq<StatusCode> for u16 {
     fn eq(&self, other: &StatusCode) -> bool {
-        *self == other.raw()
+        *self == other.get()
     }
 }
 
