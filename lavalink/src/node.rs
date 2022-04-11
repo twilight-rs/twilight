@@ -581,18 +581,17 @@ impl Connection {
     }
 
     async fn player_update(&self, update: &PlayerUpdate) -> Result<(), NodeError> {
-        let player = match self.players.get(&update.guild_id) {
-            Some(player) => player,
-            None => {
-                #[cfg(feature = "tracing")]
-                tracing::warn!(
-                    "invalid player update for guild {}: {:?}",
-                    update.guild_id,
-                    update,
-                );
+        let player = if let Some(player) = self.players.get(&update.guild_id) {
+            player
+        } else {
+            #[cfg(feature = "tracing")]
+            tracing::warn!(
+                "invalid player update for guild {}: {:?}",
+                update.guild_id,
+                update,
+            );
 
-                return Ok(());
-            }
+            return Ok(());
         };
 
         player.set_position(update.state.position.unwrap_or(0));
