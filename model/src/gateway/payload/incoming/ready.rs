@@ -19,7 +19,7 @@ mod tests {
     use crate::{
         guild::UnavailableGuild,
         id::Id,
-        oauth::{current_application_info::ApplicationFlags, PartialApplication},
+        oauth::{ApplicationFlags, PartialApplication},
         user::CurrentUser,
     };
     use serde_test::Token;
