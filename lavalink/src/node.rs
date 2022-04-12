@@ -555,14 +555,13 @@ impl Connection {
             _ => return Ok(true),
         };
 
-        let event = match serde_json::from_str(&text) {
-            Ok(event) => event,
-            Err(_) => {
-                #[cfg(feature = "tracing")]
-                tracing::warn!("unknown message from lavalink node: {}", text);
+        let event = if let Ok(event) = serde_json::from_str(&text) {
+            event
+        } else {
+            #[cfg(feature = "tracing")]
+            tracing::warn!("unknown message from lavalink node: {}", text);
 
-                return Ok(true);
-            }
+            return Ok(true);
         };
 
         match &event {
