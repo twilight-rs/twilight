@@ -129,7 +129,12 @@ impl CachedMessage {
         self.application_id
     }
 
-    /// Attached files.
+    /// List of attached files.
+    ///
+    /// Refer to the documentation for [`Message::content`] for caveats with
+    /// receiving the content of messages.
+    ///
+    /// [`Message::content`]: twilight_model::channel::Message::content
     pub fn attachments(&self) -> &[Attachment] {
         &self.attachments
     }
@@ -146,12 +151,22 @@ impl CachedMessage {
         self.channel_id
     }
 
-    /// Components used in the message, such as buttons.
+    /// List of provided components, such as buttons.
+    ///
+    /// Refer to the documentation for [`Message::components`] for caveats with
+    /// receiving the components of messages.
+    ///
+    /// [`Message::components`]: twilight_model::channel::Message::components
     pub fn components(&self) -> &[Component] {
         &self.components
     }
 
-    /// Content of the message.
+    /// Content of a message.
+    ///
+    /// Refer to the documentation for [`Message::content`] for caveats with
+    /// receiving the content of messages.
+    ///
+    /// [`Message::content`]: twilight_model::channel::Message::content
     pub fn content(&self) -> &str {
         &self.content
     }
@@ -161,7 +176,12 @@ impl CachedMessage {
         self.edited_timestamp
     }
 
-    /// Embeds attached to the message.
+    /// List of embeds.
+    ///
+    /// Refer to the documentation for [`Message::embeds`] for caveats with
+    /// receiving the embeds of messages.
+    ///
+    /// [`Message::embeds`]: twilight_model::channel::Message::embeds
     pub fn embeds(&self) -> &[Embed] {
         &self.embeds
     }
