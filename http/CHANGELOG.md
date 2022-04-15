@@ -2,6 +2,35 @@
 
 Changelog for `twilight-http`.
 
+## [0.10.2] - 2022-04-15
+
+### Additions
+
+Add `CreateStageInstance::send_start_notification` ([#1653] - [@zeylahellyer]).
+
+Add a note on `UpdateGuild::features` regarding the `COMMUNITY` feature ([#1663]
+- [@zeylahellyer]).
+
+### Changes
+
+Account for `Application`'s new name in `GetUserApplicationInfo` ([#1670] -
+[@zeylahellyer]).
+
+Add `StatusCode::get` and deprecate `StatusCode::raw` ([#1672] -
+[@zeylahellyer]).
+
+### Fixes
+
+Update `AttachmentManager` logic to account for
+`model::http::attachment::Attachment` changes ([#1624] - [@7596ff]). See the
+`twilight-model` changelog.
+
+[#1624]: https://github.com/twilight-rs/twilight/pull/1624
+[#1653]: https://github.com/twilight-rs/twilight/pull/1653
+[#1663]: https://github.com/twilight-rs/twilight/pull/1663
+[#1670]: https://github.com/twilight-rs/twilight/pull/1670
+[#1672]: https://github.com/twilight-rs/twilight/pull/1672
+
 ## [0.10.1] - 2022-03-20
 
 ### Additions
@@ -1841,6 +1870,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.9.1

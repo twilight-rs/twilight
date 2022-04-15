@@ -2,6 +2,20 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.10.2]
+
+### Changes
+
+Link to `tracing` in the README ([#1652] - [@zeylahellyer]).
+
+### Fixes
+
+Include `Sec-WebSocket-Key` header in order to fix a `tokio-tungstenite`
+regression ([#1666] - [@7596ff]).
+
+[#1652]: https://github.com/twilight-rs/twilight/pull/1652
+[#1666]: https://github.com/twilight-rs/twilight/pull/1666
+
 ## [0.10.1] - 2022-03-20
 
 ### Changes
@@ -337,6 +351,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.9.0

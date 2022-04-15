@@ -17,6 +17,8 @@ pub enum ChannelType {
     ///
     /// [hub]: https://support.discord.com/hc/en-us/articles/4406046651927-Discord-Student-Hubs-FAQ
     GuildDirectory = 14,
+    /// Channel that can only contain threads.
+    GuildForum = 15,
 }
 
 impl ChannelType {
@@ -68,6 +70,7 @@ impl ChannelType {
             Self::Group => "Group",
             Self::GuildCategory => "GuildCategory",
             Self::GuildDirectory => "GuildDirectory",
+            Self::GuildForum => "GuildForum",
             Self::GuildNews => "GuildNews",
             Self::GuildNewsThread => "GuildNewsThread",
             Self::GuildPrivateThread => "GuildPrivateThread",

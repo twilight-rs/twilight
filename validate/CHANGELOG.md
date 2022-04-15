@@ -2,6 +2,14 @@
 
 Changelog for `twilight-validate`.
 
+## [0.10.2] - 2022-04-15
+
+### Additions
+
+Add more particular validation for `TextInput::label` ([#1633] - [@itohatweb]).
+
+[#1633]: https://github.com/twilight-rs/twilight/pull/1633
+
 ## [0.10.1] - 2022-03-20
 
 ### Additions
