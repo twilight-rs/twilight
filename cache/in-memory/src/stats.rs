@@ -9,8 +9,8 @@ use super::InMemoryCache;
 /// cache.
 ///
 /// Statistics can be retrieved about the amount of resources on a cache-level
-/// via a method such as [`messages`] or in a particular guild via a method such
-/// as [`guild_messages`].
+/// via a method such as [`users`] or in a particular channel via a method
+/// such as [`channel_messages`].
 ///
 /// # Examples
 ///
@@ -25,8 +25,8 @@ use super::InMemoryCache;
 /// println!("user count: {}", cache.stats().users());
 /// ```
 ///
-/// [`guild_messages`]: Self::guild_messages
-/// [`messages`]: Self::messages
+/// [`channel_messages`]: Self::channel_messages
+/// [`users`]: Self::users
 #[derive(Clone, Debug)]
 pub struct InMemoryCacheStats<'a>(&'a InMemoryCache);
 
