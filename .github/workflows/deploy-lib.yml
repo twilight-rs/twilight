@@ -7,7 +7,6 @@ on:
     paths:
       - ".github/**"
       - "cache/**"
-      - "command-parser/**"
       - "embed-builder/**"
       - "gateway/**"
       - "gateway-queue/**"
