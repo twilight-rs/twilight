@@ -89,24 +89,32 @@ impl Display for ChannelError {
 
                 f.write_str(" is not in a guild")
             }
-            ChannelErrorType::ChannelUnavailable { channel_id } => f.write_fmt(format_args!(
-                "channel {} is either not in the cache or is not a guild channel",
-                channel_id
-            )),
-            ChannelErrorType::MemberUnavailable { guild_id, user_id } => f.write_fmt(format_args!(
-                "member (guild: {}; user: {}) is not present in the cache",
-                guild_id, user_id
-            )),
+            ChannelErrorType::ChannelUnavailable { channel_id } => {
+                f.write_str("channel ")?;
+                Display::fmt(&channel_id, f)?;
+
+                f.write_str(" is either not in the cache or is not a guild channel")
+            }
+            ChannelErrorType::MemberUnavailable { guild_id, user_id } => {
+                f.write_str("member (guild: ")?;
+                Display::fmt(&guild_id, f)?;
+                f.write_str("; user: ")?;
+                Display::fmt(&user_id, f)?;
+
+                f.write_str(") is not present in the cache")
+            }
             ChannelErrorType::ParentChannelNotPresent { thread_id } => {
                 f.write_str("thread ")?;
                 Display::fmt(&thread_id, f)?;
 
                 f.write_str(" has no parent")
             }
-            ChannelErrorType::RoleUnavailable { role_id } => f.write_fmt(format_args!(
-                "member has role {} but it is not present in the cache",
-                role_id
-            )),
+            ChannelErrorType::RoleUnavailable { role_id } => {
+                f.write_str("member has role ")?;
+                Display::fmt(&role_id, f)?;
+
+                f.write_str(" but it is not present in the cache")
+            }
         }
     }
 }
@@ -201,14 +209,20 @@ impl RootError {
 impl Display for RootError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
-            RootErrorType::MemberUnavailable { guild_id, user_id } => f.write_fmt(format_args!(
-                "member (guild: {}; user: {}) is not present in the cache",
-                guild_id, user_id
-            )),
-            RootErrorType::RoleUnavailable { role_id } => f.write_fmt(format_args!(
-                "member has role {} but it is not present in the cache",
-                role_id
-            )),
+            RootErrorType::MemberUnavailable { guild_id, user_id } => {
+                f.write_str("member (guild: ")?;
+                Display::fmt(&guild_id, f)?;
+                f.write_str("; user: ")?;
+                Display::fmt(&user_id, f)?;
+
+                f.write_str(") is not present in the cache")
+            }
+            RootErrorType::RoleUnavailable { role_id } => {
+                f.write_str("member has role ")?;
+                Display::fmt(&role_id, f)?;
+
+                f.write_str(" but it is not present in the cache")
+            }
         }
     }
 }
