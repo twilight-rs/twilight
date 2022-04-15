@@ -2,6 +2,67 @@
 
 Changelog for `twilight-model`.
 
+## [0.10.2] - 2022-04-15
+
+### Additions
+
+Add `#[repr(transparent)]` to `Id<T>` ([#1619] - [@PyroTechniac]).
+
+Add quality-of-life methods on some `Interaction` types ([#1620] - [@vilgotf]):
+- `Interaction`
+  - `fn application_id(&self) -> Id<ApplicationMarker>`
+  - `fn kind(&self) -> InteractionType`
+- `ApplicationCommand`, `ApplicationCommandAutocomplete`
+  - `fn author_id(&self) -> Option<Id<UserMarker>>`
+- `ApplicationCommand`, `ApplicationCommandAutocomplete`,
+`MessageComponentInteraction`, `ModalSubmitInteraction`
+  - `fn is_dm(&self) -> bool`
+  - `fn is_guild(&self) -> bool`
+
+Add `AuditLogChange::ImageHash` and `AuditLogChangeKey::ImageHash` ([#1631] -
+[@itohatweb]]).
+
+Add `ChannelType::GuildDirectory` ([#1655] - [@zeylahellyer]).
+
+Add `InviteGuild::premium_subscription_count` ([#1661] - [@zeylahellyer]).
+
+Add `Application::{custom_install_url, install_params, tags}` ([#1670] -
+[@zeylahellyer]).
+
+Add `ChannelType::GuildForum` ([#1682] - [@7596ff]).
+
+### Changes
+
+Standardize documentation on `Interaction` types ([#1620] - [@vilgotf]).
+
+Rename `CurrentApplicationInfo` to `Application` ([#1648] - [@zeylahellyer]).
+Additionally, restructure the `oauth` module and deprecate old exports of its
+types. 
+
+Update `UserFlags::HYPESQUAD` docs ([#1658] - [@zeylahellyer]).
+
+Make `Application::owner` an `Option` ([#1671] - [@zeylahellyer]).
+
+### Fixes
+
+In order to properly send attachments when using `CreateResponse`, rework
+`Attachment` ([#1624] - [@7596ff]). This is a breaking change; the user is now
+required to supply a custom unique ID. Changes:
+- Add `id: u64` field, add `id` parameter to `from_bytes`
+- Skip serializing on `description` if empty
+- Skip serializing `file` entirely
+
+[#1619]: https://github.com/twilight-rs/twilight/pull/1619
+[#1620]: https://github.com/twilight-rs/twilight/pull/1620
+[#1624]: https://github.com/twilight-rs/twilight/pull/1624
+[#1631]: https://github.com/twilight-rs/twilight/pull/1631
+[#1648]: https://github.com/twilight-rs/twilight/pull/1648
+[#1655]: https://github.com/twilight-rs/twilight/pull/1655
+[#1661]: https://github.com/twilight-rs/twilight/pull/1661
+[#1670]: https://github.com/twilight-rs/twilight/pull/1670
+[#1671]: https://github.com/twilight-rs/twilight/pull/1671
+[#1682]: https://github.com/twilight-rs/twilight/pull/1682
+
 ## [0.10.1] - 2022-03-20
 
 ### Additions
@@ -1424,6 +1485,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.0
 [0.9.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.2
