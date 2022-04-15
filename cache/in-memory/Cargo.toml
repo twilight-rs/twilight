@@ -13,7 +13,7 @@ publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "README.md"
 rust-version = "1.57"
-version = "0.10.1"
+version = "0.10.2"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
