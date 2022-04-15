@@ -7,6 +7,26 @@ use super::InMemoryCache;
 
 /// Retrieve statistics about the number of entities of each resource in the
 /// cache.
+///
+/// Statistics can be retrieved about the amount of resources on a cache-level
+/// via a method such as [`messages`] or in a particular guild via a method such
+/// as [`guild_messages`].
+///
+/// # Examples
+///
+/// Retrieve the number of users stored in the cache:
+///
+/// ```no_run
+/// use twilight_cache_inmemory::InMemoryCache;
+///
+/// let cache = InMemoryCache::new();
+///
+/// // later on...
+/// println!("user count: {}", cache.stats().users());
+/// ```
+///
+/// [`guild_messages`]: Self::guild_messages
+/// [`messages`]: Self::messages
 #[derive(Clone, Debug)]
 pub struct InMemoryCacheStats<'a>(&'a InMemoryCache);
 
