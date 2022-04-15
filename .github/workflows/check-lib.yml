@@ -86,8 +86,6 @@ jobs:
 
       - name: Run in cache-inmemory
         run: cd cache/in-memory && cargo sync-readme --check
-      - name: Run in command-parser
-        run: cd command-parser && cargo sync-readme --check
       - name: Run in embed-builder
         run: cd embed-builder && cargo sync-readme --check
       - name: Run in gateway
