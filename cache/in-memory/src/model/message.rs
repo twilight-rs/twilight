@@ -131,10 +131,10 @@ impl CachedMessage {
 
     /// List of attached files.
     ///
-    /// Refer to the documentation for [`Message::content`] for caveats with
-    /// receiving the content of messages.
+    /// Refer to the documentation for [`Message::attachments`] for caveats with
+    /// receiving the attachments of messages.
     ///
-    /// [`Message::content`]: twilight_model::channel::Message::content
+    /// [`Message::attachments`]: twilight_model::channel::Message::attachments
     pub fn attachments(&self) -> &[Attachment] {
         &self.attachments
     }
