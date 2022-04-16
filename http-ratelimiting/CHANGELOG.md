@@ -31,7 +31,7 @@ Add `Path` variants for scheduled events ([#1347] - [@7596ff]).
 
 `Present::into_bucket` now returns a `String` ([#1398] - [@vilgotf]).
 
-The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
 
 The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
 

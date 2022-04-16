@@ -73,7 +73,7 @@ they are no longer possible ([#1368] - [@itohatweb]).
 No longer derive `Deserialize` and `Serialize` on `Information` ([#1368] -
 [@itohatweb]).
 
-The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
 
 The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
 

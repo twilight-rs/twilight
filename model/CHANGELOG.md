@@ -37,7 +37,7 @@ Standardize documentation on `Interaction` types ([#1620] - [@vilgotf]).
 
 Rename `CurrentApplicationInfo` to `Application` ([#1648] - [@zeylahellyer]).
 Additionally, restructure the `oauth` module and deprecate old exports of its
-types. 
+types.
 
 Update `UserFlags::HYPESQUAD` docs ([#1658] - [@zeylahellyer]).
 
@@ -140,7 +140,7 @@ renamed to `InteractionResponseData`.
 
 `PermissionOverwrite` now has a separate type in `model::http`; it differs from
 a received `PermissionOverwrite` in that its `allow` and `deny` fields are
-optional. 
+optional.
 
 ### Additions
 
@@ -261,7 +261,7 @@ Support scheduled events ([#1347] - [@7596ff]). Adds the following types:
 All types and method signatures have been updated to use the new `Id<T>` syntax
 ([#1260] - [@zeylahellyer]).
 
-The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
 
 Image hashes are now parsed and stored in a more efficient struct, rather than
 deserializing as a `String` ([#1405] - [@zeylahellyer]).

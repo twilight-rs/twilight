@@ -84,7 +84,7 @@ Properly remove unavailable guilds from the cache ([#1506] - [@Gelbpunkt]).
 All types and method signatures have been updated to use the new `Id<T>` syntax
 ([#1260] - [@zeylahellyer]).
 
-The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
 
 Methods that return an image hash, such as `CachedGuild::banner`, now return an
 `ImageHash` instead of a string ([#1405] - [@zeylahellyer]).

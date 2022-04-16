@@ -69,7 +69,7 @@ Fix a typo, renaming `communication_disabled_util` to
 ### InteractionClient
 
 `InteractionClient` functions have been renamed with a consistent style
-([#1433] - [@7596ff]): 
+([#1433] - [@7596ff]):
 
 | New                          | Old                             |
 | ---------------------------- | ------------------------------- |
@@ -300,7 +300,7 @@ The following functions now perform validation:
 Add a sealed trait located at `request::TryIntoRequest` for converting a typed
 request builder into a raw `request::Request` ([#1162] - [@zeylahellyer]). This
 allows users to inspect requests prior to sending them which may be useful for
-debugging and unit testing. 
+debugging and unit testing.
 
 Support guild scheduled events ([#1347] - [@7596ff]). Adds the following
 methods: `Client::create_guild_scheduled_event`,
@@ -335,7 +335,7 @@ is correct. Similar validation is performed on `ChatInput` `option`s.
 
 `Route` now directly implements `Display` ([#1397] - [@vilgotf]).
 
-The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
 
 The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
 
