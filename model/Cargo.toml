@@ -21,12 +21,7 @@ serde = { default-features = false, features = ["derive", "std"], version = "1.0
 serde-value = { default-features = false, version = "0.7" }
 serde_repr = { default-features = false, version = "0.1.5" }
 time = { default-features = false, features = ["parsing", "std"], version = "0.3" }
-
-# Optional dependencies.
-tracing = { default-features = false, optional = true, version = "0.1.16" }
-
-[features]
-default = ["tracing"]
+tracing = { default-features = false, version = "0.1.16" }
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.3" }

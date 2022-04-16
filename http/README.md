@@ -84,12 +84,6 @@ for root certificates.
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
-
 ### Trust-DNS
 
 The `trust-dns` enables [`hyper-trust-dns`], which replaces the default
@@ -104,7 +98,6 @@ async DNS resolver on the application level.
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
-[`tracing`]: https://crates.io/crates/tracing
 [`hyper-trust-dns`]: https://crates.io/crates/hyper-trust-dns
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2

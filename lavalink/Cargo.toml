@@ -23,11 +23,11 @@ serde = { default-features = false, features = ["derive", "std"], version = "1" 
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
+tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-model = { default-features = false, path = "../model" }
 
 # Optional dependencies.
 percent-encoding = { default-features = false, optional = true, version = "2" }
-tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
@@ -37,7 +37,7 @@ twilight-gateway = { default-features = false, features = ["rustls-native-roots"
 twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http" }
 
 [features]
-default = ["http-support", "rustls-native-roots", "tracing"]
+default = ["http-support", "rustls-native-roots"]
 http-support = ["percent-encoding"]
 native = ["tokio-tungstenite/native-tls"]
 rustls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots"]

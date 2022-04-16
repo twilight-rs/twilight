@@ -48,38 +48,25 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
         let mut timestamp = None;
         let mut user_id = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing typing start");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over element");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
                     tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
@@ -131,7 +118,6 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
         let timestamp = timestamp.ok_or_else(|| DeError::missing_field("timestamp"))?;
         let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             %channel_id,
             ?guild_id,
@@ -140,7 +126,6 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
         );
 
         if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, ?member, "setting member guild id");
 
             member.guild_id = guild_id;

@@ -22,6 +22,7 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.5" }
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
+tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../gateway-queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
@@ -36,7 +37,6 @@ leaky-bucket-lite = { default-features = false, features = ["tokio"], version = 
 flate2 = { default-features = false, optional = true, version = "1.0" }
 metrics = { default-features = false, optional = true, version = "0.18" }
 dep-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, package = "simd-json", version = "0.4" }
-tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 # `value-trait` updated its MSRV in a minor release, so use previous versions.
 value-trait = { default-features = false, optional = true, version = ">=0.2, <0.2.11" }
@@ -54,7 +54,7 @@ static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.12" }
 
 [features]
-default = ["rustls-native-roots", "tracing", "zlib-stock"]
+default = ["rustls-native-roots", "zlib-stock"]
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
 rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]

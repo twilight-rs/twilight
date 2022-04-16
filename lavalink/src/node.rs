@@ -353,13 +353,11 @@ impl Node {
             uptime: 0,
         });
 
-        #[cfg(feature = "tracing")]
         tracing::debug!("starting connection to {}", config.address);
 
         let (conn_loop, lavalink_tx, lavalink_rx) =
             Connection::connect(config.clone(), players.clone(), bilock_right).await?;
 
-        #[cfg(feature = "tracing")]
         tracing::debug!("started connection to {}", config.address);
 
         tokio::spawn(conn_loop.run());
@@ -485,14 +483,12 @@ impl Connection {
                     if let Some(Ok(incoming)) = incoming {
                         self.incoming(incoming).await?;
                     } else {
-                        #[cfg(feature = "tracing")]
                         tracing::debug!("connection to {} closed, reconnecting", self.config.address);
                         self.connection = reconnect(&self.config).await?;
                     }
                 }
                 outgoing = self.node_from.recv() => {
                     if let Some(outgoing) = outgoing {
-                        #[cfg(feature = "tracing")]
                         tracing::debug!(
                             "forwarding event to {}: {:?}",
                             self.config.address,
@@ -506,7 +502,6 @@ impl Connection {
                         let msg = Message::Text(payload);
                         self.connection.send(msg).await.unwrap();
                     } else {
-                        #[cfg(feature = "tracing")]
                         tracing::debug!("node {} closed, ending connection", self.config.address);
 
                         break;
@@ -519,7 +514,6 @@ impl Connection {
     }
 
     async fn incoming(&mut self, incoming: Message) -> Result<bool, NodeError> {
-        #[cfg(feature = "tracing")]
         tracing::debug!(
             "received message from {}: {:?}",
             self.config.address,
@@ -528,14 +522,12 @@ impl Connection {
 
         let text = match incoming {
             Message::Close(_) => {
-                #[cfg(feature = "tracing")]
                 tracing::debug!("got close, closing connection");
                 let _ = self.connection.send(Message::Close(None)).await;
 
                 return Ok(false);
             }
             Message::Ping(data) => {
-                #[cfg(feature = "tracing")]
                 tracing::debug!("got ping, sending pong");
                 let msg = Message::Pong(data);
 
@@ -545,20 +537,16 @@ impl Connection {
                 return Ok(true);
             }
             Message::Text(text) => text,
-            #[cfg(feature = "tracing")]
             other => {
                 tracing::debug!("got pong or bytes payload: {:?}", other);
 
                 return Ok(true);
             }
-            #[cfg(not(feature = "tracing"))]
-            _ => return Ok(true),
         };
 
         let event = match serde_json::from_str(&text) {
             Ok(event) => event,
             Err(_) => {
-                #[cfg(feature = "tracing")]
                 tracing::warn!("unknown message from lavalink node: {}", text);
 
                 return Ok(true);
@@ -584,7 +572,6 @@ impl Connection {
         let player = match self.players.get(&update.guild_id) {
             Some(player) => player,
             None => {
-                #[cfg(feature = "tracing")]
                 tracing::warn!(
                     "invalid player update for guild {}: {:?}",
                     update.guild_id,
@@ -646,7 +633,6 @@ async fn reconnect(
 
         if let Some(value) = headers.get(header) {
             if value.as_bytes() == b"false" {
-                #[cfg(feature = "tracing")]
                 tracing::debug!("session to node {} didn't resume", config.address);
 
                 let payload = serde_json::json!({
@@ -658,7 +644,6 @@ async fn reconnect(
 
                 stream.send(msg).await.unwrap();
             } else {
-                #[cfg(feature = "tracing")]
                 tracing::debug!("session to {} resumed", config.address);
             }
         }
@@ -678,7 +663,6 @@ async fn backoff(
         match tokio_tungstenite::connect_async(req).await {
             Ok((stream, res)) => return Ok((stream, res)),
             Err(source) => {
-                #[cfg(feature = "tracing")]
                 tracing::warn!("failed to connect to node {}: {:?}", source, config.address);
 
                 if matches!(&source, TungsteniteError::Http(resp) if resp.status() == StatusCode::UNAUTHORIZED)
@@ -693,7 +677,6 @@ async fn backoff(
                 }
 
                 if seconds > 64 {
-                    #[cfg(feature = "tracing")]
                     tracing::debug!("no longer trying to connect to node {}", config.address);
 
                     return Err(NodeError {
@@ -702,7 +685,6 @@ async fn backoff(
                     });
                 }
 
-                #[cfg(feature = "tracing")]
                 tracing::debug!(
                     "waiting {} seconds before attempting to connect to node {} again",
                     seconds,

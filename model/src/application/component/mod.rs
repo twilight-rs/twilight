@@ -133,20 +133,15 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut url: Option<Option<String>> = None;
         let mut value: Option<Option<String>> = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing component");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over element");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
@@ -156,7 +151,6 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    #[cfg(feature = "tracing")]
                     tracing::trace!("ran into an unknown key: {:?}", _why);
 
                     continue;
@@ -279,7 +273,6 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             };
         }
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             ?components,
             ?custom_id,

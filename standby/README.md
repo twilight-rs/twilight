@@ -36,14 +36,6 @@ The difference is that if you use the futures variant in a loop then you may
 miss some events while processing a received event. By using a stream, you
 won't miss any events.
 
-## Features
-
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
-
 ## Examples
 
 ### At a glance
@@ -128,7 +120,6 @@ async fn react(
 
 For more examples, check out each of the methods on [`Standby`].
 
-[`tracing`]: https://crates.io/crates/tracing
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
