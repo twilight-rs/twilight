@@ -19,7 +19,7 @@ jobs:
     name: Minimum supported Rust version
     runs-on: ubuntu-latest
     env:
-      minrust: 1.60
+      minrust: '1.60'
 
     steps:
       - name: Checkout sources
