@@ -5,7 +5,7 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::oauth::CurrentApplicationInfo;
+use twilight_model::oauth::Application;
 
 #[must_use = "requests must be configured and executed"]
 pub struct GetUserApplicationInfo<'a> {
@@ -20,7 +20,7 @@ impl<'a> GetUserApplicationInfo<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<CurrentApplicationInfo> {
+    pub fn exec(self) -> ResponseFuture<Application> {
         let http = self.http;
 
         match self.try_into_request() {

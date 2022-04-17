@@ -199,8 +199,8 @@
 //!
 //! ## Note about tracing
 //!
-//! When using the `tracing` crate you won't, by default, see logs from any
-//! libraries that use the `log` crate. You can add that back by using the
+//! When using the [`tracing`] crate you won't, by default, see logs from any
+//! libraries that use the [`log`] crate. You can add that back by using the
 //! [`tracing-log`] crate and initializing it like this:
 //!
 //! ```rust
@@ -231,7 +231,9 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
 //! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+//! [`log`]: https://crates.io/crates/log
 //! [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
+//! [`tracing`]: https://crates.io/crates/tracing
 //! [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
 //! [`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_1_embed_builder.html
 //! [`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html

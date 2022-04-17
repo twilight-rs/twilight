@@ -1,31 +1,33 @@
-mod flags;
-
-pub use self::flags::ApplicationFlags;
-
+use super::{team::Team, ApplicationFlags, InstallParams};
 use crate::{
     id::{
         marker::{ApplicationMarker, GuildMarker, OauthSkuMarker},
         Id,
     },
-    oauth::team::Team,
     user::User,
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct CurrentApplicationInfo {
+pub struct Application {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
     pub cover_image: Option<ImageHash>,
+    /// Application's default custom authorization link, if enabled.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_install_url: Option<String>,
     pub description: String,
     pub guild_id: Option<Id<GuildMarker>>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
     pub icon: Option<ImageHash>,
     pub id: Id<ApplicationMarker>,
+    /// Settings for the application's default in-app authorization, if enabled.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub install_params: Option<InstallParams>,
     pub name: String,
-    pub owner: User,
+    pub owner: Option<User>,
     pub primary_sku_id: Option<Id<OauthSkuMarker>>,
     /// URL of the application's privacy policy.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -33,6 +35,9 @@ pub struct CurrentApplicationInfo {
     #[serde(default)]
     pub rpc_origins: Vec<String>,
     pub slug: Option<String>,
+    /// Tags describing the content and functionality of the application.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
     pub team: Option<Team>,
     /// URL of the application's terms of service.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -42,7 +47,7 @@ pub struct CurrentApplicationInfo {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApplicationFlags, CurrentApplicationInfo, Team, User};
+    use super::{Application, ApplicationFlags, Team, User};
     use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -50,27 +55,30 @@ mod tests {
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(
-        CurrentApplicationInfo: bot_public,
+        Application: bot_public,
         bot_require_code_grant,
         cover_image,
+        custom_install_url,
         description,
         guild_id,
         flags,
         icon,
         id,
+        install_params,
         name,
         owner,
         primary_sku_id,
         privacy_policy_url,
         rpc_origins,
         slug,
+        tags,
         team,
         terms_of_service_url,
         verify_key
     );
 
     assert_impl_all!(
-        CurrentApplicationInfo: Clone,
+        Application: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
@@ -82,17 +90,19 @@ mod tests {
     #[allow(clippy::too_many_lines)]
     #[test]
     fn test_current_application_info() {
-        let value = CurrentApplicationInfo {
+        let value = Application {
             bot_public: true,
             bot_require_code_grant: false,
             cover_image: Some(image_hash::COVER),
+            custom_install_url: None,
             description: "a pretty cool application".to_owned(),
             guild_id: Some(Id::new(1)),
             flags: Some(ApplicationFlags::EMBEDDED),
             icon: Some(image_hash::ICON),
             id: Id::new(2),
+            install_params: None,
             name: "cool application".to_owned(),
-            owner: User {
+            owner: Some(User {
                 accent_color: None,
                 avatar: None,
                 banner: None,
@@ -108,11 +118,17 @@ mod tests {
                 public_flags: None,
                 system: None,
                 verified: None,
-            },
+            }),
             primary_sku_id: Some(Id::new(4)),
             privacy_policy_url: Some("https://privacypolicy".into()),
             rpc_origins: vec!["one".to_owned()],
             slug: Some("app slug".to_owned()),
+            tags: Some(Vec::from([
+                "ponies".to_owned(),
+                "horses".to_owned(),
+                "friendship".to_owned(),
+                "magic".to_owned(),
+            ])),
             team: Some(Team {
                 icon: None,
                 id: Id::new(5),
@@ -128,8 +144,8 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "CurrentApplicationInfo",
-                    len: 17,
+                    name: "Application",
+                    len: 18,
                 },
                 Token::Str("bot_public"),
                 Token::Bool(true),
@@ -156,6 +172,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("cool application"),
                 Token::Str("owner"),
+                Token::Some,
                 Token::Struct {
                     name: "User",
                     len: 7,
@@ -190,6 +207,14 @@ mod tests {
                 Token::Str("slug"),
                 Token::Some,
                 Token::Str("app slug"),
+                Token::Str("tags"),
+                Token::Some,
+                Token::Seq { len: Some(4) },
+                Token::Str("ponies"),
+                Token::Str("horses"),
+                Token::Str("friendship"),
+                Token::Str("magic"),
+                Token::SeqEnd,
                 Token::Str("team"),
                 Token::Some,
                 Token::Struct {

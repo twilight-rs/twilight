@@ -38,7 +38,7 @@ mod tests {
         super::{AuditLogChange, AuditLogEventType},
         AuditLogEntry,
     };
-    use crate::id::Id;
+    use crate::{id::Id, test::image_hash};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -68,13 +68,11 @@ mod tests {
     /// Test the deserialization and serialization of an audit log entry.
     #[test]
     fn test_serde() {
-        const OLD: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-
         let value = AuditLogEntry {
             action_type: AuditLogEventType::GuildUpdate,
             changes: Vec::from([AuditLogChange::IconHash {
                 new: None,
-                old: Some(OLD.to_owned()),
+                old: Some(image_hash::ICON),
             }]),
             id: Id::new(3),
             options: None,
@@ -102,7 +100,7 @@ mod tests {
                 Token::Str("icon_hash"),
                 Token::Str("old_value"),
                 Token::Some,
-                Token::Str(OLD),
+                Token::Str(image_hash::ICON_INPUT),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::Str("id"),

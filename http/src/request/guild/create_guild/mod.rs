@@ -98,7 +98,7 @@ pub enum CreateGuildErrorType {
 }
 
 #[derive(Serialize)]
-struct CreateGuildFields {
+struct CreateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -110,7 +110,7 @@ struct CreateGuildFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     explicit_content_filter: Option<ExplicitContentFilter>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    icon: Option<String>,
+    icon: Option<&'a [u8]>,
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
@@ -222,7 +222,7 @@ pub struct VoiceFields {
 /// This endpoint can only be used by bots in less than 10 guilds.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuild<'a> {
-    fields: CreateGuildFields,
+    fields: CreateGuildFields<'a>,
     http: &'a Client,
 }
 
@@ -371,7 +371,7 @@ impl<'a> CreateGuild<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: String) -> Self {
+    pub fn icon(mut self, icon: &'a [u8]) -> Self {
         self.fields.icon.replace(icon);
 
         self

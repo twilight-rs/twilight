@@ -10,7 +10,7 @@ bitflags! {
         const STAFF = 1;
         /// Partnered server owner.
         const PARTNER = 1 << 1;
-        /// HypeSquad events coordinator.
+        /// HypeSquad events member.
         const HYPESQUAD = 1 << 2;
         /// Bug hunter level 1.
         const BUG_HUNTER_LEVEL_1 = 1 << 3;
