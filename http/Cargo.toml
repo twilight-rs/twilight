@@ -41,8 +41,8 @@ value-trait = { default-features = false, optional = true, version = ">=0.2, <0.
 default = ["decompression", "rustls-native-roots", "tracing"]
 decompression = ["dep:brotli"]
 native = ["dep:hyper-tls"]
-rustls-native-roots = ["hyper-rustls/native-tokio"]
-rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
+rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
+rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
 simd-json = ["dep:simd-json", "dep:value-trait"]
 trust-dns = ["dep:hyper-trust-dns"]
 
