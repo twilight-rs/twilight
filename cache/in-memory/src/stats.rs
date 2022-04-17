@@ -152,7 +152,7 @@ impl<'a> InMemoryCacheStats<'a> {
         self.0.roles.len()
     }
 
-    /// Number of unavailable_guilds in the cache.
+    /// Number of unavailable guilds in the cache.
     pub fn unavailable_guilds(&self) -> usize {
         self.0.unavailable_guilds.len()
     }
@@ -162,7 +162,7 @@ impl<'a> InMemoryCacheStats<'a> {
         self.0.users.len()
     }
 
-    /// Number of voice_states in the cache.
+    /// Number of voice states in the cache.
     pub fn voice_states(&self) -> usize {
         self.0.voice_states.len()
     }
