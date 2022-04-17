@@ -87,7 +87,7 @@ pub enum ShardIdErrorType {
 ///
 /// let shard = Shard::builder(token, Intents::GUILD_MESSAGE_REACTIONS)
 ///     .large_threshold(100)
-///     .shard(5, 10)
+///     .shard(5, 10)?
 ///     .build();
 /// # Ok(()) }
 /// ```
