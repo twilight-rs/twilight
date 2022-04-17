@@ -11,7 +11,7 @@ on:
 env:
   # Use `haswell` instead of `native` due to some GitHub Actions runners not
   # supporting some `avx512` instructions.
-  RUSTFLAGS: -C target-cpu=haswell
+  RUSTFLAGS: -C target-cpu=haswell -D warnings
 
 jobs:
   # Run MSRV first to save Actions time if the code doesn't compile at all.
@@ -166,8 +166,11 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - name: Run cargo test
-        run: cargo test
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Run tests with nextest
+        run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci
 
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
@@ -219,7 +222,10 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
         run: |
-          cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+          cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}

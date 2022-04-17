@@ -2,6 +2,68 @@
 
 Changelog for `twilight-http`.
 
+## [0.10.2] - 2022-04-15
+
+### Additions
+
+Add `CreateStageInstance::send_start_notification` ([#1653] - [@zeylahellyer]).
+
+Add a note on `UpdateGuild::features` regarding the `COMMUNITY` feature ([#1663]
+- [@zeylahellyer]).
+
+### Changes
+
+Account for `Application`'s new name in `GetUserApplicationInfo` ([#1670] -
+[@zeylahellyer]).
+
+Add `StatusCode::get` and deprecate `StatusCode::raw` ([#1672] -
+[@zeylahellyer]).
+
+### Fixes
+
+Update `AttachmentManager` logic to account for
+`model::http::attachment::Attachment` changes ([#1624] - [@7596ff]). See the
+`twilight-model` changelog.
+
+[#1624]: https://github.com/twilight-rs/twilight/pull/1624
+[#1653]: https://github.com/twilight-rs/twilight/pull/1653
+[#1663]: https://github.com/twilight-rs/twilight/pull/1663
+[#1670]: https://github.com/twilight-rs/twilight/pull/1670
+[#1672]: https://github.com/twilight-rs/twilight/pull/1672
+
+## [0.10.1] - 2022-03-20
+
+### Additions
+
+Support compilation without a TLS backend ([#1392] - [@vilgotf], [@7596ff]).
+Discord's API remains HTTPS-only, this feature is intended for use behind
+proxies.
+
+`CreateStageInstance` and `UpdateStageInstance` now return a `StageInstance`
+([#1565] - [@itohatweb]).
+
+### Fixes
+
+Update documentation for `Client::active_threads` ([#1544] - [@mu-arch],
+[@7596ff]).
+
+Encode `Route::SearchGuildMembers`' query string ([#1575] - [@itohatweb]).
+
+Update documentation for `CreateFollowup::flags` ([#1579] - [@laralove143]).
+
+`value-trait`, a dependency of `simd-json`, has been limited to at most `0.2.10`
+([#1596] - [@7596ff], [@vilgotf]). The crate updated its MSRV in a minor
+version, which Twilight is unable to follow.
+
+Fix a typo, renaming `communication_disabled_util` to
+`communication_disabled_until` in `UpdateGuildMember` ([#1612] - [@oceaann]).
+
+[#1392]: https://github.com/twilight-rs/twilight/pull/1392
+[#1544]: https://github.com/twilight-rs/twilight/pull/1544
+[#1565]: https://github.com/twilight-rs/twilight/pull/1565
+[#1575]: https://github.com/twilight-rs/twilight/pull/1575
+[#1596]: https://github.com/twilight-rs/twilight/pull/1596
+
 ## [0.10.0] - 2022-03-10
 
 ### InteractionClient
@@ -1760,7 +1822,9 @@ Initial release.
 [@laralove143]: https://github.com/laralove143
 [@Learath2]: https://github.com/Learath2
 [@MaxOhn]: https://github.com/MaxOhn
+[@mu-arch]: https://github.com/mu-arch
 [@nickelc]: https://github.com/nickelc
+[@oceaann]: https://github.com/oceaann
 [@sam-kirby]: https://github.com/sam-kirby
 [@Silvea12]: https://github.com/Silvea12
 [@SuperiorJT]: https://github.com/SuperiorJT
@@ -1806,6 +1870,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.2
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.9.0

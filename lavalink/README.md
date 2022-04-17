@@ -108,6 +108,7 @@ There is also an example of a basic bot located in the [root of the
 [`rustls`]: https://crates.io/crates/rustls
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 [`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
+[`tracing`]: https://crates.io/crates/tracing
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [client]: Lavalink
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2

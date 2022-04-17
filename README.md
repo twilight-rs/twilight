@@ -219,7 +219,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
-[`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
 [`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_1_embed_builder.html
 [`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html

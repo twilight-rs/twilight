@@ -130,9 +130,9 @@ pub struct MessageMarker;
 
 /// Marker for OAuth SKU IDs.
 ///
-/// Types such as [`CurrentApplicationInfo`] use this ID marker.
+/// Types such as [`Application`] use this ID marker.
 ///
-/// [`CurrentApplicationInfo`]: crate::oauth::CurrentApplicationInfo
+/// [`Application`]: crate::oauth::Application
 #[derive(Clone, Copy, Debug)]
 #[non_exhaustive]
 pub struct OauthSkuMarker;

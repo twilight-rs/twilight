@@ -8,8 +8,7 @@
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
 #![doc = include_str!("../README.md")]
 
@@ -1095,7 +1094,7 @@ mod tests {
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         id::{marker::GuildMarker, Id},
-        oauth::{current_application_info::ApplicationFlags, PartialApplication},
+        oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
     };
 

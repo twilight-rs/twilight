@@ -8,8 +8,7 @@
     nonstandard_style,
     rust_2018_idioms,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
 #![doc = include_str!("../README.md")]
 #![allow(clippy::semicolon_if_nothing_returned)]

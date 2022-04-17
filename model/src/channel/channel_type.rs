@@ -14,6 +14,12 @@ pub enum ChannelType {
     GuildPublicThread = 11,
     GuildPrivateThread = 12,
     GuildStageVoice = 13,
+    /// Channel in a [hub] containing the listed servers.
+    ///
+    /// [hub]: https://support.discord.com/hc/en-us/articles/4406046651927-Discord-Student-Hubs-FAQ
+    GuildDirectory = 14,
+    /// Channel that can only contain threads.
+    GuildForum = 15,
 }
 
 impl ChannelType {
@@ -22,6 +28,7 @@ impl ChannelType {
     /// The following channel types are considered guild channel types:
     ///
     /// - [`GuildCategory`][`Self::GuildCategory`]
+    /// - [`GuildDirectory`][`Self::GuildDirectory`]
     /// - [`GuildNews`][`Self::GuildNews`]
     /// - [`GuildStore`][`Self::GuildStore`]
     /// - [`GuildNewsThread`][`Self::GuildNewsThread`]
@@ -34,6 +41,7 @@ impl ChannelType {
         matches!(
             self,
             Self::GuildCategory
+                | Self::GuildDirectory
                 | Self::GuildNews
                 | Self::GuildStore
                 | Self::GuildNewsThread
@@ -64,6 +72,8 @@ impl ChannelType {
         match self {
             Self::Group => "Group",
             Self::GuildCategory => "GuildCategory",
+            Self::GuildDirectory => "GuildDirectory",
+            Self::GuildForum => "GuildForum",
             Self::GuildNews => "GuildNews",
             Self::GuildNewsThread => "GuildNewsThread",
             Self::GuildPrivateThread => "GuildPrivateThread",
@@ -84,6 +94,7 @@ mod tests {
     use static_assertions::const_assert;
 
     const_assert!(ChannelType::GuildCategory.is_guild());
+    const_assert!(ChannelType::GuildDirectory.is_guild());
     const_assert!(ChannelType::GuildNews.is_guild());
     const_assert!(ChannelType::GuildStore.is_guild());
     const_assert!(ChannelType::GuildNewsThread.is_guild());
@@ -110,12 +121,14 @@ mod tests {
         serde_test::assert_tokens(&ChannelType::GuildPublicThread, &[Token::U8(11)]);
         serde_test::assert_tokens(&ChannelType::GuildPrivateThread, &[Token::U8(12)]);
         serde_test::assert_tokens(&ChannelType::GuildStageVoice, &[Token::U8(13)]);
+        serde_test::assert_tokens(&ChannelType::GuildDirectory, &[Token::U8(14)]);
     }
 
     #[test]
     fn test_names() {
         assert_eq!("Group", ChannelType::Group.name());
         assert_eq!("GuildCategory", ChannelType::GuildCategory.name());
+        assert_eq!("GuildDirectory", ChannelType::GuildDirectory.name());
         assert_eq!("GuildNews", ChannelType::GuildNews.name());
         assert_eq!("GuildNewsThread", ChannelType::GuildNewsThread.name());
         assert_eq!("GuildPrivateThread", ChannelType::GuildPrivateThread.name());

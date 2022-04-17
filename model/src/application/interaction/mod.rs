@@ -19,7 +19,7 @@ use crate::{
     channel::Message,
     guild::PartialMember,
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker},
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
     },
     user::User,
@@ -54,13 +54,25 @@ pub enum Interaction {
 }
 
 impl Interaction {
+    /// Id of the associated application.
+    pub const fn application_id(&self) -> Id<ApplicationMarker> {
+        match self {
+            Self::Ping(ping) => ping.application_id,
+            Self::ApplicationCommand(command) => command.application_id,
+            Self::ApplicationCommandAutocomplete(command) => command.application_id,
+            Self::MessageComponent(component) => component.application_id,
+            Self::ModalSubmit(modal) => modal.application_id,
+        }
+    }
+
+    /// ID of the guild the interaction was invoked in.
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
-            Self::ApplicationCommand(inner) => inner.guild_id,
-            Self::ApplicationCommandAutocomplete(inner) => inner.guild_id,
-            Self::MessageComponent(inner) => inner.guild_id,
-            Self::ModalSubmit(inner) => inner.guild_id,
+            Self::ApplicationCommand(command) => command.guild_id,
+            Self::ApplicationCommandAutocomplete(command) => command.guild_id,
+            Self::MessageComponent(component) => component.guild_id,
+            Self::ModalSubmit(modal) => modal.guild_id,
         }
     }
 
@@ -74,12 +86,39 @@ impl Interaction {
             Self::ModalSubmit(modal) => modal.id,
         }
     }
+
+    /// Type of interaction.
+    pub const fn kind(&self) -> InteractionType {
+        match self {
+            Interaction::Ping(_) => InteractionType::Ping,
+            Interaction::ApplicationCommand(_) => InteractionType::ApplicationCommand,
+            Interaction::ApplicationCommandAutocomplete(_) => {
+                InteractionType::ApplicationCommandAutocomplete
+            }
+            Interaction::MessageComponent(_) => InteractionType::MessageComponent,
+            Interaction::ModalSubmit(_) => InteractionType::ModalSubmit,
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for Interaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_map(InteractionVisitor)
     }
+}
+
+const fn author_id(user: Option<&User>, member: Option<&PartialMember>) -> Option<Id<UserMarker>> {
+    if let Some(member) = member {
+        if let Some(user) = &member.user {
+            return Some(user.id);
+        }
+    }
+
+    if let Some(user) = user {
+        return Some(user.id);
+    }
+
+    None
 }
 
 #[derive(Debug, Deserialize)]
@@ -378,6 +417,8 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     .map_err(|_| DeError::custom("expected ModalInteractionData struct"))?;
 
                 let guild_id = guild_id.unwrap_or_default();
+                let guild_locale = guild_locale.unwrap_or_default();
+                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
                 let member = member.unwrap_or_default();
                 let user = user.unwrap_or_default();
 
@@ -386,9 +427,12 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     channel_id,
                     data,
                     guild_id,
+                    guild_locale,
                     id,
                     kind,
+                    locale,
                     member,
+                    message,
                     token,
                     user,
                 }))
@@ -398,7 +442,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use crate::{
         application::{
             command::{CommandOptionType, CommandType},
@@ -412,12 +456,32 @@ mod test {
         },
         datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
-        id::Id,
+        id::{marker::UserMarker, Id},
         test::image_hash,
         user::User,
     };
     use serde_test::Token;
     use std::{collections::HashMap, str::FromStr};
+
+    pub(super) fn user(id: Id<UserMarker>) -> User {
+        User {
+            accent_color: None,
+            avatar: None,
+            banner: None,
+            bot: false,
+            discriminator: 4444,
+            email: None,
+            flags: None,
+            id,
+            locale: None,
+            mfa_enabled: None,
+            name: "twilight".to_owned(),
+            premium_type: None,
+            public_flags: None,
+            system: None,
+            verified: None,
+        }
+    }
 
     #[test]
     #[allow(clippy::too_many_lines)]
