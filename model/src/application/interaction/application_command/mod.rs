@@ -45,6 +45,8 @@ pub struct ApplicationCommand {
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Kind of the interaction.
+    ///
+    /// Should always be `InteractionType::ApplicationCommand`.
     #[serde(rename = "type")]
     pub kind: InteractionType,
     /// Selected language of the user who invoked the interaction.
