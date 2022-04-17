@@ -38,6 +38,8 @@ pub struct MessageComponentInteraction {
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of the interaction.
+    ///
+    /// Should always be `InteractionType::MessageComponent`.
     #[serde(rename = "type")]
     pub kind: InteractionType,
     /// Selected language of the user who invoked the interaction.

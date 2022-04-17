@@ -84,10 +84,12 @@ impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
                 continue;
             }
 
-            let end = match self.chars.find(|c| c.1 == '>') {
-                Some((idx, _)) => idx,
-                None => continue,
+            let end = if let Some((idx, _)) = self.chars.find(|c| c.1 == '>') {
+                idx
+            } else {
+                continue;
             };
+
             let buf = self.buf.get(start..=end)?;
 
             if let Ok(id) = T::parse(buf) {

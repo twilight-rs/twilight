@@ -40,6 +40,8 @@ pub struct ModalSubmitInteraction {
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of the interaction.
+    ///
+    /// Should always be `InteractionType::ModalSubmit`.
     #[serde(rename = "type")]
     pub kind: InteractionType,
     /// Selected language of the user who invoked the interaction.
