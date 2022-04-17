@@ -21,7 +21,7 @@ There are no changes.
 
 ### Changes
 
-The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
 
 The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
 

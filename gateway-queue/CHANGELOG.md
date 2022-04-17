@@ -34,7 +34,7 @@ Add `NoOpQueue`, which does not ratelimit any requests ([#1490] - [@Gelbpunkt]).
 The `rustls` feature has been removed ([#1314] - [@Gelbpunkt]). Users must
 manually select one of `rustls-native-roots` or `rustls-webpki-roots`.
 
-The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
 
 The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
 

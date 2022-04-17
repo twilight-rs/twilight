@@ -24,7 +24,7 @@ previously forced a downgrade to `4.0`) ([#1517] - [@Gelbpunkt]).
 All types and method signatures have been updated to use the new `Id<T>` syntax
 ([#1260] - [@zeylahellyer]).
 
-The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
 
 The Rust edition has been updated to 2021 ([#1412] - [@vilgotf]).
 

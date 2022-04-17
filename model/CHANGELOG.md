@@ -261,7 +261,7 @@ Support scheduled events ([#1347] - [@7596ff]). Adds the following types:
 All types and method signatures have been updated to use the new `Id<T>` syntax
 ([#1260] - [@zeylahellyer]).
 
-The MSRV has been updated to 1.60 ([#1402] - [@zeylahellyer]).
+The MSRV has been updated to 1.57 ([#1402] - [@zeylahellyer]).
 
 Image hashes are now parsed and stored in a more efficient struct, rather than
 deserializing as a `String` ([#1405] - [@zeylahellyer]).
