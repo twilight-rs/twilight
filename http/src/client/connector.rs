@@ -1,10 +1,7 @@
 //! HTTP connectors with different features.
 
 /// HTTPS connector using `rustls` as a TLS backend.
-#[cfg(any(
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
+#[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
 type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
 /// HTTPS connector using `hyper-tls` as a TLS backend.
 #[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
