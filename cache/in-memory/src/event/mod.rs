@@ -30,8 +30,8 @@ impl InMemoryCache {
     }
 
     pub(crate) fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<Id<GuildMarker>>) {
-        match self.users.get_mut(&user.id) {
-            Some(u) if u.value() == user.as_ref() => {
+        if let Some(cached_user) = self.users.get_mut(&user.id) {
+            if cached_user.value() == user.as_ref() {
                 if let Some(guild_id) = guild_id {
                     self.user_guilds
                         .entry(user.id)
@@ -41,8 +41,8 @@ impl InMemoryCache {
 
                 return;
             }
-            Some(_) | None => {}
         }
+
         let user = user.into_owned();
         let user_id = user.id;
 

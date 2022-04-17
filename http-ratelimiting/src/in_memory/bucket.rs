@@ -84,10 +84,14 @@ impl Bucket {
     /// Time remaining until this bucket will reset.
     pub fn time_remaining(&self) -> TimeRemaining {
         let reset_after = self.reset_after();
-        let started_at = match *self.started_at.lock().expect("bucket poisoned") {
-            Some(v) => v,
-            None => return TimeRemaining::NotStarted,
+        let maybe_started_at = *self.started_at.lock().expect("bucket poisoned");
+
+        let started_at = if let Some(started_at) = maybe_started_at {
+            started_at
+        } else {
+            return TimeRemaining::NotStarted;
         };
+
         let elapsed = started_at.elapsed();
 
         if elapsed > Duration::from_millis(reset_after) {
