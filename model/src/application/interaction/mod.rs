@@ -689,7 +689,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("500"),
                 Token::Str("type"),
-                Token::U8(2),
+                Token::U8(InteractionType::ApplicationCommand as u8),
                 Token::Str("locale"),
                 Token::Str("en-GB"),
                 Token::Str("member"),
