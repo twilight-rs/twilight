@@ -16,7 +16,7 @@
 //!
 //! ## Installation
 //!
-//! Twilight supports a MSRV of Rust 1.57+.
+//! Twilight supports a MSRV of Rust 1.60+.
 //!
 //! We recommend that most users start out with these crates:
 //!
@@ -230,7 +230,7 @@
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
-//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 //! [`log`]: https://crates.io/crates/log
 //! [`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
 //! [`tracing`]: https://crates.io/crates/tracing

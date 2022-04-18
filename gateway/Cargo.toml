@@ -12,7 +12,7 @@ name = "twilight-gateway"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-rust-version = "1.57"
+rust-version = "1.60"
 version = "0.10.1"
 
 [dependencies]
@@ -38,9 +38,6 @@ flate2 = { default-features = false, optional = true, version = "1.0" }
 metrics = { default-features = false, optional = true, version = "0.18" }
 dep-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, package = "simd-json", version = "0.4" }
 
-# `value-trait` updated its MSRV in a minor release, so use previous versions.
-value-trait = { default-features = false, optional = true, version = ">=0.2, <0.2.11" }
-
 # TLS libraries
 # They are needed to track what is used in tokio-tungstenite
 native-tls = { default-features = false, optional = true, version = "0.2.8" }
@@ -58,7 +55,6 @@ default = ["rustls-native-roots", "zlib-stock"]
 native = ["native-tls", "twilight-http/native", "twilight-gateway-queue/native", "tokio-tungstenite/native-tls"]
 rustls-native-roots = ["rustls-tls", "rustls-native-certs", "twilight-http/rustls-native-roots", "twilight-gateway-queue/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["rustls-tls", "webpki-roots", "twilight-http/rustls-webpki-roots", "twilight-gateway-queue/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
-simd-json = ["dep-simd-json", "value-trait"]
 zlib-simd = ["flate2/zlib-ng-compat"]
 # if the `zlib` feature is enabled anywhere in the dependency tree it will
 # always use stock zlib instead of zlib-ng.

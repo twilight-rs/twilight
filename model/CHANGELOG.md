@@ -37,7 +37,7 @@ Standardize documentation on `Interaction` types ([#1620] - [@vilgotf]).
 
 Rename `CurrentApplicationInfo` to `Application` ([#1648] - [@zeylahellyer]).
 Additionally, restructure the `oauth` module and deprecate old exports of its
-types. 
+types.
 
 Update `UserFlags::HYPESQUAD` docs ([#1658] - [@zeylahellyer]).
 
@@ -140,7 +140,7 @@ renamed to `InteractionResponseData`.
 
 `PermissionOverwrite` now has a separate type in `model::http`; it differs from
 a received `PermissionOverwrite` in that its `allow` and `deny` fields are
-optional. 
+optional.
 
 ### Additions
 

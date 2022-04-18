@@ -569,12 +569,14 @@ impl Shard {
     pub fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
-        let (ratelimit_requests, ratelimit_refill) = match session.ratelimit.get() {
-            Some(limiter) => (
+        let (ratelimit_requests, ratelimit_refill) = if let Some(limiter) = session.ratelimit.get()
+        {
+            (
                 limiter.as_ref().map(LeakyBucket::tokens),
                 limiter.as_ref().map(LeakyBucket::next_refill),
-            ),
-            None => return Err(SessionInactiveError),
+            )
+        } else {
+            return Err(SessionInactiveError);
         };
 
         Ok(Information {
