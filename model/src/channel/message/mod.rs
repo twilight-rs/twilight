@@ -90,12 +90,12 @@ pub struct Message {
     pub edited_timestamp: Option<Timestamp>,
     /// List of embeds.
     ///
-    /// Receiving the attachments of messages requires that the
+    /// Receiving the embeds of messages requires that the
     /// [Message Content Intent] be enabled for the application. In the case of
     /// receiving messages over the Gateway, the intent must also be enabled for
     /// the session.
     ///
-    /// Message attachments will be empty unless the [Message Content Intent] is
+    /// Message embeds will be empty unless the [Message Content Intent] is
     /// enabled, the message was sent by the current user, or the message is in
     /// a direct message channel.
     ///
