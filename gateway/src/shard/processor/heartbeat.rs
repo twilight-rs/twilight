@@ -196,8 +196,8 @@ impl Heartbeater {
     }
 
     pub async fn run(self) {
-        if let Err(_source) = self.try_run().await {
-            tracing::warn!("Error sending heartbeat: {:?}", _source);
+        if let Err(source) = self.try_run().await {
+            tracing::warn!("Error sending heartbeat: {:?}", source);
         }
     }
 

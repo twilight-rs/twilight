@@ -620,8 +620,8 @@ impl ShardProcessor {
             self.resume().await;
         }
 
-        if let Err(_source) = self.session.heartbeat() {
-            tracing::warn!("error sending heartbeat; reconnecting: {}", _source);
+        if let Err(source) = self.session.heartbeat() {
+            tracing::warn!("error sending heartbeat; reconnecting: {}", source);
 
             self.emit_disconnected(None, None).await;
 
@@ -979,8 +979,8 @@ impl ShardProcessor {
 
             let stream = match Self::connect(&self.url, self.config.tls.as_ref()).await {
                 Ok(s) => s,
-                Err(_source) => {
-                    tracing::warn!("reconnecting failed: {:?}", _source);
+                Err(source) => {
+                    tracing::warn!("reconnecting failed: {:?}", source);
 
                     if wait < Duration::from_secs(128) {
                         wait *= 2;
@@ -1022,13 +1022,13 @@ impl ShardProcessor {
 
         self.resume = Some((seq, id));
 
-        if let Err(_source) = self.try_resume().await {
+        if let Err(source) = self.try_resume().await {
             tracing::warn!(
                 seq = seq,
                 session_id = ?self.session.id(),
                 shard_id = self.config.shard()[0],
                 "failed to resume session: {:?}",
-                _source,
+                source,
             );
 
             self.reconnect().await;
@@ -1061,8 +1061,8 @@ impl ShardProcessor {
         self.rx = rx;
         self.session = Arc::new(Session::new(tx, self.config.ratelimit_payloads));
 
-        if let Err(_source) = self.wtx.send(Arc::clone(&self.session)) {
-            tracing::error!("failed to broadcast new session: {:?}", _source);
+        if let Err(source) = self.wtx.send(Arc::clone(&self.session)) {
+            tracing::error!("failed to broadcast new session: {:?}", source);
         }
 
         self.session.set_stage(stage);

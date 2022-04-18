@@ -147,11 +147,11 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     key
                 }
                 Ok(None) => break,
-                Err(_why) => {
+                Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!("ran into an unknown key: {:?}", _why);
+                    tracing::trace!("ran into an unknown key: {:?}", why);
 
                     continue;
                 }
