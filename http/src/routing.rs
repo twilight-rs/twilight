@@ -375,7 +375,7 @@ pub enum Route<'a> {
         before: Option<u64>,
         /// Maximum number of bans to retrieve.
         limit: Option<u16>,
-        /// The ID of the guild.
+        /// ID of the guild.
         guild_id: u64,
     },
     /// Route information to get a channel.
