@@ -27,7 +27,7 @@
 //!     id::Id,
 //! };
 //!
-//! let intents = Intents::GUILD_PRESENCES;
+//! let intents = Intents::GUILD_MEMBERS;
 //! let token = env::var("DISCORD_TOKEN")?;
 //!
 //! let (shard, _events) = Shard::new(token, intents);
