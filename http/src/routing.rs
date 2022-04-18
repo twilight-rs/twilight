@@ -2313,21 +2313,19 @@ impl Display for Route<'_> {
                 Display::fmt(scheduled_event_id, f)?;
                 f.write_str("/users?")?;
 
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
                 if let Some(limit) = limit {
                     f.write_str("&limit=")?;
                     Display::fmt(limit, f)?;
-                }
-
-                match (before, after) {
-                    (Some(before), Some(_) | None) => {
-                        f.write_str("&before=")?;
-                        Display::fmt(before, f)?;
-                    }
-                    (None, Some(after)) => {
-                        f.write_str("&after=")?;
-                        Display::fmt(after, f)?;
-                    }
-                    _ => {}
                 }
 
                 if *with_member {
@@ -4712,7 +4710,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=101&after={user_id}",
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?after={user_id}&limit=101",
                 guild_id = GUILD_ID,
                 scheduled_event_id = SCHEDULED_EVENT_ID,
                 user_id = USER_ID,
@@ -4731,10 +4729,11 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=99&before={user_id}",
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?after={after}&before={before}&limit=99",
+                after = USER_ID,
+                before = USER_ID,
                 guild_id = GUILD_ID,
                 scheduled_event_id = SCHEDULED_EVENT_ID,
-                user_id = USER_ID,
             )
         );
     }
