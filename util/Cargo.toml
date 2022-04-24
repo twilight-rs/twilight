@@ -25,7 +25,6 @@ static_assertions = { default-features = false, version = "1" }
 time = { default-features = false, features = ["formatting"], version = "0.3" }
 
 [features]
-default = []
 builder = ["dep:twilight-model", "dep:twilight-validate"]
 link = ["dep:twilight-model"]
 permission-calculator = ["dep:twilight-model"]
