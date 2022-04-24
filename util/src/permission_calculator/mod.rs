@@ -477,6 +477,8 @@ const fn process_permission_overwrites(
                     member_deny = bitops::insert(member_deny, overwrite.deny);
                 }
             }
+            // Unknown, impossible to try and calculate with this
+            PermissionOverwriteType::Unknown(_) => {}
         }
 
         idx += 1;
