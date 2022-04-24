@@ -554,7 +554,7 @@ impl Serialize for Component {
                 }
             }
             // We are not serializing all fields so this will fail to deserialize. But it is all that can be done
-            // to avoid losing incomming messages at this time
+            // to avoid losing incoming messages at this time
             Component::Unknown(unknown) => {
                 state.serialize_field("type", &ComponentType::Unknown(*unknown))?;
             }
