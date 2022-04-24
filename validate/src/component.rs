@@ -556,6 +556,13 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
             Component::Button(button) => self::button(button)?,
             Component::SelectMenu(select_menu) => self::select_menu(select_menu)?,
             Component::TextInput(text_input) => self::text_input(text_input)?,
+            Component::Unknown(unknown) => {
+                return Err(ComponentValidationError {
+                    kind: ComponentValidationErrorType::InvalidChildComponent {
+                        kind: ComponentType::Unknown(*unknown),
+                    },
+                })
+            }
         }
     }
 
@@ -1117,7 +1124,8 @@ mod tests {
             | ButtonStyle::Secondary
             | ButtonStyle::Success
             | ButtonStyle::Danger
-            | ButtonStyle::Link => {}
+            | ButtonStyle::Link
+            | ButtonStyle::Unknown(_) => {}
         }
 
         BUTTON_STYLES

@@ -1,60 +1,40 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use serde::{Deserialize, Serialize};
 
 /// Type of a [`Sticker`].
 ///
 /// [`Sticker`]: super::Sticker
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum StickerType {
     /// Official sticker in a pack.
     ///
     /// Part of nitro or in a removed purchasable pack.
-    Standard = 1,
+    Standard,
     /// Sticker uploaded to a boosted guild for the guild's members.
-    Guild = 2,
+    Guild,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
 }
 
-impl TryFrom<u8> for StickerType {
-    type Error = StickerTypeConversionError;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        Ok(match value {
+impl From<u8> for StickerType {
+    fn from(value: u8) -> Self {
+        match value {
             1 => StickerType::Standard,
             2 => StickerType::Guild,
-            _ => return Err(StickerTypeConversionError { value }),
-        })
+            unknown => StickerType::Unknown(unknown),
+        }
     }
 }
 
-/// Converting into a [`StickerType`] failed.
-///
-/// This occurs only when the input value doesn't map to a sticker type variant.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct StickerTypeConversionError {
-    value: u8,
-}
-
-impl<'a> StickerTypeConversionError {
-    /// Retrieve a copy of the input value that couldn't be parsed.
-    pub const fn value(&self) -> u8 {
-        self.value
+impl From<StickerType> for u8 {
+    fn from(value: StickerType) -> Self {
+        match value {
+            StickerType::Standard => 1,
+            StickerType::Guild => 2,
+            StickerType::Unknown(unknown) => unknown,
+        }
     }
 }
-
-impl Display for StickerTypeConversionError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("Value (")?;
-        Display::fmt(&self.value, f)?;
-
-        f.write_str(") doesn't match a sticker type")
-    }
-}
-
-impl Error for StickerTypeConversionError {}
 
 #[cfg(test)]
 mod tests {
@@ -65,11 +45,13 @@ mod tests {
     fn test_variants() {
         serde_test::assert_tokens(&StickerType::Standard, &[Token::U8(1)]);
         serde_test::assert_tokens(&StickerType::Guild, &[Token::U8(2)]);
+        serde_test::assert_tokens(&StickerType::Unknown(99), &[Token::U8(99)]);
     }
 
     #[test]
     fn test_conversions() {
-        assert_eq!(StickerType::try_from(1).unwrap(), StickerType::Standard);
-        assert_eq!(StickerType::try_from(2).unwrap(), StickerType::Guild);
+        assert_eq!(StickerType::from(1), StickerType::Standard);
+        assert_eq!(StickerType::from(2), StickerType::Guild);
+        assert_eq!(StickerType::from(99), StickerType::Unknown(99));
     }
 }

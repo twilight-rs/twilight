@@ -1,24 +1,61 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum ChannelType {
-    GuildText = 0,
-    Private = 1,
-    GuildVoice = 2,
-    Group = 3,
-    GuildCategory = 4,
-    GuildNews = 5,
-    GuildNewsThread = 10,
-    GuildPublicThread = 11,
-    GuildPrivateThread = 12,
-    GuildStageVoice = 13,
-    /// Channel in a [hub] containing the listed servers.
-    ///
-    /// [hub]: https://support.discord.com/hc/en-us/articles/4406046651927-Discord-Student-Hubs-FAQ
-    GuildDirectory = 14,
-    /// Channel that can only contain threads.
-    GuildForum = 15,
+    GuildText,
+    Private,
+    GuildVoice,
+    Group,
+    GuildCategory,
+    GuildNews,
+    GuildNewsThread,
+    GuildPublicThread,
+    GuildPrivateThread,
+    GuildStageVoice,
+    GuildDirectory,
+    GuildForum,
+    Unknown(u8),
+}
+
+impl From<u8> for ChannelType {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => ChannelType::GuildText,
+            1 => ChannelType::Private,
+            2 => ChannelType::GuildVoice,
+            3 => ChannelType::Group,
+            4 => ChannelType::GuildCategory,
+            5 => ChannelType::GuildNews,
+            10 => ChannelType::GuildNewsThread,
+            11 => ChannelType::GuildPublicThread,
+            12 => ChannelType::GuildPrivateThread,
+            13 => ChannelType::GuildStageVoice,
+            14 => ChannelType::GuildDirectory,
+            15 => ChannelType::GuildForum,
+            unknown => ChannelType::Unknown(unknown),
+        }
+    }
+}
+
+impl From<ChannelType> for u8 {
+    fn from(value: ChannelType) -> Self {
+        match value {
+            ChannelType::GuildText => 0,
+            ChannelType::Private => 1,
+            ChannelType::GuildVoice => 2,
+            ChannelType::Group => 3,
+            ChannelType::GuildCategory => 4,
+            ChannelType::GuildNews => 5,
+            ChannelType::GuildNewsThread => 10,
+            ChannelType::GuildPublicThread => 11,
+            ChannelType::GuildPrivateThread => 12,
+            ChannelType::GuildStageVoice => 13,
+            ChannelType::GuildDirectory => 14,
+            ChannelType::GuildForum => 15,
+            ChannelType::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 impl ChannelType {
@@ -79,6 +116,7 @@ impl ChannelType {
             Self::GuildText => "GuildText",
             Self::GuildVoice => "GuildVoice",
             Self::Private => "Private",
+            Self::Unknown(_) => "Unknown",
         }
     }
 }
@@ -116,6 +154,7 @@ mod tests {
         serde_test::assert_tokens(&ChannelType::GuildPrivateThread, &[Token::U8(12)]);
         serde_test::assert_tokens(&ChannelType::GuildStageVoice, &[Token::U8(13)]);
         serde_test::assert_tokens(&ChannelType::GuildDirectory, &[Token::U8(14)]);
+        serde_test::assert_tokens(&ChannelType::Unknown(99), &[Token::U8(99)]);
     }
 
     #[test]
@@ -131,5 +170,6 @@ mod tests {
         assert_eq!("GuildText", ChannelType::GuildText.name());
         assert_eq!("GuildVoice", ChannelType::GuildVoice.name());
         assert_eq!("Private", ChannelType::Private.name());
+        assert_eq!("Unknown", ChannelType::Unknown(99).name());
     }
 }

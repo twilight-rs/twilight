@@ -49,7 +49,7 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("format_type"),
-                Token::U8(StickerFormatType::Lottie as u8),
+                Token::U8(StickerFormatType::Lottie.into()),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),

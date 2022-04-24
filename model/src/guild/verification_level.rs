@@ -1,15 +1,41 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
-)]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum VerificationLevel {
-    None = 0,
-    Low = 1,
-    Medium = 2,
-    High = 3,
-    VeryHigh = 4,
+    None,
+    Low,
+    Medium,
+    High,
+    VeryHigh,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
+}
+
+impl From<u8> for VerificationLevel {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => VerificationLevel::None,
+            1 => VerificationLevel::Low,
+            2 => VerificationLevel::Medium,
+            3 => VerificationLevel::High,
+            4 => VerificationLevel::VeryHigh,
+            unknown => VerificationLevel::Unknown(unknown),
+        }
+    }
+}
+
+impl From<VerificationLevel> for u8 {
+    fn from(value: VerificationLevel) -> Self {
+        match value {
+            VerificationLevel::None => 0,
+            VerificationLevel::Low => 1,
+            VerificationLevel::Medium => 2,
+            VerificationLevel::High => 3,
+            VerificationLevel::VeryHigh => 4,
+            VerificationLevel::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -24,5 +50,6 @@ mod tests {
         serde_test::assert_tokens(&VerificationLevel::Medium, &[Token::U8(2)]);
         serde_test::assert_tokens(&VerificationLevel::High, &[Token::U8(3)]);
         serde_test::assert_tokens(&VerificationLevel::VeryHigh, &[Token::U8(4)]);
+        serde_test::assert_tokens(&VerificationLevel::Unknown(99), &[Token::U8(99)]);
     }
 }

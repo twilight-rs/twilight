@@ -1,12 +1,31 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
-)]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum ConnectionVisibility {
-    None = 0,
-    Everyone = 1,
+    None,
+    Everyone,
+    Unknown(u8),
+}
+
+impl From<u8> for ConnectionVisibility {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => ConnectionVisibility::None,
+            1 => ConnectionVisibility::Everyone,
+            unknown => ConnectionVisibility::Unknown(unknown),
+        }
+    }
+}
+
+impl From<ConnectionVisibility> for u8 {
+    fn from(value: ConnectionVisibility) -> Self {
+        match value {
+            ConnectionVisibility::None => 0,
+            ConnectionVisibility::Everyone => 1,
+            ConnectionVisibility::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -18,5 +37,6 @@ mod tests {
     fn test_variants() {
         serde_test::assert_tokens(&ConnectionVisibility::None, &[Token::U8(0)]);
         serde_test::assert_tokens(&ConnectionVisibility::Everyone, &[Token::U8(1)]);
+        serde_test::assert_tokens(&ConnectionVisibility::Unknown(99), &[Token::U8(99)]);
     }
 }

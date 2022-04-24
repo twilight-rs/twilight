@@ -1,10 +1,31 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum TargetType {
-    Stream = 1,
-    EmbeddedApplication = 2,
+    Stream,
+    EmbeddedApplication,
+    Unknown(u8),
+}
+
+impl From<u8> for TargetType {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => TargetType::Stream,
+            2 => TargetType::EmbeddedApplication,
+            unknown => TargetType::Unknown(unknown),
+        }
+    }
+}
+
+impl From<TargetType> for u8 {
+    fn from(value: TargetType) -> Self {
+        match value {
+            TargetType::Stream => 1,
+            TargetType::EmbeddedApplication => 2,
+            TargetType::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -16,5 +37,6 @@ mod tests {
     fn test_variants() {
         serde_test::assert_tokens(&TargetType::Stream, &[Token::U8(1)]);
         serde_test::assert_tokens(&TargetType::EmbeddedApplication, &[Token::U8(2)]);
+        serde_test::assert_tokens(&TargetType::Unknown(99), &[Token::U8(99)]);
     }
 }

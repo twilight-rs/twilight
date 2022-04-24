@@ -249,7 +249,7 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
 
     match kind {
         CommandType::ChatInput => self::chat_input_name(name),
-        CommandType::User | CommandType::Message => self::name(name),
+        CommandType::User | CommandType::Message | CommandType::Unknown(_) => self::name(name),
     }
 }
 

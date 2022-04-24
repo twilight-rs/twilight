@@ -121,7 +121,7 @@ mod tests {
                     len: 2,
                 },
                 Token::String("type"),
-                Token::U8(ComponentType::ActionRow as u8),
+                Token::U8(ComponentType::ActionRow.into()),
                 Token::String("components"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -131,7 +131,7 @@ mod tests {
                 Token::String("custom_id"),
                 Token::String("the-data-id"),
                 Token::String("type"),
-                Token::U8(ComponentType::TextInput as u8),
+                Token::U8(ComponentType::TextInput.into()),
                 Token::String("value"),
                 Token::String("input value"),
                 Token::StructEnd,
