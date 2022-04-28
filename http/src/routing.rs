@@ -367,6 +367,17 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's bans with parameters.
+    GetBansWithParameters {
+        /// User ID after which to retrieve bans.
+        after: Option<u64>,
+        /// User ID before which to retrieve bans.
+        before: Option<u64>,
+        /// Maximum number of bans to retrieve.
+        limit: Option<u16>,
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a channel.
     GetChannel {
         /// The ID of the channel.
@@ -1085,6 +1096,7 @@ impl<'a> Route<'a> {
             | Self::GetAuditLogs { .. }
             | Self::GetBan { .. }
             | Self::GetBans { .. }
+            | Self::GetBansWithParameters { .. }
             | Self::GetGatewayBot
             | Self::GetChannel { .. }
             | Self::GetChannelInvites { .. }
@@ -1434,7 +1446,9 @@ impl<'a> Route<'a> {
             Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(guild_id),
             Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(guild_id),
             Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(guild_id),
-            Self::GetBans { guild_id } => Path::GuildsIdBans(guild_id),
+            Self::GetBans { guild_id } | Self::GetBansWithParameters { guild_id, .. } => {
+                Path::GuildsIdBans(guild_id)
+            }
             Self::GetGatewayBot => Path::GatewayBot,
             Self::GetChannel { channel_id } | Self::UpdateChannel { channel_id } => {
                 Path::ChannelsId(channel_id)
@@ -2156,6 +2170,33 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/bans")
+            }
+            Route::GetBansWithParameters {
+                after,
+                before,
+                guild_id,
+                limit,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/bans?")?;
+
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                Ok(())
             }
             Route::GetGatewayBot => f.write_str("gateway/bot"),
             Route::GetCommandPermissions {
@@ -3977,6 +4018,82 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("guilds/{guild_id}/bans", guild_id = GUILD_ID)
+        );
+    }
+
+    #[test]
+    fn test_get_bans_with_parameters() {
+        let route = Route::GetBansWithParameters {
+            after: None,
+            before: None,
+            guild_id: GUILD_ID,
+            limit: None,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{guild_id}/bans?", guild_id = GUILD_ID)
+        );
+
+        let route = Route::GetBansWithParameters {
+            after: Some(USER_ID),
+            before: None,
+            guild_id: GUILD_ID,
+            limit: None,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/bans?after={after}",
+                after = USER_ID,
+                guild_id = GUILD_ID
+            )
+        );
+
+        let route = Route::GetBansWithParameters {
+            after: None,
+            before: Some(USER_ID),
+            guild_id: GUILD_ID,
+            limit: None,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/bans?&before={before}",
+                before = USER_ID,
+                guild_id = GUILD_ID
+            )
+        );
+
+        let route = Route::GetBansWithParameters {
+            after: None,
+            before: None,
+            guild_id: GUILD_ID,
+            limit: Some(100),
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/bans?&limit={limit}",
+                guild_id = GUILD_ID,
+                limit = 100,
+            )
+        );
+
+        let route = Route::GetBansWithParameters {
+            after: Some(USER_ID),
+            before: Some(USER_ID + 100),
+            guild_id: GUILD_ID,
+            limit: Some(25),
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/bans?after={after}&before={before}&limit={limit}",
+                after = USER_ID,
+                before = USER_ID + 100,
+                guild_id = GUILD_ID,
+                limit = 25,
+            )
         );
     }
 
