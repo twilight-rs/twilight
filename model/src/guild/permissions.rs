@@ -46,6 +46,8 @@ bitflags! {
         const CREATE_PUBLIC_THREADS = 1 << 35;
         /// Allows for creating private threads.
         const CREATE_PRIVATE_THREADS = 1 << 36;
+        /// Allows the usage of custom stickers from other servers.
+        const USE_EXTERNAL_STICKERS = 1 << 37;
         /// Allows for sending messages in threads.
         const SEND_MESSAGES_IN_THREADS = 1 << 38;
         /// Allows for using activities (applications with the `EMBEDDED`
