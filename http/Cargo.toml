@@ -36,11 +36,11 @@ tracing = { default-features = false, features = ["std", "attributes"], optional
 
 [features]
 default = ["decompression", "rustls-native-roots", "tracing"]
-decompression = ["brotli"]
-native = ["hyper-tls"]
-rustls-native-roots = ["hyper-rustls/native-tokio"]
-rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
-trust-dns = ["hyper-trust-dns"]
+decompression = ["dep:brotli"]
+native = ["dep:hyper-tls"]
+rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
+rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
+trust-dns = ["dep:hyper-trust-dns"]
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.3" }
