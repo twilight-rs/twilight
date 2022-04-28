@@ -10,7 +10,7 @@ pub struct UserProfile {
     /// Accent color of the user's banner.
     ///
     /// This is an integer representation of a hexadecimal color code.
-    pub accent_color: Option<u64>,
+    pub accent_color: Option<u32>,
     pub avatar: Option<ImageHash>,
     /// Hash of the user's banner image.
     pub banner: Option<ImageHash>,

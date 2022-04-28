@@ -10,7 +10,7 @@ pub struct CurrentUser {
     /// Accent color of the user's banner.
     ///
     /// This is an integer representation of a hexadecimal color code.
-    pub accent_color: Option<u64>,
+    pub accent_color: Option<u32>,
     /// User's avatar hash.
     ///
     /// To retrieve the url to the avatar, see [Discord Docs/Image Formatting].
