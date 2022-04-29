@@ -65,7 +65,7 @@ mod tests {
             },
             Token::Str("accent_color"),
             Token::Some,
-            Token::U64(16_579_836),
+            Token::U32(16_579_836),
             Token::Str("avatar"),
             Token::Some,
             Token::Str(image_hash::AVATAR_INPUT),
