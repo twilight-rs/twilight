@@ -90,11 +90,11 @@ impl Interaction {
     /// Return the token of the inner interaction.
     pub fn token(&self) -> &str {
         match self {
-            Interaction::Ping(ping) => &ping.token,
-            Interaction::ApplicationCommand(command) => &command.token,
-            Interaction::ApplicationCommandAutocomplete(command) => &command.token,
-            Interaction::MessageComponent(component) => &component.token,
-            Interaction::ModalSubmit(modal) => &modal.token,
+            Self::Ping(ping) => &ping.token,
+            Self::ApplicationCommand(command) => &command.token,
+            Self::ApplicationCommandAutocomplete(command) => &command.token,
+            Self::MessageComponent(component) => &component.token,
+            Self::ModalSubmit(modal) => &modal.token,
         }
     }
 
