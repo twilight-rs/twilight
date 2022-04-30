@@ -104,6 +104,7 @@ impl CommandBuilder {
     /// Set the localization dictionary for the command description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -113,6 +114,7 @@ impl CommandBuilder {
     /// Set the localization dictionary for the command name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -161,6 +163,7 @@ impl AttachmentBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -170,6 +173,7 @@ impl AttachmentBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -220,6 +224,7 @@ impl BooleanBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -229,6 +234,7 @@ impl BooleanBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -289,6 +295,7 @@ impl ChannelBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -298,6 +305,7 @@ impl ChannelBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -385,6 +393,7 @@ impl IntegerBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -412,6 +421,7 @@ impl IntegerBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -462,6 +472,7 @@ impl MentionableBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -471,6 +482,7 @@ impl MentionableBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -559,6 +571,7 @@ impl NumberBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -586,6 +599,7 @@ impl NumberBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -636,6 +650,7 @@ impl RoleBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -645,6 +660,7 @@ impl RoleBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -731,6 +747,7 @@ impl StringBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -740,6 +757,7 @@ impl StringBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -790,6 +808,7 @@ impl SubCommandBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -799,6 +818,7 @@ impl SubCommandBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -853,6 +873,7 @@ impl SubCommandGroupBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -862,6 +883,7 @@ impl SubCommandGroupBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 
@@ -912,6 +934,7 @@ impl UserBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
@@ -921,6 +944,7 @@ impl UserBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
+    #[allow(clippy::missing_const_for_fn)]
     pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.name_localizations = Some(localizations);
 

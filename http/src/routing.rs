@@ -1665,10 +1665,10 @@ impl Display for Route<'_> {
             } => {
                 f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
-                f.write_str("/commands?")?;
+                f.write_str("/commands")?;
 
                 if *with_localizations {
-                    f.write_str("with_localizations=true")?;
+                    f.write_str("?with_localizations=true")?;
                 }
 
                 Ok(())
@@ -1701,7 +1701,7 @@ impl Display for Route<'_> {
                 f.write_str("/commands")?;
 
                 if *with_localizations {
-                    f.write_str("with_localizations=true")?;
+                    f.write_str("?with_localizations=true")?;
                 }
 
                 Ok(())
