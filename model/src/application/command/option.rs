@@ -7,6 +7,7 @@ use serde::{
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{
     cmp::Eq,
+    collections::HashMap,
     fmt::{Formatter, Result as FmtResult},
     hash::{Hash, Hasher},
 };
@@ -21,7 +22,7 @@ use std::{
 /// [`Command`]: super::Command
 /// [`SubCommand`]: CommandOption::SubCommand
 /// [`SubCommandGroup`]: CommandOption::SubCommandGroup
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOption {
     SubCommand(OptionsCommandOptionData),
     SubCommandGroup(OptionsCommandOptionData),
@@ -192,9 +193,11 @@ enum OptionField {
     ChannelTypes,
     Choices,
     Description,
+    DescriptionLocalizations,
     MaxValue,
     MinValue,
     Name,
+    NameLocalizations,
     Options,
     Required,
     Type,
@@ -215,10 +218,12 @@ impl<'de> Visitor<'de> for OptionVisitor {
         let mut channel_types: Option<Option<Vec<ChannelType>>> = None;
         let mut choices: Option<Option<Vec<CommandOptionChoice>>> = None;
         let mut description: Option<String> = None;
+        let mut description_localizations: Option<Option<HashMap<String, String>>> = None;
         let mut kind: Option<CommandOptionType> = None;
         let mut max_value: Option<Option<CommandOptionValue>> = None;
         let mut min_value: Option<Option<CommandOptionValue>> = None;
         let mut name: Option<String> = None;
+        let mut name_localizations: Option<Option<HashMap<String, String>>> = None;
         let mut options: Option<Option<Vec<CommandOption>>> = None;
         let mut required: Option<bool> = None;
 
@@ -286,6 +291,13 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
                     description = Some(map.next_value()?);
                 }
+                OptionField::DescriptionLocalizations => {
+                    if description_localizations.is_some() {
+                        return Err(DeError::duplicate_field("description_localizations"));
+                    }
+
+                    description_localizations = Some(map.next_value()?);
+                }
                 OptionField::MaxValue => {
                     if max_value.is_some() {
                         return Err(DeError::duplicate_field("max_value"));
@@ -306,6 +318,13 @@ impl<'de> Visitor<'de> for OptionVisitor {
                     }
 
                     name = Some(map.next_value()?);
+                }
+                OptionField::NameLocalizations => {
+                    if name_localizations.is_some() {
+                        return Err(DeError::duplicate_field("name_localizations"));
+                    }
+
+                    name_localizations = Some(map.next_value()?);
                 }
                 OptionField::Options => {
                     if options.is_some() {
@@ -352,7 +371,9 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
                 CommandOption::SubCommand(OptionsCommandOptionData {
                     description,
+                    description_localizations: description_localizations.flatten(),
                     name,
+                    name_localizations: name_localizations.flatten(),
                     options,
                 })
             }
@@ -361,7 +382,9 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description,
+                    description_localizations: description_localizations.flatten(),
                     name,
+                    name_localizations: name_localizations.flatten(),
                     options,
                 })
             }
@@ -369,56 +392,74 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
+                description_localizations: description_localizations.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
             CommandOptionType::Integer => CommandOption::Integer(NumberCommandOptionData {
                 autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
+                description_localizations: description_localizations.flatten(),
                 max_value: max_value.flatten(),
                 min_value: min_value.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
             CommandOptionType::Boolean => CommandOption::Boolean(BaseCommandOptionData {
                 description,
+                description_localizations: description_localizations.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
             CommandOptionType::User => CommandOption::User(BaseCommandOptionData {
                 description,
+                description_localizations: description_localizations.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
             CommandOptionType::Channel => CommandOption::Channel(ChannelCommandOptionData {
                 channel_types: channel_types.flatten().unwrap_or_default(),
                 description,
+                description_localizations: description_localizations.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
             CommandOptionType::Role => CommandOption::Role(BaseCommandOptionData {
                 description,
+                description_localizations: description_localizations.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
             CommandOptionType::Mentionable => CommandOption::Mentionable(BaseCommandOptionData {
                 description,
+                description_localizations: description_localizations.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
             CommandOptionType::Number => CommandOption::Number(NumberCommandOptionData {
                 autocomplete,
                 choices: choices.flatten().unwrap_or_default(),
                 description,
+                description_localizations: description_localizations.flatten(),
                 max_value: max_value.flatten(),
                 min_value: min_value.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
             CommandOptionType::Attachment => CommandOption::Attachment(BaseCommandOptionData {
                 description,
+                description_localizations: description_localizations.flatten(),
                 name,
+                name_localizations: name_localizations.flatten(),
                 required,
             }),
         })
@@ -433,12 +474,29 @@ impl<'de> Visitor<'de> for OptionVisitor {
 /// [`Channel`]: CommandOption::Channel
 /// [`Role`]: CommandOption::Role
 /// [`Mentionable`]: CommandOption::Mentionable
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BaseCommandOptionData {
     /// Description of the option. It must be 100 characters or less.
     pub description: String,
+    /// Localization dictionary for the `description` field.
+    ///
+    /// See the [localization documentation] for more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description_localizations: Option<HashMap<String, String>>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
+    /// Localization dictionary for the `name` field.
+    ///
+    /// Keys should be valid [locales]. See the [localization documentation] for
+    /// more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name_localizations: Option<HashMap<String, String>>,
     /// Whether the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
@@ -449,12 +507,29 @@ pub struct BaseCommandOptionData {
 ///
 /// [`SubCommand`]: CommandOption::SubCommand
 /// [`SubCommandGroup`]: CommandOption::SubCommandGroup
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct OptionsCommandOptionData {
     /// Description of the option. It must be 100 characters or less.
     pub description: String,
+    /// Localization dictionary for the `description` field.
+    ///
+    /// See the [localization documentation] for more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description_localizations: Option<HashMap<String, String>>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
+    /// Localization dictionary for the `name` field.
+    ///
+    /// Keys should be valid [locales]. See the [localization documentation] for
+    /// more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name_localizations: Option<HashMap<String, String>>,
     /// Used for specifying the nested options in a [`SubCommand`] or
     /// [`SubCommandGroup`].
     ///
@@ -467,7 +542,7 @@ pub struct OptionsCommandOptionData {
 /// Data supplied to a [`CommandOption`] of type [`String`].
 ///
 /// [`String`]: CommandOption::String
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ChoiceCommandOptionData {
     /// Whether the command supports autocomplete.
     #[serde(default)]
@@ -482,8 +557,25 @@ pub struct ChoiceCommandOptionData {
     pub choices: Vec<CommandOptionChoice>,
     /// Description of the option. It must be 100 characters or less.
     pub description: String,
+    /// Localization dictionary for the `description` field.
+    ///
+    /// See the [localization documentation] for more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description_localizations: Option<HashMap<String, String>>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
+    /// Localization dictionary for the `name` field.
+    ///
+    /// Keys should be valid [locales]. See the [localization documentation] for
+    /// more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name_localizations: Option<HashMap<String, String>>,
     /// Whether or not the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
@@ -492,7 +584,7 @@ pub struct ChoiceCommandOptionData {
 /// Data supplied to a [`CommandOption`] of type [`Channel`].
 ///
 /// [`Channel`]: CommandOption::Channel
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ChannelCommandOptionData {
     /// Restricts the channel choice to specific types.
     ///
@@ -501,8 +593,25 @@ pub struct ChannelCommandOptionData {
     pub channel_types: Vec<ChannelType>,
     /// Description of the option. It must be 100 characters or less.
     pub description: String,
+    /// Localization dictionary for the `description` field.
+    ///
+    /// See the [localization documentation] for more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description_localizations: Option<HashMap<String, String>>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
+    /// Localization dictionary for the `name` field.
+    ///
+    /// Keys should be valid [locales]. See the [localization documentation] for
+    /// more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name_localizations: Option<HashMap<String, String>>,
     /// Whether or not the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
@@ -512,7 +621,7 @@ pub struct ChannelCommandOptionData {
 ///
 /// [`Integer`]: CommandOption::Integer
 /// [`Number`]: CommandOption::Number
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct NumberCommandOptionData {
     /// Whether the command supports autocomplete.
     #[serde(default)]
@@ -527,6 +636,14 @@ pub struct NumberCommandOptionData {
     pub choices: Vec<CommandOptionChoice>,
     /// Description of the option. It must be 100 characters or less.
     pub description: String,
+    /// Localization dictionary for the `description` field.
+    ///
+    /// See the [localization documentation] for more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description_localizations: Option<HashMap<String, String>>,
     /// Maximum value permitted.
     #[serde(default)]
     pub max_value: Option<CommandOptionValue>,
@@ -535,6 +652,15 @@ pub struct NumberCommandOptionData {
     pub min_value: Option<CommandOptionValue>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
+    /// Localization dictionary for the `name` field.
+    ///
+    /// Keys should be valid [locales]. See the [localization documentation] for
+    /// more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name_localizations: Option<HashMap<String, String>>,
     /// Whether or not the option is required to be completed by a user.
     #[serde(default)]
     pub required: bool,
@@ -545,12 +671,27 @@ pub struct NumberCommandOptionData {
 /// See [Discord Docs/Application Command Object].
 ///
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-choice-structure
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoice {
-    String { name: String, value: String },
-    Int { name: String, value: i64 },
-    Number { name: String, value: Number },
+    String {
+        name: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        name_localizations: Option<HashMap<String, String>>,
+        value: String,
+    },
+    Int {
+        name: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        name_localizations: Option<HashMap<String, String>>,
+        value: i64,
+    },
+    Number {
+        name: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        name_localizations: Option<HashMap<String, String>>,
+        value: Number,
+    },
 }
 
 /// Type used in `max_value` and `min_value` command option field.
@@ -635,7 +776,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, hash::Hash};
+    use std::{collections::HashMap, fmt::Debug, hash::Hash};
 
     assert_impl_all!(
         Number: Clone,
@@ -655,7 +796,9 @@ mod tests {
     fn test_issue_1150() {
         let value = CommandOption::SubCommand(OptionsCommandOptionData {
             description: "ponyville".to_owned(),
+            description_localizations: None,
             name: "equestria".to_owned(),
+            name_localizations: None,
             options: Vec::new(),
         });
 
@@ -686,82 +829,115 @@ mod tests {
             application_id: Some(Id::new(100)),
             default_permission: Some(true),
             description: "this command is a test".into(),
+            description_localizations: Some(HashMap::from([(
+                "en-US".into(),
+                "this command is a test".into(),
+            )])),
             guild_id: Some(Id::new(300)),
             id: Some(Id::new(200)),
             kind: CommandType::ChatInput,
             name: "test command".into(),
+            name_localizations: Some(HashMap::from([("en-US".into(), "test command".into())])),
             options: Vec::from([CommandOption::SubCommandGroup(OptionsCommandOptionData {
                 description: "sub group desc".into(),
+                description_localizations: None,
                 name: "sub group name".into(),
+                name_localizations: None,
                 options: Vec::from([CommandOption::SubCommand(OptionsCommandOptionData {
                     description: "sub command desc".into(),
+                    description_localizations: None,
                     name: "sub command name".into(),
+                    name_localizations: None,
                     options: Vec::from([
                         CommandOption::String(ChoiceCommandOptionData {
                             autocomplete: true,
                             choices: Vec::new(),
                             description: "string manual desc".into(),
+                            description_localizations: None,
                             name: "string_manual".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                         CommandOption::String(ChoiceCommandOptionData {
                             autocomplete: false,
                             choices: Vec::from([CommandOptionChoice::String {
                                 name: "choicea".into(),
+                                name_localizations: Some(HashMap::from([(
+                                    "en-US".into(),
+                                    "choicea".into(),
+                                )])),
                                 value: "choice_a".into(),
                             }]),
                             description: "string desc".into(),
+                            description_localizations: None,
                             name: "string".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                         CommandOption::Integer(NumberCommandOptionData {
                             autocomplete: false,
                             choices: Vec::from([CommandOptionChoice::Int {
                                 name: "choice2".into(),
+                                name_localizations: None,
                                 value: 2,
                             }]),
                             description: "int desc".into(),
+                            description_localizations: None,
                             max_value: Some(CommandOptionValue::Integer(20)),
                             min_value: Some(CommandOptionValue::Integer(10)),
                             name: "int".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                         CommandOption::Boolean(BaseCommandOptionData {
                             description: "bool desc".into(),
+                            description_localizations: None,
                             name: "bool".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                         CommandOption::User(BaseCommandOptionData {
                             description: "user desc".into(),
+                            description_localizations: None,
                             name: "user".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                         CommandOption::Channel(ChannelCommandOptionData {
                             channel_types: Vec::from([ChannelType::GuildText]),
                             description: "channel desc".into(),
+                            description_localizations: None,
                             name: "channel".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                         CommandOption::Role(BaseCommandOptionData {
                             description: "role desc".into(),
+                            description_localizations: None,
                             name: "role".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                         CommandOption::Mentionable(BaseCommandOptionData {
                             description: "mentionable desc".into(),
+                            description_localizations: None,
                             name: "mentionable".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                         CommandOption::Number(NumberCommandOptionData {
                             autocomplete: false,
                             choices: Vec::from([CommandOptionChoice::Number {
                                 name: "choice3".into(),
+                                name_localizations: None,
                                 value: Number(2.0),
                             }]),
                             description: "number desc".into(),
+                            description_localizations: None,
                             max_value: Some(CommandOptionValue::Number(Number(5.5))),
                             min_value: Some(CommandOptionValue::Number(Number(10.0))),
                             name: "number".into(),
+                            name_localizations: None,
                             required: false,
                         }),
                     ]),
@@ -775,7 +951,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Command",
-                    len: 9,
+                    len: 11,
                 },
                 Token::Str("application_id"),
                 Token::Some,
@@ -786,6 +962,12 @@ mod tests {
                 Token::Bool(true),
                 Token::Str("description"),
                 Token::Str("this command is a test"),
+                Token::Str("description_localizations"),
+                Token::Some,
+                Token::Map { len: Some(1) },
+                Token::Str("en-US"),
+                Token::Str("this command is a test"),
+                Token::MapEnd,
                 Token::Str("guild_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
@@ -798,6 +980,12 @@ mod tests {
                 Token::U8(1),
                 Token::Str("name"),
                 Token::Str("test command"),
+                Token::Str("name_localizations"),
+                Token::Some,
+                Token::Map { len: Some(1) },
+                Token::Str("en-US"),
+                Token::Str("test command"),
+                Token::MapEnd,
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -848,10 +1036,16 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "CommandOptionChoice",
-                    len: 2,
+                    len: 3,
                 },
                 Token::Str("name"),
                 Token::Str("choicea"),
+                Token::Str("name_localizations"),
+                Token::Some,
+                Token::Map { len: Some(1) },
+                Token::Str("en-US"),
+                Token::Str("choicea"),
+                Token::MapEnd,
                 Token::Str("value"),
                 Token::Str("choice_a"),
                 Token::StructEnd,

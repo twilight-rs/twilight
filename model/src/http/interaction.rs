@@ -16,7 +16,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// See [Discord Docs/Interaction Object].
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionResponse {
     /// Type of the response.
     #[serde(rename = "type")]
@@ -38,7 +38,7 @@ pub struct InteractionResponse {
 }
 
 /// Data included in an interaction response.
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionResponseData {
     /// Allowed mentions of the response.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -116,7 +116,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{fmt::Debug, hash::Hash};
+    use std::fmt::Debug;
 
     assert_fields!(
         InteractionResponseData: allowed_mentions,
@@ -132,7 +132,6 @@ mod tests {
         Debug,
         Deserialize<'static>,
         Eq,
-        Hash,
         PartialEq,
         Send,
         Serialize,

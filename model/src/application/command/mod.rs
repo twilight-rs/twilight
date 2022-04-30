@@ -5,6 +5,8 @@ pub mod permissions;
 mod command_type;
 mod option;
 
+use std::collections::HashMap;
+
 pub use self::{
     command_type::CommandType,
     option::{
@@ -31,7 +33,7 @@ use serde::{Deserialize, Serialize};
 /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
 /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-structure
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
@@ -44,6 +46,14 @@ pub struct Command {
     /// [`User`]: CommandType::User
     /// [`Message`]: CommandType::Message
     pub description: String,
+    /// Localization dictionary for the `description` field.
+    ///
+    /// See the [localization documentation] for more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description_localizations: Option<HashMap<String, String>>,
     /// Guild ID of the command, if not global.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -52,6 +62,15 @@ pub struct Command {
     #[serde(rename = "type")]
     pub kind: CommandType,
     pub name: String,
+    /// Localization dictionary for the `name` field.
+    ///
+    /// Keys should be valid [locales]. See the [localization documentation] for
+    /// more information.
+    ///
+    /// [locales]: https://discord.com/developers/docs/reference#locales
+    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name_localizations: Option<HashMap<String, String>>,
     #[serde(default)]
     pub options: Vec<CommandOption>,
     /// Autoincrementing version identifier.
