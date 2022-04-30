@@ -104,10 +104,7 @@ impl CommandBuilder {
     /// Set the localization dictionary for the command description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -164,10 +161,7 @@ impl AttachmentBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -226,10 +220,7 @@ impl BooleanBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -298,10 +289,7 @@ impl ChannelBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -397,10 +385,7 @@ impl IntegerBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -477,10 +462,7 @@ impl MentionableBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -577,15 +559,11 @@ impl NumberBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
     }
-
 
     /// Set the maximum value permitted.
     ///
@@ -613,7 +591,6 @@ impl NumberBuilder {
 
         self
     }
-
 
     /// Set whether this option is required.
     ///
@@ -659,10 +636,7 @@ impl RoleBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -729,7 +703,7 @@ impl StringBuilder {
         self
     }
 
-        /// Set the list of choices for an option.
+    /// Set the list of choices for an option.
     ///
     /// Accepts tuples of `(String, Option<HashMap<String, String>>, String)`
     /// corresponding to the name, an optional localization dictionary for the
@@ -757,10 +731,7 @@ impl StringBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -774,7 +745,6 @@ impl StringBuilder {
 
         self
     }
-
 
     /// Set whether this option is required.
     ///
@@ -820,10 +790,7 @@ impl SubCommandBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -837,7 +804,6 @@ impl SubCommandBuilder {
 
         self
     }
-
 
     /// Add an option to the sub command.
     ///
@@ -887,10 +853,7 @@ impl SubCommandGroupBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -904,7 +867,6 @@ impl SubCommandGroupBuilder {
 
         self
     }
-
 
     /// Set the list of sub commands to the group.
     ///
@@ -950,10 +912,7 @@ impl UserBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations(
-        mut self,
-        localizations: HashMap<String, String>,
-    ) -> Self {
+    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
 
         self
@@ -967,7 +926,6 @@ impl UserBuilder {
 
         self
     }
-
 
     /// Set whether this option is required.
     ///

@@ -223,12 +223,29 @@ pub enum CommandValidationErrorType {
 pub fn command(value: &Command) -> Result<(), CommandValidationError> {
     let Command {
         description,
+        description_localizations,
         name,
+        name_localizations,
         kind,
         ..
     } = value;
 
     self::description(description)?;
+
+    if let Some(description_localizations) = description_localizations {
+        for description in description_localizations.values() {
+            self::description(description)?;
+        }
+    }
+
+    if let Some(name_localizations) = name_localizations {
+        for name in name_localizations.values() {
+            match kind {
+                CommandType::ChatInput => self::chat_input_name(name)?,
+                CommandType::User | CommandType::Message => self::name(name)?,
+            }
+        }
+    }
 
     match kind {
         CommandType::ChatInput => self::chat_input_name(name),
@@ -489,6 +506,8 @@ pub const fn guild_permissions(count: usize) -> Result<(), CommandValidationErro
 mod tests {
     #![allow(clippy::non_ascii_literal)]
 
+    use std::collections::HashMap;
+
     use super::*;
     use twilight_model::{application::command::CommandType, id::Id};
 
@@ -499,10 +518,15 @@ mod tests {
             application_id: Some(Id::new(1)),
             default_permission: None,
             description: "a".repeat(100),
+            description_localizations: Some(HashMap::from([(
+                "en-US".to_string(),
+                "a".repeat(100),
+            )])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
             kind: CommandType::ChatInput,
             name: "b".repeat(32),
+            name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
             options: Vec::new(),
             version: Id::new(4),
         };
