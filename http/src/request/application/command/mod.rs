@@ -16,6 +16,8 @@ mod update_command_permissions;
 mod update_global_command;
 mod update_guild_command;
 
+use std::collections::HashMap;
+
 pub use self::{
     create_global_command::CreateGlobalCommand, create_guild_command::CreateGuildCommand,
     delete_global_command::DeleteGlobalCommand, delete_guild_command::DeleteGuildCommand,
@@ -45,15 +47,21 @@ struct CommandBorrowed<'a> {
     pub default_permission: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description_localizations: Option<&'a HashMap<String, String>>,
     #[serde(rename = "type")]
     pub kind: CommandType,
     pub name: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name_localizations: Option<&'a HashMap<String, String>>,
     #[serde(default)]
     pub options: Option<&'a [CommandOption]>,
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use super::CommandBorrowed;
     use twilight_model::{
         application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
@@ -71,13 +79,23 @@ mod tests {
             application_id: Some(Id::new(1)),
             default_permission: Some(true),
             description: "command description".to_owned(),
+            description_localizations: Some(HashMap::from([(
+                "en-US".to_owned(),
+                "command description".to_owned(),
+            )])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
             kind: CommandType::ChatInput,
             name: "command name".to_owned(),
+            name_localizations: Some(HashMap::from([(
+                "en-US".to_owned(),
+                "command name".to_owned(),
+            )])),
             options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
                 description: "command description".to_owned(),
+                description_localizations: None,
                 name: "command name".to_owned(),
+                name_localizations: None,
                 required: true,
             })]),
             version: Id::new(1),
@@ -87,8 +105,10 @@ mod tests {
             application_id: command.application_id,
             default_permission: command.default_permission,
             description: Some(&command.description),
+            description_localizations: command.description_localizations.as_ref(),
             kind: CommandType::ChatInput,
             name: &command.name,
+            name_localizations: command.name_localizations.as_ref(),
             options: Some(&command.options),
         };
     }

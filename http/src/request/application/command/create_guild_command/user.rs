@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::super::CommandBorrowed;
 use crate::{
     client::Client,
@@ -29,6 +31,7 @@ pub struct CreateGuildUserCommand<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
+    name_localizations: Option<&'a HashMap<String, String>>,
 }
 
 impl<'a> CreateGuildUserCommand<'a> {
@@ -46,6 +49,7 @@ impl<'a> CreateGuildUserCommand<'a> {
             guild_id,
             http,
             name,
+            name_localizations: None,
         })
     }
 
@@ -54,6 +58,22 @@ impl<'a> CreateGuildUserCommand<'a> {
         self.default_permission = Some(default);
 
         self
+    }
+
+    /// Set the localization dictionary for the command name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(
+        mut self,
+        localizations: &'a HashMap<String, String>,
+    ) -> Result<Self, CommandValidationError> {
+        for name in localizations.values() {
+            validate_name(name)?;
+        }
+
+        self.name_localizations = Some(localizations);
+
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -79,8 +99,10 @@ impl TryIntoRequest for CreateGuildUserCommand<'_> {
             application_id: Some(self.application_id),
             default_permission: self.default_permission,
             description: None,
+            description_localizations: None,
             kind: CommandType::User,
             name: self.name,
+            name_localizations: self.name_localizations,
             options: None,
         })
         .map(RequestBuilder::build)
