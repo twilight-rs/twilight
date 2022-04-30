@@ -15,6 +15,7 @@ use twilight_model::{
 pub struct GetGlobalCommands<'a> {
     application_id: Id<ApplicationMarker>,
     http: &'a Client,
+    with_localizations: bool,
 }
 
 impl<'a> GetGlobalCommands<'a> {
@@ -22,7 +23,17 @@ impl<'a> GetGlobalCommands<'a> {
         Self {
             application_id,
             http,
+            with_localizations: false,
         }
+    }
+
+    /// Whether to include full localization dictionaries in the response.
+    ///
+    /// Defaults to [`false`].
+    pub const fn with_localizations(mut self, with_localizations: bool) -> Self {
+        self.with_localizations = with_localizations;
+
+        self
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -42,6 +53,7 @@ impl TryIntoRequest for GetGlobalCommands<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGlobalCommands {
             application_id: self.application_id.get(),
+            with_localizations: self.with_localizations,
         }))
     }
 }
