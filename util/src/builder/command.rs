@@ -15,9 +15,9 @@
 //!     StringBuilder::new("animal".into(), "The type of animal".into())
 //!         .required(true)
 //!         .choices([
-//!             ("Dog".into(), "animal_dog".into()),
-//!             ("Cat".into(), "animal_cat".into()),
-//!             ("Penguin".into(), "animal_penguin".into()),
+//!             ("Dog".into(), None, "animal_dog".into()),
+//!             ("Cat".into(), None, "animal_cat".into()),
+//!             ("Penguin".into(), None, "animal_penguin".into()),
 //!         ]),
 //! )
 //! .option(BooleanBuilder::new(
@@ -25,6 +25,8 @@
 //!     "Whether to show only baby animals".into(),
 //! ));
 //! ```
+
+use std::collections::HashMap;
 
 use twilight_model::{
     application::command::{
@@ -51,10 +53,12 @@ impl CommandBuilder {
             application_id: None,
             default_permission: None,
             description,
+            description_localizations: None,
             guild_id: None,
             id: None,
             kind,
             name,
+            name_localizations: None,
             options: Vec::new(),
             version: Id::new(1),
         })
@@ -97,6 +101,27 @@ impl CommandBuilder {
         self
     }
 
+    /// Set the localization dictionary for the command description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the command name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
+    }
+
     /// Add an option to the command.
     ///
     /// Defaults to an empty list.
@@ -122,7 +147,9 @@ impl AttachmentBuilder {
     pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -132,6 +159,27 @@ impl AttachmentBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Attachment(self.0)
+    }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
     }
 
     /// Set whether this option is required.
@@ -161,7 +209,9 @@ impl BooleanBuilder {
     pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -171,6 +221,27 @@ impl BooleanBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Boolean(self.0)
+    }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
     }
 
     /// Set whether this option is required.
@@ -201,7 +272,9 @@ impl ChannelBuilder {
         Self(ChannelCommandOptionData {
             channel_types: Vec::new(),
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -218,6 +291,27 @@ impl ChannelBuilder {
     /// Defaults to all channel types allowed.
     pub fn channel_types(mut self, channel_types: impl IntoIterator<Item = ChannelType>) -> Self {
         self.0.channel_types = channel_types.into_iter().collect();
+
+        self
+    }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
 
         self
     }
@@ -250,9 +344,11 @@ impl IntegerBuilder {
             autocomplete: false,
             choices: Vec::new(),
             description,
+            description_localizations: None,
             max_value: None,
             min_value: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -275,14 +371,37 @@ impl IntegerBuilder {
 
     /// Set the list of choices for an option.
     ///
-    /// Accepts tuples of `(String, i64)` corresponding to the name and value.
+    /// Accepts tuples of `(String, Option<HashMap<String, String>>, i64)`
+    /// corresponding to the name, an optional localization dictionary for the
+    /// name and value.
     ///
     /// Defaults to no choices.
-    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, i64)>) -> Self {
+    pub fn choices(
+        mut self,
+        choices: impl IntoIterator<Item = (String, Option<HashMap<String, String>>, i64)>,
+    ) -> Self {
         self.0.choices = choices
             .into_iter()
-            .map(|(name, value)| CommandOptionChoice::Int { name, value })
+            .map(
+                |(name, name_localizations, value)| CommandOptionChoice::Int {
+                    name,
+                    name_localizations,
+                    value,
+                },
+            )
             .collect();
+
+        self
+    }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
 
         self
     }
@@ -301,6 +420,15 @@ impl IntegerBuilder {
     /// Defaults to no limit.
     pub const fn min_value(mut self, value: i64) -> Self {
         self.0.min_value = Some(CommandOptionValue::Integer(value));
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
 
         self
     }
@@ -332,7 +460,9 @@ impl MentionableBuilder {
     pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -342,6 +472,27 @@ impl MentionableBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Mentionable(self.0)
+    }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
     }
 
     /// Set whether this option is required.
@@ -373,9 +524,11 @@ impl NumberBuilder {
             autocomplete: false,
             choices: Vec::new(),
             description,
+            description_localizations: None,
             max_value: None,
             min_value: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -398,18 +551,41 @@ impl NumberBuilder {
 
     /// Set the list of choices for an option.
     ///
-    /// Accepts tuples of `(String, Number)` corresponding to the name and
-    /// value.
+    /// Accepts tuples of `(String, Option<HashMap<String, String>>, Number)`
+    /// corresponding to the name, an optional localization dictionary for the
+    /// name and value.
     ///
     /// Defaults to no choices.
-    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, Number)>) -> Self {
+    pub fn choices(
+        mut self,
+        choices: impl IntoIterator<Item = (String, Option<HashMap<String, String>>, Number)>,
+    ) -> Self {
         self.0.choices = choices
             .into_iter()
-            .map(|(name, value)| CommandOptionChoice::Number { name, value })
+            .map(
+                |(name, name_localizations, value)| CommandOptionChoice::Number {
+                    name,
+                    name_localizations,
+                    value,
+                },
+            )
             .collect();
 
         self
     }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
 
     /// Set the maximum value permitted.
     ///
@@ -428,6 +604,16 @@ impl NumberBuilder {
 
         self
     }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
+    }
+
 
     /// Set whether this option is required.
     ///
@@ -456,7 +642,9 @@ impl RoleBuilder {
     pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -466,6 +654,27 @@ impl RoleBuilder {
     #[must_use = "should be used in a command builder"]
     pub fn build(self) -> CommandOption {
         CommandOption::Role(self.0)
+    }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
     }
 
     /// Set whether this option is required.
@@ -497,7 +706,9 @@ impl StringBuilder {
             autocomplete: false,
             choices: Vec::new(),
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -518,20 +729,52 @@ impl StringBuilder {
         self
     }
 
-    /// Set the list of choices for an option.
+        /// Set the list of choices for an option.
     ///
-    /// Accepts tuples of `(String, String)` corresponding to the name and
-    /// value.
+    /// Accepts tuples of `(String, Option<HashMap<String, String>>, String)`
+    /// corresponding to the name, an optional localization dictionary for the
+    /// name and value.
     ///
     /// Defaults to no choices.
-    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, String)>) -> Self {
+    pub fn choices(
+        mut self,
+        choices: impl IntoIterator<Item = (String, Option<HashMap<String, String>>, String)>,
+    ) -> Self {
         self.0.choices = choices
             .into_iter()
-            .map(|(name, value)| CommandOptionChoice::String { name, value })
+            .map(
+                |(name, name_localizations, value)| CommandOptionChoice::String {
+                    name,
+                    name_localizations,
+                    value,
+                },
+            )
             .collect();
 
         self
     }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
+    }
+
 
     /// Set whether this option is required.
     ///
@@ -560,7 +803,9 @@ impl SubCommandBuilder {
     pub const fn new(name: String, description: String) -> Self {
         Self(OptionsCommandOptionData {
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             options: Vec::new(),
         })
     }
@@ -571,6 +816,28 @@ impl SubCommandBuilder {
     pub fn build(self) -> CommandOption {
         CommandOption::SubCommand(self.0)
     }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
+    }
+
 
     /// Add an option to the sub command.
     ///
@@ -603,7 +870,9 @@ impl SubCommandGroupBuilder {
     pub const fn new(name: String, description: String) -> Self {
         Self(OptionsCommandOptionData {
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             options: Vec::new(),
         })
     }
@@ -614,6 +883,28 @@ impl SubCommandGroupBuilder {
     pub fn build(self) -> CommandOption {
         CommandOption::SubCommandGroup(self.0)
     }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
+    }
+
 
     /// Set the list of sub commands to the group.
     ///
@@ -642,7 +933,9 @@ impl UserBuilder {
     pub const fn new(name: String, description: String) -> Self {
         Self(BaseCommandOptionData {
             description,
+            description_localizations: None,
             name,
+            name_localizations: None,
             required: false,
         })
     }
@@ -653,6 +946,28 @@ impl UserBuilder {
     pub fn build(self) -> CommandOption {
         CommandOption::User(self.0)
     }
+
+    /// Set the localization dictionary for the option description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: HashMap<String, String>,
+    ) -> Self {
+        self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the localization dictionary for the option name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
+        self.0.name_localizations = Some(localizations);
+
+        self
+    }
+
 
     /// Set whether this option is required.
     ///
@@ -764,21 +1079,29 @@ mod tests {
             guild_id: None,
             kind: CommandType::ChatInput,
             name: String::from("permissions"),
+            name_localizations: None,
             default_permission: None,
             description: String::from("Get or edit permissions for a user or a role"),
+            description_localizations: None,
             id: None,
             options: Vec::from([
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description: String::from("Get or edit permissions for a user"),
+                    description_localizations: None,
                     name: String::from("user"),
+                    name_localizations: None,
                     options: Vec::from([
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Get permissions for a user"),
+                            description_localizations: None,
                             name: String::from("get"),
+                            name_localizations: None,
                             options: Vec::from([
                                 CommandOption::User(BaseCommandOptionData {
                                     description: String::from("The user to get"),
+                                    description_localizations: None,
                                     name: String::from("user"),
+                                    name_localizations: None,
                                     required: true,
                                 }),
                                 CommandOption::Channel(ChannelCommandOptionData {
@@ -787,18 +1110,24 @@ mod tests {
                                         "The channel permissions to get. If omitted, the guild \
                                          permissions will be returned",
                                     ),
+                                    description_localizations: None,
                                     name: String::from("channel"),
+                                    name_localizations: None,
                                     required: false,
                                 }),
                             ]),
                         }),
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Edit permissions for a user"),
+                            description_localizations: None,
                             name: String::from("edit"),
+                            name_localizations: None,
                             options: Vec::from([
                                 CommandOption::User(BaseCommandOptionData {
                                     description: String::from("The user to edit"),
+                                    description_localizations: None,
                                     name: String::from("user"),
+                                    name_localizations: None,
                                     required: true,
                                 }),
                                 CommandOption::Channel(ChannelCommandOptionData {
@@ -807,7 +1136,9 @@ mod tests {
                                         "The channel permissions to edit. If omitted, the guild \
                                          permissions will be edited",
                                     ),
+                                    description_localizations: None,
                                     name: String::from("channel"),
+                                    name_localizations: None,
                                     required: false,
                                 }),
                             ]),
@@ -816,15 +1147,21 @@ mod tests {
                 }),
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description: String::from("Get or edit permissions for a role"),
+                    description_localizations: None,
                     name: String::from("role"),
+                    name_localizations: None,
                     options: Vec::from([
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Get permissions for a role"),
+                            description_localizations: None,
                             name: String::from("get"),
+                            name_localizations: None,
                             options: Vec::from([
                                 CommandOption::Role(BaseCommandOptionData {
                                     description: String::from("The role to get"),
+                                    description_localizations: None,
                                     name: String::from("role"),
+                                    name_localizations: None,
                                     required: true,
                                 }),
                                 CommandOption::Channel(ChannelCommandOptionData {
@@ -833,18 +1170,24 @@ mod tests {
                                         "The channel permissions to get. If omitted, the guild \
                                          permissions will be returned",
                                     ),
+                                    description_localizations: None,
                                     name: String::from("channel"),
+                                    name_localizations: None,
                                     required: false,
                                 }),
                             ]),
                         }),
                         CommandOption::SubCommand(OptionsCommandOptionData {
                             description: String::from("Edit permissions for a role"),
+                            description_localizations: None,
                             name: String::from("edit"),
+                            name_localizations: None,
                             options: Vec::from([
                                 CommandOption::Role(BaseCommandOptionData {
                                     description: String::from("The role to edit"),
+                                    description_localizations: None,
                                     name: String::from("role"),
+                                    name_localizations: None,
                                     required: true,
                                 }),
                                 CommandOption::Channel(ChannelCommandOptionData {
@@ -853,16 +1196,20 @@ mod tests {
                                         "The channel permissions to edit. If omitted, the guild \
                                          permissions will be edited",
                                     ),
+                                    description_localizations: None,
                                     name: String::from("channel"),
+                                    name_localizations: None,
                                     required: false,
                                 }),
                                 CommandOption::Number(NumberCommandOptionData {
                                     autocomplete: true,
                                     choices: Vec::new(),
                                     description: String::from("The position of the new role"),
+                                    description_localizations: None,
                                     max_value: None,
                                     min_value: None,
                                     name: String::from("position"),
+                                    name_localizations: None,
                                     required: false,
                                 }),
                             ]),
