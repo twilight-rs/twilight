@@ -20,6 +20,7 @@ mod channel_create;
 mod channel_delete;
 mod channel_pins_update;
 mod channel_update;
+mod command_permissions_update;
 mod guild_create;
 mod guild_delete;
 mod guild_emojis_update;
@@ -66,21 +67,21 @@ mod webhooks_update;
 pub use self::{
     ban_add::BanAdd, ban_remove::BanRemove, channel_create::ChannelCreate,
     channel_delete::ChannelDelete, channel_pins_update::ChannelPinsUpdate,
-    channel_update::ChannelUpdate, guild_create::GuildCreate, guild_delete::GuildDelete,
-    guild_emojis_update::GuildEmojisUpdate, guild_integrations_update::GuildIntegrationsUpdate,
-    guild_stickers_update::GuildStickersUpdate, guild_update::GuildUpdate,
-    integration_create::IntegrationCreate, integration_delete::IntegrationDelete,
-    integration_update::IntegrationUpdate, interaction_create::InteractionCreate,
-    invite_create::InviteCreate, invite_delete::InviteDelete, member_add::MemberAdd,
-    member_chunk::MemberChunk, member_remove::MemberRemove, member_update::MemberUpdate,
-    message_create::MessageCreate, message_delete::MessageDelete,
-    message_delete_bulk::MessageDeleteBulk, message_update::MessageUpdate,
-    presence_update::PresenceUpdate, reaction_add::ReactionAdd, reaction_remove::ReactionRemove,
-    reaction_remove_all::ReactionRemoveAll, reaction_remove_emoji::ReactionRemoveEmoji,
-    ready::Ready, role_create::RoleCreate, role_delete::RoleDelete, role_update::RoleUpdate,
-    stage_instance_create::StageInstanceCreate, stage_instance_delete::StageInstanceDelete,
-    stage_instance_update::StageInstanceUpdate, thread_create::ThreadCreate,
-    thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
+    channel_update::ChannelUpdate, command_permissions_update::CommandPermissionsUpdate,
+    guild_create::GuildCreate, guild_delete::GuildDelete, guild_emojis_update::GuildEmojisUpdate,
+    guild_integrations_update::GuildIntegrationsUpdate, guild_stickers_update::GuildStickersUpdate,
+    guild_update::GuildUpdate, integration_create::IntegrationCreate,
+    integration_delete::IntegrationDelete, integration_update::IntegrationUpdate,
+    interaction_create::InteractionCreate, invite_create::InviteCreate,
+    invite_delete::InviteDelete, member_add::MemberAdd, member_chunk::MemberChunk,
+    member_remove::MemberRemove, member_update::MemberUpdate, message_create::MessageCreate,
+    message_delete::MessageDelete, message_delete_bulk::MessageDeleteBulk,
+    message_update::MessageUpdate, presence_update::PresenceUpdate, reaction_add::ReactionAdd,
+    reaction_remove::ReactionRemove, reaction_remove_all::ReactionRemoveAll,
+    reaction_remove_emoji::ReactionRemoveEmoji, ready::Ready, role_create::RoleCreate,
+    role_delete::RoleDelete, role_update::RoleUpdate, stage_instance_create::StageInstanceCreate,
+    stage_instance_delete::StageInstanceDelete, stage_instance_update::StageInstanceUpdate,
+    thread_create::ThreadCreate, thread_delete::ThreadDelete, thread_list_sync::ThreadListSync,
     thread_member_update::ThreadMemberUpdate, thread_members_update::ThreadMembersUpdate,
     thread_update::ThreadUpdate, typing_start::TypingStart, unavailable_guild::UnavailableGuild,
     user_update::UserUpdate, voice_server_update::VoiceServerUpdate,

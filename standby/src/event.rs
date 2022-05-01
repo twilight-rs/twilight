@@ -26,6 +26,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::ChannelCreate(e) => e.0.guild_id,
         Event::ChannelDelete(e) => e.0.guild_id,
         Event::ChannelUpdate(e) => e.0.guild_id,
+        Event::CommandPermissionsUpdate(e) => Some(e.0.guild_id),
         Event::GuildCreate(e) => Some(e.0.id),
         Event::GuildDelete(e) => Some(e.id),
         Event::GuildEmojisUpdate(e) => Some(e.guild_id),

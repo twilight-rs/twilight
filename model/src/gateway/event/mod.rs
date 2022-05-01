@@ -35,6 +35,8 @@ pub enum Event {
     ChannelPinsUpdate(ChannelPinsUpdate),
     /// A channel was updated.
     ChannelUpdate(Box<ChannelUpdate>),
+    /// A command's permissions were updated.
+    CommandPermissionsUpdate(CommandPermissionsUpdate),
     /// A heartbeat was sent to or received from the gateway.
     GatewayHeartbeat(u64),
     /// A heartbeat acknowledgement was received from the gateway.
@@ -173,6 +175,7 @@ impl Event {
             Self::ChannelDelete(_) => EventType::ChannelDelete,
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
+            Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
             Self::GatewayHeartbeat(_) => EventType::GatewayHeartbeat,
             Self::GatewayHeartbeatAck => EventType::GatewayHeartbeatAck,
             Self::GatewayHello(_) => EventType::GatewayHello,
@@ -245,6 +248,7 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::ChannelDelete(v) => Self::ChannelDelete(v),
             DispatchEvent::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             DispatchEvent::ChannelUpdate(v) => Self::ChannelUpdate(v),
+            DispatchEvent::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
             DispatchEvent::GiftCodeUpdate => Self::GiftCodeUpdate,
             DispatchEvent::GuildCreate(v) => Self::GuildCreate(v),
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
@@ -407,6 +411,7 @@ mod tests {
     const_assert!(mem::size_of::<BanAdd>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<BanRemove>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelPinsUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<CommandPermissionsUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<Connected>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<Connecting>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<Disconnected>() <= EVENT_THRESHOLD);
