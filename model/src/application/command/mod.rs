@@ -14,9 +14,12 @@ pub use self::{
     },
 };
 
-use crate::id::{
-    marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
-    Id,
+use crate::{
+    guild::Permissions,
+    id::{
+        marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
 
@@ -35,8 +38,20 @@ use serde::{Deserialize, Serialize};
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
+    #[deprecated = "use `default_member_permissions` and `dm_permission` instead"]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_permission: Option<bool>,
+    /// Default permissions required for a member to run the command.
+    ///
+    /// Setting this [`Permissions::empty()`] will prohibit anyone from running
+    /// the command, except for guild administrators.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_member_permissions: Option<Permissions>,
+    /// Whether the command is available in DMs.
+    ///
+    /// This is only relevant for globally-scoped commands. By default, commands
+    /// are visible in DMs.
+    pub dm_permission: Option<bool>,
     /// Description of the command.
     ///
     /// For [`User`] and [`Message`] commands, this will be an empty string.

@@ -1,6 +1,7 @@
 use crate::id::{
     marker::{
-        ApplicationMarker, CommandMarker, GenericMarker, GuildMarker, RoleMarker, UserMarker,
+        ApplicationMarker, ChannelMarker, CommandMarker, GenericMarker, GuildMarker, RoleMarker,
+        UserMarker,
     },
     Id,
 };
@@ -25,6 +26,7 @@ pub struct CommandPermissions {
 pub enum CommandPermissionsType {
     Role(Id<RoleMarker>),
     User(Id<UserMarker>),
+    Channel(Id<ChannelMarker>),
 }
 
 #[derive(Deserialize, Serialize)]
@@ -40,6 +42,7 @@ struct CommandPermissionsData {
 enum CommandPermissionsDataType {
     Role = 1,
     User = 2,
+    Channel = 3,
 }
 
 impl<'de> Deserialize<'de> for CommandPermissions {
@@ -66,6 +69,13 @@ impl<'de> Deserialize<'de> for CommandPermissions {
 
                 CommandPermissionsType::User(id)
             }
+            CommandPermissionsDataType::Channel => {
+                let id = data.id.cast();
+                #[cfg(feature = "tracing")]
+                tracing::trace!(id = %id.get(), kind = ?data.kind);
+
+                CommandPermissionsType::Channel(id)
+            }
         };
 
         Ok(Self {
@@ -81,10 +91,12 @@ impl Serialize for CommandPermissions {
             id: match self.id {
                 CommandPermissionsType::Role(role_id) => role_id.cast(),
                 CommandPermissionsType::User(user_id) => user_id.cast(),
+                CommandPermissionsType::Channel(channel_id) => channel_id.cast(),
             },
             kind: match self.id {
                 CommandPermissionsType::Role(_) => CommandPermissionsDataType::Role,
                 CommandPermissionsType::User(_) => CommandPermissionsDataType::User,
+                CommandPermissionsType::Channel(_) => CommandPermissionsDataType::Channel,
             },
             permission: self.permission,
         };

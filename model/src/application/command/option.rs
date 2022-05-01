@@ -631,7 +631,7 @@ mod tests {
         CommandOptionChoice, CommandOptionValue, Number, NumberCommandOptionData,
         OptionsCommandOptionData,
     };
-    use crate::{channel::ChannelType, id::Id};
+    use crate::{channel::ChannelType, guild::Permissions, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -681,10 +681,13 @@ mod tests {
 
     #[test]
     #[allow(clippy::too_many_lines)]
+    #[allow(deprecated)]
     fn test_command_option_full() {
         let value = Command {
             application_id: Some(Id::new(100)),
             default_permission: Some(true),
+            default_member_permissions: Some(Permissions::ADMINISTRATOR),
+            dm_permission: Some(false),
             description: "this command is a test".into(),
             guild_id: Some(Id::new(300)),
             id: Some(Id::new(200)),
@@ -775,7 +778,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Command",
-                    len: 9,
+                    len: 11,
                 },
                 Token::Str("application_id"),
                 Token::Some,
@@ -784,6 +787,12 @@ mod tests {
                 Token::Str("default_permission"),
                 Token::Some,
                 Token::Bool(true),
+                Token::Str("default_member_permissions"),
+                Token::Some,
+                Token::Str("8"),
+                Token::Str("dm_permission"),
+                Token::Some,
+                Token::Bool(false),
                 Token::Str("description"),
                 Token::Str("this command is a test"),
                 Token::Str("guild_id"),
