@@ -494,10 +494,13 @@ mod tests {
 
     // This tests [`description`] and [`name`] by proxy.
     #[test]
+    #[allow(deprecated)]
     fn test_command() {
         let valid_command = Command {
             application_id: Some(Id::new(1)),
             default_permission: None,
+            default_member_permissions: None,
+            dm_permission: None,
             description: "a".repeat(100),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),

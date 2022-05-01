@@ -115,7 +115,7 @@ impl CommandBuilder {
         self
     }
 
-    /// Set whether the command is avaiable in DMs.
+    /// Set whether the command is available in DMs.
     ///
     /// Defaults to [`None`].
     pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
