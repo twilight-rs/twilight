@@ -48,10 +48,9 @@ pub struct Command {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [localization documentation] for more information.
+    /// See [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
     /// Guild ID of the command, if not global.
@@ -64,11 +63,11 @@ pub struct Command {
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid [locales]. See the [localization documentation] for
-    /// more information.
+    /// Keys should be valid locales (see [Discord Docs/Locales]).
+    /// See [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
     #[serde(default)]

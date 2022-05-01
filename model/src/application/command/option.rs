@@ -480,21 +480,20 @@ pub struct BaseCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [localization documentation] for more information.
+    /// See [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid [locales]. See the [localization documentation] for
-    /// more information.
+    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
     /// Whether the option is required to be completed by a user.
@@ -513,21 +512,20 @@ pub struct OptionsCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [localization documentation] for more information.
+    /// See the [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid [locales]. See the [localization documentation] for
-    /// more information.
+    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
     /// Used for specifying the nested options in a [`SubCommand`] or
@@ -559,21 +557,20 @@ pub struct ChoiceCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [localization documentation] for more information.
+    /// See the [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid [locales]. See the [localization documentation] for
-    /// more information.
+    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
     /// Whether or not the option is required to be completed by a user.
@@ -595,21 +592,20 @@ pub struct ChannelCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [localization documentation] for more information.
+    /// See the [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid [locales]. See the [localization documentation] for
-    /// more information.
+    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
     /// Whether or not the option is required to be completed by a user.
@@ -638,10 +634,9 @@ pub struct NumberCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [localization documentation] for more information.
+    /// See the [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
     /// Maximum value permitted.
@@ -654,11 +649,11 @@ pub struct NumberCommandOptionData {
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid [locales]. See the [localization documentation] for
-    /// more information.
+    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// [Discord Docs/Localization].
     ///
-    /// [locales]: https://discord.com/developers/docs/reference#locales
-    /// [localization documentation]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
     /// Whether or not the option is required to be completed by a user.
