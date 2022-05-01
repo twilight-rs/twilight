@@ -214,6 +214,8 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Whether to fail sending if the reply no longer exists.
+    ///
+    /// Defaults to [`true`].
     pub const fn fail_if_not_exists(mut self, fail_if_not_exists: bool) -> Self {
         // Clippy recommends using `Option::map_or_else` which is not `const`.
         #[allow(clippy::option_if_let_else)]
