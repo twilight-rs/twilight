@@ -11,9 +11,8 @@ mod private {
                 },
                 CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
                 GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
-                GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions,
-                SetGlobalCommands, SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand,
-                UpdateGuildCommand,
+                GetGuildCommandPermissions, GetGuildCommands, SetGlobalCommands, SetGuildCommands,
+                UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
             },
             interaction::{
                 CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
@@ -223,7 +222,6 @@ mod private {
     impl Sealed for RemoveRoleFromMember<'_> {}
     impl Sealed for RemoveThreadMember<'_> {}
     impl Sealed for SearchGuildMembers<'_> {}
-    impl Sealed for SetCommandPermissions<'_> {}
     impl Sealed for SetGlobalCommands<'_> {}
     impl Sealed for SetGuildCommands<'_> {}
     impl Sealed for SyncTemplate<'_> {}

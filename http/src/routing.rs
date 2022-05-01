@@ -830,13 +830,6 @@ pub enum Route<'a> {
         /// Query to search by.
         query: &'a str,
     },
-    /// Route information to set permissions of commands in a guild.
-    SetCommandPermissions {
-        /// The ID of the owner application.
-        application_id: u64,
-        /// The ID of the guild.
-        guild_id: u64,
-    },
     /// Route information to set global commands.
     SetGlobalCommands {
         /// The ID of the owner application.
@@ -1216,7 +1209,6 @@ impl<'a> Route<'a> {
             | Self::CreateReaction { .. }
             | Self::JoinThread { .. }
             | Self::PinMessage { .. }
-            | Self::SetCommandPermissions { .. }
             | Self::SetGlobalCommands { .. }
             | Self::SetGuildCommands { .. }
             | Self::SyncTemplate { .. }
@@ -1295,7 +1287,6 @@ impl<'a> Route<'a> {
             | Self::GetGuildCommand { application_id, .. }
             | Self::GetGuildCommandPermissions { application_id, .. }
             | Self::GetGuildCommands { application_id, .. }
-            | Self::SetCommandPermissions { application_id, .. }
             | Self::SetGuildCommands { application_id, .. }
             | Self::UpdateGuildCommand { application_id, .. } => {
                 Path::ApplicationGuildCommand(application_id)
@@ -2241,10 +2232,6 @@ impl Display for Route<'_> {
                 Ok(())
             }
             Route::GetGuildCommandPermissions {
-                application_id,
-                guild_id,
-            }
-            | Route::SetCommandPermissions {
                 application_id,
                 guild_id,
             } => {
@@ -4177,22 +4164,6 @@ mod tests {
     #[test]
     fn test_get_guild_command_permissions() {
         let route = Route::GetGuildCommandPermissions {
-            application_id: APPLICATION_ID,
-            guild_id: GUILD_ID,
-        };
-        assert_eq!(
-            route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/permissions",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
-            )
-        );
-    }
-
-    #[test]
-    fn test_set_command_permissions() {
-        let route = Route::SetCommandPermissions {
             application_id: APPLICATION_ID,
             guild_id: GUILD_ID,
         };

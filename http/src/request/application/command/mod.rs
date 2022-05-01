@@ -9,7 +9,6 @@ mod get_global_commands;
 mod get_guild_command;
 mod get_guild_command_permissions;
 mod get_guild_commands;
-mod set_command_permissions;
 mod set_global_commands;
 mod set_guild_commands;
 mod update_command_permissions;
@@ -22,9 +21,8 @@ pub use self::{
     get_command_permissions::GetCommandPermissions, get_global_command::GetGlobalCommand,
     get_global_commands::GetGlobalCommands, get_guild_command::GetGuildCommand,
     get_guild_command_permissions::GetGuildCommandPermissions,
-    get_guild_commands::GetGuildCommands, set_command_permissions::SetCommandPermissions,
-    set_global_commands::SetGlobalCommands, set_guild_commands::SetGuildCommands,
-    update_command_permissions::UpdateCommandPermissions,
+    get_guild_commands::GetGuildCommands, set_global_commands::SetGlobalCommands,
+    set_guild_commands::SetGuildCommands, update_command_permissions::UpdateCommandPermissions,
     update_global_command::UpdateGlobalCommand, update_guild_command::UpdateGuildCommand,
 };
 
