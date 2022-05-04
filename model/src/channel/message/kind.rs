@@ -29,6 +29,7 @@ pub enum MessageType {
     ThreadStarterMessage = 21,
     GuildInviteReminder = 22,
     ContextMenuCommand = 23,
+    AutoModerationAction = 24,
 }
 
 impl TryFrom<u8> for MessageType {
@@ -59,6 +60,7 @@ impl TryFrom<u8> for MessageType {
             21 => MessageType::ThreadStarterMessage,
             22 => MessageType::GuildInviteReminder,
             23 => MessageType::ContextMenuCommand,
+            24 => MessageType::AutoModerationAction,
             _ => return Err(ConversionError::MessageType(value)),
         };
 
@@ -185,6 +187,10 @@ mod tests {
         assert_eq!(
             MessageType::try_from(23).unwrap(),
             MessageType::ContextMenuCommand
+        );
+        assert_eq!(
+            MessageType::try_from(24).unwrap(),
+            MessageType::AutoModerationAction
         );
         assert_eq!(
             MessageType::try_from(250).unwrap_err(),
