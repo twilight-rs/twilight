@@ -6,7 +6,7 @@ use super::{
     ClusterStartErrorType,
 };
 use crate::{
-    shard::{tls::TlsContainer, LargeThresholdError, ResumeSession, ShardBuilder},
+    shard::{tls::TlsContainer, ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
 use std::{collections::HashMap, sync::Arc};
@@ -32,7 +32,7 @@ use twilight_model::gateway::{
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
 /// let cluster = Cluster::builder(token, Intents::GUILD_MESSAGES)
-///     .large_threshold(100)?
+///     .large_threshold(100)
 ///     .build()
 ///     .await?;
 /// # Ok(()) }
@@ -158,20 +158,14 @@ impl ClusterBuilder {
     /// Refer to the shard's [`ShardBuilder::large_threshold`] for more
     /// information.
     ///
-    /// # Errors
+    /// # Panics
     ///
-    /// Returns a [`LargeThresholdErrorType::TooFew`] error type if the provided
-    /// value is below 50.
-    ///
-    /// Returns a [`LargeThresholdErrorType::TooMany`] error type if the
-    /// provided value is above 250.
-    ///
-    /// [`LargeThresholdErrorType::TooFew`]: crate::shard::LargeThresholdErrorType::TooFew
-    /// [`LargeThresholdErrorType::TooMany`]: crate::shard::LargeThresholdErrorType::TooMany
-    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
-        self.1 = self.1.large_threshold(large_threshold)?;
+    /// Panics if the provided value is below 50 or above 250.
+    #[must_use = "has no effect if not built"]
+    pub fn large_threshold(mut self, large_threshold: u64) -> Self {
+        self.1 = self.1.large_threshold(large_threshold);
 
-        Ok(self)
+        self
     }
 
     /// Set the presence to use when identifying with the gateway.
