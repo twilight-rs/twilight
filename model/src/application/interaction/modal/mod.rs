@@ -55,6 +55,7 @@ pub struct ModalSubmitInteraction {
     ///
     /// This is currently *not* validated by the Discord API and may be spoofed
     /// by malicious users.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<Message>,
     /// Token of the interaction.
     pub token: String,
