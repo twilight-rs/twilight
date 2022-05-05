@@ -11,7 +11,7 @@ pub use self::{
 };
 
 use super::user::User;
-use crate::datetime::Timestamp;
+use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -52,10 +52,10 @@ mod tests {
     };
     use crate::{
         channel::ChannelType,
-        datetime::{Timestamp, TimestampParseError},
         guild::VerificationLevel,
         id::Id,
         test::image_hash,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -172,6 +172,7 @@ mod tests {
                 icon: Some(image_hash::ICON),
                 id: Id::new(1),
                 name: "guild name".to_owned(),
+                premium_subscription_count: None,
                 splash: Some(image_hash::SPLASH),
                 vanity_url_code: Some("twilight".to_owned()),
                 verification_level: VerificationLevel::Medium,
@@ -271,7 +272,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "InviteGuild",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("banner"),
                 Token::Some,
@@ -291,6 +292,8 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("guild name"),
+                Token::Str("premium_subscription_count"),
+                Token::None,
                 Token::Str("splash"),
                 Token::Some,
                 Token::Str(image_hash::SPLASH_INPUT),

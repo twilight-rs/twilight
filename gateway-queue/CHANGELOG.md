@@ -2,6 +2,14 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.10.1] - 2022-04-15
+
+### Changes
+
+Link to `tracing` in the README ([#1652] - [@zeylahellyer]).
+
+[#1652]: https://github.com/twilight-rs/twilight/pull/1652
+
 ## [0.10.0] - 2022-03-10
 
 ### Changes
@@ -134,6 +142,7 @@ Initial release.
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.9.0

@@ -32,9 +32,10 @@ impl InMemoryCache {
     }
 
     pub(crate) fn cache_emoji(&self, guild_id: Id<GuildMarker>, emoji: Emoji) {
-        match self.emojis.get(&emoji.id) {
-            Some(cached_emoji) if cached_emoji.value == emoji => return,
-            Some(_) | None => {}
+        if let Some(cached_emoji) = self.emojis.get(&emoji.id) {
+            if cached_emoji.value == emoji {
+                return;
+            }
         }
 
         if let Some(user) = emoji.user.as_ref() {

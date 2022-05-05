@@ -10,11 +10,6 @@ labels:
     matcher:
       files: "cache/**/*"
 
-  - label: "c-command-parser"
-    sync: true
-    matcher:
-      files: "command-parser/**/*"
-
   - label: "c-embed-builder"
     sync: true
     matcher:

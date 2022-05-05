@@ -47,7 +47,7 @@ pub enum Event {
     GatewayInvalidateSession(bool),
     /// The gateway is indicating to perform a reconnect.
     GatewayReconnect,
-    /// Undocumented event, should be ignored
+    /// Undocumented event, should be ignored.
     GiftCodeUpdate,
     /// A guild was created.
     GuildCreate(Box<GuildCreate>),
@@ -57,6 +57,16 @@ pub enum Event {
     GuildEmojisUpdate(GuildEmojisUpdate),
     /// A guild's integrations were updated.
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
+    /// A guild scheduled event was created.
+    GuildScheduledEventCreate(Box<GuildScheduledEventCreate>),
+    /// A guild scheduled event was deleted.
+    GuildScheduledEventDelete(Box<GuildScheduledEventDelete>),
+    /// A guild scheduled event was updated.
+    GuildScheduledEventUpdate(Box<GuildScheduledEventUpdate>),
+    /// A user was added to a guild scheduled event.
+    GuildScheduledEventUserAdd(GuildScheduledEventUserAdd),
+    /// A user was removed from a guild scheduled event.
+    GuildScheduledEventUserRemove(GuildScheduledEventUserRemove),
     /// A guild's stickers were updated.
     GuildStickersUpdate(GuildStickersUpdate),
     /// A guild was updated.
@@ -183,6 +193,11 @@ impl Event {
             Self::GuildDelete(_) => EventType::GuildDelete,
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
+            Self::GuildScheduledEventCreate(_) => EventType::GuildScheduledEventCreate,
+            Self::GuildScheduledEventDelete(_) => EventType::GuildScheduledEventDelete,
+            Self::GuildScheduledEventUpdate(_) => EventType::GuildScheduledEventUpdate,
+            Self::GuildScheduledEventUserAdd(_) => EventType::GuildScheduledEventUserAdd,
+            Self::GuildScheduledEventUserRemove(_) => EventType::GuildScheduledEventUserRemove,
             Self::GuildStickersUpdate(_) => EventType::GuildStickersUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
             Self::IntegrationCreate(_) => EventType::IntegrationCreate,
@@ -250,6 +265,13 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
             DispatchEvent::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
             DispatchEvent::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
+            DispatchEvent::GuildScheduledEventCreate(v) => Self::GuildScheduledEventCreate(v),
+            DispatchEvent::GuildScheduledEventDelete(v) => Self::GuildScheduledEventDelete(v),
+            DispatchEvent::GuildScheduledEventUpdate(v) => Self::GuildScheduledEventUpdate(v),
+            DispatchEvent::GuildScheduledEventUserAdd(v) => Self::GuildScheduledEventUserAdd(v),
+            DispatchEvent::GuildScheduledEventUserRemove(v) => {
+                Self::GuildScheduledEventUserRemove(v)
+            }
             DispatchEvent::IntegrationCreate(v) => Self::IntegrationCreate(v),
             DispatchEvent::IntegrationDelete(v) => Self::IntegrationDelete(v),
             DispatchEvent::IntegrationUpdate(v) => Self::IntegrationUpdate(v),
@@ -385,6 +407,9 @@ mod tests {
     const_assert!(mem::size_of::<ChannelCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelDelete>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventDelete>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationUpdate>() > EVENT_THRESHOLD);
@@ -413,6 +438,8 @@ mod tests {
     const_assert!(mem::size_of::<GuildDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildEmojisUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildIntegrationsUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventUserAdd>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventUserRemove>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<Identifying>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<InteractionCreate>() <= EVENT_THRESHOLD);

@@ -1,7 +1,5 @@
-use crate::{
-    id::{marker::ApplicationMarker, Id},
-    oauth::current_application_info::ApplicationFlags,
-};
+use super::ApplicationFlags;
+use crate::id::{marker::ApplicationMarker, Id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

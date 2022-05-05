@@ -1,8 +1,8 @@
 use crate::{
-    datetime::Timestamp,
     guild::IntegrationAccount,
     id::{marker::IntegrationMarker, Id},
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 

@@ -1,5 +1,5 @@
 use super::AutoArchiveDuration;
-use crate::datetime::Timestamp;
+use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 /// The thread metadata object contains a number of thread-specific channel fields
@@ -23,7 +23,7 @@ pub struct ThreadMetadata {
 #[cfg(test)]
 mod tests {
     use super::{AutoArchiveDuration, ThreadMetadata};
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use crate::util::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
     use std::str::FromStr;
 

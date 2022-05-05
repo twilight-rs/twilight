@@ -5,7 +5,6 @@ mod user;
 pub use self::user::GuildScheduledEventUser;
 
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{
             ChannelMarker, GuildMarker, ScheduledEventEntityMarker, ScheduledEventMarker,
@@ -14,7 +13,7 @@ use crate::{
         Id,
     },
     user::User,
-    util::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};

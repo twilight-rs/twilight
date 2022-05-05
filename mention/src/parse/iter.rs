@@ -84,10 +84,12 @@ impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
                 continue;
             }
 
-            let end = match self.chars.find(|c| c.1 == '>') {
-                Some((idx, _)) => idx,
-                None => continue,
+            let end = if let Some((idx, _)) = self.chars.find(|c| c.1 == '>') {
+                idx
+            } else {
+                continue;
             };
+
             let buf = self.buf.get(start..=end)?;
 
             if let Ok(id) = T::parse(buf) {
@@ -154,12 +156,11 @@ mod tests {
 
     #[test]
     fn test_iter_mention_type() {
-        let mut iter = MentionType::iter("<#12><:name:34><@&56><@!78><@90>");
+        let mut iter = MentionType::iter("<#12><:name:34><@&56><@78>");
         assert_eq!(MentionType::Channel(Id::new(12)), iter.next().unwrap().0);
         assert_eq!(MentionType::Emoji(Id::new(34)), iter.next().unwrap().0);
         assert_eq!(MentionType::Role(Id::new(56)), iter.next().unwrap().0);
         assert_eq!(MentionType::User(Id::new(78)), iter.next().unwrap().0);
-        assert_eq!(MentionType::User(Id::new(90)), iter.next().unwrap().0);
         assert!(iter.next().is_none());
     }
 

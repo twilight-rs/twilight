@@ -12,71 +12,6 @@ use twilight_model::gateway::{
     Intents,
 };
 
-/// Large threshold configuration is invalid.
-///
-/// Returned by [`ShardBuilder::large_threshold`].
-#[derive(Debug)]
-pub struct LargeThresholdError {
-    kind: LargeThresholdErrorType,
-}
-
-impl LargeThresholdError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &LargeThresholdErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        LargeThresholdErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for LargeThresholdError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            LargeThresholdErrorType::TooFew { .. } => {
-                f.write_str("provided large threshold value is fewer than 50")
-            }
-            LargeThresholdErrorType::TooMany { .. } => {
-                f.write_str("provided large threshold value is more than 250")
-            }
-        }
-    }
-}
-
-impl Error for LargeThresholdError {}
-
-/// Type of [`LargeThresholdError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum LargeThresholdErrorType {
-    /// Provided large threshold value is too few in number.
-    TooFew {
-        /// Provided value.
-        value: u64,
-    },
-    /// Provided large threshold value is too many in number.
-    TooMany {
-        /// Provided value.
-        value: u64,
-    },
-}
-
 /// Shard ID configuration is invalid.
 ///
 /// Returned by [`ShardBuilder::shard`].
@@ -151,7 +86,7 @@ pub enum ShardIdErrorType {
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
 /// let shard = Shard::builder(token, Intents::GUILD_MESSAGE_REACTIONS)
-///     .large_threshold(100)?
+///     .large_threshold(100)
 ///     .shard(5, 10)?
 ///     .build();
 /// # Ok(()) }
@@ -274,13 +209,7 @@ impl ShardBuilder {
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let properties = IdentifyProperties::new(
-    ///     "twilight.rs",
-    ///     "twilight.rs",
-    ///     OS,
-    ///     "",
-    ///     "",
-    /// );
+    /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
     /// let builder = Shard::builder(token, Intents::empty())
     ///     .identify_properties(properties);
@@ -305,36 +234,27 @@ impl ShardBuilder {
     /// list won't be sent. If there are 150 members, then the list *will* be
     /// sent.
     ///
-    /// # Errors
+    /// # Panics
     ///
-    /// Returns a [`LargeThresholdErrorType::TooFew`] error type if the provided
-    /// value is below 50.
-    ///
-    /// Returns a [`LargeThresholdErrorType::TooMany`] error type if the
-    /// provided value is above 250.
+    /// Panics if the provided value is below 50 or above 250.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
+    #[must_use = "has no effect if not built"]
+    pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         match large_threshold {
-            0..=49 => {
-                return Err(LargeThresholdError {
-                    kind: LargeThresholdErrorType::TooFew {
-                        value: large_threshold,
-                    },
-                })
-            }
-            50..=250 => {}
-            251..=u64::MAX => {
-                return Err(LargeThresholdError {
-                    kind: LargeThresholdErrorType::TooMany {
-                        value: large_threshold,
-                    },
-                })
-            }
+            0..=49 => panic!(
+                "provided large threshold value {} is fewer than 50",
+                large_threshold
+            ),
+            50..=250 => (),
+            251.. => panic!(
+                "provided large threshold value {} is more than 250",
+                large_threshold
+            ),
         }
 
         self.large_threshold = large_threshold;
 
-        Ok(self)
+        self
     }
 
     /// Set the presence to use automatically when starting a new session.
@@ -467,17 +387,11 @@ impl From<(String, Intents)> for ShardBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
-    };
+    use super::{ShardBuilder, ShardIdError, ShardIdErrorType};
     use crate::Intents;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
-    assert_impl_all!(LargeThresholdErrorType: Debug, Send, Sync);
-    assert_fields!(LargeThresholdErrorType::TooFew: value);
-    assert_fields!(LargeThresholdErrorType::TooMany: value);
-    assert_impl_all!(LargeThresholdError: Error, Send, Sync);
     assert_impl_all!(ShardBuilder: Debug, From<(String, Intents)>, Send, Sync);
     assert_impl_all!(ShardIdErrorType: Debug, Send, Sync);
     assert_fields!(ShardIdErrorType::IdTooLarge: id, total);
