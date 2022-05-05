@@ -104,6 +104,7 @@ mod tests {
         serde_test::assert_tokens(&MessageType::ThreadStarterMessage, &[Token::U8(21)]);
         serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
         serde_test::assert_tokens(&MessageType::ContextMenuCommand, &[Token::U8(23)]);
+        serde_test::assert_tokens(&MessageType::AutoModerationAction, &[Token::U8(24)]);
     }
 
     #[test]
