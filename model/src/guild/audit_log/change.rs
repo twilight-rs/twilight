@@ -117,19 +117,19 @@ pub enum AuditLogChange {
     AvatarHash {
         /// New hash of an avatar.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<String>,
+        new: Option<ImageHash>,
         /// Old hash of an avatar.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<String>,
+        old: Option<ImageHash>,
     },
     /// Hash of a guild banner.
     BannerHash {
         /// New hash of a guild's banner.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<String>,
+        new: Option<ImageHash>,
         /// Old hash of a guild's banner.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<String>,
+        old: Option<ImageHash>,
     },
     /// Bitrate of an audio channel.
     Bitrate {
@@ -225,10 +225,10 @@ pub enum AuditLogChange {
     DiscoverySplashHash {
         /// New discovery splash hash.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<String>,
+        new: Option<ImageHash>,
         /// Old discovery splash hash.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<String>,
+        old: Option<ImageHash>,
     },
     /// Whether emoticons are enabled.
     EnableEmoticons {
@@ -306,10 +306,10 @@ pub enum AuditLogChange {
     IconHash {
         /// New hash of a guild's icon.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<String>,
+        new: Option<ImageHash>,
         /// Old hash of a guild's icon.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<String>,
+        old: Option<ImageHash>,
     },
     /// ID of an entity.
     Id {
@@ -566,10 +566,10 @@ pub enum AuditLogChange {
     SplashHash {
         /// Old hash of a guild's splash.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<String>,
+        new: Option<ImageHash>,
         /// New hash of a guild's splash.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<String>,
+        old: Option<ImageHash>,
     },
     /// Status of guild scheduled event was changed.
     Status {

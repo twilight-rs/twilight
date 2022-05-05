@@ -122,7 +122,7 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [node]: Node
 //! [process]: Lavalink::process
-//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,

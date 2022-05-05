@@ -40,7 +40,7 @@ struct GetBansFields {
 /// let guild_id = Id::new(1);
 /// let user_id = Id::new(2);
 ///
-/// let response = client.bans(guild_id).after(user_id).limit(25).exec().await?;
+/// let response = client.bans(guild_id).after(user_id).limit(25)?.exec().await?;
 /// let bans = response.models().await?;
 ///
 /// for ban in bans {

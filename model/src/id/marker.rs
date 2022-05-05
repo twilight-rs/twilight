@@ -16,7 +16,7 @@
 ///
 /// [`Guild::application_id`]: crate::guild::Guild::application_id
 /// [`Message::application_id`]: crate::channel::Message::application_id
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct ApplicationMarker;
 
@@ -25,7 +25,7 @@ pub struct ApplicationMarker;
 /// Types such as [`Attachment`] use this ID marker.
 ///
 /// [`Attachment`]: crate::channel::Attachment
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct AttachmentMarker;
 
@@ -34,7 +34,7 @@ pub struct AttachmentMarker;
 /// Types such as [`AuditLogEntry`] use this ID marker.
 ///
 /// [`AuditLogEntry`]: crate::guild::audit_log::AuditLogEntry
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct AuditLogEntryMarker;
 
@@ -44,7 +44,7 @@ pub struct AuditLogEntryMarker;
 ///
 /// [`Channel`]: crate::channel::Channel
 /// [`Reaction`]: crate::channel::Reaction
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct ChannelMarker;
 
@@ -53,7 +53,7 @@ pub struct ChannelMarker;
 /// Types such as [`Command`] use this ID marker.
 ///
 /// [`Command`]: crate::application::command::Command
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct CommandMarker;
 
@@ -62,7 +62,7 @@ pub struct CommandMarker;
 /// Types such as [`Command`] use this ID marker.
 ///
 /// [`Command`]: crate::application::command::Command
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct CommandVersionMarker;
 
@@ -72,7 +72,7 @@ pub struct CommandVersionMarker;
 ///
 /// [`Emoji`]: crate::guild::Emoji
 /// [`ReactionType`]: crate::channel::ReactionType
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct EmojiMarker;
 
@@ -83,7 +83,7 @@ pub struct EmojiMarker;
 ///
 /// [`AuditLogChange::Id`]: crate::guild::audit_log::AuditLogChange::Id
 /// [`CommandOptionValue`]: crate::application::interaction::application_command::CommandOptionValue
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct GenericMarker;
 
@@ -93,7 +93,7 @@ pub struct GenericMarker;
 ///
 /// [`Guild`]: crate::guild::Guild
 /// [`Message`]: crate::channel::Message
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct GuildMarker;
 
@@ -103,7 +103,7 @@ pub struct GuildMarker;
 ///
 /// [`GuildIntegration`]: crate::guild::GuildIntegration
 /// [`RoleTags`]: crate::guild::RoleTags
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct IntegrationMarker;
 
@@ -114,7 +114,7 @@ pub struct IntegrationMarker;
 ///
 /// [`Interaction`]: crate::application::interaction::Interaction
 /// [`MessageInteraction`]: crate::channel::message::MessageInteraction
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct InteractionMarker;
 
@@ -124,7 +124,7 @@ pub struct InteractionMarker;
 ///
 /// [`Message`]: crate::channel::Message
 /// [`Reaction`]: crate::channel::Reaction
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct MessageMarker;
 
@@ -133,7 +133,7 @@ pub struct MessageMarker;
 /// Types such as [`Application`] use this ID marker.
 ///
 /// [`Application`]: crate::oauth::Application
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct OauthSkuMarker;
 
@@ -143,7 +143,7 @@ pub struct OauthSkuMarker;
 ///
 /// [`Team`]: crate::oauth::team::Team
 /// [`TeamMember`]: crate::oauth::team::TeamMember
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct OauthTeamMarker;
 
@@ -153,7 +153,7 @@ pub struct OauthTeamMarker;
 ///
 /// [`Member`]: crate::guild::Member
 /// [`Role`]: crate::guild::Role
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct RoleMarker;
 
@@ -162,7 +162,7 @@ pub struct RoleMarker;
 /// Types such as [`GuildScheduledEvent`] use this ID marker.
 ///
 /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct ScheduledEventMarker;
 
@@ -171,7 +171,7 @@ pub struct ScheduledEventMarker;
 /// Types such as [`GuildScheduledEvent`] use this ID marker.
 ///
 /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct ScheduledEventEntityMarker;
 
@@ -180,7 +180,7 @@ pub struct ScheduledEventEntityMarker;
 /// Types such as [`StageInstance`] use this ID marker.
 ///
 /// [`StageInstance`]: crate::channel::StageInstance
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct StageMarker;
 
@@ -189,7 +189,7 @@ pub struct StageMarker;
 /// Types such as [`StickerPack`] use this ID marker.
 ///
 /// [`StickerPack`]: crate::channel::message::sticker::StickerPack
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct StickerBannerAssetMarker;
 
@@ -199,7 +199,7 @@ pub struct StickerBannerAssetMarker;
 ///
 /// [`Message`]: crate::channel::Message
 /// [`Sticker`]: crate::channel::message::sticker::Sticker
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct StickerMarker;
 
@@ -209,7 +209,7 @@ pub struct StickerMarker;
 ///
 /// [`Sticker`]: crate::channel::message::sticker::Sticker
 /// [`StickerPack`]: crate::channel::message::sticker::StickerPack
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct StickerPackMarker;
 
@@ -218,7 +218,7 @@ pub struct StickerPackMarker;
 /// Types such as [`StickerPack`] use this ID marker.
 ///
 /// [`StickerPack`]: crate::channel::message::sticker::StickerPack
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct StickerPackSkuMarker;
 
@@ -228,7 +228,7 @@ pub struct StickerPackSkuMarker;
 ///
 /// [`Channel`]: crate::channel::Channel
 /// [`User`]: crate::user::User
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct UserMarker;
 
@@ -237,6 +237,6 @@ pub struct UserMarker;
 /// Types such as [`Webhook`] use this ID marker.
 ///
 /// [`Webhook`]: crate::channel::webhook::Webhook
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub struct WebhookMarker;

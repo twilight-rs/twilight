@@ -14,7 +14,7 @@ use twilight_model::{
 #[derive(Serialize)]
 struct UpdateWebhookWithTokenFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a str>>,
+    avatar: Option<NullableField<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<NullableField<&'a str>>,
 }
@@ -52,7 +52,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+    pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
         self.fields.avatar = Some(NullableField(avatar));
 
         self

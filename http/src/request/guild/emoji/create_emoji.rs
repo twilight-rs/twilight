@@ -17,7 +17,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 
 #[derive(Serialize)]
 struct CreateEmojiFields<'a> {
-    image: &'a str,
+    image: &'a [u8],
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<&'a [Id<RoleMarker>]>,
@@ -43,7 +43,7 @@ impl<'a> CreateEmoji<'a> {
         http: &'a Client,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-        image: &'a str,
+        image: &'a [u8],
     ) -> Self {
         Self {
             fields: CreateEmojiFields {
