@@ -1,11 +1,11 @@
 use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{GuildMarker, IntegrationMarker, RoleMarker},
         Id,
     },
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
@@ -48,9 +48,9 @@ mod tests {
         User,
     };
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
         test::image_hash,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

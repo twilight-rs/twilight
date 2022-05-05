@@ -978,10 +978,10 @@ impl UpdateCache for Event {
 mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
-        datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::Id,
+        util::Timestamp,
     };
 
     #[test]

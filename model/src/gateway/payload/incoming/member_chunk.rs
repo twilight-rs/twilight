@@ -210,12 +210,12 @@ impl<'de> Deserialize<'de> for MemberChunk {
 mod tests {
     use super::super::MemberChunk;
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         gateway::presence::{ClientStatus, Presence, Status, UserOrId},
         guild::Member,
         id::Id,
         test::image_hash,
         user::{User, UserFlags},
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use std::str::FromStr;
 

@@ -101,7 +101,6 @@ mod tests {
             component::ComponentType,
             interaction::{tests::user, InteractionType},
         },
-        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{
             marker::{
@@ -109,6 +108,7 @@ mod tests {
             },
             Id,
         },
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};

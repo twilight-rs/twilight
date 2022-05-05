@@ -8,7 +8,6 @@ use twilight_model::{
         message::{Message, MessageFlags, MessageType},
         Channel, ChannelType, Reaction, ReactionType,
     },
-    datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
     guild::{
         DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
@@ -20,7 +19,7 @@ use twilight_model::{
         Id,
     },
     user::{CurrentUser, User},
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
     voice::VoiceState,
 };
 

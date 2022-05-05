@@ -1,11 +1,10 @@
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{GuildMarker, RoleMarker},
         Id,
     },
     user::User,
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
 
@@ -38,7 +37,7 @@ pub struct MemberUpdate {
 #[cfg(test)]
 mod tests {
     use super::MemberUpdate;
-    use crate::{datetime::Timestamp, id::Id, test::image_hash, user::User};
+    use crate::{id::Id, test::image_hash, user::User, util::Timestamp};
     use serde_test::Token;
 
     #[test]

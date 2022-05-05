@@ -96,9 +96,9 @@ mod tests {
             interaction::{tests::user, InteractionType},
         },
         channel::message::{Message, MessageType},
-        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{marker::UserMarker, Id},
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};

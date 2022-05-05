@@ -1,11 +1,11 @@
 use crate::{
-    datetime::Timestamp,
     gateway::presence::{Presence, PresenceIntermediary},
     guild::{member::MemberIntermediary, Member},
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
@@ -61,8 +61,8 @@ impl ThreadMemberIntermediary {
 mod tests {
     use super::ThreadMember;
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

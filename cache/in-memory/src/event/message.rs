@@ -133,11 +133,10 @@ mod tests {
     use super::*;
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
-        datetime::Timestamp,
         guild::PartialMember,
         id::Id,
         user::User,
-        util::{image_hash::ImageHashParseError, ImageHash},
+        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
     #[test]
