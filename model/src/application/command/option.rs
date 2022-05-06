@@ -489,7 +489,7 @@ pub struct BaseCommandOptionData {
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// Keys should be valid locales. See [Discord Docs/Locales],
     /// [Discord Docs/Localization].
     ///
     /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
@@ -512,7 +512,7 @@ pub struct OptionsCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [Discord Docs/Localization].
+    /// See [Discord Docs/Localization].
     ///
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -521,7 +521,7 @@ pub struct OptionsCommandOptionData {
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// Keys should be valid locales. See [Discord Docs/Locales],
     /// [Discord Docs/Localization].
     ///
     /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
@@ -557,7 +557,7 @@ pub struct ChoiceCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [Discord Docs/Localization].
+    /// See [Discord Docs/Localization].
     ///
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -566,7 +566,7 @@ pub struct ChoiceCommandOptionData {
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// Keys should be valid locales. See [Discord Docs/Locales],
     /// [Discord Docs/Localization].
     ///
     /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
@@ -592,7 +592,7 @@ pub struct ChannelCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [Discord Docs/Localization].
+    /// See [Discord Docs/Localization].
     ///
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -601,7 +601,7 @@ pub struct ChannelCommandOptionData {
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// Keys should be valid locales. See [Discord Docs/Locales],
     /// [Discord Docs/Localization].
     ///
     /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
@@ -634,7 +634,7 @@ pub struct NumberCommandOptionData {
     pub description: String,
     /// Localization dictionary for the `description` field.
     ///
-    /// See the [Discord Docs/Localization].
+    /// See [Discord Docs/Localization].
     ///
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -649,7 +649,7 @@ pub struct NumberCommandOptionData {
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid locales (see [Discord Docs/Locales]). See
+    /// Keys should be valid locales. See [Discord Docs/Locales],
     /// [Discord Docs/Localization].
     ///
     /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales

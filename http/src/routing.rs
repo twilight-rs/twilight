@@ -454,7 +454,7 @@ pub enum Route<'a> {
     GetGlobalCommands {
         /// The ID of the owner application.
         application_id: u64,
-        /// Whether to Whether to include full localization dictionaries.
+        /// Whether to include full localization dictionaries.
         with_localizations: bool,
     },
     /// Route information to get a guild.
@@ -487,7 +487,7 @@ pub enum Route<'a> {
         application_id: u64,
         /// The ID of the guild.
         guild_id: u64,
-        /// Whether to Whether to include full localization dictionaries.
+        /// Whether to include full localization dictionaries.
         with_localizations: bool,
     },
     /// Route information to get a guild's widget.

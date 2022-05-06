@@ -62,8 +62,8 @@ pub struct Command {
     pub name: String,
     /// Localization dictionary for the `name` field.
     ///
-    /// Keys should be valid locales (see [Discord Docs/Locales]).
-    /// See [Discord Docs/Localization].
+    /// Keys should be valid locales. See [Discord Docs/Locales],
+    /// [Discord Docs/Localization].
     ///
     /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
