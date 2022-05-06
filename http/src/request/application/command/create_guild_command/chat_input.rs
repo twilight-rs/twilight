@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::super::CommandBorrowed;
 use crate::{
     client::Client,
@@ -8,6 +6,7 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
+use std::collections::HashMap;
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
     id::{

@@ -506,9 +506,8 @@ pub const fn guild_permissions(count: usize) -> Result<(), CommandValidationErro
 mod tests {
     #![allow(clippy::non_ascii_literal)]
 
-    use std::collections::HashMap;
-
     use super::*;
+    use std::collections::HashMap;
     use twilight_model::{application::command::CommandType, id::Id};
 
     // This tests [`description`] and [`name`] by proxy.

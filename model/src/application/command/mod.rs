@@ -5,8 +5,6 @@ pub mod permissions;
 mod command_type;
 mod option;
 
-use std::collections::HashMap;
-
 pub use self::{
     command_type::CommandType,
     option::{
@@ -21,6 +19,7 @@ use crate::id::{
     Id,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Data sent to Discord to create a command.
 ///

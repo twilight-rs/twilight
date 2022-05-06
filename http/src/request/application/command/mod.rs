@@ -16,8 +16,6 @@ mod update_command_permissions;
 mod update_global_command;
 mod update_guild_command;
 
-use std::collections::HashMap;
-
 pub use self::{
     create_global_command::CreateGlobalCommand, create_guild_command::CreateGuildCommand,
     delete_global_command::DeleteGlobalCommand, delete_guild_command::DeleteGuildCommand,
@@ -31,6 +29,7 @@ pub use self::{
 };
 
 use serde::Serialize;
+use std::collections::HashMap;
 use twilight_model::{
     application::command::{CommandOption, CommandType},
     id::{marker::ApplicationMarker, Id},
@@ -60,9 +59,8 @@ struct CommandBorrowed<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use super::CommandBorrowed;
+    use std::collections::HashMap;
     use twilight_model::{
         application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
         id::Id,

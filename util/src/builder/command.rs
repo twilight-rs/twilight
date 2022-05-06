@@ -27,7 +27,6 @@
 //! ```
 
 use std::collections::HashMap;
-
 use twilight_model::{
     application::command::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, Command,
