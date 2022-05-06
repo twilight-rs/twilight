@@ -3095,6 +3095,18 @@ mod tests {
                 application_id = APPLICATION_ID
             )
         );
+
+        let route = Route::GetGlobalCommands {
+            application_id: APPLICATION_ID,
+            with_localizations: false,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "applications/{application_id}/commands",
+                application_id = APPLICATION_ID
+            )
+        );
     }
 
     #[test]
@@ -3144,6 +3156,20 @@ mod tests {
             route.to_string(),
             format!(
                 "applications/{application_id}/guilds/{guild_id}/commands?with_localizations=true",
+                application_id = APPLICATION_ID,
+                guild_id = GUILD_ID
+            )
+        );
+
+        let route = Route::GetGuildCommands {
+            application_id: APPLICATION_ID,
+            guild_id: GUILD_ID,
+            with_localizations: false,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "applications/{application_id}/guilds/{guild_id}/commands",
                 application_id = APPLICATION_ID,
                 guild_id = GUILD_ID
             )
