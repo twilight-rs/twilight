@@ -15,9 +15,9 @@
 //!     StringBuilder::new("animal".into(), "The type of animal".into())
 //!         .required(true)
 //!         .choices([
-//!             ("Dog".into(), None, "animal_dog".into()),
-//!             ("Cat".into(), None, "animal_cat".into()),
-//!             ("Penguin".into(), None, "animal_penguin".into()),
+//!             ("Dog".into(), "animal_dog".into()),
+//!             ("Cat".into(), "animal_cat".into()),
+//!             ("Penguin".into(), "animal_penguin".into()),
 //!         ]),
 //! )
 //! .option(BooleanBuilder::new(
@@ -365,26 +365,39 @@ impl IntegerBuilder {
         self
     }
 
+    /// Set localization for a particular choice, by name.
+    pub fn choice_localizations(
+        mut self,
+        choice_name: &str,
+        name_localizations: HashMap<String, String>,
+    ) -> Self {
+        let choice = self.0.choices.iter_mut().find(
+            |choice| matches!(choice, CommandOptionChoice::Int { name, .. } if name == choice_name),
+        );
+
+        if let Some(choice) = choice {
+            set_choice_localizations(choice, name_localizations);
+        }
+
+        self
+    }
+
     /// Set the list of choices for an option.
     ///
-    /// Accepts tuples of `(String, Option<HashMap<String, String>>, i64)`
-    /// corresponding to the name, an optional localization dictionary for the
-    /// name and value.
+    /// Accepts tuples of `(String, i64)` corresponding to the name and value.
+    /// Localization may be added with [`choice_localizations`].
     ///
     /// Defaults to no choices.
-    pub fn choices(
-        mut self,
-        choices: impl IntoIterator<Item = (String, Option<HashMap<String, String>>, i64)>,
-    ) -> Self {
+    ///
+    /// [`choice_localizations`]: Self::choice_localizations
+    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, i64)>) -> Self {
         self.0.choices = choices
             .into_iter()
-            .map(
-                |(name, name_localizations, value)| CommandOptionChoice::Int {
-                    name,
-                    name_localizations,
-                    value,
-                },
-            )
+            .map(|(name, value, ..)| CommandOptionChoice::Int {
+                name,
+                name_localizations: None,
+                value,
+            })
             .collect();
 
         self
@@ -543,26 +556,39 @@ impl NumberBuilder {
         self
     }
 
+    /// Set localization for a particular choice, by name.
+    pub fn choice_localizations(
+        mut self,
+        choice_name: &str,
+        name_localizations: HashMap<String, String>,
+    ) -> Self {
+        let choice = self.0.choices.iter_mut().find(
+            |choice| matches!(choice, CommandOptionChoice::Number { name, .. } if name == choice_name),
+        );
+
+        if let Some(choice) = choice {
+            set_choice_localizations(choice, name_localizations);
+        }
+
+        self
+    }
+
     /// Set the list of choices for an option.
     ///
-    /// Accepts tuples of `(String, Option<HashMap<String, String>>, Number)`
-    /// corresponding to the name, an optional localization dictionary for the
-    /// name and value.
+    /// Accepts tuples of `(String, Number)` corresponding to the name and
+    /// value. Localization may be added with [`choice_localizations`].
     ///
     /// Defaults to no choices.
-    pub fn choices(
-        mut self,
-        choices: impl IntoIterator<Item = (String, Option<HashMap<String, String>>, Number)>,
-    ) -> Self {
+    ///
+    /// [`choice_localizations`]: Self::choice_localizations
+    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, Number)>) -> Self {
         self.0.choices = choices
             .into_iter()
-            .map(
-                |(name, name_localizations, value)| CommandOptionChoice::Number {
-                    name,
-                    name_localizations,
-                    value,
-                },
-            )
+            .map(|(name, value, ..)| CommandOptionChoice::Number {
+                name,
+                name_localizations: None,
+                value,
+            })
             .collect();
 
         self
@@ -719,26 +745,39 @@ impl StringBuilder {
         self
     }
 
+    /// Set localization for a particular choice, by name.
+    pub fn choice_localizations(
+        mut self,
+        choice_name: &str,
+        name_localizations: HashMap<String, String>,
+    ) -> Self {
+        let choice = self.0.choices.iter_mut().find(
+            |choice| matches!(choice, CommandOptionChoice::String { name, .. } if name == choice_name),
+        );
+
+        if let Some(choice) = choice {
+            set_choice_localizations(choice, name_localizations);
+        }
+
+        self
+    }
+
     /// Set the list of choices for an option.
     ///
-    /// Accepts tuples of `(String, Option<HashMap<String, String>>, String)`
-    /// corresponding to the name, an optional localization dictionary for the
-    /// name and value.
+    /// Accepts tuples of `(String, String)` corresponding to the name and
+    /// value. Localization may be added with [`choice_localizations`].
     ///
     /// Defaults to no choices.
-    pub fn choices(
-        mut self,
-        choices: impl IntoIterator<Item = (String, Option<HashMap<String, String>>, String)>,
-    ) -> Self {
+    ///
+    /// [`choice_localizations`]: Self::choice_localizations
+    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, String)>) -> Self {
         self.0.choices = choices
             .into_iter()
-            .map(
-                |(name, name_localizations, value)| CommandOptionChoice::String {
-                    name,
-                    name_localizations,
-                    value,
-                },
-            )
+            .map(|(name, value, ..)| CommandOptionChoice::String {
+                name,
+                name_localizations: None,
+                value,
+            })
             .collect();
 
         self
@@ -965,6 +1004,25 @@ impl From<UserBuilder> for CommandOption {
     fn from(builder: UserBuilder) -> CommandOption {
         builder.build()
     }
+}
+
+fn set_choice_localizations(
+    choice: &mut CommandOptionChoice,
+    localizations: HashMap<String, String>,
+) {
+    let name_localizations = match choice {
+        CommandOptionChoice::String {
+            name_localizations, ..
+        }
+        | CommandOptionChoice::Int {
+            name_localizations, ..
+        }
+        | CommandOptionChoice::Number {
+            name_localizations, ..
+        } => name_localizations,
+    };
+
+    *name_localizations = Some(localizations);
 }
 
 #[cfg(test)]
