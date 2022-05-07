@@ -696,10 +696,7 @@ impl InMemoryCache {
         guild_id: Id<GuildMarker>,
         user_id: Id<UserMarker>,
     ) -> Option<Id<RoleMarker>> {
-        let member = match self.members.get(&(guild_id, user_id)) {
-            Some(member) => member,
-            None => return None,
-        };
+        let member = self.members.get(&(guild_id, user_id))?;
 
         let mut highest_role: Option<(i64, Id<RoleMarker>)> = None;
 

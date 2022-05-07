@@ -49,9 +49,10 @@ struct NullableField<T>(Option<T>);
 
 impl<T: Serialize> Serialize for NullableField<T> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        match self.0.as_ref() {
-            Some(inner) => serializer.serialize_some(inner),
-            None => serializer.serialize_none(),
+        if let Some(inner) = self.0.as_ref() {
+            serializer.serialize_some(inner)
+        } else {
+            serializer.serialize_none()
         }
     }
 }

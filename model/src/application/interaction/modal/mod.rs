@@ -40,6 +40,8 @@ pub struct ModalSubmitInteraction {
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of the interaction.
+    ///
+    /// Should always be `InteractionType::ModalSubmit`.
     #[serde(rename = "type")]
     pub kind: InteractionType,
     /// Selected language of the user who invoked the interaction.
@@ -53,6 +55,7 @@ pub struct ModalSubmitInteraction {
     ///
     /// This is currently *not* validated by the Discord API and may be spoofed
     /// by malicious users.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<Message>,
     /// Token of the interaction.
     pub token: String,

@@ -39,9 +39,10 @@ impl InMemoryCache {
     }
 
     pub(crate) fn cache_sticker(&self, guild_id: Id<GuildMarker>, sticker: Sticker) {
-        match self.stickers.get(&sticker.id) {
-            Some(cached_sticker) if cached_sticker.value == sticker => return,
-            Some(_) | None => {}
+        if let Some(cached_sticker) = self.stickers.get(&sticker.id) {
+            if cached_sticker.value == sticker {
+                return;
+            }
         }
 
         if let Some(user) = sticker.user.clone() {

@@ -172,6 +172,9 @@ jobs:
       - name: Run tests with nextest
         run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci
 
+      - name: Run doctests
+        run: cargo test --doc
+
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
     needs: [test]
