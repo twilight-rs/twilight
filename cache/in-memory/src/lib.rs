@@ -906,6 +906,7 @@ impl UpdateCache for Event {
             ChannelDelete(v) => c.update(v.deref()),
             ChannelPinsUpdate(v) => c.update(v),
             ChannelUpdate(v) => c.update(v.deref()),
+            CommandPermissionsUpdate(_) => {}
             GatewayHeartbeat(_) => {}
             GatewayHeartbeatAck => {}
             GatewayHello(_) => {}
