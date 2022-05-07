@@ -72,7 +72,6 @@ use std::{
 /// [channel]: marker::ChannelMarker
 /// [marker documentation]: marker
 /// [user]: marker::UserMarker
-#[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct Id<T> {
     phantom: PhantomData<T>,
@@ -205,6 +204,14 @@ impl<T> Id<T> {
         Id::from_nonzero(self.value)
     }
 }
+
+impl<T> Clone for Id<T> {
+    fn clone(&self) -> Self {
+        Self::from_nonzero(self.value)
+    }
+}
+
+impl<T> Copy for Id<T> {}
 
 impl<T> Debug for Id<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -415,22 +422,22 @@ mod tests {
         str::FromStr,
     };
 
-    assert_impl_all!(ApplicationMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(AttachmentMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(AuditLogEntryMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(ChannelMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(CommandMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(CommandVersionMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(EmojiMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(GenericMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(GuildMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(IntegrationMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(InteractionMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(MessageMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(RoleMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(StageMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(UserMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(WebhookMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(ApplicationMarker: Debug, Send, Sync);
+    assert_impl_all!(AttachmentMarker: Debug, Send, Sync);
+    assert_impl_all!(AuditLogEntryMarker: Debug, Send, Sync);
+    assert_impl_all!(ChannelMarker: Debug, Send, Sync);
+    assert_impl_all!(CommandMarker: Debug, Send, Sync);
+    assert_impl_all!(CommandVersionMarker: Debug, Send, Sync);
+    assert_impl_all!(EmojiMarker: Debug, Send, Sync);
+    assert_impl_all!(GenericMarker: Debug, Send, Sync);
+    assert_impl_all!(GuildMarker: Debug, Send, Sync);
+    assert_impl_all!(IntegrationMarker: Debug, Send, Sync);
+    assert_impl_all!(InteractionMarker: Debug, Send, Sync);
+    assert_impl_all!(MessageMarker: Debug, Send, Sync);
+    assert_impl_all!(RoleMarker: Debug, Send, Sync);
+    assert_impl_all!(StageMarker: Debug, Send, Sync);
+    assert_impl_all!(UserMarker: Debug, Send, Sync);
+    assert_impl_all!(WebhookMarker: Debug, Send, Sync);
     assert_impl_all!(Id<GenericMarker>:
         Clone, Copy, Debug, Deserialize<'static>, Display, Eq, From<NonZeroU64>,
         FromStr, Hash, Into<NonZeroU64>, Into<u64>, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,

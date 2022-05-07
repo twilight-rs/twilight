@@ -11,7 +11,7 @@ pub use self::{
     provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
 };
 
-use crate::datetime::Timestamp;
+use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -50,7 +50,7 @@ mod tests {
         Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedProvider, EmbedThumbnail,
         EmbedVideo,
     };
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use crate::util::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
     use std::str::FromStr;
 

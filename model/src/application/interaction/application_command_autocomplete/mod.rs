@@ -97,7 +97,7 @@ mod tests {
             command::CommandType,
             interaction::{tests::user, Interaction},
         },
-        datetime::{Timestamp, TimestampParseError},
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

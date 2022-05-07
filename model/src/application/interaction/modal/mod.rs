@@ -55,6 +55,7 @@ pub struct ModalSubmitInteraction {
     ///
     /// This is currently *not* validated by the Discord API and may be spoofed
     /// by malicious users.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<Message>,
     /// Token of the interaction.
     pub token: String,
@@ -100,7 +101,6 @@ mod tests {
             component::ComponentType,
             interaction::{tests::user, InteractionType},
         },
-        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{
             marker::{
@@ -108,6 +108,7 @@ mod tests {
             },
             Id,
         },
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};

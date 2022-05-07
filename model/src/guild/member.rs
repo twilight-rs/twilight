@@ -1,11 +1,10 @@
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{GuildMarker, RoleMarker},
         Id,
     },
     user::User,
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 
 use serde::{
@@ -214,10 +213,10 @@ impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
 mod tests {
     use super::Member;
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

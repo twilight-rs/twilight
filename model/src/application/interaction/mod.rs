@@ -454,11 +454,11 @@ mod tests {
                 Interaction, InteractionType,
             },
         },
-        datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
         id::{marker::UserMarker, Id},
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::{collections::HashMap, str::FromStr};

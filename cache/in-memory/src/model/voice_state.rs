@@ -1,10 +1,10 @@
 use serde::Serialize;
 use twilight_model::{
-    datetime::Timestamp,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
+    util::Timestamp,
     voice::VoiceState,
 };
 
