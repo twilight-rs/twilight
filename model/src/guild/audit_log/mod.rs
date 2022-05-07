@@ -33,7 +33,7 @@ use serde::{Deserialize, Serialize};
 /// For additional information refer to [Discord Docs/Audit Logs][1].
 ///
 /// [1]: https://discord.com/developers/docs/resources/audit-log#audit-log-object
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct AuditLog {
     /// Paginated entries in a guild's audit log.
     #[serde(rename = "audit_log_entries")]
@@ -59,7 +59,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{fmt::Debug, hash::Hash};
+    use std::fmt::Debug;
 
     assert_fields!(
         AuditLog: entries,
@@ -73,7 +73,6 @@ mod tests {
         Debug,
         Deserialize<'static>,
         Eq,
-        Hash,
         PartialEq,
         Send,
         Serialize,
