@@ -9,7 +9,6 @@ pub enum ChannelType {
     Group = 3,
     GuildCategory = 4,
     GuildNews = 5,
-    GuildStore = 6,
     GuildNewsThread = 10,
     GuildPublicThread = 11,
     GuildPrivateThread = 12,
@@ -30,7 +29,6 @@ impl ChannelType {
     /// - [`GuildCategory`][`Self::GuildCategory`]
     /// - [`GuildDirectory`][`Self::GuildDirectory`]
     /// - [`GuildNews`][`Self::GuildNews`]
-    /// - [`GuildStore`][`Self::GuildStore`]
     /// - [`GuildNewsThread`][`Self::GuildNewsThread`]
     /// - [`GuildPublicThread`][`Self::GuildPublicThread`]
     /// - [`GuildPrivateThread`][`Self::GuildPrivateThread`]
@@ -43,7 +41,6 @@ impl ChannelType {
             Self::GuildCategory
                 | Self::GuildDirectory
                 | Self::GuildNews
-                | Self::GuildStore
                 | Self::GuildNewsThread
                 | Self::GuildPublicThread
                 | Self::GuildPrivateThread
@@ -79,7 +76,6 @@ impl ChannelType {
             Self::GuildPrivateThread => "GuildPrivateThread",
             Self::GuildPublicThread => "GuildPublicThread",
             Self::GuildStageVoice => "GuildStageVoice",
-            Self::GuildStore => "GuildStore",
             Self::GuildText => "GuildText",
             Self::GuildVoice => "GuildVoice",
             Self::Private => "Private",
@@ -96,7 +92,6 @@ mod tests {
     const_assert!(ChannelType::GuildCategory.is_guild());
     const_assert!(ChannelType::GuildDirectory.is_guild());
     const_assert!(ChannelType::GuildNews.is_guild());
-    const_assert!(ChannelType::GuildStore.is_guild());
     const_assert!(ChannelType::GuildNewsThread.is_guild());
     const_assert!(ChannelType::GuildPublicThread.is_guild());
     const_assert!(ChannelType::GuildPrivateThread.is_guild());
@@ -116,7 +111,6 @@ mod tests {
         serde_test::assert_tokens(&ChannelType::Group, &[Token::U8(3)]);
         serde_test::assert_tokens(&ChannelType::GuildCategory, &[Token::U8(4)]);
         serde_test::assert_tokens(&ChannelType::GuildNews, &[Token::U8(5)]);
-        serde_test::assert_tokens(&ChannelType::GuildStore, &[Token::U8(6)]);
         serde_test::assert_tokens(&ChannelType::GuildNewsThread, &[Token::U8(10)]);
         serde_test::assert_tokens(&ChannelType::GuildPublicThread, &[Token::U8(11)]);
         serde_test::assert_tokens(&ChannelType::GuildPrivateThread, &[Token::U8(12)]);
@@ -134,7 +128,6 @@ mod tests {
         assert_eq!("GuildPrivateThread", ChannelType::GuildPrivateThread.name());
         assert_eq!("GuildPublicThread", ChannelType::GuildPublicThread.name());
         assert_eq!("GuildStageVoice", ChannelType::GuildStageVoice.name());
-        assert_eq!("GuildStore", ChannelType::GuildStore.name());
         assert_eq!("GuildText", ChannelType::GuildText.name());
         assert_eq!("GuildVoice", ChannelType::GuildVoice.name());
         assert_eq!("Private", ChannelType::Private.name());

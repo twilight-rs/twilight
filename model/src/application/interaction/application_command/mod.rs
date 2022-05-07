@@ -97,7 +97,6 @@ mod tests {
             command::CommandType,
             interaction::{application_command::CommandDataOption, tests::user, InteractionType},
         },
-        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{
             marker::{
@@ -105,6 +104,7 @@ mod tests {
             },
             Id,
         },
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use std::str::FromStr;
 

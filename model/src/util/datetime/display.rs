@@ -13,7 +13,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 /// ```
 /// # use std::error::Error;
 /// # fn foo() -> Result<(), Box<dyn Error>> {
-/// use twilight_model::datetime::Timestamp;
+/// use twilight_model::util::Timestamp;
 ///
 /// let timestamp = Timestamp::from_micros(1_628_594_197_020_000)?;
 /// assert_eq!(
@@ -55,7 +55,7 @@ impl TimestampIso8601Display {
     /// ```
     /// # use std::error::Error;
     /// # fn foo() -> Result<(), Box<dyn Error>> {
-    /// use twilight_model::datetime::Timestamp;
+    /// use twilight_model::util::Timestamp;
     ///
     /// let timestamp = Timestamp::from_micros(1_628_594_197_020_000)?;
     /// let formatter = timestamp.iso_8601().with_microseconds(true);
@@ -69,7 +69,7 @@ impl TimestampIso8601Display {
     /// ```
     /// # use std::error::Error;
     /// # fn foo() -> Result<(), Box<dyn Error>> {
-    /// use twilight_model::datetime::Timestamp;
+    /// use twilight_model::util::Timestamp;
     ///
     /// let timestamp = Timestamp::from_micros(1_628_594_197_020_000)?;
     /// let formatter = timestamp.iso_8601().with_microseconds(false);

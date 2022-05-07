@@ -22,7 +22,7 @@ impl DerefMut for MemberAdd {
 #[cfg(test)]
 mod tests {
     use super::{Member, MemberAdd};
-    use crate::{datetime::Timestamp, id::Id, user::User};
+    use crate::{id::Id, user::User, util::Timestamp};
     use serde_test::Token;
 
     #[test]

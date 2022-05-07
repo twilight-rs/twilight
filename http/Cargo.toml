@@ -12,7 +12,7 @@ name = "twilight-http"
 publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
-rust-version = "1.57"
+rust-version = "1.60"
 version = "0.10.2"
 
 [dependencies]
@@ -31,20 +31,16 @@ twilight-validate = { default-features = false, path = "../validate" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
-dep-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, package = "simd-json", version = "0.4" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
 tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
-
-# `value-trait` updated its MSRV in a minor release, so use previous versions.
-value-trait = { default-features = false, optional = true, version = ">=0.2, <0.2.11" }
 
 [features]
 default = ["decompression", "rustls-native-roots", "tracing"]
-decompression = ["brotli"]
-native = ["hyper-tls"]
-rustls-native-roots = ["hyper-rustls/native-tokio"]
-rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
-simd-json = ["dep-simd-json", "value-trait"]
-trust-dns = ["hyper-trust-dns"]
+decompression = ["dep:brotli"]
+native = ["dep:hyper-tls"]
+rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
+rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
+trust-dns = ["dep:hyper-trust-dns"]
 
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
