@@ -22,6 +22,11 @@ pub enum EventType {
     GuildDelete,
     GuildEmojisUpdate,
     GuildIntegrationsUpdate,
+    GuildScheduledEventCreate,
+    GuildScheduledEventDelete,
+    GuildScheduledEventUpdate,
+    GuildScheduledEventUserAdd,
+    GuildScheduledEventUserRemove,
     GuildStickersUpdate,
     GuildUpdate,
     IntegrationCreate,
@@ -98,6 +103,11 @@ impl EventType {
             Self::GuildDelete => Some("GUILD_DELETE"),
             Self::GuildEmojisUpdate => Some("GUILD_EMOJIS_UPDATE"),
             Self::GuildIntegrationsUpdate => Some("GUILD_INTEGRATIONS_UPDATE"),
+            Self::GuildScheduledEventCreate => Some("GUILD_SCHEDULED_EVENT_CREATE"),
+            Self::GuildScheduledEventDelete => Some("GUILD_SCHEDULED_EVENT_DELETE"),
+            Self::GuildScheduledEventUpdate => Some("GUILD_SCHEDULED_EVENT_UPDATE"),
+            Self::GuildScheduledEventUserAdd => Some("GUILD_SCHEDULED_EVENT_USER_ADD"),
+            Self::GuildScheduledEventUserRemove => Some("GUILD_SCHEDULED_EVENT_USER_REMOVE"),
             Self::GuildStickersUpdate => Some("GUILD_STICKERS_UPDATE"),
             Self::GuildUpdate => Some("GUILD_UPDATE"),
             Self::IntegrationCreate => Some("INTEGRATION_CREATE"),
@@ -172,6 +182,11 @@ impl<'a> TryFrom<&'a str> for EventType {
             "GUILD_DELETE" => Ok(Self::GuildDelete),
             "GUILD_EMOJIS_UPDATE" => Ok(Self::GuildEmojisUpdate),
             "GUILD_INTEGRATIONS_UPDATE" => Ok(Self::GuildIntegrationsUpdate),
+            "GUILD_SCHEDULED_EVENT_CREATE" => Ok(Self::GuildScheduledEventCreate),
+            "GUILD_SCHEDULED_EVENT_DELETE" => Ok(Self::GuildScheduledEventDelete),
+            "GUILD_SCHEDULED_EVENT_UPDATE" => Ok(Self::GuildScheduledEventUpdate),
+            "GUILD_SCHEDULED_EVENT_USER_ADD" => Ok(Self::GuildScheduledEventUserAdd),
+            "GUILD_SCHEDULED_EVENT_USER_REMOVE" => Ok(Self::GuildScheduledEventUserRemove),
             "GUILD_UPDATE" => Ok(Self::GuildUpdate),
             "INTEGRATION_CREATE" => Ok(Self::IntegrationCreate),
             "INTEGRATION_DELETE" => Ok(Self::IntegrationDelete),
@@ -256,6 +271,26 @@ mod tests {
         assert_variant(
             EventType::GuildIntegrationsUpdate,
             "GUILD_INTEGRATIONS_UPDATE",
+        );
+        assert_variant(
+            EventType::GuildScheduledEventCreate,
+            "GUILD_SCHEDULED_EVENT_CREATE",
+        );
+        assert_variant(
+            EventType::GuildScheduledEventDelete,
+            "GUILD_SCHEDULED_EVENT_DELETE",
+        );
+        assert_variant(
+            EventType::GuildScheduledEventUpdate,
+            "GUILD_SCHEDULED_EVENT_UPDATE",
+        );
+        assert_variant(
+            EventType::GuildScheduledEventUserAdd,
+            "GUILD_SCHEDULED_EVENT_USER_ADD",
+        );
+        assert_variant(
+            EventType::GuildScheduledEventUserRemove,
+            "GUILD_SCHEDULED_EVENT_USER_REMOVE",
         );
         assert_variant(EventType::GuildUpdate, "GUILD_UPDATE");
         assert_variant(EventType::IntegrationCreate, "INTEGRATION_CREATE");

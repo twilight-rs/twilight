@@ -17,6 +17,8 @@ struct CreateStageInstanceFields<'a> {
     channel_id: Id<ChannelMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    send_start_notification: Option<bool>,
     topic: &'a str,
 }
 
@@ -41,6 +43,7 @@ impl<'a> CreateStageInstance<'a> {
             fields: CreateStageInstanceFields {
                 channel_id,
                 privacy_level: None,
+                send_start_notification: None,
                 topic,
             },
             http,
@@ -50,6 +53,18 @@ impl<'a> CreateStageInstance<'a> {
     /// Set the [`PrivacyLevel`] of the instance.
     pub const fn privacy_level(mut self, privacy_level: PrivacyLevel) -> Self {
         self.fields.privacy_level = Some(privacy_level);
+
+        self
+    }
+
+    /// Set whether to notify everyone when a stage starts.
+    ///
+    /// The stage moderator must have [`Permissions::MENTION_EVERYONE`] for this
+    /// notification to be sent.
+    ///
+    /// [`Permissions::MENTION_EVERYONE`]: twilight_model::guild::Permissions::MENTION_EVERYONE
+    pub const fn send_start_notification(mut self, send_start_notification: bool) -> Self {
+        self.fields.send_start_notification = Some(send_start_notification);
 
         self
     }

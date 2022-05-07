@@ -2,6 +2,21 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.10.2] - 2022-04-15
+
+### Changes
+
+Add a note that enabling `ResourceType::GUILD` is required for certain
+permission operations ([#1607] - [@laralove143]).
+
+### Fixes
+
+Fix a permission calculator issue by properly retrieving the parent channel of a
+thread ([#1645] - [@7596ff]).
+
+[#1607]: https://github.com/twilight-rs/twilight/pull/1607
+[#1645]: https://github.com/twilight-rs/twilight/pull/1645
+
 ## [0.10.1] - 2022-03-20
 
 ### Additions
@@ -668,6 +683,7 @@ Initial release.
 [@HTG-YT]: https://github.com/HTG-YT
 [@itohatweb]: https://github.com/itohatweb
 [@james7132]: https://github.com/james7132
+[@laralove143]: https://github.com/laralove143
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@Purpzie]: https://github.com/Purpzie
@@ -691,6 +707,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.9.1

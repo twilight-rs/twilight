@@ -6,6 +6,14 @@
 //! [`twilight-rs`] ecosystem. It's responsible for processing events and
 //! caching things like guilds, channels, users, and voice states.
 //!
+//! ## Statistics
+//!
+//! Statistics can be an important debugging tool for determining how large a
+//! cache is or determining whether a cache has an expected amount of resources
+//! within it. [An interface] for retrieving statistics about the amount of a
+//! resource within the cache as a whole or on a guild-level can be retrieved
+//! via [`InMemoryCache::stats`].
+//!
 //! ## Features
 //!
 //! By default no feature is enabled.
@@ -60,7 +68,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
@@ -759,10 +767,7 @@ impl InMemoryCache {
         guild_id: Id<GuildMarker>,
         user_id: Id<UserMarker>,
     ) -> Option<Id<RoleMarker>> {
-        let member = match self.members.get(&(guild_id, user_id)) {
-            Some(member) => member,
-            None => return None,
-        };
+        let member = self.members.get(&(guild_id, user_id))?;
 
         let mut highest_role: Option<(i64, Id<RoleMarker>)> = None;
 
@@ -912,6 +917,11 @@ impl UpdateCache for Event {
             GuildEmojisUpdate(v) => c.update(v),
             GuildStickersUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(_) => {}
+            GuildScheduledEventCreate(_) => {}
+            GuildScheduledEventDelete(_) => {}
+            GuildScheduledEventUpdate(_) => {}
+            GuildScheduledEventUserAdd(_) => {}
+            GuildScheduledEventUserRemove(_) => {}
             GuildUpdate(v) => c.update(v.deref()),
             IntegrationCreate(v) => c.update(v.deref()),
             IntegrationDelete(v) => c.update(v.deref()),
@@ -968,10 +978,10 @@ impl UpdateCache for Event {
 mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
-        datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::Id,
+        util::Timestamp,
     };
 
     #[test]

@@ -8,7 +8,7 @@ use std::{
 };
 use twilight_model::{
     channel::embed::{Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedThumbnail},
-    datetime::Timestamp,
+    util::Timestamp,
 };
 
 /// Error building an embed.
@@ -749,7 +749,7 @@ mod tests {
     use std::{error::Error, fmt::Debug};
     use twilight_model::{
         channel::embed::{Embed, EmbedField, EmbedFooter},
-        datetime::Timestamp,
+        util::Timestamp,
     };
 
     assert_impl_all!(EmbedErrorType: Debug, Send, Sync);

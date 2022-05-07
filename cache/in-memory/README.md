@@ -8,6 +8,14 @@
 [`twilight-rs`] ecosystem. It's responsible for processing events and
 caching things like guilds, channels, users, and voice states.
 
+## Statistics
+
+Statistics can be an important debugging tool for determining how large a
+cache is or determining whether a cache has an expected amount of resources
+within it. [An interface] for retrieving statistics about the amount of a
+resource within the cache as a whole or on a guild-level can be retrieved
+via [`InMemoryCache::stats`].
+
 ## Features
 
 By default no feature is enabled.
@@ -60,6 +68,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

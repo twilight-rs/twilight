@@ -19,7 +19,7 @@ jobs:
     name: Minimum supported Rust version
     runs-on: ubuntu-latest
     env:
-      minrust: 1.57
+      minrust: '1.60'
 
     steps:
       - name: Checkout sources
@@ -86,8 +86,6 @@ jobs:
 
       - name: Run in cache-inmemory
         run: cd cache/in-memory && cargo sync-readme --check
-      - name: Run in command-parser
-        run: cd command-parser && cargo sync-readme --check
       - name: Run in embed-builder
         run: cd embed-builder && cargo sync-readme --check
       - name: Run in gateway
@@ -207,8 +205,14 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - name: Run cargo test
-        run: cargo test
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Run tests with nextest
+        run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci
+
+      - name: Run doctests
+        run: cargo test --doc
 
   test-features:
     name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
@@ -260,7 +264,10 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
       - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
         working-directory: ${{ matrix.package }}
         run: |
-          cargo test --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+          cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}

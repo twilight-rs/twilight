@@ -12,9 +12,12 @@ impl UpdateCache for ReactionAdd {
             return;
         }
 
-        let mut message = match cache.messages.get_mut(&self.0.message_id) {
-            Some(message) => message,
-            None => return,
+        let key = self.0.message_id;
+
+        let mut message = if let Some(message) = cache.messages.get_mut(&key) {
+            message
+        } else {
+            return;
         };
 
         if let Some(reaction) = message
@@ -52,9 +55,10 @@ impl UpdateCache for ReactionRemove {
             return;
         }
 
-        let mut message = match cache.messages.get_mut(&self.0.message_id) {
-            Some(message) => message,
-            None => return,
+        let mut message = if let Some(message) = cache.messages.get_mut(&self.0.message_id) {
+            message
+        } else {
+            return;
         };
 
         if let Some(reaction) = message
@@ -85,9 +89,10 @@ impl UpdateCache for ReactionRemoveAll {
             return;
         }
 
-        let mut message = match cache.messages.get_mut(&self.message_id) {
-            Some(message) => message,
-            None => return,
+        let mut message = if let Some(message) = cache.messages.get_mut(&self.message_id) {
+            message
+        } else {
+            return;
         };
 
         message.reactions.clear();
@@ -100,9 +105,10 @@ impl UpdateCache for ReactionRemoveEmoji {
             return;
         }
 
-        let mut message = match cache.messages.get_mut(&self.message_id) {
-            Some(message) => message,
-            None => return,
+        let mut message = if let Some(message) = cache.messages.get_mut(&self.message_id) {
+            message
+        } else {
+            return;
         };
 
         let maybe_index = message.reactions.iter().position(|r| r.emoji == self.emoji);

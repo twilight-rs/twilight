@@ -1,5 +1,4 @@
 use serde::Serialize;
-use twilight_model::gateway::payload::incoming::PresenceUpdate;
 use twilight_model::{
     gateway::presence::{Activity, ClientStatus, Presence, Status},
     id::{
@@ -56,30 +55,6 @@ impl CachedPresence {
             status,
             user,
         } = presence;
-
-        Self {
-            activities,
-            client_status,
-            guild_id,
-            status,
-            user_id: user.id(),
-        }
-    }
-
-    /// Construct a cached presence from its [`twilight_model`] form.
-    #[allow(clippy::missing_const_for_fn)]
-    pub(crate) fn from_update(update: PresenceUpdate) -> Self {
-        // Reasons for dropping fields:
-        //
-        // - `game`: deprecated field
-        let PresenceUpdate {
-            activities,
-            client_status,
-            game: _,
-            guild_id,
-            status,
-            user,
-        } = update;
 
         Self {
             activities,

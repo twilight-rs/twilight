@@ -41,7 +41,7 @@ use tokio::{
     time as tokio_time,
 };
 use tokio_tungstenite::{
-    tungstenite::{Error as TungsteniteError, Message},
+    tungstenite::{handshake::client::generate_key, Error as TungsteniteError, Message},
     MaybeTlsStream, WebSocketStream,
 };
 use twilight_model::id::{marker::UserMarker, Id};
@@ -555,14 +555,13 @@ impl Connection {
             _ => return Ok(true),
         };
 
-        let event = match serde_json::from_str(&text) {
-            Ok(event) => event,
-            Err(_) => {
-                #[cfg(feature = "tracing")]
-                tracing::warn!("unknown message from lavalink node: {}", text);
+        let event = if let Ok(event) = serde_json::from_str(&text) {
+            event
+        } else {
+            #[cfg(feature = "tracing")]
+            tracing::warn!("unknown message from lavalink node: {}", text);
 
-                return Ok(true);
-            }
+            return Ok(true);
         };
 
         match &event {
@@ -581,18 +580,17 @@ impl Connection {
     }
 
     async fn player_update(&self, update: &PlayerUpdate) -> Result<(), NodeError> {
-        let player = match self.players.get(&update.guild_id) {
-            Some(player) => player,
-            None => {
-                #[cfg(feature = "tracing")]
-                tracing::warn!(
-                    "invalid player update for guild {}: {:?}",
-                    update.guild_id,
-                    update,
-                );
+        let player = if let Some(player) = self.players.get(&update.guild_id) {
+            player
+        } else {
+            #[cfg(feature = "tracing")]
+            tracing::warn!(
+                "invalid player update for guild {}: {:?}",
+                update.guild_id,
+                update,
+            );
 
-                return Ok(());
-            }
+            return Ok(());
         };
 
         player.set_position(update.state.position.unwrap_or(0));
@@ -621,6 +619,7 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     let mut builder = Request::get(format!("ws://{}", state.address));
     builder = builder.header("Authorization", &state.authorization);
     builder = builder.header("Num-Shards", state.shard_count);
+    builder = builder.header("Sec-WebSocket-Key", generate_key());
     builder = builder.header("User-Id", state.user_id.get());
 
     if state.resume.is_some() {

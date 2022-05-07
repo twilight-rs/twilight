@@ -26,7 +26,7 @@ use twilight_validate::message::{
 };
 
 #[derive(Serialize)]
-struct UpdateFollowupMessageFields<'a> {
+struct UpdateFollowupFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
     /// List of attachments to keep, and new attachments to add.
@@ -86,7 +86,7 @@ struct UpdateFollowupMessageFields<'a> {
 pub struct UpdateFollowup<'a> {
     application_id: Id<ApplicationMarker>,
     attachment_manager: AttachmentManager<'a>,
-    fields: UpdateFollowupMessageFields<'a>,
+    fields: UpdateFollowupFields<'a>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
     token: &'a str,
@@ -102,7 +102,7 @@ impl<'a> UpdateFollowup<'a> {
         Self {
             application_id,
             attachment_manager: AttachmentManager::new(),
-            fields: UpdateFollowupMessageFields {
+            fields: UpdateFollowupFields {
                 allowed_mentions: None,
                 attachments: None,
                 components: None,

@@ -1,11 +1,11 @@
 use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{GuildMarker, IntegrationMarker, RoleMarker},
         Id,
     },
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
@@ -48,9 +48,9 @@ mod tests {
         User,
     };
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
         test::image_hash,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
@@ -195,7 +195,6 @@ mod tests {
                 icon: None,
                 id: Id::new(123),
                 name: "Twilight".to_string(),
-                summary: "A cool pony".to_string(),
             }),
             enable_emoticons: Some(true),
             enabled: true,
@@ -250,7 +249,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "IntegrationApplication",
-                    len: 5,
+                    len: 4,
                 },
                 Token::Str("description"),
                 Token::Str("Friendship is Magic"),
@@ -261,8 +260,6 @@ mod tests {
                 Token::Str("123"),
                 Token::Str("name"),
                 Token::Str("Twilight"),
-                Token::Str("summary"),
-                Token::Str("A cool pony"),
                 Token::StructEnd,
                 Token::Str("enable_emoticons"),
                 Token::Some,
