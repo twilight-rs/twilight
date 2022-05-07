@@ -1,4 +1,4 @@
-use super::{config::Config, Events, Shard};
+use super::{Config, Events, Shard};
 use crate::EventTypeFlags;
 use std::{
     error::Error,
@@ -6,7 +6,7 @@ use std::{
     sync::Arc,
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
-use twilight_http::Client as HttpClient;
+use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
@@ -96,7 +96,19 @@ pub enum ShardIdErrorType {
 /// [`large_threshold`]: Self::large_threshold
 /// [`shard`]: Self::shard
 #[derive(Debug)]
-pub struct ShardBuilder(pub(crate) Config);
+pub struct ShardBuilder {
+    event_types: EventTypeFlags,
+    pub(crate) gateway_url: Option<Box<str>>,
+    pub(crate) http_client: Arc<Client>,
+    identify_properties: Option<IdentifyProperties>,
+    intents: Intents,
+    large_threshold: u64,
+    presence: Option<UpdatePresencePayload>,
+    queue: Arc<dyn Queue>,
+    ratelimit_payloads: bool,
+    shard: [u64; 2],
+    token: Box<str>,
+}
 
 impl ShardBuilder {
     /// Create a new builder to configure and construct a shard.
@@ -107,27 +119,43 @@ impl ShardBuilder {
             token.insert_str(0, "Bot ");
         }
 
-        Self(Config {
+        Self {
             event_types: EventTypeFlags::default(),
             gateway_url: None,
-            http_client: Arc::new(HttpClient::new(token.clone())),
+            http_client: Arc::new(Client::new(token.clone())),
             identify_properties: None,
             intents,
             large_threshold: 50,
             presence: None,
             queue: Arc::new(LocalQueue::new()),
+            ratelimit_payloads: true,
             shard: [0, 1],
             token: token.into_boxed_str(),
+        }
+    }
+
+    pub(crate) fn into_config(self) -> Config {
+        Config {
+            event_types: self.event_types,
+            gateway_url: self.gateway_url,
+            http_client: self.http_client,
+            identify_properties: self.identify_properties,
+            intents: self.intents,
+            large_threshold: self.large_threshold,
+            presence: self.presence,
+            queue: self.queue,
+            ratelimit_payloads: self.ratelimit_payloads,
             session_id: None,
             sequence: None,
+            shard: self.shard,
             tls: None,
-            ratelimit_payloads: true,
-        })
+            token: self.token,
+        }
     }
 
     /// Consume the builder, constructing a shard.
     pub fn build(self) -> (Shard, Events) {
-        Shard::new_with_config(self.0)
+        Shard::new_with_config(self.into_config())
     }
 
     /// Set the event types to process.
@@ -140,7 +168,7 @@ impl ShardBuilder {
     /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
     #[must_use = "has no effect if not built"]
     pub const fn event_types(mut self, event_types: EventTypeFlags) -> Self {
-        self.0.event_types = event_types;
+        self.event_types = event_types;
 
         self
     }
@@ -148,7 +176,7 @@ impl ShardBuilder {
     /// Set the URL used for connecting to Discord's gateway
     #[must_use = "has no effect if not built"]
     pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
-        self.0.gateway_url = gateway_url.map(String::into_boxed_str);
+        self.gateway_url = gateway_url.map(String::into_boxed_str);
 
         self
     }
@@ -159,8 +187,8 @@ impl ShardBuilder {
     /// Default is a new, unconfigured instance of an HTTP client.
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
-    pub fn http_client(mut self, http_client: Arc<HttpClient>) -> Self {
-        self.0.http_client = http_client;
+    pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
+        self.http_client = http_client;
 
         self
     }
@@ -190,7 +218,7 @@ impl ShardBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn identify_properties(mut self, identify_properties: IdentifyProperties) -> Self {
-        self.0.identify_properties = Some(identify_properties);
+        self.identify_properties = Some(identify_properties);
 
         self
     }
@@ -224,7 +252,7 @@ impl ShardBuilder {
             ),
         }
 
-        self.0.large_threshold = large_threshold;
+        self.large_threshold = large_threshold;
 
         self
     }
@@ -265,7 +293,7 @@ impl ShardBuilder {
     /// ```
     #[must_use = "has no effect if not built"]
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
-        self.0.presence.replace(presence);
+        self.presence.replace(presence);
 
         self
     }
@@ -283,7 +311,7 @@ impl ShardBuilder {
     /// [`queue`]: crate::queue
     #[must_use = "has no effect if not built"]
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
-        self.0.queue = queue;
+        self.queue = queue;
 
         self
     }
@@ -297,7 +325,7 @@ impl ShardBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
-        self.0.ratelimit_payloads = ratelimit_payloads;
+        self.ratelimit_payloads = ratelimit_payloads;
 
         self
     }
@@ -345,7 +373,7 @@ impl ShardBuilder {
             });
         }
 
-        self.0.shard = [shard_id, shard_total];
+        self.shard = [shard_id, shard_total];
 
         Ok(self)
     }
