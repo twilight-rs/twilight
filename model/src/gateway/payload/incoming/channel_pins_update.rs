@@ -1,9 +1,9 @@
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
     },
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 

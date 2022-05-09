@@ -200,11 +200,9 @@ impl Error for ClusterStartError {
 pub enum ClusterStartErrorType {
     /// Retrieving the bot's gateway information via the HTTP API failed.
     ///
-    /// This can occur when using [automatic sharding] and retrieval of the
+    /// This can occur when using automatic sharding and retrieval of the
     /// number of recommended number of shards to start fails, which can happen
     /// due to something like a network or response parsing issue.
-    ///
-    /// [automatic sharding]: ShardScheme::Auto
     RetrievingGatewayInfo,
     /// Creating the TLS connector resulted in a error.
     Tls,

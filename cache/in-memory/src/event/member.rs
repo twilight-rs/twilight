@@ -175,9 +175,12 @@ impl UpdateCache for MemberUpdate {
             return;
         }
 
-        let mut member = match cache.members.get_mut(&(self.guild_id, self.user.id)) {
-            Some(member) => member,
-            None => return,
+        let key = (self.guild_id, self.user.id);
+
+        let mut member = if let Some(member) = cache.members.get_mut(&key) {
+            member
+        } else {
+            return;
         };
 
         member.avatar = self.avatar;

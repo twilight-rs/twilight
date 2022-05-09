@@ -1109,5 +1109,5 @@ impl ShardProcessor {
 ///
 /// [`ShardBuilder::identify_properties`]: super::super::ShardBuilder::identify_properties
 fn default_identify_properties() -> IdentifyProperties {
-    IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "")
+    IdentifyProperties::new("twilight.rs", "twilight.rs", OS)
 }

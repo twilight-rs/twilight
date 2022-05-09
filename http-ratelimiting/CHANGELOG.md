@@ -2,6 +2,14 @@
 
 Changelog for `twilight-http-ratelimiting`.
 
+## [0.10.1] - 2022-04-15
+
+### Changes
+
+Link to `tracing` in the README ([#1652] - [@zeylahellyer]).
+
+[#1652]: https://github.com/twilight-rs/twilight/pull/1652
+
 ## [0.10.0] - 2022-03-10
 
 This major version bump of the HTTP Ratelimiting crate is done to match all
@@ -95,6 +103,7 @@ For webhooks, the token is now a major parameter ([#1263] -
 [@vilgotf]: https://github.com/vilgotf
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.9.0
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.4

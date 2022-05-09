@@ -548,12 +548,14 @@ impl Shard {
     pub fn info(&self) -> Result<Information, SessionInactiveError> {
         let session = self.session()?;
 
-        let (ratelimit_requests, ratelimit_refill) = match session.ratelimit.get() {
-            Some(limiter) => (
+        let (ratelimit_requests, ratelimit_refill) = if let Some(limiter) = session.ratelimit.get()
+        {
+            (
                 limiter.as_ref().map(LeakyBucket::tokens),
                 limiter.as_ref().map(LeakyBucket::next_refill),
-            ),
-            None => return Err(SessionInactiveError),
+            )
+        } else {
+            return Err(SessionInactiveError);
         };
 
         Ok(Information {
@@ -571,32 +573,38 @@ impl Shard {
     ///
     /// # Examples
     ///
-    /// Request members whose names start with "tw" in a guild:
+    /// Updating the shard's presence after identifying can be done by sending
+    /// an [`UpdatePresence`] command. For example, updating the active presence
+    /// with the custom status "running on twilight":
     ///
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_gateway::{shard::Shard, Intents};
-    /// use twilight_model::{
-    ///     gateway::payload::outgoing::RequestGuildMembers,
-    ///     id::Id,
+    /// use twilight_model::gateway::{
+    ///     payload::outgoing::UpdatePresence,
+    ///     presence::{Activity, ActivityType, MinimalActivity, Status},
     /// };
     ///
-    /// let intents = Intents::GUILD_VOICE_STATES;
+    /// let intents = Intents::GUILDS;
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
     /// let (shard, _events) = Shard::new(token, intents).await?;
     /// shard.start().await?;
     ///
-    /// // Query members whose names start with "tw" and limit the results to
-    /// // 10 members.
-    /// let request =
-    ///     RequestGuildMembers::builder(Id::new(1))
-    ///         .query("tw", Some(10));
-    ///
-    /// // Send the request over the shard.
-    /// shard.command(&request).await?;
+    /// let minimal_activity = MinimalActivity {
+    ///     kind: ActivityType::Custom,
+    ///     name: "running on twilight".to_owned(),
+    ///     url: None,
+    /// };
+    /// let command = UpdatePresence::new(
+    ///     Vec::from([Activity::from(minimal_activity)]),
+    ///     false,
+    ///     Some(1),
+    ///     Status::Online,
+    /// )?;
+    /// shard.command(&command).await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -611,6 +619,8 @@ impl Shard {
     ///
     /// Returns a [`CommandErrorType::SessionInactive`] error type if the shard
     /// has not been started.
+    ///
+    /// [`UpdatePresence`]: twilight_model::gateway::payload::outgoing::UpdatePresence
     pub async fn command(&self, value: &impl Command) -> Result<(), CommandError> {
         let json = json::to_vec(value).map_err(|source| CommandError {
             source: Some(Box::new(source)),

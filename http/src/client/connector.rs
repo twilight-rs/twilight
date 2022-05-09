@@ -1,10 +1,13 @@
 //! HTTP connectors with different features.
 
 /// HTTPS connector using `rustls` as a TLS backend.
-#[cfg(feature = "hyper-rustls")]
+#[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
 type HttpsConnector<T> = hyper_rustls::HttpsConnector<T>;
 /// HTTPS connector using `hyper-tls` as a TLS backend.
-#[cfg(all(feature = "hyper-tls", not(feature = "hyper-rustls")))]
+#[cfg(all(
+    feature = "native",
+    not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
+))]
 type HttpsConnector<T> = hyper_tls::HttpsConnector<T>;
 
 /// HTTP connector using `trust-dns` as a DNS backend.
@@ -53,7 +56,7 @@ pub fn create() -> Connector {
         .enable_http2()
         .wrap_connector(connector);
     #[cfg(all(
-        feature = "hyper-tls",
+        feature = "native",
         not(feature = "rustls-native-roots"),
         not(feature = "rustls-webpki-roots")
     ))]

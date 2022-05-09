@@ -9,11 +9,16 @@ pub enum ChannelType {
     Group = 3,
     GuildCategory = 4,
     GuildNews = 5,
-    GuildStore = 6,
     GuildNewsThread = 10,
     GuildPublicThread = 11,
     GuildPrivateThread = 12,
     GuildStageVoice = 13,
+    /// Channel in a [hub] containing the listed servers.
+    ///
+    /// [hub]: https://support.discord.com/hc/en-us/articles/4406046651927-Discord-Student-Hubs-FAQ
+    GuildDirectory = 14,
+    /// Channel that can only contain threads.
+    GuildForum = 15,
 }
 
 impl ChannelType {
@@ -22,8 +27,8 @@ impl ChannelType {
     /// The following channel types are considered guild channel types:
     ///
     /// - [`GuildCategory`][`Self::GuildCategory`]
+    /// - [`GuildDirectory`][`Self::GuildDirectory`]
     /// - [`GuildNews`][`Self::GuildNews`]
-    /// - [`GuildStore`][`Self::GuildStore`]
     /// - [`GuildNewsThread`][`Self::GuildNewsThread`]
     /// - [`GuildPublicThread`][`Self::GuildPublicThread`]
     /// - [`GuildPrivateThread`][`Self::GuildPrivateThread`]
@@ -34,8 +39,8 @@ impl ChannelType {
         matches!(
             self,
             Self::GuildCategory
+                | Self::GuildDirectory
                 | Self::GuildNews
-                | Self::GuildStore
                 | Self::GuildNewsThread
                 | Self::GuildPublicThread
                 | Self::GuildPrivateThread
@@ -64,12 +69,13 @@ impl ChannelType {
         match self {
             Self::Group => "Group",
             Self::GuildCategory => "GuildCategory",
+            Self::GuildDirectory => "GuildDirectory",
+            Self::GuildForum => "GuildForum",
             Self::GuildNews => "GuildNews",
             Self::GuildNewsThread => "GuildNewsThread",
             Self::GuildPrivateThread => "GuildPrivateThread",
             Self::GuildPublicThread => "GuildPublicThread",
             Self::GuildStageVoice => "GuildStageVoice",
-            Self::GuildStore => "GuildStore",
             Self::GuildText => "GuildText",
             Self::GuildVoice => "GuildVoice",
             Self::Private => "Private",
@@ -84,8 +90,8 @@ mod tests {
     use static_assertions::const_assert;
 
     const_assert!(ChannelType::GuildCategory.is_guild());
+    const_assert!(ChannelType::GuildDirectory.is_guild());
     const_assert!(ChannelType::GuildNews.is_guild());
-    const_assert!(ChannelType::GuildStore.is_guild());
     const_assert!(ChannelType::GuildNewsThread.is_guild());
     const_assert!(ChannelType::GuildPublicThread.is_guild());
     const_assert!(ChannelType::GuildPrivateThread.is_guild());
@@ -105,23 +111,23 @@ mod tests {
         serde_test::assert_tokens(&ChannelType::Group, &[Token::U8(3)]);
         serde_test::assert_tokens(&ChannelType::GuildCategory, &[Token::U8(4)]);
         serde_test::assert_tokens(&ChannelType::GuildNews, &[Token::U8(5)]);
-        serde_test::assert_tokens(&ChannelType::GuildStore, &[Token::U8(6)]);
         serde_test::assert_tokens(&ChannelType::GuildNewsThread, &[Token::U8(10)]);
         serde_test::assert_tokens(&ChannelType::GuildPublicThread, &[Token::U8(11)]);
         serde_test::assert_tokens(&ChannelType::GuildPrivateThread, &[Token::U8(12)]);
         serde_test::assert_tokens(&ChannelType::GuildStageVoice, &[Token::U8(13)]);
+        serde_test::assert_tokens(&ChannelType::GuildDirectory, &[Token::U8(14)]);
     }
 
     #[test]
     fn test_names() {
         assert_eq!("Group", ChannelType::Group.name());
         assert_eq!("GuildCategory", ChannelType::GuildCategory.name());
+        assert_eq!("GuildDirectory", ChannelType::GuildDirectory.name());
         assert_eq!("GuildNews", ChannelType::GuildNews.name());
         assert_eq!("GuildNewsThread", ChannelType::GuildNewsThread.name());
         assert_eq!("GuildPrivateThread", ChannelType::GuildPrivateThread.name());
         assert_eq!("GuildPublicThread", ChannelType::GuildPublicThread.name());
         assert_eq!("GuildStageVoice", ChannelType::GuildStageVoice.name());
-        assert_eq!("GuildStore", ChannelType::GuildStore.name());
         assert_eq!("GuildText", ChannelType::GuildText.name());
         assert_eq!("GuildVoice", ChannelType::GuildVoice.name());
         assert_eq!("Private", ChannelType::Private.name());

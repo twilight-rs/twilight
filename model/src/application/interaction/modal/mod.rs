@@ -24,11 +24,11 @@ use serde::Serialize;
 pub struct ModalSubmitInteraction {
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
-    /// ID of the channel the interaction was triggered from.
+    /// ID of the channel the interaction was invoked in.
     pub channel_id: Id<ChannelMarker>,
     /// Data from the submitted modal.
     pub data: ModalInteractionData,
-    /// ID of the guild the interaction was triggered from.
+    /// ID of the guild the interaction was invoked in.
     pub guild_id: Option<Id<GuildMarker>>,
     /// Guild's preferred locale.
     ///
@@ -40,11 +40,13 @@ pub struct ModalSubmitInteraction {
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of the interaction.
+    ///
+    /// Should always be `InteractionType::ModalSubmit`.
     #[serde(rename = "type")]
     pub kind: InteractionType,
-    /// Selected language of the user who triggered the interaction.
+    /// Selected language of the user who invoked the interaction.
     pub locale: String,
-    /// Member that triggered the interaction.
+    /// Member that invoked the interaction.
     ///
     /// Present when the command is used in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -53,10 +55,11 @@ pub struct ModalSubmitInteraction {
     ///
     /// This is currently *not* validated by the Discord API and may be spoofed
     /// by malicious users.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<Message>,
     /// Token of the interaction.
     pub token: String,
-    /// User that triggered the interaction.
+    /// User that invoked the interaction.
     ///
     /// Present when the command is used in a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -64,7 +67,7 @@ pub struct ModalSubmitInteraction {
 }
 
 impl ModalSubmitInteraction {
-    /// ID of the user that submitted the modal.
+    /// ID of the user that invoked the interaction.
     ///
     /// This will first check for the [`member`]'s
     /// [`user`][`PartialMember::user`]'s ID and, if not present, then check the
@@ -73,27 +76,41 @@ impl ModalSubmitInteraction {
     /// [`member`]: Self::member
     /// [`user`]: Self::user
     pub const fn author_id(&self) -> Option<Id<UserMarker>> {
-        if let Some(member) = &self.member {
-            if let Some(user) = &member.user {
-                return Some(user.id);
-            }
-        }
+        super::author_id(self.user.as_ref(), self.member.as_ref())
+    }
 
-        if let Some(user) = &self.user {
-            return Some(user.id);
-        }
+    /// Whether the interaction was invoked in a DM.
+    pub const fn is_dm(&self) -> bool {
+        self.user.is_some()
+    }
 
-        None
+    /// Whether the interaction was invoked in a guild.
+    pub const fn is_guild(&self) -> bool {
+        self.member.is_some()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::{
-        application::component::ComponentType,
-        datetime::{Timestamp, TimestampParseError},
+    use super::{
+        ModalInteractionData, ModalInteractionDataActionRow, ModalInteractionDataComponent,
+        ModalSubmitInteraction,
     };
+    use crate::{
+        application::{
+            component::ComponentType,
+            interaction::{tests::user, InteractionType},
+        },
+        guild::PartialMember,
+        id::{
+            marker::{
+                ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker,
+            },
+            Id,
+        },
+        util::datetime::{Timestamp, TimestampParseError},
+    };
+    use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, str::FromStr};
 
@@ -119,26 +136,6 @@ mod tests {
     );
 
     const USER_ID: Id<UserMarker> = Id::new(7);
-
-    fn user(id: Id<UserMarker>) -> User {
-        User {
-            accent_color: None,
-            avatar: None,
-            banner: None,
-            bot: false,
-            discriminator: 4444,
-            email: None,
-            flags: None,
-            id,
-            locale: None,
-            mfa_enabled: None,
-            name: "twilight".to_owned(),
-            premium_type: None,
-            public_flags: None,
-            system: None,
-            verified: None,
-        }
-    }
 
     #[test]
     fn test_author_id() -> Result<(), TimestampParseError> {
@@ -180,6 +177,7 @@ mod tests {
         };
 
         assert_eq!(Some(USER_ID), in_guild.author_id());
+        assert!(in_guild.is_guild());
 
         let in_dm = ModalSubmitInteraction {
             member: None,
@@ -187,6 +185,7 @@ mod tests {
             ..in_guild
         };
         assert_eq!(Some(USER_ID), in_dm.author_id());
+        assert!(in_dm.is_dm());
 
         Ok(())
     }

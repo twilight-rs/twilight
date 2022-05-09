@@ -114,7 +114,7 @@
 //! [github link]: https://github.com/twilight-rs/twilight
 //! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,
@@ -134,9 +134,6 @@
     clippy::semicolon_if_nothing_returned,
     clippy::unnecessary_wraps
 )]
-
-#[cfg(feature = "simd-json")]
-extern crate dep_simd_json as simd_json;
 
 pub mod api_error;
 pub mod client;

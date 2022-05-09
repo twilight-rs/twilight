@@ -108,6 +108,7 @@
 //! [`rustls`]: https://crates.io/crates/rustls
 //! [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 //! [`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
+//! [`tracing`]: https://crates.io/crates/tracing
 //! [`webpki-roots`]: https://crates.io/crates/webpki-roots
 //! [client]: Lavalink
 //! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
@@ -121,7 +122,7 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [node]: Node
 //! [process]: Lavalink::process
-//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,

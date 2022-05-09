@@ -22,6 +22,7 @@ The `tracing` feature enables logging via the [`tracing`] crate.
 
 This is enabled by default.
 
+[`tracing`]: https://crates.io/crates/tracing
 [Discord's documentation]: https://discord.com/developers/docs/topics/rate-limits
 
 <!-- cargo-sync-readme end -->
