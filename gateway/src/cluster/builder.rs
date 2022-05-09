@@ -11,6 +11,7 @@ use std::{
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
 use twilight_model::gateway::{
+    connection_info::BotConnectionInfo,
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
@@ -44,7 +45,7 @@ pub struct ClusterBuilder {
     shard: ShardBuilder,
     shard_presence:
         Option<Box<dyn Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + 'static>>,
-    shard_scheme: ShardScheme,
+    shard_scheme: Option<ShardScheme>,
 }
 
 impl ClusterBuilder {
@@ -55,7 +56,7 @@ impl ClusterBuilder {
             resume_sessions: HashMap::new(),
             shard: ShardBuilder::new(token, intents),
             shard_presence: None,
-            shard_scheme: ShardScheme::Auto,
+            shard_scheme: None,
         }
     }
 
@@ -73,13 +74,19 @@ impl ClusterBuilder {
             source: Some(Box::new(err)),
         })?;
 
-        if self.shard.gateway_url.is_none() {
-            let maybe_response = self.shard.http_client.gateway().authed().exec().await;
+        if self.shard.gateway_url.is_none() || self.shard_scheme.is_none() {
+            let gateway = Self::retrieve_connect_info(&self.shard.http_client).await?;
 
-            if let Ok(response) = maybe_response {
-                let gateway_url = response.model().await.ok().map(|info| info.url);
+            if self.shard.gateway_url.is_none() {
+                self = self.gateway_url(Some(gateway.url));
+            }
 
-                self = self.gateway_url(gateway_url);
+            if self.shard_scheme.is_none() {
+                self.shard_scheme = Some(ShardScheme::Range {
+                    from: 0,
+                    to: gateway.shards - 1,
+                    total: gateway.shards,
+                });
             }
         }
 
@@ -91,10 +98,29 @@ impl ClusterBuilder {
             queue: self.queue,
             resume_sessions: self.resume_sessions,
             shard_presence: self.shard_presence,
-            shard_scheme: self.shard_scheme,
+            shard_scheme: self.shard_scheme.expect("always set"),
         };
 
         Cluster::new_with_config(config, shard_config).await
+    }
+
+    /// Retrieves [`BotConnectionInfo`], containing the gateway url and
+    /// recommended shard count.
+    async fn retrieve_connect_info(http: &Client) -> Result<BotConnectionInfo, ClusterStartError> {
+        http.gateway()
+            .authed()
+            .exec()
+            .await
+            .map_err(|source| ClusterStartError {
+                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                source: Some(Box::new(source)),
+            })?
+            .model()
+            .await
+            .map_err(|source| ClusterStartError {
+                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                source: Some(Box::new(source)),
+            })
     }
 
     /// Set the event types to process.
@@ -223,13 +249,12 @@ impl ClusterBuilder {
 
     /// Set the scheme to use for shard managing.
     ///
-    /// For example, [`ShardScheme::Auto`] means that the cluster will
-    /// automatically manage all of the shards that Discord recommends you use.
     /// [`ShardScheme::Range`] means that it will manage a range of shards, but
     /// not necessarily all of the shards that your bot uses.
     ///
-    /// The default value is [`ShardScheme::Auto`]. For most setups this is an
-    /// acceptable default.
+    /// The cluster will automatically manage all of the shards that Discord
+    /// recommends you use by default. For most setups this is an acceptable
+    /// default.
     ///
     /// # Examples
     ///
@@ -252,7 +277,7 @@ impl ClusterBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn shard_scheme(mut self, scheme: ShardScheme) -> Self {
-        self.shard_scheme = scheme;
+        self.shard_scheme = Some(scheme);
 
         self
     }
