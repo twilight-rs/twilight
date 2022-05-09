@@ -5,6 +5,7 @@
 use crate::{
     component::{ComponentValidationErrorType, COMPONENT_COUNT},
     embed::{chars as embed_chars, EmbedValidationErrorType, EMBED_TOTAL_LENGTH},
+    request::ValidationError,
 };
 use std::{
     error::Error,
@@ -66,6 +67,18 @@ impl MessageValidationError {
     ) {
         (self.kind, self.source)
     }
+
+    /// Create a [`MessageValidationError`] from a [`ValidationError`].
+    #[must_use = "has no effect if unused"]
+    pub fn from_validation_error(
+        kind: MessageValidationErrorType,
+        source: ValidationError,
+    ) -> Self {
+        Self {
+            kind,
+            source: Some(Box::new(source)),
+        }
+    }
 }
 
 impl Display for MessageValidationError {
@@ -103,6 +116,13 @@ impl Display for MessageValidationError {
             }
             MessageValidationErrorType::TooManyEmbeds { .. } => {
                 f.write_str("message has too many embeds")
+            }
+            MessageValidationErrorType::WebhookUsername { .. } => {
+                if let Some(source) = self.source() {
+                    Display::fmt(&source, f)
+                } else {
+                    f.write_str("webhook username is invalid")
+                }
             }
         }
     }
@@ -148,6 +168,8 @@ pub enum MessageValidationErrorType {
     ///
     /// A followup message can have up to 10 embeds.
     TooManyEmbeds,
+    /// Provided webhook username was invalid.
+    WebhookUsername,
 }
 
 /// Ensure an attachment's filename is correct.

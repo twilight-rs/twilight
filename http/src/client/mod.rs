@@ -1867,16 +1867,23 @@ impl Client {
     /// let channel_id = Id::new(123);
     ///
     /// let webhook = client
-    ///     .create_webhook(channel_id, "Twily Bot")
+    ///     .create_webhook(channel_id, "Twily Bot")?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub const fn create_webhook<'a>(
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`WebhookUsername`] if the webhook's name is
+    /// invalid.
+    ///
+    /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
+    pub fn create_webhook<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
-    ) -> CreateWebhook<'a> {
+    ) -> Result<CreateWebhook<'a>, ValidationError> {
         CreateWebhook::new(self, channel_id, name)
     }
 
