@@ -38,9 +38,6 @@ use serde::{Deserialize, Serialize};
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
-    #[deprecated = "use `default_member_permissions` and `dm_permission` instead"]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_permission: Option<bool>,
     /// Default permissions required for a member to run the command.
     ///
     /// Setting this [`Permissions::empty()`] will prohibit anyone from running

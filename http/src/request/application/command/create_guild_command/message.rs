@@ -26,7 +26,6 @@ use twilight_validate::command::{name as validate_name, CommandValidationError};
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildMessageCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    default_permission: Option<bool>,
     default_member_permissions: Option<Permissions>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
@@ -44,21 +43,11 @@ impl<'a> CreateGuildMessageCommand<'a> {
 
         Ok(Self {
             application_id,
-            default_permission: None,
             default_member_permissions: None,
             guild_id,
             http,
             name,
         })
-    }
-
-    /// Whether the command is enabled by default when the app is added to a
-    /// guild.
-    #[deprecated = "use `default_member_permissions` and `dm_permission` instead"]
-    pub const fn default_permission(mut self, default: bool) -> Self {
-        self.default_permission = Some(default);
-
-        self
     }
 
     /// Default permissions required for a member to run the command.
@@ -91,7 +80,6 @@ impl TryIntoRequest for CreateGuildMessageCommand<'_> {
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_permission: self.default_permission,
             default_member_permissions: self.default_member_permissions,
             dm_permission: None,
             description: None,

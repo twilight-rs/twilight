@@ -47,11 +47,9 @@ pub struct CommandBuilder(Command);
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
     #[must_use = "builders have no effect if unused"]
-    #[allow(deprecated)]
     pub const fn new(name: String, description: String, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
-            default_permission: None,
             default_member_permissions: None,
             dm_permission: None,
             description,
@@ -88,17 +86,6 @@ impl CommandBuilder {
     /// Defaults to [`None`].
     pub const fn guild_id(mut self, guild_id: Id<GuildMarker>) -> Self {
         self.0.guild_id = Some(guild_id);
-
-        self
-    }
-
-    /// Set the default permission of the command.
-    ///
-    /// Defaults to [`None`].
-    #[deprecated = "use `default_member_permissions` and `dm_permission` instead"]
-    #[allow(deprecated)]
-    pub const fn default_permission(mut self, default_permission: bool) -> Self {
-        self.0.default_permission = Some(default_permission);
 
         self
     }
@@ -716,7 +703,7 @@ mod tests {
     assert_impl_all!(UserBuilder: Clone, Debug, Send, Sync);
 
     #[test]
-    #[allow(deprecated, clippy::too_many_lines)]
+    #[allow(clippy::too_many_lines)]
     fn construct_command_with_builder() {
         let command = CommandBuilder::new(
             "permissions".into(),
@@ -788,7 +775,6 @@ mod tests {
 
         let command_manual = Command {
             application_id: None,
-            default_permission: None,
             default_member_permissions: None,
             dm_permission: None,
             description: String::from("Get or edit permissions for a user or a role"),
