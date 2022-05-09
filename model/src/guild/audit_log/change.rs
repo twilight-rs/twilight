@@ -38,7 +38,7 @@ pub struct AffectedRole {
 /// Individual change within an [`AuditLogEntry`].
 ///
 /// [`AuditLogEntry`]: super::AuditLogEntry
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case", tag = "key")]
 pub enum AuditLogChange {
@@ -896,6 +896,7 @@ mod tests {
         Debug,
         Deserialize<'static>,
         Eq,
+        Hash,
         PartialEq,
         Send,
         Serialize,

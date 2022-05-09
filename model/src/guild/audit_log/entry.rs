@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// Entry in an [`AuditLog`] possibly containing a number of detailed changes.
 ///
 /// [`AuditLog`]: super::AuditLog
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AuditLogEntry {
     /// Type of event to cause the entry.
     pub action_type: AuditLogEventType,
@@ -42,7 +42,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::fmt::Debug;
+    use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(
         AuditLogEntry: action_type,
@@ -58,6 +58,7 @@ mod tests {
         Debug,
         Deserialize<'static>,
         Eq,
+        Hash,
         PartialEq,
         Send,
         Serialize,

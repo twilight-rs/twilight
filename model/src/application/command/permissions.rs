@@ -8,7 +8,7 @@ use crate::id::{
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildCommandPermissions {
     pub application_id: Id<ApplicationMarker>,
     pub guild_id: Id<GuildMarker>,
@@ -16,13 +16,13 @@ pub struct GuildCommandPermissions {
     pub permissions: Vec<CommandPermissions>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct CommandPermissions {
     pub id: CommandPermissionsType,
     pub permission: bool,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum CommandPermissionsType {
     Role(Id<RoleMarker>),
     User(Id<UserMarker>),
