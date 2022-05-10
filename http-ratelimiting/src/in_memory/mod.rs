@@ -73,7 +73,7 @@ impl InMemoryRatelimiter {
     }
 
     /// Enqueue the [`TicketNotifier`] to its [`Bucket`].
-    /// 
+    ///
     /// Returns the new [`Bucket`] if none existed.
     fn entry(&self, path: Path, tx: TicketNotifier) -> Option<Arc<Bucket>> {
         let mut buckets = self.buckets.lock().expect("buckets poisoned");
@@ -146,7 +146,7 @@ impl Ratelimiter for InMemoryRatelimiter {
         tracing::debug!("getting bucket for path: {:?}", path);
 
         let (tx, rx) = ticket::channel();
-        if let Some(bucket) =  self.entry(path.clone(), tx) {
+        if let Some(bucket) = self.entry(path.clone(), tx) {
             tokio::spawn(
                 BucketQueueTask::new(
                     bucket,
