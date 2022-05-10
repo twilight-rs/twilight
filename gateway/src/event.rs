@@ -17,7 +17,7 @@ bitflags! {
         /// Channel has been updated.
         const CHANNEL_UPDATE = 1 << 5;
         /// A command's permissions has been updated.
-        const COMMAND_PERMISSIONS_UPDATE = 1 << 69;
+        const COMMAND_PERMISSIONS_UPDATE = 1 << 70;
         /// Heartbeat has been created.
         const GATEWAY_HEARTBEAT = 1 << 6;
         /// Heartbeat has been acknowledged.
