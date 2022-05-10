@@ -31,6 +31,7 @@ pub use self::{
 use serde::Serialize;
 use twilight_model::{
     application::command::{CommandOption, CommandType},
+    guild::Permissions,
     id::{marker::ApplicationMarker, Id},
 };
 
@@ -42,7 +43,9 @@ struct CommandBorrowed<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_permission: Option<bool>,
+    pub default_member_permissions: Option<Permissions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dm_permission: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<&'a str>,
     #[serde(rename = "type")]
@@ -57,6 +60,7 @@ mod tests {
     use super::CommandBorrowed;
     use twilight_model::{
         application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
+        guild::Permissions,
         id::Id,
     };
 
@@ -69,7 +73,8 @@ mod tests {
     fn test_command_borrowed_from_command() {
         let command = Command {
             application_id: Some(Id::new(1)),
-            default_permission: Some(true),
+            default_member_permissions: Some(Permissions::ADMINISTRATOR),
+            dm_permission: Some(true),
             description: "command description".to_owned(),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
@@ -85,7 +90,8 @@ mod tests {
 
         let _ = CommandBorrowed {
             application_id: command.application_id,
-            default_permission: command.default_permission,
+            default_member_permissions: command.default_member_permissions,
+            dm_permission: command.dm_permission,
             description: Some(&command.description),
             kind: CommandType::ChatInput,
             name: &command.name,

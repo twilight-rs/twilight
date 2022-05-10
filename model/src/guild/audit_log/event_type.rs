@@ -205,6 +205,10 @@ pub enum AuditLogEventType {
     ///
     /// [channel]: crate::channel::Channel
     ThreadDelete = 112,
+    /// A [GuildCommandPermissions] was updated.
+    ///
+    /// [GuildCommandPermissions]: crate::application::command::permissions::GuildCommandPermissions
+    ApplicationCommandPermissionUpdate = 121,
 }
 
 #[cfg(test)]
@@ -264,4 +268,8 @@ mod tests {
     const_assert_eq!(83, AuditLogEventType::StageInstanceCreate as u8);
     const_assert_eq!(84, AuditLogEventType::StageInstanceUpdate as u8);
     const_assert_eq!(85, AuditLogEventType::StageInstanceDelete as u8);
+    const_assert_eq!(
+        121,
+        AuditLogEventType::ApplicationCommandPermissionUpdate as u8
+    );
 }

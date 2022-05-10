@@ -20,6 +20,7 @@ mod channel_create;
 mod channel_delete;
 mod channel_pins_update;
 mod channel_update;
+mod command_permissions_update;
 mod guild_create;
 mod guild_delete;
 mod guild_emojis_update;
@@ -71,8 +72,9 @@ mod webhooks_update;
 pub use self::{
     ban_add::BanAdd, ban_remove::BanRemove, channel_create::ChannelCreate,
     channel_delete::ChannelDelete, channel_pins_update::ChannelPinsUpdate,
-    channel_update::ChannelUpdate, guild_create::GuildCreate, guild_delete::GuildDelete,
-    guild_emojis_update::GuildEmojisUpdate, guild_integrations_update::GuildIntegrationsUpdate,
+    channel_update::ChannelUpdate, command_permissions_update::CommandPermissionsUpdate,
+    guild_create::GuildCreate, guild_delete::GuildDelete, guild_emojis_update::GuildEmojisUpdate,
+    guild_integrations_update::GuildIntegrationsUpdate,
     guild_scheduled_event_create::GuildScheduledEventCreate,
     guild_scheduled_event_delete::GuildScheduledEventDelete,
     guild_scheduled_event_update::GuildScheduledEventUpdate,

@@ -16,6 +16,8 @@ bitflags! {
         const CHANNEL_PINS_UPDATE = 1 << 4;
         /// Channel has been updated.
         const CHANNEL_UPDATE = 1 << 5;
+        /// A command's permissions has been updated.
+        const COMMAND_PERMISSIONS_UPDATE = 1 << 69;
         /// Heartbeat has been created.
         const GATEWAY_HEARTBEAT = 1 << 6;
         /// Heartbeat has been acknowledged.
@@ -301,6 +303,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::ChannelDelete => EventTypeFlags::CHANNEL_DELETE,
             EventType::ChannelPinsUpdate => EventTypeFlags::CHANNEL_PINS_UPDATE,
             EventType::ChannelUpdate => EventTypeFlags::CHANNEL_UPDATE,
+            EventType::CommandPermissionsUpdate => EventTypeFlags::COMMAND_PERMISSIONS_UPDATE,
             EventType::GatewayHeartbeat => EventTypeFlags::GATEWAY_HEARTBEAT,
             EventType::GatewayHeartbeatAck => EventTypeFlags::GATEWAY_HEARTBEAT_ACK,
             EventType::GatewayHello => EventTypeFlags::GATEWAY_HELLO,
