@@ -71,7 +71,7 @@ impl Display for Error {
                 Display::fmt(status, f)?;
                 f.write_str(", error: ")?;
 
-                Display::fmt(&String::from_utf8_lossy(body), f)
+                f.write_str(&String::from_utf8_lossy(body))
             }
             ErrorType::ServiceUnavailable { .. } => {
                 f.write_str("api may be temporarily unavailable (received a 503)")
