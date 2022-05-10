@@ -551,7 +551,7 @@ fn header_bool(name: HeaderName, value: &[u8]) -> Result<bool, HeaderParsingErro
     let text = header_str(name, value)?;
     
     let end = text.parse().map_err(|source| HeaderParsingError {
-        kind: HeaderParsingErrorType::Parsing { kind: HeaderType::Bool, name: name, value: text.to_owned() },
+        kind: HeaderParsingErrorType::Parsing { kind: HeaderType::Bool, name, value: text.to_owned() },
         source: Some(Box::new(source)),
     })?;
 
