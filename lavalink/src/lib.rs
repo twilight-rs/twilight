@@ -89,7 +89,7 @@
 //!     lavalink.add(lavalink_host, lavalink_auth).await?;
 //!
 //!     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-//!     let (shard, mut events) = Shard::new(token, intents);
+//!     let (shard, mut events) = Shard::new(token, intents).await?;
 //!     shard.start().await?;
 //!
 //!     while let Some(event) = events.next().await {

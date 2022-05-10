@@ -311,7 +311,6 @@ pub struct ShardProcessor {
 impl ShardProcessor {
     pub async fn new(
         config: Arc<Config>,
-        mut url: String,
         emitter: Emitter,
     ) -> Result<(Self, WatchReceiver<Arc<Session>>), ConnectingError> {
         //if we got resume info we don't need to wait
@@ -328,6 +327,8 @@ impl ShardProcessor {
             #[cfg(feature = "tracing")]
             tracing::debug!("shard {:?} finished queue", config.shard());
         }
+
+        let mut url = config.gateway_url().to_owned();
 
         url.push_str("?v=");
         url.push_str(&API_VERSION.to_string());
