@@ -745,6 +745,9 @@ impl StringBuilder {
     }
 
     /// Set localization for a particular choice, by name.
+    ///
+    /// Choices must be set with the [`choices`] method before updating their
+    /// localization.
     pub fn choice_localizations(
         mut self,
         choice_name: &str,
