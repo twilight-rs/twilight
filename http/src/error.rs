@@ -66,12 +66,12 @@ impl Display for Error {
             }
             ErrorType::RequestError => f.write_str("Parsing or sending the response failed"),
             ErrorType::RequestTimedOut => f.write_str("request timed out"),
-            ErrorType::Response { error, status, .. } => {
+            ErrorType::Response { body, status, .. } => {
                 f.write_str("Response error: status code ")?;
                 Display::fmt(status, f)?;
                 f.write_str(", error: ")?;
 
-                Display::fmt(error, f)
+                Display::fmt(&String::from_utf8_lossy(body), f)
             }
             ErrorType::ServiceUnavailable { .. } => {
                 f.write_str("api may be temporarily unavailable (received a 503)")
