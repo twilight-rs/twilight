@@ -87,17 +87,6 @@ impl Interaction {
         }
     }
 
-    /// Return the token of the inner interaction.
-    pub fn token(&self) -> &str {
-        match self {
-            Self::Ping(ping) => &ping.token,
-            Self::ApplicationCommand(command) => &command.token,
-            Self::ApplicationCommandAutocomplete(command) => &command.token,
-            Self::MessageComponent(component) => &component.token,
-            Self::ModalSubmit(modal) => &modal.token,
-        }
-    }
-
     /// Type of interaction.
     pub const fn kind(&self) -> InteractionType {
         match self {
@@ -108,6 +97,17 @@ impl Interaction {
             }
             Interaction::MessageComponent(_) => InteractionType::MessageComponent,
             Interaction::ModalSubmit(_) => InteractionType::ModalSubmit,
+        }
+    }
+
+    /// Token of the interaction.
+    pub fn token(&self) -> &str {
+        match self {
+            Self::Ping(ping) => &ping.token,
+            Self::ApplicationCommand(command) => &command.token,
+            Self::ApplicationCommandAutocomplete(command) => &command.token,
+            Self::MessageComponent(component) => &component.token,
+            Self::ModalSubmit(modal) => &modal.token,
         }
     }
 }
