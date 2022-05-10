@@ -83,8 +83,7 @@ impl InMemoryRatelimiter {
                 #[cfg(feature = "tracing")]
                 tracing::debug!("got existing bucket: {:?}", path);
 
-                let bucket = bucket.into_mut();
-                bucket.queue.push(tx);
+                bucket.get().queue.push(tx);
 
                 #[cfg(feature = "tracing")]
                 tracing::debug!("added request into bucket queue: {:?}", path);
