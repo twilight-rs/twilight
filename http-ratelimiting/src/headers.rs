@@ -195,8 +195,6 @@ impl Display for HeaderName {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum HeaderType {
-    /// Type of header value is a bool.
-    Bool,
     /// Type of header value is a float.
     Float,
     /// Type of header value is an integer.
@@ -209,7 +207,6 @@ impl HeaderType {
     /// Name of the type of header.
     const fn name(self) -> &'static str {
         match self {
-            Self::Bool => "bool",
             Self::Float => "float",
             Self::Integer => "integer",
             Self::String => "string",
@@ -476,7 +473,7 @@ impl RatelimitHeaders {
                     bucket.replace(header_str(HeaderName::Bucket, value)?);
                 }
                 HeaderName::GLOBAL => {
-                    global = header_bool(HeaderName::Global, value)?;
+                    global = header_bool(value);
                 }
                 HeaderName::LIMIT => {
                     limit.replace(header_int(HeaderName::Limit, value)?);
@@ -547,24 +544,14 @@ impl RatelimitHeaders {
 }
 
 /// Parse a value as a boolean.
-fn header_bool(name: HeaderName, value: &[u8]) -> Result<bool, HeaderParsingError> {
-    let text = header_str(name, value)?;
-
-    let end = text.parse().map_err(|source| HeaderParsingError {
-        kind: HeaderParsingErrorType::Parsing {
-            kind: HeaderType::Bool,
-            name,
-            value: text.to_owned(),
-        },
-        source: Some(Box::new(source)),
-    })?;
-
-    Ok(end)
+fn header_bool(value: &[u8]) -> bool {
+    value == b"true"
 }
 
 /// Parse a value expected to be a float.
 fn header_float(name: HeaderName, value: &[u8]) -> Result<f64, HeaderParsingError> {
-    let text = header_str(name, value)?;
+    let text = str::from_utf8(value)
+        .map_err(|source| HeaderParsingError::not_utf8(name, value.to_owned(), source))?;
 
     let end = text.parse().map_err(|source| HeaderParsingError {
         kind: HeaderParsingErrorType::Parsing {
@@ -580,7 +567,8 @@ fn header_float(name: HeaderName, value: &[u8]) -> Result<f64, HeaderParsingErro
 
 /// Parse a value expected to be an integer.
 fn header_int(name: HeaderName, value: &[u8]) -> Result<u64, HeaderParsingError> {
-    let text = header_str(name, value)?;
+    let text = str::from_utf8(value)
+        .map_err(|source| HeaderParsingError::not_utf8(name, value.to_owned(), source))?;
 
     let end = text.parse().map_err(|source| HeaderParsingError {
         kind: HeaderParsingErrorType::Parsing {
@@ -794,7 +782,6 @@ mod tests {
 
     #[test]
     fn test_type() {
-        assert_eq!("bool", HeaderType::Bool.name());
         assert_eq!("float", HeaderType::Float.name());
         assert_eq!("integer", HeaderType::Integer.name());
         assert_eq!("string", HeaderType::String.name());
