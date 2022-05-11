@@ -455,7 +455,7 @@ pub enum Route<'a> {
         /// The ID of the owner application.
         application_id: u64,
         /// Whether to include full localization dictionaries.
-        with_localizations: bool,
+        with_localizations: Option<bool>,
     },
     /// Route information to get a guild.
     GetGuild {
@@ -1667,8 +1667,9 @@ impl Display for Route<'_> {
                 Display::fmt(application_id, f)?;
                 f.write_str("/commands")?;
 
-                if *with_localizations {
-                    f.write_str("?with_localizations=true")?;
+                if let Some(with_localizations) = with_localizations {
+                    f.write_str("?with_localizations=")?;
+                    Display::fmt(with_localizations, f)?
                 }
 
                 Ok(())
@@ -3086,7 +3087,7 @@ mod tests {
     fn test_get_global_commands() {
         let route = Route::GetGlobalCommands {
             application_id: APPLICATION_ID,
-            with_localizations: true,
+            with_localizations: Some(true),
         };
         assert_eq!(
             route.to_string(),
@@ -3098,7 +3099,7 @@ mod tests {
 
         let route = Route::GetGlobalCommands {
             application_id: APPLICATION_ID,
-            with_localizations: false,
+            with_localizations: None,
         };
         assert_eq!(
             route.to_string(),

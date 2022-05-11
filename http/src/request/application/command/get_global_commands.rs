@@ -15,7 +15,7 @@ use twilight_model::{
 pub struct GetGlobalCommands<'a> {
     application_id: Id<ApplicationMarker>,
     http: &'a Client,
-    with_localizations: bool,
+    with_localizations: Option<bool>,
 }
 
 impl<'a> GetGlobalCommands<'a> {
@@ -23,7 +23,7 @@ impl<'a> GetGlobalCommands<'a> {
         Self {
             application_id,
             http,
-            with_localizations: false,
+            with_localizations: None,
         }
     }
 
@@ -31,7 +31,7 @@ impl<'a> GetGlobalCommands<'a> {
     ///
     /// Defaults to [`false`].
     pub const fn with_localizations(mut self, with_localizations: bool) -> Self {
-        self.with_localizations = with_localizations;
+        self.with_localizations = Some(with_localizations);
 
         self
     }
