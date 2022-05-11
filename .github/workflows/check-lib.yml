@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install toolchain (${{ env.minrust }})
         uses: actions-rs/toolchain@v1
@@ -51,7 +51,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
@@ -77,7 +77,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install cargo-sync-readme
         uses: baptiste0928/cargo-install@v1
@@ -117,7 +117,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
@@ -135,7 +135,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Run Codespell
         uses: codespell-project/actions-codespell@master
@@ -147,7 +147,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -162,7 +162,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
@@ -197,7 +197,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
@@ -256,7 +256,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
