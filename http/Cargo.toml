@@ -25,6 +25,7 @@ rand = { default-features = false, features = ["std_rng", "std"], version = "0.8
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
+tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
 twilight-model = { default-features = false, path = "../model" }
 twilight-validate = { default-features = false, path = "../validate" }
@@ -32,10 +33,9 @@ twilight-validate = { default-features = false, path = "../validate" }
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
-tracing = { default-features = false, features = ["std", "attributes"], optional = true, version = "0.1" }
 
 [features]
-default = ["decompression", "rustls-native-roots", "tracing"]
+default = ["decompression", "rustls-native-roots"]
 decompression = ["dep:brotli"]
 native = ["dep:hyper-tls"]
 rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]

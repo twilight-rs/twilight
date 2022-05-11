@@ -222,36 +222,24 @@ impl<'de> Visitor<'de> for OptionVisitor {
         let mut options: Option<Option<Vec<CommandOption>>> = None;
         let mut required: Option<bool> = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing command option");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over command option");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     map.next_value::<IgnoredAny>()?;
 
                     tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
@@ -335,7 +323,6 @@ impl<'de> Visitor<'de> for OptionVisitor {
         let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
         let name = name.ok_or_else(|| DeError::missing_field("name"))?;
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             %description,
             ?kind,

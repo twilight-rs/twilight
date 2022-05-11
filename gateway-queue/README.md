@@ -41,14 +41,6 @@ create sessions.
 The `twilight-http` feature brings in support for [`LargeBotQueue`].
 
 This is enabled by default.
-
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
-
-[`tracing`]: https://crates.io/crates/tracing
 [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
 <!-- cargo-sync-readme end -->

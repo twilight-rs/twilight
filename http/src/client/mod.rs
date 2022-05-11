@@ -2411,7 +2411,6 @@ impl Client {
         let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
-        #[cfg(feature = "tracing")]
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);

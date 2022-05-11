@@ -243,38 +243,25 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut widget_channel_id = None::<Option<_>>;
                 let mut widget_enabled = None::<Option<_>>;
 
-                #[cfg(feature = "tracing")]
                 let span = tracing::trace_span!("deserializing guild");
-                #[cfg(feature = "tracing")]
                 let _span_enter = span.enter();
 
                 loop {
-                    #[cfg(feature = "tracing")]
                     let span_child = tracing::trace_span!("iterating over element");
-                    #[cfg(feature = "tracing")]
                     let _span_child_enter = span_child.enter();
 
                     let key = match map.next_key() {
                         Ok(Some(key)) => {
-                            #[cfg(feature = "tracing")]
                             tracing::trace!(?key, "found key");
 
                             key
                         }
                         Ok(None) => break,
-                        #[cfg(feature = "tracing")]
                         Err(why) => {
                             // Encountered when we run into an unknown key.
                             map.next_value::<IgnoredAny>()?;
 
                             tracing::trace!("ran into an unknown key: {:?}", why);
-
-                            continue;
-                        }
-                        #[cfg(not(feature = "tracing"))]
-                        Err(_) => {
-                            // Encountered when we run into an unknown key.
-                            map.next_value::<IgnoredAny>()?;
 
                             continue;
                         }
@@ -677,7 +664,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let widget_channel_id = widget_channel_id.unwrap_or_default();
                 let widget_enabled = widget_enabled.unwrap_or_default();
 
-                #[cfg(feature = "tracing")]
                 tracing::trace!(
                     ?afk_channel_id,
                     %afk_timeout,
@@ -711,7 +697,6 @@ impl<'de> Deserialize<'de> for Guild {
                 );
 
                 // Split in two due to generic impl only going up to 32.
-                #[cfg(feature = "tracing")]
                 tracing::trace!(
                     ?premium_subscription_count,
                     ?premium_tier,
