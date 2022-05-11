@@ -72,7 +72,7 @@ impl InMemoryRatelimiter {
         Self::default()
     }
 
-    /// Enqueue the [`TicketNotifier`] to its [`Bucket`].
+    /// Enqueue the [`TicketNotifier`] to the [`Path`]'s [`Bucket`].
     ///
     /// Returns the new [`Bucket`] if none existed.
     fn entry(&self, path: Path, tx: TicketNotifier) -> Option<Arc<Bucket>> {
