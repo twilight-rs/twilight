@@ -252,9 +252,9 @@ impl Cluster {
     ///
     /// while let Some((shard_id, event)) = events.next().await {
     ///     match event {
-    ///         Event::MessageCreate(_) => println!("Shard {} got a new message", shard_id),
-    ///         Event::MessageDelete(_) => println!("Shard {} got a deleted message", shard_id),
-    ///         Event::MessageUpdate(_) => println!("Shard {} got an updated message", shard_id),
+    ///         Event::MessageCreate(_) => println!("Shard {shard_id} got a new message"),
+    ///         Event::MessageDelete(_) => println!("Shard {shard_id} got a deleted message"),
+    ///         Event::MessageUpdate(_) => println!("Shard {shard_id} got an updated message"),
     ///         // No other events will come in through the stream.
     ///         _ => {},
     ///     }
@@ -348,9 +348,9 @@ impl Cluster {
     ///
     /// while let Some((shard_id, event)) = events.next().await {
     ///     match event {
-    ///         Event::MessageCreate(_) => println!("Shard {} got a new message", shard_id),
-    ///         Event::MessageDelete(_) => println!("Shard {} got a deleted message", shard_id),
-    ///         Event::MessageUpdate(_) => println!("Shard {} got an updated message", shard_id),
+    ///         Event::MessageCreate(_) => println!("Shard {shard_id} got a new message"),
+    ///         Event::MessageDelete(_) => println!("Shard {shard_id} got a deleted message"),
+    ///         Event::MessageUpdate(_) => println!("Shard {shard_id} got an updated message"),
     ///         // No other events will come in through the stream.
     ///         _ => {},
     ///     }
@@ -449,8 +449,7 @@ impl Cluster {
     ///
     /// for (shard_id, info) in cluster.info() {
     ///     println!(
-    ///         "Shard {} is {} with an average latency of {:?}",
-    ///         shard_id,
+    ///         "Shard {shard_id} is {} with an average latency of {:?}",
     ///         info.stage(),
     ///         info.latency().average(),
     ///     );

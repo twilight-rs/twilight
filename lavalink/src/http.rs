@@ -254,7 +254,7 @@ pub fn load_track(
 ) -> Result<Request<&'static [u8]>, HttpError> {
     let identifier =
         percent_encoding::percent_encode(identifier.as_ref().as_bytes(), NON_ALPHANUMERIC);
-    let url = format!("http://{}/loadtracks?identifier={}", address, identifier);
+    let url = format!("http://{address}/loadtracks?identifier={identifier}");
 
     let mut req = Request::get(url);
 
@@ -272,7 +272,7 @@ pub fn get_route_planner(
     address: SocketAddr,
     authorization: impl AsRef<str>,
 ) -> Result<Request<&'static [u8]>, HttpError> {
-    let mut req = Request::get(format!("{}/routeplanner/status", address));
+    let mut req = Request::get(format!("{address}/routeplanner/status"));
 
     let auth_value = HeaderValue::from_str(authorization.as_ref())?;
     req = req.header(AUTHORIZATION, auth_value);

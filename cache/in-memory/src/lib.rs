@@ -384,7 +384,7 @@ impl InMemoryCache {
     ///
     /// // later on...
     /// let guilds = cache.stats().guilds();
-    /// println!("guild count: {}", guilds);
+    /// println!("guild count: {guilds}");
     /// ```
     pub const fn stats(&self) -> InMemoryCacheStats<'_> {
         InMemoryCacheStats::new(self)
@@ -418,7 +418,7 @@ impl InMemoryCache {
     /// let user_id = Id::new(5);
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
-    /// println!("member has these permissions: {:?}", permissions);
+    /// println!("member has these permissions: {permissions:?}");
     /// # Ok(()) }
     /// ```
     #[cfg(feature = "permission-calculator")]

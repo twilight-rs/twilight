@@ -14,7 +14,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     println!("Created shard");
 
     while let Some(event) = events.next().await {
-        println!("Event: {:?}", event);
+        println!("Event: {event:?}");
     }
 
     Ok(())

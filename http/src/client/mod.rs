@@ -129,7 +129,7 @@ use twilight_validate::{
 /// use twilight_http::Client;
 ///
 /// let bearer = env::var("BEARER_TOKEN")?;
-/// let token = format!("Bearer {}", bearer);
+/// let token = format!("Bearer {bearer}");
 ///
 /// let client = Client::new(token);
 /// # Ok(()) }
@@ -2183,7 +2183,7 @@ impl Client {
     /// let id = Id::new(123);
     /// let sticker = client.sticker(id).exec().await?.model().await?;
     ///
-    /// println!("{:#?}", sticker);
+    /// println!("{sticker:#?}");
     /// # Ok(()) }
     /// ```
     pub const fn sticker(&self, sticker_id: Id<StickerMarker>) -> GetSticker<'_> {
@@ -2258,7 +2258,7 @@ impl Client {
     ///     .model()
     ///     .await?;
     ///
-    /// println!("{:#?}", sticker);
+    /// println!("{sticker:#?}");
     /// # Ok(()) }
     /// ```
     pub const fn guild_sticker(
@@ -2295,7 +2295,7 @@ impl Client {
     ///     .model()
     ///     .await?;
     ///
-    /// println!("{:#?}", sticker);
+    /// println!("{sticker:#?}");
     /// # Ok(()) }
     /// ```
     pub fn create_guild_sticker<'a>(
@@ -2331,7 +2331,7 @@ impl Client {
     ///     .model()
     ///     .await?;
     ///
-    /// println!("{:#?}", sticker);
+    /// println!("{sticker:#?}");
     /// # Ok(()) }
     /// ```
     pub const fn update_guild_sticker(
@@ -2410,8 +2410,8 @@ impl Client {
         let protocol = if self.use_http { "http" } else { "https" };
         let host = self.proxy.as_deref().unwrap_or("discord.com");
 
-        let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
-        tracing::debug!("URL: {:?}", url);
+        let url = format!("{protocol}://{host}/api/v{API_VERSION}/{path}");
+        tracing::debug!("URL: {url:?}");
 
         let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);
 

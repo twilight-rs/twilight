@@ -112,7 +112,7 @@ impl Heartbeats {
             let millis = if let Ok(millis) = dur.as_millis().try_into() {
                 millis
             } else {
-                tracing::error!("duration millis is more than u64: {:?}", dur);
+                tracing::error!("duration millis is more than u64: {dur:?}");
 
                 return;
             };
@@ -197,7 +197,7 @@ impl Heartbeater {
 
     pub async fn run(self) {
         if let Err(source) = self.try_run().await {
-            tracing::warn!("Error sending heartbeat: {:?}", source);
+            tracing::warn!("Error sending heartbeat: {source:?}");
         }
     }
 

@@ -31,20 +31,20 @@
 //! async fn handle_event(cluster: Arc<Cluster>, shard_id: u64, event: Event) {
 //!     match event {
 //!         Event::ShardConnected { .. } => {
-//!             println!("Shard {} is now connected", shard_id);
+//!             println!("Shard {shard_id} is now connected");
 //!         },
 //!         Event::ShardDisconnected { .. } => {
-//!             println!("Shard {} is now disconnected", shard_id);
+//!             println!("Shard {shard_id} is now disconnected");
 //!         },
 //!         Event::MessageCreate(msg) if msg.content == "!latency" => {
 //!             if let Some(shard) = cluster.shard(shard_id) {
 //!                 if let Ok(info) = shard.info() {
-//!                     println!("Shard {}'s latency is {:?}", shard_id, info.latency());
+//!                     println!("Shard {shard_id}'s latency is {:?}", info.latency());
 //!                 }
 //!             }
 //!         },
 //!         Event::MessageCreate(msg) if msg.content == "!shutdown" => {
-//!             println!("Got a shutdown request from shard {}", shard_id);
+//!             println!("Got a shutdown request from shard {shard_id}");
 //!
 //!             cluster.down();
 //!         },

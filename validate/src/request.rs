@@ -1061,8 +1061,7 @@ mod tests {
         assert_eq!(expected, actual.to_string());
 
         let expected = format!(
-            "provided username length is 200, but it must be at least {} and at most {}",
-            USERNAME_LIMIT_MIN, USERNAME_LIMIT_MAX
+            "provided username length is 200, but it must be at least {USERNAME_LIMIT_MIN} and at most {USERNAME_LIMIT_MAX}",
         );
         let actual = ValidationError {
             kind: ValidationErrorType::Username {

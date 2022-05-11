@@ -324,12 +324,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// let user_id = Id::new(5);
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
-    /// println!(
-    ///     "User {} in channel {} has permissions {:?}",
-    ///     user_id,
-    ///     channel_id,
-    ///     permissions,
-    /// );
+    /// println!("User {user_id} in channel {channel_id} has permissions {permissions:?}");
     /// # Ok(()) }
     /// ```
     ///
@@ -411,12 +406,7 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// let user_id = Id::new(5);
     ///
     /// let permissions = cache.permissions().root(user_id, guild_id)?;
-    /// println!(
-    ///     "User {} in guild {} has permissions {:?}",
-    ///     user_id,
-    ///     guild_id,
-    ///     permissions,
-    /// );
+    /// println!("User {user_id} in guild {guild_id} has permissions {permissions:?}");
     /// # Ok(()) }
     /// ```
     ///

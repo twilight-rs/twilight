@@ -171,7 +171,7 @@ impl Lavalink {
     ///
     /// [crate documentation]: crate#examples
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
-        tracing::trace!("processing event: {:?}", event);
+        tracing::trace!("processing event: {event:?}");
 
         let guild_id = match event {
             Event::Ready(e) => {
@@ -186,7 +186,7 @@ impl Lavalink {
                     self.server_updates.insert(guild_id, e.clone().into());
                     guild_id
                 } else {
-                    tracing::trace!("event has no guild ID: {:?}", e);
+                    tracing::trace!("event has no guild ID: {e:?}");
                     return Ok(());
                 }
             }
@@ -211,18 +211,14 @@ impl Lavalink {
                     }
                     guild_id
                 } else {
-                    tracing::trace!("event has no guild ID: {:?}", e);
+                    tracing::trace!("event has no guild ID: {e:?}");
                     return Ok(());
                 }
             }
             _ => return Ok(()),
         };
 
-        tracing::debug!(
-            "got voice server/state update for {:?}: {:?}",
-            guild_id,
-            event
-        );
+        tracing::debug!("got voice server/state update for {guild_id:?}: {event:?}");
 
         let update = {
             let server = self.server_updates.get(&guild_id);
@@ -232,25 +228,20 @@ impl Lavalink {
                     let server = server.value();
                     let session = session.value();
                     tracing::debug!(
-                        "got both halves for {}: {:?}; Session ID: {:?}",
-                        guild_id,
-                        server,
-                        session,
+                        "got both halves for {guild_id}: {server:?}; Session ID: {session:?}",
                     );
                     VoiceUpdate::new(guild_id, session.as_ref(), server.clone())
                 }
                 (Some(server), None) => {
                     tracing::debug!(
-                        "guild {} is now waiting for other half; got: {:?}",
-                        guild_id,
+                        "guild {guild_id} is now waiting for other half; got: {:?}",
                         server.value()
                     );
                     return Ok(());
                 }
                 (None, Some(session)) => {
                     tracing::debug!(
-                        "guild {} is now waiting for other half; got session ID: {:?}",
-                        guild_id,
+                        "guild {guild_id} is now waiting for other half; got session ID: {:?}",
                         session.value()
                     );
                     return Ok(());
@@ -259,18 +250,18 @@ impl Lavalink {
             }
         };
 
-        tracing::debug!("getting player for guild {}", guild_id);
+        tracing::debug!("getting player for guild {guild_id}");
 
         let player = self.player(guild_id).await?;
 
-        tracing::debug!("sending voice update for guild {}: {:?}", guild_id, update);
+        tracing::debug!("sending voice update for guild {guild_id}: {update:?}");
 
         player.send(update).map_err(|source| ClientError {
             kind: ClientErrorType::SendingVoiceUpdate,
             source: Some(Box::new(source)),
         })?;
 
-        tracing::debug!("sent voice update for guild {}", guild_id);
+        tracing::debug!("sent voice update for guild {guild_id}");
 
         Ok(())
     }

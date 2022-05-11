@@ -49,7 +49,7 @@ struct GetAuditLogFields {
 ///     println!("  Changes:");
 ///
 ///     for change in entry.changes {
-///         println!("{:?}", change);
+///         println!("{change:?}");
 ///     }
 /// }
 /// # Ok(()) }

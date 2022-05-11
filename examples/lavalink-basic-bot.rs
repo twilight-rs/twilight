@@ -33,7 +33,7 @@ fn spawn(
 ) {
     tokio::spawn(async move {
         if let Err(why) = fut.await {
-            tracing::debug!("handler error: {:?}", why);
+            tracing::debug!("handler error: {why:?}");
         }
     });
 }
@@ -128,7 +128,7 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Joined <#{}>!", channel_id))?
+        .content(&format!("Joined <#{channel_id}>!"))?
         .exec()
         .await?;
 
@@ -237,7 +237,7 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("{} the track", action))?
+        .content(&format!("{action} the track"))?
         .exec()
         .await?;
 
@@ -273,7 +273,7 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Seeked to {}s", position))?
+        .content(&format!("Seeked to {position}s"))?
         .exec()
         .await?;
 
@@ -341,7 +341,7 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Set the volume to {}", volume))?
+        .content(&format!("Set the volume to {volume}"))?
         .exec()
         .await?;
 

@@ -344,7 +344,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                         Err(why) => {
                             map.next_value::<IgnoredAny>()?;
 
-                            tracing::trace!("ran into an unknown key: {:?}", why);
+                            tracing::trace!("ran into an unknown key: {why:?}");
 
                             continue;
                         }

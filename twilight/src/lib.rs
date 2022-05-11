@@ -183,7 +183,7 @@
 //!                 .await?;
 //!         }
 //!         Event::ShardConnected(_) => {
-//!             println!("Connected on shard {}", shard_id);
+//!             println!("Connected on shard {shard_id}");
 //!         }
 //!         // Other events here...
 //!         _ => {}

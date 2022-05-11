@@ -490,9 +490,8 @@ impl Connection {
                 outgoing = self.node_from.recv() => {
                     if let Some(outgoing) = outgoing {
                         tracing::debug!(
-                            "forwarding event to {}: {:?}",
+                            "forwarding event to {}: {outgoing:?}",
                             self.config.address,
-                            outgoing
                         );
 
                         let payload = serde_json::to_string(&outgoing).map_err(|source| NodeError {
@@ -515,9 +514,8 @@ impl Connection {
 
     async fn incoming(&mut self, incoming: Message) -> Result<bool, NodeError> {
         tracing::debug!(
-            "received message from {}: {:?}",
+            "received message from {}: {incoming:?}",
             self.config.address,
-            incoming
         );
 
         let text = match incoming {
@@ -538,7 +536,7 @@ impl Connection {
             }
             Message::Text(text) => text,
             other => {
-                tracing::debug!("got pong or bytes payload: {:?}", other);
+                tracing::debug!("got pong or bytes payload: {other:?}");
 
                 return Ok(true);
             }
@@ -547,7 +545,7 @@ impl Connection {
         let event = if let Ok(event) = serde_json::from_str(&text) {
             event
         } else {
-            tracing::warn!("unknown message from lavalink node: {}", text);
+            tracing::warn!("unknown message from lavalink node: {text}");
 
             return Ok(true);
         };
@@ -572,9 +570,8 @@ impl Connection {
             player
         } else {
             tracing::warn!(
-                "invalid player update for guild {}: {:?}",
+                "invalid player update for guild {}: {update:?}",
                 update.guild_id,
-                update,
             );
 
             return Ok(());
@@ -661,7 +658,7 @@ async fn backoff(
         match tokio_tungstenite::connect_async(req).await {
             Ok((stream, res)) => return Ok((stream, res)),
             Err(source) => {
-                tracing::warn!("failed to connect to node {}: {:?}", source, config.address);
+                tracing::warn!("failed to connect to node {source}: {:?}", config.address);
 
                 if matches!(&source, TungsteniteError::Http(resp) if resp.status() == StatusCode::UNAUTHORIZED)
                 {
@@ -684,8 +681,7 @@ async fn backoff(
                 }
 
                 tracing::debug!(
-                    "waiting {} seconds before attempting to connect to node {} again",
-                    seconds,
+                    "waiting {seconds} seconds before attempting to connect to node {} again",
                     config.address,
                 );
                 tokio_time::sleep(Duration::from_secs(seconds)).await;

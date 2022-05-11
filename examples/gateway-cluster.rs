@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     });
 
     while let Some((id, event)) = events.next().await {
-        println!("Shard: {}, Event: {:?}", id, event.kind());
+        println!("Shard: {id}, Event: {:?}", event.kind());
     }
 
     Ok(())

@@ -229,7 +229,7 @@ impl BucketQueueTask {
                 continue;
             };
 
-            tracing::debug!(parent: &span, "starting to wait for response headers",);
+            tracing::debug!(parent: &span, "starting to wait for response headers");
 
             match timeout(Self::WAIT, ticket_headers).await {
                 Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
