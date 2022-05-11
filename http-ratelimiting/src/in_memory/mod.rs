@@ -146,6 +146,7 @@ impl Ratelimiter for InMemoryRatelimiter {
         tracing::debug!("getting bucket for path: {:?}", path);
 
         let (tx, rx) = ticket::channel();
+
         if let Some(bucket) = self.entry(path.clone(), tx) {
             tokio::spawn(
                 BucketQueueTask::new(
