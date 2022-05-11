@@ -1,10 +1,10 @@
 use super::change_key::AuditLogChangeKey;
 use crate::{
+    application::command::permissions::GuildCommandPermissions,
     channel::{
         message::sticker::StickerFormatType, permission_overwrite::PermissionOverwrite,
         stage_instance::PrivacyLevel, thread::AutoArchiveDuration,
     },
-    datetime::Timestamp,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         VerificationLevel,
@@ -15,7 +15,7 @@ use crate::{
         },
         Id,
     },
-    util::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
 
@@ -166,6 +166,15 @@ pub enum AuditLogChange {
         /// Old role color.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
         old: Option<u64>,
+    },
+    /// Permissions for a command were updated
+    CommandId {
+        /// New command permissions.
+        #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
+        new: Option<GuildCommandPermissions>,
+        /// Old command permissions.
+        #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
+        old: Option<GuildCommandPermissions>,
     },
     /// Member timeout state changed.
     CommunicationDisabledUntil {
@@ -734,6 +743,7 @@ impl AuditLogChange {
             Self::ChannelId { .. } => AuditLogChangeKey::ChannelId,
             Self::Code { .. } => AuditLogChangeKey::Code,
             Self::Color { .. } => AuditLogChangeKey::Color,
+            Self::CommandId { .. } => AuditLogChangeKey::CommandId,
             Self::CommunicationDisabledUntil { .. } => {
                 AuditLogChangeKey::CommunicationDisabledUntil
             }
@@ -823,6 +833,7 @@ mod tests {
     assert_fields!(AuditLogChange::ChannelId: new);
     assert_fields!(AuditLogChange::Code: new);
     assert_fields!(AuditLogChange::Color: new, old);
+    assert_fields!(AuditLogChange::CommandId: new, old);
     assert_fields!(AuditLogChange::CommunicationDisabledUntil: new, old);
     assert_fields!(AuditLogChange::Deaf: new, old);
     assert_fields!(AuditLogChange::DefaultMessageNotifications: new, old);

@@ -1,4 +1,4 @@
-use super::{builder::ClusterBuilder, config::Config, event::Events, scheme::ShardScheme};
+use super::{ClusterBuilder, Config, Events};
 use crate::{
     cluster::event::ShardEventsWithId,
     shard::{
@@ -13,7 +13,6 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     iter::FusedIterator,
 };
-use twilight_http::Client as HttpClient;
 
 /// Sending a command to a shard failed.
 #[derive(Debug)]
@@ -201,11 +200,9 @@ impl Error for ClusterStartError {
 pub enum ClusterStartErrorType {
     /// Retrieving the bot's gateway information via the HTTP API failed.
     ///
-    /// This can occur when using [automatic sharding] and retrieval of the
+    /// This can occur when using automatic sharding and retrieval of the
     /// number of recommended number of shards to start fails, which can happen
     /// due to something like a network or response parsing issue.
-    ///
-    /// [automatic sharding]: ShardScheme::Auto
     RetrievingGatewayInfo,
     /// Creating the TLS connector resulted in a error.
     Tls,
@@ -285,13 +282,7 @@ impl Cluster {
             streams: Vec<ShardEventsWithId>,
         }
 
-        let scheme = match config.shard_scheme() {
-            ShardScheme::Auto => Self::retrieve_shard_count(&shard_config.http_client).await?,
-            other => other.clone(),
-        };
-
-        let iter = scheme.iter().expect("shard scheme is not auto");
-        let total = scheme.total().expect("shard scheme is not auto");
+        let total = config.shard_scheme().total();
 
         #[cfg(feature = "metrics")]
         #[allow(clippy::cast_precision_loss)]
@@ -299,58 +290,35 @@ impl Cluster {
             metrics::gauge!("Cluster-Shard-Count", total as f64);
         }
 
-        let ShardFold { shards, streams } = iter.fold(ShardFold::default(), |mut fold, idx| {
-            let mut shard_config = shard_config.clone();
-            shard_config.shard = [idx, total];
+        let ShardFold { shards, streams } =
+            config
+                .shard_scheme()
+                .iter()
+                .fold(ShardFold::default(), |mut fold, idx| {
+                    let mut shard_config = shard_config.clone();
+                    shard_config.shard = [idx, total];
 
-            if let Some(data) = config.resume_sessions.remove(&idx) {
-                shard_config.session_id = Some(data.session_id.into_boxed_str());
-                shard_config.sequence = Some(data.sequence);
-            }
+                    if let Some(data) = config.resume_sessions.remove(&idx) {
+                        shard_config.session_id = Some(data.session_id.into_boxed_str());
+                        shard_config.sequence = Some(data.sequence);
+                    }
 
-            if let Some(shard_presence) = &config.shard_presence {
-                shard_config.presence = shard_presence(idx)
-            }
+                    if let Some(shard_presence) = &config.shard_presence {
+                        shard_config.presence = shard_presence(idx)
+                    }
 
-            let (shard, stream) = Shard::new_with_config(shard_config);
+                    let (shard, stream) = Shard::new_with_config(shard_config);
 
-            fold.shards.insert(idx, shard);
-            fold.streams.push(ShardEventsWithId::new(idx, stream));
+                    fold.shards.insert(idx, shard);
+                    fold.streams.push(ShardEventsWithId::new(idx, stream));
 
-            fold
-        });
+                    fold
+                });
 
         #[allow(clippy::from_iter_instead_of_collect)]
         let select_all = SelectAll::from_iter(streams);
 
         Ok((Self { config, shards }, Events::new(select_all)))
-    }
-
-    /// Retrieve the recommended number of shards from the HTTP API.
-    ///
-    /// The returned shard scheme is a [`ShardScheme::Range`].
-    async fn retrieve_shard_count(http: &HttpClient) -> Result<ShardScheme, ClusterStartError> {
-        let gateway = http
-            .gateway()
-            .authed()
-            .exec()
-            .await
-            .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
-                source: Some(Box::new(source)),
-            })?
-            .model()
-            .await
-            .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
-                source: Some(Box::new(source)),
-            })?;
-
-        Ok(ShardScheme::Range {
-            from: 0,
-            to: gateway.shards - 1,
-            total: gateway.shards,
-        })
     }
 
     /// Create a builder to configure and construct a cluster.

@@ -153,11 +153,11 @@ impl<'de> Deserialize<'de> for TypingStart {
 mod tests {
     use super::TypingStart;
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         guild::Member,
         id::Id,
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

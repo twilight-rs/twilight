@@ -8,12 +8,12 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    datetime::Timestamp,
     id::{
         marker::{ChannelMarker, GuildMarker, ScheduledEventMarker},
         Id,
     },
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
+    util::Timestamp,
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,

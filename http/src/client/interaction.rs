@@ -3,8 +3,8 @@ use crate::{
         command::{
             CreateGlobalCommand, CreateGuildCommand, DeleteGlobalCommand, DeleteGuildCommand,
             GetCommandPermissions, GetGlobalCommand, GetGlobalCommands, GetGuildCommand,
-            GetGuildCommandPermissions, GetGuildCommands, SetCommandPermissions, SetGlobalCommands,
-            SetGuildCommands, UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
+            GetGuildCommandPermissions, GetGuildCommands, SetGlobalCommands, SetGuildCommands,
+            UpdateCommandPermissions, UpdateGlobalCommand, UpdateGuildCommand,
         },
         interaction::{
             CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
@@ -306,24 +306,6 @@ impl<'a> InteractionClient<'a> {
         guild_id: Id<GuildMarker>,
     ) -> GetGuildCommandPermissions<'_> {
         GetGuildCommandPermissions::new(self.client, self.application_id, guild_id)
-    }
-
-    /// Update command permissions for all commands in a guild.
-    ///
-    /// This overwrites the command permissions so the full set of permissions
-    /// have to be sent every time.
-    ///
-    /// Returns an error of type [`CountInvalid`] if too many commands have been
-    /// provided. The maximum amount is defined by [`GUILD_COMMAND_LIMIT`].
-    ///
-    /// [`CountInvalid`]: twilight_validate::command::CommandValidationErrorType::CountInvalid
-    /// [`GUILD_COMMAND_LIMIT`]: twilight_validate::command::GUILD_COMMAND_LIMIT
-    pub fn set_command_permissions(
-        &'a self,
-        guild_id: Id<GuildMarker>,
-        permissions: &'a [(Id<CommandMarker>, CommandPermissions)],
-    ) -> Result<SetCommandPermissions<'a>, CommandValidationError> {
-        SetCommandPermissions::new(self.client, self.application_id, guild_id, permissions)
     }
 
     /// Update command permissions for a single command in a guild.

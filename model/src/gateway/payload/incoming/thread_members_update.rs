@@ -88,7 +88,6 @@ mod tests {
     use super::ThreadMembersUpdate;
     use crate::{
         channel::thread::ThreadMember,
-        datetime::Timestamp,
         gateway::presence::{
             Activity, ActivityEmoji, ActivityType, ClientStatus, Presence, Status, UserOrId,
         },
@@ -96,6 +95,7 @@ mod tests {
         id::Id,
         test::image_hash,
         user::User,
+        util::Timestamp,
     };
     use serde_test::Token;
     use std::str::FromStr;

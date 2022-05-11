@@ -36,20 +36,14 @@ dep-simd-json = { default-features = false, features = ["serde_impl", "swar-numb
 
 [features]
 default = ["decompression", "rustls-native-roots"]
-decompression = ["brotli"]
-native = ["hyper-tls"]
-rustls-native-roots = ["hyper-rustls/native-tokio"]
-rustls-webpki-roots = ["hyper-rustls/webpki-tokio"]
-trust-dns = ["hyper-trust-dns"]
+decompression = ["dep:brotli"]
+native = ["dep:hyper-tls"]
+rustls-native-roots = ["dep:hyper-rustls", "hyper-rustls?/native-tokio"]
+rustls-webpki-roots = ["dep:hyper-rustls", "hyper-rustls?/webpki-tokio"]
+trust-dns = ["dep:hyper-trust-dns"]
 
 [dev-dependencies]
-criterion = { default-features = false, version = "0.3" }
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
 twilight-util = { default-features = false, features = ["builder"], path = "../util" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-
-[[bench]]
-name = "application_command_permissions"
-harness = false
-path = "benches/application_command_permissions.rs"

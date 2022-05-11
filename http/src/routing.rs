@@ -367,6 +367,17 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's bans with parameters.
+    GetBansWithParameters {
+        /// User ID after which to retrieve bans.
+        after: Option<u64>,
+        /// User ID before which to retrieve bans.
+        before: Option<u64>,
+        /// Maximum number of bans to retrieve.
+        limit: Option<u16>,
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a channel.
     GetChannel {
         /// The ID of the channel.
@@ -819,13 +830,6 @@ pub enum Route<'a> {
         /// Query to search by.
         query: &'a str,
     },
-    /// Route information to set permissions of commands in a guild.
-    SetCommandPermissions {
-        /// The ID of the owner application.
-        application_id: u64,
-        /// The ID of the guild.
-        guild_id: u64,
-    },
     /// Route information to set global commands.
     SetGlobalCommands {
         /// The ID of the owner application.
@@ -1085,6 +1089,7 @@ impl<'a> Route<'a> {
             | Self::GetAuditLogs { .. }
             | Self::GetBan { .. }
             | Self::GetBans { .. }
+            | Self::GetBansWithParameters { .. }
             | Self::GetGatewayBot
             | Self::GetChannel { .. }
             | Self::GetChannelInvites { .. }
@@ -1204,7 +1209,6 @@ impl<'a> Route<'a> {
             | Self::CreateReaction { .. }
             | Self::JoinThread { .. }
             | Self::PinMessage { .. }
-            | Self::SetCommandPermissions { .. }
             | Self::SetGlobalCommands { .. }
             | Self::SetGuildCommands { .. }
             | Self::SyncTemplate { .. }
@@ -1283,7 +1287,6 @@ impl<'a> Route<'a> {
             | Self::GetGuildCommand { application_id, .. }
             | Self::GetGuildCommandPermissions { application_id, .. }
             | Self::GetGuildCommands { application_id, .. }
-            | Self::SetCommandPermissions { application_id, .. }
             | Self::SetGuildCommands { application_id, .. }
             | Self::UpdateGuildCommand { application_id, .. } => {
                 Path::ApplicationGuildCommand(application_id)
@@ -1434,7 +1437,9 @@ impl<'a> Route<'a> {
             Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(guild_id),
             Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(guild_id),
             Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(guild_id),
-            Self::GetBans { guild_id } => Path::GuildsIdBans(guild_id),
+            Self::GetBans { guild_id } | Self::GetBansWithParameters { guild_id, .. } => {
+                Path::GuildsIdBans(guild_id)
+            }
             Self::GetGatewayBot => Path::GatewayBot,
             Self::GetChannel { channel_id } | Self::UpdateChannel { channel_id } => {
                 Path::ChannelsId(channel_id)
@@ -2157,6 +2162,33 @@ impl Display for Route<'_> {
 
                 f.write_str("/bans")
             }
+            Route::GetBansWithParameters {
+                after,
+                before,
+                guild_id,
+                limit,
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/bans?")?;
+
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
+                if let Some(limit) = limit {
+                    f.write_str("&limit=")?;
+                    Display::fmt(limit, f)?;
+                }
+
+                Ok(())
+            }
             Route::GetGatewayBot => f.write_str("gateway/bot"),
             Route::GetCommandPermissions {
                 application_id,
@@ -2200,10 +2232,6 @@ impl Display for Route<'_> {
                 Ok(())
             }
             Route::GetGuildCommandPermissions {
-                application_id,
-                guild_id,
-            }
-            | Route::SetCommandPermissions {
                 application_id,
                 guild_id,
             } => {
@@ -2313,21 +2341,19 @@ impl Display for Route<'_> {
                 Display::fmt(scheduled_event_id, f)?;
                 f.write_str("/users?")?;
 
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
                 if let Some(limit) = limit {
                     f.write_str("&limit=")?;
                     Display::fmt(limit, f)?;
-                }
-
-                match (before, after) {
-                    (Some(before), Some(_) | None) => {
-                        f.write_str("&before=")?;
-                        Display::fmt(before, f)?;
-                    }
-                    (None, Some(after)) => {
-                        f.write_str("&after=")?;
-                        Display::fmt(after, f)?;
-                    }
-                    _ => {}
                 }
 
                 if *with_member {
@@ -3983,6 +4009,82 @@ mod tests {
     }
 
     #[test]
+    fn test_get_bans_with_parameters() {
+        let route = Route::GetBansWithParameters {
+            after: None,
+            before: None,
+            guild_id: GUILD_ID,
+            limit: None,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{guild_id}/bans?", guild_id = GUILD_ID)
+        );
+
+        let route = Route::GetBansWithParameters {
+            after: Some(USER_ID),
+            before: None,
+            guild_id: GUILD_ID,
+            limit: None,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/bans?after={after}",
+                after = USER_ID,
+                guild_id = GUILD_ID
+            )
+        );
+
+        let route = Route::GetBansWithParameters {
+            after: None,
+            before: Some(USER_ID),
+            guild_id: GUILD_ID,
+            limit: None,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/bans?&before={before}",
+                before = USER_ID,
+                guild_id = GUILD_ID
+            )
+        );
+
+        let route = Route::GetBansWithParameters {
+            after: None,
+            before: None,
+            guild_id: GUILD_ID,
+            limit: Some(100),
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/bans?&limit={limit}",
+                guild_id = GUILD_ID,
+                limit = 100,
+            )
+        );
+
+        let route = Route::GetBansWithParameters {
+            after: Some(USER_ID),
+            before: Some(USER_ID + 100),
+            guild_id: GUILD_ID,
+            limit: Some(25),
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "guilds/{guild_id}/bans?after={after}&before={before}&limit={limit}",
+                after = USER_ID,
+                before = USER_ID + 100,
+                guild_id = GUILD_ID,
+                limit = 25,
+            )
+        );
+    }
+
+    #[test]
     fn test_get_gateway_bot() {
         let route = Route::GetGatewayBot;
         assert_eq!(route.to_string(), "gateway/bot");
@@ -4060,22 +4162,6 @@ mod tests {
     #[test]
     fn test_get_guild_command_permissions() {
         let route = Route::GetGuildCommandPermissions {
-            application_id: APPLICATION_ID,
-            guild_id: GUILD_ID,
-        };
-        assert_eq!(
-            route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/permissions",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
-            )
-        );
-    }
-
-    #[test]
-    fn test_set_command_permissions() {
-        let route = Route::SetCommandPermissions {
             application_id: APPLICATION_ID,
             guild_id: GUILD_ID,
         };
@@ -4712,7 +4798,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=101&after={user_id}",
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?after={user_id}&limit=101",
                 guild_id = GUILD_ID,
                 scheduled_event_id = SCHEDULED_EVENT_ID,
                 user_id = USER_ID,
@@ -4731,10 +4817,11 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=99&before={user_id}",
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?after={after}&before={before}&limit=99",
+                after = USER_ID,
+                before = USER_ID,
                 guild_id = GUILD_ID,
                 scheduled_event_id = SCHEDULED_EVENT_ID,
-                user_id = USER_ID,
             )
         );
     }

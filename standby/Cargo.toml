@@ -16,7 +16,7 @@ rust-version = "1.60"
 version = "0.10.0"
 
 [dependencies]
-dashmap = { default-features = false, version = "5.1" }
+dashmap = { default-features = false, version = ">= 5.1, < 5.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tokio = { default-features = false, features = ["sync"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }

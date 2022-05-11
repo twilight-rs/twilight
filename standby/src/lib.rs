@@ -79,7 +79,7 @@
 //!
 //!     // Start a shard connected to the gateway to receive events.
 //!     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-//!     let (shard, mut events) = Shard::new(token, intents);
+//!     let (shard, mut events) = Shard::new(token, intents).await?;
 //!     shard.start().await?;
 //!
 //!     let standby = Arc::new(Standby::new());
@@ -1196,7 +1196,6 @@ mod tests {
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
-        datetime::Timestamp,
         gateway::{
             event::{Event, EventType},
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
@@ -1204,6 +1203,7 @@ mod tests {
         id::{marker::GuildMarker, Id},
         oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
+        util::Timestamp,
     };
 
     assert_impl_all!(Standby: Debug, Default, Send, Sync);

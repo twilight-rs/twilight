@@ -20,6 +20,7 @@ pub enum DispatchEvent {
     ChannelDelete(Box<ChannelDelete>),
     ChannelPinsUpdate(ChannelPinsUpdate),
     ChannelUpdate(Box<ChannelUpdate>),
+    CommandPermissionsUpdate(CommandPermissionsUpdate),
     GiftCodeUpdate,
     GuildCreate(Box<GuildCreate>),
     GuildDelete(GuildDelete),
@@ -83,6 +84,7 @@ impl DispatchEvent {
             Self::ChannelDelete(_) => EventType::ChannelDelete,
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
+            Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
             Self::GiftCodeUpdate => EventType::GiftCodeUpdate,
             Self::GuildCreate(_) => EventType::GuildCreate,
             Self::GuildDelete(_) => EventType::GuildDelete,
@@ -149,6 +151,7 @@ impl TryFrom<Event> for DispatchEvent {
             Event::ChannelDelete(v) => Self::ChannelDelete(v),
             Event::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             Event::ChannelUpdate(v) => Self::ChannelUpdate(v),
+            Event::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
             Event::GiftCodeUpdate => Self::GiftCodeUpdate,
             Event::GuildCreate(v) => Self::GuildCreate(v),
             Event::GuildDelete(v) => Self::GuildDelete(v),
@@ -237,6 +240,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "CHANNEL_UPDATE" => {
                 DispatchEvent::ChannelUpdate(Box::new(ChannelUpdate::deserialize(deserializer)?))
             }
+            "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => DispatchEvent::CommandPermissionsUpdate(
+                CommandPermissionsUpdate::deserialize(deserializer)?,
+            ),
             "GIFT_CODE_UPDATE" => {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
 

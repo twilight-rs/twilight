@@ -12,6 +12,8 @@ pub enum EventType {
     ChannelDelete,
     ChannelPinsUpdate,
     ChannelUpdate,
+    #[serde(rename = "APPLICATION_COMMAND_PERMISSIONS_UPDATE")]
+    CommandPermissionsUpdate,
     GatewayHeartbeat,
     GatewayHeartbeatAck,
     GatewayHello,
@@ -98,6 +100,7 @@ impl EventType {
             Self::ChannelDelete => Some("CHANNEL_DELETE"),
             Self::ChannelPinsUpdate => Some("CHANNEL_PINS_UPDATE"),
             Self::ChannelUpdate => Some("CHANNEL_UPDATE"),
+            Self::CommandPermissionsUpdate => Some("APPLICATION_COMMAND_PERMISSIONS_UPDATE"),
             Self::GiftCodeUpdate => Some("GIFT_CODE_UPDATE"),
             Self::GuildCreate => Some("GUILD_CREATE"),
             Self::GuildDelete => Some("GUILD_DELETE"),
@@ -177,6 +180,7 @@ impl<'a> TryFrom<&'a str> for EventType {
             "CHANNEL_DELETE" => Ok(Self::ChannelDelete),
             "CHANNEL_PINS_UPDATE" => Ok(Self::ChannelPinsUpdate),
             "CHANNEL_UPDATE" => Ok(Self::ChannelUpdate),
+            "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => Ok(Self::CommandPermissionsUpdate),
             "GIFT_CODE_UPDATE" => Ok(Self::GiftCodeUpdate),
             "GUILD_CREATE" => Ok(Self::GuildCreate),
             "GUILD_DELETE" => Ok(Self::GuildDelete),
@@ -256,6 +260,10 @@ mod tests {
         assert_variant(EventType::ChannelDelete, "CHANNEL_DELETE");
         assert_variant(EventType::ChannelPinsUpdate, "CHANNEL_PINS_UPDATE");
         assert_variant(EventType::ChannelUpdate, "CHANNEL_UPDATE");
+        assert_variant(
+            EventType::CommandPermissionsUpdate,
+            "APPLICATION_COMMAND_PERMISSIONS_UPDATE",
+        );
         assert_variant(EventType::GatewayHeartbeat, "GATEWAY_HEARTBEAT");
         assert_variant(EventType::GatewayHeartbeatAck, "GATEWAY_HEARTBEAT_ACK");
         assert_variant(EventType::GatewayHello, "GATEWAY_HELLO");

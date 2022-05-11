@@ -42,13 +42,12 @@ use self::member::MemberListDeserializer;
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
     channel::{message::sticker::Sticker, Channel, StageInstance},
-    datetime::Timestamp,
     gateway::presence::Presence,
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
     voice::voice_state::VoiceState,
 };
 use serde::{
@@ -849,9 +848,9 @@ mod tests {
         Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     };
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
         test::image_hash,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

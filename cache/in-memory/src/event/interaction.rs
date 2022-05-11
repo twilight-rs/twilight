@@ -82,11 +82,10 @@ mod tests {
             },
             Message,
         },
-        datetime::Timestamp,
         guild::{PartialMember, Permissions, Role},
         id::Id,
         user::User,
-        util::{image_hash::ImageHashParseError, ImageHash},
+        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
     #[test]

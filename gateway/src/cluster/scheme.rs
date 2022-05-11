@@ -111,7 +111,7 @@ impl Error for ShardSchemeRangeError {}
 ///     to: 4,
 ///     total: 19,
 /// };
-/// let mut iter = scheme.iter()?;
+/// let mut iter = scheme.iter();
 /// assert_eq!(0, iter.next()?);
 /// assert_eq!(1, iter.next()?);
 /// assert_eq!(2, iter.next()?);
@@ -127,9 +127,8 @@ pub struct ShardSchemeIter {
 
 impl ShardSchemeIter {
     /// Create an iterator of shard IDs out of a scheme.
-    fn new(scheme: &ShardScheme) -> Option<Self> {
+    fn new(scheme: &ShardScheme) -> Self {
         let (from, to, step) = match scheme {
-            ShardScheme::Auto => return None,
             ShardScheme::Bucket {
                 bucket_id,
                 concurrency,
@@ -145,9 +144,9 @@ impl ShardSchemeIter {
             ShardScheme::Range { from, to, .. } => (*from, *to, 1),
         };
 
-        Some(Self {
+        Self {
             inner: (from..=to).step_by(step),
-        })
+        }
     }
 }
 
@@ -160,19 +159,9 @@ impl Iterator for ShardSchemeIter {
 }
 
 /// The method of sharding to use.
-///
-/// By default this is [`Auto`].
-///
-/// [`Auto`]: Self::Auto
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[non_exhaustive]
 pub enum ShardScheme {
-    /// Specifies to retrieve the amount of shards recommended by Discord and
-    /// then start all of them.
-    ///
-    /// For example, if Discord recommends 10 shards, then all 10 shards will be
-    /// started.
-    Auto,
     /// Manage a single bucket's worth of shards within the cluster.
     ///
     /// This is primarily useful for bots in the [Sharding for Very Large Bots]
@@ -224,51 +213,29 @@ pub enum ShardScheme {
 }
 
 impl ShardScheme {
-    /// Consume the shard scheme, returning an iterator of the shards that it
-    /// denotes.
-    ///
-    /// Returns `None` if the scheme is dynamic, i.e. the scheme is the [`Auto`]
-    /// variant.
-    ///
-    /// [`Auto`]: Self::Auto
-    #[allow(clippy::iter_not_returning_iterator)]
-    pub fn iter(&self) -> Option<ShardSchemeIter> {
+    /// Returns an iterator over its shard IDs.
+    pub fn iter(&self) -> ShardSchemeIter {
         ShardSchemeIter::new(self)
     }
 
-    /// First shard ID that will be started, if known.
-    ///
-    /// In the case of the [`Auto`] variant the total is unknown.
-    ///
-    /// [`Auto`]: Self::Auto
-    pub const fn from(&self) -> Option<u64> {
-        match self {
-            Self::Auto => None,
-            Self::Bucket { bucket_id, .. } => Some(*bucket_id),
-            Self::Range { from, .. } => Some(*from),
+    /// First shard ID that will be started.
+    pub const fn from(&self) -> u64 {
+        match *self {
+            Self::Bucket { bucket_id, .. } => bucket_id,
+            Self::Range { from, .. } => from,
         }
     }
 
-    /// Total number of shards used by the bot across all clusters, if known.
-    ///
-    /// In the case of the [`Auto`] variant the total is unknown.
-    ///
-    /// [`Auto`]: Self::Auto
-    pub const fn total(&self) -> Option<u64> {
-        match self {
-            Self::Auto => None,
-            Self::Bucket { total, .. } | Self::Range { total, .. } => Some(*total),
+    /// Total number of shards used by the bot across all clusters.
+    pub const fn total(&self) -> u64 {
+        match *self {
+            Self::Bucket { total, .. } | Self::Range { total, .. } => total,
         }
     }
 
-    /// Maximum shard ID across all clusters, if known.
-    ///
-    /// In the case of the [`Auto`] variant the total is unknown.
-    ///
-    /// [`Auto`]: Self::Auto
-    pub fn to(&self) -> Option<u64> {
-        match self {
-            Self::Auto => None,
+    /// Maximum shard ID across all clusters.
+    pub const fn to(&self) -> u64 {
+        match *self {
             Self::Bucket {
                 bucket_id,
                 concurrency,
@@ -278,16 +245,10 @@ impl ShardScheme {
 
                 // Total is 1-indexed but shards are 0-indexed, so we need to
                 // subtract 1 here.
-                Some(total - (buckets - bucket_id) - 1)
+                total - (buckets - bucket_id) - 1
             }
-            Self::Range { to, .. } => Some(*to),
+            Self::Range { to, .. } => to,
         }
-    }
-}
-
-impl Default for ShardScheme {
-    fn default() -> Self {
-        Self::Auto
     }
 }
 
@@ -332,9 +293,9 @@ impl<T: RangeBounds<u64>> TryFrom<(T, u64)> for ShardScheme {
 /// use twilight_gateway::cluster::ShardScheme;
 ///
 /// let scheme = ShardScheme::try_from((7u64, 16, 320))?;
-/// assert_eq!(Some(7), scheme.from());
-/// assert_eq!(Some(306), scheme.to());
-/// assert_eq!(Some(320), scheme.total());
+/// assert_eq!(7, scheme.from());
+/// assert_eq!(306, scheme.to());
+/// assert_eq!(320, scheme.total());
 /// # Ok(()) }
 /// ```
 ///
@@ -379,7 +340,6 @@ mod tests {
     assert_impl_all!(
         ShardScheme: Clone,
         Debug,
-        Default,
         Eq,
         Hash,
         PartialEq,
@@ -404,7 +364,6 @@ mod tests {
 
     #[test]
     fn test_scheme_from() {
-        assert!(ShardScheme::Auto.from().is_none());
         assert_eq!(
             18,
             ShardScheme::Bucket {
@@ -413,7 +372,6 @@ mod tests {
                 total: 320,
             }
             .from()
-            .unwrap()
         );
         assert_eq!(
             50,
@@ -423,13 +381,11 @@ mod tests {
                 total: 200,
             }
             .from()
-            .unwrap()
         );
     }
 
     #[test]
     fn test_scheme_total() {
-        assert!(ShardScheme::Auto.total().is_none());
         assert_eq!(
             160,
             ShardScheme::Bucket {
@@ -438,7 +394,6 @@ mod tests {
                 total: 160,
             }
             .total()
-            .unwrap()
         );
         assert_eq!(
             17,
@@ -448,13 +403,11 @@ mod tests {
                 total: 17,
             }
             .total()
-            .unwrap()
         );
     }
 
     #[test]
     fn test_scheme_to() {
-        assert!(ShardScheme::Auto.to().is_none());
         assert_eq!(
             317,
             ShardScheme::Bucket {
@@ -463,7 +416,6 @@ mod tests {
                 total: 320,
             }
             .to()
-            .unwrap()
         );
         assert_eq!(
             299,
@@ -473,7 +425,6 @@ mod tests {
                 total: 320,
             }
             .to()
-            .unwrap()
         );
         assert_eq!(
             99,
@@ -483,7 +434,6 @@ mod tests {
                 total: 200,
             }
             .to()
-            .unwrap()
         );
     }
 

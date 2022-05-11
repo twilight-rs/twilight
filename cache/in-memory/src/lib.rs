@@ -40,7 +40,7 @@
 //!
 //! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let token = env::var("DISCORD_TOKEN")?;
-//! let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
+//! let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES).await?;
 //! shard.start().await?;
 //!
 //! // Create a cache, caching up to 10 messages per channel:
@@ -906,6 +906,7 @@ impl UpdateCache for Event {
             ChannelDelete(v) => c.update(v.deref()),
             ChannelPinsUpdate(v) => c.update(v),
             ChannelUpdate(v) => c.update(v.deref()),
+            CommandPermissionsUpdate(_) => {}
             GatewayHeartbeat(_) => {}
             GatewayHeartbeatAck => {}
             GatewayHello(_) => {}
@@ -978,10 +979,10 @@ impl UpdateCache for Event {
 mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
-        datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::Id,
+        util::Timestamp,
     };
 
     #[test]

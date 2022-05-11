@@ -8,6 +8,7 @@ use crate::{
 };
 use twilight_model::{
     application::command::{Command, CommandType},
+    guild::Permissions,
     id::{
         marker::{ApplicationMarker, GuildMarker},
         Id,
@@ -25,7 +26,7 @@ use twilight_validate::command::{name as validate_name, CommandValidationError};
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildUserCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    default_permission: Option<bool>,
+    default_member_permissions: Option<Permissions>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
@@ -42,16 +43,18 @@ impl<'a> CreateGuildUserCommand<'a> {
 
         Ok(Self {
             application_id,
-            default_permission: None,
+            default_member_permissions: None,
             guild_id,
             http,
             name,
         })
     }
 
-    /// Whether the command is enabled by default when the app is added to a guild.
-    pub const fn default_permission(mut self, default: bool) -> Self {
-        self.default_permission = Some(default);
+    /// Default permissions required for a member to run the command.
+    ///
+    /// Defaults to [`None`].
+    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
+        self.default_member_permissions = Some(default);
 
         self
     }
@@ -77,7 +80,8 @@ impl TryIntoRequest for CreateGuildUserCommand<'_> {
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_permission: self.default_permission,
+            default_member_permissions: self.default_member_permissions,
+            dm_permission: None,
             description: None,
             kind: CommandType::User,
             name: self.name,

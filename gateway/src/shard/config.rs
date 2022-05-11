@@ -15,20 +15,20 @@ use twilight_model::gateway::{
 /// [`Shard::builder`]: super::Shard::builder
 #[derive(Clone, Debug)]
 pub struct Config {
-    pub(crate) event_types: EventTypeFlags,
-    pub(crate) gateway_url: Option<Box<str>>,
-    pub(crate) http_client: Arc<Client>,
+    pub(super) event_types: EventTypeFlags,
+    pub(super) gateway_url: Box<str>,
+    pub(super) http_client: Arc<Client>,
     pub(super) identify_properties: Option<IdentifyProperties>,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
     pub(crate) presence: Option<UpdatePresencePayload>,
     pub(super) queue: Arc<dyn Queue>,
-    pub(crate) shard: [u64; 2],
-    pub(super) token: Box<str>,
+    pub(crate) ratelimit_payloads: bool,
     pub(crate) session_id: Option<Box<str>>,
     pub(crate) sequence: Option<u64>,
+    pub(crate) shard: [u64; 2],
     pub(crate) tls: Option<TlsContainer>,
-    pub(crate) ratelimit_payloads: bool,
+    pub(super) token: Box<str>,
 }
 
 impl Config {
@@ -38,8 +38,8 @@ impl Config {
     }
 
     /// Return an immutable reference to the url used to connect to the gateway.
-    pub fn gateway_url(&self) -> Option<&str> {
-        self.gateway_url.as_deref()
+    pub const fn gateway_url(&self) -> &str {
+        &self.gateway_url
     }
 
     /// Return an immutable reference to the `twilight_http` client to be used

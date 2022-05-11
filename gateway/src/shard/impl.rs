@@ -189,8 +189,8 @@ pub enum SendErrorType {
 /// Starting a shard and connecting to the gateway failed.
 #[derive(Debug)]
 pub struct ShardStartError {
-    kind: ShardStartErrorType,
-    source: Option<Box<dyn Error + Send + Sync>>,
+    pub(super) kind: ShardStartErrorType,
+    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ShardStartError {
@@ -375,7 +375,8 @@ pub struct ResumeSession {
 ///
 /// let (shard, mut events) = Shard::builder(token, Intents::GUILD_MESSAGES)
 ///     .event_types(event_types)
-///     .build();
+///     .build()
+///     .await?;
 ///
 /// // Start the shard.
 /// shard.start().await?;
@@ -426,7 +427,7 @@ impl Shard {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
     /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
-    /// let (shard, _) = Shard::new(token, intents);
+    /// let (shard, _) = Shard::new(token, intents).await?;
     /// shard.start().await?;
     ///
     /// tokio_time::sleep(Duration::from_secs(1)).await;
@@ -436,9 +437,14 @@ impl Shard {
     /// # Ok(()) }
     /// ```
     ///
+    /// # Errors
+    ///
+    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
+    /// the gateway URL couldn't be retrieved from the HTTP API.
+    ///
     /// [`start`]: Self::start
-    pub fn new(token: String, intents: Intents) -> (Self, Events) {
-        Self::builder(token, intents).build()
+    pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ShardStartError> {
+        Self::builder(token, intents).build().await
     }
 
     pub(crate) fn new_with_config(config: Config) -> (Self, Events) {
@@ -487,36 +493,9 @@ impl Shard {
     /// Returns a [`ShardStartErrorType::ParsingGatewayUrl`] error type if the
     /// gateway URL couldn't be parsed.
     ///
-    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
-    /// the gateway URL couldn't be retrieved from the HTTP API.
-    ///
     /// [`shutdown_resumable`]: Self::shutdown_resumable
     /// [`shutdown`]: Self::shutdown
     pub async fn start(&self) -> Result<(), ShardStartError> {
-        let url = if let Some(u) = self.config.gateway_url.clone() {
-            u.into_string()
-        } else {
-            // By making an authenticated gateway information retrieval request
-            // we're also validating the configured token.
-            self.config
-                .http_client()
-                .gateway()
-                .authed()
-                .exec()
-                .await
-                .map_err(|source| ShardStartError {
-                    source: Some(Box::new(source)),
-                    kind: ShardStartErrorType::RetrievingGatewayUrl,
-                })?
-                .model()
-                .await
-                .map_err(|source| ShardStartError {
-                    source: Some(Box::new(source)),
-                    kind: ShardStartErrorType::RetrievingGatewayUrl,
-                })?
-                .url
-        };
-
         let emitter = self
             .emitter
             .lock()
@@ -528,24 +507,23 @@ impl Shard {
             })?;
 
         let config = Arc::clone(&self.config);
-        let (processor, wrx) =
-            ShardProcessor::new(config, url, emitter)
-                .await
-                .map_err(|source| {
-                    let (kind, source) = source.into_parts();
+        let (processor, wrx) = ShardProcessor::new(config, emitter)
+            .await
+            .map_err(|source| {
+                let (kind, source) = source.into_parts();
 
-                    let new_kind = match kind {
-                        ConnectingErrorType::Establishing => ShardStartErrorType::Establishing,
-                        ConnectingErrorType::ParsingUrl { url } => {
-                            ShardStartErrorType::ParsingGatewayUrl { url }
-                        }
-                    };
-
-                    ShardStartError {
-                        source,
-                        kind: new_kind,
+                let new_kind = match kind {
+                    ConnectingErrorType::Establishing => ShardStartErrorType::Establishing,
+                    ConnectingErrorType::ParsingUrl { url } => {
+                        ShardStartErrorType::ParsingGatewayUrl { url }
                     }
-                })?;
+                };
+
+                ShardStartError {
+                    source,
+                    kind: new_kind,
+                }
+            })?;
 
         let handle = tokio::spawn(async {
             processor.run().await;
@@ -594,32 +572,38 @@ impl Shard {
     ///
     /// # Examples
     ///
-    /// Request members whose names start with "tw" in a guild:
+    /// Updating the shard's presence after identifying can be done by sending
+    /// an [`UpdatePresence`] command. For example, updating the active presence
+    /// with the custom status "running on twilight":
     ///
     /// ```no_run
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_gateway::{shard::Shard, Intents};
-    /// use twilight_model::{
-    ///     gateway::payload::outgoing::RequestGuildMembers,
-    ///     id::Id,
+    /// use twilight_model::gateway::{
+    ///     payload::outgoing::UpdatePresence,
+    ///     presence::{Activity, ActivityType, MinimalActivity, Status},
     /// };
     ///
-    /// let intents = Intents::GUILD_VOICE_STATES;
+    /// let intents = Intents::GUILDS;
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let (shard, _events) = Shard::new(token, intents);
+    /// let (shard, _events) = Shard::new(token, intents).await?;
     /// shard.start().await?;
     ///
-    /// // Query members whose names start with "tw" and limit the results to
-    /// // 10 members.
-    /// let request =
-    ///     RequestGuildMembers::builder(Id::new(1))
-    ///         .query("tw", Some(10));
-    ///
-    /// // Send the request over the shard.
-    /// shard.command(&request).await?;
+    /// let minimal_activity = MinimalActivity {
+    ///     kind: ActivityType::Custom,
+    ///     name: "running on twilight".to_owned(),
+    ///     url: None,
+    /// };
+    /// let command = UpdatePresence::new(
+    ///     Vec::from([Activity::from(minimal_activity)]),
+    ///     false,
+    ///     Some(1),
+    ///     Status::Online,
+    /// )?;
+    /// shard.command(&command).await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -634,6 +618,8 @@ impl Shard {
     ///
     /// Returns a [`CommandErrorType::SessionInactive`] error type if the shard
     /// has not been started.
+    ///
+    /// [`UpdatePresence`]: twilight_model::gateway::payload::outgoing::UpdatePresence
     pub async fn command(&self, value: &impl Command) -> Result<(), CommandError> {
         let json = json::to_vec(value).map_err(|source| CommandError {
             source: Some(Box::new(source)),
@@ -657,7 +643,7 @@ impl Shard {
     /// use twilight_gateway::{shard::{raw_message::Message, Shard}, Intents};
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
+    /// let (shard, _) = Shard::new(token, Intents::GUILDS).await?;
     /// shard.start().await?;
     ///
     /// shard.send(Message::Ping(Vec::new())).await?;
@@ -678,7 +664,7 @@ impl Shard {
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
+    /// let (shard, _) = Shard::new(token, Intents::GUILDS).await?;
     /// shard.start().await?;
     ///
     /// let close = CloseFrame::from((1000, ""));

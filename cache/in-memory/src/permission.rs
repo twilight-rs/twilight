@@ -566,7 +566,6 @@ mod tests {
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
             Channel, ChannelType,
         },
-        datetime::Timestamp,
         gateway::payload::incoming::{
             ChannelCreate, GuildCreate, MemberAdd, MemberUpdate, RoleCreate, ThreadCreate,
         },
@@ -578,6 +577,7 @@ mod tests {
             marker::{ChannelMarker, GuildMarker, RoleMarker, UserMarker},
             Id,
         },
+        util::Timestamp,
     };
 
     assert_fields!(ChannelErrorType::ChannelUnavailable: channel_id);

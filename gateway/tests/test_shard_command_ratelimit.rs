@@ -12,16 +12,16 @@ use twilight_model::gateway::{
     presence::{Activity, ActivityType, Status},
 };
 
-fn shard() -> (Shard, Events) {
+async fn shard() -> (Shard, Events) {
     let token = env::var("DISCORD_TOKEN").unwrap();
 
-    Shard::new(token, Intents::empty())
+    Shard::new(token, Intents::empty()).await.unwrap()
 }
 
 #[ignore]
 #[tokio::test]
 async fn test_shard_command_ratelimit() {
-    let (shard, mut events) = shard();
+    let (shard, mut events) = shard().await;
     shard.start().await.unwrap();
 
     assert!(matches!(

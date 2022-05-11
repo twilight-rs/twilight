@@ -95,12 +95,11 @@ mod tests {
     use super::*;
     use crate::test;
     use twilight_model::{
-        datetime::Timestamp,
         id::{
             marker::{ChannelMarker, GuildMarker, UserMarker},
             Id,
         },
-        util::{image_hash::ImageHashParseError, ImageHash},
+        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
     #[test]

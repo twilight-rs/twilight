@@ -214,12 +214,14 @@ impl<'a> CreateMessage<'a> {
     }
 
     /// Whether to fail sending if the reply no longer exists.
-    pub const fn fail_if_not_exists(mut self) -> Self {
+    ///
+    /// Defaults to [`true`].
+    pub const fn fail_if_not_exists(mut self, fail_if_not_exists: bool) -> Self {
         // Clippy recommends using `Option::map_or_else` which is not `const`.
         #[allow(clippy::option_if_let_else)]
         let reference = if let Some(reference) = self.fields.message_reference {
             MessageReference {
-                fail_if_not_exists: Some(true),
+                fail_if_not_exists: Some(fail_if_not_exists),
                 ..reference
             }
         } else {
@@ -227,7 +229,7 @@ impl<'a> CreateMessage<'a> {
                 channel_id: None,
                 guild_id: None,
                 message_id: None,
-                fail_if_not_exists: Some(true),
+                fail_if_not_exists: Some(fail_if_not_exists),
             }
         };
 
