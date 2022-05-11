@@ -142,7 +142,7 @@ impl Queue for LocalQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+    fn request(&'_ self, [id, total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         Box::pin(async move {
             let (tx, rx) = oneshot::channel();
 
@@ -151,7 +151,7 @@ impl Queue for LocalQueue {
                 return;
             }
 
-            tracing::info!("shard {}/{} waiting for allowance", _id, _total);
+            tracing::info!("shard {}/{} waiting for allowance", id, total);
 
             let _ = rx.await;
         })
