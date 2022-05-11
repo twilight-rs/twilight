@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Collect coverage
         uses: actions-rs/tarpaulin@v0.1
