@@ -16,7 +16,7 @@ repository = "https://github.com/twilight-rs/twilight.git"
 version = "0.10.2"
 
 [dependencies]
-dashmap = { default-features = false, version = ">= 5.1, < 5.3" }
+dashmap = { default-features = false, version = "5.3" }
 futures-util = { default-features = false, features = ["bilock", "std", "unstable"], version = "0.3" }
 http = { default-features = false, version = "0.2" }
 serde = { default-features = false, features = ["derive", "std"], version = "1" }
