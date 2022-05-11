@@ -686,7 +686,7 @@ impl Client {
         &'a self,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-        image: &'a str,
+        image: &'a [u8],
     ) -> CreateEmoji<'a> {
         CreateEmoji::new(self, guild_id, name, image)
     }
@@ -1867,16 +1867,23 @@ impl Client {
     /// let channel_id = Id::new(123);
     ///
     /// let webhook = client
-    ///     .create_webhook(channel_id, "Twily Bot")
+    ///     .create_webhook(channel_id, "Twily Bot")?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub const fn create_webhook<'a>(
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`WebhookUsername`] if the webhook's name is
+    /// invalid.
+    ///
+    /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
+    pub fn create_webhook<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
-    ) -> CreateWebhook<'a> {
+    ) -> Result<CreateWebhook<'a>, ValidationError> {
         CreateWebhook::new(self, channel_id, name)
     }
 
@@ -2045,7 +2052,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{datetime::Timestamp, id::Id};
+    /// use twilight_model::{id::Id, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2070,7 +2077,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{datetime::Timestamp, id::Id};
+    /// use twilight_model::{id::Id, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2404,7 +2411,6 @@ impl Client {
         let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{}://{}/api/v{}/{}", protocol, host, API_VERSION, path);
-        #[cfg(feature = "tracing")]
         tracing::debug!("URL: {:?}", url);
 
         let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);

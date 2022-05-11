@@ -834,13 +834,6 @@ pub enum Route<'a> {
         /// Query to search by.
         query: &'a str,
     },
-    /// Route information to set permissions of commands in a guild.
-    SetCommandPermissions {
-        /// The ID of the owner application.
-        application_id: u64,
-        /// The ID of the guild.
-        guild_id: u64,
-    },
     /// Route information to set global commands.
     SetGlobalCommands {
         /// The ID of the owner application.
@@ -1220,7 +1213,6 @@ impl<'a> Route<'a> {
             | Self::CreateReaction { .. }
             | Self::JoinThread { .. }
             | Self::PinMessage { .. }
-            | Self::SetCommandPermissions { .. }
             | Self::SetGlobalCommands { .. }
             | Self::SetGuildCommands { .. }
             | Self::SyncTemplate { .. }
@@ -1299,7 +1291,6 @@ impl<'a> Route<'a> {
             | Self::GetGuildCommand { application_id, .. }
             | Self::GetGuildCommandPermissions { application_id, .. }
             | Self::GetGuildCommands { application_id, .. }
-            | Self::SetCommandPermissions { application_id, .. }
             | Self::SetGuildCommands { application_id, .. }
             | Self::UpdateGuildCommand { application_id, .. } => {
                 Path::ApplicationGuildCommand(application_id)
@@ -2274,10 +2265,6 @@ impl Display for Route<'_> {
             Route::GetGuildCommandPermissions {
                 application_id,
                 guild_id,
-            }
-            | Route::SetCommandPermissions {
-                application_id,
-                guild_id,
             } => {
                 f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
@@ -2385,21 +2372,19 @@ impl Display for Route<'_> {
                 Display::fmt(scheduled_event_id, f)?;
                 f.write_str("/users?")?;
 
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
                 if let Some(limit) = limit {
                     f.write_str("&limit=")?;
                     Display::fmt(limit, f)?;
-                }
-
-                match (before, after) {
-                    (Some(before), Some(_) | None) => {
-                        f.write_str("&before=")?;
-                        Display::fmt(before, f)?;
-                    }
-                    (None, Some(after)) => {
-                        f.write_str("&after=")?;
-                        Display::fmt(after, f)?;
-                    }
-                    _ => {}
                 }
 
                 if *with_member {
@@ -4250,22 +4235,6 @@ mod tests {
     }
 
     #[test]
-    fn test_set_command_permissions() {
-        let route = Route::SetCommandPermissions {
-            application_id: APPLICATION_ID,
-            guild_id: GUILD_ID,
-        };
-        assert_eq!(
-            route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/permissions",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
-            )
-        );
-    }
-
-    #[test]
     fn test_get_guild_invites() {
         let route = Route::GetGuildInvites { guild_id: GUILD_ID };
         assert_eq!(
@@ -4888,7 +4857,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=101&after={user_id}",
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?after={user_id}&limit=101",
                 guild_id = GUILD_ID,
                 scheduled_event_id = SCHEDULED_EVENT_ID,
                 user_id = USER_ID,
@@ -4907,10 +4876,11 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=99&before={user_id}",
+                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?after={after}&before={before}&limit=99",
+                after = USER_ID,
+                before = USER_ID,
                 guild_id = GUILD_ID,
                 scheduled_event_id = SCHEDULED_EVENT_ID,
-                user_id = USER_ID,
             )
         );
     }

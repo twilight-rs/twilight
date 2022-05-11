@@ -13,7 +13,7 @@ pub use self::{
 
 use twilight_model::{
     channel::embed::{Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedThumbnail},
-    datetime::Timestamp,
+    util::Timestamp,
 };
 use twilight_validate::embed::{embed as validate_embed, EmbedValidationError};
 
@@ -372,7 +372,7 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         channel::embed::{Embed, EmbedField, EmbedFooter},
-        datetime::Timestamp,
+        util::Timestamp,
     };
 
     assert_impl_all!(EmbedBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);

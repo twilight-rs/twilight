@@ -28,7 +28,7 @@ impl UpdateCache for MessageCreate {
         // requested then we pop a message ID out. Once we have the popped ID we
         // can remove it from the message cache. This prevents the cache from
         // filling up with old messages that aren't in any channel cache.
-        if channel_messages.len() > cache.config.message_cache_size() {
+        if channel_messages.len() >= cache.config.message_cache_size() {
             if let Some(popped_id) = channel_messages.pop_back() {
                 cache.messages.remove(&popped_id);
             }
@@ -133,11 +133,10 @@ mod tests {
     use super::*;
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
-        datetime::Timestamp,
         guild::PartialMember,
         id::Id,
         user::User,
-        util::{image_hash::ImageHashParseError, ImageHash},
+        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
     #[test]
@@ -145,7 +144,7 @@ mod tests {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::builder()
             .resource_types(ResourceType::MESSAGE | ResourceType::MEMBER | ResourceType::USER)
-            .message_cache_size(1)
+            .message_cache_size(2)
             .build();
 
         let avatar = ImageHash::parse(b"e91c75bc7656063cc745f4e79d0b7664")?;

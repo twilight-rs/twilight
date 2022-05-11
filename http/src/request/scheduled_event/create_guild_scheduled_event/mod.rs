@@ -17,12 +17,12 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    datetime::Timestamp,
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
     },
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
+    util::Timestamp,
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason, scheduled_event_name as validate_scheduled_event_name,
@@ -66,7 +66,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{datetime::Timestamp, id::Id};
+/// use twilight_model::{id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
@@ -91,7 +91,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{datetime::Timestamp, id::Id};
+/// use twilight_model::{id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());

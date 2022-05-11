@@ -131,7 +131,6 @@ impl InFlight {
                 }
                 #[cfg_attr(not(feature = "tracing"), allow(unused_variables))]
                 Err(source) => {
-                    #[cfg(feature = "tracing")]
                     tracing::warn!("header parsing failed: {:?}; {:?}", source, resp);
 
                     let _res = tx.headers(None);
@@ -159,7 +158,6 @@ impl InFlight {
 
         match status {
             HyperStatusCode::TOO_MANY_REQUESTS => {
-                #[cfg(feature = "tracing")]
                 tracing::warn!("429 response: {:?}", resp)
             }
             HyperStatusCode::SERVICE_UNAVAILABLE => {

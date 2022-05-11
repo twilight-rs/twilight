@@ -38,7 +38,6 @@ impl SocketForwarder {
     }
 
     pub async fn run(mut self) {
-        #[cfg(feature = "tracing")]
         tracing::debug!("starting driving loop");
 
         loop {
@@ -54,17 +53,14 @@ impl SocketForwarder {
                 // `rx` future finished first.
                 Either::Left((Either::Left((maybe_msg, _)), _)) => {
                     if let Some(msg) = maybe_msg {
-                        #[cfg(feature = "tracing")]
                         tracing::trace!("sending message: {}", msg);
 
-                        if let Err(_source) = self.stream.send(msg).await {
-                            #[cfg(feature = "tracing")]
-                            tracing::warn!("sending failed: {}", _source);
+                        if let Err(source) = self.stream.send(msg).await {
+                            tracing::warn!("sending failed: {}", source);
 
                             break;
                         }
                     } else {
-                        #[cfg(feature = "tracing")]
                         tracing::debug!("rx stream ended, closing socket");
 
                         let _res = self.stream.close(None).await;
@@ -79,14 +75,12 @@ impl SocketForwarder {
                             break;
                         }
                     }
-                    Some(Err(_source)) => {
-                        #[cfg(feature = "tracing")]
-                        tracing::warn!("socket errored: {}", _source);
+                    Some(Err(source)) => {
+                        tracing::warn!("socket errored: {}", source);
 
                         break;
                     }
                     None => {
-                        #[cfg(feature = "tracing")]
                         tracing::debug!("socket ended");
 
                         break;
@@ -94,7 +88,6 @@ impl SocketForwarder {
                 },
                 // Timeout future finished first.
                 Either::Right(_) => {
-                    #[cfg(feature = "tracing")]
                     tracing::warn!("socket timed out");
 
                     break;
@@ -102,7 +95,6 @@ impl SocketForwarder {
             }
         }
 
-        #[cfg(feature = "tracing")]
         tracing::debug!("Leaving loop");
     }
 }

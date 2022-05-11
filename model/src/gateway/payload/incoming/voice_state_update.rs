@@ -8,11 +8,11 @@ pub struct VoiceStateUpdate(pub VoiceState);
 mod tests {
     use super::{VoiceState, VoiceStateUpdate};
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         guild::Member,
         id::Id,
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

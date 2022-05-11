@@ -30,7 +30,7 @@
 //! let intents = Intents::GUILD_MEMBERS;
 //! let token = env::var("DISCORD_TOKEN")?;
 //!
-//! let (shard, _events) = Shard::new(token, intents);
+//! let (shard, _events) = Shard::new(token, intents).await?;
 //! shard.start().await?;
 //!
 //! // Query members whose names start with "tw" and limit the results to
@@ -66,9 +66,7 @@ mod processor;
 pub(crate) mod tls;
 
 pub use self::{
-    builder::{
-        LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
-    },
+    builder::{ShardBuilder, ShardIdError, ShardIdErrorType},
     command::Command,
     config::Config,
     event::Events,

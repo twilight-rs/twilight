@@ -92,11 +92,11 @@ pub enum InteractionResponseType {
     /// Acknowledges a component interaction, allowing for the message to be
     /// edited later.
     ///
-    /// This is only valid for components.
+    /// This is only valid for components and modal submits.
     DeferredUpdateMessage = 6,
     /// Acknowledges a component interaction and edits the message.
     ///
-    /// This is only valid for components.
+    /// This is only valid for components and modal submits.
     UpdateMessage = 7,
     /// Respond to an autocomplete interaction with suggested choices.
     ApplicationCommandAutocompleteResult = 8,

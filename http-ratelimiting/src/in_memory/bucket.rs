@@ -216,7 +216,6 @@ impl BucketQueueTask {
     /// Process incoming ratelimit requests to this bucket and update the state
     /// based on received [`RatelimitHeaders`].
     pub async fn run(self) {
-        #[cfg(feature = "tracing")]
         let span = tracing::debug_span!("background queue task", path=?self.path);
 
         while let Some(queue_tx) = self.next().await {
@@ -230,27 +229,22 @@ impl BucketQueueTask {
                 continue;
             };
 
-            #[cfg(feature = "tracing")]
             tracing::debug!(parent: &span, "starting to wait for response headers",);
 
             match timeout(Self::WAIT, ticket_headers).await {
                 Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
                 Ok(Ok(None)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "request aborted");
                 }
                 Ok(Err(_)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "ticket channel closed");
                 }
                 Err(_) => {
-                    #[cfg(feature = "tracing")]
                     tracing::debug!(parent: &span, "receiver timed out");
                 }
             }
         }
 
-        #[cfg(feature = "tracing")]
         tracing::debug!(parent: &span, "bucket appears finished, removing");
 
         self.buckets
@@ -274,14 +268,12 @@ impl BucketQueueTask {
             }
         };
 
-        #[cfg(feature = "tracing")]
         tracing::debug!(path=?self.path, "updating bucket");
         self.bucket.update(ratelimits);
     }
 
     /// Lock the global ratelimit for a specified duration.
     async fn lock_global(&self, wait: Duration) {
-        #[cfg(feature = "tracing")]
         tracing::debug!(path=?self.path, "request got global ratelimited");
         self.global.lock();
         let lock = self.global.0.lock().await;
@@ -293,7 +285,6 @@ impl BucketQueueTask {
 
     /// Get the next [`TicketNotifier`] in the queue.
     async fn next(&self) -> Option<TicketNotifier> {
-        #[cfg(feature = "tracing")]
         tracing::debug!(path=?self.path, "starting to get next in queue");
 
         self.wait_if_needed().await;
@@ -303,7 +294,6 @@ impl BucketQueueTask {
 
     /// Wait for this bucket to refresh if it isn't ready yet.
     async fn wait_if_needed(&self) {
-        #[cfg(feature = "tracing")]
         let span = tracing::debug_span!("waiting for bucket to refresh", path=?self.path);
 
         let wait = {
@@ -311,7 +301,6 @@ impl BucketQueueTask {
                 return;
             }
 
-            #[cfg(feature = "tracing")]
             tracing::debug!(parent: &span, "0 tickets remaining, may have to wait");
 
             match self.bucket.time_remaining() {
@@ -325,7 +314,6 @@ impl BucketQueueTask {
             }
         };
 
-        #[cfg(feature = "tracing")]
         tracing::debug!(
             parent: &span,
             milliseconds=%wait.as_millis(),
@@ -334,7 +322,6 @@ impl BucketQueueTask {
 
         sleep(wait).await;
 
-        #[cfg(feature = "tracing")]
         tracing::debug!(parent: &span, "done waiting for ratelimit to pass");
 
         self.bucket.try_reset();

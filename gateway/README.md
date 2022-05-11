@@ -98,12 +98,6 @@ will use `zlib-stock`.
 Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
 fork of zlib that is faster and more effective, but it needs `cmake` to compile.
 
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
-
 ### Metrics
 
 The `metrics` feature provides metrics information via the `metrics` crate.
@@ -119,7 +113,6 @@ This is disabled by default.
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
-[`tracing`]: https://crates.io/crates/tracing
 [`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
@@ -133,6 +126,6 @@ This is disabled by default.
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

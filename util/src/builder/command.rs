@@ -34,6 +34,7 @@ use twilight_model::{
         NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
+    guild::Permissions,
     id::{marker::GuildMarker, Id},
 };
 use twilight_validate::command::{command as validate_command, CommandValidationError};
@@ -50,7 +51,8 @@ impl CommandBuilder {
     pub const fn new(name: String, description: String, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
-            default_permission: None,
+            default_member_permissions: None,
+            dm_permission: None,
             description,
             description_localizations: None,
             guild_id: None,
@@ -91,11 +93,23 @@ impl CommandBuilder {
         self
     }
 
-    /// Set the default permission of the command.
+    /// Set the default member permission required to run the command.
     ///
     /// Defaults to [`None`].
-    pub const fn default_permission(mut self, default_permission: bool) -> Self {
-        self.0.default_permission = Some(default_permission);
+    pub const fn default_member_permissions(
+        mut self,
+        default_member_permissions: Permissions,
+    ) -> Self {
+        self.0.default_member_permissions = Some(default_member_permissions);
+
+        self
+    }
+
+    /// Set whether the command is available in DMs.
+    ///
+    /// Defaults to [`None`].
+    pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
+        self.0.dm_permission = Some(dm_permission);
 
         self
     }
@@ -1130,14 +1144,15 @@ mod tests {
 
         let command_manual = Command {
             application_id: None,
+            default_member_permissions: None,
+            dm_permission: None,
+            description: String::from("Get or edit permissions for a user or a role"),
             guild_id: None,
+            id: None,
             kind: CommandType::ChatInput,
             name: String::from("permissions"),
             name_localizations: None,
-            default_permission: None,
-            description: String::from("Get or edit permissions for a user or a role"),
             description_localizations: None,
-            id: None,
             options: Vec::from([
                 CommandOption::SubCommandGroup(OptionsCommandOptionData {
                     description: String::from("Get or edit permissions for a user"),

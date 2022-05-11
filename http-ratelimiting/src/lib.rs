@@ -12,15 +12,6 @@
 //! It also ships a default implementation, [`InMemoryRatelimiter`], that manages
 //! the bucket states in memory.
 //!
-//! ## Features
-//!
-//! ### Tracing
-//!
-//! The `tracing` feature enables logging via the [`tracing`] crate.
-//!
-//! This is enabled by default.
-//!
-//! [`tracing`]: https://crates.io/crates/tracing
 //! [Discord's documentation]: https://discord.com/developers/docs/topics/rate-limits
 
 #![deny(

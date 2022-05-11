@@ -9,7 +9,6 @@ mod get_global_commands;
 mod get_guild_command;
 mod get_guild_command_permissions;
 mod get_guild_commands;
-mod set_command_permissions;
 mod set_global_commands;
 mod set_guild_commands;
 mod update_command_permissions;
@@ -22,9 +21,8 @@ pub use self::{
     get_command_permissions::GetCommandPermissions, get_global_command::GetGlobalCommand,
     get_global_commands::GetGlobalCommands, get_guild_command::GetGuildCommand,
     get_guild_command_permissions::GetGuildCommandPermissions,
-    get_guild_commands::GetGuildCommands, set_command_permissions::SetCommandPermissions,
-    set_global_commands::SetGlobalCommands, set_guild_commands::SetGuildCommands,
-    update_command_permissions::UpdateCommandPermissions,
+    get_guild_commands::GetGuildCommands, set_global_commands::SetGlobalCommands,
+    set_guild_commands::SetGuildCommands, update_command_permissions::UpdateCommandPermissions,
     update_global_command::UpdateGlobalCommand, update_guild_command::UpdateGuildCommand,
 };
 
@@ -32,6 +30,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use twilight_model::{
     application::command::{CommandOption, CommandType},
+    guild::Permissions,
     id::{marker::ApplicationMarker, Id},
 };
 
@@ -43,7 +42,9 @@ struct CommandBorrowed<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_permission: Option<bool>,
+    pub default_member_permissions: Option<Permissions>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dm_permission: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -63,6 +64,7 @@ mod tests {
     use std::collections::HashMap;
     use twilight_model::{
         application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
+        guild::Permissions,
         id::Id,
     };
 
@@ -75,7 +77,8 @@ mod tests {
     fn test_command_borrowed_from_command() {
         let command = Command {
             application_id: Some(Id::new(1)),
-            default_permission: Some(true),
+            default_member_permissions: Some(Permissions::ADMINISTRATOR),
+            dm_permission: Some(true),
             description: "command description".to_owned(),
             description_localizations: Some(HashMap::from([(
                 "en-US".to_owned(),
@@ -101,7 +104,8 @@ mod tests {
 
         let _ = CommandBorrowed {
             application_id: command.application_id,
-            default_permission: command.default_permission,
+            default_member_permissions: command.default_member_permissions,
+            dm_permission: command.dm_permission,
             description: Some(&command.description),
             description_localizations: command.description_localizations.as_ref(),
             kind: CommandType::ChatInput,

@@ -227,36 +227,24 @@ impl<'de> Visitor<'de> for OptionVisitor {
         let mut options: Option<Option<Vec<CommandOption>>> = None;
         let mut required: Option<bool> = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing command option");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over command option");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     map.next_value::<IgnoredAny>()?;
 
                     tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    map.next_value::<IgnoredAny>()?;
 
                     continue;
                 }
@@ -354,7 +342,6 @@ impl<'de> Visitor<'de> for OptionVisitor {
         let kind = kind.ok_or_else(|| DeError::missing_field("type"))?;
         let name = name.ok_or_else(|| DeError::missing_field("name"))?;
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             %description,
             ?kind,
@@ -767,7 +754,7 @@ mod tests {
         CommandOptionChoice, CommandOptionValue, Number, NumberCommandOptionData,
         OptionsCommandOptionData,
     };
-    use crate::{channel::ChannelType, id::Id};
+    use crate::{channel::ChannelType, guild::Permissions, id::Id};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -822,7 +809,8 @@ mod tests {
     fn test_command_option_full() {
         let value = Command {
             application_id: Some(Id::new(100)),
-            default_permission: Some(true),
+            default_member_permissions: Some(Permissions::ADMINISTRATOR),
+            dm_permission: Some(false),
             description: "this command is a test".into(),
             description_localizations: Some(HashMap::from([(
                 "en-US".into(),
@@ -946,15 +934,18 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Command",
-                    len: 11,
+                    len: 12,
                 },
                 Token::Str("application_id"),
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
-                Token::Str("default_permission"),
+                Token::Str("default_member_permissions"),
                 Token::Some,
-                Token::Bool(true),
+                Token::Str("8"),
+                Token::Str("dm_permission"),
+                Token::Some,
+                Token::Bool(false),
                 Token::Str("description"),
                 Token::Str("this command is a test"),
                 Token::Str("description_localizations"),

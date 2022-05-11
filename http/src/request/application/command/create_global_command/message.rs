@@ -9,6 +9,7 @@ use crate::{
 use std::collections::HashMap;
 use twilight_model::{
     application::command::{Command, CommandType},
+    guild::Permissions,
     id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::command::{name as validate_name, CommandValidationError};
@@ -23,7 +24,8 @@ use twilight_validate::command::{name as validate_name, CommandValidationError};
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGlobalMessageCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    default_permission: Option<bool>,
+    default_member_permissions: Option<Permissions>,
+    dm_permission: Option<bool>,
     http: &'a Client,
     name: &'a str,
     name_localizations: Option<&'a HashMap<String, String>>,
@@ -39,16 +41,28 @@ impl<'a> CreateGlobalMessageCommand<'a> {
 
         Ok(Self {
             application_id,
-            default_permission: None,
+            default_member_permissions: None,
+            dm_permission: None,
             http,
             name,
             name_localizations: None,
         })
     }
 
-    /// Whether the command is enabled by default when the app is added to a guild.
-    pub const fn default_permission(mut self, default: bool) -> Self {
-        self.default_permission = Some(default);
+    /// Default permissions required for a member to run the command.
+    ///
+    /// Defaults to [`None`].
+    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
+        self.default_member_permissions = Some(default);
+
+        self
+    }
+
+    /// Set whether the command is available in DMs.
+    ///
+    /// Defaults to [`None`].
+    pub const fn dm_permission(mut self, dm_permission: bool) -> Self {
+        self.dm_permission = Some(dm_permission);
 
         self
     }
@@ -89,7 +103,8 @@ impl TryIntoRequest for CreateGlobalMessageCommand<'_> {
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_permission: self.default_permission,
+            default_member_permissions: self.default_member_permissions,
+            dm_permission: self.dm_permission,
             description: None,
             description_localizations: None,
             kind: CommandType::Message,

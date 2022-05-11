@@ -46,7 +46,7 @@ impl Inflater {
     /// This returns `flate2`'s `DecompressError` as its method's type signature
     /// indicates it can return an error, however in reality in versions up to
     /// 1.0.17 it won't.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     pub fn msg(&mut self) -> Result<Option<&mut [u8]>, DecompressError> {
         let length = self.compressed.len();
 
@@ -80,7 +80,6 @@ impl Inflater {
             }
         }
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             bytes_in = self.compressed.len(),
             bytes_out = self.buffer.len(),
@@ -91,7 +90,6 @@ impl Inflater {
 
         self.compressed.clear();
 
-        #[cfg(feature = "tracing")]
         {
             // It doesn't matter if we lose precision for logging.
             #[allow(clippy::cast_precision_loss)]
@@ -114,7 +112,6 @@ impl Inflater {
         #[cfg(feature = "metrics")]
         self.inflater_metrics();
 
-        #[cfg(feature = "tracing")]
         tracing::trace!("capacity: {}", self.buffer.capacity());
 
         Ok(Some(&mut self.buffer))
@@ -124,7 +121,7 @@ impl Inflater {
     ///
     /// If the capacity is 4 times larger than the buffer length then the
     /// capacity will be shrunk to the length.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     pub fn clear(&mut self) {
         self.shrink();
 
@@ -166,14 +163,12 @@ impl Inflater {
         self.compressed.shrink_to_fit();
         self.buffer.shrink_to_fit();
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             capacity = self.compressed.capacity(),
             shard_id = self.shard[0],
             shard_total = self.shard[1],
             "compressed capacity",
         );
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             capacity = self.buffer.capacity(),
             shard_id = self.shard[0],

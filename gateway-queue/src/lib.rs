@@ -39,14 +39,6 @@
 //! The `twilight-http` feature brings in support for [`LargeBotQueue`].
 //!
 //! This is enabled by default.
-//!
-//! ### Tracing
-//!
-//! The `tracing` feature enables logging via the [`tracing`] crate.
-//!
-//! This is enabled by default.
-//!
-//! [`tracing`]: https://crates.io/crates/tracing
 //! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
@@ -139,9 +131,8 @@ impl LocalQueue {
 async fn waiter(mut rx: UnboundedReceiver<Sender<()>>) {
     const DUR: Duration = Duration::from_secs(6);
     while let Some(req) = rx.recv().await {
-        if let Err(_source) = req.send(()) {
-            #[cfg(feature = "tracing")]
-            tracing::warn!("skipping, send failed: {:?}", _source);
+        if let Err(source) = req.send(()) {
+            tracing::warn!("skipping, send failed: {:?}", source);
         }
         sleep(DUR).await;
     }
@@ -151,18 +142,16 @@ impl Queue for LocalQueue {
     /// Request to be able to identify with the gateway. This will place this
     /// request behind all other requests, and the returned future will resolve
     /// once the request has been completed.
-    fn request(&'_ self, [_id, _total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
+    fn request(&'_ self, [id, total]: [u64; 2]) -> Pin<Box<dyn Future<Output = ()> + Send + '_>> {
         Box::pin(async move {
             let (tx, rx) = oneshot::channel();
 
-            if let Err(_source) = self.0.send(tx) {
-                #[cfg(feature = "tracing")]
-                tracing::warn!("skipping, send failed: {:?}", _source);
+            if let Err(source) = self.0.send(tx) {
+                tracing::warn!("skipping, send failed: {:?}", source);
                 return;
             }
 
-            #[cfg(feature = "tracing")]
-            tracing::info!("shard {}/{} waiting for allowance", _id, _total);
+            tracing::info!("shard {}/{} waiting for allowance", id, total);
 
             let _ = rx.await;
         })

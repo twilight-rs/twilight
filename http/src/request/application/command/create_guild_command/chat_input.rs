@@ -9,6 +9,7 @@ use crate::{
 use std::collections::HashMap;
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
+    guild::Permissions,
     id::{
         marker::{ApplicationMarker, GuildMarker},
         Id,
@@ -30,7 +31,7 @@ use twilight_validate::command::{
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildChatInputCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    default_permission: Option<bool>,
+    default_member_permissions: Option<Permissions>,
     description: &'a str,
     description_localizations: Option<&'a HashMap<String, String>>,
     guild_id: Id<GuildMarker>,
@@ -54,7 +55,7 @@ impl<'a> CreateGuildChatInputCommand<'a> {
 
         Ok(Self {
             application_id,
-            default_permission: None,
+            default_member_permissions: None,
             description,
             description_localizations: None,
             guild_id,
@@ -65,10 +66,11 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         })
     }
 
-    /// Whether the command is enabled by default when the app is added to
-    /// a guild.
-    pub fn default_permission(mut self, default: bool) -> Self {
-        self.default_permission.replace(default);
+    /// Default permissions required for a member to run the command.
+    ///
+    /// Defaults to [`None`].
+    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
+        self.default_member_permissions = Some(default);
 
         self
     }
@@ -148,7 +150,8 @@ impl TryIntoRequest for CreateGuildChatInputCommand<'_> {
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_permission: self.default_permission,
+            default_member_permissions: self.default_member_permissions,
+            dm_permission: None,
             description: Some(self.description),
             description_localizations: self.description_localizations,
             kind: CommandType::ChatInput,

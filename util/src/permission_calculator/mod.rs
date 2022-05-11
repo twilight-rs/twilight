@@ -661,7 +661,6 @@ mod tests {
             ChannelType::GuildCategory,
             ChannelType::GuildNews,
             ChannelType::GuildStageVoice,
-            ChannelType::GuildStore,
             ChannelType::GuildText,
             ChannelType::GuildVoice,
         ];

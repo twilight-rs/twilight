@@ -1,18 +1,17 @@
-use super::{
-    config::Config as ClusterConfig,
-    event::Events,
-    r#impl::{Cluster, ClusterStartError},
-    scheme::ShardScheme,
-    ClusterStartErrorType,
-};
+use super::{Cluster, ClusterStartError, ClusterStartErrorType, Config, Events, ShardScheme};
 use crate::{
-    shard::{tls::TlsContainer, LargeThresholdError, ResumeSession, ShardBuilder},
+    shard::{tls::TlsContainer, ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Formatter, Result as FmtResult},
+    sync::Arc,
+};
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
 use twilight_model::gateway::{
+    connection_info::BotConnectionInfo,
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
@@ -32,28 +31,33 @@ use twilight_model::gateway::{
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
 /// let cluster = Cluster::builder(token, Intents::GUILD_MESSAGES)
-///     .large_threshold(100)?
+///     .large_threshold(100)
 ///     .build()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 ///
 /// [`large_threshold`]: Self::large_threshold
-#[derive(Debug)]
-pub struct ClusterBuilder(ClusterConfig, ShardBuilder);
+// Remember to sync this with the custom Debug implementation.
+pub struct ClusterBuilder {
+    queue: Arc<dyn Queue>,
+    resume_sessions: HashMap<u64, ResumeSession>,
+    shard: ShardBuilder,
+    shard_presence:
+        Option<Box<dyn Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + 'static>>,
+    shard_scheme: Option<ShardScheme>,
+}
 
 impl ClusterBuilder {
     /// Create a new builder to construct and configure a cluster.
     pub fn new(token: String, intents: Intents) -> Self {
-        Self(
-            ClusterConfig {
-                queue: Arc::new(LocalQueue::new()),
-                resume_sessions: HashMap::new(),
-                shard_presence: None,
-                shard_scheme: ShardScheme::Auto,
-            },
-            ShardBuilder::new(token, intents),
-        )
+        Self {
+            queue: Arc::new(LocalQueue::new()),
+            resume_sessions: HashMap::new(),
+            shard: ShardBuilder::new(token, intents),
+            shard_presence: None,
+            shard_scheme: None,
+        }
     }
 
     /// Consume the builder and create the cluster.
@@ -70,19 +74,53 @@ impl ClusterBuilder {
             source: Some(Box::new(err)),
         })?;
 
-        (self.1).0.tls = Some(tls);
+        if self.shard.gateway_url.is_none() || self.shard_scheme.is_none() {
+            let gateway = Self::retrieve_connect_info(&self.shard.http_client).await?;
 
-        if (self.1).0.gateway_url.is_none() {
-            let maybe_response = (self.1).0.http_client.gateway().authed().exec().await;
+            if self.shard.gateway_url.is_none() {
+                self = self.gateway_url(gateway.url);
+            }
 
-            if let Ok(response) = maybe_response {
-                let gateway_url = response.model().await.ok().map(|info| info.url);
-
-                self = self.gateway_url(gateway_url);
+            if self.shard_scheme.is_none() {
+                self.shard_scheme = Some(ShardScheme::Range {
+                    from: 0,
+                    to: gateway.shards - 1,
+                    total: gateway.shards,
+                });
             }
         }
 
-        Cluster::new_with_config(self.0, self.1 .0).await
+        let mut shard_config = self.shard.into_config();
+
+        shard_config.tls = Some(tls);
+
+        let config = Config {
+            queue: self.queue,
+            resume_sessions: self.resume_sessions,
+            shard_presence: self.shard_presence,
+            shard_scheme: self.shard_scheme.expect("always set"),
+        };
+
+        Cluster::new_with_config(config, shard_config).await
+    }
+
+    /// Retrieves [`BotConnectionInfo`], containing the gateway url and
+    /// recommended shard count.
+    async fn retrieve_connect_info(http: &Client) -> Result<BotConnectionInfo, ClusterStartError> {
+        http.gateway()
+            .authed()
+            .exec()
+            .await
+            .map_err(|source| ClusterStartError {
+                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                source: Some(Box::new(source)),
+            })?
+            .model()
+            .await
+            .map_err(|source| ClusterStartError {
+                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                source: Some(Box::new(source)),
+            })
     }
 
     /// Set the event types to process.
@@ -96,15 +134,17 @@ impl ClusterBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn event_types(mut self, event_types: EventTypeFlags) -> Self {
-        self.1 = self.1.event_types(event_types);
+        self.shard = self.shard.event_types(event_types);
 
         self
     }
 
     /// Set the URL that will be used to connect to the gateway.
+    ///
+    /// Default is to fetch it from the HTTP API.
     #[must_use = "has no effect if not built"]
-    pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
-        self.1 = self.1.gateway_url(gateway_url);
+    pub fn gateway_url(mut self, gateway_url: String) -> Self {
+        self.shard = self.shard.gateway_url(gateway_url);
 
         self
     }
@@ -118,7 +158,7 @@ impl ClusterBuilder {
     /// Defaults to a new, default HTTP client is used.
     #[must_use = "has no effect if not built"]
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
-        self.1 = self.1.http_client(http_client);
+        self.shard = self.shard.http_client(http_client);
 
         self
     }
@@ -139,13 +179,7 @@ impl ClusterBuilder {
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let properties = IdentifyProperties::new(
-    ///     "twilight.rs",
-    ///     "twilight.rs",
-    ///     OS,
-    ///     "",
-    ///     "",
-    /// );
+    /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
     /// let builder = Cluster::builder(token, Intents::empty())
     ///     .identify_properties(properties);
@@ -154,7 +188,7 @@ impl ClusterBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn identify_properties(mut self, identify_properties: IdentifyProperties) -> Self {
-        self.1 = self.1.identify_properties(identify_properties);
+        self.shard = self.shard.identify_properties(identify_properties);
 
         self
     }
@@ -164,20 +198,14 @@ impl ClusterBuilder {
     /// Refer to the shard's [`ShardBuilder::large_threshold`] for more
     /// information.
     ///
-    /// # Errors
+    /// # Panics
     ///
-    /// Returns a [`LargeThresholdErrorType::TooFew`] error type if the provided
-    /// value is below 50.
-    ///
-    /// Returns a [`LargeThresholdErrorType::TooMany`] error type if the
-    /// provided value is above 250.
-    ///
-    /// [`LargeThresholdErrorType::TooFew`]: crate::shard::LargeThresholdErrorType::TooFew
-    /// [`LargeThresholdErrorType::TooMany`]: crate::shard::LargeThresholdErrorType::TooMany
-    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
-        self.1 = self.1.large_threshold(large_threshold)?;
+    /// Panics if the provided value is below 50 or above 250.
+    #[must_use = "has no effect if not built"]
+    pub fn large_threshold(mut self, large_threshold: u64) -> Self {
+        self.shard = self.shard.large_threshold(large_threshold);
 
-        Ok(self)
+        self
     }
 
     /// Set the presence to use when identifying with the gateway.
@@ -185,7 +213,7 @@ impl ClusterBuilder {
     /// Refer to the shard's [`ShardBuilder::presence`] for more information.
     #[must_use = "has no effect if not built"]
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
-        self.1 = self.1.presence(presence);
+        self.shard = self.shard.presence(presence);
 
         self
     }
@@ -199,7 +227,7 @@ impl ClusterBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
-        self.1 = self.1.ratelimit_payloads(ratelimit_payloads);
+        self.shard = self.shard.ratelimit_payloads(ratelimit_payloads);
 
         self
     }
@@ -216,20 +244,19 @@ impl ClusterBuilder {
     where
         F: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + 'static,
     {
-        self.0.shard_presence = Some(Box::new(shard_presence));
+        self.shard_presence = Some(Box::new(shard_presence));
 
         self
     }
 
     /// Set the scheme to use for shard managing.
     ///
-    /// For example, [`ShardScheme::Auto`] means that the cluster will
-    /// automatically manage all of the shards that Discord recommends you use.
     /// [`ShardScheme::Range`] means that it will manage a range of shards, but
     /// not necessarily all of the shards that your bot uses.
     ///
-    /// The default value is [`ShardScheme::Auto`]. For most setups this is an
-    /// acceptable default.
+    /// The cluster will automatically manage all of the shards that Discord
+    /// recommends you use by default. For most setups this is an acceptable
+    /// default.
     ///
     /// # Examples
     ///
@@ -252,7 +279,7 @@ impl ClusterBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn shard_scheme(mut self, scheme: ShardScheme) -> Self {
-        self.0.shard_scheme = scheme;
+        self.shard_scheme = Some(scheme);
 
         self
     }
@@ -267,8 +294,8 @@ impl ClusterBuilder {
     /// [`queue`]: crate::queue
     #[must_use = "has no effect if not built"]
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
-        self.0.queue = Arc::clone(&queue);
-        self.1 = self.1.queue(queue);
+        self.queue = Arc::clone(&queue);
+        self.shard = self.shard.queue(queue);
 
         self
     }
@@ -284,8 +311,20 @@ impl ClusterBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ResumeSession>) -> Self {
-        self.0.resume_sessions = resume_sessions;
+        self.resume_sessions = resume_sessions;
         self
+    }
+}
+
+impl Debug for ClusterBuilder {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.debug_struct("ClusterBuilder")
+            .field("queue", &self.queue)
+            .field("resume_sessions", &self.resume_sessions)
+            .field("shard", &self.shard)
+            .field("shard_presence", &"<Fn>")
+            .field("shard_scheme", &self.shard_scheme)
+            .finish()
     }
 }
 

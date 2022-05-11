@@ -156,12 +156,11 @@ mod tests {
 
     #[test]
     fn test_iter_mention_type() {
-        let mut iter = MentionType::iter("<#12><:name:34><@&56><@!78><@90>");
+        let mut iter = MentionType::iter("<#12><:name:34><@&56><@78>");
         assert_eq!(MentionType::Channel(Id::new(12)), iter.next().unwrap().0);
         assert_eq!(MentionType::Emoji(Id::new(34)), iter.next().unwrap().0);
         assert_eq!(MentionType::Role(Id::new(56)), iter.next().unwrap().0);
         assert_eq!(MentionType::User(Id::new(78)), iter.next().unwrap().0);
-        assert_eq!(MentionType::User(Id::new(90)), iter.next().unwrap().0);
         assert!(iter.next().is_none());
     }
 
