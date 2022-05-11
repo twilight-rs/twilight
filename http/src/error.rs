@@ -1,4 +1,4 @@
-use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
+use crate::{json::JsonError, response::StatusCode};
 use hyper::{Body, Response};
 use std::{
     error::Error as StdError,
@@ -110,7 +110,6 @@ pub enum ErrorType {
     RequestTimedOut,
     Response {
         body: Vec<u8>,
-        error: ApiError,
         status: StatusCode,
     },
     /// API service is unavailable. Consider re-sending the request at a

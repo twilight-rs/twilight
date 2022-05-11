@@ -1,8 +1,5 @@
 use super::{Response, StatusCode};
-use crate::{
-    api_error::ApiError,
-    error::{Error, ErrorType},
-};
+use crate::error::{Error, ErrorType};
 use hyper::{client::ResponseFuture as HyperResponseFuture, StatusCode as HyperStatusCode};
 use std::{
     future::Future,
@@ -35,35 +32,17 @@ struct Chunking {
 
 impl Chunking {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
-        let bytes = match Pin::new(&mut self.future).poll(cx) {
-            Poll::Ready(Ok(bytes)) => bytes,
-            Poll::Ready(Err(source)) => return InnerPoll::Ready(Err(source)),
-            Poll::Pending => {
-                return InnerPoll::Pending(ResponseFutureStage::Chunking(Self {
-                    future: self.future,
-                    status: self.status,
-                }))
-            }
-        };
-
-        let error = match crate::json::from_bytes::<ApiError>(&bytes) {
-            Ok(error) => error,
-            Err(source) => {
-                return InnerPoll::Ready(Err(Error {
-                    kind: ErrorType::Parsing { body: bytes },
-                    source: Some(Box::new(source)),
-                }));
-            }
-        };
-
-        InnerPoll::Ready(Err(Error {
-            kind: ErrorType::Response {
-                body: bytes,
-                error,
-                status: StatusCode::new(self.status.as_u16()),
-            },
-            source: None,
-        }))
+        match Pin::new(&mut self.future).poll(cx) {
+            Poll::Ready(Ok(bytes)) => InnerPoll::Ready(Err(Error {
+                kind: ErrorType::Response {
+                    body: bytes,
+                    status: StatusCode::new(self.status.as_u16()),
+                },
+                source: None,
+            })),
+            Poll::Ready(Err(source)) => InnerPoll::Ready(Err(source)),
+            Poll::Pending => InnerPoll::Pending(ResponseFutureStage::Chunking(self)),
+        }
     }
 }
 
