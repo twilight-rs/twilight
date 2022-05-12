@@ -19,7 +19,7 @@ pub struct GetGuildCommands<'a> {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
-    with_localizations: bool,
+    with_localizations: Option<bool>,
 }
 
 impl<'a> GetGuildCommands<'a> {
@@ -32,7 +32,7 @@ impl<'a> GetGuildCommands<'a> {
             application_id,
             guild_id,
             http,
-            with_localizations: false,
+            with_localizations: None,
         }
     }
 
@@ -40,7 +40,7 @@ impl<'a> GetGuildCommands<'a> {
     ///
     /// Defaults to [`false`].
     pub const fn with_localizations(mut self, with_localizations: bool) -> Self {
-        self.with_localizations = with_localizations;
+        self.with_localizations = Some(with_localizations);
 
         self
     }
