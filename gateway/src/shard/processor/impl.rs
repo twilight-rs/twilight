@@ -1,16 +1,14 @@
 use super::{
     super::{
-        config::Config,
         emitter::{EmitJsonErrorType, Emitter},
         json::{self, GatewayEventParsingError, GatewayEventParsingErrorType},
-        stage::Stage,
-        ShardStream,
+        Config, ShardStream, Stage,
     },
     compression::{self, Compression},
     session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
 };
-use crate::{event::EventTypeFlags, shard::tls::TlsContainer, API_VERSION};
+use crate::{EventTypeFlags, API_VERSION};
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -44,6 +42,13 @@ use twilight_model::gateway::{
     Intents, OpCode,
 };
 use url::Url;
+
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use crate::shard::tls::TlsContainer;
 
 /// Connecting to the gateway failed.
 #[derive(Debug)]
@@ -346,7 +351,16 @@ impl ShardProcessor {
             gateway: url.clone(),
             shard_id: config.shard()[0],
         }));
-        let stream = Self::connect(&url, config.tls.as_ref()).await?;
+        let stream = Self::connect(
+            &url,
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
+            config.tls.as_ref(),
+        )
+        .await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(forwarder.run());
 
@@ -907,6 +921,11 @@ impl ShardProcessor {
 
     async fn connect(
         url: &str,
+        #[cfg(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        ))]
         tls: Option<&TlsContainer>,
     ) -> Result<ShardStream, ConnectingError> {
         let url = Url::parse(url).map_err(|source| ConnectingError {
@@ -928,11 +947,29 @@ impl ShardProcessor {
             max_send_queue: None,
         };
 
-        let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(
-            url,
-            Some(config),
-            tls.map(TlsContainer::connector),
-        )
+        let (stream, _) = {
+            #[cfg(not(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            )))]
+            {
+                tokio_tungstenite::connect_async_with_config(url, Some(config))
+            }
+
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
+            {
+                tokio_tungstenite::connect_async_tls_with_config(
+                    url,
+                    Some(config),
+                    tls.map(TlsContainer::connector),
+                )
+            }
+        }
         .await
         .map_err(|source| ConnectingError {
             kind: ConnectingErrorType::Establishing,
@@ -997,7 +1034,17 @@ impl ShardProcessor {
                 shard_id: self.config.shard()[0],
             }));
 
-            let stream = match Self::connect(&self.url, self.config.tls.as_ref()).await {
+            let stream = match Self::connect(
+                &self.url,
+                #[cfg(any(
+                    feature = "native",
+                    feature = "rustls-native-roots",
+                    feature = "rustls-webpki-roots"
+                ))]
+                self.config.tls.as_ref(),
+            )
+            .await
+            {
                 Ok(s) => s,
                 Err(_source) => {
                     #[cfg(feature = "tracing")]
@@ -1066,7 +1113,16 @@ impl ShardProcessor {
             shard_id: self.config.shard()[0],
         }));
 
-        let stream = Self::connect(&self.url, self.config.tls.as_ref()).await?;
+        let stream = Self::connect(
+            &self.url,
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
+            self.config.tls.as_ref(),
+        )
+        .await?;
 
         self.set_session(stream, Stage::Resuming);
 

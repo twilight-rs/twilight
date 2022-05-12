@@ -1,4 +1,4 @@
-use crate::{shard::tls::TlsContainer, EventTypeFlags};
+use crate::EventTypeFlags;
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
@@ -6,6 +6,13 @@ use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use super::tls::TlsContainer;
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
@@ -27,6 +34,11 @@ pub struct Config {
     pub(super) token: Box<str>,
     pub(crate) session_id: Option<Box<str>>,
     pub(crate) sequence: Option<u64>,
+    #[cfg(any(
+        feature = "native",
+        feature = "rustls-native-roots",
+        feature = "rustls-webpki-roots"
+    ))]
     pub(crate) tls: Option<TlsContainer>,
     pub(crate) ratelimit_payloads: bool,
 }
