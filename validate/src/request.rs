@@ -1048,9 +1048,8 @@ mod tests {
     #[test]
     fn test_username_variants() {
         let expected = format!(
-            "provided username length is 200, but it must be at least {} and at most {}, and \
-            cannot contain :",
-            USERNAME_LIMIT_MIN, USERNAME_LIMIT_MAX
+            "provided username length is 200, but it must be at least {USERNAME_LIMIT_MIN} and at most {USERNAME_LIMIT_MAX}, and \
+            cannot contain :"
         );
         let actual = ValidationError {
             kind: ValidationErrorType::Username {

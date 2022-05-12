@@ -382,7 +382,7 @@ impl ShardProcessor {
     pub async fn run(mut self) {
         loop {
             if let Err(source) = self.next_payload().await {
-                tracing::warn!("{}", source);
+                tracing::warn!("{source}");
 
                 self.emit_disconnected(None, None).await;
 
