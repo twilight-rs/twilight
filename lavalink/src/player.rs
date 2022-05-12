@@ -143,7 +143,7 @@ impl Player {
     }
 
     fn _send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
-        tracing::debug!("sending event on guild player {}: {event:?}", self.guild_id,);
+        tracing::debug!("sending event on guild player {}: {event:?}", self.guild_id);
 
         match &event {
             OutgoingEvent::Pause(event) => self.paused.store(event.pause, Ordering::Release),
