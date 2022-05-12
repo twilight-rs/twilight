@@ -34,7 +34,7 @@ use twilight_model::{
 ///     .model()
 ///     .await?;
 ///
-/// println!("{:#?}", sticker);
+/// println!("{sticker:#?}");
 /// # Ok(()) }
 /// ```
 pub struct GetGuildSticker<'a> {

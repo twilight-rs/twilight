@@ -322,8 +322,8 @@ impl ShardProcessor {
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
         if !resumable {
-            tracing::debug!("shard {:?} is not resumable", shard_id);
-            tracing::debug!("shard {:?} queued", shard_id);
+            tracing::debug!("shard {shard_id:?} is not resumable");
+            tracing::debug!("shard {shard_id:?} queued");
 
             config.queue.request(shard_id).await;
 
@@ -385,7 +385,7 @@ impl ShardProcessor {
         };
 
         if resumable {
-            tracing::debug!("resuming shard {:?}", shard_id);
+            tracing::debug!("resuming shard {shard_id:?}");
 
             processor.resume().await;
         }
@@ -396,7 +396,7 @@ impl ShardProcessor {
     pub async fn run(mut self) {
         loop {
             if let Err(source) = self.next_payload().await {
-                tracing::warn!("{}", source);
+                tracing::warn!("{source}");
 
                 self.emit_disconnected(None, None).await;
 
@@ -420,15 +420,13 @@ impl ShardProcessor {
                     tracing::debug!(
                         shard_id = self.config.shard()[0],
                         shard_total = self.config.shard()[1],
-                        "processing incoming event failed: {:?}",
-                        source,
+                        "processing incoming event failed: {source:?}",
                     );
                 } else {
                     tracing::error!(
                         shard_id = self.config.shard()[0],
                         shard_total = self.config.shard()[1],
-                        "processing incoming event failed: {:?}",
-                        source,
+                        "processing incoming event failed: {source:?}",
                     );
                 }
 
@@ -636,7 +634,7 @@ impl ShardProcessor {
         }
 
         if let Err(source) = self.session.heartbeat() {
-            tracing::warn!("error sending heartbeat; reconnecting: {}", source);
+            tracing::warn!("error sending heartbeat; reconnecting: {source}");
 
             self.emit_disconnected(None, None).await;
 
@@ -648,14 +646,14 @@ impl ShardProcessor {
         #[cfg(feature = "metrics")]
         metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
 
-        tracing::debug!("got hello with interval {}", interval);
+        tracing::debug!("got hello with interval {interval}");
 
         if self.session.stage() == Stage::Resuming && self.resume.is_some() {
             // Safe to unwrap so here as we have just checked that
             // it is some.
             let (seq, id) = self.resume.take().unwrap();
 
-            tracing::debug!("resuming with sequence {}, session id {}", seq, id);
+            tracing::debug!("resuming with sequence {seq}, session id {id}");
 
             let payload = Resume::new(seq, id.clone().into_string(), self.config.token());
 
@@ -733,7 +731,7 @@ impl ShardProcessor {
 
     pub async fn send(&mut self, payload: impl Serialize) -> Result<(), SessionSendError> {
         if let Err(source) = self.session.send(payload) {
-            tracing::warn!("sending message failed: {:?}", source);
+            tracing::warn!("sending message failed: {source:?}");
 
             if matches!(source.kind(), SessionSendErrorType::Sending { .. }) {
                 self.emit_disconnected(None, None).await;
@@ -836,7 +834,7 @@ impl ShardProcessor {
         &mut self,
         close_frame: Option<&CloseFrame<'_>>,
     ) -> Result<(), ReceivingEventError> {
-        tracing::info!("got close code: {:?}", close_frame);
+        tracing::info!("got close code: {close_frame:?}");
 
         self.emit_disconnected(
             close_frame.map(|c| c.code.into()),
@@ -1028,7 +1026,7 @@ impl ShardProcessor {
             {
                 Ok(s) => s,
                 Err(source) => {
-                    tracing::warn!("reconnecting failed: {:?}", source);
+                    tracing::warn!("reconnecting failed: {source:?}");
 
                     if wait < Duration::from_secs(128) {
                         wait *= 2;
@@ -1075,8 +1073,7 @@ impl ShardProcessor {
                 seq = seq,
                 session_id = ?self.session.id(),
                 shard_id = self.config.shard()[0],
-                "failed to resume session: {:?}",
-                source,
+                "failed to resume session: {source:?}",
             );
 
             self.reconnect().await;
@@ -1119,7 +1116,7 @@ impl ShardProcessor {
         self.session = Arc::new(Session::new(tx, self.config.ratelimit_payloads));
 
         if let Err(source) = self.wtx.send(Arc::clone(&self.session)) {
-            tracing::error!("failed to broadcast new session: {:?}", source);
+            tracing::error!("failed to broadcast new session: {source:?}");
         }
 
         self.session.set_stage(stage);

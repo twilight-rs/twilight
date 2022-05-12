@@ -129,7 +129,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                         Err(why) => {
                             map.next_value::<IgnoredAny>()?;
 
-                            tracing::trace!("ran into an unknown key: {:?}", why);
+                            tracing::trace!("ran into an unknown key: {why:?}");
 
                             continue;
                         }

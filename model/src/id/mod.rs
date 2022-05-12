@@ -99,7 +99,7 @@ impl<T> Id<T> {
     ///
     /// const ID: Id<GenericMarker> = Id::new(123);
     ///
-    /// println!("id: {}", ID);
+    /// println!("id: {ID}");
     /// ```
     ///
     /// # Panics
@@ -506,7 +506,7 @@ mod tests {
     fn test_debug() {
         let id = Id::<RoleMarker>::new(114_941_315_417_899_012);
 
-        assert_eq!("Id<RoleMarker>(114941315417899012)", format!("{:?}", id));
+        assert_eq!("Id<RoleMarker>(114941315417899012)", format!("{id:?}"));
     }
 
     /// Test that display formatting an ID formats the value.

@@ -105,7 +105,7 @@ impl DayLimiter {
                     let last_check = Instant::now();
                     let next_reset = Duration::from_millis(info.session_start_limit.remaining);
 
-                    tracing::info!("next session start limit reset in: {:.2?}", next_reset);
+                    tracing::info!("next session start limit reset in: {next_reset:.2?}");
 
                     let total = info.session_start_limit.total;
                     let remaining = info.session_start_limit.remaining;

@@ -80,16 +80,16 @@ impl InMemoryRatelimiter {
 
         match buckets.entry(path.clone()) {
             Entry::Occupied(bucket) => {
-                tracing::debug!("got existing bucket: {:?}", path);
+                tracing::debug!("got existing bucket: {path:?}");
 
                 bucket.get().queue.push(tx);
 
-                tracing::debug!("added request into bucket queue: {:?}", path);
+                tracing::debug!("added request into bucket queue: {path:?}");
 
                 None
             }
             Entry::Vacant(entry) => {
-                tracing::debug!("making new bucket for path: {:?}", path);
+                tracing::debug!("making new bucket for path: {path:?}");
 
                 let bucket = Bucket::new(path);
                 bucket.queue.push(tx);
@@ -139,7 +139,7 @@ impl Ratelimiter for InMemoryRatelimiter {
     }
 
     fn ticket(&self, path: Path) -> GetTicketFuture {
-        tracing::debug!("getting bucket for path: {:?}", path);
+        tracing::debug!("getting bucket for path: {path:?}");
 
         let (tx, rx) = ticket::channel();
 

@@ -68,7 +68,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!("ran into an unknown key: {:?}", why);
+                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }

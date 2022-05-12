@@ -62,7 +62,7 @@ pub(crate) mod discriminator {
 ///
 /// This may be preferable to use instead of using `format!` to avoid a String
 /// allocation, and may also be preferable to use rather than defining your own
-/// implementations via `format_args!("{:04}", discriminator)`.
+/// implementations via `format_args!("{discriminator:04}")`.
 ///
 /// # Examples
 ///

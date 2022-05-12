@@ -280,15 +280,9 @@ impl ShardBuilder {
     #[must_use = "has no effect if not built"]
     pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         match large_threshold {
-            0..=49 => panic!(
-                "provided large threshold value {} is fewer than 50",
-                large_threshold
-            ),
+            0..=49 => panic!("provided large threshold value {large_threshold} is fewer than 50"),
             50..=250 => (),
-            251.. => panic!(
-                "provided large threshold value {} is more than 250",
-                large_threshold
-            ),
+            251.. => panic!("provided large threshold value {large_threshold} is more than 250"),
         }
 
         self.large_threshold = large_threshold;

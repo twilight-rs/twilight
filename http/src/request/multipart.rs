@@ -156,7 +156,6 @@ mod tests {
         \r\n\
         file_value\r\n\
         --{boundary}--",
-            boundary = boundary,
         );
 
         let buffer = form.build();
