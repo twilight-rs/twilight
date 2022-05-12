@@ -151,6 +151,11 @@ impl ShardBuilder {
             session_id: None,
             sequence: None,
             shard: self.shard,
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
             tls: None,
             token: self.token,
         }

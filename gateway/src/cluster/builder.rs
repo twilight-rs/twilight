@@ -1,6 +1,6 @@
 use super::{Cluster, ClusterStartError, ClusterStartErrorType, Config, Events, ShardScheme};
 use crate::{
-    shard::{tls::TlsContainer, ResumeSession, ShardBuilder},
+    shard::{ResumeSession, ShardBuilder},
     EventTypeFlags,
 };
 use std::{
@@ -15,6 +15,13 @@ use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use crate::shard::tls::TlsContainer;
 
 /// Builder to configure and construct a [`Cluster`].
 ///
@@ -69,11 +76,6 @@ impl ClusterBuilder {
     ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
-        let tls = TlsContainer::new().map_err(|err| ClusterStartError {
-            kind: ClusterStartErrorType::Tls,
-            source: Some(Box::new(err)),
-        })?;
-
         if self.shard.gateway_url.is_none() || self.shard_scheme.is_none() {
             let gateway = Self::retrieve_connect_info(&self.shard.http_client).await?;
 
@@ -92,7 +94,19 @@ impl ClusterBuilder {
 
         let mut shard_config = self.shard.into_config();
 
-        shard_config.tls = Some(tls);
+        #[cfg(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        ))]
+        {
+            let tls = TlsContainer::new().map_err(|err| ClusterStartError {
+                kind: ClusterStartErrorType::Tls,
+                source: Some(Box::new(err)),
+            })?;
+
+            shard_config.tls = Some(tls);
+        }
 
         let config = Config {
             queue: self.queue,

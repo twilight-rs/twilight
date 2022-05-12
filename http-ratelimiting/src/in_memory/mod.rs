@@ -72,21 +72,21 @@ impl InMemoryRatelimiter {
         Self::default()
     }
 
-    /// Get the [`Bucket`] for a [`Path`] and queue for a [`TicketNotifier`]
-    /// to be notified when a request may be performed.
-    fn entry(&self, path: Path, tx: TicketNotifier) -> (Arc<Bucket>, bool) {
+    /// Enqueue the [`TicketNotifier`] to the [`Path`]'s [`Bucket`].
+    ///
+    /// Returns the new [`Bucket`] if none existed.
+    fn entry(&self, path: Path, tx: TicketNotifier) -> Option<Arc<Bucket>> {
         let mut buckets = self.buckets.lock().expect("buckets poisoned");
 
         match buckets.entry(path.clone()) {
             Entry::Occupied(bucket) => {
                 tracing::debug!("got existing bucket: {:?}", path);
 
-                let bucket = bucket.into_mut();
-                bucket.queue.push(tx);
+                bucket.get().queue.push(tx);
 
                 tracing::debug!("added request into bucket queue: {:?}", path);
 
-                (Arc::clone(bucket), false)
+                None
             }
             Entry::Vacant(entry) => {
                 tracing::debug!("making new bucket for path: {:?}", path);
@@ -97,7 +97,7 @@ impl InMemoryRatelimiter {
                 let bucket = Arc::new(bucket);
                 entry.insert(Arc::clone(&bucket));
 
-                (bucket, true)
+                Some(bucket)
             }
         }
     }
@@ -142,9 +142,8 @@ impl Ratelimiter for InMemoryRatelimiter {
         tracing::debug!("getting bucket for path: {:?}", path);
 
         let (tx, rx) = ticket::channel();
-        let (bucket, fresh) = self.entry(path.clone(), tx);
 
-        if fresh {
+        if let Some(bucket) = self.entry(path.clone(), tx) {
             tokio::spawn(
                 BucketQueueTask::new(
                     bucket,
