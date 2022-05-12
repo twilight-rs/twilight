@@ -6,6 +6,7 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
+use std::collections::HashMap;
 use twilight_model::{
     application::command::{Command, CommandOption, CommandType},
     guild::Permissions,
@@ -30,8 +31,10 @@ pub struct CreateGlobalChatInputCommand<'a> {
     default_member_permissions: Option<Permissions>,
     dm_permission: Option<bool>,
     description: &'a str,
+    description_localizations: Option<&'a HashMap<String, String>>,
     http: &'a Client,
     name: &'a str,
+    name_localizations: Option<&'a HashMap<String, String>>,
     options: Option<&'a [CommandOption]>,
 }
 
@@ -51,8 +54,10 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
             default_member_permissions: None,
             dm_permission: None,
             description,
+            description_localizations: None,
             http,
             name,
+            name_localizations: None,
             options: None,
         })
     }
@@ -97,6 +102,38 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         self
     }
 
+    /// Set the localization dictionary for the command description.
+    ///
+    /// Defaults to [`None`].
+    pub fn description_localizations(
+        mut self,
+        localizations: &'a HashMap<String, String>,
+    ) -> Result<Self, CommandValidationError> {
+        for description in localizations.values() {
+            validate_description(description)?;
+        }
+
+        self.description_localizations = Some(localizations);
+
+        Ok(self)
+    }
+
+    /// Set the localization dictionary for the command name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(
+        mut self,
+        localizations: &'a HashMap<String, String>,
+    ) -> Result<Self, CommandValidationError> {
+        for name in localizations.values() {
+            validate_chat_input_name(name)?;
+        }
+
+        self.name_localizations = Some(localizations);
+
+        Ok(self)
+    }
+
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
@@ -120,8 +157,10 @@ impl TryIntoRequest for CreateGlobalChatInputCommand<'_> {
             default_member_permissions: self.default_member_permissions,
             dm_permission: self.dm_permission,
             description: Some(self.description),
+            description_localizations: self.description_localizations,
             kind: CommandType::ChatInput,
             name: self.name,
+            name_localizations: self.name_localizations,
             options: self.options,
         })
         .map(RequestBuilder::build)

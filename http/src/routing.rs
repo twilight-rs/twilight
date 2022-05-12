@@ -454,6 +454,8 @@ pub enum Route<'a> {
     GetGlobalCommands {
         /// The ID of the owner application.
         application_id: u64,
+        /// Whether to include full localization dictionaries.
+        with_localizations: Option<bool>,
     },
     /// Route information to get a guild.
     GetGuild {
@@ -485,6 +487,8 @@ pub enum Route<'a> {
         application_id: u64,
         /// The ID of the guild.
         guild_id: u64,
+        /// Whether to include full localization dictionaries.
+        with_localizations: Option<bool>,
     },
     /// Route information to get a guild's widget.
     GetGuildWidget {
@@ -1273,7 +1277,7 @@ impl<'a> Route<'a> {
                 Path::GuildsIdEmojis(guild_id)
             }
             Self::CreateGlobalCommand { application_id }
-            | Self::GetGlobalCommands { application_id }
+            | Self::GetGlobalCommands { application_id, .. }
             | Self::SetGlobalCommands { application_id } => {
                 Path::ApplicationCommand(application_id)
             }
@@ -1640,19 +1644,29 @@ impl Display for Route<'_> {
                 f.write_str("/emojis")
             }
             Route::CreateGlobalCommand { application_id }
-            | Route::GetGlobalCommands { application_id }
             | Route::SetGlobalCommands { application_id } => {
                 f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
 
                 f.write_str("/commands")
             }
+            Route::GetGlobalCommands {
+                application_id,
+                with_localizations,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/commands")?;
+
+                if let Some(with_localizations) = with_localizations {
+                    f.write_str("?with_localizations=")?;
+                    Display::fmt(with_localizations, f)?
+                }
+
+                Ok(())
+            }
             Route::CreateGuild => f.write_str("guilds"),
             Route::CreateGuildCommand {
-                application_id,
-                guild_id,
-            }
-            | Route::GetGuildCommands {
                 application_id,
                 guild_id,
             }
@@ -1666,6 +1680,24 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/commands")
+            }
+            Route::GetGuildCommands {
+                application_id,
+                guild_id,
+                with_localizations,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/commands")?;
+
+                if let Some(with_localizations) = with_localizations {
+                    f.write_str("?with_localizations=")?;
+                    Display::fmt(with_localizations, f)?;
+                }
+
+                Ok(())
             }
             Route::CreateGuildFromTemplate { template_code }
             | Route::GetTemplate { template_code } => {
@@ -2985,6 +3017,19 @@ mod tests {
     fn test_get_global_commands() {
         let route = Route::GetGlobalCommands {
             application_id: APPLICATION_ID,
+            with_localizations: Some(true),
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "applications/{application_id}/commands?with_localizations=true",
+                application_id = APPLICATION_ID
+            )
+        );
+
+        let route = Route::GetGlobalCommands {
+            application_id: APPLICATION_ID,
+            with_localizations: None,
         };
         assert_eq!(
             route.to_string(),
@@ -3026,6 +3071,21 @@ mod tests {
         let route = Route::GetGuildCommands {
             application_id: APPLICATION_ID,
             guild_id: GUILD_ID,
+            with_localizations: Some(true),
+        };
+        assert_eq!(
+            route.to_string(),
+            format!(
+                "applications/{application_id}/guilds/{guild_id}/commands?with_localizations=true",
+                application_id = APPLICATION_ID,
+                guild_id = GUILD_ID
+            )
+        );
+
+        let route = Route::GetGuildCommands {
+            application_id: APPLICATION_ID,
+            guild_id: GUILD_ID,
+            with_localizations: None,
         };
         assert_eq!(
             route.to_string(),

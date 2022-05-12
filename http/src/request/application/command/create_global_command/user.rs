@@ -6,6 +6,7 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
+use std::collections::HashMap;
 use twilight_model::{
     application::command::{Command, CommandType},
     guild::Permissions,
@@ -27,6 +28,7 @@ pub struct CreateGlobalUserCommand<'a> {
     dm_permission: Option<bool>,
     http: &'a Client,
     name: &'a str,
+    name_localizations: Option<&'a HashMap<String, String>>,
 }
 
 impl<'a> CreateGlobalUserCommand<'a> {
@@ -43,6 +45,7 @@ impl<'a> CreateGlobalUserCommand<'a> {
             dm_permission: None,
             http,
             name,
+            name_localizations: None,
         })
     }
 
@@ -62,6 +65,22 @@ impl<'a> CreateGlobalUserCommand<'a> {
         self.dm_permission = Some(dm_permission);
 
         self
+    }
+
+    /// Set the localization dictionary for the command name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(
+        mut self,
+        localizations: &'a HashMap<String, String>,
+    ) -> Result<Self, CommandValidationError> {
+        for name in localizations.values() {
+            validate_name(name)?;
+        }
+
+        self.name_localizations = Some(localizations);
+
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -87,8 +106,10 @@ impl TryIntoRequest for CreateGlobalUserCommand<'_> {
             default_member_permissions: self.default_member_permissions,
             dm_permission: self.dm_permission,
             description: None,
+            description_localizations: None,
             kind: CommandType::User,
             name: self.name,
+            name_localizations: self.name_localizations,
             options: None,
         })
         .map(RequestBuilder::build)
