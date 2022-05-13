@@ -147,7 +147,7 @@ pub trait Ratelimiter: Debug + Send + Sync {
     fn bucket(&self, path: &Path) -> GetBucketFuture;
 
     /// Whether the ratelimiter is currently globally locked.
-    fn globally_locked(&self) -> IsGloballyLockedFuture;
+    fn is_globally_locked(&self) -> IsGloballyLockedFuture;
 
     /// Determine if the ratelimiter has a bucket for the given path.
     fn has(&self, path: &Path) -> HasBucketFuture;
