@@ -92,6 +92,18 @@ impl ClusterBuilder {
             }
         }
 
+        #[cfg(not(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        )))]
+        let shard_config = self.shard.into_config();
+
+        #[cfg(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        ))]
         let mut shard_config = self.shard.into_config();
 
         #[cfg(any(
