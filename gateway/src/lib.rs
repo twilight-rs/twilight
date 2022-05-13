@@ -42,12 +42,3 @@ pub use twilight_model::gateway::event::{Event, EventType};
 
 /// Discord API version used by this crate.
 pub const API_VERSION: u8 = 10;
-
-#[cfg(not(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-)))]
-compile_error!(
-    "Either the `native`, `rustls-native-roots` or `rustls-webpki-roots` feature must be enabled."
-);

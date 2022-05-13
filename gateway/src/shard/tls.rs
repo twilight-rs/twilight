@@ -60,10 +60,7 @@ impl TlsError {
 
 impl Display for TlsError {
     // If TlsErrorType is an empty type f is not used.
-    #[cfg_attr(
-        not(any(feature = "native", feature = "rustls-native-roots")),
-        allow(unused)
-    )]
+    #[cfg_attr(feature = "rustls-webpki-roots", allow(unused))]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
             #[cfg(all(
@@ -106,7 +103,7 @@ pub enum TlsErrorType {
 #[cfg_attr(
     all(
         feature = "native",
-        not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
+        not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots")),
     ),
     derive(Debug)
 )]

@@ -99,6 +99,17 @@ impl Interaction {
             Interaction::ModalSubmit(_) => InteractionType::ModalSubmit,
         }
     }
+
+    /// Token of the interaction.
+    pub fn token(&self) -> &str {
+        match self {
+            Self::Ping(ping) => &ping.token,
+            Self::ApplicationCommand(command) => &command.token,
+            Self::ApplicationCommandAutocomplete(command) => &command.token,
+            Self::MessageComponent(component) => &component.token,
+            Self::ModalSubmit(modal) => &modal.token,
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for Interaction {
