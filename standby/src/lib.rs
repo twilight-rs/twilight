@@ -883,7 +883,6 @@ impl Standby {
 
         let mut results = ProcessResults::new();
 
-        #[cfg_attr(not(feature = "tracing"), allow(clippy::let_and_return))]
         map.retain(|id, bystander| {
             let result = Self::bystander_process(bystander, event);
             results.handle(result);
