@@ -22,12 +22,28 @@
 //! let cache = InMemoryCache::builder().resource_types(resource_types).build();
 //! ```
 //!
+//! # Disabled Member Communication Caveats
+//!
+//! The permission calculator checks the [current system time] against when a
+//! given member had their [communication disabled until]. If a member's
+//! communication is disabled, then they are restricted to
+//! [read-only permissions]. If the system time is incorrect then this may
+//! result in invalid behavior. This behavior can be opted out of via
+//! [`InMemoryCachePermissions::check_member_communication_disabled`].
+//!
 //! [`ResourceType`]: crate::ResourceType
+//! [`in_channel`]: InMemoryCachePermissions::in_channel
+//! [`root`]: InMemoryCachePermissions::root
+//! [communication timed out until]: CachedMember::communication_disabled_until
+//! [current system time]: SystemTime::now
+//! [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
 
 use super::InMemoryCache;
+use crate::model::member::CachedMember;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    time::{Duration, SystemTime},
 };
 use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
@@ -38,6 +54,18 @@ use twilight_model::{
     },
 };
 use twilight_util::permission_calculator::PermissionCalculator;
+
+/// Permissions a member is allowed to have when their
+/// [communication has been disabled].
+///
+/// Refer to the [module level] documentation for more information on how
+/// disabled member communication is calculated.
+///
+/// [communication has been disabled]: CachedMember::communication_disabled_until
+/// [module level]: crate::permission
+pub const MEMBER_COMMUNICATION_DISABLED_ALLOWLIST: Permissions = Permissions::from_bits_truncate(
+    Permissions::READ_MESSAGE_HISTORY.bits() | Permissions::VIEW_CHANNEL.bits(),
+);
 
 /// Error calculating permissions with the information in a cache.
 #[derive(Debug)]
@@ -69,9 +97,6 @@ impl ChannelError {
     fn from_member_roles(member_roles_error: MemberRolesErrorType) -> Self {
         Self {
             kind: match member_roles_error {
-                MemberRolesErrorType::MemberMissing { guild_id, user_id } => {
-                    ChannelErrorType::MemberUnavailable { guild_id, user_id }
-                }
                 MemberRolesErrorType::RoleMissing { role_id } => {
                     ChannelErrorType::RoleUnavailable { role_id }
                 }
@@ -195,9 +220,6 @@ impl RootError {
     fn from_member_roles(member_roles_error: MemberRolesErrorType) -> Self {
         Self {
             kind: match member_roles_error {
-                MemberRolesErrorType::MemberMissing { guild_id, user_id } => {
-                    RootErrorType::MemberUnavailable { guild_id, user_id }
-                }
                 MemberRolesErrorType::RoleMissing { role_id } => {
                     RootErrorType::RoleUnavailable { role_id }
                 }
@@ -259,13 +281,6 @@ pub enum RootErrorType {
 /// Error type that occurred while getting a member's assigned roles'
 /// permissions as well as the `@everyone` role's permissions.
 enum MemberRolesErrorType {
-    /// Member is not in the cache.
-    MemberMissing {
-        /// ID of the guild.
-        guild_id: Id<GuildMarker>,
-        /// ID of the user.
-        user_id: Id<UserMarker>,
-    },
     /// Role is missing from the cache.
     RoleMissing { role_id: Id<RoleMarker> },
 }
@@ -280,27 +295,54 @@ struct MemberRoles {
 
 /// Calculate the permissions of a member with information from the cache.
 #[derive(Clone, Debug)]
-pub struct InMemoryCachePermissions<'a>(&'a InMemoryCache);
+pub struct InMemoryCachePermissions<'a> {
+    cache: &'a InMemoryCache,
+    check_member_communication_disabled: bool,
+}
 
 impl<'a> InMemoryCachePermissions<'a> {
     pub(super) const fn new(cache: &'a InMemoryCache) -> Self {
-        Self(cache)
+        Self {
+            cache,
+            check_member_communication_disabled: true,
+        }
     }
 
     /// Immutable reference to the underlying cache.
     pub const fn cache_ref(&'a self) -> &'a InMemoryCache {
-        self.0
+        self.cache
     }
 
     /// Consume the statistics interface, returning the underlying cache
     /// reference.
     pub const fn into_cache(self) -> &'a InMemoryCache {
-        self.0
+        self.cache
+    }
+
+    /// Whether to check whether a [member's communication is disabled][field].
+    ///
+    /// Refer to the [module level] documentation for information and caveats.
+    ///
+    /// Defaults to being enabled.
+    ///
+    /// [field]: CachedMember::communication_disabled_until
+    /// [module level]: crate::permission
+    pub const fn check_member_communication_disabled(
+        mut self,
+        check_member_communication_disabled: bool,
+    ) -> Self {
+        self.check_member_communication_disabled = check_member_communication_disabled;
+
+        self
     }
 
     /// Calculate the permissions of a member in a guild channel.
     ///
     /// Returns [`Permissions::all`] if the user is the owner of the guild.
+    ///
+    /// If the member's [communication has been disabled] then they will be
+    /// restricted to [read-only permissions]. Refer to the [module level]
+    /// documentation for more information.
     ///
     /// The following [`ResourceType`]s must be enabled:
     ///
@@ -345,12 +387,15 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
+    /// [communication has been disabled]: CachedMember::communication_disabled_until
+    /// [module level]: crate::permission
+    /// [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
     pub fn in_channel(
         &self,
         user_id: Id<UserMarker>,
         channel_id: Id<ChannelMarker>,
     ) -> Result<Permissions, ChannelError> {
-        let channel = self.0.channels.get(&channel_id).ok_or(ChannelError {
+        let channel = self.cache.channels.get(&channel_id).ok_or(ChannelError {
             kind: ChannelErrorType::ChannelUnavailable { channel_id },
             source: None,
         })?;
@@ -364,8 +409,13 @@ impl<'a> InMemoryCachePermissions<'a> {
             return Ok(Permissions::all());
         }
 
+        let member = self.cache.member(guild_id, user_id).ok_or(ChannelError {
+            kind: ChannelErrorType::MemberUnavailable { guild_id, user_id },
+            source: None,
+        })?;
+
         let MemberRoles { assigned, everyone } = self
-            .member_roles(user_id, guild_id)
+            .member_roles(&member)
             .map_err(ChannelError::from_member_roles)?;
 
         let overwrites = match channel.kind {
@@ -380,14 +430,16 @@ impl<'a> InMemoryCachePermissions<'a> {
 
         let permissions = calculator.in_channel(channel.kind, overwrites.as_slice());
 
-        Ok(self
-            .communication_disabled_perms(permissions, user_id, guild_id)
-            .unwrap_or(permissions))
+        Ok(self.disable_member_communication(&member, permissions))
     }
 
     /// Calculate the guild-level permissions of a member.
     ///
     /// Returns [`Permissions::all`] if the user is the owner of the guild.
+    ///
+    /// If the member's [communication has been disabled] then they will be
+    /// restricted to [read-only permissions]. Refer to the [module level]
+    /// documentation for more information.
     ///
     /// The following [`ResourceType`]s must be enabled:
     ///
@@ -427,6 +479,9 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
+    /// [communication has been disabled]: CachedMember::communication_disabled_until
+    /// [module level]: crate::permission
+    /// [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
     pub fn root(
         &self,
         user_id: Id<UserMarker>,
@@ -436,17 +491,66 @@ impl<'a> InMemoryCachePermissions<'a> {
             return Ok(Permissions::all());
         }
 
+        let member = self.cache.member(guild_id, user_id).ok_or(RootError {
+            kind: RootErrorType::MemberUnavailable { guild_id, user_id },
+            source: None,
+        })?;
+
         let MemberRoles { assigned, everyone } = self
-            .member_roles(user_id, guild_id)
+            .member_roles(&member)
             .map_err(RootError::from_member_roles)?;
         let calculator =
             PermissionCalculator::new(guild_id, user_id, everyone, assigned.as_slice());
 
         let permissions = calculator.root();
 
-        Ok(self
-            .communication_disabled_perms(permissions, user_id, guild_id)
-            .unwrap_or(permissions))
+        Ok(self.disable_member_communication(&member, permissions))
+    }
+
+    /// Determine whether the provided member is disabled and restrict them to
+    /// [read-only permissions] if they are.
+    ///
+    /// Only members whose [`communication_disabled_until`] values is in the
+    /// future count as being currently disabled. Members with the
+    /// [administrator permission] are never disabled.
+    ///
+    /// [`communication_disabled_until`]: CachedMember::communication_disabled_until
+    /// [administrator permission]: Permissions::ADMINISTRATOR
+    /// [read-only permissions]: MEMBER_COMMUNICATION_DISABLED_ALLOWLIST
+    fn disable_member_communication(
+        &self,
+        member: &CachedMember,
+        permissions: Permissions,
+    ) -> Permissions {
+        if !self.check_member_communication_disabled {
+            return permissions;
+        }
+
+        // Administrators are never disabled.
+        if permissions.contains(Permissions::ADMINISTRATOR) {
+            return permissions;
+        }
+
+        let micros = if let Some(until) = member.communication_disabled_until() {
+            until.as_micros()
+        } else {
+            return permissions;
+        };
+
+        let absolute = if let Ok(absolute) = micros.try_into() {
+            absolute
+        } else {
+            return permissions;
+        };
+
+        let ends = SystemTime::UNIX_EPOCH + Duration::from_micros(absolute);
+        let now = SystemTime::now();
+
+        if now > ends {
+            return permissions;
+        }
+
+        permissions.intersection(MEMBER_COMMUNICATION_DISABLED_ALLOWLIST)
     }
 
     /// Determine whether a given user is the owner of a guild.
@@ -454,27 +558,11 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// Returns true if the user is or false if the user is definitively not the
     /// owner of the guild or the guild is not in the cache.
     fn is_owner(&self, user_id: Id<UserMarker>, guild_id: Id<GuildMarker>) -> bool {
-        self.0
+        self.cache
             .guilds
             .get(&guild_id)
             .map(|r| r.owner_id == user_id)
             .unwrap_or_default()
-    }
-
-    fn communication_disabled_perms(
-        &self,
-        permissions: Permissions,
-        user_id: Id<UserMarker>,
-        guild_id: Id<GuildMarker>,
-    ) -> Option<Permissions> {
-        (!permissions.contains(Permissions::ADMINISTRATOR)
-            && self
-                .0
-                .member(guild_id, user_id)
-                .map_or(false, |r| r.communication_disabled_until.is_some()))
-        .then(|| {
-            permissions.intersection(Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY)
-        })
     }
 
     /// Retrieve a member's roles' permissions and the guild's `@everyone`
@@ -482,26 +570,13 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// # Errors
     ///
-    /// Returns [`MemberRolesErrorType::MemberMissing`] if the member is missing
-    /// from the cache.
-    ///
     /// Returns [`MemberRolesErrorType::RoleMissing`] if a role is missing from
     /// the cache.
-    fn member_roles(
-        &self,
-        user_id: Id<UserMarker>,
-        guild_id: Id<GuildMarker>,
-    ) -> Result<MemberRoles, MemberRolesErrorType> {
-        let member = if let Some(member) = self.0.members.get(&(guild_id, user_id)) {
-            member
-        } else {
-            return Err(MemberRolesErrorType::MemberMissing { guild_id, user_id });
-        };
-
+    fn member_roles(&self, member: &'a CachedMember) -> Result<MemberRoles, MemberRolesErrorType> {
         let mut member_roles = Vec::with_capacity(member.roles.len());
 
         for role_id in &member.roles {
-            let role = if let Some(role) = self.0.roles.get(role_id) {
+            let role = if let Some(role) = self.cache.roles.get(role_id) {
                 role
             } else {
                 return Err(MemberRolesErrorType::RoleMissing { role_id: *role_id });
@@ -511,9 +586,9 @@ impl<'a> InMemoryCachePermissions<'a> {
         }
 
         // Assume that the `@everyone` role is always present, so do this last.
-        let everyone_role_id = guild_id.cast();
+        let everyone_role_id = member.guild_id().cast();
 
-        if let Some(everyone_role) = self.0.roles.get(&everyone_role_id) {
+        if let Some(everyone_role) = self.cache.roles.get(&everyone_role_id) {
             Ok(MemberRoles {
                 assigned: member_roles,
                 everyone: everyone_role.permissions,
@@ -538,7 +613,7 @@ impl<'a> InMemoryCachePermissions<'a> {
             source: None,
         })?;
 
-        let channel = self.0.channels.get(&parent_id).ok_or(ChannelError {
+        let channel = self.cache.channels.get(&parent_id).ok_or(ChannelError {
             kind: ChannelErrorType::ChannelUnavailable {
                 channel_id: parent_id,
             },
@@ -574,7 +649,12 @@ mod tests {
     };
     use crate::{test, InMemoryCache};
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{error::Error, fmt::Debug, str::FromStr};
+    use std::{
+        error::Error,
+        fmt::Debug,
+        str::FromStr,
+        time::{Duration, SystemTime},
+    };
     use twilight_model::{
         channel::{
             permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
@@ -931,20 +1011,58 @@ mod tests {
         Ok(())
     }
 
-    /// Test that [`in_channel`] and [`root`] both return [`Permissions::VIEW_CHANNEL | Permissions::READ_MESSAGE_HISTORY`]
-    /// if the user is timed out and does not have [`Permissions::ADMINISTRATOR`]
+    /// Test the behavior of a member having their communication disabled.
+    ///
+    /// In particular, we want to test that:
+    ///
+    /// - if a member is timed out they will be limited to the intersection of
+    /// the [`Permissions::READ_MESSAGE_HISTORY`] and
+    /// [`Permissions::VIEW_CHANNEL`] permissions on a [guild level][`root`]
+    /// - the same is true on a [channel level][`in_channel`]
+    /// - administrators are never timed out
+    /// - checking whether the member's communication is disabled is configurable
     ///
     /// [`in_channel`]: super::InMemoryCachePermissions::in_channel
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
-    fn test_communication_disabled() -> Result<(), Box<dyn Error>> {
-        let cache = InMemoryCache::new();
-        let permissions = cache.permissions();
+    fn test_member_communication_disabled() -> Result<(), Box<dyn Error>> {
+        fn acceptable_time(in_future: bool) -> Result<Timestamp, Box<dyn Error>> {
+            const TIME_RANGE: Duration = Duration::from_secs(60);
 
-        cache.update(&GuildCreate(base_guild()));
+            let now = SystemTime::now();
+
+            let system_time = if in_future {
+                now + TIME_RANGE
+            } else {
+                now - TIME_RANGE
+            };
+
+            let since = system_time.duration_since(SystemTime::UNIX_EPOCH)?;
+            let micros = since.as_micros().try_into()?;
+
+            Timestamp::from_micros(micros).map_err(From::from)
+        }
+
+        let cache = InMemoryCache::new();
+        let mut permissions = cache.permissions();
+
+        let in_past = acceptable_time(false)?;
+        let in_future = acceptable_time(true)?;
+
+        let mut guild = base_guild();
+        let everyone_permissions = Permissions::CREATE_INVITE
+            | Permissions::READ_MESSAGE_HISTORY
+            | Permissions::VIEW_AUDIT_LOG
+            | Permissions::VIEW_CHANNEL;
+        guild.roles = Vec::from([role_with_permissions(
+            EVERYONE_ROLE_ID,
+            everyone_permissions,
+        )]);
+
+        cache.update(&GuildCreate(guild));
         cache.update(&MemberAdd({
             let mut member = test::member(USER_ID, GUILD_ID);
-            member.communication_disabled_until = Some(Timestamp::from_secs(1).unwrap());
+            member.communication_disabled_until = Some(in_future);
             member
         }));
         assert_eq!(
@@ -958,9 +1076,19 @@ mod tests {
             permissions.in_channel(USER_ID, CHANNEL_ID)?
         );
 
+        // check that comparison can be disabled
+        permissions = permissions.check_member_communication_disabled(false);
+        assert_eq!(everyone_permissions, permissions.root(USER_ID, GUILD_ID)?);
+        permissions = permissions.check_member_communication_disabled(true);
+
+        // check administrators are never disabled
+        cache.update(&role_create(
+            GUILD_ID,
+            role_with_permissions(OTHER_ROLE_ID, Permissions::ADMINISTRATOR),
+        ));
         cache.update(&MemberUpdate {
             avatar: None,
-            communication_disabled_until: None,
+            communication_disabled_until: Some(in_past),
             guild_id: GUILD_ID,
             deaf: None,
             joined_at: Timestamp::from_secs(1).unwrap(),
@@ -971,14 +1099,7 @@ mod tests {
             roles: Vec::from([OTHER_ROLE_ID]),
             user: test::user(USER_ID),
         });
-        cache.update(&role_create(
-            GUILD_ID,
-            role_with_permissions(OTHER_ROLE_ID, Permissions::ADMINISTRATOR),
-        ));
-        assert_eq!(
-            Permissions::ADMINISTRATOR,
-            permissions.root(USER_ID, GUILD_ID)?
-        );
+        assert_eq!(Permissions::all(), permissions.root(USER_ID, GUILD_ID)?);
 
         Ok(())
     }
