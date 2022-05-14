@@ -48,7 +48,7 @@ pub struct ModalInteractionDataComponent {
     pub custom_id: String,
     #[serde(rename = "type")]
     pub kind: ComponentType,
-    pub value: String,
+    pub value: Option<String>,
 }
 
 #[cfg(test)]
