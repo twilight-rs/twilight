@@ -7,7 +7,7 @@ use futures_util::{
 use std::time::Duration;
 use tokio::{
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
-    time::sleep,
+    time::timeout,
 };
 use tokio_tungstenite::tungstenite::Message;
 
@@ -43,16 +43,13 @@ impl SocketForwarder {
 
         loop {
             tokio::pin! {
-                let timeout = sleep(Self::TIMEOUT);
                 let rx = self.rx.recv();
                 let tx = self.stream.next();
             }
 
-            let select_message = future::select(rx, tx);
-
-            match future::select(select_message, timeout).await {
+            match timeout(Self::TIMEOUT, future::select(rx, tx)).await {
                 // `rx` future finished first.
-                Either::Left((Either::Left((maybe_msg, _)), _)) => {
+                Ok(Either::Left((maybe_msg, _))) => {
                     if let Some(msg) = maybe_msg {
                         #[cfg(feature = "tracing")]
                         tracing::trace!("sending message: {}", msg);
@@ -73,7 +70,7 @@ impl SocketForwarder {
                     }
                 }
                 // `tx` future finished first.
-                Either::Left((Either::Right((try_msg, _)), _)) => match try_msg {
+                Ok(Either::Right((try_msg, _))) => match try_msg {
                     Some(Ok(msg)) => {
                         if self.tx.send(msg).is_err() {
                             break;
@@ -93,7 +90,7 @@ impl SocketForwarder {
                     }
                 },
                 // Timeout future finished first.
-                Either::Right(_) => {
+                Err(_) => {
                     #[cfg(feature = "tracing")]
                     tracing::warn!("socket timed out");
 
