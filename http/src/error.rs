@@ -166,7 +166,7 @@ mod tests {
             &expected,
             &[
                 Token::Struct {
-                    name: "Ratelimited",
+                    name: "Ratelimit",
                     len: 2,
                 },
                 Token::Str("global"),
