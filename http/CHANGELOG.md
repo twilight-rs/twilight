@@ -2,6 +2,17 @@
 
 Changelog for `twilight-http`.
 
+## [0.10.3] - 2022-05-15
+
+### Additions
+
+Display API v8 errors for error printing ([#1719] - [@vilgotf]).
+
+Support Get Guild Bans request pagination ([#1657] - [@zeylahellyer]).
+
+[#1719]: https://github.com/twilight-rs/twilight/pull/1719
+[#1657]: https://github.com/twilight-rs/twilight/pull/1657
+
 ## [0.10.2] - 2022-04-15
 
 ### Additions
@@ -69,7 +80,7 @@ Fix a typo, renaming `communication_disabled_util` to
 ### InteractionClient
 
 `InteractionClient` functions have been renamed with a consistent style
-([#1433] - [@7596ff]): 
+([#1433] - [@7596ff]):
 
 | New                          | Old                             |
 | ---------------------------- | ------------------------------- |
@@ -300,7 +311,7 @@ The following functions now perform validation:
 Add a sealed trait located at `request::TryIntoRequest` for converting a typed
 request builder into a raw `request::Request` ([#1162] - [@zeylahellyer]). This
 allows users to inspect requests prior to sending them which may be useful for
-debugging and unit testing. 
+debugging and unit testing.
 
 Support guild scheduled events ([#1347] - [@7596ff]). Adds the following
 methods: `Client::create_guild_scheduled_event`,
