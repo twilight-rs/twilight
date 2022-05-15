@@ -2,6 +2,17 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.10.2] - 2022-05-15
+
+Support gateway connections without TLS ([#1483], [#1727] - [@vilgotf]).
+
+Prominently document member chunking with an example
+([#1678] - [@zeylahellyer]).
+
+[#1727]: https://github.com/twilight-rs/twilight/pull/1727
+[#1678]: https://github.com/twilight-rs/twilight/pull/1678
+[#1483]: https://github.com/twilight-rs/twilight/pull/1483
+
 ## [0.10.1] - 2022-03-20
 
 ### Changes
@@ -797,6 +808,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.1
