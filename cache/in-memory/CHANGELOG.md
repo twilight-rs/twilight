@@ -2,6 +2,11 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.10.4] - 2022-05-15
+
+Pin `dashmap` to 5.3 to receive library security fixes. This bumps the crate's
+MSRV to 1.59.
+
 ## [0.10.3] - 2022-05-15
 
 ### Additions
@@ -728,6 +733,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.10.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.4
 [0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.3
 [0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.1
