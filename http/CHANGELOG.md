@@ -2,6 +2,46 @@
 
 Changelog for `twilight-http`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Additions
+
+Support Application Command Permissions V2 ([#1708] - [@baptiste0928]).
+
+Support command localization via `description_localizations` and
+`name_localizations` fields on request builders ([#1701] - [@baptiste0928]).
+
+### Changes
+
+`Route::GetGuildScheduledEventUsers` now defers to Discord's default values if
+none are provided ([#1692] - [@zeylahellyer]).
+
+Make image data values take a slice of bytes instead of a string slice
+([#1618] - [@itohatweb]).
+
+Take a boolean parameter for `CreateMessage::fail_if_not_exists`
+([#1707] - [@itohatweb]).
+
+Validate webhook usernames, now returning an error if invalid ([#1586] - [@7596ff]).
+
+Remove the `Set Command Permissions` request and `dm_permission` field
+([#1708], [#1706] - [@baptiste0928]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1708]: https://github.com/twilight-rs/twilight/pull/1708
+[#1707]: https://github.com/twilight-rs/twilight/pull/1707
+[#1706]: https://github.com/twilight-rs/twilight/pull/1706
+[#1701]: https://github.com/twilight-rs/twilight/pull/1701
+[#1692]: https://github.com/twilight-rs/twilight/pull/1692
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+[#1618]: https://github.com/twilight-rs/twilight/pull/1618
+[#1586]: https://github.com/twilight-rs/twilight/pull/1586
+
 ## [0.10.3] - 2022-05-15
 
 ### Additions
@@ -1881,6 +1921,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.11.0
 [0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.0
