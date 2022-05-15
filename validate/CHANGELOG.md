@@ -2,6 +2,23 @@
 
 Changelog for `twilight-validate`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Additions
+
+Support validating webhook usernames under the `request` module
+([#1586] - [@7596ff]).
+
+### Changes
+
+Rename `COMPONENT_LABEL_LENGTH` constant to `COMPONENT_BUTTON_LABEL_LENGTH`
+([#1634] - [@itohatweb]).
+
+[#1634]: https://github.com/twilight-rs/twilight/pull/1634
+[#1586]: https://github.com/twilight-rs/twilight/pull/1586
+
 ## [0.10.3] - 2022-05-15
 
 ### Additions
@@ -106,11 +123,12 @@ Initial release ([#1331], [#1395] - [@7596ff], [@baptiste0928]).
 
 [@7596ff]: https://github.com/7596ff
 [@baptiste0928]: https://github.com/baptiste0928
-[@itohatweb]: https://github.com/itohatweb
 [@Erk-]: https://github.com/Erk-
+[@itohatweb]: https://github.com/itohatweb
 [@laralove143]: https://github.com/laralove143
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.11.0
 [0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.10.3
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.10.0
