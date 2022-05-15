@@ -12,7 +12,7 @@ caching things like guilds, channels, users, and voice states.
 
 Statistics can be an important debugging tool for determining how large a
 cache is or determining whether a cache has an expected amount of resources
-within it. [An interface] for retrieving statistics about the amount of a
+within it. An interface for retrieving statistics about the amount of a
 resource within the cache as a whole or on a guild-level can be retrieved
 via [`InMemoryCache::stats`].
 
