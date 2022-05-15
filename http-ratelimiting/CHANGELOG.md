@@ -2,6 +2,14 @@
 
 Changelog for `twilight-http-ratelimiting`.
 
+## [0.10.2] - 2022-05-15
+
+### Additions
+
+Catch erroneous bool header values ([#1724] - [@vilgotf]).
+
+[#1724]: https://github.com/twilight-rs/twilight/pull/1724
+
 ## [0.10.1] - 2022-04-15
 
 ### Changes
@@ -103,6 +111,7 @@ For webhooks, the token is now a major parameter ([#1263] -
 [@vilgotf]: https://github.com/vilgotf
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.9.0
