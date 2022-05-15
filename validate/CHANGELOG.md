@@ -2,6 +2,14 @@
 
 Changelog for `twilight-validate`.
 
+## [0.10.3] - 2022-05-15
+
+### Additions
+
+Support Get Guild Bans request pagination ([#1657] - [@zeylahellyer]).
+
+[#1657]: https://github.com/twilight-rs/twilight/pull/1657
+
 ## [0.10.2] - 2022-04-15
 
 ### Additions
@@ -101,7 +109,9 @@ Initial release ([#1331], [#1395] - [@7596ff], [@baptiste0928]).
 [@itohatweb]: https://github.com/itohatweb
 [@Erk-]: https://github.com/Erk-
 [@laralove143]: https://github.com/laralove143
+[@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.10.3
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.10.0
 [0.9.2]: https://github.com/twilight-rs/twilight/releases/tag/validate-0.9.2
