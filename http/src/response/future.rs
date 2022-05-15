@@ -129,7 +129,6 @@ impl InFlight {
                 Ok(v) => {
                     let _res = tx.headers(Some(v));
                 }
-                #[cfg_attr(not(feature = "tracing"), allow(unused_variables))]
                 Err(source) => {
                     tracing::warn!("header parsing failed: {source:?}; {resp:?}");
 

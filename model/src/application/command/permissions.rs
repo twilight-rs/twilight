@@ -67,7 +67,6 @@ impl<'de> Deserialize<'de> for CommandPermissions {
             }
             CommandPermissionsDataType::Channel => {
                 let id = data.id.cast();
-                #[cfg(feature = "tracing")]
                 tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 CommandPermissionsType::Channel(id)

@@ -90,9 +90,6 @@ impl DayLimiter {
         })))
     }
 
-    // `clippy::needless_return` lint doesn't work on an item scope, so it needs
-    // to be applied on the function scope.
-    #[cfg_attr(not(feature = "tracing"), allow(clippy::needless_return))]
     pub async fn get(&self) {
         let mut lock = self.0.lock().await;
         if lock.current < lock.total {
