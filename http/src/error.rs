@@ -1,5 +1,6 @@
-use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
+use crate::{json::JsonError, response::StatusCode};
 use hyper::{Body, Response};
+use serde::{Deserialize, Serialize};
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -110,7 +111,7 @@ pub enum ErrorType {
     RequestTimedOut,
     Response {
         body: Vec<u8>,
-        error: ApiError,
+        ratelimit: Option<Ratelimit>,
         status: StatusCode,
     },
     /// API service is unavailable. Consider re-sending the request at a
@@ -125,4 +126,55 @@ pub enum ErrorType {
     /// This can occur if a bot token is invalidated or an access token expires
     /// or is revoked. Recreate the client to configure a new token.
     Unauthorized,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
+pub struct Ratelimit {
+    /// Whether the ratelimit is global.
+    pub global: bool,
+    /// Amount of time to wait before retrying.
+    pub retry_after: f64,
+}
+
+impl Display for Ratelimit {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if self.global {
+            f.write_str("globally ")?;
+        }
+
+        f.write_str("ratelimited for ")?;
+        Display::fmt(&self.retry_after, f)?;
+
+        f.write_str("s")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Ratelimit;
+    use serde_test::Token;
+
+    #[test]
+    fn test_ratelimited_api_error() {
+        let expected = Ratelimit {
+            global: true,
+            retry_after: 6.457,
+        };
+
+        serde_test::assert_ser_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "Ratelimited",
+                    len: 2,
+                },
+                Token::Str("global"),
+                Token::Bool(true),
+                Token::Str("retry_after"),
+                Token::F64(6.457),
+                Token::StructEnd,
+            ],
+        );
+    }
 }
