@@ -2,6 +2,37 @@
 
 Changelog for `twilight-model`.
 
+## [0.10.3] - 2022-05-15
+
+### Additions
+
+Add getter for retrieving interaction tokens ([#1698] - [@laralove143]).
+
+Document interaction types valid for modal submitting
+([#1697] - [@laralove143]).
+
+Add `USE_EXTERNAL_STICKERS` permission ([#1694] - [@itohatweb]).
+
+Add `MANAGE_EVENTS` permission ([#1693] - [@itohatweb]).
+
+Document expected types of interactions ([#1687] - [@vilgotf]).
+
+Document message content intent caveats on fields
+([#1677] - [@itohatweb], [@zeylahellyer]).
+
+### Fixes
+
+Skip serializing `ModalSubmitInteraction::message` if none
+([#1705] - [@itohatweb]).
+
+[#1705]: https://github.com/twilight-rs/twilight/pull/1705
+[#1698]: https://github.com/twilight-rs/twilight/pull/1698
+[#1697]: https://github.com/twilight-rs/twilight/pull/1697
+[#1694]: https://github.com/twilight-rs/twilight/pull/1694
+[#1693]: https://github.com/twilight-rs/twilight/pull/1693
+[#1687]: https://github.com/twilight-rs/twilight/pull/1687
+[#1677]: https://github.com/twilight-rs/twilight/pull/1677
+
 ## [0.10.2] - 2022-04-15
 
 ### Additions
@@ -37,7 +68,7 @@ Standardize documentation on `Interaction` types ([#1620] - [@vilgotf]).
 
 Rename `CurrentApplicationInfo` to `Application` ([#1648] - [@zeylahellyer]).
 Additionally, restructure the `oauth` module and deprecate old exports of its
-types. 
+types.
 
 Update `UserFlags::HYPESQUAD` docs ([#1658] - [@zeylahellyer]).
 
@@ -140,7 +171,7 @@ renamed to `InteractionResponseData`.
 
 `PermissionOverwrite` now has a separate type in `model::http`; it differs from
 a received `PermissionOverwrite` in that its `allow` and `deny` fields are
-optional. 
+optional.
 
 ### Additions
 
@@ -1485,6 +1516,7 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.3
 [0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.0
