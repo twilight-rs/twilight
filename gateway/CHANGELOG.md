@@ -2,6 +2,44 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Additions
+
+Support Guild Scheduled Events gateway events ([#1574] - [@itohatweb]).
+
+Support Application Command Permissions V2's `COMMAND_PERMISSIONS_UPDATE`
+event ([#1708] - [@baptiste0928]).
+
+### Fixes
+
+Deduplicate `EventTypeFlags`' `GATEWAY_INVALIDATE_SESSION` value from
+`GATEWAY_HELLO` ([#1577] - [@7596ff]).
+
+### Changes
+
+Panic instead of returning an error on `ClusterBuilder::large_threshold` and
+`ShardBuilder::large_threshold` ([#1599] - [@vilgotf]).
+
+Remove `ShardScheme::Auto` and make it the cluster default ([#1600] - [@vilgotf]).
+
+Remove option around parameter in `ClusterBuilder::gateway_url` and
+`ShardBuilder::gateway_url` ([#1601] - [@vilgotf]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+[#1601]: https://github.com/twilight-rs/twilight/pull/1601
+[#1600]: https://github.com/twilight-rs/twilight/pull/1600
+[#1599]: https://github.com/twilight-rs/twilight/pull/1599
+[#1574]: https://github.com/twilight-rs/twilight/pull/1574
+[#1577]: https://github.com/twilight-rs/twilight/pull/1577
+[#1574]: https://github.com/twilight-rs/twilight/pull/1574
+
 ## [0.10.2] - 2022-05-15
 
 Support gateway connections without TLS ([#1483], [#1727] - [@vilgotf]).
@@ -776,6 +814,7 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
+[@baptiste0928]: https://github.com/baptiste0928
 [@chamburr]: https://github.com/chamburr
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
@@ -808,6 +847,7 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.11.0
 [0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.0
