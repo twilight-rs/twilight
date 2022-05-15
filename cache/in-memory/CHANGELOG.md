@@ -2,6 +2,14 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+This major version bump of the Cache crate is done to match all
+of the other crates in the ecosystem receiving a major version bump.
+There are no changes.
+
 ## [0.10.4] - 2022-05-15
 
 Pin `dashmap` to 5.3 to receive library security fixes. This bumps the crate's
@@ -733,6 +741,7 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.11.0
 [0.10.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.4
 [0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.3
 [0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.2
