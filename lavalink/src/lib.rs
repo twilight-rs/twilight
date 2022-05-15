@@ -51,12 +51,6 @@
 //!
 //! This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 //!
-//! ### Tracing
-//!
-//! The `tracing` feature enables logging via the [`tracing`] crate.
-//!
-//! This is enabled by default.
-//!
 //! ## Examples
 //!
 //! Create a [client], add a [node], and give events to the client to [process]
@@ -89,7 +83,7 @@
 //!     lavalink.add(lavalink_host, lavalink_auth).await?;
 //!
 //!     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-//!     let (shard, mut events) = Shard::new(token, intents);
+//!     let (shard, mut events) = Shard::new(token, intents).await?;
 //!     shard.start().await?;
 //!
 //!     while let Some(event) = events.next().await {
@@ -108,7 +102,6 @@
 //! [`rustls`]: https://crates.io/crates/rustls
 //! [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 //! [`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
-//! [`tracing`]: https://crates.io/crates/tracing
 //! [`webpki-roots`]: https://crates.io/crates/webpki-roots
 //! [client]: Lavalink
 //! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
@@ -122,7 +115,7 @@
 //! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 //! [node]: Node
 //! [process]: Lavalink::process
-//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+//! [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 
 #![deny(
     clippy::all,

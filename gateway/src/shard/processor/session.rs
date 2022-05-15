@@ -266,11 +266,9 @@ fn available_commands_per_interval(heartbeat_interval: u64) -> u8 {
         // just being cautious here.
         const ALLOT_ON_FAIL: u8 = COMMANDS_PER_RESET - 10;
 
-        #[cfg(feature = "tracing")]
         tracing::warn!(
             %heartbeats,
-            "heartbeats > u8 max; defaulting to allotting {}",
-            ALLOT_ON_FAIL,
+            "heartbeats > u8 max; defaulting to allotting {ALLOT_ON_FAIL}",
         );
 
         ALLOT_ON_FAIL

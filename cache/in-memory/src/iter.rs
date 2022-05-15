@@ -98,7 +98,7 @@ impl<K: Eq + Hash, V> Deref for IterReference<'_, K, V> {
 ///     .filter(|user| user.name.starts_with("twi"))
 ///     .count();
 ///
-/// println!("'twi' users: {}", count);
+/// println!("'twi' users: {count}");
 /// ```
 ///
 /// # Potential inefficiency
@@ -233,7 +233,7 @@ impl<'a> InMemoryCacheIter<'a> {
 ///     .filter(|member| member.pending())
 ///     .count();
 ///
-/// println!("pending users: {}", count);
+/// println!("pending users: {count}");
 /// ```
 pub struct ResourceIter<'a, K, V> {
     iter: Iter<'a, K, V>,
@@ -275,11 +275,7 @@ impl<'a, K: Eq + Hash, V> Iterator for ResourceIter<'a, K, V> {
 ///
 /// for message_id in message_ids {
 ///     if let Some(message) = cache.message(message_id) {
-///         println!(
-///             "message {} content: {}",
-///             message_id,
-///             message.content(),
-///         );
+///         println!("message {message_id} content: {}", message.content());
 ///     }
 /// }
 /// # Some(()) }

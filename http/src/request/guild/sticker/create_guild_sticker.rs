@@ -50,7 +50,7 @@ struct CreateGuildStickerFields<'a> {
 ///     .model()
 ///     .await?;
 ///
-/// println!("{:#?}", sticker);
+/// println!("{sticker:#?}");
 /// # Ok(()) }
 /// ```
 pub struct CreateGuildSticker<'a> {

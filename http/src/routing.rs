@@ -454,6 +454,8 @@ pub enum Route<'a> {
     GetGlobalCommands {
         /// The ID of the owner application.
         application_id: u64,
+        /// Whether to include full localization dictionaries.
+        with_localizations: Option<bool>,
     },
     /// Route information to get a guild.
     GetGuild {
@@ -485,6 +487,8 @@ pub enum Route<'a> {
         application_id: u64,
         /// The ID of the guild.
         guild_id: u64,
+        /// Whether to include full localization dictionaries.
+        with_localizations: Option<bool>,
     },
     /// Route information to get a guild's widget.
     GetGuildWidget {
@@ -829,13 +833,6 @@ pub enum Route<'a> {
         limit: Option<u16>,
         /// Query to search by.
         query: &'a str,
-    },
-    /// Route information to set permissions of commands in a guild.
-    SetCommandPermissions {
-        /// The ID of the owner application.
-        application_id: u64,
-        /// The ID of the guild.
-        guild_id: u64,
     },
     /// Route information to set global commands.
     SetGlobalCommands {
@@ -1216,7 +1213,6 @@ impl<'a> Route<'a> {
             | Self::CreateReaction { .. }
             | Self::JoinThread { .. }
             | Self::PinMessage { .. }
-            | Self::SetCommandPermissions { .. }
             | Self::SetGlobalCommands { .. }
             | Self::SetGuildCommands { .. }
             | Self::SyncTemplate { .. }
@@ -1281,7 +1277,7 @@ impl<'a> Route<'a> {
                 Path::GuildsIdEmojis(guild_id)
             }
             Self::CreateGlobalCommand { application_id }
-            | Self::GetGlobalCommands { application_id }
+            | Self::GetGlobalCommands { application_id, .. }
             | Self::SetGlobalCommands { application_id } => {
                 Path::ApplicationCommand(application_id)
             }
@@ -1295,7 +1291,6 @@ impl<'a> Route<'a> {
             | Self::GetGuildCommand { application_id, .. }
             | Self::GetGuildCommandPermissions { application_id, .. }
             | Self::GetGuildCommands { application_id, .. }
-            | Self::SetCommandPermissions { application_id, .. }
             | Self::SetGuildCommands { application_id, .. }
             | Self::UpdateGuildCommand { application_id, .. } => {
                 Path::ApplicationGuildCommand(application_id)
@@ -1649,19 +1644,29 @@ impl Display for Route<'_> {
                 f.write_str("/emojis")
             }
             Route::CreateGlobalCommand { application_id }
-            | Route::GetGlobalCommands { application_id }
             | Route::SetGlobalCommands { application_id } => {
                 f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
 
                 f.write_str("/commands")
             }
+            Route::GetGlobalCommands {
+                application_id,
+                with_localizations,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/commands")?;
+
+                if let Some(with_localizations) = with_localizations {
+                    f.write_str("?with_localizations=")?;
+                    Display::fmt(with_localizations, f)?
+                }
+
+                Ok(())
+            }
             Route::CreateGuild => f.write_str("guilds"),
             Route::CreateGuildCommand {
-                application_id,
-                guild_id,
-            }
-            | Route::GetGuildCommands {
                 application_id,
                 guild_id,
             }
@@ -1675,6 +1680,24 @@ impl Display for Route<'_> {
                 Display::fmt(guild_id, f)?;
 
                 f.write_str("/commands")
+            }
+            Route::GetGuildCommands {
+                application_id,
+                guild_id,
+                with_localizations,
+            } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/commands")?;
+
+                if let Some(with_localizations) = with_localizations {
+                    f.write_str("?with_localizations=")?;
+                    Display::fmt(with_localizations, f)?;
+                }
+
+                Ok(())
             }
             Route::CreateGuildFromTemplate { template_code }
             | Route::GetTemplate { template_code } => {
@@ -2243,10 +2266,6 @@ impl Display for Route<'_> {
             Route::GetGuildCommandPermissions {
                 application_id,
                 guild_id,
-            }
-            | Route::SetCommandPermissions {
-                application_id,
-                guild_id,
             } => {
                 f.write_str("applications/")?;
                 Display::fmt(application_id, f)?;
@@ -2354,21 +2373,19 @@ impl Display for Route<'_> {
                 Display::fmt(scheduled_event_id, f)?;
                 f.write_str("/users?")?;
 
+                if let Some(after) = after {
+                    f.write_str("after=")?;
+                    Display::fmt(after, f)?;
+                }
+
+                if let Some(before) = before {
+                    f.write_str("&before=")?;
+                    Display::fmt(before, f)?;
+                }
+
                 if let Some(limit) = limit {
                     f.write_str("&limit=")?;
                     Display::fmt(limit, f)?;
-                }
-
-                match (before, after) {
-                    (Some(before), Some(_) | None) => {
-                        f.write_str("&before=")?;
-                        Display::fmt(before, f)?;
-                    }
-                    (None, Some(after)) => {
-                        f.write_str("&after=")?;
-                        Display::fmt(after, f)?;
-                    }
-                    _ => {}
                 }
 
                 if *with_member {
@@ -2853,11 +2870,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/members/{user_id}",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/members/{USER_ID}")
         );
     }
 
@@ -2869,11 +2882,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/members/{user_id}",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/members/{USER_ID}")
         );
     }
 
@@ -2885,11 +2894,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/members/{user_id}",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/members/{USER_ID}")
         );
     }
 
@@ -2901,11 +2906,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/members/{user_id}",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/members/{USER_ID}")
         );
     }
 
@@ -2918,12 +2919,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/members/{user_id}/roles/{role_id}",
-                guild_id = GUILD_ID,
-                role_id = ROLE_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/members/{USER_ID}/roles/{ROLE_ID}")
         );
     }
 
@@ -2936,12 +2932,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/members/{user_id}/roles/{role_id}",
-                guild_id = GUILD_ID,
-                role_id = ROLE_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/members/{USER_ID}/roles/{ROLE_ID}")
         );
     }
 
@@ -2953,11 +2944,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/thread-members/{user_id}",
-                channel_id = CHANNEL_ID,
-                user_id = USER_ID
-            )
+            format!("channels/{CHANNEL_ID}/thread-members/{USER_ID}")
         );
     }
 
@@ -2969,11 +2956,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/thread-members/{user_id}",
-                channel_id = CHANNEL_ID,
-                user_id = USER_ID
-            )
+            format!("channels/{CHANNEL_ID}/thread-members/{USER_ID}")
         );
     }
 
@@ -2985,57 +2968,38 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/thread-members/{user_id}",
-                channel_id = CHANNEL_ID,
-                user_id = USER_ID
-            )
+            format!("channels/{CHANNEL_ID}/thread-members/{USER_ID}")
         );
     }
 
     #[test]
     fn test_create_channel() {
         let route = Route::CreateChannel { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/channels", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/channels"));
     }
 
     #[test]
     fn test_get_channels() {
         let route = Route::GetChannels { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/channels", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/channels"));
     }
 
     #[test]
     fn test_update_guild_channels() {
         let route = Route::UpdateGuildChannels { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/channels", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/channels"));
     }
 
     #[test]
     fn test_create_emoji() {
         let route = Route::CreateEmoji { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/emojis", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/emojis"));
     }
 
     #[test]
     fn test_get_emojis() {
         let route = Route::GetEmojis { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/emojis", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/emojis"));
     }
 
     #[test]
@@ -3045,10 +3009,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/commands",
-                application_id = APPLICATION_ID
-            )
+            format!("applications/{APPLICATION_ID}/commands")
         );
     }
 
@@ -3056,13 +3017,23 @@ mod tests {
     fn test_get_global_commands() {
         let route = Route::GetGlobalCommands {
             application_id: APPLICATION_ID,
+            with_localizations: Some(true),
         };
         assert_eq!(
             route.to_string(),
             format!(
-                "applications/{application_id}/commands",
+                "applications/{application_id}/commands?with_localizations=true",
                 application_id = APPLICATION_ID
             )
+        );
+
+        let route = Route::GetGlobalCommands {
+            application_id: APPLICATION_ID,
+            with_localizations: None,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/commands")
         );
     }
 
@@ -3073,10 +3044,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/commands",
-                application_id = APPLICATION_ID
-            )
+            format!("applications/{APPLICATION_ID}/commands")
         );
     }
 
@@ -3094,11 +3062,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
-            )
+            format!("applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands")
         );
     }
 
@@ -3107,14 +3071,25 @@ mod tests {
         let route = Route::GetGuildCommands {
             application_id: APPLICATION_ID,
             guild_id: GUILD_ID,
+            with_localizations: Some(true),
         };
         assert_eq!(
             route.to_string(),
             format!(
-                "applications/{application_id}/guilds/{guild_id}/commands",
+                "applications/{application_id}/guilds/{guild_id}/commands?with_localizations=true",
                 application_id = APPLICATION_ID,
                 guild_id = GUILD_ID
             )
+        );
+
+        let route = Route::GetGuildCommands {
+            application_id: APPLICATION_ID,
+            guild_id: GUILD_ID,
+            with_localizations: None,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands")
         );
     }
 
@@ -3126,11 +3101,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
-            )
+            format!("applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands")
         );
     }
 
@@ -3141,10 +3112,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/templates/{template_code}",
-                template_code = TEMPLATE_CODE
-            )
+            format!("guilds/templates/{TEMPLATE_CODE}")
         );
     }
 
@@ -3155,47 +3123,32 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/templates/{template_code}",
-                template_code = TEMPLATE_CODE
-            )
+            format!("guilds/templates/{TEMPLATE_CODE}")
         );
     }
 
     #[test]
     fn test_create_guild_integration() {
         let route = Route::CreateGuildIntegration { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/integrations", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/integrations"));
     }
 
     #[test]
     fn test_get_guild_integrations() {
         let route = Route::GetGuildIntegrations { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/integrations", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/integrations"));
     }
 
     #[test]
     fn test_create_guild_sticker() {
         let route = Route::CreateGuildSticker { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/stickers", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/stickers"));
     }
 
     #[test]
     fn test_get_guild_stickers() {
         let route = Route::GetGuildStickers { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/stickers", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/stickers"));
     }
 
     #[test]
@@ -3203,10 +3156,7 @@ mod tests {
         let route = Route::CreateInvite {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}/invites", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/invites"));
     }
 
     #[test]
@@ -3214,10 +3164,7 @@ mod tests {
         let route = Route::GetChannelInvites {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}/invites", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/invites"));
     }
 
     #[test]
@@ -3225,10 +3172,7 @@ mod tests {
         let route = Route::CreateMessage {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}/messages", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/messages"));
     }
 
     #[test]
@@ -3254,12 +3198,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
-                channel_id = CHANNEL_ID,
-                emoji = emoji,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/reactions/{emoji}/@me")
         );
     }
 
@@ -3274,40 +3213,26 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
-                channel_id = CHANNEL_ID,
-                emoji = emoji,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/reactions/{emoji}/@me")
         );
     }
 
     #[test]
     fn test_create_role() {
         let route = Route::CreateRole { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/roles", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/roles"));
     }
 
     #[test]
     fn test_get_guild_roles() {
         let route = Route::GetGuildRoles { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/roles", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/roles"));
     }
 
     #[test]
     fn test_update_role_positions() {
         let route = Route::UpdateRolePositions { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/roles", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/roles"));
     }
 
     #[test]
@@ -3319,19 +3244,13 @@ mod tests {
     #[test]
     fn test_create_template() {
         let route = Route::CreateTemplate { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/templates", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/templates"));
     }
 
     #[test]
     fn test_get_templates() {
         let route = Route::GetTemplates { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/templates", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/templates"));
     }
 
     #[test]
@@ -3339,10 +3258,7 @@ mod tests {
         let route = Route::CreateThread {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}/threads", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/threads"));
     }
 
     #[test]
@@ -3353,11 +3269,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}/threads",
-                channel_id = CHANNEL_ID,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/threads")
         );
     }
 
@@ -3366,10 +3278,7 @@ mod tests {
         let route = Route::CreateTypingTrigger {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}/typing", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/typing"));
     }
 
     #[test]
@@ -3377,10 +3286,7 @@ mod tests {
         let route = Route::CreateWebhook {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}/webhooks", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/webhooks"));
     }
 
     #[test]
@@ -3388,10 +3294,7 @@ mod tests {
         let route = Route::GetChannelWebhooks {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}/webhooks", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/webhooks"));
     }
 
     #[test]
@@ -3402,11 +3305,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}/crosspost",
-                channel_id = CHANNEL_ID,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/crosspost")
         );
     }
 
@@ -3418,11 +3317,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans/{user_id}",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/bans/{USER_ID}")
         );
     }
 
@@ -3434,11 +3329,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans/{user_id}",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/bans/{USER_ID}")
         );
     }
 
@@ -3447,10 +3338,7 @@ mod tests {
         let route = Route::DeleteChannel {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}"));
     }
 
     #[test]
@@ -3458,10 +3346,7 @@ mod tests {
         let route = Route::GetChannel {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}"));
     }
 
     #[test]
@@ -3469,10 +3354,7 @@ mod tests {
         let route = Route::UpdateChannel {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}"));
     }
 
     #[test]
@@ -3483,11 +3365,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/emojis/{emoji_id}",
-                emoji_id = EMOJI_ID,
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/emojis/{EMOJI_ID}")
         );
     }
 
@@ -3499,11 +3377,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/emojis/{emoji_id}",
-                emoji_id = EMOJI_ID,
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/emojis/{EMOJI_ID}")
         );
     }
 
@@ -3515,11 +3389,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/emojis/{emoji_id}",
-                emoji_id = EMOJI_ID,
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/emojis/{EMOJI_ID}")
         );
     }
 
@@ -3531,11 +3401,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/commands/{command_id}",
-                application_id = APPLICATION_ID,
-                command_id = COMMAND_ID
-            )
+            format!("applications/{APPLICATION_ID}/commands/{COMMAND_ID}")
         );
     }
 
@@ -3547,11 +3413,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/commands/{command_id}",
-                application_id = APPLICATION_ID,
-                command_id = COMMAND_ID
-            )
+            format!("applications/{APPLICATION_ID}/commands/{COMMAND_ID}")
         );
     }
 
@@ -3563,30 +3425,20 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/commands/{command_id}",
-                application_id = APPLICATION_ID,
-                command_id = COMMAND_ID
-            )
+            format!("applications/{APPLICATION_ID}/commands/{COMMAND_ID}")
         );
     }
 
     #[test]
     fn test_delete_guild() {
         let route = Route::DeleteGuild { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}"));
     }
 
     #[test]
     fn test_update_guild() {
         let route = Route::UpdateGuild { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}"));
     }
 
     #[test]
@@ -3598,12 +3450,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
-                application_id = APPLICATION_ID,
-                command_id = COMMAND_ID,
-                guild_id = GUILD_ID
-            )
+            format!("applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands/{COMMAND_ID}")
         );
     }
 
@@ -3616,12 +3463,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
-                application_id = APPLICATION_ID,
-                command_id = COMMAND_ID,
-                guild_id = GUILD_ID
-            )
+            format!("applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands/{COMMAND_ID}")
         );
     }
 
@@ -3634,12 +3476,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
-                application_id = APPLICATION_ID,
-                command_id = COMMAND_ID,
-                guild_id = GUILD_ID
-            )
+            format!("applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands/{COMMAND_ID}")
         );
     }
 
@@ -3651,11 +3488,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/integrations/{integration_id}",
-                guild_id = GUILD_ID,
-                integration_id = INTEGRATION_ID
-            )
+            format!("guilds/{GUILD_ID}/integrations/{INTEGRATION_ID}")
         );
     }
 
@@ -3667,11 +3500,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/integrations/{integration_id}",
-                guild_id = GUILD_ID,
-                integration_id = INTEGRATION_ID
-            )
+            format!("guilds/{GUILD_ID}/integrations/{INTEGRATION_ID}")
         );
     }
 
@@ -3683,11 +3512,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "webhooks/{application_id}/{interaction_token}/messages/@original",
-                application_id = APPLICATION_ID,
-                interaction_token = INTERACTION_TOKEN
-            )
+            format!("webhooks/{APPLICATION_ID}/{INTERACTION_TOKEN}/messages/@original")
         );
     }
 
@@ -3699,11 +3524,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "webhooks/{application_id}/{interaction_token}/messages/@original",
-                application_id = APPLICATION_ID,
-                interaction_token = INTERACTION_TOKEN
-            )
+            format!("webhooks/{APPLICATION_ID}/{INTERACTION_TOKEN}/messages/@original")
         );
     }
 
@@ -3715,18 +3536,14 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "webhooks/{application_id}/{interaction_token}/messages/@original",
-                application_id = APPLICATION_ID,
-                interaction_token = INTERACTION_TOKEN
-            )
+            format!("webhooks/{APPLICATION_ID}/{INTERACTION_TOKEN}/messages/@original")
         );
     }
 
     #[test]
     fn test_delete_invite() {
         let route = Route::DeleteInvite { code: CODE };
-        assert_eq!(route.to_string(), format!("invites/{code}", code = CODE));
+        assert_eq!(route.to_string(), format!("invites/{CODE}"))
     }
 
     #[test]
@@ -3737,11 +3554,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}/reactions",
-                channel_id = CHANNEL_ID,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/reactions")
         );
     }
 
@@ -3756,12 +3569,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
-                channel_id = CHANNEL_ID,
-                emoji = emoji,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/reactions/{emoji}")
         );
     }
 
@@ -3773,11 +3581,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}",
-                channel_id = CHANNEL_ID,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}")
         );
     }
 
@@ -3789,11 +3593,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}",
-                channel_id = CHANNEL_ID,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}")
         );
     }
 
@@ -3805,11 +3605,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}",
-                channel_id = CHANNEL_ID,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}")
         );
     }
 
@@ -3820,10 +3616,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/bulk-delete",
-                channel_id = CHANNEL_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/bulk-delete")
         );
     }
 
@@ -3835,11 +3628,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/permissions/{target_id}",
-                channel_id = CHANNEL_ID,
-                target_id = ROLE_ID
-            )
+            format!("channels/{CHANNEL_ID}/permissions/{ROLE_ID}")
         );
     }
 
@@ -3851,11 +3640,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/permissions/{target_id}",
-                channel_id = CHANNEL_ID,
-                target_id = USER_ID
-            )
+            format!("channels/{CHANNEL_ID}/permissions/{USER_ID}")
         );
     }
 
@@ -3871,13 +3656,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}",
-                channel_id = CHANNEL_ID,
-                emoji = emoji,
-                message_id = MESSAGE_ID,
-                user_id = USER_ID
-            )
+            format!("channels/{CHANNEL_ID}/messages/{MESSAGE_ID}/reactions/{emoji}/{USER_ID}")
         );
     }
 
@@ -3889,11 +3668,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/roles/{role_id}",
-                guild_id = GUILD_ID,
-                role_id = ROLE_ID
-            )
+            format!("guilds/{GUILD_ID}/roles/{ROLE_ID}")
         );
     }
 
@@ -3905,11 +3680,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/roles/{role_id}",
-                guild_id = GUILD_ID,
-                role_id = ROLE_ID
-            )
+            format!("guilds/{GUILD_ID}/roles/{ROLE_ID}")
         );
     }
 
@@ -3918,10 +3689,7 @@ mod tests {
         let route = Route::DeleteStageInstance {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("stage-instances/{channel_id}", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("stage-instances/{CHANNEL_ID}"));
     }
 
     #[test]
@@ -3929,10 +3697,7 @@ mod tests {
         let route = Route::GetStageInstance {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("stage-instances/{channel_id}", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("stage-instances/{CHANNEL_ID}"));
     }
 
     #[test]
@@ -3940,10 +3705,7 @@ mod tests {
         let route = Route::UpdateStageInstance {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("stage-instances/{channel_id}", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("stage-instances/{CHANNEL_ID}"));
     }
 
     #[test]
@@ -3954,11 +3716,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/templates/{template_code}",
-                guild_id = GUILD_ID,
-                template_code = TEMPLATE_CODE
-            )
+            format!("guilds/{GUILD_ID}/templates/{TEMPLATE_CODE}")
         );
     }
 
@@ -3970,11 +3728,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/templates/{template_code}",
-                guild_id = GUILD_ID,
-                template_code = TEMPLATE_CODE
-            )
+            format!("guilds/{GUILD_ID}/templates/{TEMPLATE_CODE}")
         );
     }
 
@@ -3986,11 +3740,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/templates/{template_code}",
-                guild_id = GUILD_ID,
-                template_code = TEMPLATE_CODE
-            )
+            format!("guilds/{GUILD_ID}/templates/{TEMPLATE_CODE}")
         );
     }
 
@@ -4001,7 +3751,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("channels/{channel_id}/followers", channel_id = CHANNEL_ID)
+            format!("channels/{CHANNEL_ID}/followers")
         );
     }
 
@@ -4010,17 +3760,14 @@ mod tests {
         let route = Route::GetActiveThreads { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{guild_id}/threads/active", guild_id = GUILD_ID)
+            format!("guilds/{GUILD_ID}/threads/active")
         );
     }
 
     #[test]
     fn test_get_bans() {
         let route = Route::GetBans { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/bans", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/bans"));
     }
 
     #[test]
@@ -4031,10 +3778,7 @@ mod tests {
             guild_id: GUILD_ID,
             limit: None,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/bans?", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/bans?"));
 
         let route = Route::GetBansWithParameters {
             after: Some(USER_ID),
@@ -4044,11 +3788,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans?after={after}",
-                after = USER_ID,
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/bans?after={USER_ID}")
         );
 
         let route = Route::GetBansWithParameters {
@@ -4059,11 +3799,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans?&before={before}",
-                before = USER_ID,
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/bans?&before={USER_ID}")
         );
 
         let route = Route::GetBansWithParameters {
@@ -4074,11 +3810,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans?&limit={limit}",
-                guild_id = GUILD_ID,
-                limit = 100,
-            )
+            format!("guilds/{GUILD_ID}/bans?&limit={limit}", limit = 100)
         );
 
         let route = Route::GetBansWithParameters {
@@ -4090,10 +3822,8 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/bans?after={after}&before={before}&limit={limit}",
-                after = USER_ID,
+                "guilds/{GUILD_ID}/bans?after={USER_ID}&before={before}&limit={limit}",
                 before = USER_ID + 100,
-                guild_id = GUILD_ID,
                 limit = 25,
             )
         );
@@ -4115,10 +3845,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/{command_id}/permissions",
-                application_id = APPLICATION_ID,
-                command_id = COMMAND_ID,
-                guild_id = GUILD_ID
+                "applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands/{COMMAND_ID}/permissions"
             )
         );
     }
@@ -4133,10 +3860,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/{command_id}/permissions",
-                application_id = APPLICATION_ID,
-                command_id = COMMAND_ID,
-                guild_id = GUILD_ID
+                "applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands/{COMMAND_ID}/permissions"
             )
         );
     }
@@ -4158,7 +3882,7 @@ mod tests {
         let route = Route::GetCurrentUserGuildMember { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
-            format!("users/@me/guilds/{guild_id}/member", guild_id = GUILD_ID)
+            format!("users/@me/guilds/{GUILD_ID}/member")
         )
     }
 
@@ -4182,46 +3906,20 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/permissions",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
-            )
-        );
-    }
-
-    #[test]
-    fn test_set_command_permissions() {
-        let route = Route::SetCommandPermissions {
-            application_id: APPLICATION_ID,
-            guild_id: GUILD_ID,
-        };
-        assert_eq!(
-            route.to_string(),
-            format!(
-                "applications/{application_id}/guilds/{guild_id}/commands/permissions",
-                application_id = APPLICATION_ID,
-                guild_id = GUILD_ID
-            )
+            format!("applications/{APPLICATION_ID}/guilds/{GUILD_ID}/commands/permissions")
         );
     }
 
     #[test]
     fn test_get_guild_invites() {
         let route = Route::GetGuildInvites { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/invites", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/invites"));
     }
 
     #[test]
     fn test_get_guild_preview() {
         let route = Route::GetGuildPreview { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/preview", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/preview"));
     }
 
     #[test]
@@ -4232,11 +3930,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/stickers/{sticker_id}",
-                guild_id = GUILD_ID,
-                sticker_id = STICKER_ID
-            )
+            format!("guilds/{GUILD_ID}/stickers/{STICKER_ID}")
         );
     }
 
@@ -4248,11 +3942,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/stickers/{sticker_id}",
-                guild_id = GUILD_ID,
-                sticker_id = STICKER_ID
-            )
+            format!("guilds/{GUILD_ID}/stickers/{STICKER_ID}")
         );
     }
 
@@ -4264,30 +3954,20 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/stickers/{sticker_id}",
-                guild_id = GUILD_ID,
-                sticker_id = STICKER_ID
-            )
+            format!("guilds/{GUILD_ID}/stickers/{STICKER_ID}")
         );
     }
 
     #[test]
     fn test_get_guild_vanity_url() {
         let route = Route::GetGuildVanityUrl { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/vanity-url", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/vanity-url"));
     }
 
     #[test]
     fn test_get_guild_voice_regions() {
         let route = Route::GetGuildVoiceRegions { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/regions", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/regions"));
     }
 
     #[test]
@@ -4295,7 +3975,7 @@ mod tests {
         let route = Route::GetGuildWelcomeScreen { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{guild_id}/welcome-screen", guild_id = GUILD_ID)
+            format!("guilds/{GUILD_ID}/welcome-screen")
         );
     }
 
@@ -4304,35 +3984,26 @@ mod tests {
         let route = Route::UpdateGuildWelcomeScreen { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{guild_id}/welcome-screen", guild_id = GUILD_ID)
+            format!("guilds/{GUILD_ID}/welcome-screen")
         );
     }
 
     #[test]
     fn test_get_guild_webhooks() {
         let route = Route::GetGuildWebhooks { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/webhooks", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/webhooks"));
     }
 
     #[test]
     fn test_get_guild_widget() {
         let route = Route::GetGuildWidget { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/widget", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/widget"));
     }
 
     #[test]
     fn test_update_guild_widget() {
         let route = Route::UpdateGuildWidget { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/widget", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/widget"));
     }
 
     #[test]
@@ -4347,10 +4018,7 @@ mod tests {
         let route = Route::GetPins {
             channel_id: CHANNEL_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("channels/{channel_id}/pins", channel_id = CHANNEL_ID)
-        );
+        assert_eq!(route.to_string(), format!("channels/{CHANNEL_ID}/pins"));
     }
 
     #[test]
@@ -4358,10 +4026,7 @@ mod tests {
         let route = Route::GetSticker {
             sticker_id: STICKER_ID,
         };
-        assert_eq!(
-            route.to_string(),
-            format!("stickers/{sticker_id}", sticker_id = STICKER_ID)
-        );
+        assert_eq!(route.to_string(), format!("stickers/{STICKER_ID}"));
     }
 
     #[test]
@@ -4371,10 +4036,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/thread-members",
-                channel_id = CHANNEL_ID
-            )
+            format!("channels/{CHANNEL_ID}/thread-members")
         );
     }
 
@@ -4387,10 +4049,7 @@ mod tests {
     #[test]
     fn test_get_user() {
         let route = Route::GetUser { user_id: USER_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("users/{user_id}", user_id = USER_ID)
-        );
+        assert_eq!(route.to_string(), format!("users/{USER_ID}"));
     }
 
     #[test]
@@ -4407,11 +4066,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "interactions/{interaction_id}/{interaction_token}/callback",
-                interaction_id = INTERACTION_ID,
-                interaction_token = INTERACTION_TOKEN
-            )
+            format!("interactions/{INTERACTION_ID}/{INTERACTION_TOKEN}/callback")
         );
     }
 
@@ -4422,10 +4077,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/thread-members/@me",
-                channel_id = CHANNEL_ID
-            )
+            format!("channels/{CHANNEL_ID}/thread-members/@me")
         );
     }
 
@@ -4436,20 +4088,14 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/thread-members/@me",
-                channel_id = CHANNEL_ID
-            )
+            format!("channels/{CHANNEL_ID}/thread-members/@me")
         );
     }
 
     #[test]
     fn test_leave_guild() {
         let route = Route::LeaveGuild { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("users/@me/guilds/{guild_id}", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("users/@me/guilds/{GUILD_ID}"));
     }
 
     #[test]
@@ -4460,11 +4106,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/pins/{message_id}",
-                channel_id = CHANNEL_ID,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/pins/{MESSAGE_ID}")
         );
     }
 
@@ -4476,11 +4118,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "channels/{channel_id}/pins/{message_id}",
-                channel_id = CHANNEL_ID,
-                message_id = MESSAGE_ID
-            )
+            format!("channels/{CHANNEL_ID}/pins/{MESSAGE_ID}")
         );
     }
 
@@ -4492,21 +4130,14 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/integrations/{integration_id}/sync",
-                guild_id = GUILD_ID,
-                integration_id = INTEGRATION_ID
-            )
+            format!("guilds/{GUILD_ID}/integrations/{INTEGRATION_ID}/sync")
         );
     }
 
     #[test]
     fn test_update_current_member() {
         let route = Route::UpdateCurrentMember { guild_id: GUILD_ID };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/members/@me", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/members/@me"));
     }
 
     #[test]
@@ -4514,7 +4145,7 @@ mod tests {
         let route = Route::UpdateCurrentUserVoiceState { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{guild_id}/voice-states/@me", guild_id = GUILD_ID)
+            format!("guilds/{GUILD_ID}/voice-states/@me")
         );
     }
 
@@ -4523,7 +4154,7 @@ mod tests {
         let route = Route::UpdateNickname { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{guild_id}/members/@me/nick", guild_id = GUILD_ID)
+            format!("guilds/{GUILD_ID}/members/@me/nick")
         );
     }
 
@@ -4535,11 +4166,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/voice-states/{user_id}",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/voice-states/{USER_ID}")
         );
     }
 
@@ -4552,11 +4179,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans/{user_id}?",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/bans/{USER_ID}?")
         );
 
         route = Route::CreateBan {
@@ -4566,11 +4189,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/bans/{user_id}?delete_message_days=3",
-                guild_id = GUILD_ID,
-                user_id = USER_ID
-            )
+            format!("guilds/{GUILD_ID}/bans/{USER_ID}?delete_message_days=3")
         );
     }
 
@@ -4582,10 +4201,7 @@ mod tests {
             guild_id: GUILD_ID,
             include_roles: &[],
         };
-        assert_eq!(
-            route.to_string(),
-            format!("guilds/{guild_id}/prune?", guild_id = GUILD_ID)
-        );
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/prune?"));
     }
 
     #[test]
@@ -4598,10 +4214,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/prune?compute_prune_count=true",
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/prune?compute_prune_count=true")
         );
     }
 
@@ -4615,10 +4228,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/prune?compute_prune_count=false",
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/prune?compute_prune_count=false")
         );
     }
 
@@ -4632,7 +4242,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{guild_id}/prune?&days=4", guild_id = GUILD_ID)
+            format!("guilds/{GUILD_ID}/prune?&days=4")
         );
     }
 
@@ -4648,10 +4258,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/prune?&include_roles=1",
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/prune?&include_roles=1")
         );
     }
 
@@ -4667,10 +4274,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/prune?&include_roles=1,2",
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/prune?&include_roles=1,2")
         );
     }
 
@@ -4686,10 +4290,7 @@ mod tests {
         };
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/prune?compute_prune_count=true&days=4&include_roles=1,2",
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/prune?compute_prune_count=true&days=4&include_roles=1,2")
         );
     }
 
@@ -4702,7 +4303,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!("guilds/{guild_id}/scheduled-events?", guild_id = GUILD_ID)
+            format!("guilds/{GUILD_ID}/scheduled-events?")
         );
 
         let route = Route::GetGuildScheduledEvents {
@@ -4712,10 +4313,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/scheduled-events?with_user_count=true",
-                guild_id = GUILD_ID
-            )
+            format!("guilds/{GUILD_ID}/scheduled-events?with_user_count=true")
         );
     }
 
@@ -4725,7 +4323,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!("guilds/{guild_id}/scheduled-events", guild_id = GUILD_ID)
+            format!("guilds/{GUILD_ID}/scheduled-events")
         );
     }
 
@@ -4739,11 +4337,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
-                guild_id = GUILD_ID,
-                scheduled_event_id = SCHEDULED_EVENT_ID
-            )
+            format!("guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}")
         );
 
         let route = Route::GetGuildScheduledEvent {
@@ -4754,11 +4348,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}?with_user_count=true",
-                guild_id = GUILD_ID,
-                scheduled_event_id = SCHEDULED_EVENT_ID
-            )
+            format!("guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}?with_user_count=true")
         );
     }
 
@@ -4771,11 +4361,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
-                guild_id = GUILD_ID,
-                scheduled_event_id = SCHEDULED_EVENT_ID
-            )
+            format!("guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}")
         );
     }
 
@@ -4788,11 +4374,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
-                guild_id = GUILD_ID,
-                scheduled_event_id = SCHEDULED_EVENT_ID
-            )
+            format!("guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}")
         );
     }
 
@@ -4810,10 +4392,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&before={user_id}&with_member=true",
-                guild_id = GUILD_ID,
-                scheduled_event_id = SCHEDULED_EVENT_ID,
-                user_id = USER_ID,
+                "guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}/users?&before={USER_ID}&with_member=true"
             )
         );
 
@@ -4829,10 +4408,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=101&after={user_id}",
-                guild_id = GUILD_ID,
-                scheduled_event_id = SCHEDULED_EVENT_ID,
-                user_id = USER_ID,
+                "guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}/users?after={USER_ID}&limit=101"
             )
         );
 
@@ -4848,10 +4424,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!(
-                "guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users?&limit=99&before={user_id}",
-                guild_id = GUILD_ID,
-                scheduled_event_id = SCHEDULED_EVENT_ID,
-                user_id = USER_ID,
+                "guilds/{GUILD_ID}/scheduled-events/{SCHEDULED_EVENT_ID}/users?after={USER_ID}&before={USER_ID}&limit=99"
             )
         );
     }
@@ -4866,10 +4439,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/members/search?query=foo%20bar&limit=99",
-                guild_id = GUILD_ID,
-            )
+            format!("guilds/{GUILD_ID}/members/search?query=foo%20bar&limit=99")
         );
 
         let route = Route::SearchGuildMembers {
@@ -4880,10 +4450,7 @@ mod tests {
 
         assert_eq!(
             route.to_string(),
-            format!(
-                "guilds/{guild_id}/members/search?query=foo%2Fbar&limit=99",
-                guild_id = GUILD_ID,
-            )
+            format!("guilds/{GUILD_ID}/members/search?query=foo%2Fbar&limit=99")
         );
     }
 }

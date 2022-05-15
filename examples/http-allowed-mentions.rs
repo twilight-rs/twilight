@@ -29,8 +29,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     client
         .create_message(channel_id)
         .content(&format!(
-            "<@{}> you are not allowed to ping @everyone!",
-            user_id
+            "<@{user_id}> you are not allowed to ping @everyone!"
         ))?
         .allowed_mentions(Some(&allowed_mentions))
         .exec()

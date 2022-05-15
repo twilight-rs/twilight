@@ -80,19 +80,16 @@ impl InMemoryRatelimiter {
 
         match buckets.entry(path.clone()) {
             Entry::Occupied(bucket) => {
-                #[cfg(feature = "tracing")]
-                tracing::debug!("got existing bucket: {:?}", path);
+                tracing::debug!("got existing bucket: {path:?}");
 
                 bucket.get().queue.push(tx);
 
-                #[cfg(feature = "tracing")]
-                tracing::debug!("added request into bucket queue: {:?}", path);
+                tracing::debug!("added request into bucket queue: {path:?}");
 
                 None
             }
             Entry::Vacant(entry) => {
-                #[cfg(feature = "tracing")]
-                tracing::debug!("making new bucket for path: {:?}", path);
+                tracing::debug!("making new bucket for path: {path:?}");
 
                 let bucket = Bucket::new(path);
                 bucket.queue.push(tx);
@@ -127,7 +124,7 @@ impl Ratelimiter for InMemoryRatelimiter {
             )
     }
 
-    fn globally_locked(&self) -> IsGloballyLockedFuture {
+    fn is_globally_locked(&self) -> IsGloballyLockedFuture {
         Box::pin(future::ok(self.global.is_locked()))
     }
 
@@ -142,8 +139,7 @@ impl Ratelimiter for InMemoryRatelimiter {
     }
 
     fn ticket(&self, path: Path) -> GetTicketFuture {
-        #[cfg(feature = "tracing")]
-        tracing::debug!("getting bucket for path: {:?}", path);
+        tracing::debug!("getting bucket for path: {path:?}");
 
         let (tx, rx) = ticket::channel();
 

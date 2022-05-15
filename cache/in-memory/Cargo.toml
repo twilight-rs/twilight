@@ -12,7 +12,7 @@ name = "twilight-cache-inmemory"
 publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "README.md"
-rust-version = "1.59"
+rust-version = "1.60"
 version = "0.10.4"
 
 [dependencies]
@@ -31,7 +31,7 @@ tokio = { default-features = false, features = ["macros", "rt-multi-thread"], ve
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../../gateway" }
 
 [features]
-permission-calculator = ["twilight-util"]
+permission-calculator = ["dep:twilight-util"]
 
 [package.metadata.docs.rs]
 all-features = true

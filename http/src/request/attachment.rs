@@ -100,7 +100,7 @@ const ASCII_NUMBER: u8 = 0x30;
 /// Extend the buffer with the digits of the integer `id`.
 ///
 /// The reason for this is to get around a allocation by for example using
-/// `format!("files[{}]", id)`.
+/// `format!("files[{id}]")`.
 fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
     // The largest 64 bit integer is 20 digits.
     let mut inner_buf = [0_u8; 20];

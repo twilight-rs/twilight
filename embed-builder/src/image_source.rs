@@ -161,7 +161,7 @@ impl ImageSource {
             });
         }
 
-        Ok(Self(format!("attachment://{}", filename)))
+        Ok(Self(format!("attachment://{filename}")))
     }
 
     /// Create a URL image source.

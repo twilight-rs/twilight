@@ -36,14 +36,6 @@ The difference is that if you use the futures variant in a loop then you may
 miss some events while processing a received event. By using a stream, you
 won't miss any events.
 
-## Features
-
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
-
 ## Examples
 
 ### At a glance
@@ -87,7 +79,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Start a shard connected to the gateway to receive events.
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-    let (shard, mut events) = Shard::new(token, intents);
+    let (shard, mut events) = Shard::new(token, intents).await?;
     shard.start().await?;
 
     let standby = Arc::new(Standby::new());
@@ -128,7 +120,6 @@ async fn react(
 
 For more examples, check out each of the methods on [`Standby`].
 
-[`tracing`]: https://crates.io/crates/tracing
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
@@ -137,6 +128,6 @@ For more examples, check out each of the methods on [`Standby`].
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 
 <!-- cargo-sync-readme end -->

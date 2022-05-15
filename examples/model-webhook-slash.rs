@@ -144,7 +144,7 @@ async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {
-            content: Some(format!("```rust\n{:?}\n```", i)),
+            content: Some(format!("```rust\n{i:?}\n```")),
             ..Default::default()
         }),
     })

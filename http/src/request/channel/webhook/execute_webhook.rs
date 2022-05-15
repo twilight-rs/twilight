@@ -22,9 +22,13 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
-    content as validate_content, embeds as validate_embeds, MessageValidationError,
+use twilight_validate::{
+    message::{
+        attachment_filename as validate_attachment_filename, components as validate_components,
+        content as validate_content, embeds as validate_embeds, MessageValidationError,
+        MessageValidationErrorType,
+    },
+    request::webhook_username as validate_webhook_username,
 };
 
 #[derive(Serialize)]
@@ -312,10 +316,24 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Specify the username of the webhook's message.
-    pub const fn username(mut self, username: &'a str) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`WebhookUsername`] if the webhook's name is
+    /// invalid.
+    ///
+    /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
+    pub fn username(mut self, username: &'a str) -> Result<Self, MessageValidationError> {
+        validate_webhook_username(username).map_err(|source| {
+            MessageValidationError::from_validation_error(
+                MessageValidationErrorType::WebhookUsername,
+                source,
+            )
+        })?;
+
         self.fields.username = Some(username);
 
-        self
+        Ok(self)
     }
 
     /// Wait for the message to send before sending a response. See

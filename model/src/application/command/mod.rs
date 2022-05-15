@@ -14,11 +14,15 @@ pub use self::{
     },
 };
 
-use crate::id::{
-    marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
-    Id,
+use crate::{
+    guild::Permissions,
+    id::{
+        marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
+        Id,
+    },
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Data sent to Discord to create a command.
 ///
@@ -31,12 +35,21 @@ use serde::{Deserialize, Serialize};
 /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
 /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-structure
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
+    /// Default permissions required for a member to run the command.
+    ///
+    /// Setting this [`Permissions::empty()`] will prohibit anyone from running
+    /// the command, except for guild administrators.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_permission: Option<bool>,
+    pub default_member_permissions: Option<Permissions>,
+    /// Whether the command is available in DMs.
+    ///
+    /// This is only relevant for globally-scoped commands. By default, commands
+    /// are visible in DMs.
+    pub dm_permission: Option<bool>,
     /// Description of the command.
     ///
     /// For [`User`] and [`Message`] commands, this will be an empty string.
@@ -44,6 +57,13 @@ pub struct Command {
     /// [`User`]: CommandType::User
     /// [`Message`]: CommandType::Message
     pub description: String,
+    /// Localization dictionary for the `description` field.
+    ///
+    /// See [Discord Docs/Localization].
+    ///
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description_localizations: Option<HashMap<String, String>>,
     /// Guild ID of the command, if not global.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -52,6 +72,15 @@ pub struct Command {
     #[serde(rename = "type")]
     pub kind: CommandType,
     pub name: String,
+    /// Localization dictionary for the `name` field.
+    ///
+    /// Keys should be valid locales. See [Discord Docs/Locales],
+    /// [Discord Docs/Localization].
+    ///
+    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
+    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name_localizations: Option<HashMap<String, String>>,
     #[serde(default)]
     pub options: Vec<CommandOption>,
     /// Autoincrementing version identifier.

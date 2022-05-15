@@ -182,7 +182,7 @@ mod tests {
     use std::fmt::Debug;
     use twilight_model::{
         application::component::{button::ButtonStyle, Button},
-        datetime::Timestamp,
+        util::Timestamp,
     };
 
     assert_impl_all!(

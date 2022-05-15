@@ -123,38 +123,25 @@ impl<'de> Visitor<'de> for ActivityButtonVisitor {
         let mut label = None;
         let mut url = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing activity button");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over element");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
+                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -181,7 +168,6 @@ impl<'de> Visitor<'de> for ActivityButtonVisitor {
         let label = label.ok_or_else(|| DeError::missing_field("label"))?;
         let url = url.ok_or_else(|| DeError::missing_field("url"))?;
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             %label,
             ?url,
