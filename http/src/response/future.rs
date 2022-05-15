@@ -38,12 +38,7 @@ impl Chunking {
         let bytes = match Pin::new(&mut self.future).poll(cx) {
             Poll::Ready(Ok(bytes)) => bytes,
             Poll::Ready(Err(source)) => return InnerPoll::Ready(Err(source)),
-            Poll::Pending => {
-                return InnerPoll::Pending(ResponseFutureStage::Chunking(Self {
-                    future: self.future,
-                    status: self.status,
-                }))
-            }
+            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::Chunking(self)),
         };
 
         let error = match crate::json::from_bytes::<ApiError>(&bytes) {
@@ -100,14 +95,7 @@ impl InFlight {
                     source: Some(Box::new(source)),
                 }))
             }
-            Poll::Pending => {
-                return InnerPoll::Pending(ResponseFutureStage::InFlight(Self {
-                    future: self.future,
-                    guild_id: self.guild_id,
-                    invalid_token: self.invalid_token,
-                    tx: self.tx,
-                }))
-            }
+            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::InFlight(self)),
         };
 
         // If the API sent back an Unauthorized response, then the client's
@@ -204,16 +192,7 @@ impl RatelimitQueue {
                     source: Some(source),
                 }))
             }
-            Poll::Pending => {
-                return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(Self {
-                    guild_id: self.guild_id,
-                    invalid_token: self.invalid_token,
-                    pre_flight_check: self.pre_flight_check,
-                    request_timeout: self.request_timeout,
-                    response_future: self.response_future,
-                    wait_for_sender: self.wait_for_sender,
-                }))
-            }
+            Poll::Pending => return InnerPoll::Pending(ResponseFutureStage::RatelimitQueue(self)),
         };
 
         if let Some(pre_flight_check) = self.pre_flight_check {
