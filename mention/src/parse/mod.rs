@@ -48,8 +48,7 @@
 //!     parse::ParseMention,
 //! };
 //!
-//! fn main() -> anyhow::Result<()> {
-//!
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let expected_timestamp = Timestamp::new(
 //!     1_600_000_000,
 //!     Some(TimestampStyle::RelativeTime),
