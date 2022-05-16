@@ -65,7 +65,7 @@ including a handler to wait for reactions:
 
 ```rust,no_run
 use futures_util::StreamExt;
-use std::{env, error::Error, sync::Arc};
+use std::{env, sync::Arc};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_model::{
     channel::Message,
@@ -74,7 +74,7 @@ use twilight_model::{
 use twilight_standby::Standby;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
 
     // Start a shard connected to the gateway to receive events.
@@ -102,10 +102,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 // Wait for a reaction from the user who sent the message, and then print it
 // once they react.
-async fn react(
-    msg: Message,
-    standby: Arc<Standby>,
-) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn react(msg: Message, standby: Arc<Standby>) -> anyhow::Result<()> {
     let author_id = msg.author.id;
 
     let reaction = standby.wait_for_reaction(msg.id, move |event: &ReactionAdd| {

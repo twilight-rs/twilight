@@ -19,6 +19,7 @@ version = "0.11.0"
 twilight-model = { default-features = false, path = "../model" }
 
 [dev-dependencies]
+anyhow = { default-features = false, features = ["std"], version = "1" }
 criterion = { default-features = false, version = "0.3" }
 static_assertions = { default-features = false, version = "1" }
 

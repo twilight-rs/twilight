@@ -16,6 +16,7 @@ rust-version = "1.60"
 version = "0.11.0"
 
 [dependencies]
+anyhow = { default-features = false, features = ["std"], version = "1" }
 dashmap = { default-features = false, version = "5.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tokio = { default-features = false, features = ["sync"], version = "1.0" }

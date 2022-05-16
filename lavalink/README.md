@@ -62,7 +62,6 @@ events:
 use futures_util::stream::StreamExt;
 use std::{
     env,
-    error::Error,
     future::Future,
     net::SocketAddr,
     str::FromStr,
@@ -72,7 +71,7 @@ use twilight_http::Client as HttpClient;
 use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
     let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;

@@ -416,7 +416,7 @@ impl RatelimitHeaders {
     /// use std::array::IntoIter;
     /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// fn main() -> anyhow::Result<()> {
     /// let iter = IntoIter::new([
     ///     ("x-ratelimit-bucket", "d721dea6054f6322373d361f98e5c38b".as_bytes()),
     ///     ("x-ratelimit-limit", "10".as_bytes()),
@@ -440,7 +440,7 @@ impl RatelimitHeaders {
     /// use std::array::IntoIter;
     /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// fn main() -> anyhow::Result<()> {
     /// let headers = Vec::from([
     ///     ("retry-after", "487".as_bytes()),
     ///     ("x-ratelimit-global", "true".as_bytes()),

@@ -132,7 +132,7 @@
 //! use twilight_model::gateway::Intents;
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+//! async fn main() -> anyhow::Result<()> {
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!
 //!     // Use intents to only receive guild message events.
@@ -200,7 +200,7 @@
 //! [`tracing-log`] crate and initializing it like this:
 //!
 //! ```rust
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> anyhow::Result<()> {
 //! tracing_log::LogTracer::init()?;
 //! # Ok(()) }
 //! ```
