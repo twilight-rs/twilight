@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Attachment for when creating and updating messages.
+/// The id field is placeholder that can be any u64 value, such as 0,1,2...
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Attachment {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -15,7 +16,6 @@ pub struct Attachment {
 
 impl Attachment {
     /// Create a attachment from a filename and bytes.
-    /// The id field is placeholder that can be any u64 value, such as 0,1,2...
     pub const fn from_bytes(filename: String, file: Vec<u8>, id: u64) -> Self {
         Self {
             description: None,
@@ -25,7 +25,7 @@ impl Attachment {
         }
     }
     
-     /// # Examples
+    /// # Examples
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
