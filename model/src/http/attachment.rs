@@ -25,7 +25,7 @@ impl Attachment {
         }
     }
     
-    # Examples
+     /// # Examples
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
