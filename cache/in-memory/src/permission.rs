@@ -520,12 +520,10 @@ impl<'a> InMemoryCachePermissions<'a> {
         member: &CachedMember,
         permissions: Permissions,
     ) -> Permissions {
-        if !self.check_member_communication_disabled {
-            return permissions;
-        }
-
         // Administrators are never disabled.
-        if permissions.contains(Permissions::ADMINISTRATOR) {
+        if !self.check_member_communication_disabled
+            || permissions.contains(Permissions::ADMINISTRATOR)
+        {
             return permissions;
         }
 
