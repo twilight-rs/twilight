@@ -25,7 +25,7 @@ impl CommandType {
             Self::ChatInput => "ChatInput",
             Self::User => "User",
             Self::Message => "Message",
-            CommandType::Unknown(_) => "Unknown",
+            Self::Unknown(_) => "Unknown",
         }
     }
 }

@@ -127,6 +127,6 @@ mod tests {
         serde_test::assert_tokens(&ButtonStyle::Success, &[Token::U8(3)]);
         serde_test::assert_tokens(&ButtonStyle::Danger, &[Token::U8(4)]);
         serde_test::assert_tokens(&ButtonStyle::Link, &[Token::U8(5)]);
-        serde_test::assert_tokens(&ButtonStyle::Unknown(6), &[Token::U8(6)]);
+        serde_test::assert_tokens(&ButtonStyle::Unknown(99), &[Token::U8(99)]);
     }
 }

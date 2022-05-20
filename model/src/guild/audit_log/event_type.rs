@@ -392,7 +392,10 @@ mod tests {
         assert_eq!(110, u16::from(AuditLogEventType::ThreadCreate));
         assert_eq!(111, u16::from(AuditLogEventType::ThreadUpdate));
         assert_eq!(112, u16::from(AuditLogEventType::ThreadDelete));
-        assert_eq!(121, u16::from(AuditLogEventType::ApplicationCommandPermissionUpdate));
+        assert_eq!(
+            121,
+            u16::from(AuditLogEventType::ApplicationCommandPermissionUpdate)
+        );
         assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
     }
 }
