@@ -313,7 +313,7 @@ impl InMemoryCache {
     ///
     /// // later on...
     /// let guilds = cache.stats().guilds();
-    /// println!("guild count: {}", guilds);
+    /// println!("guild count: {guilds}");
     /// ```
     pub const fn stats(&self) -> InMemoryCacheStats<'_> {
         InMemoryCacheStats::new(self)
@@ -347,7 +347,7 @@ impl InMemoryCache {
     /// let user_id = Id::new(5);
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
-    /// println!("member has these permissions: {:?}", permissions);
+    /// println!("member has these permissions: {permissions:?}");
     /// # Ok(()) }
     /// ```
     #[cfg(feature = "permission-calculator")]
@@ -835,6 +835,7 @@ impl UpdateCache for Event {
             ChannelDelete(v) => c.update(v.deref()),
             ChannelPinsUpdate(v) => c.update(v),
             ChannelUpdate(v) => c.update(v.deref()),
+            CommandPermissionsUpdate(_) => {}
             GatewayHeartbeat(_) => {}
             GatewayHeartbeatAck => {}
             GatewayHello(_) => {}
@@ -846,6 +847,11 @@ impl UpdateCache for Event {
             GuildEmojisUpdate(v) => c.update(v),
             GuildStickersUpdate(v) => c.update(v),
             GuildIntegrationsUpdate(_) => {}
+            GuildScheduledEventCreate(_) => {}
+            GuildScheduledEventDelete(_) => {}
+            GuildScheduledEventUpdate(_) => {}
+            GuildScheduledEventUserAdd(_) => {}
+            GuildScheduledEventUserRemove(_) => {}
             GuildUpdate(v) => c.update(v.deref()),
             IntegrationCreate(v) => c.update(v.deref()),
             IntegrationDelete(v) => c.update(v.deref()),
@@ -902,10 +908,10 @@ impl UpdateCache for Event {
 mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
-        datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::Id,
+        util::Timestamp,
     };
 
     #[test]

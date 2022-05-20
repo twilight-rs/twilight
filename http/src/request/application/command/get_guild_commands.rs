@@ -19,6 +19,7 @@ pub struct GetGuildCommands<'a> {
     application_id: Id<ApplicationMarker>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
+    with_localizations: Option<bool>,
 }
 
 impl<'a> GetGuildCommands<'a> {
@@ -31,7 +32,17 @@ impl<'a> GetGuildCommands<'a> {
             application_id,
             guild_id,
             http,
+            with_localizations: None,
         }
+    }
+
+    /// Whether to include full localization dictionaries in the response.
+    ///
+    /// Defaults to [`false`].
+    pub const fn with_localizations(mut self, with_localizations: bool) -> Self {
+        self.with_localizations = Some(with_localizations);
+
+        self
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -52,6 +63,7 @@ impl TryIntoRequest for GetGuildCommands<'_> {
         Ok(Request::from_route(&Route::GetGuildCommands {
             application_id: self.application_id.get(),
             guild_id: self.guild_id.get(),
+            with_localizations: self.with_localizations,
         }))
     }
 }

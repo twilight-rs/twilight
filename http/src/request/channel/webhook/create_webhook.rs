@@ -10,12 +10,15 @@ use twilight_model::{
     channel::Webhook,
     id::{marker::ChannelMarker, Id},
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, webhook_username as validate_webhook_username,
+    ValidationError,
+};
 
 #[derive(Serialize)]
 struct CreateWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<&'a str>,
+    avatar: Option<&'a [u8]>,
     name: &'a str,
 }
 
@@ -33,7 +36,7 @@ struct CreateWebhookFields<'a> {
 /// let channel_id = Id::new(123);
 ///
 /// let webhook = client
-///     .create_webhook(channel_id, "Twily Bot")
+///     .create_webhook(channel_id, "Twily Bot")?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
@@ -47,17 +50,19 @@ pub struct CreateWebhook<'a> {
 }
 
 impl<'a> CreateWebhook<'a> {
-    pub(crate) const fn new(
+    pub(crate) fn new(
         http: &'a Client,
         channel_id: Id<ChannelMarker>,
         name: &'a str,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, ValidationError> {
+        validate_webhook_username(name)?;
+
+        Ok(Self {
             channel_id,
             fields: CreateWebhookFields { avatar: None, name },
             http,
             reason: None,
-        }
+        })
     }
 
     /// Set the avatar of the webhook.
@@ -67,7 +72,7 @@ impl<'a> CreateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: &'a str) -> Self {
+    pub const fn avatar(mut self, avatar: &'a [u8]) -> Self {
         self.fields.avatar = Some(avatar);
 
         self

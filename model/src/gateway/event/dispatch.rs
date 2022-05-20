@@ -20,11 +20,17 @@ pub enum DispatchEvent {
     ChannelDelete(Box<ChannelDelete>),
     ChannelPinsUpdate(ChannelPinsUpdate),
     ChannelUpdate(Box<ChannelUpdate>),
+    CommandPermissionsUpdate(CommandPermissionsUpdate),
     GiftCodeUpdate,
     GuildCreate(Box<GuildCreate>),
     GuildDelete(GuildDelete),
     GuildEmojisUpdate(GuildEmojisUpdate),
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
+    GuildScheduledEventCreate(Box<GuildScheduledEventCreate>),
+    GuildScheduledEventDelete(Box<GuildScheduledEventDelete>),
+    GuildScheduledEventUpdate(Box<GuildScheduledEventUpdate>),
+    GuildScheduledEventUserAdd(GuildScheduledEventUserAdd),
+    GuildScheduledEventUserRemove(GuildScheduledEventUserRemove),
     GuildUpdate(Box<GuildUpdate>),
     IntegrationCreate(Box<IntegrationCreate>),
     IntegrationDelete(IntegrationDelete),
@@ -78,11 +84,17 @@ impl DispatchEvent {
             Self::ChannelDelete(_) => EventType::ChannelDelete,
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
+            Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
             Self::GiftCodeUpdate => EventType::GiftCodeUpdate,
             Self::GuildCreate(_) => EventType::GuildCreate,
             Self::GuildDelete(_) => EventType::GuildDelete,
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
+            Self::GuildScheduledEventCreate(_) => EventType::GuildScheduledEventCreate,
+            Self::GuildScheduledEventDelete(_) => EventType::GuildScheduledEventDelete,
+            Self::GuildScheduledEventUpdate(_) => EventType::GuildScheduledEventUpdate,
+            Self::GuildScheduledEventUserAdd(_) => EventType::GuildScheduledEventUserAdd,
+            Self::GuildScheduledEventUserRemove(_) => EventType::GuildScheduledEventUserRemove,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
             Self::IntegrationCreate(_) => EventType::IntegrationCreate,
             Self::IntegrationDelete(_) => EventType::IntegrationDelete,
@@ -139,11 +151,17 @@ impl TryFrom<Event> for DispatchEvent {
             Event::ChannelDelete(v) => Self::ChannelDelete(v),
             Event::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             Event::ChannelUpdate(v) => Self::ChannelUpdate(v),
+            Event::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
             Event::GiftCodeUpdate => Self::GiftCodeUpdate,
             Event::GuildCreate(v) => Self::GuildCreate(v),
             Event::GuildDelete(v) => Self::GuildDelete(v),
             Event::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
             Event::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
+            Event::GuildScheduledEventCreate(v) => Self::GuildScheduledEventCreate(v),
+            Event::GuildScheduledEventDelete(v) => Self::GuildScheduledEventDelete(v),
+            Event::GuildScheduledEventUpdate(v) => Self::GuildScheduledEventUpdate(v),
+            Event::GuildScheduledEventUserAdd(v) => Self::GuildScheduledEventUserAdd(v),
+            Event::GuildScheduledEventUserRemove(v) => Self::GuildScheduledEventUserRemove(v),
             Event::GuildUpdate(v) => Self::GuildUpdate(v),
             Event::IntegrationCreate(v) => Self::IntegrationCreate(v),
             Event::IntegrationDelete(v) => Self::IntegrationDelete(v),
@@ -222,6 +240,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "CHANNEL_UPDATE" => {
                 DispatchEvent::ChannelUpdate(Box::new(ChannelUpdate::deserialize(deserializer)?))
             }
+            "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => DispatchEvent::CommandPermissionsUpdate(
+                CommandPermissionsUpdate::deserialize(deserializer)?,
+            ),
             "GIFT_CODE_UPDATE" => {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
 
@@ -238,6 +259,21 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             "GUILD_INTEGRATIONS_UPDATE" => DispatchEvent::GuildIntegrationsUpdate(
                 GuildIntegrationsUpdate::deserialize(deserializer)?,
+            ),
+            "GUILD_SCHEDULED_EVENT_CREATE" => DispatchEvent::GuildScheduledEventCreate(Box::new(
+                GuildScheduledEventCreate::deserialize(deserializer)?,
+            )),
+            "GUILD_SCHEDULED_EVENT_DELETE" => DispatchEvent::GuildScheduledEventDelete(Box::new(
+                GuildScheduledEventDelete::deserialize(deserializer)?,
+            )),
+            "GUILD_SCHEDULED_EVENT_UPDATE" => DispatchEvent::GuildScheduledEventUpdate(Box::new(
+                GuildScheduledEventUpdate::deserialize(deserializer)?,
+            )),
+            "GUILD_SCHEDULED_EVENT_USER_ADD" => DispatchEvent::GuildScheduledEventUserAdd(
+                GuildScheduledEventUserAdd::deserialize(deserializer)?,
+            ),
+            "GUILD_SCHEDULED_EVENT_USER_REMOVE" => DispatchEvent::GuildScheduledEventUserRemove(
+                GuildScheduledEventUserRemove::deserialize(deserializer)?,
             ),
             "GUILD_MEMBERS_CHUNK" => {
                 DispatchEvent::MemberChunk(MemberChunk::deserialize(deserializer)?)

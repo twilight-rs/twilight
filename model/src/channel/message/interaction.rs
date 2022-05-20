@@ -28,9 +28,9 @@ pub struct MessageInteraction {
 mod tests {
     use super::*;
     use crate::{
-        datetime::Timestamp,
         test::image_hash,
         user::{PremiumType, UserFlags},
+        util::Timestamp,
     };
     use serde_test::Token;
     use std::{error::Error, str::FromStr};

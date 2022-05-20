@@ -7,8 +7,8 @@ use crate::{
     response::ResponseFuture,
 };
 use twilight_model::{
-    datetime::Timestamp,
     scheduled_event::{EntityType, GuildScheduledEvent},
+    util::Timestamp,
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,

@@ -145,7 +145,6 @@ impl Standby {
     /// This function must be called when events are received in order for
     /// futures returned by methods to fulfill.
     pub fn process(&self, event: &Event) -> ProcessResults {
-        #[cfg(feature = "tracing")]
         tracing::trace!(event_type = ?event.kind(), ?event, "processing event");
 
         let mut completions = ProcessResults::new();
@@ -228,7 +227,6 @@ impl Standby {
         guild_id: Id<GuildMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%guild_id, "waiting for event in guild");
 
         WaitForGuildEventFuture {
@@ -287,7 +285,6 @@ impl Standby {
         guild_id: Id<GuildMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%guild_id, "waiting for event in guild");
 
         WaitForGuildEventStream {
@@ -336,7 +333,6 @@ impl Standby {
         &self,
         check: impl Into<Box<F>>,
     ) -> WaitForEventFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!("waiting for event");
 
         let (tx, rx) = oneshot::channel();
@@ -396,7 +392,6 @@ impl Standby {
         &self,
         check: impl Into<Box<F>>,
     ) -> WaitForEventStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!("waiting for event");
 
         let (tx, rx) = mpsc::unbounded_channel();
@@ -454,7 +449,6 @@ impl Standby {
         channel_id: Id<ChannelMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%channel_id, "waiting for message in channel");
 
         WaitForMessageFuture {
@@ -508,7 +502,6 @@ impl Standby {
         channel_id: Id<ChannelMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%channel_id, "waiting for message in channel");
 
         WaitForMessageStream {
@@ -558,7 +551,6 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for reaction on message");
 
         WaitForReactionFuture {
@@ -611,7 +603,6 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for reaction on message");
 
         WaitForReactionStream {
@@ -656,7 +647,6 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForComponentFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for component on message");
 
         WaitForComponentFuture {
@@ -705,7 +695,6 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForComponentStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for component on message");
 
         WaitForComponentStream {
@@ -754,22 +743,19 @@ impl Standby {
 
     /// Process a general event that is not of any particular type or in any
     /// particular guild.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     fn process_event<K: Debug + Display + Eq + Hash + PartialEq + 'static, V: Clone + Debug>(
         map: &DashMap<K, Bystander<V>>,
         event: &V,
     ) -> ProcessResults {
-        #[cfg(feature = "tracing")]
         tracing::trace!(?event, "processing event");
 
         let mut results = ProcessResults::new();
 
-        #[cfg_attr(not(feature = "tracing"), allow(clippy::let_and_return))]
         map.retain(|id, bystander| {
             let result = Self::bystander_process(bystander, event);
             results.handle(result);
 
-            #[cfg(feature = "tracing")]
             tracing::trace!(bystander_id = %id, ?result, "event bystander processed");
 
             // We want to retain bystanders that are *incomplete* and remove
@@ -782,7 +768,7 @@ impl Standby {
 
     /// Process a general event that is either of a particular type or in a
     /// particular guild.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     fn process_specific_event<
         K: Debug + Display + Eq + Hash + PartialEq + 'static,
         V: Clone + Debug,
@@ -798,14 +784,12 @@ impl Standby {
 
             (bystanders.is_empty(), results)
         } else {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, "guild has no event bystanders");
 
             return ProcessResults::new();
         };
 
         if remove_guild {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, "removing guild from map");
 
             map.remove(&guild_id);
@@ -815,12 +799,11 @@ impl Standby {
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     fn bystander_iter<E: Clone + Debug>(
         bystanders: &mut Vec<Bystander<E>>,
         event: &E,
     ) -> ProcessResults {
-        #[cfg(feature = "tracing")]
         tracing::trace!(?bystanders, "iterating over bystanders");
 
         // Iterate over the list of bystanders by using an index and manually
@@ -857,13 +840,11 @@ impl Standby {
         let mut results = ProcessResults::new();
 
         while index < bystanders.len() {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%index, "checking bystander");
 
             let status = Self::bystander_process(&mut bystanders[index], event);
             results.handle(status);
 
-            #[cfg(feature = "tracing")]
             tracing::trace!(%index, ?status, "checked bystander");
 
             if status.is_complete() {
@@ -881,7 +862,7 @@ impl Standby {
     ///
     /// Returns whether the bystander is fulfilled; if the bystander has been
     /// fulfilled then the channel is now closed.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     fn bystander_process<T: Clone + Debug>(
         bystander: &mut Bystander<T>,
         event: &T,
@@ -891,7 +872,6 @@ impl Standby {
         let sender = if let Some(sender) = bystander.sender.take() {
             sender
         } else {
-            #[cfg(feature = "tracing")]
             tracing::trace!("bystander has no sender, indicating for removal");
 
             return ProcessStatus::AlreadyComplete;
@@ -900,7 +880,6 @@ impl Standby {
         // The channel may have closed due to the receiver dropping their end,
         // in which case we can say we're done.
         if sender.is_closed() {
-            #[cfg(feature = "tracing")]
             tracing::trace!("bystander's rx dropped, indicating for removal");
 
             return ProcessStatus::Dropped;
@@ -909,7 +888,6 @@ impl Standby {
         // Lastly check to see if the predicate matches the event. If it doesn't
         // then we can short-circuit.
         if !(bystander.func)(event) {
-            #[cfg(feature = "tracing")]
             tracing::trace!("bystander check doesn't match, not removing");
 
             // Put the sender back into its bystander since we'll still need it
@@ -925,7 +903,6 @@ impl Standby {
                 // we're going to be tossing out the bystander anyway.
                 drop(tx.send(event.clone()));
 
-                #[cfg(feature = "tracing")]
                 tracing::trace!("bystander matched event, indicating for removal");
 
                 ProcessStatus::SentFuture
@@ -935,7 +912,6 @@ impl Standby {
                 // still open then we need to retain the bystander, otherwise we
                 // need to mark it for removal.
                 if tx.send(event.clone()).is_ok() {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!("bystander is a stream, retaining in map");
 
                     bystander.sender.replace(Sender::Stream(tx));
@@ -1088,7 +1064,6 @@ mod tests {
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
-        datetime::Timestamp,
         gateway::{
             event::{Event, EventType},
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
@@ -1096,6 +1071,7 @@ mod tests {
         id::{marker::GuildMarker, Id},
         oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
+        util::Timestamp,
     };
 
     assert_impl_all!(Standby: Debug, Default, Send, Sync);

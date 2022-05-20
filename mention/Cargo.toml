@@ -12,8 +12,8 @@ name = "twilight-mention"
 publish = false
 repository = "https://github.com/twilight-rs/twilight.git"
 readme = "README.md"
-rust-version = "1.57"
-version = "0.10.0"
+rust-version = "1.60"
+version = "0.11.0"
 
 [dependencies]
 twilight-model = { default-features = false, path = "../model" }

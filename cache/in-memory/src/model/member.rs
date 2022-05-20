@@ -1,13 +1,12 @@
 use serde::Serialize;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
-    datetime::Timestamp,
     guild::{Member, PartialMember},
     id::{
         marker::{GuildMarker, RoleMarker, UserMarker},
         Id,
     },
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 
 /// Computed fields required to complete a full cached member via
@@ -242,10 +241,10 @@ mod tests {
     use super::CachedMember;
     use static_assertions::assert_fields;
     use twilight_model::{
-        datetime::Timestamp,
         guild::{Member, PartialMember},
         id::Id,
         user::User,
+        util::Timestamp,
     };
 
     assert_fields!(

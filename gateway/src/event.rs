@@ -3,7 +3,7 @@ use twilight_model::gateway::event::EventType;
 
 bitflags! {
     /// Bitflags representing all of the possible types of events.
-    pub struct EventTypeFlags: u64 {
+    pub struct EventTypeFlags: u128 {
         /// User has been banned from a guild.
         const BAN_ADD = 1;
         /// User has been unbanned from a guild.
@@ -16,6 +16,8 @@ bitflags! {
         const CHANNEL_PINS_UPDATE = 1 << 4;
         /// Channel has been updated.
         const CHANNEL_UPDATE = 1 << 5;
+        /// A command's permissions has been updated.
+        const COMMAND_PERMISSIONS_UPDATE = 1 << 70;
         /// Heartbeat has been created.
         const GATEWAY_HEARTBEAT = 1 << 6;
         /// Heartbeat has been acknowledged.
@@ -26,7 +28,7 @@ bitflags! {
         ///
         /// A payload containing a boolean is included. If `true` the session is
         /// resumable. If not, then the shard must initialize a new session.
-        const GATEWAY_INVALIDATE_SESSION = 1 << 8;
+        const GATEWAY_INVALIDATE_SESSION = 1 << 69;
         /// Gateway is indicating that a shard should perform a reconnect.
         const GATEWAY_RECONNECT = 1 << 9;
         /// Gift code sent in a channel has been updated.
@@ -39,6 +41,16 @@ bitflags! {
         const GUILD_EMOJIS_UPDATE = 1 << 12;
         /// A guild's integrations have been updated.
         const GUILD_INTEGRATIONS_UPDATE = 1 << 13;
+        /// A guild's integrations have been updated.
+        const GUILD_SCHEDULED_EVENT_CREATE = 1 << 64;
+        /// A guild's integrations have been updated.
+        const GUILD_SCHEDULED_EVENT_DELETE = 1 << 65;
+        /// A guild's integrations have been updated.
+        const GUILD_SCHEDULED_EVENT_UPDATE = 1 << 66;
+        /// A guild's integrations have been updated.
+        const GUILD_SCHEDULED_EVENT_USER_ADD = 1 << 67;
+        /// A guild's integrations have been updated.
+        const GUILD_SCHEDULED_EVENT_USER_REMOVE = 1 << 68;
         /// A guild's stickers have been updated.
         const GUILD_STICKERS_UPDATE = 1 << 63;
         /// A guild has been updated.
@@ -258,6 +270,17 @@ impl EventTypeFlags {
     pub const GUILD_PRESENCES: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::PRESENCE_UPDATE.bits());
 
+    /// All [`EventTypeFlags`] in [`Intents::GUILD_SCHEDULED_EVENTS`].
+    ///
+    /// [`Intents::GUILD_SCHEDULED_EVENTS`]: crate::Intents::GUILD_SCHEDULED_EVENTS
+    pub const GUILD_SCHEDULED_EVENTS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
+        EventTypeFlags::GUILD_SCHEDULED_EVENT_CREATE.bits()
+            | EventTypeFlags::GUILD_SCHEDULED_EVENT_DELETE.bits()
+            | EventTypeFlags::GUILD_SCHEDULED_EVENT_UPDATE.bits()
+            | EventTypeFlags::GUILD_SCHEDULED_EVENT_USER_ADD.bits()
+            | EventTypeFlags::GUILD_SCHEDULED_EVENT_USER_REMOVE.bits(),
+    );
+
     /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
     ///
     /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
@@ -280,6 +303,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::ChannelDelete => EventTypeFlags::CHANNEL_DELETE,
             EventType::ChannelPinsUpdate => EventTypeFlags::CHANNEL_PINS_UPDATE,
             EventType::ChannelUpdate => EventTypeFlags::CHANNEL_UPDATE,
+            EventType::CommandPermissionsUpdate => EventTypeFlags::COMMAND_PERMISSIONS_UPDATE,
             EventType::GatewayHeartbeat => EventTypeFlags::GATEWAY_HEARTBEAT,
             EventType::GatewayHeartbeatAck => EventTypeFlags::GATEWAY_HEARTBEAT_ACK,
             EventType::GatewayHello => EventTypeFlags::GATEWAY_HELLO,
@@ -290,6 +314,13 @@ impl From<EventType> for EventTypeFlags {
             EventType::GuildDelete => EventTypeFlags::GUILD_DELETE,
             EventType::GuildEmojisUpdate => EventTypeFlags::GUILD_EMOJIS_UPDATE,
             EventType::GuildIntegrationsUpdate => EventTypeFlags::GUILD_INTEGRATIONS_UPDATE,
+            EventType::GuildScheduledEventCreate => EventTypeFlags::GUILD_SCHEDULED_EVENT_CREATE,
+            EventType::GuildScheduledEventDelete => EventTypeFlags::GUILD_SCHEDULED_EVENT_DELETE,
+            EventType::GuildScheduledEventUpdate => EventTypeFlags::GUILD_SCHEDULED_EVENT_UPDATE,
+            EventType::GuildScheduledEventUserAdd => EventTypeFlags::GUILD_SCHEDULED_EVENT_USER_ADD,
+            EventType::GuildScheduledEventUserRemove => {
+                EventTypeFlags::GUILD_SCHEDULED_EVENT_USER_REMOVE
+            }
             EventType::GuildStickersUpdate => EventTypeFlags::GUILD_STICKERS_UPDATE,
             EventType::GuildUpdate => EventTypeFlags::GUILD_UPDATE,
             EventType::IntegrationCreate => EventTypeFlags::INTEGRATION_CREATE,

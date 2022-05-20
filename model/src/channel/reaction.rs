@@ -50,38 +50,25 @@ impl<'de> Visitor<'de> for ReactionVisitor {
         let mut message_id = None;
         let mut user_id = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing reaction");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over element");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
+                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -140,11 +127,9 @@ impl<'de> Visitor<'de> for ReactionVisitor {
         let message_id = message_id.ok_or_else(|| DeError::missing_field("message_id"))?;
         let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(?channel_id, ?emoji, ?message_id, ?user_id);
 
         if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, ?member, "setting member guild id");
 
             member.guild_id = guild_id;
@@ -180,11 +165,11 @@ impl<'de> Deserialize<'de> for Reaction {
 mod tests {
     use super::super::{Reaction, ReactionType};
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         guild::Member,
         id::Id,
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;

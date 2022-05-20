@@ -82,12 +82,6 @@ for root certificates.
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
-
 ### Trust-DNS
 
 The `trust-dns` enables [`hyper-trust-dns`], which replaces the default
@@ -102,7 +96,6 @@ async DNS resolver on the application level.
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
-[`tracing`]: https://crates.io/crates/tracing
 [`hyper-trust-dns`]: https://crates.io/crates/hyper-trust-dns
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
@@ -114,4 +107,4 @@ async DNS resolver on the application level.
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust

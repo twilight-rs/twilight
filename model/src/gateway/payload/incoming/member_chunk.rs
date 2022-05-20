@@ -56,38 +56,25 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let mut not_found = None;
         let mut presences = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing member chunk");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over element");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
+                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -160,7 +147,6 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         let not_found = not_found.unwrap_or_default();
         let mut presences = presences.unwrap_or_default();
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             %chunk_count,
             %chunk_index,
@@ -210,12 +196,12 @@ impl<'de> Deserialize<'de> for MemberChunk {
 mod tests {
     use super::super::MemberChunk;
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         gateway::presence::{ClientStatus, Presence, Status, UserOrId},
         guild::Member,
         id::Id,
         test::image_hash,
         user::{User, UserFlags},
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use std::str::FromStr;
 

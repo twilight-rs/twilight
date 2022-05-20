@@ -4,12 +4,12 @@ use crate::{
         message::{Mention, MessageType},
         Attachment,
     },
-    datetime::Timestamp,
     id::{
         marker::{ChannelMarker, GuildMarker, MessageMarker, RoleMarker},
         Id,
     },
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
