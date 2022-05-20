@@ -3,7 +3,9 @@
 use serde::{Deserialize, Serialize};
 
 /// Attachment for when creating and updating messages.
-/// The id field is placeholder that can be any u64 value, such as 0,1,2...
+///
+/// `id` can be any placeholder value. If attaching multiple files to the
+/// message, each must be unique.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Attachment {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -16,15 +18,7 @@ pub struct Attachment {
 
 impl Attachment {
     /// Create a attachment from a filename and bytes.
-    pub const fn from_bytes(filename: String, file: Vec<u8>, id: u64) -> Self {
-        Self {
-            description: None,
-            file,
-            filename,
-            id,
-        }
-    }
-    
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -33,16 +27,14 @@ impl Attachment {
     /// use twilight_model::http::attachment;
     ///
     /// let client = Client::new("my token".to_owned());
-    /// let mut attachments: Vec<Attachment> = vec![];
     ///
     /// let grocery_list: &str = "Apples/nGrapes/nLemonade";
-    /// let message_content = format!("Here is the grocery list!");
-    ///         
-    /// attachments.push(Attachment::from_bytes(
+    /// let message_content = "Here is the grocery list!".into();
+    /// let attachments = Vec::from([Attachment::from_bytes(
     ///    "grocerylist.txt".to_owned(),
     ///    Vec::from(grocery_list),
     ///    0
-    /// ));
+    /// )]);
     ///
     /// http.create_message(package)
     ///    .content(&message_content)?
@@ -53,6 +45,14 @@ impl Attachment {
     ///
     /// # Ok(()) }
     /// ```
+    pub const fn from_bytes(filename: String, file: Vec<u8>, id: u64) -> Self {
+        Self {
+            description: None,
+            file,
+            filename,
+            id,
+        }
+    }
 
     /// Set the description of a attachment, this is used for alt-text
     /// on Discords end.
