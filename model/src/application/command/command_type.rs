@@ -15,7 +15,7 @@ pub enum CommandType {
     ///
     /// Appears when a user right clicks or taps on a message.
     Message,
-    /// Not yet known/supported
+    /// Variant value is unknown to the library.
     Unknown(u8),
 }
 
@@ -78,7 +78,7 @@ mod tests {
         serde_test::assert_tokens(&CommandType::ChatInput, &[Token::U8(1)]);
         serde_test::assert_tokens(&CommandType::User, &[Token::U8(2)]);
         serde_test::assert_tokens(&CommandType::Message, &[Token::U8(3)]);
-        serde_test::assert_tokens(&CommandType::Unknown(4), &[Token::U8(4)]);
+        serde_test::assert_tokens(&CommandType::Unknown(99), &[Token::U8(99)]);
     }
 
     #[test]

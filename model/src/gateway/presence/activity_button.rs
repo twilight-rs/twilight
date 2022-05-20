@@ -198,7 +198,7 @@ impl Serialize for ActivityButton {
                 state.end()
             }
             Self::Text(text) => serializer.serialize_str(&text.label),
-            ActivityButton::Unknown => Err(serde::ser::Error::custom(
+            Self::Unknown => Err(serde::ser::Error::custom(
                 "Can't serialize an unknown activity button type",
             )),
         }

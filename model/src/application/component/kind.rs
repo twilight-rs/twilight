@@ -28,8 +28,7 @@ pub enum ComponentType {
     ///
     /// [`TextInput`]: super::TextInput
     TextInput,
-
-    ///Variant value is unknown to the library.
+    /// Variant value is unknown to the library.
     Unknown(u8),
 }
 

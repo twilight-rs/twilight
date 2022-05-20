@@ -23,7 +23,7 @@ pub enum PermissionOverwriteType {
     Member,
     /// Permission overwrite targets an individual role.
     Role,
-    ///Variant value is unknown to the library.
+    /// Variant value is unknown to the library.
     Unknown(u8),
 }
 

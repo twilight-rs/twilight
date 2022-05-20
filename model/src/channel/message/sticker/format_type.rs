@@ -56,7 +56,6 @@ mod tests {
         assert_eq!(StickerFormatType::from(1), StickerFormatType::Png);
         assert_eq!(StickerFormatType::from(2), StickerFormatType::Apng);
         assert_eq!(StickerFormatType::from(3), StickerFormatType::Lottie);
-
         assert_eq!(StickerFormatType::from(99), StickerFormatType::Unknown(99));
     }
 }

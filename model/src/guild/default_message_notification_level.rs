@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
 #[serde(from = "u8", into = "u8")]
-
 pub enum DefaultMessageNotificationLevel {
     All,
     Mentions,

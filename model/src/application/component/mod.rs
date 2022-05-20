@@ -463,7 +463,8 @@ impl Serialize for Component {
                     + usize::from(text_input.required.is_some())
                     + usize::from(text_input.value.is_some())
             }
-            // We are dropping fields here but nothing we can do about that for the time being
+            // We are dropping fields here but nothing we can do about that for
+            // the time being.
             Component::Unknown(_) => 1,
         };
 
@@ -553,8 +554,9 @@ impl Serialize for Component {
                     state.serialize_field("value", &text_input.value)?;
                 }
             }
-            // We are not serializing all fields so this will fail to deserialize. But it is all that can be done
-            // to avoid losing incoming messages at this time
+            // We are not serializing all fields so this will fail to
+            // deserialize. But it is all that can be done to avoid losing
+            // incoming messages at this time.
             Component::Unknown(unknown) => {
                 state.serialize_field("type", &ComponentType::Unknown(*unknown))?;
             }

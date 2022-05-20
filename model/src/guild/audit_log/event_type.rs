@@ -208,7 +208,7 @@ pub enum AuditLogEventType {
     ///
     /// [GuildCommandPermissions]: crate::application::command::permissions::GuildCommandPermissions
     ApplicationCommandPermissionUpdate,
-    /// Unknown type for types not yet known to this library
+    /// Variant value is unknown to the library.
     Unknown(u16),
 }
 

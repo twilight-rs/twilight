@@ -13,7 +13,11 @@ pub enum ChannelType {
     GuildPublicThread,
     GuildPrivateThread,
     GuildStageVoice,
+    /// Channel in a [hub] containing the listed servers.
+    ///
+    /// [hub]: https://support.discord.com/hc/en-us/articles/4406046651927-Discord-Student-Hubs-FAQ
     GuildDirectory,
+    /// Channel that can only contain threads.
     GuildForum,
     Unknown(u8),
 }
