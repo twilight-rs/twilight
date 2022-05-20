@@ -23,6 +23,7 @@ twilight-http = { path = "../http" }
 twilight-lavalink = { path = "../lavalink" }
 twilight-model = { path = "../model" }
 twilight-standby = { path = "../standby" }
+twilight-validate = { path = "../validate" }
 
 [[example]]
 name = "gateway-cluster"

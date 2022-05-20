@@ -2,6 +2,7 @@ use futures_util::future;
 use std::{env, error::Error};
 use twilight_http::Client;
 use twilight_model::id::Id;
+use twilight_validate::Validate;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -14,8 +15,11 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     future::join_all((1u8..=10).map(|x| {
         client
             .create_message(channel_id)
-            .content(&format!("Ping #{x}"))
-            .expect("content not a valid length")
+            .content(
+                format!("Ping #{x}")
+                    .validate()
+                    .expect("content not a valid length"),
+            )
             .exec()
     }))
     .await;

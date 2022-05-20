@@ -22,10 +22,11 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
-    content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
-    MessageValidationError,
+use twilight_validate::{
+    marker::message::{
+        AttachmentMarker, ComponentsMarker, ContentMarker, EmbedsMarker, StickerIdsMarker,
+    },
+    Validated,
 };
 
 #[derive(Serialize)]
@@ -134,17 +135,13 @@ impl<'a> CreateMessage<'a> {
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
-        attachments: &'a [Attachment],
-    ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
-
+        attachments: Validated<&'a [Attachment], AttachmentMarker>,
+    ) -> Self {
         self.attachment_manager = self
             .attachment_manager
-            .set_files(attachments.iter().collect());
+            .set_files(attachments.get().iter().collect());
 
-        Ok(self)
+        self
     }
 
     /// Set the message's list of [`Component`]s.
@@ -156,15 +153,10 @@ impl<'a> CreateMessage<'a> {
     /// Refer to the errors section of
     /// [`twilight_validate::component::component`] for a list of errors that
     /// may be returned as a result of validating each provided component.
-    pub fn components(
-        mut self,
-        components: &'a [Component],
-    ) -> Result<Self, MessageValidationError> {
-        validate_components(components)?;
+    pub fn components(mut self, components: Validated<&'a [Component], ComponentsMarker>) -> Self {
+        self.fields.components = Some(components.get());
 
-        self.fields.components = Some(components);
-
-        Ok(self)
+        self
     }
 
     /// Set the message's content.
@@ -177,12 +169,10 @@ impl<'a> CreateMessage<'a> {
     /// long.
     ///
     /// [`ContentInvalid`]: twilight_validate::message::MessageValidationErrorType::ContentInvalid
-    pub fn content(mut self, content: &'a str) -> Result<Self, MessageValidationError> {
-        validate_content(content)?;
+    pub fn content(mut self, content: Validated<&'a str, ContentMarker>) -> Self {
+        self.fields.content.replace(content.get());
 
-        self.fields.content.replace(content);
-
-        Ok(self)
+        self
     }
 
     /// Set the message's list of embeds.
@@ -205,12 +195,10 @@ impl<'a> CreateMessage<'a> {
     /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
-    pub fn embeds(mut self, embeds: &'a [Embed]) -> Result<Self, MessageValidationError> {
-        validate_embeds(embeds)?;
+    pub fn embeds(mut self, embeds: Validated<&'a [Embed], EmbedsMarker>) -> Self {
+        self.fields.embeds = Some(embeds.get());
 
-        self.fields.embeds = Some(embeds);
-
-        Ok(self)
+        self
     }
 
     /// Whether to fail sending if the reply no longer exists.
@@ -309,13 +297,11 @@ impl<'a> CreateMessage<'a> {
     /// [`StickersInvalid`]: twilight_validate::message::MessageValidationErrorType::StickersInvalid
     pub fn sticker_ids(
         mut self,
-        sticker_ids: &'a [Id<StickerMarker>],
-    ) -> Result<Self, MessageValidationError> {
-        validate_sticker_ids(sticker_ids)?;
+        sticker_ids: Validated<&'a [Id<StickerMarker>], StickerIdsMarker>,
+    ) -> Self {
+        self.fields.sticker_ids = Some(sticker_ids.get());
 
-        self.fields.sticker_ids = Some(sticker_ids);
-
-        Ok(self)
+        self
     }
 
     /// Specify true if the message is TTS.
