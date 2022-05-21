@@ -14,9 +14,8 @@ use std::{
         Arc,
     },
     task::{Context, Poll},
-    time::Duration,
 };
-use tokio::time::{self, Timeout};
+use tokio::time::Timeout;
 use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
 use twilight_model::id::{marker::GuildMarker, Id};
 
@@ -174,11 +173,10 @@ impl InFlight {
 }
 
 struct RatelimitQueue {
+    future: Pin<Box<Timeout<HyperResponseFuture>>>,
     guild_id: Option<Id<GuildMarker>>,
     invalid_token: Option<Arc<AtomicBool>>,
     pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
-    request_timeout: Duration,
-    response_future: HyperResponseFuture,
     wait_for_sender: WaitForTicketFuture,
 }
 
@@ -207,7 +205,7 @@ impl RatelimitQueue {
         }
 
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
-            future: Box::pin(time::timeout(self.request_timeout, self.response_future)),
+            future: self.future,
             guild_id: self.guild_id,
             invalid_token: self.invalid_token,
             tx: Some(tx),
@@ -272,9 +270,8 @@ pub struct ResponseFuture<T> {
 
 impl<T> ResponseFuture<T> {
     pub(crate) fn new(
-        invalid_token: Option<Arc<AtomicBool>>,
         future: Timeout<HyperResponseFuture>,
-        ratelimit_tx: Option<TicketSender>,
+        invalid_token: Option<Arc<AtomicBool>>,
     ) -> Self {
         Self {
             phantom: PhantomData,
@@ -282,7 +279,7 @@ impl<T> ResponseFuture<T> {
                 future: Box::pin(future),
                 guild_id: None,
                 invalid_token,
-                tx: ratelimit_tx,
+                tx: None,
             }),
         }
     }
@@ -358,20 +355,17 @@ impl<T> ResponseFuture<T> {
     }
 
     pub(crate) fn ratelimit(
-        guild_id: Option<Id<GuildMarker>>,
+        future: Timeout<HyperResponseFuture>,
         invalid_token: Option<Arc<AtomicBool>>,
         wait_for_sender: WaitForTicketFuture,
-        request_timeout: Duration,
-        response_future: HyperResponseFuture,
     ) -> Self {
         Self {
             phantom: PhantomData,
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
-                guild_id,
+                future: Box::pin(future),
+                guild_id: None,
                 invalid_token,
                 pre_flight_check: None,
-                request_timeout,
-                response_future,
                 wait_for_sender,
             }),
         }
