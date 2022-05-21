@@ -9,8 +9,7 @@ use crate::{
 
 use serde::{
     de::{
-        value::MapAccessDeserializer, DeserializeSeed, Deserializer, Error as DeError, MapAccess,
-        SeqAccess, Visitor,
+        value::MapAccessDeserializer, DeserializeSeed, Deserializer, MapAccess, SeqAccess, Visitor,
     },
     Deserialize, Serialize,
 };
@@ -43,6 +42,7 @@ pub struct Member {
 /// [`MemberDeserializer`].
 // Used in the guild deserializer.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(rename(deserialize = "Member"))]
 pub struct MemberIntermediary {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -104,7 +104,7 @@ impl<'de> DeserializeSeed<'de> for MemberDeserializer {
     }
 }
 
-pub(crate) struct MemberVisitor(Id<GuildMarker>);
+struct MemberVisitor(Id<GuildMarker>);
 
 impl<'de> Visitor<'de> for MemberVisitor {
     type Value = Member;
@@ -117,56 +117,7 @@ impl<'de> Visitor<'de> for MemberVisitor {
         let deser = MapAccessDeserializer::new(map);
         let member = MemberIntermediary::deserialize(deser)?;
 
-        Ok(Member {
-            avatar: member.avatar,
-            communication_disabled_until: member.communication_disabled_until,
-            deaf: member.deaf,
-            guild_id: self.0,
-            joined_at: member.joined_at,
-            mute: member.mute,
-            nick: member.nick,
-            pending: member.pending,
-            premium_since: member.premium_since,
-            roles: member.roles,
-            user: member.user,
-        })
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct OptionalMemberDeserializer(Id<GuildMarker>);
-
-impl OptionalMemberDeserializer {
-    /// Create a new deserializer for a member when you know the ID but the
-    /// payload probably doesn't contain it.
-    pub const fn new(guild_id: Id<GuildMarker>) -> Self {
-        Self(guild_id)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for OptionalMemberDeserializer {
-    type Value = Option<Member>;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_option(OptionalMemberVisitor(self.0))
-    }
-}
-
-struct OptionalMemberVisitor(Id<GuildMarker>);
-
-impl<'de> Visitor<'de> for OptionalMemberVisitor {
-    type Value = Option<Member>;
-
-    fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("an optional member")
-    }
-
-    fn visit_none<E: DeError>(self) -> Result<Self::Value, E> {
-        Ok(None)
-    }
-
-    fn visit_some<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        Ok(Some(deserializer.deserialize_map(MemberVisitor(self.0))?))
+        Ok(member.into_member(self.0))
     }
 }
 
@@ -178,6 +129,14 @@ impl MemberListDeserializer {
     /// Guild ID but the payload probably doesn't contain it.
     pub const fn new(guild_id: Id<GuildMarker>) -> Self {
         Self(guild_id)
+    }
+}
+
+impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
+    type Value = Vec<Member>;
+
+    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
+        deserializer.deserialize_any(MemberListVisitor(self.0))
     }
 }
 
@@ -198,14 +157,6 @@ impl<'de> Visitor<'de> for MemberListVisitor {
         }
 
         Ok(list)
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for MemberListDeserializer {
-    type Value = Vec<Member>;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        deserializer.deserialize_any(MemberListVisitor(self.0))
     }
 }
 

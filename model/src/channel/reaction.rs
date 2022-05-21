@@ -1,6 +1,6 @@
 use crate::{
     channel::ReactionType,
-    guild::member::{Member, OptionalMemberDeserializer},
+    guild::member::{Member, MemberIntermediary},
     id::{
         marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
         Id,
@@ -46,7 +46,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
         let mut channel_id = None;
         let mut emoji = None;
         let mut guild_id = None;
-        let mut member = None;
+        let mut member: Option<MemberIntermediary> = None;
         let mut message_id = None;
         let mut user_id = None;
 
@@ -101,9 +101,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer = OptionalMemberDeserializer::new(Id::new(1));
-
-                    member = map.next_value_seed(deserializer)?;
+                    member = map.next_value()?;
                 }
                 Field::MessageId => {
                     if message_id.is_some() {
@@ -129,11 +127,13 @@ impl<'de> Visitor<'de> for ReactionVisitor {
 
         tracing::trace!(?channel_id, ?emoji, ?message_id, ?user_id);
 
-        if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
+        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
             tracing::trace!(%guild_id, ?member, "setting member guild id");
 
-            member.guild_id = guild_id;
-        }
+            Some(member.into_member(guild_id))
+        } else {
+            None
+        };
 
         Ok(Reaction {
             channel_id,

@@ -214,7 +214,7 @@ mod tests {
                 Token::Str("member"),
                 Token::Some,
                 Token::Struct {
-                    name: "MemberIntermediary",
+                    name: "Member",
                     len: 11,
                 },
                 Token::Str("avatar"),
