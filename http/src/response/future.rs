@@ -195,11 +195,9 @@ impl RatelimitQueue {
 
         if let Some(pre_flight_check) = self.pre_flight_check {
             if !pre_flight_check() {
-                return InnerPoll::Advance(ResponseFutureStage::Failed(Failed {
-                    source: Error {
-                        kind: ErrorType::RequestCanceled,
-                        source: None,
-                    },
+                return InnerPoll::Ready(Err(Error {
+                    kind: ErrorType::RequestCanceled,
+                    source: None,
                 }));
             }
         }
