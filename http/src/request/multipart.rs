@@ -81,12 +81,6 @@ impl Form {
     }
 
     /// Preview the built buffer's length without consuming the form.
-    ///
-    /// ```
-    /// let form = Form::new().json_part(b"field1", b"value1");
-    ///
-    /// assert_eq!(form.len(), form.build().len());
-    /// ```
     #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.buffer.len() + Self::BOUNDARY_TERMINATOR.len()
