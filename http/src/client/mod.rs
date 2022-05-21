@@ -2386,7 +2386,6 @@ impl Client {
         }
     }
 
-    #[allow(clippy::too_many_lines)]
     fn try_request<T>(&self, request: Request) -> Result<ResponseFuture<T>, Error> {
         if let Some(token_invalidated) = self.token_invalidated.as_ref() {
             if token_invalidated.load(Ordering::Relaxed) {
@@ -2411,14 +2410,13 @@ impl Client {
         let host = self.proxy.as_deref().unwrap_or("discord.com");
 
         let url = format!("{protocol}://{host}/api/v{API_VERSION}/{path}");
-        tracing::debug!("URL: {url:?}");
+        tracing::debug!(?url);
 
         let mut builder = hyper::Request::builder().method(method.to_http()).uri(&url);
 
         if use_authorization_token {
             if let Some(token) = &self.token {
                 let value = HeaderValue::from_str(token).map_err(|source| {
-                    #[allow(clippy::borrow_interior_mutable_const)]
                     let name = AUTHORIZATION.to_string();
 
                     Error {
@@ -2433,25 +2431,17 @@ impl Client {
             }
         }
 
-        let user_agent = HeaderValue::from_static(concat!(
-            "DiscordBot (",
-            env!("CARGO_PKG_HOMEPAGE"),
-            ", ",
-            env!("CARGO_PKG_VERSION"),
-            ") Twilight-rs",
-        ));
-
         if let Some(headers) = builder.headers_mut() {
             if let Some(form) = &form {
+                headers.insert(CONTENT_LENGTH, HeaderValue::from(form.len()));
                 if let Ok(content_type) = HeaderValue::try_from(form.content_type()) {
                     headers.insert(CONTENT_TYPE, content_type);
                 }
             } else if let Some(bytes) = &body {
-                let len = bytes.len();
-                headers.insert(CONTENT_LENGTH, HeaderValue::from(len));
-
-                let content_type = HeaderValue::from_static("application/json");
-                headers.insert(CONTENT_TYPE, content_type);
+                headers.insert(CONTENT_LENGTH, HeaderValue::from(bytes.len()));
+                headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+            } else if matches!(method, Method::Put | Method::Post | Method::Patch) {
+                headers.insert(CONTENT_LENGTH, HeaderValue::from(0));
             }
 
             #[cfg(feature = "decompression")]
@@ -2460,7 +2450,16 @@ impl Client {
                 HeaderValue::from_static("br"),
             );
 
-            headers.insert(USER_AGENT, user_agent);
+            headers.insert(
+                USER_AGENT,
+                HeaderValue::from_static(concat!(
+                    "DiscordBot (",
+                    env!("CARGO_PKG_HOMEPAGE"),
+                    ", ",
+                    env!("CARGO_PKG_VERSION"),
+                    ") Twilight-rs",
+                )),
+            );
 
             if let Some(req_headers) = req_headers {
                 for (maybe_name, value) in req_headers {
@@ -2472,75 +2471,38 @@ impl Client {
 
             if let Some(default_headers) = &self.default_headers {
                 for (name, value) in default_headers {
-                    headers.insert(name, HeaderValue::from(value));
+                    headers.insert(name, value.clone());
                 }
             }
         }
 
         let req = if let Some(form) = form {
-            let form_bytes = form.build();
-
-            if let Some(headers) = builder.headers_mut() {
-                headers.insert(CONTENT_LENGTH, HeaderValue::from(form_bytes.len()));
-            };
-
-            builder
-                .body(Body::from(form_bytes))
-                .map_err(|source| Error {
-                    kind: ErrorType::BuildingRequest,
-                    source: Some(Box::new(source)),
-                })?
+            builder.body(Body::from(form.build()))
         } else if let Some(bytes) = body {
-            builder.body(Body::from(bytes)).map_err(|source| Error {
-                kind: ErrorType::BuildingRequest,
-                source: Some(Box::new(source)),
-            })?
-        } else if method == Method::Put || method == Method::Post || method == Method::Patch {
-            if let Some(headers) = builder.headers_mut() {
-                headers.insert(CONTENT_LENGTH, HeaderValue::from(0));
-            }
-
-            builder.body(Body::empty()).map_err(|source| Error {
-                kind: ErrorType::BuildingRequest,
-                source: Some(Box::new(source)),
-            })?
+            builder.body(Body::from(bytes))
         } else {
-            builder.body(Body::empty()).map_err(|source| Error {
-                kind: ErrorType::BuildingRequest,
-                source: Some(Box::new(source)),
-            })?
-        };
+            builder.body(Body::empty())
+        }
+        .map_err(|source| Error {
+            kind: ErrorType::BuildingRequest,
+            source: Some(Box::new(source)),
+        })?;
 
         let inner = self.http.request(req);
 
         // For requests that don't use an authorization token we don't need to
         // remember whether the token is invalid. This may be for requests such
         // as webhooks and interactions.
-        let invalid_token = if use_authorization_token {
-            self.token_invalidated.as_ref().map(Arc::clone)
-        } else {
-            None
-        };
+        let invalid_token = use_authorization_token
+            .then(|| self.token_invalidated.clone())
+            .flatten();
 
-        // Clippy suggests bad code; an `Option::map_or_else` won't work here
-        // due to move semantics in both cases.
-        #[allow(clippy::option_if_let_else)]
-        if let Some(ratelimiter) = self.ratelimiter.as_ref() {
+        Ok(if let Some(ratelimiter) = &self.ratelimiter {
             let tx_future = ratelimiter.wait_for_ticket(ratelimit_path);
 
-            Ok(ResponseFuture::ratelimit(
-                None,
-                invalid_token,
-                tx_future,
-                self.timeout,
-                inner,
-            ))
+            ResponseFuture::ratelimit(None, invalid_token, tx_future, self.timeout, inner)
         } else {
-            Ok(ResponseFuture::new(
-                invalid_token,
-                time::timeout(self.timeout, inner),
-                None,
-            ))
-        }
+            ResponseFuture::new(invalid_token, time::timeout(self.timeout, inner), None)
+        })
     }
 }
