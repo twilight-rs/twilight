@@ -90,6 +90,7 @@ use std::{
     },
     time::Duration,
 };
+use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
@@ -2487,7 +2488,7 @@ impl Client {
             source: Some(Box::new(source)),
         })?;
 
-        let inner = tokio::time::timeout(self.timeout, self.http.request(req));
+        let inner = self.http.request(req);
 
         // For requests that don't use an authorization token we don't need to
         // remember whether the token is invalid. This may be for requests such
@@ -2499,9 +2500,9 @@ impl Client {
         Ok(if let Some(ratelimiter) = &self.ratelimiter {
             let tx_future = ratelimiter.wait_for_ticket(ratelimit_path);
 
-            ResponseFuture::ratelimit(inner, invalid_token, tx_future)
+            ResponseFuture::ratelimit(invalid_token, inner, self.timeout, tx_future)
         } else {
-            ResponseFuture::new(inner, invalid_token)
+            ResponseFuture::new(Box::pin(time::timeout(self.timeout, inner)), invalid_token)
         })
     }
 }

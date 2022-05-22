@@ -14,8 +14,9 @@ use std::{
         Arc,
     },
     task::{Context, Poll},
+    time::Duration,
 };
-use tokio::time::Timeout;
+use tokio::time::{self, Timeout};
 use twilight_http_ratelimiting::{ticket::TicketSender, RatelimitHeaders, WaitForTicketFuture};
 use twilight_model::id::{marker::GuildMarker, Id};
 
@@ -173,9 +174,10 @@ impl InFlight {
 }
 
 struct RatelimitQueue {
-    future: Pin<Box<Timeout<HyperResponseFuture>>>,
     guild_id: Option<Id<GuildMarker>>,
     invalid_token: Option<Arc<AtomicBool>>,
+    response: HyperResponseFuture,
+    timeout: Duration,
     pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
     wait_for_sender: WaitForTicketFuture,
 }
@@ -203,7 +205,7 @@ impl RatelimitQueue {
         }
 
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
-            future: self.future,
+            future: Box::pin(time::timeout(self.timeout, self.response)),
             guild_id: self.guild_id,
             invalid_token: self.invalid_token,
             tx: Some(tx),
@@ -268,13 +270,13 @@ pub struct ResponseFuture<T> {
 
 impl<T> ResponseFuture<T> {
     pub(crate) fn new(
-        future: Timeout<HyperResponseFuture>,
+        future: Pin<Box<Timeout<HyperResponseFuture>>>,
         invalid_token: Option<Arc<AtomicBool>>,
     ) -> Self {
         Self {
             phantom: PhantomData,
             stage: ResponseFutureStage::InFlight(InFlight {
-                future: Box::pin(future),
+                future,
                 guild_id: None,
                 invalid_token,
                 tx: None,
@@ -353,16 +355,18 @@ impl<T> ResponseFuture<T> {
     }
 
     pub(crate) fn ratelimit(
-        future: Timeout<HyperResponseFuture>,
         invalid_token: Option<Arc<AtomicBool>>,
+        response: HyperResponseFuture,
+        timeout: Duration,
         wait_for_sender: WaitForTicketFuture,
     ) -> Self {
         Self {
             phantom: PhantomData,
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
-                future: Box::pin(future),
                 guild_id: None,
                 invalid_token,
+                response,
+                timeout,
                 pre_flight_check: None,
                 wait_for_sender,
             }),
