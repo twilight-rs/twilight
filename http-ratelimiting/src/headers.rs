@@ -404,9 +404,7 @@ impl RatelimitHeaders {
     /// Parse headers from an iterator of tuples containing the header name and
     /// value.
     ///
-    /// Headers names must be UTF-8 valid and lowercased while values *may* be
-    /// UTF-8 valid. Most values will still be checked for validity prior to
-    /// parsing.
+    /// Headers names must be lowercase.
     ///
     /// # Examples
     ///
