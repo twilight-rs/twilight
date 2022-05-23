@@ -411,19 +411,21 @@ impl RatelimitHeaders {
     /// Parse a standard list of headers from a response:
     ///
     /// ```
-    /// use std::array::IntoIter;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let iter = IntoIter::new([
-    ///     ("x-ratelimit-bucket", "d721dea6054f6322373d361f98e5c38b".as_bytes()),
+    /// let headers = [
+    ///     (
+    ///         "x-ratelimit-bucket",
+    ///         "d721dea6054f6322373d361f98e5c38b".as_bytes(),
+    ///     ),
     ///     ("x-ratelimit-limit", "10".as_bytes()),
     ///     ("x-ratelimit-remaining", "9".as_bytes()),
     ///     ("x-ratelimit-reset", "1573795260.333".as_bytes()),
     ///     ("x-ratelimit-reset-after", "10.000".as_bytes()),
-    /// ]);
+    /// ];
     ///
-    /// let headers = RatelimitHeaders::from_pairs(iter)?;
+    /// let headers = RatelimitHeaders::from_pairs(headers.into_iter())?;
     /// assert!(matches!(
     ///     headers,
     ///     RatelimitHeaders::Present(p) if p.remaining() == 9,
@@ -435,14 +437,13 @@ impl RatelimitHeaders {
     /// ratelimited:
     ///
     /// ```
-    /// use std::array::IntoIter;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let headers = Vec::from([
+    /// let headers = [
     ///     ("retry-after", "487".as_bytes()),
     ///     ("x-ratelimit-global", "true".as_bytes()),
-    /// ]);
+    /// ];
     ///
     /// let headers = RatelimitHeaders::from_pairs(headers.into_iter())?;
     /// assert!(matches!(
