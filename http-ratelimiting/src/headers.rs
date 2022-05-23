@@ -225,14 +225,14 @@ impl Display for HeaderType {
 
 /// Ratelimit for all buckets encountered.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct GlobalLimited {
+pub struct Global {
     /// Number of seconds until the global ratelimit bucket is reset.
     retry_after: u64,
     /// Scope of the ratelimit.
     scope: Option<RatelimitScope>,
 }
 
-impl GlobalLimited {
+impl Global {
     /// Number of seconds before retrying.
     #[must_use]
     pub const fn retry_after(&self) -> u64 {
@@ -375,7 +375,7 @@ impl TryFrom<&'_ str> for RatelimitScope {
 #[non_exhaustive]
 pub enum RatelimitHeaders {
     /// Ratelimit for all buckets encountered.
-    GlobalLimited(GlobalLimited),
+    Global(Global),
     /// No ratelimit headers present.
     None,
     /// Information about the ratelimit bucket is available.
@@ -386,7 +386,7 @@ impl RatelimitHeaders {
     /// Whether the ratelimit headers are a global ratelimit.
     #[must_use]
     pub const fn is_global(&self) -> bool {
-        matches!(self, Self::GlobalLimited(_))
+        matches!(self, Self::Global(_))
     }
 
     /// Whether there are no ratelimit headers.
@@ -449,7 +449,7 @@ impl RatelimitHeaders {
     /// let headers = RatelimitHeaders::from_pairs(headers.into_iter())?;
     /// assert!(matches!(
     ///     headers,
-    ///     RatelimitHeaders::GlobalLimited(g) if g.retry_after() == 487,
+    ///     RatelimitHeaders::Global(g) if g.retry_after() == 487,
     /// ));
     /// # Ok(()) }
     /// ```
@@ -516,10 +516,7 @@ impl RatelimitHeaders {
             let retry_after =
                 retry_after.ok_or_else(|| HeaderParsingError::missing(HeaderName::RetryAfter))?;
 
-            return Ok(RatelimitHeaders::GlobalLimited(GlobalLimited {
-                retry_after,
-                scope,
-            }));
+            return Ok(RatelimitHeaders::Global(Global { retry_after, scope }));
         }
 
         // If none of the values have been set then there are no ratelimit headers.
@@ -605,7 +602,7 @@ fn header_str(name: HeaderName, value: &[u8]) -> Result<&str, HeaderParsingError
 #[cfg(test)]
 mod tests {
     use super::{
-        GlobalLimited, HeaderName, HeaderParsingError, HeaderParsingErrorType, HeaderType, Present,
+        Global, HeaderName, HeaderParsingError, HeaderParsingErrorType, HeaderType, Present,
         RatelimitHeaders,
     };
     use crate::headers::RatelimitScope;
@@ -641,7 +638,7 @@ mod tests {
         Send,
         Sync
     );
-    assert_impl_all!(GlobalLimited: Clone, Debug, Eq, PartialEq, Send, Sync);
+    assert_impl_all!(Global: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Present: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(RatelimitHeaders: Clone, Debug, Send, Sync);
 
@@ -663,7 +660,7 @@ mod tests {
 
         let iter = map.iter().map(|(k, v)| (k.as_str(), v.as_bytes()));
         let headers = RatelimitHeaders::from_pairs(iter)?;
-        assert!(matches!(headers, RatelimitHeaders::GlobalLimited(g) if g.retry_after() == 65));
+        assert!(matches!(headers, RatelimitHeaders::Global(g) if g.retry_after() == 65));
 
         Ok(())
     }
@@ -692,12 +689,12 @@ mod tests {
         let headers = RatelimitHeaders::from_pairs(iter)?;
         assert!(matches!(
             headers,
-            RatelimitHeaders::GlobalLimited(ref global)
+            RatelimitHeaders::Global(ref global)
             if global.retry_after() == 65
         ));
         assert!(matches!(
             headers,
-            RatelimitHeaders::GlobalLimited(global)
+            RatelimitHeaders::Global(global)
             if global.scope() == Some(RatelimitScope::Global)
         ));
 
