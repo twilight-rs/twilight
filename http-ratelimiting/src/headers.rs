@@ -258,7 +258,7 @@ pub struct Present {
     limit: u64,
     /// Remaining number of tickets.
     remaining: u64,
-    /// Number of seconds until the bucket resets.
+    /// Number of milliseconds until the bucket resets.
     reset_after: u64,
     /// When the bucket resets as a Unix timestamp in milliseconds.
     reset: u64,
@@ -293,7 +293,7 @@ impl Present {
         self.remaining
     }
 
-    /// Number of seconds until the bucket resets.
+    /// Number of milliseconds until the bucket resets.
     #[must_use]
     pub const fn reset_after(&self) -> u64 {
         self.reset_after
