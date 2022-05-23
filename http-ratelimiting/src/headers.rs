@@ -686,8 +686,8 @@ mod tests {
         let iter = map.iter().map(|(k, v)| (k.as_str(), v.as_bytes()));
         let headers = RatelimitHeaders::from_pairs(iter)?;
         assert!(matches!(
-            headers,
-            RatelimitHeaders::Global(ref global)
+            &headers,
+            RatelimitHeaders::Global(global)
             if global.retry_after() == 65
         ));
         assert!(matches!(
@@ -734,28 +734,28 @@ mod tests {
         let iter = map.iter().map(|(k, v)| (k.as_str(), v.as_bytes()));
         let headers = RatelimitHeaders::from_pairs(iter)?;
         assert!(matches!(
-            headers,
-            RatelimitHeaders::Present(ref present)
+            &headers,
+            RatelimitHeaders::Present(present)
             if present.bucket.as_deref() == Some("abcd1234")
         ));
         assert!(matches!(
-            headers,
-            RatelimitHeaders::Present(ref present)
+            &headers,
+            RatelimitHeaders::Present(present)
             if present.limit == 10
         ));
         assert!(matches!(
-            headers,
-            RatelimitHeaders::Present(ref present)
+            &headers,
+            RatelimitHeaders::Present(present)
             if present.remaining == 9
         ));
         assert!(matches!(
-            headers,
-            RatelimitHeaders::Present(ref present)
+            &headers,
+            RatelimitHeaders::Present(present)
             if present.reset_after == 64_570
         ));
         assert!(matches!(
-            headers,
-            RatelimitHeaders::Present(ref present)
+            &headers,
+            RatelimitHeaders::Present(present)
             if present.reset == 1_470_173_023_123
         ));
         assert!(matches!(
