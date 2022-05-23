@@ -43,12 +43,12 @@
 //! Parse a timestamp:
 //!
 //! ```
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use twilight_mention::{
 //!     timestamp::{TimestampStyle, Timestamp},
 //!     parse::ParseMention,
 //! };
 //!
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let expected_timestamp = Timestamp::new(
 //!     1_600_000_000,
 //!     Some(TimestampStyle::RelativeTime),
