@@ -491,11 +491,10 @@ impl RatelimitHeaders {
                     reset.replace((reset_value * 1000.).ceil() as u64);
                 }
                 HeaderName::RESET_AFTER => {
-                    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-                    let reset_after_value =
-                        (header_float(HeaderName::ResetAfter, value)? * 1000.).ceil() as u64;
+                    let reset_after_value = header_float(HeaderName::ResetAfter, value)?;
 
-                    reset_after.replace(reset_after_value);
+                    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+                    reset_after.replace((reset_after_value * 1000.).ceil() as u64);
                 }
                 HeaderName::RETRY_AFTER => {
                     let retry_after_value = header_int(HeaderName::RetryAfter, value)?;
