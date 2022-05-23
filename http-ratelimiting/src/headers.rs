@@ -226,14 +226,17 @@ impl Display for HeaderType {
 /// Ratelimit for all buckets encountered.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Global {
-    /// Number of seconds until the global ratelimit bucket is reset.
+    /// Number of seconds to wait before retrying.
     retry_after: u64,
     /// Scope of the ratelimit.
+    ///
+    /// This should always be present and should always be
+    /// [`RatelimitScope::Global`].
     scope: Option<RatelimitScope>,
 }
 
 impl Global {
-    /// Number of seconds before retrying.
+    /// Number of seconds to wait before retrying.
     #[must_use]
     pub const fn retry_after(&self) -> u64 {
         self.retry_after
@@ -249,32 +252,31 @@ impl Global {
     }
 }
 
-/// Information about the ratelimit bucket is available.
+/// Ratelimit for some bucket present.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Present {
-    /// Hashed bucket ID, if any.
+    /// Bucket ID.
     bucket: Option<String>,
-    /// Total number of tickets allocated to a bucket.
+    /// Total number of tickets allocated to the bucket.
     limit: u64,
     /// Remaining number of tickets.
     remaining: u64,
     /// Number of milliseconds until the bucket resets.
     reset_after: u64,
-    /// When the bucket resets as a Unix timestamp in milliseconds.
+    /// When the bucket resets, as a Unix timestamp in milliseconds.
     reset: u64,
-    /// Scope of a ratelimit when one occurs.
+    /// Scope of the ratelimit.
     scope: Option<RatelimitScope>,
 }
 
 impl Present {
-    /// Immutable reference to the bucket.
+    /// Reference to the bucket ID.
     #[must_use]
     pub fn bucket(&self) -> Option<&str> {
         self.bucket.as_deref()
     }
 
-    /// Consume the present ratelimit headers, returning the owned bucket if
-    /// available.
+    /// Consume the ratelimit headers, returning the owned bucket ID.
     #[allow(clippy::missing_const_for_fn)]
     #[must_use]
     pub fn into_bucket(self) -> Option<String> {
@@ -299,31 +301,29 @@ impl Present {
         self.reset_after
     }
 
-    /// When the bucket resets as a Unix timestamp in milliseconds.
+    /// When the bucket resets, as a Unix timestamp in milliseconds.
     #[must_use]
     pub const fn reset(&self) -> u64 {
         self.reset
     }
 
-    /// Scope of a ratelimit when one occurs.
+    /// Scope of the ratelimit.
     #[must_use]
     pub const fn scope(&self) -> Option<RatelimitScope> {
         self.scope
     }
 }
 
-/// Scope of a ratelimit when one occurs.
+/// Scope of a ratelimit.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum RatelimitScope {
-    /// Ratelimit is a global ratelimit and affects the application as a whole.
+    /// Ratelimit is global, affecting the application as a whole.
     Global,
-    /// Ratelimit is a shared ratelimit and affects all applications in the
-    /// resource.
+    /// Ratelimit is shared, affecting all users of the resource.
     ///
-    /// This does not affect the application's individual ratelimit buckets or
-    /// global limits.
+    /// Does not affect the application's individual buckets or global limits.
     Shared,
-    /// Ratelimit is a per-resource limit, such as for an individual bucket.
+    /// Ratelimit is per-resource, such as for an individual bucket.
     User,
 }
 
@@ -374,16 +374,16 @@ impl TryFrom<&'_ str> for RatelimitScope {
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum RatelimitHeaders {
-    /// Ratelimit for all buckets encountered.
+    /// Global ratelimit encountered.
     Global(Global),
     /// No ratelimit headers present.
     None,
-    /// Information about the ratelimit bucket is available.
+    /// Bucketed ratelimit present.
     Present(Present),
 }
 
 impl RatelimitHeaders {
-    /// Whether the ratelimit headers are a global ratelimit.
+    /// Whether the ratelimit headers are global.
     #[must_use]
     pub const fn is_global(&self) -> bool {
         matches!(self, Self::Global(_))
@@ -395,7 +395,7 @@ impl RatelimitHeaders {
         matches!(self, Self::None)
     }
 
-    /// Whether the ratelimit headers are a present and not a global ratelimit.
+    /// Whether the ratelimit headers are for a bucket.
     #[must_use]
     pub const fn is_present(&self) -> bool {
         matches!(self, Self::Present(_))
@@ -455,8 +455,8 @@ impl RatelimitHeaders {
     ///
     /// # Errors
     ///
-    /// This method will error if a required header is missing or the header
-    /// value is of an invalid type.
+    /// Errors if a required header is missing or if a header value is of an
+    /// invalid type.
     pub fn from_pairs<'a>(
         headers: impl Iterator<Item = (&'a str, &'a [u8])>,
     ) -> Result<Self, HeaderParsingError> {
