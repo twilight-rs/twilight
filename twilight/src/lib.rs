@@ -200,7 +200,7 @@
 //! [`tracing-log`] crate and initializing it like this:
 //!
 //! ```rust
-//! # fn main() -> anyhow::Result<()> {
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! tracing_log::LogTracer::init()?;
 //! # Ok(()) }
 //! ```
