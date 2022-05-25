@@ -92,21 +92,29 @@ impl ClusterBuilder {
             }
         }
 
-        let mut shard_config = self.shard.into_config();
-
+        #[cfg(not(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        )))]
+        let shard_config = self.shard.into_config();
         #[cfg(any(
             feature = "native",
             feature = "rustls-native-roots",
             feature = "rustls-webpki-roots"
         ))]
-        {
+        let shard_config = {
+            let mut shard_config = self.shard.into_config();
+
             let tls = TlsContainer::new().map_err(|err| ClusterStartError {
                 kind: ClusterStartErrorType::Tls,
                 source: Some(Box::new(err)),
             })?;
 
             shard_config.tls = Some(tls);
-        }
+
+            shard_config
+        };
 
         let config = Config {
             queue: self.queue,
