@@ -12,7 +12,7 @@ use twilight_validate::request::{guild_name as validate_guild_name, ValidationEr
 #[derive(Serialize)]
 struct CreateGuildFromTemplateFields<'a> {
     name: &'a str,
-    icon: Option<&'a [u8]>,
+    icon: Option<&'a str>,
 }
 
 /// Create a new guild based on a template.
@@ -54,7 +54,7 @@ impl<'a> CreateGuildFromTemplate<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn icon(mut self, icon: &'a [u8]) -> Self {
+    pub const fn icon(mut self, icon: &'a str) -> Self {
         self.fields.icon = Some(icon);
 
         self

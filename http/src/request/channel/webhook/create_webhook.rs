@@ -18,7 +18,7 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct CreateWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<&'a [u8]>,
+    avatar: Option<&'a str>,
     name: &'a str,
 }
 
@@ -72,7 +72,7 @@ impl<'a> CreateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: &'a [u8]) -> Self {
+    pub const fn avatar(mut self, avatar: &'a str) -> Self {
         self.fields.avatar = Some(avatar);
 
         self
