@@ -103,3 +103,60 @@ impl TryIntoRequest for UpdateWebhookWithToken<'_> {
         Ok(request.build())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_update_webhook_with_token() -> Result<(), Box<dyn Error>> {
+        const WEBHOOK_ID: Id<WebhookMarker> = Id::new(1);
+
+        let client = Client::new("token".into());
+
+        {
+            let expected = r#"{}"#;
+            let actual =
+                UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token").try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"}"#;
+            let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
+            .avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"))
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+
+            let expected = r#"{"avatar":null}"#;
+            let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
+                .avatar(None)
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"name":"Captain Hook"}"#;
+            let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
+                .name(Some("Captain Hook"))?
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":null,"name":"Captain Hook"}"#;
+            let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
+                .avatar(None)
+                .name(Some("Captain Hook"))?
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+        Ok(())
+    }
+}

@@ -118,3 +118,37 @@ impl TryIntoRequest for CreateWebhook<'_> {
         Ok(request.build())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_create_webhook() -> Result<(), Box<dyn Error>> {
+        const CHANNEL_ID: Id<ChannelMarker> = Id::new(1);
+
+        let client = Client::new("token".into());
+
+        {
+            let expected = r#"{"name":"Spidey Bot"}"#;
+            let actual =
+                CreateWebhook::new(&client, CHANNEL_ID, "Spidey Bot")?.try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI","name":"Spidey Bot"}"#;
+            let actual = CreateWebhook::new(&client, CHANNEL_ID, "Spidey Bot")?
+            .avatar(
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI",
+            )
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        Ok(())
+    }
+}
