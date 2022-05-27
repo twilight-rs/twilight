@@ -354,7 +354,7 @@ impl<T> ResponseFuture<T> {
         }
     }
 
-    pub(crate) const fn ratelimit(
+    pub(crate) fn ratelimit(
         invalid_token: Option<Arc<AtomicBool>>,
         response_future: HyperResponseFuture,
         timeout: Duration,
