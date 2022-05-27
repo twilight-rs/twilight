@@ -71,7 +71,3 @@ pub(crate) fn audit_header(
 
     Ok(iter::once((header_name, header_value)))
 }
-
-const fn slice_is_empty<T>(slice: &[T]) -> bool {
-    slice.is_empty()
-}
