@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadMetadata {
     pub archived: bool,
+    /// Duration without messages before the thread automatically archives.
+    ///
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     pub auto_archive_duration: AutoArchiveDuration,
     pub archive_timestamp: Timestamp,
     /// When the thread was created at.
