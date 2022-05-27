@@ -31,7 +31,7 @@ pub use twilight_http_ratelimiting::request::Method;
 use crate::error::{Error, ErrorType};
 use hyper::header::{HeaderName, HeaderValue};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-use serde::{Serialize, Serializer};
+use serde::Serialize;
 use std::iter;
 
 /// Name of the audit log reason header.
@@ -45,17 +45,8 @@ const REASON_HEADER_NAME: &str = "x-audit-log-reason";
 /// When the request field is `None` a field can skip serialization, while if a
 /// `NullableField` is provided with `None` within it then it will serialize as
 /// null. This mechanism is primarily used in patch requests.
+#[derive(Serialize)]
 struct NullableField<T>(Option<T>);
-
-impl<T: Serialize> Serialize for NullableField<T> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        if let Some(inner) = self.0.as_ref() {
-            serializer.serialize_some(inner)
-        } else {
-            serializer.serialize_none()
-        }
-    }
-}
 
 fn audit_header(reason: &str) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>, Error> {
     let header_name = HeaderName::from_static(REASON_HEADER_NAME);
