@@ -176,7 +176,7 @@ impl InFlight {
 struct RatelimitQueue {
     guild_id: Option<Id<GuildMarker>>,
     invalid_token: Option<Arc<AtomicBool>>,
-    response: HyperResponseFuture,
+    response_future: HyperResponseFuture,
     timeout: Duration,
     pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
     wait_for_sender: WaitForTicketFuture,
@@ -205,7 +205,7 @@ impl RatelimitQueue {
         }
 
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
-            future: Box::pin(time::timeout(self.timeout, self.response)),
+            future: Box::pin(time::timeout(self.timeout, self.response_future)),
             guild_id: self.guild_id,
             invalid_token: self.invalid_token,
             tx: Some(tx),
@@ -356,7 +356,7 @@ impl<T> ResponseFuture<T> {
 
     pub(crate) fn ratelimit(
         invalid_token: Option<Arc<AtomicBool>>,
-        response: HyperResponseFuture,
+        response_future: HyperResponseFuture,
         timeout: Duration,
         wait_for_sender: WaitForTicketFuture,
     ) -> Self {
@@ -365,7 +365,7 @@ impl<T> ResponseFuture<T> {
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
                 guild_id: None,
                 invalid_token,
-                response,
+                response_future,
                 timeout,
                 pre_flight_check: None,
                 wait_for_sender,
