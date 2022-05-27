@@ -2475,19 +2475,18 @@ impl Client {
             }
         }
 
-        let req = if let Some(form) = form {
+        let try_req = if let Some(form) = form {
             builder.body(Body::from(form.build()))
         } else if let Some(bytes) = body {
             builder.body(Body::from(bytes))
         } else {
             builder.body(Body::empty())
-        }
-        .map_err(|source| Error {
+        };
+
+        let inner = self.http.request(try_req.map_err(|source| Error {
             kind: ErrorType::BuildingRequest,
             source: Some(Box::new(source)),
-        })?;
-
-        let inner = self.http.request(req);
+        })?);
 
         // For requests that don't use an authorization token we don't need to
         // remember whether the token is invalid. This may be for requests such
