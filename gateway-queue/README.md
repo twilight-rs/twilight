@@ -39,4 +39,5 @@ create sessions.
 The `twilight-http` feature brings in support for [`LargeBotQueue`].
 
 This is enabled by default.
+
 [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
