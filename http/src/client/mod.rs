@@ -108,13 +108,13 @@ use twilight_validate::{
     channel::ChannelValidationError, request::ValidationError, sticker::StickerValidationError,
 };
 
-const TWILIGHT_USER_AGENT: HeaderValue = HeaderValue::from_static(concat!(
+const TWILIGHT_USER_AGENT: &str = concat!(
     "DiscordBot (",
     env!("CARGO_PKG_HOMEPAGE"),
     ", ",
     env!("CARGO_PKG_VERSION"),
     ") Twilight-rs",
-));
+);
 
 /// Twilight's http client.
 ///
@@ -2458,7 +2458,7 @@ impl Client {
                 HeaderValue::from_static("br"),
             );
 
-            headers.insert(USER_AGENT, TWILIGHT_USER_AGENT);
+            headers.insert(USER_AGENT, HeaderValue::from_static(TWILIGHT_USER_AGENT));
 
             if let Some(req_headers) = req_headers {
                 for (maybe_name, value) in req_headers {
