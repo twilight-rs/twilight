@@ -269,7 +269,7 @@ pub struct ResponseFuture<T> {
 }
 
 impl<T> ResponseFuture<T> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         future: Pin<Box<Timeout<HyperResponseFuture>>>,
         invalid_token: Option<Arc<AtomicBool>>,
     ) -> Self {
@@ -354,7 +354,7 @@ impl<T> ResponseFuture<T> {
         }
     }
 
-    pub(crate) fn ratelimit(
+    pub(crate) const fn ratelimit(
         invalid_token: Option<Arc<AtomicBool>>,
         response_future: HyperResponseFuture,
         timeout: Duration,
