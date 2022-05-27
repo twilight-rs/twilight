@@ -57,14 +57,12 @@ impl<T: Serialize> Serialize for NullableField<T> {
     }
 }
 
-pub(crate) fn audit_header(
-    reason: &str,
-) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>, Error> {
+fn audit_header(reason: &str) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>, Error> {
     let header_name = HeaderName::from_static(REASON_HEADER_NAME);
     let encoded_reason = utf8_percent_encode(reason, NON_ALPHANUMERIC).to_string();
     let header_value = HeaderValue::from_str(&encoded_reason).map_err(|e| Error {
         kind: ErrorType::CreatingHeader {
-            name: encoded_reason.clone(),
+            name: encoded_reason,
         },
         source: Some(Box::new(e)),
     })?;
