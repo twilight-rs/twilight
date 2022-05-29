@@ -94,7 +94,6 @@ impl ActionRowBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
     pub fn add_component(mut self, component: Component) -> Self {
         self.0.components.push(component);
 
@@ -129,7 +128,6 @@ impl ActionRowBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
     pub fn add_components(mut self, components: &mut Vec<Component>) -> Self {
         self.0.components.append(components);
 

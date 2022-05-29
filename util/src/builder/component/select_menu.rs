@@ -116,7 +116,6 @@ impl SelectMenuBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
     pub fn min_values(mut self, min_values: u8) -> Self {
         self.0.min_values = Some(min_values);
 
@@ -136,7 +135,6 @@ impl SelectMenuBuilder {
     ///     .validate()?.build();
     /// # Ok(()) }
     /// ```
-    #[must_use = "builders have no effect if unused"]
     pub const fn max_values(mut self, max_values: u8) -> Self {
         self.0.max_values = Some(max_values);
 
@@ -157,7 +155,6 @@ impl SelectMenuBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
     pub fn disable(mut self, disabled: bool) -> Self {
         self.0.disabled = disabled;
 
@@ -178,7 +175,6 @@ impl SelectMenuBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
     pub fn placeholder(mut self, placeholder: String) -> Self {
         self.0.placeholder = Some(placeholder);
 
@@ -202,7 +198,6 @@ impl SelectMenuBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
     pub fn add_option(mut self, option: SelectMenuOption) -> Self {
         self.0.options.push(option);
 
@@ -230,7 +225,6 @@ impl SelectMenuBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "builders have no effect if unused"]
     pub fn add_options(mut self, options: &mut Vec<SelectMenuOption>) -> Self {
         self.0.options.append(options);
 
