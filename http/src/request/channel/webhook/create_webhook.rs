@@ -1,3 +1,6 @@
+// clippy: due to the image serializer, which has a signature required by serde
+#![allow(clippy::ref_option_ref)]
+
 use crate::{
     client::Client,
     error::Error,
@@ -17,7 +20,10 @@ use twilight_validate::request::{
 
 #[derive(Serialize)]
 struct CreateWebhookFields<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        serialize_with = "request::serialize_optional_image",
+        skip_serializing_if = "Option::is_none"
+    )]
     avatar: Option<&'a [u8]>,
     name: &'a str,
 }

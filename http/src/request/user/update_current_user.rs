@@ -13,7 +13,10 @@ use twilight_validate::request::{
 
 #[derive(Serialize)]
 struct UpdateCurrentUserFields<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        serialize_with = "request::serialize_optional_nullable_image",
+        skip_serializing_if = "Option::is_none"
+    )]
     avatar: Option<NullableField<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<&'a str>,

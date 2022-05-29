@@ -14,7 +14,10 @@ use twilight_validate::request::{webhook_username as validate_webhook_username, 
 
 #[derive(Serialize)]
 struct UpdateWebhookWithTokenFields<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        serialize_with = "crate::request::serialize_optional_nullable_image",
+        skip_serializing_if = "Option::is_none"
+    )]
     avatar: Option<NullableField<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<NullableField<&'a str>>,
