@@ -103,6 +103,7 @@ impl ButtonBuilder {
 
     /// Consume the builder, returning a [`Button`].
     #[must_use = "builders have no effect if unused"]
+    #[allow(clippy::missing_const_for_fn)]
     pub fn build(self) -> Button {
         self.0
     }

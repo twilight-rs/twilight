@@ -90,7 +90,7 @@ impl ComponentsBuilder {
     pub fn build(self) -> Vec<Component> {
         self.0
             .into_iter()
-            .map(|action_row| Component::ActionRow(action_row))
+            .map(Component::ActionRow)
             .collect()
     }
 
@@ -101,7 +101,7 @@ impl ComponentsBuilder {
     /// Refer to the documentation of [`twilight_validate::component::validate_action_row`] for
     /// possible errors.
     pub fn validate(self) -> Result<Self, ComponentValidationError> {
-        for action_row in self.0.iter() {
+        for action_row in &self.0 {
             if let Err(source) = validate_action_row(action_row) {
                 return Err(source);
             }

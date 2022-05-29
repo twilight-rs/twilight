@@ -140,6 +140,7 @@ impl TextInputBuilder {
     ///     .validate()?.build();
     /// # Ok(()) }
     /// ```
+    #[allow(clippy::missing_const_for_fn)]
     pub fn placeholder(mut self, placeholder: String) -> Self {
         self.0.placeholder = Some(placeholder);
 
@@ -178,6 +179,7 @@ impl TextInputBuilder {
     ///     .validate()?.build();
     /// # Ok(()) }
     /// ```
+    #[allow(clippy::missing_const_for_fn)]
     pub fn value(mut self, value: String) -> Self {
         self.0.value = Some(value);
 
