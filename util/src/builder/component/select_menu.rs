@@ -6,7 +6,7 @@
 //! use twilight_util::builder::component::{SelectMenuBuilder, SelectMenuOptionBuilder};
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let component = Component::SelectMenu(
-//!     SelectMenuBuilder::new("characters".to_owned())
+//!     SelectMenuBuilder::new("characters".to_string())
 //!         .add_options(
 //!             &mut vec![
 //!                 SelectMenuOptionBuilder::new("twilight-sparkle".to_string(), "Twilight Sparkle".to_string())
@@ -41,7 +41,7 @@ use twilight_validate::component::{select_menu as validate_select_menu, Componen
 /// use twilight_util::builder::component::{SelectMenuBuilder, SelectMenuOptionBuilder};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let component = Component::SelectMenu(
-///     SelectMenuBuilder::new("characters".to_owned())
+///     SelectMenuBuilder::new("characters".to_string())
 ///         .add_options(
 ///             &mut vec![
 ///                 SelectMenuOptionBuilder::new("twilight-sparkle".to_string(), "Twilight Sparkle".to_string())
@@ -262,10 +262,10 @@ mod test {
 
     #[test]
     fn test_select_menu_builder() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_owned()).build();
+        let select_menu = SelectMenuBuilder::new("a-menu".to_string()).build();
 
         let expected = SelectMenu {
-            custom_id: "a-menu".to_owned(),
+            custom_id: "a-menu".to_string(),
             disabled: false,
             max_values: None,
             min_values: None,
@@ -278,12 +278,12 @@ mod test {
 
     #[test]
     fn test_select_menu_builder_disabled() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_owned())
+        let select_menu = SelectMenuBuilder::new("a-menu".to_string())
             .disable(true)
             .build();
 
         let expected = SelectMenu {
-            custom_id: "a-menu".to_owned(),
+            custom_id: "a-menu".to_string(),
             disabled: true,
             max_values: None,
             min_values: None,
@@ -296,12 +296,12 @@ mod test {
 
     #[test]
     fn test_select_menu_builder_explicit_enabled() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_owned())
+        let select_menu = SelectMenuBuilder::new("a-menu".to_string())
             .disable(false)
             .build();
 
         let expected = SelectMenu {
-            custom_id: "a-menu".to_owned(),
+            custom_id: "a-menu".to_string(),
             disabled: false,
             max_values: None,
             min_values: None,
@@ -314,13 +314,13 @@ mod test {
 
     #[test]
     fn test_select_menu_builder_limited_values() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_owned())
+        let select_menu = SelectMenuBuilder::new("a-menu".to_string())
             .max_values(10)
             .min_values(2)
             .build();
 
         let expected = SelectMenu {
-            custom_id: "a-menu".to_owned(),
+            custom_id: "a-menu".to_string(),
             disabled: false,
             max_values: Some(10),
             min_values: Some(2),
@@ -333,17 +333,17 @@ mod test {
 
     #[test]
     fn test_select_menu_builder_placeholder() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_owned())
-            .placeholder("I'm a placeholder".to_owned())
+        let select_menu = SelectMenuBuilder::new("a-menu".to_string())
+            .placeholder("I'm a placeholder".to_string())
             .build();
 
         let expected = SelectMenu {
-            custom_id: "a-menu".to_owned(),
+            custom_id: "a-menu".to_string(),
             disabled: false,
             max_values: None,
             min_values: None,
             options: Vec::new(),
-            placeholder: Some("I'm a placeholder".to_owned()),
+            placeholder: Some("I'm a placeholder".to_string()),
         };
 
         assert_eq!(select_menu, expected);

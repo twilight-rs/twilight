@@ -6,7 +6,7 @@
 //! use twilight_util::builder::component::TextInputBuilder;
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let component = Component::TextInput(
-//!     TextInputBuilder::paragraph("input-1".to_owned(), "Input".to_owned())
+//!     TextInputBuilder::paragraph("input-1".to_string(), "Input".to_owned())
 //!         .min_length(20)
 //!         .required(true)
 //!         .validate()?.build()
@@ -27,7 +27,7 @@ use twilight_validate::component::{text_input as validate_text_input, ComponentV
 /// use twilight_util::builder::component::TextInputBuilder;
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let component = Component::TextInput(
-///     TextInputBuilder::paragraph("input-1".to_owned(), "Input".to_owned())
+///     TextInputBuilder::paragraph("input-1".to_string(), "Input".to_owned())
 ///         .min_length(20)
 ///         .required(true)
 ///         .validate()?.build()
@@ -220,7 +220,7 @@ mod tests {
             value: None,
         };
 
-        let actual = TextInputBuilder::short("input".to_owned(), "label".to_owned()).build();
+        let actual = TextInputBuilder::short("input".to_string(), "label".to_owned()).build();
 
         assert_eq!(actual, expected);
     }
@@ -238,7 +238,7 @@ mod tests {
             value: None,
         };
 
-        let actual = TextInputBuilder::paragraph("input".to_owned(), "label".to_owned()).build();
+        let actual = TextInputBuilder::paragraph("input".to_string(), "label".to_owned()).build();
 
         assert_eq!(actual, expected);
     }
@@ -256,7 +256,7 @@ mod tests {
             value: None,
         };
 
-        let actual = TextInputBuilder::short("input".to_owned(), "label".to_owned())
+        let actual = TextInputBuilder::short("input".to_string(), "label".to_owned())
             .max_length(100)
             .build();
 
@@ -276,7 +276,7 @@ mod tests {
             value: None,
         };
 
-        let actual = TextInputBuilder::short("input".to_owned(), "label".to_owned())
+        let actual = TextInputBuilder::short("input".to_string(), "label".to_owned())
             .min_length(10)
             .build();
 
@@ -296,7 +296,7 @@ mod tests {
             value: None,
         };
 
-        let actual = TextInputBuilder::short("input".to_owned(), "label".to_owned())
+        let actual = TextInputBuilder::short("input".to_string(), "label".to_owned())
             .placeholder("Enter some text".into())
             .build();
 
@@ -316,7 +316,7 @@ mod tests {
             value: None,
         };
 
-        let actual = TextInputBuilder::short("input".to_owned(), "label".to_owned())
+        let actual = TextInputBuilder::short("input".to_string(), "label".to_owned())
             .required(true)
             .build();
 

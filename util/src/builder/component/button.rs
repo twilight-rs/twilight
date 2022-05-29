@@ -212,15 +212,15 @@ mod tests {
 
     #[test]
     fn test_builder_primary() {
-        let button = ButtonBuilder::primary("primary-button".to_owned())
-            .label("primary button".to_owned())
+        let button = ButtonBuilder::primary("primary-button".to_string())
+            .label("primary button".to_string())
             .build();
 
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: None,
-            label: Some("primary button".to_owned()),
-            custom_id: Some("primary-button".to_owned()),
+            label: Some("primary button".to_string()),
+            custom_id: Some("primary-button".to_string()),
             url: None,
             disabled: false,
         };
@@ -230,15 +230,15 @@ mod tests {
 
     #[test]
     fn test_builder_secondary() {
-        let button = ButtonBuilder::secondary("secondary-button".to_owned())
-            .label("secondary button".to_owned())
+        let button = ButtonBuilder::secondary("secondary-button".to_string())
+            .label("secondary button".to_string())
             .build();
 
         let expected = Button {
             style: ButtonStyle::Secondary,
             emoji: None,
-            label: Some("secondary button".to_owned()),
-            custom_id: Some("secondary-button".to_owned()),
+            label: Some("secondary button".to_string()),
+            custom_id: Some("secondary-button".to_string()),
             url: None,
             disabled: false,
         };
@@ -248,15 +248,15 @@ mod tests {
 
     #[test]
     fn test_builder_success() {
-        let button = ButtonBuilder::success("success-button".to_owned())
-            .label("success button".to_owned())
+        let button = ButtonBuilder::success("success-button".to_string())
+            .label("success button".to_string())
             .build();
 
         let expected = Button {
             style: ButtonStyle::Success,
             emoji: None,
-            label: Some("success button".to_owned()),
-            custom_id: Some("success-button".to_owned()),
+            label: Some("success button".to_string()),
+            custom_id: Some("success-button".to_string()),
             url: None,
             disabled: false,
         };
@@ -266,15 +266,15 @@ mod tests {
 
     #[test]
     fn test_builder_danger() {
-        let button = ButtonBuilder::danger("danger-button".to_owned())
-            .label("danger button".to_owned())
+        let button = ButtonBuilder::danger("danger-button".to_string())
+            .label("danger button".to_string())
             .build();
 
         let expected = Button {
             style: ButtonStyle::Danger,
             emoji: None,
-            label: Some("danger button".to_owned()),
-            custom_id: Some("danger-button".to_owned()),
+            label: Some("danger button".to_string()),
+            custom_id: Some("danger-button".to_string()),
             url: None,
             disabled: false,
         };
@@ -284,16 +284,16 @@ mod tests {
 
     #[test]
     fn test_builder_link() {
-        let button = ButtonBuilder::link("https://twilight.rs".to_owned())
-            .label("link button".to_owned())
+        let button = ButtonBuilder::link("https://twilight.rs".to_string())
+            .label("link button".to_string())
             .build();
 
         let expected = Button {
             style: ButtonStyle::Link,
             emoji: None,
-            label: Some("link button".to_owned()),
+            label: Some("link button".to_string()),
             custom_id: None,
-            url: Some("https://twilight.rs".to_owned()),
+            url: Some("https://twilight.rs".to_string()),
             disabled: false,
         };
 
@@ -302,16 +302,16 @@ mod tests {
 
     #[test]
     fn test_builder_disabled_button() {
-        let button = ButtonBuilder::primary("disabled-button".to_owned())
-            .label("disabled button".to_owned())
+        let button = ButtonBuilder::primary("disabled-button".to_string())
+            .label("disabled button".to_string())
             .disable(true)
             .build();
 
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: None,
-            label: Some("disabled button".to_owned()),
-            custom_id: Some("disabled-button".to_owned()),
+            label: Some("disabled button".to_string()),
+            custom_id: Some("disabled-button".to_string()),
             url: None,
             disabled: true,
         };
@@ -321,16 +321,16 @@ mod tests {
 
     #[test]
     fn test_builder_explicit_enabled_button() {
-        let button = ButtonBuilder::primary("enabled-button".to_owned())
-            .label("enabled button".to_owned())
+        let button = ButtonBuilder::primary("enabled-button".to_string())
+            .label("enabled button".to_string())
             .disable(false)
             .build();
 
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: None,
-            label: Some("enabled button".to_owned()),
-            custom_id: Some("enabled-button".to_owned()),
+            label: Some("enabled button".to_string()),
+            custom_id: Some("enabled-button".to_string()),
             url: None,
             disabled: false,
         };
@@ -340,19 +340,19 @@ mod tests {
 
     #[test]
     fn test_builder_with_emoji() {
-        let button = ButtonBuilder::primary("emoji-button".to_owned())
+        let button = ButtonBuilder::primary("emoji-button".to_string())
             .emoji(ReactionType::Unicode {
-                name: "\u{1f9ea}".to_owned(),
+                name: "\u{1f9ea}".to_string(),
             })
             .build();
 
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: Some(ReactionType::Unicode {
-                name: "\u{1f9ea}".to_owned(),
+                name: "\u{1f9ea}".to_string(),
             }),
             label: None,
-            custom_id: Some("emoji-button".to_owned()),
+            custom_id: Some("emoji-button".to_string()),
             url: None,
             disabled: false,
         };
@@ -363,15 +363,15 @@ mod tests {
     #[test]
     fn test_builder_try_from() {
         let button = Button::try_from(
-            ButtonBuilder::primary("primary-button".to_owned()).label("primary button".to_owned()),
+            ButtonBuilder::primary("primary-button".to_string()).label("primary button".to_owned()),
         )
         .unwrap();
 
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: None,
-            label: Some("primary button".to_owned()),
-            custom_id: Some("primary-button".to_owned()),
+            label: Some("primary button".to_string()),
+            custom_id: Some("primary-button".to_string()),
             url: None,
             disabled: false,
         };

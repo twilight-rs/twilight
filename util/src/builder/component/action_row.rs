@@ -9,8 +9,8 @@
 //! let action_row = ActionRowBuilder::new()
 //!     .add_component(
 //!         Component::Button(
-//!             ButtonBuilder::primary("button-1".to_owned())
-//!                 .label("Button".to_owned())
+//!             ButtonBuilder::primary("button-1".to_string())
+//!                 .label("Button".to_string())
 //!                 .validate()?.build()        
 //!         )        
 //!     )
@@ -32,8 +32,8 @@ use twilight_validate::component::{action_row as validate_action_row, ComponentV
 /// let action_row = ActionRowBuilder::new()
 ///     .add_component(
 ///         Component::Button(
-///             ButtonBuilder::primary("button-1".to_owned())
-///                 .label("Button".to_owned())
+///             ButtonBuilder::primary("button-1".to_string())
+///                 .label("Button".to_string())
 ///                 .validate()?.build()
 ///         )
 ///     )
@@ -71,8 +71,8 @@ impl ActionRowBuilder {
     /// let action_row = ActionRowBuilder::new()
     ///     .add_component(
     ///         Component::Button(
-    ///             ButtonBuilder::primary("button-1".to_owned())
-    ///                 .label("Button".to_owned())
+    ///             ButtonBuilder::primary("button-1".to_string())
+    ///                 .label("Button".to_string())
     ///                 .build()
     ///         )
     ///     )
@@ -100,13 +100,13 @@ impl ActionRowBuilder {
     ///     .add_components(
     ///         &mut vec![
     ///             Component::Button(
-    ///                 ButtonBuilder::primary("button-1".to_owned())
-    ///                     .label("First".to_owned())
+    ///                 ButtonBuilder::primary("button-1".to_string())
+    ///                     .label("First".to_string())
     ///                     .build()
     ///             ),
     ///             Component::Button(
     ///                 ButtonBuilder::secondary("button-2".to_string())
-    ///                     .label("Second".to_owned())
+    ///                     .label("Second".to_string())
     ///                     .build()
     ///             )
     ///         ]

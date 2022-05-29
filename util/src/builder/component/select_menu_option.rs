@@ -7,7 +7,7 @@
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let component = Component::SelectMenu(
-//!     SelectMenuBuilder::new("characters".to_owned())
+//!     SelectMenuBuilder::new("characters".to_string())
 //!         .add_options(
 //!             &mut vec![
 //!                 SelectMenuOptionBuilder::new("twilight-sparkle".to_string(), "Twilight Sparkle".to_string())
@@ -48,7 +48,7 @@ use twilight_validate::component::{
 /// use twilight_util::builder::component::{SelectMenuBuilder, SelectMenuOptionBuilder};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let component = Component::SelectMenu(
-///     SelectMenuBuilder::new("characters".to_owned())
+///     SelectMenuBuilder::new("characters".to_string())
 ///         .add_options(
 ///             &mut vec![
 ///                 SelectMenuOptionBuilder::new("twilight-sparkle".to_string(), "Twilight Sparkle".to_string())
@@ -205,14 +205,14 @@ mod tests {
     #[test]
     fn test_normal() {
         let select_menu =
-            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned()).build();
+            SelectMenuOptionBuilder::new("value".to_string(), "label".to_owned()).build();
 
         let expected = SelectMenuOption {
             default: false,
             description: None,
             emoji: None,
-            label: "label".to_owned(),
-            value: "value".to_owned(),
+            label: "label".to_string(),
+            value: "value".to_string(),
         };
 
         assert_eq!(select_menu, expected);
@@ -220,16 +220,16 @@ mod tests {
 
     #[test]
     fn test_description() {
-        let select_menu = SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
-            .description("description".to_owned())
+        let select_menu = SelectMenuOptionBuilder::new("value".to_string(), "label".to_owned())
+            .description("description".to_string())
             .build();
 
         let expected = SelectMenuOption {
             default: false,
-            description: Some("description".to_owned()),
+            description: Some("description".to_string()),
             emoji: None,
-            label: "label".to_owned(),
-            value: "value".to_owned(),
+            label: "label".to_string(),
+            value: "value".to_string(),
         };
 
         assert_eq!(select_menu, expected);
@@ -237,7 +237,7 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let select_menu = SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
+        let select_menu = SelectMenuOptionBuilder::new("value".to_string(), "label".to_owned())
             .default(true)
             .build();
 
@@ -245,8 +245,8 @@ mod tests {
             default: true,
             description: None,
             emoji: None,
-            label: "label".to_owned(),
-            value: "value".to_owned(),
+            label: "label".to_string(),
+            value: "value".to_string(),
         };
 
         assert_eq!(select_menu, expected);
@@ -254,9 +254,9 @@ mod tests {
 
     #[test]
     fn test_emoji() {
-        let select_menu = SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
+        let select_menu = SelectMenuOptionBuilder::new("value".to_string(), "label".to_owned())
             .emoji(ReactionType::Unicode {
-                name: "\u{1f9ea}".to_owned(),
+                name: "\u{1f9ea}".to_string(),
             })
             .build();
 
@@ -264,10 +264,10 @@ mod tests {
             default: false,
             description: None,
             emoji: Some(ReactionType::Unicode {
-                name: "\u{1f9ea}".to_owned(),
+                name: "\u{1f9ea}".to_string(),
             }),
-            label: "label".to_owned(),
-            value: "value".to_owned(),
+            label: "label".to_string(),
+            value: "value".to_string(),
         };
 
         assert_eq!(select_menu, expected);
@@ -276,17 +276,17 @@ mod tests {
     #[test]
     fn test_builder_try_from() {
         let select_menu = SelectMenuOption::try_from(
-            SelectMenuOptionBuilder::new("value".to_owned(), "label".to_owned())
-                .description("testing".to_owned()),
+            SelectMenuOptionBuilder::new("value".to_string(), "label".to_owned())
+                .description("testing".to_string()),
         )
         .unwrap();
 
         let expected = SelectMenuOption {
             default: false,
-            description: Some("testing".to_owned()),
+            description: Some("testing".to_string()),
             emoji: None,
-            label: "label".to_owned(),
-            value: "value".to_owned(),
+            label: "label".to_string(),
+            value: "value".to_string(),
         };
 
         assert_eq!(select_menu, expected);
