@@ -12,7 +12,7 @@ use twilight_validate::request::{guild_name as validate_guild_name, ValidationEr
 #[derive(Serialize)]
 struct CreateGuildFromTemplateFields<'a> {
     name: &'a str,
-    icon: Option<&'a [u8]>,
+    icon: Option<&'a str>,
 }
 
 /// Create a new guild based on a template.
@@ -54,7 +54,7 @@ impl<'a> CreateGuildFromTemplate<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn icon(mut self, icon: &'a [u8]) -> Self {
+    pub const fn icon(mut self, icon: &'a str) -> Self {
         self.fields.icon = Some(icon);
 
         self
@@ -82,5 +82,34 @@ impl TryIntoRequest for CreateGuildFromTemplate<'_> {
         request = request.json(&self.fields)?;
 
         Ok(request.build())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_create_guild_from_template() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("token".into());
+
+        {
+            let expected = r#"{"name":"New Guild","icon":null}"#;
+            let actual =
+                CreateGuildFromTemplate::new(&client, "code", "New Guild")?.try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"name":"New Guild","icon":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"}"#;
+            let actual = CreateGuildFromTemplate::new(&client, "code", "New Guild")?
+            .icon("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI")
+            .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+        Ok(())
     }
 }

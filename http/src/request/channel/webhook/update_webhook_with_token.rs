@@ -15,7 +15,7 @@ use twilight_validate::request::{webhook_username as validate_webhook_username, 
 #[derive(Serialize)]
 struct UpdateWebhookWithTokenFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a [u8]>>,
+    avatar: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<NullableField<&'a str>>,
 }
@@ -53,7 +53,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
+    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
         self.fields.avatar = Some(NullableField(avatar));
 
         self
@@ -101,5 +101,62 @@ impl TryIntoRequest for UpdateWebhookWithToken<'_> {
         request = request.json(&self.fields)?;
 
         Ok(request.build())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_update_webhook_with_token() -> Result<(), Box<dyn Error>> {
+        const WEBHOOK_ID: Id<WebhookMarker> = Id::new(1);
+
+        let client = Client::new("token".into());
+
+        {
+            let expected = r#"{}"#;
+            let actual =
+                UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token").try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"}"#;
+            let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
+            .avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"))
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+
+            let expected = r#"{"avatar":null}"#;
+            let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
+                .avatar(None)
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"name":"Captain Hook"}"#;
+            let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
+                .name(Some("Captain Hook"))?
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":null,"name":"Captain Hook"}"#;
+            let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
+                .avatar(None)
+                .name(Some("Captain Hook"))?
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+        Ok(())
     }
 }
