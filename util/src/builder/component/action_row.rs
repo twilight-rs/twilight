@@ -59,6 +59,20 @@ impl ActionRowBuilder {
         self.0
     }
 
+    /// Ensure the action row is valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the documentation of [`twilight_validate::component::action_row`] for
+    /// possible errors.
+    pub fn validate(self) -> Result<Self, ComponentValidationError> {
+        if let Err(source) = validate_action_row(&self.0) {
+            return Err(source);
+        }
+
+        Ok(self)
+    }
+
     /// Add a component to this action row.
     ///
     /// # Examples
@@ -120,20 +134,6 @@ impl ActionRowBuilder {
         self.0.components.append(components);
 
         self
-    }
-
-    /// Ensure the action row is valid.
-    ///
-    /// # Errors
-    ///
-    /// Refer to the documentation of [`twilight_validate::component::action_row`] for
-    /// possible errors.
-    pub fn validate(self) -> Result<Self, ComponentValidationError> {
-        if let Err(source) = validate_action_row(&self.0) {
-            return Err(source);
-        }
-
-        Ok(self)
     }
 }
 

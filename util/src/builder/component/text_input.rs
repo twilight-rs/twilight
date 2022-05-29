@@ -75,6 +75,20 @@ impl TextInputBuilder {
         self.0
     }
 
+    /// Ensure the text input is valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the documentation of [`twilight_validate::component::select_menu_option`] for
+    /// possible errors.
+    pub fn validate(self) -> Result<Self, ComponentValidationError> {
+        if let Err(source) = validate_text_input(&self.0) {
+            return Err(source);
+        }
+
+        Ok(self)
+    }
+
     /// Set the maximum amount of characters allowed to be entered in this text input.
     ///
     /// # Examples
@@ -168,20 +182,6 @@ impl TextInputBuilder {
         self.0.value = Some(value);
 
         self
-    }
-
-    /// Consume the builder, ensure that the option is valid and if so it returns a [`SelectMenuOption`].
-    ///
-    /// # Errors
-    ///
-    /// Refer to the documentation of [`twilight_validate::component::select_menu_option`] for
-    /// possible errors.
-    pub fn validate(self) -> Result<Self, ComponentValidationError> {
-        if let Err(source) = validate_text_input(&self.0) {
-            return Err(source);
-        }
-
-        Ok(self)
     }
 }
 

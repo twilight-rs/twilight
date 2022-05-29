@@ -94,6 +94,20 @@ impl SelectMenuOptionBuilder {
         self.0
     }
 
+    /// Ensure the select menu option is valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the documentation of [`twilight_validate::component::select_menu_option`] for
+    /// possible errors.
+    pub fn validate(self) -> Result<Self, ComponentValidationError> {
+        if let Err(source) = validate_select_menu_option(&self.0) {
+            return Err(source);
+        }
+
+        Ok(self)
+    }
+
     /// Set whether this option is selected by default.
     ///
     /// # Examples
@@ -154,20 +168,6 @@ impl SelectMenuOptionBuilder {
         self.0.emoji = Some(emoji);
 
         self
-    }
-
-    /// Consume the builder, ensure that the option is valid and if so it returns a [`SelectMenuOption`].
-    ///
-    /// # Errors
-    ///
-    /// Refer to the documentation of [`twilight_validate::component::select_menu_option`] for
-    /// possible errors.
-    pub fn validate(self) -> Result<Self, ComponentValidationError> {
-        if let Err(source) = validate_select_menu_option(&self.0) {
-            return Err(source);
-        }
-
-        Ok(self)
     }
 }
 

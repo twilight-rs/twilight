@@ -107,6 +107,20 @@ impl ButtonBuilder {
         self.0
     }
 
+    /// Ensure the button is valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the documentation of [`twilight_validate::component::button`] for
+    /// possible errors.
+    pub fn validate(self) -> Result<Self, ComponentValidationError> {
+        if let Err(source) = validate_button(&self.0) {
+            return Err(source);
+        }
+
+        Ok(self)
+    }
+
     /// Set whether the button is disabled or not.
     ///
     /// # Examples
@@ -168,20 +182,6 @@ impl ButtonBuilder {
         self.0.label = Some(label);
 
         self
-    }
-
-    /// Consume the builder, ensure that the button is valid and if so it returns a [`Button`].
-    ///
-    /// # Errors
-    ///
-    /// Refer to the documentation of [`twilight_validate::component::button`] for
-    /// possible errors.
-    pub fn validate(self) -> Result<Self, ComponentValidationError> {
-        if let Err(source) = validate_button(&self.0) {
-            return Err(source);
-        }
-
-        Ok(self)
     }
 }
 

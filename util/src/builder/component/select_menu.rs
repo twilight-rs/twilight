@@ -88,6 +88,20 @@ impl SelectMenuBuilder {
         self.0
     }
 
+    /// Ensure the select menu is valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the documentation of [`twilight_validate::component::select_menu`] for
+    /// possible errors.
+    pub fn validate(self) -> Result<Self, ComponentValidationError> {
+        if let Err(source) = validate_select_menu(&self.0) {
+            return Err(source);
+        }
+
+        Ok(self)
+    }
+
     /// Set the minimum values for this select menu.
     ///
     /// # Examples
@@ -221,20 +235,6 @@ impl SelectMenuBuilder {
         self.0.options.append(options);
 
         self
-    }
-
-    /// Consume the builder, ensure that the option is valid and if so it returns a [`SelectMenu`].
-    ///
-    /// # Errors
-    ///
-    /// Refer to the documentation of [`twilight_validate::component::select_menu`] for
-    /// possible errors.
-    pub fn validate(self) -> Result<Self, ComponentValidationError> {
-        if let Err(source) = validate_select_menu(&self.0) {
-            return Err(source);
-        }
-
-        Ok(self)
     }
 }
 

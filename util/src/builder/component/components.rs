@@ -84,23 +84,6 @@ impl ComponentsBuilder {
         self
     }
 
-    fn action_row_components(mut self, components: Vec<Component>) -> Self {
-        if self.is_full() {
-            return self;
-        }
-
-        match self.0.iter_mut().last() {
-            Some(action_row) if action_row.components.is_empty() => {
-                action_row.components = components;
-            }
-            _ => {
-                self.0.push(ActionRow { components });
-            }
-        }
-
-        self
-    }
-
     /// Consume the builder, returning a Vec<[`Component`]>.
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
@@ -109,6 +92,22 @@ impl ComponentsBuilder {
             .into_iter()
             .map(|action_row| Component::ActionRow(action_row))
             .collect()
+    }
+
+    /// Ensure the Components are valid.
+    ///
+    /// # Errors
+    ///
+    /// Refer to the documentation of [`twilight_validate::component::validate_action_row`] for
+    /// possible errors.
+    pub fn validate(self) -> Result<Self, ComponentValidationError> {
+        for action_row in self.0.iter() {
+            if let Err(source) = validate_action_row(action_row) {
+                return Err(source);
+            }
+        }
+
+        Ok(self)
     }
 
     /// Add a button to this builder.
@@ -156,10 +155,6 @@ impl ComponentsBuilder {
             }
             None => self.action_row_components(Vec::from([Component::Button(button)])),
         }
-    }
-
-    fn is_full(&self) -> bool {
-        self.0.len() == COMPONENT_COUNT
     }
 
     /// Add a select menu to this builder.
@@ -220,20 +215,25 @@ impl ComponentsBuilder {
         self.action_row_components(Vec::from([Component::TextInput(text_input)]))
     }
 
-    /// Consume the builder, ensure that the action rows and their components are valid.
-    ///
-    /// # Errors
-    ///
-    /// Refer to the documentation of [`twilight_validate::component::validate_action_row`] for
-    /// possible errors.
-    pub fn validate(self) -> Result<Self, ComponentValidationError> {
-        for action_row in self.0.iter() {
-            if let Err(source) = validate_action_row(action_row) {
-                return Err(source);
+    fn action_row_components(mut self, components: Vec<Component>) -> Self {
+        if self.is_full() {
+            return self;
+        }
+
+        match self.0.iter_mut().last() {
+            Some(action_row) if action_row.components.is_empty() => {
+                action_row.components = components;
+            }
+            _ => {
+                self.0.push(ActionRow { components });
             }
         }
 
-        Ok(self)
+        self
+    }
+
+    fn is_full(&self) -> bool {
+        self.0.len() == COMPONENT_COUNT
     }
 }
 
