@@ -88,10 +88,7 @@ impl ComponentsBuilder {
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
     pub fn build(self) -> Vec<Component> {
-        self.0
-            .into_iter()
-            .map(Component::ActionRow)
-            .collect()
+        self.0.into_iter().map(Component::ActionRow).collect()
     }
 
     /// Ensure the Components are valid.
