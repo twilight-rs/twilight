@@ -259,7 +259,7 @@ mod test {
     assert_impl_all!(ComponentsBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Vec<Component>: TryFrom<ComponentsBuilder>);
 
-    fn action_row(components: Vec<Component>) -> ActionRow {
+    const fn action_row(components: Vec<Component>) -> ActionRow {
         ActionRow { components }
     }
 
