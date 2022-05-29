@@ -674,12 +674,7 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
     }
 
     for option in &select_menu.options {
-        self::component_select_option_label(&option.label)?;
-        self::component_select_option_value(&option.value)?;
-
-        if let Some(description) = option.description.as_ref() {
-            self::component_option_description(description)?;
-        }
+        self::select_menu_option(option)?;
     }
 
     Ok(())
@@ -701,15 +696,13 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
 /// [`SelectOptionDescriptionLength`]: ComponentValidationErrorType::SelectOptionDescriptionLength
 /// [`SelectOptionLabelLength`]: ComponentValidationErrorType::SelectOptionLabelLength
 /// [`SelectOptionValueLength`]: ComponentValidationErrorType::SelectOptionValueLength
-pub fn select_menu_option(
-    select_menu_option: &SelectMenuOption,
-) -> Result<(), ComponentValidationError> {
-    self::component_select_option_label(&select_menu_option.label)?;
-    self::component_select_option_value(&select_menu_option.value)?;
+pub fn select_menu_option(select_menu_option: &SelectMenuOption) -> Result<(), ComponentValidationError> {
+        self::component_select_option_label(&select_menu_option.label)?;
+        self::component_select_option_value(&select_menu_option.value)?;
 
-    if let Some(description) = select_menu_option.description.as_ref() {
-        self::component_option_description(description)?;
-    }
+        if let Some(description) = select_menu_option.description.as_ref() {
+            self::component_option_description(description)?;
+        }
 
     Ok(())
 }
