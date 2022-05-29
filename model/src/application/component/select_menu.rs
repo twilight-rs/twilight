@@ -1,6 +1,8 @@
 use crate::channel::ReactionType;
 use serde::{Deserialize, Serialize};
 
+use super::Component;
+
 /// Dropdown-style interactive components that render on messages.
 ///
 /// Refer to [Discord Docs/Message Components] for additional information.
@@ -45,6 +47,12 @@ pub struct SelectMenuOption {
     pub value: String,
 }
 
+impl From<SelectMenu> for Component {
+    fn from(select_menu: SelectMenu) -> Self {
+        Self::SelectMenu(select_menu)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -73,4 +81,6 @@ mod tests {
         Sync
     );
     assert_fields!(SelectMenuOption: default, description, emoji, label, value);
+
+    assert_impl_all!(Component: From<SelectMenu>);
 }
