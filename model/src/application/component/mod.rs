@@ -73,6 +73,30 @@ impl Component {
     }
 }
 
+impl From<ActionRow> for Component {
+    fn from(action_row: ActionRow) -> Self {
+        Self::ActionRow(action_row)
+    }
+}
+
+impl From<Button> for Component {
+    fn from(button: Button) -> Self {
+        Self::Button(button)
+    }
+}
+
+impl From<SelectMenu> for Component {
+    fn from(select_menu: SelectMenu) -> Self {
+        Self::SelectMenu(select_menu)
+    }
+}
+
+impl From<TextInput> for Component {
+    fn from(text_input: TextInput) -> Self {
+        Self::TextInput(text_input)
+    }
+}
+
 impl<'de> Deserialize<'de> for Component {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_any(ComponentVisitor)
