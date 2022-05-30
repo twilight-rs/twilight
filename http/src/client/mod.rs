@@ -686,7 +686,7 @@ impl Client {
         &'a self,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-        image: &'a [u8],
+        image: &'a str,
     ) -> CreateEmoji<'a> {
         CreateEmoji::new(self, guild_id, name, image)
     }

@@ -14,7 +14,7 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct UpdateCurrentUserFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a [u8]>>,
+    avatar: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<&'a str>,
 }
@@ -49,7 +49,7 @@ impl<'a> UpdateCurrentUser<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
+    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
         self.fields.avatar = Some(NullableField(avatar));
 
         self
@@ -107,5 +107,54 @@ impl TryIntoRequest for UpdateCurrentUser<'_> {
         }
 
         Ok(request.build())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_clear_attachment() -> Result<(), Box<dyn Error>> {
+        let client = Client::new("token".into());
+
+        {
+            let expected = r#"{}"#;
+            let actual = UpdateCurrentUser::new(&client).try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":null}"#;
+            let actual = UpdateCurrentUser::new(&client)
+                .avatar(None)
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+
+            let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"}"#;
+            let actual = UpdateCurrentUser::new(&client).avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI")).try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"username":"other side"}"#;
+            let actual = UpdateCurrentUser::new(&client)
+                .username("other side")?
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI","username":"other side"}"#;
+            let actual = UpdateCurrentUser::new(&client).avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI")).username("other side")?.try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+        Ok(())
     }
 }

@@ -32,7 +32,7 @@ struct UpdateGuildScheduledEventFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    image: Option<NullableField<&'a [u8]>>,
+    image: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -153,7 +153,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn image(mut self, image: Option<&'a [u8]>) -> Self {
+    pub const fn image(mut self, image: Option<&'a str>) -> Self {
         self.fields.image = Some(NullableField(image));
 
         self

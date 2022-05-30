@@ -40,7 +40,7 @@ struct CreateGuildScheduledEventFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    image: Option<&'a [u8]>,
+    image: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -110,7 +110,7 @@ struct CreateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     explicit_content_filter: Option<ExplicitContentFilter>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    icon: Option<&'a [u8]>,
+    icon: Option<&'a str>,
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
@@ -371,7 +371,7 @@ impl<'a> CreateGuild<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: &'a [u8]) -> Self {
+    pub fn icon(mut self, icon: &'a str) -> Self {
         self.fields.icon.replace(icon);
 
         self
