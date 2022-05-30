@@ -135,7 +135,7 @@ impl RequestBuilder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Request {
     pub(crate) body: Option<Vec<u8>>,
     pub(crate) form: Option<Form>,
