@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 /// description for screen readers:
 ///
 /// ```
-/// use twilight_model::http::Attachment;
+/// use twilight_model::http::attachment::Attachment;
 ///
 /// let filename = "twilight_sparkle.json".to_owned();
 /// let file_content = br#"{
@@ -18,6 +18,7 @@ use serde::{Deserialize, Serialize};
 ///     "cutie_mark": "sparkles",
 ///     "name": "Twilight Sparkle"
 /// }"#.to_vec();
+/// let id = 1;
 ///
 /// let mut attachment = Attachment::from_bytes(filename, file_content, id);
 /// attachment.description("Raw data about Twilight Sparkle".to_owned());
@@ -52,7 +53,7 @@ impl Attachment {
     /// Create an attachment with a grocery list named "grocerylist.txt":
     ///
     /// ```
-    /// use twilight_model::http::attachment;
+    /// use twilight_model::http::attachment::Attachment;
     ///
     /// let filename = "grocerylist.txt".to_owned();
     /// let file_content = b"Apples\nGrapes\nLemonade".to_vec();
