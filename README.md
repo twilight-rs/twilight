@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -195,16 +193,6 @@ async fn handle_event(
 }
 ```
 
-## Note about tracing
-
-When using the [`tracing`] crate you won't, by default, see logs from any
-libraries that use the [`log`] crate. You can add that back by using the
-[`tracing-log`] crate and initializing it like this:
-
-```rust
-tracing_log::LogTracer::init()?;
-```
-
 ## License
 
 All first-party crates are licensed under [ISC][LICENSE.md]
@@ -227,9 +215,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
-[`log`]: https://crates.io/crates/log
-[`tracing-log`]: https://github.com/tokio-rs/tracing/tree/master/tracing-log
-[`tracing`]: https://crates.io/crates/tracing
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
 [`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_1_embed_builder.html
 [`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html
@@ -240,5 +225,3 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [`twilight-model`]: https://twilight.rs/chapter_1_crates/section_1_model.html
 [`twilight-standby`]: https://twilight.rs/chapter_1_crates/section_6_standby.html
 [`twilight-util`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_4_util.html
-
-<!-- cargo-sync-readme end -->

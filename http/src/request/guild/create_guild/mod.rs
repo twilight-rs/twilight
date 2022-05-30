@@ -1,3 +1,6 @@
+// clippy: due to the image serializer, which has a signature required by serde
+#![allow(clippy::ref_option_ref)]
+
 use crate::{
     client::Client,
     error::Error as HttpError,
@@ -109,7 +112,10 @@ struct CreateGuildFields<'a> {
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     #[serde(skip_serializing_if = "Option::is_none")]
     explicit_content_filter: Option<ExplicitContentFilter>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        serialize_with = "crate::request::serialize_optional_image",
+        skip_serializing_if = "Option::is_none"
+    )]
     icon: Option<&'a [u8]>,
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]

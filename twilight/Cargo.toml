@@ -5,7 +5,7 @@ description = "Advertisement crate for the twilight ecosystem; please use the in
 documentation = "https://docs.rs/twilight"
 edition = "2021"
 homepage = "https://twilight.rs"
-include = ["src/**/*.rs", "Cargo.toml"]
+include = ["src/**/*.rs", "../README.md"]
 keywords = ["discord", "discord-api", "twilight"]
 license = "ISC"
 name = "twilight"
@@ -19,7 +19,6 @@ version = "0.11.0"
 anyhow = { default-features = false, features = ["std"], version = "1" }
 futures = { default-features = false, version = "0.3" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-tracing-log = { default-features = false, features = ["log-tracer", "std"], version = "0.1" }
 twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory" }
 twilight-embed-builder = { default-features = false, path = "../embed-builder" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }

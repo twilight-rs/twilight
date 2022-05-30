@@ -31,7 +31,10 @@ struct UpdateGuildScheduledEventFields<'a> {
     entity_metadata: Option<EntityMetadataFields<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        serialize_with = "crate::request::serialize_optional_nullable_image",
+        skip_serializing_if = "Option::is_none"
+    )]
     image: Option<NullableField<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,

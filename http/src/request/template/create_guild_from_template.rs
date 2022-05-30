@@ -1,3 +1,6 @@
+// clippy: due to the image serializer, which has a signature required by serde
+#![allow(clippy::ref_option_ref)]
+
 use crate::{
     client::Client,
     error::Error as HttpError,
@@ -12,6 +15,7 @@ use twilight_validate::request::{guild_name as validate_guild_name, ValidationEr
 #[derive(Serialize)]
 struct CreateGuildFromTemplateFields<'a> {
     name: &'a str,
+    #[serde(serialize_with = "crate::request::serialize_optional_image")]
     icon: Option<&'a [u8]>,
 }
 

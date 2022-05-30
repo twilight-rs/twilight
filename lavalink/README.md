@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-lavalink
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -117,5 +115,3 @@ There is also an example of a basic bot located in the [root of the
 [node]: Node
 [process]: Lavalink::process
 [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->
