@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::{marker::MemberBody, ResponseFuture},
     routing::Route,
 };
@@ -23,15 +23,15 @@ use twilight_validate::request::{
 struct UpdateGuildMemberFields<'a> {
     #[allow(clippy::option_option)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    communication_disabled_until: Option<NullableField<Timestamp>>,
+    communication_disabled_until: Option<Nullable<Timestamp>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     deaf: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     mute: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    nick: Option<NullableField<&'a str>>,
+    nick: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<&'a [Id<RoleMarker>]>,
 }
@@ -74,7 +74,7 @@ impl<'a> UpdateGuildMember<'a> {
 
     /// Move the member to a different voice channel.
     pub const fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.channel_id = Some(NullableField(channel_id));
+        self.fields.channel_id = Some(Nullable(channel_id));
 
         self
     }
@@ -103,7 +103,7 @@ impl<'a> UpdateGuildMember<'a> {
             validate_communication_disabled_until(timestamp)?;
         }
 
-        self.fields.communication_disabled_until = Some(NullableField(timestamp));
+        self.fields.communication_disabled_until = Some(Nullable(timestamp));
 
         Ok(self)
     }
@@ -137,7 +137,7 @@ impl<'a> UpdateGuildMember<'a> {
             validate_nickname(nick)?;
         }
 
-        self.fields.nick = Some(NullableField(nick));
+        self.fields.nick = Some(Nullable(nick));
 
         Ok(self)
     }
@@ -198,7 +198,7 @@ impl TryIntoRequest for UpdateGuildMember<'_> {
 mod tests {
     use super::{UpdateGuildMember, UpdateGuildMemberFields};
     use crate::{
-        request::{NullableField, Request, TryIntoRequest},
+        request::{Nullable, Request, TryIntoRequest},
         routing::Route,
         Client,
     };
@@ -250,7 +250,7 @@ mod tests {
             communication_disabled_until: None,
             deaf: None,
             mute: None,
-            nick: Some(NullableField(None)),
+            nick: Some(Nullable(None)),
             roles: None,
         };
         let route = Route::UpdateMember {
@@ -275,7 +275,7 @@ mod tests {
             communication_disabled_until: None,
             deaf: None,
             mute: None,
-            nick: Some(NullableField(Some("foo"))),
+            nick: Some(Nullable(Some("foo"))),
             roles: None,
         };
         let route = Route::UpdateMember {

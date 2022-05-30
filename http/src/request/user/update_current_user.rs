@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -17,7 +17,7 @@ struct UpdateCurrentUserFields<'a> {
         serialize_with = "request::serialize_optional_nullable_image",
         skip_serializing_if = "Option::is_none"
     )]
-    avatar: Option<NullableField<&'a [u8]>>,
+    avatar: Option<Nullable<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<&'a str>,
 }
@@ -53,7 +53,7 @@ impl<'a> UpdateCurrentUser<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
-        self.fields.avatar = Some(NullableField(avatar));
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }
