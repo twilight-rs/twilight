@@ -37,7 +37,7 @@ use std::iter;
 /// Name of the audit log reason header.
 const REASON_HEADER_NAME: &str = "x-audit-log-reason";
 
-/// Value that either serializes to null or a value.
+/// Type that either serializes to null or a value.
 ///
 /// This is particularly useful when combined with an `Option` by allowing three
 /// states via `Option<Nullable<T>>`: undefined, null, and T.
