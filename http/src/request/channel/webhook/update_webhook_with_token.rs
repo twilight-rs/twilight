@@ -17,7 +17,7 @@ struct UpdateWebhookWithTokenFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     avatar: Option<NullableField<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<NullableField<&'a str>>,
+    name: Option<&'a str>,
 }
 
 /// Update a webhook, with a token, by ID.
@@ -67,12 +67,10 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// invalid.
     ///
     /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
-    pub fn name(mut self, name: Option<&'a str>) -> Result<Self, ValidationError> {
-        if let Some(name) = name {
-            validate_webhook_username(name)?;
-        }
+    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
+        validate_webhook_username(name)?;
 
-        self.fields.name = Some(NullableField(name));
+        self.fields.name = Some(name);
 
         Ok(self)
     }
@@ -142,7 +140,7 @@ mod tests {
         {
             let expected = r#"{"name":"Captain Hook"}"#;
             let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
-                .name(Some("Captain Hook"))?
+                .name("Captain Hook")?
                 .try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
@@ -152,7 +150,7 @@ mod tests {
             let expected = r#"{"avatar":null,"name":"Captain Hook"}"#;
             let actual = UpdateWebhookWithToken::new(&client, WEBHOOK_ID, "token")
                 .avatar(None)
-                .name(Some("Captain Hook"))?
+                .name("Captain Hook")?
                 .try_into_request()?;
 
             assert_eq!(Some(expected.as_bytes()), actual.body());
