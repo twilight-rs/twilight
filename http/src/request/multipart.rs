@@ -80,6 +80,12 @@ impl Form {
         self
     }
 
+    /// Preview the built buffer's length without consuming the form.
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize {
+        self.buffer.len() + Self::BOUNDARY_TERMINATOR.len()
+    }
+
     #[must_use = "has no effect if not built into a Form"]
     pub fn json_part(mut self, name: &[u8], value: &[u8]) -> Self {
         // Write the Content-Disposition header.
@@ -158,8 +164,10 @@ mod tests {
         --{boundary}--",
         );
 
+        let buffer_len = form.len();
         let buffer = form.build();
 
         assert_eq!(expected.as_bytes(), buffer);
+        assert_eq!(buffer_len, buffer.len());
     }
 }
