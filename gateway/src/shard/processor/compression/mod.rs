@@ -153,7 +153,7 @@ impl Compression {
 /// with a value of `zlib-stream`.
 #[cfg_attr(
     not(any(feature = "zlib-stock", feature = "zlib-simd")),
-    allow(unused_variables)
+    allow(clippy::ptr_arg, unused_variables)
 )]
 pub fn add_url_feature(buf: &mut String) {
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]

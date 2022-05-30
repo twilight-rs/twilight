@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, Request, TryIntoRequest},
+    request::{Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -17,7 +17,7 @@ struct UpdateGuildWelcomeScreenFields<'a> {
     description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     enabled: Option<bool>,
-    #[serde(skip_serializing_if = "request::slice_is_empty")]
+    #[serde(skip_serializing_if = "<[_]>::is_empty")]
     welcome_channels: &'a [WelcomeScreenChannel],
 }
 
