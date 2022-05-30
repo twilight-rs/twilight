@@ -16,7 +16,10 @@ pub struct GuildIntegration {
     pub application: Option<IntegrationApplication>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_emoticons: Option<bool>,
-    pub enabled: bool,
+    /// Whether the integration has been enabled.
+    ///
+    /// May be provided on some non-Discord application integrations.
+    pub enabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_behavior: Option<IntegrationExpireBehavior>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -67,7 +70,7 @@ mod tests {
             },
             application: None,
             enable_emoticons: Some(true),
-            enabled: true,
+            enabled: Some(true),
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
@@ -119,6 +122,7 @@ mod tests {
                 Token::Some,
                 Token::Bool(true),
                 Token::Str("enabled"),
+                Token::Some,
                 Token::Bool(true),
                 Token::Str("expire_behavior"),
                 Token::Some,
@@ -197,7 +201,7 @@ mod tests {
                 name: "Twilight".to_string(),
             }),
             enable_emoticons: Some(true),
-            enabled: true,
+            enabled: None,
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
@@ -265,7 +269,7 @@ mod tests {
                 Token::Some,
                 Token::Bool(true),
                 Token::Str("enabled"),
-                Token::Bool(true),
+                Token::None,
                 Token::Str("expire_behavior"),
                 Token::Some,
                 Token::U8(1),
