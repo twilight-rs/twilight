@@ -36,7 +36,10 @@ struct UpdateGuildFields<'a> {
     explicit_content_filter: Option<NullableField<ExplicitContentFilter>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     features: Option<&'a [&'a str]>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        serialize_with = "request::serialize_optional_nullable_image",
+        skip_serializing_if = "Option::is_none"
+    )]
     icon: Option<NullableField<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,

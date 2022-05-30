@@ -17,6 +17,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 
 #[derive(Serialize)]
 struct CreateEmojiFields<'a> {
+    #[serde(serialize_with = "request::serialize_image")]
     image: &'a [u8],
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -31,7 +31,7 @@ pub use twilight_http_ratelimiting::request::Method;
 use crate::error::{Error, ErrorType};
 use hyper::header::{HeaderName, HeaderValue};
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use std::iter;
 
 /// Name of the audit log reason header.
@@ -59,4 +59,103 @@ fn audit_header(reason: &str) -> Result<impl Iterator<Item = (HeaderName, Header
     })?;
 
     Ok(iter::once((header_name, header_value)))
+}
+
+/// Serialize image data as a string.
+///
+/// Part of a backported fix for #1744. Remove after 0.11.x.
+#[allow(clippy::ref_option_ref)]
+fn serialize_image<S: Serializer>(data: &[u8], serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(&String::from_utf8_lossy(data))
+}
+
+/// Serialize optional image data as a string.
+///
+/// Part of a backported fix for #1744. Remove after 0.11.x.
+#[allow(clippy::ref_option_ref)]
+fn serialize_optional_image<S: Serializer>(
+    maybe_data: &Option<&[u8]>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    if let Some(data) = maybe_data {
+        serializer.serialize_some(&String::from_utf8_lossy(data))
+    } else {
+        serializer.serialize_none()
+    }
+}
+
+/// Serialize optional and image data as a string.
+///
+/// Part of a backported fix for #1744. Remove after 0.11.x.
+#[allow(clippy::ref_option_ref)]
+fn serialize_optional_nullable_image<S: Serializer>(
+    maybe_data: &Option<NullableField<&[u8]>>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    if let Some(data) = maybe_data.as_ref().and_then(|field| field.0) {
+        serializer.serialize_some(&String::from_utf8_lossy(data))
+    } else {
+        serializer.serialize_none()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::Serializer;
+    use std::io::Cursor;
+
+    use crate::request::NullableField;
+
+    #[test]
+    fn test_serialize_image() {
+        let mut buf = Cursor::new(Vec::new());
+        let mut serializer = Serializer::new(&mut buf);
+        super::serialize_image(b"test", &mut serializer).unwrap();
+        assert_eq!(br#""test""#, buf.into_inner().as_slice());
+    }
+
+    #[test]
+    fn test_serialize_optional_image_some() {
+        let mut buf = Cursor::new(Vec::new());
+        let mut serializer = Serializer::new(&mut buf);
+        super::serialize_optional_image(&Some(b"test"), &mut serializer).unwrap();
+        assert_eq!(br#""test""#, buf.into_inner().as_slice());
+    }
+
+    #[test]
+    fn test_serialize_optional_image_none() {
+        let mut buf = Cursor::new(Vec::new());
+        let mut serializer = Serializer::new(&mut buf);
+        super::serialize_optional_image(&None, &mut serializer).unwrap();
+        assert_eq!(b"null", buf.into_inner().as_slice());
+    }
+
+    #[test]
+    fn test_serialize_optional_nullable_image_none() {
+        let mut buf = Cursor::new(Vec::new());
+        let mut serializer = Serializer::new(&mut buf);
+        super::serialize_optional_nullable_image(&None, &mut serializer).unwrap();
+        assert_eq!(b"null", buf.into_inner().as_slice());
+    }
+
+    #[test]
+    fn test_serialize_optional_nullable_image_some_null() {
+        let mut buf = Cursor::new(Vec::new());
+        let mut serializer = Serializer::new(&mut buf);
+        super::serialize_optional_nullable_image(&Some(NullableField(None)), &mut serializer)
+            .unwrap();
+        assert_eq!(b"null", buf.into_inner().as_slice());
+    }
+
+    #[test]
+    fn test_serialize_optional_nullable_image_some_value() {
+        let mut buf = Cursor::new(Vec::new());
+        let mut serializer = Serializer::new(&mut buf);
+        super::serialize_optional_nullable_image(
+            &Some(NullableField(Some(b"test"))),
+            &mut serializer,
+        )
+        .unwrap();
+        assert_eq!(br#""test""#, buf.into_inner().as_slice());
+    }
 }

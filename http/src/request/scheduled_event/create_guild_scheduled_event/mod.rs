@@ -1,3 +1,6 @@
+// clippy: due to the image serializer, which has a signature required by serde
+#![allow(clippy::ref_option_ref)]
+
 mod external;
 mod stage_instance;
 mod voice;
@@ -39,7 +42,10 @@ struct CreateGuildScheduledEventFields<'a> {
     entity_metadata: Option<EntityMetadataFields<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        serialize_with = "crate::request::serialize_optional_image",
+        skip_serializing_if = "Option::is_none"
+    )]
     image: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
