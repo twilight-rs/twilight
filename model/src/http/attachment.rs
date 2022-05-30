@@ -37,9 +37,10 @@ pub struct Attachment {
     pub filename: String,
     /// Unique ID of the attachment in the message.
     ///
-    /// All attachment IDs in a message must be unique, but may be any value of
-    /// no particular format; for example, IDs of 0, 100, the current timestamp,
-    /// and so on are all valid.
+    /// While attachment IDs can be the same as attachments in other messages,
+    /// they must be unique within the same message. Attachment IDs don't need
+    /// to be in any particular format; for example, IDs of 0, 100, the current
+    /// timestamp, and so on are all valid.
     pub id: u64,
 }
 
