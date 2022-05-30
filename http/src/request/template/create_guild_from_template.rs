@@ -12,6 +12,7 @@ use twilight_validate::request::{guild_name as validate_guild_name, ValidationEr
 #[derive(Serialize)]
 struct CreateGuildFromTemplateFields<'a> {
     name: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
     icon: Option<&'a str>,
 }
 
@@ -95,7 +96,7 @@ mod tests {
         let client = Client::new("token".into());
 
         {
-            let expected = r#"{"name":"New Guild","icon":null}"#;
+            let expected = r#"{"name":"New Guild"}"#;
             let actual =
                 CreateGuildFromTemplate::new(&client, "code", "New Guild")?.try_into_request()?;
 
