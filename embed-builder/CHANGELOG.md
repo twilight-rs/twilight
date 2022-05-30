@@ -2,6 +2,14 @@
 
 Changelog for `twilight-embed-builder`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+This major version bump of the Embed Builder crate is done to match all
+of the other crates in the ecosystem receiving a major version bump.
+There are no changes.
+
 ## [0.10.1] - 2022-03-20
 
 The Embed Builder crate has been deprecated in favor of
@@ -181,6 +189,7 @@ Initial release.
 [@vilgotf]: https://github.com/vilgotf
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.11.0
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/embed-builder-0.9.0

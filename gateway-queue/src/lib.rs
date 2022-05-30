@@ -39,17 +39,30 @@
 //! The `twilight-http` feature brings in support for [`LargeBotQueue`].
 //!
 //! This is enabled by default.
+//!
 //! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
 
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(unsafe_code)]
 
-#[cfg(feature = "twilight-http")]
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 mod day_limiter;
-#[cfg(feature = "twilight-http")]
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 mod large_bot_queue;
 
-#[cfg(feature = "twilight-http")]
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 pub use large_bot_queue::LargeBotQueue;
 
 use std::{

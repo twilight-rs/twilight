@@ -110,7 +110,7 @@ pub type GenericError = Box<dyn Error + Send + Sync>;
 pub type GetBucketFuture =
     Pin<Box<dyn Future<Output = Result<Option<Bucket>, GenericError>> + Send + 'static>>;
 
-/// Future returned by [`Ratelimiter::globally_locked`].
+/// Future returned by [`Ratelimiter::is_globally_locked`].
 pub type IsGloballyLockedFuture =
     Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
 
@@ -147,7 +147,7 @@ pub trait Ratelimiter: Debug + Send + Sync {
     fn bucket(&self, path: &Path) -> GetBucketFuture;
 
     /// Whether the ratelimiter is currently globally locked.
-    fn globally_locked(&self) -> IsGloballyLockedFuture;
+    fn is_globally_locked(&self) -> IsGloballyLockedFuture;
 
     /// Determine if the ratelimiter has a bucket for the given path.
     fn has(&self, path: &Path) -> HasBucketFuture;

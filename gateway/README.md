@@ -53,6 +53,9 @@ twilight-gateway = { default-features = false, features = ["rustls-native-roots"
 
 ### TLS
 
+**Note**: not enabling any TLS feature is support for use behind a proxy;
+Discord's API is HTTPS only.
+
 `twilight-gateway` has features to enable [`tokio-tungstenite`] and
 [`twilight-http`]'s TLS features. These features are mutually exclusive.
 `rustls-native-roots` is enabled by default.

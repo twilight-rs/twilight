@@ -2,6 +2,18 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Changes
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+
 ## [0.10.1] - 2022-04-15
 
 ### Changes
@@ -142,6 +154,7 @@ Initial release.
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.11.0
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.9.1

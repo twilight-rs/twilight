@@ -2,6 +2,21 @@
 
 Changelog for `twilight-standby`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Changes
+
+Pin `dashmap` to 5.3 ([#1702] - [@baptiste0928]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1702]: https://github.com/twilight-rs/twilight/pull/1702
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+
 ## [0.10.0] - 2022-03-10
 
 This major version bump of the Standby crate is done to match all of the other
@@ -222,6 +237,7 @@ Initial release.
 [#624]: https://github.com/twilight-rs/twilight/pull/624
 [#523]: https://github.com/twilight-rs/twilight/pull/523
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.11.0
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/standby-0.9.0

@@ -2,6 +2,11 @@
 
 Changelog for `twilight`.
 
+## [0.11.0] - 2022-05-15
+
+The advertisement crate has been updated to bump development
+dependencies.
+
 ## [0.10.1] - 2022-04-15
 
 ### Changes
@@ -91,6 +96,7 @@ Initial release.
 [#588]: https://github.com/twilight-rs/twilight/pull/588
 [#498]: https://github.com/twilight-rs/twilight/pull/498
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/twilight-1.00.1
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/twilight-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/twilight-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/twilight-0.9.0

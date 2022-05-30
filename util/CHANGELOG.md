@@ -2,6 +2,14 @@
 
 Changelog for `twilight-util`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+This major version bump of the Util crate is done to match all of the
+other crates in the ecosystem receiving a major version bump.  There are
+no changes.
+
 ## [0.10.1] - 2022-03-20
 
 ### Additions
@@ -225,6 +233,7 @@ Initial release.
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.11.0
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.10.0
 [0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.9.1

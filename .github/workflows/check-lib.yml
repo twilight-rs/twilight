@@ -214,49 +214,19 @@ jobs:
       - name: Run doctests
         run: cargo test --doc
 
-  test-features:
-    name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
-    needs: [test]
+  feature-combinations:
+    name: Feature combinations
+    needs: [MSRV]
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        package:
-          - http
-          - gateway
-          - lavalink
-        features:
-          - native
-          - rustls-native-roots
-          - simd-json
-
-        include:
-          - package: http
-            features: simd-json
-            additional: --features rustls-native-roots
-          - package: gateway
-            features: rustls-native-roots
-            additional: --features zlib-stock
-          - package: gateway
-            features: native
-            additional: --features zlib-stock
-          - package: gateway
-            features: simd-json
-            additional: --features rustls-native-roots,zlib-stock
-          - package: lavalink
-            additional: --features http-support
-
-          - package: util
-            features: full
-
-        exclude:
-          - package: lavalink
-            features: simd-json
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
+
+      - name: Install cargo-hack
+        uses: baptiste0928/cargo-install@v1
+        with:
+          crate: cargo-hack
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
@@ -264,10 +234,5 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - name: Install nextest
-        uses: taiki-e/install-action@nextest
-
-      - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
-        working-directory: ${{ matrix.package }}
-        run: |
-          cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+      - name: Check feature combinations
+        run: cargo hack check --feature-powerset
