@@ -1,6 +1,6 @@
 use rand::{distributions::Alphanumeric, Rng};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Form {
     boundary: [u8; 15],
     buffer: Vec<u8>,
