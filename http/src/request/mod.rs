@@ -40,13 +40,13 @@ const REASON_HEADER_NAME: &str = "x-audit-log-reason";
 /// Field that either serializes to null or a value.
 ///
 /// This is particularly useful when combined with an `Option` by allowing three
-/// states via `Option<NullableField<T>>`: undefined, null, and T.
+/// states via `Option<Nullable<T>>`: undefined, null, and T.
 ///
-/// When the request field is `None` a field can skip serialization, while if a
-/// `NullableField` is provided with `None` within it then it will serialize as
+/// When the request field is `None` a field can skip serialization, while if
+/// `Nullable` is provided with `None` within it then it will serialize as
 /// null. This mechanism is primarily used in patch requests.
 #[derive(Serialize)]
-struct NullableField<T>(Option<T>);
+struct Nullable<T>(Option<T>);
 
 fn audit_header(reason: &str) -> Result<impl Iterator<Item = (HeaderName, HeaderValue)>, Error> {
     let header_name = HeaderName::from_static(REASON_HEADER_NAME);
@@ -89,7 +89,7 @@ fn serialize_optional_image<S: Serializer>(
 /// Part of a backported fix for #1744. Remove after 0.11.x.
 #[allow(clippy::ref_option_ref)]
 fn serialize_optional_nullable_image<S: Serializer>(
-    maybe_data: &Option<NullableField<&[u8]>>,
+    maybe_data: &Option<Nullable<&[u8]>>,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
     if let Some(data) = maybe_data.as_ref().and_then(|field| field.0) {
@@ -104,7 +104,7 @@ mod tests {
     use serde_json::Serializer;
     use std::io::Cursor;
 
-    use crate::request::NullableField;
+    use crate::request::Nullable;
 
     #[test]
     fn test_serialize_image() {
@@ -142,8 +142,7 @@ mod tests {
     fn test_serialize_optional_nullable_image_some_null() {
         let mut buf = Cursor::new(Vec::new());
         let mut serializer = Serializer::new(&mut buf);
-        super::serialize_optional_nullable_image(&Some(NullableField(None)), &mut serializer)
-            .unwrap();
+        super::serialize_optional_nullable_image(&Some(Nullable(None)), &mut serializer).unwrap();
         assert_eq!(b"null", buf.into_inner().as_slice());
     }
 
@@ -151,11 +150,8 @@ mod tests {
     fn test_serialize_optional_nullable_image_some_value() {
         let mut buf = Cursor::new(Vec::new());
         let mut serializer = Serializer::new(&mut buf);
-        super::serialize_optional_nullable_image(
-            &Some(NullableField(Some(b"test"))),
-            &mut serializer,
-        )
-        .unwrap();
+        super::serialize_optional_nullable_image(&Some(Nullable(Some(b"test"))), &mut serializer)
+            .unwrap();
         assert_eq!(br#""test""#, buf.into_inner().as_slice());
     }
 }

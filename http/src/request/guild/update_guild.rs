@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -23,42 +23,42 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct UpdateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    afk_channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    afk_channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_timeout: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    banner: Option<NullableField<&'a str>>,
+    banner: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    default_message_notifications: Option<NullableField<DefaultMessageNotificationLevel>>,
+    default_message_notifications: Option<Nullable<DefaultMessageNotificationLevel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    discovery_splash: Option<NullableField<&'a str>>,
+    discovery_splash: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    explicit_content_filter: Option<NullableField<ExplicitContentFilter>>,
+    explicit_content_filter: Option<Nullable<ExplicitContentFilter>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     features: Option<&'a [&'a str]>,
     #[serde(
         serialize_with = "request::serialize_optional_nullable_image",
         skip_serializing_if = "Option::is_none"
     )]
-    icon: Option<NullableField<&'a [u8]>>,
+    icon: Option<Nullable<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     owner_id: Option<Id<UserMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    splash: Option<NullableField<&'a str>>,
+    splash: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system_channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    system_channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    system_channel_flags: Option<NullableField<SystemChannelFlags>>,
+    system_channel_flags: Option<Nullable<SystemChannelFlags>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    verification_level: Option<NullableField<VerificationLevel>>,
+    verification_level: Option<Nullable<VerificationLevel>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    rules_channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    rules_channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    public_updates_channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    public_updates_channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    preferred_locale: Option<NullableField<&'a str>>,
+    preferred_locale: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     premium_progress_bar_enabled: Option<bool>,
 }
@@ -107,7 +107,7 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the voice channel where AFK voice users are sent.
     pub const fn afk_channel_id(mut self, afk_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.afk_channel_id = Some(NullableField(afk_channel_id));
+        self.fields.afk_channel_id = Some(Nullable(afk_channel_id));
 
         self
     }
@@ -126,7 +126,7 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// The server must have the `BANNER` feature.
     pub const fn banner(mut self, banner: Option<&'a str>) -> Self {
-        self.fields.banner = Some(NullableField(banner));
+        self.fields.banner = Some(Nullable(banner));
 
         self
     }
@@ -139,8 +139,7 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         default_message_notifications: Option<DefaultMessageNotificationLevel>,
     ) -> Self {
-        self.fields.default_message_notifications =
-            Some(NullableField(default_message_notifications));
+        self.fields.default_message_notifications = Some(Nullable(default_message_notifications));
 
         self
     }
@@ -149,7 +148,7 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Requires the guild to have the `DISCOVERABLE` feature enabled.
     pub const fn discovery_splash(mut self, discovery_splash: Option<&'a str>) -> Self {
-        self.fields.discovery_splash = Some(NullableField(discovery_splash));
+        self.fields.discovery_splash = Some(Nullable(discovery_splash));
 
         self
     }
@@ -159,7 +158,7 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         explicit_content_filter: Option<ExplicitContentFilter>,
     ) -> Self {
-        self.fields.explicit_content_filter = Some(NullableField(explicit_content_filter));
+        self.fields.explicit_content_filter = Some(Nullable(explicit_content_filter));
 
         self
     }
@@ -184,7 +183,7 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn icon(mut self, icon: Option<&'a [u8]>) -> Self {
-        self.fields.icon = Some(NullableField(icon));
+        self.fields.icon = Some(Nullable(icon));
 
         self
     }
@@ -221,14 +220,14 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Requires the guild to have the `INVITE_SPLASH` feature enabled.
     pub const fn splash(mut self, splash: Option<&'a str>) -> Self {
-        self.fields.splash = Some(NullableField(splash));
+        self.fields.splash = Some(Nullable(splash));
 
         self
     }
 
     /// Set the channel where events such as welcome messages are posted.
     pub const fn system_channel(mut self, system_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.system_channel_id = Some(NullableField(system_channel_id));
+        self.fields.system_channel_id = Some(Nullable(system_channel_id));
 
         self
     }
@@ -238,7 +237,7 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         system_channel_flags: Option<SystemChannelFlags>,
     ) -> Self {
-        self.fields.system_channel_flags = Some(NullableField(system_channel_flags));
+        self.fields.system_channel_flags = Some(Nullable(system_channel_flags));
 
         self
     }
@@ -249,7 +248,7 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// [Discord Docs/Modify Guild]: https://discord.com/developers/docs/resources/guild#modify-guild
     pub const fn rules_channel(mut self, rules_channel_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.rules_channel_id = Some(NullableField(rules_channel_id));
+        self.fields.rules_channel_id = Some(Nullable(rules_channel_id));
 
         self
     }
@@ -261,7 +260,7 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         public_updates_channel_id: Option<Id<ChannelMarker>>,
     ) -> Self {
-        self.fields.public_updates_channel_id = Some(NullableField(public_updates_channel_id));
+        self.fields.public_updates_channel_id = Some(Nullable(public_updates_channel_id));
 
         self
     }
@@ -270,7 +269,7 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Defaults to `en-US`. Requires the guild to be `PUBLIC`.
     pub const fn preferred_locale(mut self, preferred_locale: Option<&'a str>) -> Self {
-        self.fields.preferred_locale = Some(NullableField(preferred_locale));
+        self.fields.preferred_locale = Some(Nullable(preferred_locale));
 
         self
     }
@@ -284,7 +283,7 @@ impl<'a> UpdateGuild<'a> {
         mut self,
         verification_level: Option<VerificationLevel>,
     ) -> Self {
-        self.fields.verification_level = Some(NullableField(verification_level));
+        self.fields.verification_level = Some(Nullable(verification_level));
 
         self
     }

@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{NullableField, Request, TryIntoRequest},
+    request::{Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -17,7 +17,7 @@ use twilight_model::{
 #[derive(Serialize)]
 struct UpdateGuildWidgetFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     enabled: Option<bool>,
 }
@@ -44,7 +44,7 @@ impl<'a> UpdateGuildWidget<'a> {
 
     /// Set which channel to display on the widget.
     pub const fn channel_id(mut self, channel_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.channel_id = Some(NullableField(channel_id));
+        self.fields.channel_id = Some(Nullable(channel_id));
 
         self
     }

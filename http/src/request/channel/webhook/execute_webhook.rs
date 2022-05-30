@@ -4,7 +4,7 @@ use crate::{
     request::{
         attachment::{AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
-        NullableField, Request, TryIntoRequest,
+        Nullable, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -34,7 +34,7 @@ use twilight_validate::{
 #[derive(Serialize)]
 pub(crate) struct ExecuteWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
+    allowed_mentions: Option<Nullable<&'a AllowedMentions>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     attachments: Option<Vec<PartialAttachment<'a>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -125,7 +125,7 @@ impl<'a> ExecuteWebhook<'a> {
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
     pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
-        self.fields.allowed_mentions = Some(NullableField(allowed_mentions));
+        self.fields.allowed_mentions = Some(Nullable(allowed_mentions));
 
         self
     }
@@ -377,7 +377,7 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
         // Set the default allowed mentions if required.
         if self.fields.allowed_mentions.is_none() {
             if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                self.fields.allowed_mentions = Some(NullableField(Some(allowed_mentions)));
+                self.fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
             }
         }
 

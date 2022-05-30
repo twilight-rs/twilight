@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -24,11 +24,11 @@ struct UpdateWebhookFields<'a> {
         serialize_with = "request::serialize_optional_nullable_image",
         skip_serializing_if = "Option::is_none"
     )]
-    avatar: Option<NullableField<&'a [u8]>>,
+    avatar: Option<Nullable<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<NullableField<&'a str>>,
+    name: Option<Nullable<&'a str>>,
 }
 
 /// Update a webhook by ID.
@@ -63,7 +63,7 @@ impl<'a> UpdateWebhook<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
-        self.fields.avatar = Some(NullableField(avatar));
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }
@@ -88,7 +88,7 @@ impl<'a> UpdateWebhook<'a> {
             validate_webhook_username(name)?;
         }
 
-        self.fields.name = Some(NullableField(name));
+        self.fields.name = Some(Nullable(name));
 
         Ok(self)
     }
