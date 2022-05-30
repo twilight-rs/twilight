@@ -133,7 +133,9 @@ pub enum ErrorType {
 pub struct Ratelimit {
     /// Whether the ratelimit is global.
     pub global: bool,
-    /// Amount of time to wait before retrying.
+    /// Number of seconds to wait before retrying.
+    ///
+    /// Up to three decimals may be set to match millisecond precision.
     pub retry_after: f64,
 }
 
