@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-standby
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -49,13 +47,18 @@ use twilight_model::{
 };
 use twilight_standby::Standby;
 
-let standby = Standby::new();
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let standby = Standby::new();
 
-let channel_id = Id::new(123);
+    let channel_id = Id::new(123);
 
-let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
-    event.author.id.get() == 456 && event.content == "test"
-}).await?;
+    let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
+        event.author.id.get() == 456 && event.content == "test"
+    }).await?;
+
+    Ok(())
+}
 ```
 
 ### A full example
@@ -129,5 +132,3 @@ For more examples, check out each of the methods on [`Standby`].
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->
