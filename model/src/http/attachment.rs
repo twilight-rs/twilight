@@ -2,48 +2,62 @@
 
 use serde::{Deserialize, Serialize};
 
-/// Attachment for when creating and updating messages.
+/// Attachments used in messages.
 ///
-/// `id` can be any placeholder value. If attaching multiple files to the
-/// message, each must be unique.
+/// # Examples
+///
+/// Create an attachment of a short JSON blob describing a cat with a
+/// description for screen readers:
+///
+/// ```
+/// use twilight_model::http::Attachment;
+///
+/// let filename = "twilight_sparkle.json".to_owned();
+/// let file_content = br#"{
+///     "best_friend": "Spike",
+///     "cutie_mark": "sparkles",
+///     "name": "Twilight Sparkle"
+/// }"#.to_vec();
+///
+/// let mut attachment = Attachment::from_bytes(filename, file_content, id);
+/// attachment.description("Raw data about Twilight Sparkle".to_owned());
+/// ```
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Attachment {
+    /// Description of the attachment, useful for screen readers and users
+    /// requiring alt text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// Content of the file.
     #[serde(skip)]
     pub file: Vec<u8>,
+    /// Name of the file.
+    ///
+    /// Examples may be "twilight_sparkle.png", "cat.jpg", or "logs.txt".
     pub filename: String,
+    /// Unique ID of the attachment in the message.
+    ///
+    /// All attachment IDs in a message must be unique, but may be any value of
+    /// no particular format; for example, IDs of 0, 100, the current timestamp,
+    /// and so on are all valid.
     pub id: u64,
 }
 
 impl Attachment {
-    /// Create a attachment from a filename and bytes.
+    /// Create an attachment from a filename and bytes.
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use twilight_http::Client;
+    /// Create an attachment with a grocery list named "grocerylist.txt":
+    ///
+    /// ```
     /// use twilight_model::http::attachment;
     ///
-    /// let client = Client::new("my token".to_owned());
+    /// let filename = "grocerylist.txt".to_owned();
+    /// let file_content = b"Apples\nGrapes\nLemonade".to_vec();
+    /// let id = 1;
     ///
-    /// let grocery_list: &str = "Apples/nGrapes/nLemonade";
-    /// let message_content = "Here is the grocery list!".into();
-    /// let attachments = Vec::from([Attachment::from_bytes(
-    ///    "grocerylist.txt".to_owned(),
-    ///    Vec::from(grocery_list),
-    ///    0
-    /// )]);
-    ///
-    /// http.create_message(package)
-    ///    .content(&message_content)?
-    ///    .attachments(&attachments)
-    ///    .exec()
-    ///    .await?;
-    ///
-    ///
-    /// # Ok(()) }
+    /// let attachment = Attachment::from_bytes(filename, file_content, id);
     /// ```
     pub const fn from_bytes(filename: String, file: Vec<u8>, id: u64) -> Self {
         Self {
@@ -54,8 +68,10 @@ impl Attachment {
         }
     }
 
-    /// Set the description of a attachment, this is used for alt-text
-    /// on Discords end.
+    /// Set the description of the attachment.
+    ///
+    /// Attachment descriptions are useful for those requiring screen readers
+    /// and are displayed as alt text.
     pub fn description(&mut self, description: String) {
         self.description = Some(description);
     }
