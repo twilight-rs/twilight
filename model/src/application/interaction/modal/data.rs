@@ -133,6 +133,7 @@ mod tests {
                 Token::String("type"),
                 Token::U8(ComponentType::TextInput as u8),
                 Token::String("value"),
+                Token::Some,
                 Token::String("input value"),
                 Token::StructEnd,
                 Token::SeqEnd,

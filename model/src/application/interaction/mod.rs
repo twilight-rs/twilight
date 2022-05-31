@@ -56,8 +56,7 @@ impl Interaction {
     pub const fn application_id(&self) -> Id<ApplicationMarker> {
         match self {
             Self::Ping(ping) => ping.application_id,
-            Self::ApplicationCommand(command) => command.application_id,
-            Self::ApplicationCommandAutocomplete(command) => command.application_id,
+            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => command.application_id,
             Self::MessageComponent(component) => component.application_id,
             Self::ModalSubmit(modal) => modal.application_id,
         }
@@ -104,8 +103,7 @@ impl Interaction {
     pub fn token(&self) -> &str {
         match self {
             Self::Ping(ping) => &ping.token,
-            Self::ApplicationCommand(command) => &command.token,
-            Self::ApplicationCommandAutocomplete(command) => &command.token,
+            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => &command.token,
             Self::MessageComponent(component) => &component.token,
             Self::ModalSubmit(modal) => &modal.token,
         }
