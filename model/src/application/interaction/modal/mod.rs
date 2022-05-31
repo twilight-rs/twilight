@@ -150,7 +150,7 @@ mod tests {
                     components: Vec::from([ModalInteractionDataComponent {
                         custom_id: "input-1".to_owned(),
                         kind: ComponentType::TextInput,
-                        value: "got it".into(),
+                        value: Some("got it".into()),
                     }]),
                 }]),
             },

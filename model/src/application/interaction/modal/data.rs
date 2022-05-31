@@ -102,7 +102,7 @@ mod tests {
                 components: Vec::from([ModalInteractionDataComponent {
                     custom_id: "the-data-id".to_owned(),
                     kind: ComponentType::TextInput,
-                    value: "input value".into(),
+                    value: Some("input value".into()),
                 }]),
             }]),
         };
