@@ -17,7 +17,7 @@
 use std::convert::TryFrom;
 
 use twilight_model::{
-    application::component::{button::ButtonStyle, Button},
+    application::component::{button::ButtonStyle, Button, Component},
     channel::ReactionType,
 };
 use twilight_validate::component::{button as validate_button, ComponentValidationError};
@@ -122,6 +122,13 @@ impl ButtonBuilder {
         Ok(self)
     }
 
+    /// Consume the builder, returning a button wrapped in
+    /// [`Component::Button`].
+    #[must_use = "builders have no effect if unused"]
+    pub fn into_component(self) -> Component {
+        Component::Button(self.build())
+    }
+
     /// Set whether the button is disabled or not.
     ///
     /// # Examples
@@ -198,25 +205,34 @@ impl TryFrom<ButtonBuilder> for Button {
     }
 }
 
+impl TryFrom<ButtonBuilder> for Component {
+    type Error = ComponentValidationError;
+
+    /// Convert a button builder into a component, validating its contents.
+    ///
+    /// This is equivalent to calling [`ButtonBuilder::validate`], then
+    /// [`ButtonBuilder::into_component`].
+    fn try_from(builder: ButtonBuilder) -> Result<Self, Self::Error> {
+        Ok(builder.validate()?.into_component())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::ButtonBuilder;
     use static_assertions::assert_impl_all;
     use std::{convert::TryFrom, fmt::Debug};
     use twilight_model::{
-        application::component::{button::ButtonStyle, Button},
+        application::component::{button::ButtonStyle, Button, Component},
         channel::ReactionType,
     };
 
     assert_impl_all!(ButtonBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Button: TryFrom<ButtonBuilder>);
+    assert_impl_all!(Component: TryFrom<ButtonBuilder>);
 
     #[test]
-    fn test_builder_primary() {
-        let button = ButtonBuilder::primary("primary-button".to_string())
-            .label("primary button".to_string())
-            .build();
-
+    fn primary() {
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: None,
@@ -226,15 +242,15 @@ mod tests {
             disabled: false,
         };
 
-        assert_eq!(button, expected);
+        let actual = ButtonBuilder::primary("primary-button".to_string())
+            .label("primary button".to_string())
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_builder_secondary() {
-        let button = ButtonBuilder::secondary("secondary-button".to_string())
-            .label("secondary button".to_string())
-            .build();
-
+    fn secondary() {
         let expected = Button {
             style: ButtonStyle::Secondary,
             emoji: None,
@@ -244,15 +260,15 @@ mod tests {
             disabled: false,
         };
 
-        assert_eq!(button, expected);
+        let actual = ButtonBuilder::secondary("secondary-button".to_string())
+            .label("secondary button".to_string())
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_builder_success() {
-        let button = ButtonBuilder::success("success-button".to_string())
-            .label("success button".to_string())
-            .build();
-
+    fn success() {
         let expected = Button {
             style: ButtonStyle::Success,
             emoji: None,
@@ -262,15 +278,15 @@ mod tests {
             disabled: false,
         };
 
-        assert_eq!(button, expected);
+        let actual = ButtonBuilder::success("success-button".to_string())
+            .label("success button".to_string())
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_builder_danger() {
-        let button = ButtonBuilder::danger("danger-button".to_string())
-            .label("danger button".to_string())
-            .build();
-
+    fn danger() {
         let expected = Button {
             style: ButtonStyle::Danger,
             emoji: None,
@@ -280,15 +296,15 @@ mod tests {
             disabled: false,
         };
 
-        assert_eq!(button, expected);
+        let actual = ButtonBuilder::danger("danger-button".to_string())
+            .label("danger button".to_string())
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_builder_link() {
-        let button = ButtonBuilder::link("https://twilight.rs".to_string())
-            .label("link button".to_string())
-            .build();
-
+    fn link() {
         let expected = Button {
             style: ButtonStyle::Link,
             emoji: None,
@@ -298,16 +314,33 @@ mod tests {
             disabled: false,
         };
 
-        assert_eq!(button, expected);
+        let actual = ButtonBuilder::link("https://twilight.rs".to_string())
+            .label("link button".to_string())
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_builder_disabled_button() {
-        let button = ButtonBuilder::primary("disabled-button".to_string())
-            .label("disabled button".to_string())
-            .disable(true)
-            .build();
+    fn into_component() {
+        let expected = Component::Button(Button {
+            style: ButtonStyle::Primary,
+            emoji: None,
+            label: Some("primary button".to_string()),
+            custom_id: Some("primary-button".to_string()),
+            url: None,
+            disabled: false,
+        });
 
+        let actual = ButtonBuilder::primary("primary-button".to_string())
+            .label("primary button".to_string())
+            .into_component();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn disabled_button() {
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: None,
@@ -317,16 +350,16 @@ mod tests {
             disabled: true,
         };
 
-        assert_eq!(button, expected);
+        let actual = ButtonBuilder::primary("disabled-button".to_string())
+            .label("disabled button".to_string())
+            .disable(true)
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_builder_explicit_enabled_button() {
-        let button = ButtonBuilder::primary("enabled-button".to_string())
-            .label("enabled button".to_string())
-            .disable(false)
-            .build();
-
+    fn explicit_enabled_button() {
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: None,
@@ -336,17 +369,16 @@ mod tests {
             disabled: false,
         };
 
-        assert_eq!(button, expected);
+        let actual = ButtonBuilder::primary("enabled-button".to_string())
+            .label("enabled button".to_string())
+            .disable(false)
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_builder_with_emoji() {
-        let button = ButtonBuilder::primary("emoji-button".to_string())
-            .emoji(ReactionType::Unicode {
-                name: "\u{1f9ea}".to_string(),
-            })
-            .build();
-
+    fn with_emoji() {
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: Some(ReactionType::Unicode {
@@ -358,16 +390,17 @@ mod tests {
             disabled: false,
         };
 
-        assert_eq!(button, expected);
+        let actual = ButtonBuilder::primary("emoji-button".to_string())
+            .emoji(ReactionType::Unicode {
+                name: "\u{1f9ea}".to_string(),
+            })
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_builder_try_from() {
-        let button = Button::try_from(
-            ButtonBuilder::primary("primary-button".to_string()).label("primary button".to_owned()),
-        )
-        .unwrap();
-
+    fn button_try_from() {
         let expected = Button {
             style: ButtonStyle::Primary,
             emoji: None,
@@ -377,6 +410,30 @@ mod tests {
             disabled: false,
         };
 
-        assert_eq!(button, expected);
+        let actual = Button::try_from(
+            ButtonBuilder::primary("primary-button".to_string()).label("primary button".to_owned()),
+        )
+        .unwrap();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn component_try_from() {
+        let expected = Component::Button(Button {
+            style: ButtonStyle::Primary,
+            emoji: None,
+            label: Some("primary button".to_string()),
+            custom_id: Some("primary-button".to_string()),
+            url: None,
+            disabled: false,
+        });
+
+        let actual = Component::try_from(
+            ButtonBuilder::primary("primary-button".to_string()).label("primary button".to_owned()),
+        )
+        .unwrap();
+
+        assert_eq!(actual, expected);
     }
 }

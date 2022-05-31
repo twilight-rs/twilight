@@ -16,7 +16,7 @@
 
 use std::convert::TryFrom;
 
-use twilight_model::application::component::{text_input::TextInputStyle, TextInput};
+use twilight_model::application::component::{text_input::TextInputStyle, Component, TextInput};
 use twilight_validate::component::{text_input as validate_text_input, ComponentValidationError};
 
 /// Create a [`TextInput`] with a builder.
@@ -87,6 +87,13 @@ impl TextInputBuilder {
         }
 
         Ok(self)
+    }
+
+    /// Consume the builder, returning a text input wrapped in
+    /// [`Component::TextInput`]
+    #[must_use = "builders have no effect if unused"]
+    pub fn into_component(self) -> Component {
+        Component::TextInput(self.0)
     }
 
     /// Set the maximum amount of characters allowed to be entered in this text input.
@@ -199,15 +206,48 @@ impl TryFrom<TextInputBuilder> for TextInput {
     }
 }
 
+impl TryFrom<TextInputBuilder> for Component {
+    type Error = ComponentValidationError;
+
+    /// Convert a `TextInputBuilder` into a `TextInput`.
+    ///
+    /// This is equivalent to calling [`TextInputBuilder::validate`]
+    /// then [`TextInputBuilder::into_component`].
+    fn try_from(builder: TextInputBuilder) -> Result<Self, Self::Error> {
+        Ok(builder.validate()?.into_component())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::TextInputBuilder;
     use static_assertions::assert_impl_all;
     use std::{convert::TryFrom, fmt::Debug};
-    use twilight_model::application::component::{text_input::TextInputStyle, TextInput};
+    use twilight_model::application::component::{
+        text_input::TextInputStyle, Component, TextInput,
+    };
 
     assert_impl_all!(TextInputBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(TextInput: TryFrom<TextInputBuilder>);
+    assert_impl_all!(Component: TryFrom<TextInputBuilder>);
+
+    #[test]
+    fn into_component() {
+        let expected = Component::TextInput(TextInput {
+            custom_id: "input".into(),
+            label: "label".into(),
+            max_length: None,
+            min_length: None,
+            placeholder: None,
+            required: None,
+            style: TextInputStyle::Short,
+            value: None,
+        });
+
+        let actual = TextInputBuilder::short("input".to_string(), "label".into()).into_component();
+
+        assert_eq!(actual, expected);
+    }
 
     #[test]
     fn test_text_input_builder_short() {
@@ -321,6 +361,44 @@ mod tests {
         let actual = TextInputBuilder::short("input".to_string(), "label".to_owned())
             .required(true)
             .build();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn text_input_try_from() {
+        let expected = TextInput {
+            custom_id: "input".into(),
+            label: "label".into(),
+            max_length: None,
+            min_length: None,
+            placeholder: None,
+            required: None,
+            style: TextInputStyle::Short,
+            value: None,
+        };
+
+        let actual =
+            TextInput::try_from(TextInputBuilder::short("input".into(), "label".into())).unwrap();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn component_try_from() {
+        let expected = Component::TextInput(TextInput {
+            custom_id: "input".into(),
+            label: "label".into(),
+            max_length: None,
+            min_length: None,
+            placeholder: None,
+            required: None,
+            style: TextInputStyle::Short,
+            value: None,
+        });
+
+        let actual =
+            Component::try_from(TextInputBuilder::short("input".into(), "label".into())).unwrap();
 
         assert_eq!(actual, expected);
     }

@@ -30,7 +30,9 @@
 //! # Ok(()) }
 //! ```
 
-use twilight_model::application::component::{select_menu::SelectMenuOption, SelectMenu};
+use twilight_model::application::component::{
+    select_menu::SelectMenuOption, Component, SelectMenu,
+};
 use twilight_validate::component::{select_menu as validate_select_menu, ComponentValidationError};
 
 /// Create a [`SelectMenu`] with a builder.
@@ -100,6 +102,13 @@ impl SelectMenuBuilder {
         }
 
         Ok(self)
+    }
+
+    /// Consume the builder, returning a select menu wrapped in
+    /// [`Component::SelectMenu`]
+    #[must_use = "builders have no effect if unused"]
+    pub fn into_component(self) -> Component {
+        Component::SelectMenu(self.0)
     }
 
     /// Set the minimum values for this select menu.
@@ -244,20 +253,31 @@ impl TryFrom<SelectMenuBuilder> for SelectMenu {
     }
 }
 
+impl TryFrom<SelectMenuBuilder> for Component {
+    type Error = ComponentValidationError;
+
+    /// Convert a select menu builder into a component, validating its contents.
+    ///
+    /// This is equivalent to calling [`SelectMenuBuilder::validate`], then
+    /// [`SelectMenuBuilder::into_component`].
+    fn try_from(builder: SelectMenuBuilder) -> Result<Self, Self::Error> {
+        Ok(builder.validate()?.into_component())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::SelectMenuBuilder;
     use static_assertions::assert_impl_all;
     use std::{convert::TryFrom, fmt::Debug};
-    use twilight_model::application::component::SelectMenu;
+    use twilight_model::application::component::{Component, SelectMenu};
 
     assert_impl_all!(SelectMenuBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(SelectMenu: TryFrom<SelectMenuBuilder>);
+    assert_impl_all!(Component: TryFrom<SelectMenuBuilder>);
 
     #[test]
-    fn test_select_menu_builder() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_string()).build();
-
+    fn builder() {
         let expected = SelectMenu {
             custom_id: "a-menu".to_string(),
             disabled: false,
@@ -267,15 +287,29 @@ mod test {
             placeholder: None,
         };
 
-        assert_eq!(select_menu, expected);
+        let actual = SelectMenuBuilder::new("a-menu".to_string()).build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_select_menu_builder_disabled() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_string())
-            .disable(true)
-            .build();
+    fn into_component() {
+        let expected = Component::SelectMenu(SelectMenu {
+            custom_id: "a-menu".to_string(),
+            disabled: false,
+            max_values: None,
+            min_values: None,
+            options: Vec::new(),
+            placeholder: None,
+        });
 
+        let actual = SelectMenuBuilder::new("a-menu".to_string()).into_component();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn disabled() {
         let expected = SelectMenu {
             custom_id: "a-menu".to_string(),
             disabled: true,
@@ -285,15 +319,15 @@ mod test {
             placeholder: None,
         };
 
-        assert_eq!(select_menu, expected);
+        let actual = SelectMenuBuilder::new("a-menu".to_string())
+            .disable(true)
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_select_menu_builder_explicit_enabled() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_string())
-            .disable(false)
-            .build();
-
+    fn explicit_enabled() {
         let expected = SelectMenu {
             custom_id: "a-menu".to_string(),
             disabled: false,
@@ -303,16 +337,15 @@ mod test {
             placeholder: None,
         };
 
-        assert_eq!(select_menu, expected);
+        let actual = SelectMenuBuilder::new("a-menu".to_string())
+            .disable(false)
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_select_menu_builder_limited_values() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_string())
-            .max_values(10)
-            .min_values(2)
-            .build();
-
+    fn limited_values() {
         let expected = SelectMenu {
             custom_id: "a-menu".to_string(),
             disabled: false,
@@ -322,15 +355,16 @@ mod test {
             placeholder: None,
         };
 
-        assert_eq!(select_menu, expected);
+        let actual = SelectMenuBuilder::new("a-menu".to_string())
+            .max_values(10)
+            .min_values(2)
+            .build();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
-    fn test_select_menu_builder_placeholder() {
-        let select_menu = SelectMenuBuilder::new("a-menu".to_string())
-            .placeholder("I'm a placeholder".to_string())
-            .build();
-
+    fn placeholder() {
         let expected = SelectMenu {
             custom_id: "a-menu".to_string(),
             disabled: false,
@@ -340,6 +374,42 @@ mod test {
             placeholder: Some("I'm a placeholder".to_string()),
         };
 
-        assert_eq!(select_menu, expected);
+        let actual = SelectMenuBuilder::new("a-menu".to_string())
+            .placeholder("I'm a placeholder".to_string())
+            .build();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn select_menu_try_from() {
+        let expected = SelectMenu {
+            custom_id: "a-menu".to_string(),
+            disabled: false,
+            max_values: None,
+            min_values: None,
+            options: Vec::new(),
+            placeholder: None,
+        };
+
+        let actual = SelectMenu::try_from(SelectMenuBuilder::new("a-menu".into())).unwrap();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn component_try_from() {
+        let expected = Component::SelectMenu(SelectMenu {
+            custom_id: "a-menu".to_string(),
+            disabled: false,
+            max_values: None,
+            min_values: None,
+            options: Vec::new(),
+            placeholder: None,
+        });
+
+        let actual = Component::try_from(SelectMenuBuilder::new("a-menu".into())).unwrap();
+
+        assert_eq!(actual, expected);
     }
 }

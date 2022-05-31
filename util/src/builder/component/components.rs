@@ -62,12 +62,10 @@ impl ComponentsBuilder {
     /// let components = ComponentsBuilder::new()
     ///     .action_row(
     ///         ActionRowBuilder::new()
-    ///             .add_component(
-    ///                 Component::Button(
+    ///             .button(
     ///                     ButtonBuilder::primary("button-1".to_string())
     ///                         .label("Button".to_string())
     ///                         .build()
-    ///                 )
     ///             )
     ///         .build()
     ///     )
@@ -301,6 +299,7 @@ mod test {
     #[test]
     fn builder() {
         let expected: Vec<Component> = Vec::new();
+
         let actual = ComponentsBuilder::new().build();
 
         assert_eq!(actual, expected);
@@ -309,6 +308,7 @@ mod test {
     #[test]
     fn one_action_row() {
         let expected = Vec::from([Component::ActionRow(action_row(Vec::new()))]);
+
         let actual = ComponentsBuilder::new()
             .action_row(action_row(Vec::new()))
             .build();
@@ -322,6 +322,7 @@ mod test {
             Component::ActionRow(action_row(Vec::new())),
             Component::ActionRow(action_row(Vec::new())),
         ]);
+
         let actual = ComponentsBuilder::new()
             .action_row(action_row(Vec::new()))
             .action_row(action_row(Vec::new()))
@@ -335,6 +336,7 @@ mod test {
         let expected = Vec::from([Component::ActionRow(ActionRow {
             components: Vec::from([Component::Button(button("button"))]),
         })]);
+
         let actual = ComponentsBuilder::new().button(button("button")).build();
 
         assert_eq!(actual, expected);
@@ -348,6 +350,7 @@ mod test {
                 Component::Button(button("button-2")),
             ]),
         })]);
+
         let actual = ComponentsBuilder::new()
             .button(button("button-1"))
             .button(button("button-2"))
@@ -361,6 +364,7 @@ mod test {
         let expected = Vec::from([Component::ActionRow(ActionRow {
             components: Vec::from([Component::Button(button("button"))]),
         })]);
+
         let actual = ComponentsBuilder::new()
             .action_row(ActionRow {
                 components: Vec::new(),
@@ -387,6 +391,7 @@ mod test {
                 components: Vec::from([Component::Button(button("button-6"))]),
             }),
         ]);
+
         let actual = ComponentsBuilder::new()
             .button(button("button-1"))
             .button(button("button-2"))
@@ -404,6 +409,7 @@ mod test {
         let expected = Vec::from([Component::ActionRow(action_row(Vec::from([
             Component::SelectMenu(select_menu("select")),
         ])))]);
+
         let actual = ComponentsBuilder::new()
             .select_menu(select_menu("select"))
             .build();
@@ -421,6 +427,7 @@ mod test {
                 "select-2",
             ))]))),
         ]);
+
         let actual = ComponentsBuilder::new()
             .select_menu(select_menu("select-1"))
             .select_menu(select_menu("select-2"))
@@ -434,6 +441,7 @@ mod test {
         let expected = Vec::from([Component::ActionRow(action_row(Vec::from([
             Component::TextInput(text_input("input")),
         ])))]);
+
         let actual = ComponentsBuilder::new()
             .text_input(text_input("input"))
             .build();
@@ -451,6 +459,7 @@ mod test {
                 "input-2",
             ))]))),
         ]);
+
         let actual = ComponentsBuilder::new()
             .text_input(text_input("input-1"))
             .text_input(text_input("input-2"))
