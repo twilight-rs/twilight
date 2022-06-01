@@ -77,7 +77,11 @@ pub struct Channel {
     /// Bitrate setting of audio channels.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bitrate: Option<u64>,
-    /// Default duration before the channel's threads archive.
+    /// Default duration without messages before the channel's threads
+    /// automatically archive.
+    ///
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
     /// ID of the guild the channel is in.

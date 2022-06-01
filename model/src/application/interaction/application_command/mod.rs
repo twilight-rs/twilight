@@ -118,6 +118,7 @@ mod tests {
             application_id: Id::<ApplicationMarker>::new(1),
             channel_id: Id::<ChannelMarker>::new(1),
             data: CommandData {
+                guild_id: None,
                 id: Id::new(3),
                 name: "search".to_owned(),
                 kind: CommandType::ChatInput,

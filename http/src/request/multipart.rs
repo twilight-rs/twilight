@@ -1,6 +1,6 @@
 use rand::{distributions::Alphanumeric, Rng};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Form {
     boundary: [u8; 15],
     buffer: Vec<u8>,
@@ -78,6 +78,12 @@ impl Form {
         self.buffer.extend(self.boundary);
 
         self
+    }
+
+    /// Preview the built buffer's length without consuming the form.
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize {
+        self.buffer.len() + Self::BOUNDARY_TERMINATOR.len()
     }
 
     #[must_use = "has no effect if not built into a Form"]
@@ -158,8 +164,10 @@ mod tests {
         --{boundary}--",
         );
 
+        let buffer_len = form.len();
         let buffer = form.build();
 
         assert_eq!(expected.as_bytes(), buffer);
+        assert_eq!(buffer_len, buffer.len());
     }
 }
