@@ -70,10 +70,10 @@ impl ClusterBuilder {
     ///
     /// # Errors
     ///
-    /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
-    /// there was an HTTP error Retrieving the gateway information.
+    /// Returns a [`ClusterStartErrorType::AutoSharding`] error type if
+    /// there was an HTTP error retrieving the number of recommended shards.
     ///
-    /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
+    /// [`ClusterStartErrorType::AutoSharding`]: super::ClusterStartErrorType::AutoSharding
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
         // async closures are unstable
         if self.shard_scheme.is_none() {
@@ -122,13 +122,13 @@ impl ClusterBuilder {
             .exec()
             .await
             .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                kind: ClusterStartErrorType::AutoSharding,
                 source: Some(Box::new(source)),
             })?
             .model()
             .await
             .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                kind: ClusterStartErrorType::AutoSharding,
                 source: Some(Box::new(source)),
             })?;
 

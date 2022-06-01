@@ -166,8 +166,8 @@ impl ShardBuilder {
     ///
     /// # Errors
     ///
-    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
-    /// the gateway URL couldn't be retrieved from the HTTP API.
+    /// Returns a [`ShardStartErrorType::InvalidToken`] error type if
+    /// the token failed validation.
     pub async fn build(self) -> Result<(Shard, Events), ShardStartError> {
         // Authenticate the token
         self.http_client
@@ -177,7 +177,7 @@ impl ShardBuilder {
             .await
             .map_err(|source| ShardStartError {
                 source: Some(Box::new(source)),
-                kind: ShardStartErrorType::RetrievingGatewayUrl,
+                kind: ShardStartErrorType::InvalidToken,
             })?;
 
         Ok(Shard::new_with_config(self.into_config()))
