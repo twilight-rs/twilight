@@ -1,6 +1,7 @@
 use super::{Config, Events, Shard, ShardStartError, ShardStartErrorType};
 use crate::EventTypeFlags;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     sync::Arc,
@@ -98,7 +99,7 @@ pub enum ShardIdErrorType {
 #[derive(Debug)]
 pub struct ShardBuilder {
     event_types: EventTypeFlags,
-    pub(crate) gateway_url: Option<Box<str>>,
+    pub(crate) gateway_url: Option<String>,
     pub(crate) http_client: Arc<Client>,
     identify_properties: Option<IdentifyProperties>,
     intents: Intents,
@@ -134,13 +135,13 @@ impl ShardBuilder {
         }
     }
 
-    /// # Panics
-    ///
-    /// Panics if `gateway_url` is [`None`]
     pub(crate) fn into_config(self) -> Config {
         Config {
             event_types: self.event_types,
-            gateway_url: self.gateway_url.unwrap(),
+            gateway_url: match self.gateway_url {
+                Some(s) => Cow::Owned(s),
+                None => Cow::Borrowed(crate::URL),
+            },
             http_client: self.http_client,
             identify_properties: self.identify_properties,
             intents: self.intents,
@@ -167,30 +168,17 @@ impl ShardBuilder {
     ///
     /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
     /// the gateway URL couldn't be retrieved from the HTTP API.
-    pub async fn build(mut self) -> Result<(Shard, Events), ShardStartError> {
-        if self.gateway_url.is_none() {
-            // By making an authenticated gateway information retrieval request
-            // we're also validating the configured token.
-            self.gateway_url = Some(
-                self.http_client
-                    .gateway()
-                    .authed()
-                    .exec()
-                    .await
-                    .map_err(|source| ShardStartError {
-                        source: Some(Box::new(source)),
-                        kind: ShardStartErrorType::RetrievingGatewayUrl,
-                    })?
-                    .model()
-                    .await
-                    .map_err(|source| ShardStartError {
-                        source: Some(Box::new(source)),
-                        kind: ShardStartErrorType::RetrievingGatewayUrl,
-                    })?
-                    .url
-                    .into_boxed_str(),
-            );
-        }
+    pub async fn build(self) -> Result<(Shard, Events), ShardStartError> {
+        // Authenticate the token
+        self.http_client
+            .gateway()
+            .authed()
+            .exec()
+            .await
+            .map_err(|source| ShardStartError {
+                source: Some(Box::new(source)),
+                kind: ShardStartErrorType::RetrievingGatewayUrl,
+            })?;
 
         Ok(Shard::new_with_config(self.into_config()))
     }
@@ -210,12 +198,12 @@ impl ShardBuilder {
         self
     }
 
-    /// Set the URL used for connecting to Discord's gateway
+    /// Set the proxy URL for connecting to the gateway.
     ///
-    /// Default is to fetch it from the HTTP API.
+    /// Default is to use Discord's gateway URL.
     #[must_use = "has no effect if not built"]
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
-        self.gateway_url = Some(gateway_url.into_boxed_str());
+        self.gateway_url = Some(gateway_url);
 
         self
     }
