@@ -4,7 +4,7 @@ use crate::{
         interaction::application_command::{CommandDataOption, CommandInteractionDataResolved},
     },
     id::{
-        marker::{CommandMarker, GenericMarker},
+        marker::{CommandMarker, GenericMarker, GuildMarker},
         Id,
     },
 };
@@ -18,6 +18,9 @@ use serde::{Deserialize, Serialize};
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
+    /// ID of the guild the command is registered to.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the command.
     pub id: Id<CommandMarker>,
     /// Name of the command.

@@ -5,7 +5,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         attachment::{AttachmentManager, PartialAttachment},
-        NullableField, Request, TryIntoRequest,
+        Nullable, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
@@ -28,16 +28,16 @@ use twilight_validate::message::{
 #[derive(Serialize)]
 struct UpdateWebhookMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
+    allowed_mentions: Option<Nullable<&'a AllowedMentions>>,
     /// List of attachments to keep, and new attachments to add.
     #[serde(skip_serializing_if = "Option::is_none")]
-    attachments: Option<NullableField<Vec<PartialAttachment<'a>>>>,
+    attachments: Option<Nullable<Vec<PartialAttachment<'a>>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    components: Option<NullableField<&'a [Component]>>,
+    components: Option<Nullable<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    content: Option<NullableField<&'a str>>,
+    content: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    embeds: Option<NullableField<&'a [Embed]>>,
+    embeds: Option<Nullable<&'a [Embed]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
 }
@@ -118,7 +118,7 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
     pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
-        self.fields.allowed_mentions = Some(NullableField(allowed_mentions));
+        self.fields.allowed_mentions = Some(Nullable(allowed_mentions));
 
         self
     }
@@ -171,7 +171,7 @@ impl<'a> UpdateWebhookMessage<'a> {
             validate_components(components)?;
         }
 
-        self.fields.components = Some(NullableField(components));
+        self.fields.components = Some(Nullable(components));
 
         Ok(self)
     }
@@ -196,7 +196,7 @@ impl<'a> UpdateWebhookMessage<'a> {
             validate_content(content_ref)?;
         }
 
-        self.fields.content = Some(NullableField(content));
+        self.fields.content = Some(Nullable(content));
 
         Ok(self)
     }
@@ -266,7 +266,7 @@ impl<'a> UpdateWebhookMessage<'a> {
             validate_embeds(embeds)?;
         }
 
-        self.fields.embeds = Some(NullableField(embeds));
+        self.fields.embeds = Some(Nullable(embeds));
 
         Ok(self)
     }
@@ -284,7 +284,7 @@ impl<'a> UpdateWebhookMessage<'a> {
 
         // Set an empty list. This will be overwritten in `TryIntoRequest` if
         // the actual list is not empty.
-        self.fields.attachments = Some(NullableField(Some(Vec::new())));
+        self.fields.attachments = Some(Nullable(Some(Vec::new())));
 
         self
     }
@@ -342,7 +342,7 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
         // Set the default allowed mentions if required.
         if self.fields.allowed_mentions.is_none() {
             if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                self.fields.allowed_mentions = Some(NullableField(Some(allowed_mentions)));
+                self.fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
             }
         }
 
@@ -352,7 +352,7 @@ impl TryIntoRequest for UpdateWebhookMessage<'_> {
             let form = if let Some(payload_json) = self.fields.payload_json {
                 self.attachment_manager.build_form(payload_json)
             } else {
-                self.fields.attachments = Some(NullableField(Some(
+                self.fields.attachments = Some(Nullable(Some(
                     self.attachment_manager.get_partial_attachments(),
                 )));
 
@@ -377,7 +377,7 @@ mod tests {
     use super::{UpdateWebhookMessage, UpdateWebhookMessageFields};
     use crate::{
         client::Client,
-        request::{NullableField, Request, TryIntoRequest},
+        request::{Nullable, Request, TryIntoRequest},
         routing::Route,
     };
     use twilight_model::id::Id;
@@ -398,7 +398,7 @@ mod tests {
             allowed_mentions: None,
             attachments: None,
             components: None,
-            content: Some(NullableField(Some("test"))),
+            content: Some(Nullable(Some("test"))),
             embeds: None,
             payload_json: None,
         };

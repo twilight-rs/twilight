@@ -71,12 +71,8 @@ impl<'a> CreateThreadFromMessage<'a> {
 
     /// Set the thread's auto archive duration.
     ///
-    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
-    /// The guild's features will indicate if a guild is able to use these
-    /// settings.
-    ///
-    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
-    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     pub const fn auto_archive_duration(
         mut self,
         auto_archive_duration: AutoArchiveDuration,
