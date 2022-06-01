@@ -51,6 +51,15 @@ you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`.
 twilight-gateway = { default-features = false, features = ["rustls-native-roots", "simd-json"], version = "0.2" }
 ```
 
+### Metrics
+
+The `metrics` feature provides metrics information via the `metrics` crate.
+Some of the metrics logged are counters about received event counts and
+their types and gauges about the capacity and efficiency of the inflater of
+each shard.
+
+This is disabled by default.
+
 ### TLS
 
 **Note**: not enabling any TLS feature is support for use behind a proxy;
@@ -100,15 +109,6 @@ will use `zlib-stock`.
 
 Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
 fork of zlib that is faster and more effective, but it needs `cmake` to compile.
-
-### Metrics
-
-The `metrics` feature provides metrics information via the `metrics` crate.
-Some of the metrics logged are counters about received event counts and
-their types and gauges about the capacity and efficiency of the inflater of
-each shard.
-
-This is disabled by default.
 
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls
