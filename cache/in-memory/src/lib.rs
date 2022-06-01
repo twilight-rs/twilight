@@ -169,7 +169,7 @@ pub struct Reference<'a, K, V> {
 
 impl<'a, K: Eq + Hash, V> Reference<'a, K, V> {
     /// Create a new reference from a DashMap reference.
-    fn new(inner: Ref<'a, K, V>) -> Self {
+    const fn new(inner: Ref<'a, K, V>) -> Self {
         Self { inner }
     }
 
