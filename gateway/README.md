@@ -96,8 +96,8 @@ will use `zlib-stock`.
 
 `zlib-stock` is enabled by default.
 
-Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
-fork of zlib that is faster and more effective, but it needs `cmake` to compile.
+Enabling `zlib-simd` will make the library use [`zlib-ng`] which is a modern
+fork of zlib that is faster and more efficient, but it needs `cmake` to compile.
 
 ### Metrics
 
