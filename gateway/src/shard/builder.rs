@@ -6,12 +6,12 @@ use std::{
     sync::Arc,
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
-#[cfg(feature = "twilight-http")]
-use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+#[cfg(feature = "twilight-http")]
+use {super::ShardStartErrorType, twilight_http::Client};
 
 /// Shard ID configuration is invalid.
 ///
@@ -176,6 +176,8 @@ impl ShardBuilder {
     ///
     /// Panics if the `twilight-http` feature is disabled and the gateway url
     /// is unset.
+    ///
+    /// [`ShardStartErrorType::RetrievingGatewayUrl`]: super::ShardStartErrorType::RetrievingGatewayUrl
     #[cfg_attr(not(feature = "twilight-http"), allow(unused_mut))]
     pub async fn build(mut self) -> Result<(Shard, Events), ShardStartError> {
         #[cfg(feature = "twilight-http")]
@@ -190,13 +192,13 @@ impl ShardBuilder {
                     .await
                     .map_err(|source| ShardStartError {
                         source: Some(Box::new(source)),
-                        kind: super::ShardStartErrorType::RetrievingGatewayUrl,
+                        kind: ShardStartErrorType::RetrievingGatewayUrl,
                     })?
                     .model()
                     .await
                     .map_err(|source| ShardStartError {
                         source: Some(Box::new(source)),
-                        kind: super::ShardStartErrorType::RetrievingGatewayUrl,
+                        kind: ShardStartErrorType::RetrievingGatewayUrl,
                     })?
                     .url
                     .into_boxed_str(),
