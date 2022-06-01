@@ -212,10 +212,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             if let ValueEnvelope::Boolean(b) = val {
                                 CommandOptionValue::Boolean(b)
                             } else {
-                                return Err(DeError::invalid_type(
-                                    val.as_unexpected(),
-                                    &"boolean",
-                                ));
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"boolean"));
                             }
                         }
                         CommandOptionType::Channel => {
@@ -236,10 +233,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             if let ValueEnvelope::Integer(i) = val {
                                 CommandOptionValue::Integer(i)
                             } else {
-                                return Err(DeError::invalid_type(
-                                    val.as_unexpected(),
-                                    &"integer",
-                                ));
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"integer"));
                             }
                         }
                         CommandOptionType::Mentionable => {
@@ -282,10 +276,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             if let ValueEnvelope::Id(id) = val {
                                 CommandOptionValue::Role(id.cast())
                             } else {
-                                return Err(DeError::invalid_type(
-                                    val.as_unexpected(),
-                                    &"role id",
-                                ));
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"role id"));
                             }
                         }
                         CommandOptionType::String => {
@@ -314,10 +305,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             if let ValueEnvelope::Id(id) = val {
                                 CommandOptionValue::User(id.cast())
                             } else {
-                                return Err(DeError::invalid_type(
-                                    val.as_unexpected(),
-                                    &"user id",
-                                ));
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"user id"));
                             }
                         }
                     }
