@@ -49,6 +49,15 @@
 //! twilight-gateway = { default-features = false, features = ["rustls-native-roots", "simd-json"], version = "0.2" }
 //! ```
 //!
+//! ### Metrics
+//!
+//! The `metrics` feature provides metrics information via the `metrics` crate.
+//! Some of the metrics logged are counters about received event counts and
+//! their types and gauges about the capacity and efficiency of the inflater of
+//! each shard.
+//!
+//! This is disabled by default.
+//!
 //! ### TLS
 //!
 //! **Note**: not enabling any TLS feature is support for use behind a proxy;
@@ -87,6 +96,16 @@
 //!
 //! This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 //!
+//! ### HTTP
+//!
+//! The `twilight-http` feature enables the gateway to retrieve Discord's gateway
+//! url and recommended shard count at runtime. If this is statically known, for
+//! example when running a shard behind a proxy, http support is optional.
+//!
+//! **Note**: Discord's gateway url is not stable and should not be hard-coded.
+//!
+//! `twilight-http` is enabled by default.
+//!
 //! ### zlib
 //!
 //! zlib compression is enabled with one of the two `zlib` features described below.
@@ -98,15 +117,6 @@
 //!
 //! Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
 //! fork of zlib that is faster and more effective, but it needs `cmake` to compile.
-//!
-//! ### Metrics
-//!
-//! The `metrics` feature provides metrics information via the `metrics` crate.
-//! Some of the metrics logged are counters about received event counts and
-//! their types and gauges about the capacity and efficiency of the inflater of
-//! each shard.
-//!
-//! This is disabled by default.
 //!
 //! [`native-tls`]: https://crates.io/crates/native-tls
 //! [`rustls`]: https://crates.io/crates/rustls
