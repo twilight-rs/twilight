@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-http-ratelimiting
 
 Ratelimiting functionality for HTTP requests.
@@ -15,5 +13,3 @@ It also ships a default implementation, [`InMemoryRatelimiter`], that manages
 the bucket states in memory.
 
 [Discord's documentation]: https://discord.com/developers/docs/topics/rate-limits
-
-<!-- cargo-sync-readme end -->

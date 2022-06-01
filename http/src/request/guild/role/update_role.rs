@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -18,7 +18,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 #[derive(Serialize)]
 struct UpdateRoleFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    color: Option<NullableField<u32>>,
+    color: Option<Nullable<u32>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     hoist: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -26,7 +26,7 @@ struct UpdateRoleFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     mentionable: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<NullableField<&'a str>>,
+    name: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -68,7 +68,7 @@ impl<'a> UpdateRole<'a> {
 
     /// Set the color of the role.
     pub const fn color(mut self, color: Option<u32>) -> Self {
-        self.fields.color = Some(NullableField(color));
+        self.fields.color = Some(Nullable(color));
 
         self
     }
@@ -102,7 +102,7 @@ impl<'a> UpdateRole<'a> {
 
     /// Set the name of the role.
     pub const fn name(mut self, name: Option<&'a str>) -> Self {
-        self.fields.name = Some(NullableField(name));
+        self.fields.name = Some(Nullable(name));
 
         self
     }

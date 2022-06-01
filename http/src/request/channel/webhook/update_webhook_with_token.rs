@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{NullableField, Request, TryIntoRequest},
+    request::{Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -15,7 +15,7 @@ use twilight_validate::request::{webhook_username as validate_webhook_username, 
 #[derive(Serialize)]
 struct UpdateWebhookWithTokenFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a str>>,
+    avatar: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
 }
@@ -54,7 +54,7 @@ impl<'a> UpdateWebhookWithToken<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        self.fields.avatar = Some(NullableField(avatar));
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }

@@ -102,6 +102,7 @@ mod tests {
                 application_id: Id::new(1),
                 channel_id: Id::new(2),
                 data: CommandData {
+                    guild_id: None,
                     id: Id::new(5),
                     name: "command name".into(),
                     kind: CommandType::ChatInput, // This isn't actually a valid command, so just mark it as a slash command.

@@ -382,6 +382,7 @@ mod tests {
     #[test]
     fn no_options() {
         let value = CommandData {
+            guild_id: Some(Id::new(2)),
             id: Id::new(1),
             name: "permissions".to_owned(),
             kind: CommandType::ChatInput,
@@ -394,8 +395,12 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandData",
-                    len: 3,
+                    len: 4,
                 },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -528,6 +533,7 @@ mod tests {
     #[test]
     fn subcommand_without_option() {
         let value = CommandData {
+            guild_id: None,
             id: Id::new(1),
             name: "photo".to_owned(),
             kind: CommandType::ChatInput,
