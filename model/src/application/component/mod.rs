@@ -73,6 +73,30 @@ impl Component {
     }
 }
 
+impl From<ActionRow> for Component {
+    fn from(action_row: ActionRow) -> Self {
+        Self::ActionRow(action_row)
+    }
+}
+
+impl From<Button> for Component {
+    fn from(button: Button) -> Self {
+        Self::Button(button)
+    }
+}
+
+impl From<SelectMenu> for Component {
+    fn from(select_menu: SelectMenu) -> Self {
+        Self::SelectMenu(select_menu)
+    }
+}
+
+impl From<TextInput> for Component {
+    fn from(text_input: TextInput) -> Self {
+        Self::TextInput(text_input)
+    }
+}
+
 impl<'de> Deserialize<'de> for Component {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_any(ComponentVisitor)
@@ -564,6 +588,12 @@ mod tests {
         button::ButtonStyle, select_menu::SelectMenuOption, text_input::TextInputStyle,
     };
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+
+    assert_impl_all!(Component: From<ActionRow>);
+    assert_impl_all!(Component: From<Button>);
+    assert_impl_all!(Component: From<SelectMenu>);
+    assert_impl_all!(Component: From<TextInput>);
 
     #[allow(clippy::too_many_lines)]
     #[test]

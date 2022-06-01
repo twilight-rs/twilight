@@ -1,7 +1,5 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::Component;
-
 /// Modal component to prompt users for a text input.
 ///
 /// Refer to [Discord Docs/Input Text] for additional information.
@@ -27,12 +25,6 @@ pub struct TextInput {
     pub style: TextInputStyle,
     /// Pre-filled value for input text.
     pub value: Option<String>,
-}
-
-impl From<TextInput> for Component {
-    fn from(text_input: TextInput) -> Self {
-        Self::TextInput(text_input)
-    }
 }
 
 /// Style of an [`TextInput`].
@@ -81,8 +73,6 @@ mod tests {
     );
     const_assert_eq!(1, TextInputStyle::Short as u8);
     const_assert_eq!(2, TextInputStyle::Paragraph as u8);
-
-    assert_impl_all!(Component: From<TextInput>);
 
     #[test]
     fn test_text_input_style() {

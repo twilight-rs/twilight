@@ -1,8 +1,6 @@
 use crate::channel::ReactionType;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use super::Component;
-
 /// Clickable interactive components that render on messages.
 ///
 /// See [Discord Docs/Message Components].
@@ -68,12 +66,6 @@ pub enum ButtonStyle {
     Link = 5,
 }
 
-impl From<Button> for Component {
-    fn from(button: Button) -> Self {
-        Self::Button(button)
-    }
-}
-
 #[cfg(test)]
 mod tests {
 
@@ -104,8 +96,6 @@ mod tests {
     const_assert_eq!(3, ButtonStyle::Success as u8);
     const_assert_eq!(4, ButtonStyle::Danger as u8);
     const_assert_eq!(5, ButtonStyle::Link as u8);
-
-    assert_impl_all!(Component: From<Button>);
 
     #[test]
     fn test_button_style() {

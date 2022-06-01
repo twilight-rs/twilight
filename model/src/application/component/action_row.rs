@@ -11,12 +11,6 @@ pub struct ActionRow {
     pub components: Vec<Component>,
 }
 
-impl From<ActionRow> for Component {
-    fn from(action_row: ActionRow) -> Self {
-        Self::ActionRow(action_row)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -25,6 +19,4 @@ mod tests {
 
     assert_fields!(ActionRow: components);
     assert_impl_all!(ActionRow: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
-
-    assert_impl_all!(Component: From<ActionRow>);
 }
