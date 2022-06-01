@@ -1,4 +1,4 @@
-use super::{Config, Events, Shard, ShardStartError, ShardStartErrorType};
+use super::{Config, Events, Shard, ShardStartError};
 use crate::EventTypeFlags;
 use std::{
     error::Error,
@@ -6,6 +6,7 @@ use std::{
     sync::Arc,
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
+#[cfg(feature = "twilight-http")]
 use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
@@ -99,6 +100,7 @@ pub enum ShardIdErrorType {
 pub struct ShardBuilder {
     event_types: EventTypeFlags,
     pub(crate) gateway_url: Option<Box<str>>,
+    #[cfg(feature = "twilight-http")]
     pub(crate) http_client: Arc<Client>,
     identify_properties: Option<IdentifyProperties>,
     intents: Intents,
@@ -122,6 +124,7 @@ impl ShardBuilder {
         Self {
             event_types: EventTypeFlags::default(),
             gateway_url: None,
+            #[cfg(feature = "twilight-http")]
             http_client: Arc::new(Client::new(token.clone())),
             identify_properties: None,
             intents,
@@ -141,6 +144,7 @@ impl ShardBuilder {
         Config {
             event_types: self.event_types,
             gateway_url: self.gateway_url.unwrap(),
+            #[cfg(feature = "twilight-http")]
             http_client: self.http_client,
             identify_properties: self.identify_properties,
             intents: self.intents,
@@ -167,7 +171,14 @@ impl ShardBuilder {
     ///
     /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
     /// the gateway URL couldn't be retrieved from the HTTP API.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the `twilight-http` feature is disabled and the gateway url
+    /// is unset.
+    #[cfg_attr(not(feature = "twilight-http"), allow(unused_mut))]
     pub async fn build(mut self) -> Result<(Shard, Events), ShardStartError> {
+        #[cfg(feature = "twilight-http")]
         if self.gateway_url.is_none() {
             // By making an authenticated gateway information retrieval request
             // we're also validating the configured token.
@@ -179,13 +190,13 @@ impl ShardBuilder {
                     .await
                     .map_err(|source| ShardStartError {
                         source: Some(Box::new(source)),
-                        kind: ShardStartErrorType::RetrievingGatewayUrl,
+                        kind: super::ShardStartErrorType::RetrievingGatewayUrl,
                     })?
                     .model()
                     .await
                     .map_err(|source| ShardStartError {
                         source: Some(Box::new(source)),
-                        kind: ShardStartErrorType::RetrievingGatewayUrl,
+                        kind: super::ShardStartErrorType::RetrievingGatewayUrl,
                     })?
                     .url
                     .into_boxed_str(),
@@ -212,6 +223,10 @@ impl ShardBuilder {
 
     /// Set the URL used for connecting to Discord's gateway
     ///
+    /// **Note**: Discord's gateway url is not stable and should not be
+    /// hard-coded.
+    /// ***Must*** be set if the `twilight-http` feature is disabled.
+    ///
     /// Default is to fetch it from the HTTP API.
     #[must_use = "has no effect if not built"]
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
@@ -225,6 +240,7 @@ impl ShardBuilder {
     ///
     /// Default is a new, unconfigured instance of an HTTP client.
     #[allow(clippy::missing_const_for_fn)]
+    #[cfg(feature = "twilight-http")]
     #[must_use = "has no effect if not built"]
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
         self.http_client = http_client;

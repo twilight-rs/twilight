@@ -443,6 +443,7 @@ impl Shard {
     /// the gateway URL couldn't be retrieved from the HTTP API.
     ///
     /// [`start`]: Self::start
+    #[cfg(feature = "twilight-http")]
     pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ShardStartError> {
         Self::builder(token, intents).build().await
     }

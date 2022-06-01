@@ -1,6 +1,7 @@
 use crate::EventTypeFlags;
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
+#[cfg(feature = "twilight-http")]
 use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
@@ -24,6 +25,7 @@ use super::tls::TlsContainer;
 pub struct Config {
     pub(super) event_types: EventTypeFlags,
     pub(super) gateway_url: Box<str>,
+    #[cfg(feature = "twilight-http")]
     pub(super) http_client: Arc<Client>,
     pub(super) identify_properties: Option<IdentifyProperties>,
     pub(super) intents: Intents,
@@ -56,6 +58,7 @@ impl Config {
 
     /// Return an immutable reference to the `twilight_http` client to be used
     /// by the shard.
+    #[cfg(feature = "twilight-http")]
     pub fn http_client(&self) -> &Client {
         &self.http_client
     }

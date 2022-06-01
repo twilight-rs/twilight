@@ -98,6 +98,16 @@ for root certificates.
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
+### HTTP
+
+The `twilight-http` feature enables the gateway to retrieve Discord's gateway
+url and recommended shard count at runtime. If this is statically known, for
+example when running a shard behind a proxy, http support is optional.
+
+**Note**: Discord's gateway url is not stable and should not be hard-coded.
+
+`twilight-http` is enabled by default.
+
 ### zlib
 
 zlib compression is enabled with one of the two `zlib` features described below.

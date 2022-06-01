@@ -268,6 +268,7 @@ impl Cluster {
     /// there was an HTTP error Retrieving the gateway information.
     ///
     /// [`builder`]: Self::builder
+    #[cfg(feature = "twilight-http")]
     pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ClusterStartError> {
         Self::builder(token, intents).build().await
     }

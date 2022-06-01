@@ -1,4 +1,11 @@
-use super::{Cluster, ClusterStartError, ClusterStartErrorType, Config, Events, ShardScheme};
+#[cfg(any(
+    feature = "twilight-http",
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use super::ClusterStartErrorType;
+use super::{Cluster, ClusterStartError, Config, Events, ShardScheme};
 use crate::{
     shard::{ResumeSession, ShardBuilder},
     EventTypeFlags,
@@ -9,12 +16,12 @@ use std::{
     sync::Arc,
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
-use twilight_http::Client;
 use twilight_model::gateway::{
-    connection_info::BotConnectionInfo,
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+#[cfg(feature = "twilight-http")]
+use {twilight_http::Client, twilight_model::gateway::connection_info::BotConnectionInfo};
 
 #[cfg(any(
     feature = "native",
@@ -74,8 +81,15 @@ impl ClusterBuilder {
     /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
     /// there was an HTTP error Retrieving the gateway information.
     ///
+    /// # Panics
+    ///
+    /// Panics if the `twilight-http` feature is disabled and the gateway url
+    /// or [`ShardScheme`] is unset.
+    ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
+    #[cfg_attr(not(feature = "twilight-http"), allow(unused_mut))]
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
+        #[cfg(feature = "twilight-http")]
         if self.shard.gateway_url.is_none() || self.shard_scheme.is_none() {
             let gateway = Self::retrieve_connect_info(&self.shard.http_client).await?;
 
@@ -128,6 +142,7 @@ impl ClusterBuilder {
 
     /// Retrieves [`BotConnectionInfo`], containing the gateway url and
     /// recommended shard count.
+    #[cfg(feature = "twilight-http")]
     async fn retrieve_connect_info(http: &Client) -> Result<BotConnectionInfo, ClusterStartError> {
         http.gateway()
             .authed()
@@ -163,6 +178,10 @@ impl ClusterBuilder {
 
     /// Set the URL that will be used to connect to the gateway.
     ///
+    /// **Note**: Discord's gateway url is not stable and should not be
+    /// hard-coded.
+    /// ***Must*** be set if the `twilight-http` feature is disabled.
+    ///
     /// Default is to fetch it from the HTTP API.
     #[must_use = "has no effect if not built"]
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
@@ -179,6 +198,7 @@ impl ClusterBuilder {
     ///
     /// Defaults to a new, default HTTP client is used.
     #[must_use = "has no effect if not built"]
+    #[cfg(feature = "twilight-http")]
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
         self.shard = self.shard.http_client(http_client);
 
@@ -276,9 +296,9 @@ impl ClusterBuilder {
     /// [`ShardScheme::Range`] means that it will manage a range of shards, but
     /// not necessarily all of the shards that your bot uses.
     ///
-    /// The cluster will automatically manage all of the shards that Discord
-    /// recommends you use by default. For most setups this is an acceptable
-    /// default.
+    /// ***Must*** be set if the `twilight-http` feature is disabled.
+    ///
+    /// Default is to fetch the recommended number of shards from the HTTP API.
     ///
     /// # Examples
     ///
