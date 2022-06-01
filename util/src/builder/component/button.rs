@@ -124,6 +124,7 @@ impl ButtonBuilder {
 
     /// Consume the builder, returning a button wrapped in
     /// [`Component::Button`].
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
     pub fn into_component(self) -> Component {
         Component::Button(self.build())

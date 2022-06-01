@@ -91,9 +91,10 @@ impl TextInputBuilder {
 
     /// Consume the builder, returning a text input wrapped in
     /// [`Component::TextInput`]
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
     pub fn into_component(self) -> Component {
-        Component::TextInput(self.0)
+        Component::TextInput(self.build())
     }
 
     /// Set the maximum amount of characters allowed to be entered in this text input.

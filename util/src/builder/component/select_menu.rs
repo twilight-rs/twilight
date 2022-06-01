@@ -106,9 +106,10 @@ impl SelectMenuBuilder {
 
     /// Consume the builder, returning a select menu wrapped in
     /// [`Component::SelectMenu`]
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
     pub fn into_component(self) -> Component {
-        Component::SelectMenu(self.0)
+        Component::SelectMenu(self.build())
     }
 
     /// Set the minimum values for this select menu.

@@ -78,6 +78,7 @@ impl ActionRowBuilder {
 
     /// Consume the builder, returning an action row wrapped in
     /// [`Component::ActionRow`].
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
     pub fn into_component(self) -> Component {
         Component::ActionRow(self.build())
