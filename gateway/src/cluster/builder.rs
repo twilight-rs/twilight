@@ -11,7 +11,6 @@ use std::{
 use twilight_gateway_queue::{LocalQueue, Queue};
 use twilight_http::Client;
 use twilight_model::gateway::{
-    connection_info::BotConnectionInfo,
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
@@ -72,25 +71,13 @@ impl ClusterBuilder {
     ///
     /// # Errors
     ///
-    /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
-    /// there was an HTTP error Retrieving the gateway information.
+    /// Returns a [`ClusterStartErrorType::AutoSharding`] error type if
+    /// there was an HTTP error retrieving the number of recommended shards.
     ///
-    /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
+    /// [`ClusterStartErrorType::AutoSharding`]: super::ClusterStartErrorType::AutoSharding
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
-        if self.shard.gateway_url.is_none() || self.shard_scheme.is_none() {
-            let gateway = Self::retrieve_connect_info(&self.shard.http_client).await?;
-
-            if self.shard.gateway_url.is_none() {
-                self = self.gateway_url(gateway.url);
-            }
-
-            if self.shard_scheme.is_none() {
-                self.shard_scheme = Some(ShardScheme::Range {
-                    from: 0,
-                    to: gateway.shards - 1,
-                    total: gateway.shards,
-                });
-            }
+        if self.shard_scheme.is_none() {
+            self.shard_scheme = Some(Self::recommended_shards(&self.shard.http_client).await?);
         }
 
         #[cfg(not(any(
@@ -127,23 +114,29 @@ impl ClusterBuilder {
         Cluster::new_with_config(config, shard_config).await
     }
 
-    /// Retrieves [`BotConnectionInfo`], containing the gateway url and
-    /// recommended shard count.
-    async fn retrieve_connect_info(http: &Client) -> Result<BotConnectionInfo, ClusterStartError> {
-        http.gateway()
+    /// Retrieves the recommended shard count as a [`ShardScheme::Range`].
+    async fn recommended_shards(http: &Client) -> Result<ShardScheme, ClusterStartError> {
+        let info = http
+            .gateway()
             .authed()
             .exec()
             .await
             .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                kind: ClusterStartErrorType::AutoSharding,
                 source: Some(Box::new(source)),
             })?
             .model()
             .await
             .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                kind: ClusterStartErrorType::AutoSharding,
                 source: Some(Box::new(source)),
-            })
+            })?;
+
+        Ok(ShardScheme::Range {
+            from: 0,
+            to: info.shards - 1,
+            total: info.shards,
+        })
     }
 
     /// Set the event types to process.
@@ -161,9 +154,9 @@ impl ClusterBuilder {
         self
     }
 
-    /// Set the URL that will be used to connect to the gateway.
+    /// Set the proxy URL for connecting to the gateway.
     ///
-    /// Default is to fetch it from the HTTP API.
+    /// Default is to use Discord's gateway URL.
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
         self.shard = self.shard.gateway_url(gateway_url);
 

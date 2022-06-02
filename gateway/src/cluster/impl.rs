@@ -176,8 +176,8 @@ impl ClusterStartError {
 impl Display for ClusterStartError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ClusterStartErrorType::RetrievingGatewayInfo { .. } => {
-                f.write_str("getting the bot's gateway info failed")
+            ClusterStartErrorType::AutoSharding => {
+                f.write_str("retrieving the bot's recommended number of shards failed")
             }
             ClusterStartErrorType::Tls => {
                 f.write_str("creating the TLS connector resulted in a error")
@@ -198,12 +198,9 @@ impl Error for ClusterStartError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ClusterStartErrorType {
-    /// Retrieving the bot's gateway information via the HTTP API failed.
-    ///
-    /// This can occur when using automatic sharding and retrieval of the
-    /// number of recommended number of shards to start fails, which can happen
-    /// due to something like a network or response parsing issue.
-    RetrievingGatewayInfo,
+    /// Retrieving the bot's recommended number of shards via the HTTP API
+    /// failed.
+    AutoSharding,
     /// Creating the TLS connector resulted in a error.
     Tls,
 }
@@ -264,8 +261,8 @@ impl Cluster {
     ///
     /// # Errors
     ///
-    /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
-    /// there was an HTTP error Retrieving the gateway information.
+    /// Returns a [`ClusterStartErrorType::AutoSharding`] error type if
+    /// there was an HTTP error retrieving the number of recommended shards.
     ///
     /// [`builder`]: Self::builder
     pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ClusterStartError> {
