@@ -201,6 +201,7 @@ impl ShardBuilder {
     /// Set the proxy URL for connecting to the gateway.
     ///
     /// Default is to use Discord's gateway URL.
+    #[allow(clippy::missing_const_for_fn)]
     #[must_use = "has no effect if not built"]
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
         self.gateway_url = Some(gateway_url);

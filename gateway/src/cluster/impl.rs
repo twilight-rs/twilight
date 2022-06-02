@@ -261,8 +261,8 @@ impl Cluster {
     ///
     /// # Errors
     ///
-    /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
-    /// there was an HTTP error Retrieving the gateway information.
+    /// Returns a [`ClusterStartErrorType::AutoSharding`] error type if
+    /// there was an HTTP error retrieving the number of recommended shards.
     ///
     /// [`builder`]: Self::builder
     pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ClusterStartError> {

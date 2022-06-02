@@ -437,8 +437,8 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
-    /// the gateway URL couldn't be retrieved from the HTTP API.
+    /// Returns a [`ShardStartErrorType::InvalidToken`] error type if
+    /// the token failed validation.
     ///
     /// [`start`]: Self::start
     pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ShardStartError> {
