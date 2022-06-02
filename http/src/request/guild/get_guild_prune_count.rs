@@ -91,7 +91,7 @@ impl TryIntoRequest for GetGuildPruneCount<'_> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::GetGuildPruneCount;
     use crate::Client;
     use twilight_model::id::Id;

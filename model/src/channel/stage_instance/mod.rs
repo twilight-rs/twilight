@@ -22,7 +22,7 @@ pub struct StageInstance {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::{PrivacyLevel, StageInstance};
     use crate::id::Id;
     use serde_test::Token;
