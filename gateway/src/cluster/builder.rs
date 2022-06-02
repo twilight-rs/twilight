@@ -75,7 +75,6 @@ impl ClusterBuilder {
     ///
     /// [`ClusterStartErrorType::AutoSharding`]: super::ClusterStartErrorType::AutoSharding
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
-        // async closures are unstable
         if self.shard_scheme.is_none() {
             self.shard_scheme = Some(Self::recommended_shards(&self.shard.http_client).await?);
         }
