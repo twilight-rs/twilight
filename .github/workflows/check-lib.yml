@@ -131,21 +131,17 @@ jobs:
           toolchain: nightly
           profile: minimal
 
-      - name: Install cargo-hack
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-hack
-
-      - name: Install cargo-minimal-versions
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-minimal-versions
-
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Install cargo-minimal-versions
+        uses: taiki-e/install-action@cargo-minimal-versions
 
       - name: Check minimal versions
         run: cargo minimal-versions check
@@ -184,16 +180,14 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
-      - name: Install cargo-hack
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-hack
-
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
 
       - name: Check feature combinations
         run: cargo hack check --feature-powerset
