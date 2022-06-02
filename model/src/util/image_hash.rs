@@ -640,7 +640,7 @@ mod tests {
 
     /// Test that reconstruction of parted hashes is correct.
     #[test]
-    fn test_new() -> Result<(), ImageHashParseError> {
+    fn new() -> Result<(), ImageHashParseError> {
         let source = ImageHash::parse(b"85362c0262ef125a1182b1fad66b6a89")?;
         let (bytes, animated) = (source.bytes(), source.is_animated());
 
@@ -651,7 +651,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse() -> Result<(), ImageHashParseError> {
+    fn parse() -> Result<(), ImageHashParseError> {
         let actual = ImageHash::parse(b"77450a7713f093adaebab32b18dacc46")?;
         let expected = [
             70, 204, 218, 24, 43, 179, 186, 174, 173, 147, 240, 19, 119, 10, 69, 119,
@@ -662,7 +662,7 @@ mod tests {
     }
 
     #[test]
-    fn test_display() -> Result<(), ImageHashParseError> {
+    fn display() -> Result<(), ImageHashParseError> {
         assert_eq!(
             "58ec815c650e72f8eb31eec52e54b3b5",
             ImageHash::parse(b"58ec815c650e72f8eb31eec52e54b3b5")?.to_string()
@@ -677,7 +677,7 @@ mod tests {
 
     /// Test that various formats are indeed invalid.
     #[test]
-    fn test_parse_format() {
+    fn parse_format() {
         const INPUTS: &[&[u8]] = &[
             b"not correct length",
             b"",
@@ -697,7 +697,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_range() {
+    fn parse_range() {
         let mut input = [b'a'; 32];
         input[17] = b'-';
 
@@ -711,7 +711,7 @@ mod tests {
     }
 
     #[test]
-    fn test_nibbles() -> Result<(), ImageHashParseError> {
+    fn nibbles() -> Result<(), ImageHashParseError> {
         const INPUT: &[u8] = b"39eb706d6fbaeb22837c350993b97b42";
 
         let hash = ImageHash::parse(INPUT)?;
@@ -729,7 +729,7 @@ mod tests {
     /// Test that the [`core::iter::DoubleEndedIterator`] implementation on
     /// [`Nibbles`] functions like a double ended iterator should.
     #[test]
-    fn test_nibbles_double_ended() -> Result<(), ImageHashParseError> {
+    fn nibbles_double_ended() -> Result<(), ImageHashParseError> {
         const INPUT: &[u8] = b"e72bbdec903c420b7aa9c45fc7994ac8";
 
         let hash = ImageHash::parse(INPUT)?;
@@ -767,7 +767,7 @@ mod tests {
     /// Test that image hash parsing correctly identifies animated hashes by its
     /// `a_` prefix.
     #[test]
-    fn test_is_animated() -> Result<(), ImageHashParseError> {
+    fn is_animated() -> Result<(), ImageHashParseError> {
         assert!(ImageHash::parse(b"a_06c16474723fe537c283b8efa61a30c8")?.is_animated());
         assert!(!ImageHash::parse(b"06c16474723fe537c283b8efa61a30c8")?.is_animated());
 

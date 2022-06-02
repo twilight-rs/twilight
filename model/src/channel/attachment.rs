@@ -62,7 +62,7 @@ mod tests {
     );
 
     #[test]
-    fn test_attachment() {
+    fn attachment() {
         let value = Attachment {
             content_type: Some("image/png".to_owned()),
             ephemeral: false,

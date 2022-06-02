@@ -15,7 +15,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_embed_footer_with_icon() {
+    fn embed_footer_with_icon() {
         let value = EmbedFooter {
             icon_url: Some("https://example.com/1.png".to_owned()),
             proxy_icon_url: Some("https://cdn.example.com/1-hash.png".to_owned()),
@@ -43,7 +43,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_footer_without_icon() {
+    fn embed_footer_without_icon() {
         let value = EmbedFooter {
             icon_url: None,
             proxy_icon_url: None,

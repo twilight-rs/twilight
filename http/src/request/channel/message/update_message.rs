@@ -353,7 +353,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_clear_attachment() -> Result<(), Box<dyn Error>> {
+    fn clear_attachment() -> Result<(), Box<dyn Error>> {
         const CHANNEL_ID: Id<ChannelMarker> = Id::new(1);
         const MESSAGE_ID: Id<MessageMarker> = Id::new(2);
 

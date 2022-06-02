@@ -28,7 +28,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_custom() {
+    fn custom() {
         let value = ReactionType::Custom {
             animated: false,
             id: Id::new(1337),
@@ -75,7 +75,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unicode() {
+    fn unicode() {
         let value = ReactionType::Unicode {
             name: "\u{1f643}".to_owned(),
         };

@@ -14,7 +14,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_ban() {
+    fn ban() {
         let ban = Ban {
             reason: Some("foo".to_owned()),
             user: User {

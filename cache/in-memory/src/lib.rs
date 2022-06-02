@@ -916,7 +916,7 @@ mod tests {
     };
 
     #[test]
-    fn test_syntax_update() {
+    fn syntax_update() {
         let cache = InMemoryCache::new();
         cache.update(&RoleDelete {
             guild_id: Id::new(1),
@@ -925,7 +925,7 @@ mod tests {
     }
 
     #[test]
-    fn test_clear() {
+    fn clear() {
         let cache = InMemoryCache::new();
         cache.cache_emoji(Id::new(1), test::emoji(Id::new(3), None));
         cache.cache_member(Id::new(2), test::member(Id::new(4), Id::new(2)));
@@ -935,7 +935,7 @@ mod tests {
     }
 
     #[test]
-    fn test_highest_role() {
+    fn highest_role() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
         let guild_id = Id::new(1);

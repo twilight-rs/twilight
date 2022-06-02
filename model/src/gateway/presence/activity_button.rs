@@ -318,7 +318,7 @@ mod tests {
     }
 
     #[test]
-    fn test_activity_button_link() {
+    fn activity_button_link() {
         serde_test::assert_de_tokens(
             &link(),
             &[
@@ -336,12 +336,12 @@ mod tests {
     }
 
     #[test]
-    fn test_activity_button_text() {
+    fn activity_button_text() {
         serde_test::assert_de_tokens(&text(), &[Token::Str("a")]);
     }
 
     #[test]
-    fn test_activity_button_with_url() {
+    fn activity_button_with_url() {
         serde_test::assert_tokens(
             &ActivityButton::Link(link()),
             &[
@@ -359,7 +359,7 @@ mod tests {
     }
 
     #[test]
-    fn test_activity_button_without_url() {
+    fn activity_button_without_url() {
         serde_test::assert_tokens(&ActivityButton::Text(text()), &[Token::Str("a")]);
     }
 }

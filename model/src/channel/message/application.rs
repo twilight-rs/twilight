@@ -21,7 +21,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_message_application() {
+    fn message_application() {
         let value = MessageApplication {
             cover_image: Some(image_hash::COVER),
             description: "a description".to_owned(),

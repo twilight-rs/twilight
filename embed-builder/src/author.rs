@@ -87,7 +87,7 @@ mod tests {
     assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);
 
     #[test]
-    fn test_name_empty() {
+    fn name_empty() {
         let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new("".to_owned()));
 
         assert!(matches!(
@@ -97,7 +97,7 @@ mod tests {
     }
 
     #[test]
-    fn test_name_too_long() {
+    fn name_too_long() {
         let builder = EmbedBuilder::new().author(EmbedAuthorBuilder::new("a".repeat(256)));
         assert!(builder.build().is_ok());
 
@@ -109,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn test_builder() {
+    fn builder() {
         let expected = EmbedAuthor {
             icon_url: Some("https://example.com/1.png".to_owned()),
             name: "an author".to_owned(),

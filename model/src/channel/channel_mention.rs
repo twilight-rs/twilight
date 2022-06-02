@@ -23,7 +23,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_channel_mention() {
+    fn channel_mention() {
         let value = ChannelMention {
             guild_id: Id::new(1),
             id: Id::new(2),

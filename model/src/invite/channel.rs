@@ -23,7 +23,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_invite_channel() {
+    fn invite_channel() {
         let value = InviteChannel {
             id: Id::new(1),
             name: Some("channel name".to_owned()),

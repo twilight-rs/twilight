@@ -184,7 +184,7 @@ mod tests {
     );
 
     #[test]
-    fn test_eq_sticker() -> Result<(), ImageHashParseError> {
+    fn eq_sticker() -> Result<(), ImageHashParseError> {
         let avatar = ImageHash::parse(b"5bf451026c107906b4dccea015320222")?;
 
         let sticker = Sticker {

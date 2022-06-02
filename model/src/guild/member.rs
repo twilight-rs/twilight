@@ -222,7 +222,7 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    fn test_member_deserializer() -> Result<(), TimestampParseError> {
+    fn member_deserializer() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
 
@@ -317,7 +317,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_member_communication_disabled_until() -> Result<(), TimestampParseError> {
+    fn guild_member_communication_disabled_until() -> Result<(), TimestampParseError> {
         let communication_disabled_until = Timestamp::from_str("2021-12-23T14:29:19.046000+00:00")?;
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;

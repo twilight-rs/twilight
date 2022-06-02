@@ -18,7 +18,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_integration_expire_behavior() {
+    fn integration_expire_behavior() {
         serde_test::assert_tokens(&IntegrationExpireBehavior::RemoveRole, &[Token::U8(0)]);
         serde_test::assert_tokens(&IntegrationExpireBehavior::Kick, &[Token::U8(1)]);
     }

@@ -60,7 +60,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild_integration() -> Result<(), TimestampParseError> {
+    fn guild_integration() -> Result<(), TimestampParseError> {
         let synced_at = Timestamp::from_str("2021-01-01T01:01:01+00:00")?;
 
         let value = GuildIntegration {
@@ -185,7 +185,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild_integration_complete() -> Result<(), TimestampParseError> {
+    fn guild_integration_complete() -> Result<(), TimestampParseError> {
         let synced_at = Timestamp::from_str("2021-01-01T01:01:01+00:00")?;
 
         let value = GuildIntegration {

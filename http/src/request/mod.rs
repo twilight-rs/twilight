@@ -107,7 +107,7 @@ mod tests {
     use crate::request::Nullable;
 
     #[test]
-    fn test_serialize_image() {
+    fn serialize_image() {
         let mut buf = Cursor::new(Vec::new());
         let mut serializer = Serializer::new(&mut buf);
         super::serialize_image(b"test", &mut serializer).unwrap();
@@ -115,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_optional_image_some() {
+    fn serialize_optional_image_some() {
         let mut buf = Cursor::new(Vec::new());
         let mut serializer = Serializer::new(&mut buf);
         super::serialize_optional_image(&Some(b"test"), &mut serializer).unwrap();
@@ -123,7 +123,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_optional_image_none() {
+    fn serialize_optional_image_none() {
         let mut buf = Cursor::new(Vec::new());
         let mut serializer = Serializer::new(&mut buf);
         super::serialize_optional_image(&None, &mut serializer).unwrap();
@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_optional_nullable_image_none() {
+    fn serialize_optional_nullable_image_none() {
         let mut buf = Cursor::new(Vec::new());
         let mut serializer = Serializer::new(&mut buf);
         super::serialize_optional_nullable_image(&None, &mut serializer).unwrap();
@@ -139,7 +139,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_optional_nullable_image_some_null() {
+    fn serialize_optional_nullable_image_some_null() {
         let mut buf = Cursor::new(Vec::new());
         let mut serializer = Serializer::new(&mut buf);
         super::serialize_optional_nullable_image(&Some(Nullable(None)), &mut serializer).unwrap();
@@ -147,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_optional_nullable_image_some_value() {
+    fn serialize_optional_nullable_image_some_value() {
         let mut buf = Cursor::new(Vec::new());
         let mut serializer = Serializer::new(&mut buf);
         super::serialize_optional_nullable_image(&Some(Nullable(Some(b"test"))), &mut serializer)

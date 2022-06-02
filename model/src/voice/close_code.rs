@@ -92,7 +92,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&CloseCode::UnknownOpcode, &[Token::U16(4001)]);
         serde_test::assert_tokens(&CloseCode::DecodeError, &[Token::U16(4002)]);
         serde_test::assert_tokens(&CloseCode::NotAuthenticated, &[Token::U16(4003)]);
@@ -107,7 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn test_conversion() {
+    fn conversion() {
         assert_eq!(CloseCode::try_from(4001).unwrap(), CloseCode::UnknownOpcode);
         assert_eq!(CloseCode::try_from(4002).unwrap(), CloseCode::DecodeError);
         assert_eq!(

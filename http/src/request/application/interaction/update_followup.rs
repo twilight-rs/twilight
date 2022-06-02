@@ -374,7 +374,7 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_update_followup_message() -> Result<(), Box<dyn Error>> {
+    fn update_followup_message() -> Result<(), Box<dyn Error>> {
         let application_id = Id::new(1);
         let message_id = Id::new(2);
         let token = "foo".to_owned();

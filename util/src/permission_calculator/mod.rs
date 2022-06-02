@@ -534,7 +534,7 @@ mod tests {
     assert_impl_all!(PermissionCalculator<'_>: Clone, Debug, Eq, PartialEq, Send, Sync);
 
     #[test]
-    fn test_owner_is_admin() {
+    fn owner_is_admin() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::SEND_MESSAGES;
@@ -549,7 +549,7 @@ mod tests {
     // Test that a permission overwrite denying the "View Channel" permission
     // implicitly denies all other permissions.
     #[test]
-    fn test_view_channel_deny_implicit() {
+    fn view_channel_deny_implicit() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::MENTION_EVERYONE | Permissions::SEND_MESSAGES;
@@ -588,7 +588,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove_text_and_stage_perms_when_voice() {
+    fn remove_text_and_stage_perms_when_voice() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
@@ -601,7 +601,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove_audio_perms_when_text() {
+    fn remove_audio_perms_when_text() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
@@ -618,7 +618,7 @@ mod tests {
     // Test that denying the "Send Messages" permission denies all message
     // send related permissions.
     #[test]
-    fn test_deny_send_messages_removes_related() {
+    fn deny_send_messages_removes_related() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role =
@@ -642,7 +642,7 @@ mod tests {
     /// Test that a member that has a role with the "administrator" permission
     /// has all denying overwrites ignored.
     #[test]
-    fn test_admin() {
+    fn admin() {
         let member_roles = &[(Id::new(3), Permissions::ADMINISTRATOR)];
         let calc =
             PermissionCalculator::new(Id::new(1), Id::new(2), Permissions::empty(), member_roles);
@@ -656,7 +656,7 @@ mod tests {
     /// Test that guild-level permissions are removed in the permissions for a
     /// channel of any type.
     #[test]
-    fn test_guild_level_removed_in_channel() {
+    fn guild_level_removed_in_channel() {
         const CHANNEL_TYPES: &[ChannelType] = &[
             ChannelType::GuildCategory,
             ChannelType::GuildNews,

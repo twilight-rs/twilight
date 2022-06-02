@@ -308,7 +308,7 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
+    fn create_followup_message() -> Result<(), Box<dyn Error>> {
         let application_id = Id::new(1);
         let token = "foo".to_owned();
 

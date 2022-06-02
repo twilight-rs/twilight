@@ -43,7 +43,7 @@ mod tests {
     );
 
     #[test]
-    fn test_team() {
+    fn team() {
         let value = Team {
             icon: Some(image_hash::ICON),
             id: Id::new(1),

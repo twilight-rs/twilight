@@ -103,7 +103,7 @@ mod tests {
     }
 
     #[test]
-    fn test_user_profile() {
+    fn user_profile() {
         let value = UserProfile {
             accent_color: Some(16_579_836),
             avatar: Some(image_hash::AVATAR),

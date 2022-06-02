@@ -87,7 +87,7 @@ mod tests {
     const_assert_eq!(5, InteractionType::ModalSubmit as u8);
 
     #[test]
-    fn test_kind() {
+    fn kind() {
         assert_eq!("Ping", InteractionType::Ping.kind());
         assert_eq!(
             "ApplicationCommand",
@@ -102,7 +102,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from() -> Result<(), UnknownInteractionTypeError> {
+    fn try_from() -> Result<(), UnknownInteractionTypeError> {
         assert_eq!(InteractionType::Ping, InteractionType::try_from(1)?);
         assert_eq!(
             InteractionType::ApplicationCommand,

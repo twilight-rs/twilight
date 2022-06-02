@@ -1124,7 +1124,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component() {
+    fn component_action_row() {
         let button = Button {
             custom_id: None,
             disabled: false,
@@ -1181,7 +1181,7 @@ mod tests {
     // Test that a button with both a custom ID and URL results in a
     // [`ComponentValidationErrorType::ButtonConflict`] error type.
     #[test]
-    fn test_button_conflict() {
+    fn button_conflict() {
         let button = Button {
             custom_id: Some("a".to_owned()),
             disabled: false,
@@ -1202,7 +1202,7 @@ mod tests {
     // Test that all button styles with no custom ID or URL results in a
     // [`ComponentValidationErrorType::ButtonStyle`] error type.
     #[test]
-    fn test_button_style() {
+    fn button_style() {
         for style in all_button_styles().iter() {
             let button = Button {
                 custom_id: None,
@@ -1226,7 +1226,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_label() {
+    fn component_label() {
         assert!(component_button_label("").is_ok());
         assert!(component_button_label("a").is_ok());
         assert!(component_button_label("a".repeat(80)).is_ok());
@@ -1235,7 +1235,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_custom_id() {
+    fn component_custom_id_length() {
         assert!(component_custom_id("").is_ok());
         assert!(component_custom_id("a").is_ok());
         assert!(component_custom_id("a".repeat(100)).is_ok());
@@ -1244,7 +1244,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_option_description() {
+    fn component_option_description_length() {
         assert!(component_option_description("").is_ok());
         assert!(component_option_description("a").is_ok());
         assert!(component_option_description("a".repeat(100)).is_ok());
@@ -1253,7 +1253,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_select_max_values() {
+    fn component_select_max_values_count() {
         assert!(component_select_max_values(1).is_ok());
         assert!(component_select_max_values(25).is_ok());
 
@@ -1262,7 +1262,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_select_min_values() {
+    fn component_select_min_values_count() {
         assert!(component_select_min_values(1).is_ok());
         assert!(component_select_min_values(25).is_ok());
 
@@ -1270,7 +1270,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_select_option_value() {
+    fn component_select_option_value_length() {
         assert!(component_select_option_value("a").is_ok());
         assert!(component_select_option_value("a".repeat(100)).is_ok());
 
@@ -1278,7 +1278,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_select_options() {
+    fn component_select_options_count() {
         let select_menu_options = Vec::from([SelectMenuOption {
             default: false,
             description: None,
@@ -1309,7 +1309,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_select_placeholder() {
+    fn component_select_placeholder_length() {
         assert!(component_select_placeholder("").is_ok());
         assert!(component_select_placeholder("a").is_ok());
         assert!(component_select_placeholder("a".repeat(150)).is_ok());
@@ -1318,7 +1318,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_text_input_label() {
+    fn component_text_input_label_length() {
         assert!(component_text_input_label("a").is_ok());
         assert!(component_text_input_label("a".repeat(45)).is_ok());
 
@@ -1327,7 +1327,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_text_input_max() {
+    fn component_text_input_max_count() {
         assert!(component_text_input_max(1).is_ok());
         assert!(component_text_input_max(4000).is_ok());
 
@@ -1336,7 +1336,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_text_input_min() {
+    fn component_text_input_min_count() {
         assert!(component_text_input_min(0).is_ok());
         assert!(component_text_input_min(1).is_ok());
         assert!(component_text_input_min(4000).is_ok());
@@ -1345,7 +1345,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_text_input_placeholder() {
+    fn component_text_input_placeholder_length() {
         assert!(component_text_input_placeholder("").is_ok());
         assert!(component_text_input_placeholder("a").is_ok());
         assert!(component_text_input_placeholder("a".repeat(100)).is_ok());
@@ -1354,7 +1354,7 @@ mod tests {
     }
 
     #[test]
-    fn test_component_text_input_value() {
+    fn component_text_input_value() {
         assert!(component_text_input_min(0).is_ok());
         assert!(component_text_input_min(1).is_ok());
         assert!(component_text_input_min(4000).is_ok());

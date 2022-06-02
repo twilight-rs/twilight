@@ -26,7 +26,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_member_add() {
+    fn member_add() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
         let value = MemberAdd(Member {
