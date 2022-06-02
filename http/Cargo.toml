@@ -5,7 +5,7 @@ description = "Discord REST API client for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-http"
 edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_2_http.html"
-include = ["src/**/*.rs", "Cargo.toml"]
+include = ["src/**/*.rs", "README.md"]
 keywords = ["discord", "discord-api", "twilight"]
 license = "ISC"
 name = "twilight-http"
@@ -32,7 +32,7 @@ twilight-validate = { default-features = false, path = "../validate" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.4" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.6" }
 
 [features]
 default = ["decompression", "rustls-native-roots"]

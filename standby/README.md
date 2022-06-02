@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-standby
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -49,13 +47,18 @@ use twilight_model::{
 };
 use twilight_standby::Standby;
 
-let standby = Standby::new();
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let standby = Standby::new();
 
-let channel_id = Id::new(123);
+    let channel_id = Id::new(123);
 
-let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
-    event.author.id.get() == 456 && event.content == "test"
-}).await?;
+    let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
+        event.author.id.get() == 456 && event.content == "test"
+    }).await?;
+
+    Ok(())
+}
 ```
 
 ### A full example
@@ -65,7 +68,7 @@ including a handler to wait for reactions:
 
 ```rust,no_run
 use futures_util::StreamExt;
-use std::{env, error::Error, sync::Arc};
+use std::{env, sync::Arc};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_model::{
     channel::Message,
@@ -74,7 +77,7 @@ use twilight_model::{
 use twilight_standby::Standby;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
 
     // Start a shard connected to the gateway to receive events.
@@ -102,10 +105,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 // Wait for a reaction from the user who sent the message, and then print it
 // once they react.
-async fn react(
-    msg: Message,
-    standby: Arc<Standby>,
-) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn react(msg: Message, standby: Arc<Standby>) -> anyhow::Result<()> {
     let author_id = msg.author.id;
 
     let reaction = standby.wait_for_reaction(msg.id, move |event: &ReactionAdd| {
@@ -129,5 +129,3 @@ For more examples, check out each of the methods on [`Standby`].
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->

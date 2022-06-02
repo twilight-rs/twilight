@@ -904,7 +904,7 @@ mod tests {
     );
 
     #[test]
-    fn test_afk_channel_id() {
+    fn afk_channel_id() {
         let value = AuditLogChange::AfkChannelId {
             new: Some(Id::new(1)),
             old: None,
@@ -931,7 +931,7 @@ mod tests {
     }
 
     #[test]
-    fn test_permissions() {
+    fn permissions() {
         let old: Permissions = Permissions::SEND_MESSAGES;
         let new: Permissions = old | Permissions::EMBED_LINKS;
 

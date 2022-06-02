@@ -349,7 +349,7 @@ mod tests {
     );
 
     #[test]
-    fn test_scheme() -> Result<(), Box<dyn Error>> {
+    fn scheme() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             ShardScheme::Range {
                 from: 0,
@@ -363,7 +363,7 @@ mod tests {
     }
 
     #[test]
-    fn test_scheme_from() {
+    fn scheme_from() {
         assert_eq!(
             18,
             ShardScheme::Bucket {
@@ -385,7 +385,7 @@ mod tests {
     }
 
     #[test]
-    fn test_scheme_total() {
+    fn scheme_total() {
         assert_eq!(
             160,
             ShardScheme::Bucket {
@@ -407,7 +407,7 @@ mod tests {
     }
 
     #[test]
-    fn test_scheme_to() {
+    fn scheme_to() {
         assert_eq!(
             317,
             ShardScheme::Bucket {
@@ -442,7 +442,7 @@ mod tests {
     ///
     /// [`BucketTooLarge`]: super::ShardSchemeRangeError::BucketTooLarge
     #[test]
-    fn test_scheme_bucket_larger_than_concurrency() {
+    fn scheme_bucket_larger_than_concurrency() {
         assert!(matches!(
             ShardScheme::try_from((25, 16, 320)).unwrap_err(),
             ShardSchemeRangeError {

@@ -128,7 +128,7 @@ mod tests {
     );
 
     #[test]
-    fn test_author_id() -> Result<(), TimestampParseError> {
+    fn author_id() -> Result<(), TimestampParseError> {
         const USER_ID: Id<UserMarker> = Id::new(7);
 
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;

@@ -19,7 +19,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_connection_info() {
+    fn connection_info() {
         let value = BotConnectionInfo {
             session_start_limit: SessionStartLimit {
                 max_concurrency: 16,

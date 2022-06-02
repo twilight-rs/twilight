@@ -16,7 +16,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_activity_secrets() {
+    fn activity_secrets() {
         let value = ActivitySecrets {
             join: Some("a".to_owned()),
             match_: Some("b".to_owned()),

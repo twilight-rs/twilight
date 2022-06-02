@@ -104,7 +104,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_autocomplete() -> Result<(), TimestampParseError> {
+    fn autocomplete() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value =
@@ -238,7 +238,7 @@ mod tests {
     const USER_ID: Id<UserMarker> = Id::new(7);
 
     #[test]
-    fn test_author_id() -> Result<(), TimestampParseError> {
+    fn author_id() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = ApplicationCommandAutocomplete {

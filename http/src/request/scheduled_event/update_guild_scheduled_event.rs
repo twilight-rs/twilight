@@ -2,7 +2,7 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, NullableField, Request, RequestBuilder, TryIntoRequest},
+    request::{AuditLogReason, Nullable, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -24,21 +24,21 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct UpdateGuildScheduledEventFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    description: Option<NullableField<&'a str>>,
+    description: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_metadata: Option<EntityMetadataFields<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    image: Option<NullableField<&'a str>>,
+    image: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    scheduled_end_time: Option<NullableField<&'a Timestamp>>,
+    scheduled_end_time: Option<Nullable<&'a Timestamp>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     scheduled_start_time: Option<&'a Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -105,7 +105,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
             }
         }
 
-        self.fields.channel_id = Some(NullableField(Some(channel_id)));
+        self.fields.channel_id = Some(Nullable(Some(channel_id)));
 
         self
     }
@@ -125,7 +125,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
             validate_scheduled_event_description(description)?;
         }
 
-        self.fields.description = Some(NullableField(description));
+        self.fields.description = Some(Nullable(description));
 
         Ok(self)
     }
@@ -154,7 +154,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
     pub const fn image(mut self, image: Option<&'a str>) -> Self {
-        self.fields.image = Some(NullableField(image));
+        self.fields.image = Some(Nullable(image));
 
         self
     }
@@ -191,7 +191,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// Required for external events.
     pub const fn scheduled_end_time(mut self, scheduled_end_time: Option<&'a Timestamp>) -> Self {
-        self.fields.scheduled_end_time = Some(NullableField(scheduled_end_time));
+        self.fields.scheduled_end_time = Some(Nullable(scheduled_end_time));
 
         self
     }

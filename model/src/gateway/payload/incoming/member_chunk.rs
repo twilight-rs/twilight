@@ -207,7 +207,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_simple_member_chunk() -> Result<(), TimestampParseError> {
+    fn simple_member_chunk() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-04-04T04:04:04.000000+00:00")?;
 
         let input = serde_json::json!({

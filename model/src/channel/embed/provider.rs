@@ -14,7 +14,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_embed_provider() {
+    fn embed_provider() {
         let value = EmbedProvider {
             name: Some("Example".to_owned()),
             url: Some("https://example.com".to_owned()),

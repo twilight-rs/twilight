@@ -1293,7 +1293,7 @@ mod tests {
     }
 
     #[test]
-    fn test_validate() {
+    fn validate() {
         let result = CommandBuilder::new("".into(), "".into(), CommandType::ChatInput).validate();
 
         assert!(result.is_err());

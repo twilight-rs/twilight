@@ -12,7 +12,7 @@
 //! use std::{env, sync::Arc};
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! async fn main() -> anyhow::Result<()> {
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
 //!     let (cluster, mut events) = Cluster::new(token, intents).await?;
@@ -62,7 +62,7 @@
 //! use std::env;
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! async fn main() -> anyhow::Result<()> {
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!     let intents = Intents::GUILD_MESSAGES;
 //!     let scheme = ShardScheme::try_from((1, 16, 320))?;

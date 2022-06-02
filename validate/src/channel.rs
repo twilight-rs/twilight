@@ -187,7 +187,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_is_thread() {
+    fn thread_is_thread() {
         assert!(is_thread(ChannelType::GuildNewsThread).is_ok());
         assert!(is_thread(ChannelType::GuildPrivateThread).is_ok());
         assert!(is_thread(ChannelType::GuildPublicThread).is_ok());
@@ -196,7 +196,7 @@ mod tests {
     }
 
     #[test]
-    fn test_channel_name() {
+    fn channel_name() {
         assert!(name("a").is_ok());
         assert!(name("a".repeat(100)).is_ok());
 
@@ -205,7 +205,7 @@ mod tests {
     }
 
     #[test]
-    fn test_rate_limit_per_user() {
+    fn rate_limit_per_user_value() {
         assert!(rate_limit_per_user(0).is_ok());
         assert!(rate_limit_per_user(21_600).is_ok());
 
@@ -213,7 +213,7 @@ mod tests {
     }
 
     #[test]
-    fn test_topic() {
+    fn topic_length() {
         assert!(topic("").is_ok());
         assert!(topic("a").is_ok());
         assert!(topic("a".repeat(1_024)).is_ok());

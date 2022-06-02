@@ -292,7 +292,7 @@ mod tests {
     );
 
     #[test]
-    fn test_name() {
+    fn name() {
         assert_eq!("afk_channel_id", AuditLogChangeKey::AfkChannelId.name());
         assert_eq!("afk_timeout", AuditLogChangeKey::AfkTimeout.name());
         assert_eq!("allow", AuditLogChangeKey::Allow.name());
@@ -393,7 +393,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_serde() {
+    fn serde() {
         serde_test::assert_tokens(
             &AuditLogChangeKey::AfkChannelId,
             &[Token::UnitVariant {

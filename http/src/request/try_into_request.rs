@@ -330,7 +330,7 @@ mod tests {
     assert_obj_safe!(TryIntoRequest);
 
     #[test]
-    fn test_conversion() -> Result<(), Box<dyn Error>> {
+    fn conversion() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
         let channel_id = Id::new(1);
         let builder = client.create_message(channel_id).content("test")?;

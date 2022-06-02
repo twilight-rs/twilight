@@ -97,6 +97,7 @@ pub enum ShardIdErrorType {
 /// [`large_threshold`]: Self::large_threshold
 /// [`shard`]: Self::shard
 #[derive(Debug)]
+#[must_use = "has no effect if not built"]
 pub struct ShardBuilder {
     event_types: EventTypeFlags,
     pub(crate) gateway_url: Option<String>,
@@ -191,7 +192,6 @@ impl ShardBuilder {
     /// [`EventTypeFlags::SHARD_PAYLOAD`] is enabled.
     ///
     /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
-    #[must_use = "has no effect if not built"]
     pub const fn event_types(mut self, event_types: EventTypeFlags) -> Self {
         self.event_types = event_types;
 
@@ -202,7 +202,6 @@ impl ShardBuilder {
     ///
     /// Default is to use Discord's gateway URL.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
         self.gateway_url = Some(gateway_url);
 
@@ -214,7 +213,6 @@ impl ShardBuilder {
     ///
     /// Default is a new, unconfigured instance of an HTTP client.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
         self.http_client = http_client;
 
@@ -244,7 +242,6 @@ impl ShardBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn identify_properties(mut self, identify_properties: IdentifyProperties) -> Self {
         self.identify_properties = Some(identify_properties);
 
@@ -266,7 +263,6 @@ impl ShardBuilder {
     ///
     /// Panics if the provided value is below 50 or above 250.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         match large_threshold {
             0..=49 => panic!("provided large threshold value {large_threshold} is fewer than 50"),
@@ -313,7 +309,6 @@ impl ShardBuilder {
     /// # Ok(()) }
     ///
     /// ```
-    #[must_use = "has no effect if not built"]
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.presence.replace(presence);
 
@@ -331,7 +326,6 @@ impl ShardBuilder {
     ///
     /// [`Cluster`]: crate::cluster::Cluster
     /// [`queue`]: crate::queue
-    #[must_use = "has no effect if not built"]
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
         self.queue = queue;
 
@@ -345,7 +339,6 @@ impl ShardBuilder {
     ///
     /// Defaults to being enabled.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
         self.ratelimit_payloads = ratelimit_payloads;
 

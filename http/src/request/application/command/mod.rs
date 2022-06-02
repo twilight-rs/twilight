@@ -74,7 +74,7 @@ mod tests {
     /// `Command` or a type is changed then the destructure of it and creation
     /// of `CommandBorrowed` will fail.
     #[test]
-    fn test_command_borrowed_from_command() {
+    fn command_borrowed_from_command() {
         let command = Command {
             application_id: Some(Id::new(1)),
             default_member_permissions: Some(Permissions::ADMINISTRATOR),
