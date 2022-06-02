@@ -107,7 +107,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_command_permissions() {
+    fn command_permissions() {
         let value = CommandPermissions {
             id: CommandPermissionsType::Role(Id::new(100)),
             permission: true,

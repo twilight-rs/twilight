@@ -35,7 +35,7 @@ mod tests {
     );
 
     #[test]
-    fn test_serde() {
+    fn serde() {
         let value = InstallParams {
             permissions: Permissions::empty(),
             scopes: Vec::from([

@@ -333,7 +333,7 @@ mod tests {
     assert_impl_all!(ResourceIter<'_, Id<UserMarker>, User>: Iterator, Send, Sync);
 
     #[test]
-    fn test_iter() {
+    fn iter() {
         let guild_id = Id::new(1);
         let users = &[
             (Id::new(2), Some(guild_id)),

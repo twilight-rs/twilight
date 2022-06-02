@@ -145,7 +145,7 @@ mod tests {
     use std::str;
 
     #[test]
-    fn test_form_builder() {
+    fn form_builder() {
         let form = Form::new()
             .json_part(b"payload_json", b"json_value")
             .file_part(b"files[0]", b"filename.jpg", b"file_value");

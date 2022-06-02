@@ -204,7 +204,7 @@ mod tests {
     assert_impl_all!(TimestampIso8601Display: Debug, Send, Serialize, Sync);
 
     #[test]
-    fn test_display() {
+    fn display() {
         const LONG: &str = "2020-02-02T02:02:02.020000+00:00";
         const SHORT: &str = "2020-02-02T02:02:02+00:00";
         const TIME: i64 = 1_580_608_922_020_000;

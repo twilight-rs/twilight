@@ -15,7 +15,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_activity_emoji() {
+    fn activity_emoji() {
         let value = ActivityEmoji {
             animated: Some(false),
             name: "a".to_owned(),
@@ -40,7 +40,7 @@ mod tests {
     }
 
     #[test]
-    fn test_activity_emoji_complete() {
+    fn activity_emoji_complete() {
         let value = ActivityEmoji {
             animated: Some(false),
             name: "a".to_owned(),

@@ -164,7 +164,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_typing_start_with_member() -> Result<(), TimestampParseError> {
+    fn typing_start_with_member() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = TypingStart {
@@ -280,7 +280,7 @@ mod tests {
     }
 
     #[test]
-    fn test_typing_start_without_member() {
+    fn typing_start_without_member() {
         let value = TypingStart {
             channel_id: Id::new(2),
             guild_id: None,

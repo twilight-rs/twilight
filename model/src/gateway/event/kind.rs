@@ -253,7 +253,7 @@ mod tests {
     }
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         assert_variant(EventType::BanAdd, "GUILD_BAN_ADD");
         assert_variant(EventType::BanRemove, "GUILD_BAN_REMOVE");
         assert_variant(EventType::ChannelCreate, "CHANNEL_CREATE");

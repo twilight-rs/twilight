@@ -407,7 +407,7 @@ mod tests {
     use serde_json::Deserializer;
 
     #[test]
-    fn test_gift_code_update() {
+    fn gift_code_update() {
         // Input will be ignored so long as it's valid JSON.
         let input = r#"{
             "a": "b"

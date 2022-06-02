@@ -128,7 +128,7 @@ mod tests {
     );
 
     #[test]
-    fn test_max_mentioned() {
+    fn max_mentioned() {
         let value = AllowedMentionsBuilder::new()
             .everyone()
             .replied_user()
@@ -148,7 +148,7 @@ mod tests {
     }
 
     #[test]
-    fn test_validation() {
+    fn validation() {
         let value = AllowedMentionsBuilder::new()
             .users()
             .user_ids(vec![Id::new(100), Id::new(200)])

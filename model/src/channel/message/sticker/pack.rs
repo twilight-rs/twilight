@@ -61,7 +61,7 @@ mod tests {
     );
 
     #[test]
-    fn test_full() {
+    fn full() {
         let value = StickerPack {
             banner_asset_id: Some(Id::new(761_773_777_976_819_732)),
             cover_sticker_id: Some(Id::new(749_053_689_419_006_003)),

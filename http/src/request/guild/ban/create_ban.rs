@@ -146,7 +146,7 @@ mod tests {
     };
 
     #[test]
-    fn test_request() -> Result<(), Box<dyn Error>> {
+    fn request() -> Result<(), Box<dyn Error>> {
         const GUILD_ID: Id<GuildMarker> = Id::new(1);
         const REASON: &str = "spam";
         const USER_ID: Id<UserMarker> = Id::new(2);

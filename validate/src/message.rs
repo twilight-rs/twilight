@@ -329,7 +329,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_attachment_filename() {
+    fn attachment_filename() {
         assert!(attachment_filename("one.jpg").is_ok());
         assert!(attachment_filename("two.png").is_ok());
         assert!(attachment_filename("three.gif").is_ok());
@@ -339,7 +339,7 @@ mod tests {
     }
 
     #[test]
-    fn test_content() {
+    fn content() {
         assert!(content("").is_ok());
         assert!(content("a".repeat(2000)).is_ok());
 

@@ -381,14 +381,14 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_base() {
+    fn embed_base() {
         let embed = base_embed();
 
         assert!(super::embed(&embed).is_ok());
     }
 
     #[test]
-    fn test_embed_normal() {
+    fn embed_normal() {
         let mut embed = base_embed();
         embed.author.replace(EmbedAuthor {
             icon_url: None,
@@ -409,7 +409,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_author_name_limit() {
+    fn embed_author_name_limit() {
         let mut embed = base_embed();
         embed.author.replace(EmbedAuthor {
             icon_url: None,
@@ -432,7 +432,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_description_limit() {
+    fn embed_description_limit() {
         let mut embed = base_embed();
         embed.description.replace(str::repeat("a", 2048));
         assert!(super::embed(&embed).is_ok());
@@ -448,7 +448,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_field_count_limit() {
+    fn embed_field_count_limit() {
         let mut embed = base_embed();
 
         for _ in 0..26 {
@@ -466,7 +466,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_field_name_limit() {
+    fn embed_field_name_limit() {
         let mut embed = base_embed();
         embed.fields.push(EmbedField {
             inline: true,
@@ -487,7 +487,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_field_value_limit() {
+    fn embed_field_value_limit() {
         let mut embed = base_embed();
         embed.fields.push(EmbedField {
             inline: true,
@@ -508,7 +508,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_footer_text_limit() {
+    fn embed_footer_text_limit() {
         let mut embed = base_embed();
         embed.footer.replace(EmbedFooter {
             icon_url: None,
@@ -529,7 +529,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_title_limit() {
+    fn embed_title_limit() {
         let mut embed = base_embed();
         embed.title.replace(str::repeat("a", 256));
         assert!(super::embed(&embed).is_ok());
@@ -542,7 +542,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_combined_limit() {
+    fn embed_combined_limit() {
         let mut embed = base_embed();
         embed.description.replace(str::repeat("a", 2048));
         embed.title.replace(str::repeat("a", 256));

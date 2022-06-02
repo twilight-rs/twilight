@@ -334,7 +334,7 @@ mod tests {
 
     /// Test a variety of supported ISO 8601 datetime formats.
     #[test]
-    fn test_parse_iso8601() -> Result<(), TimestampParseError> {
+    fn parse_iso8601() -> Result<(), TimestampParseError> {
         // With milliseconds.
         let offset = OffsetDateTime::from_unix_timestamp_nanos(1_580_608_922_020_000_000).unwrap();
 
@@ -376,7 +376,7 @@ mod tests {
 
     /// Test the boundaries of valid ISO 8601 datetime boundaries.
     #[test]
-    fn test_parse_iso8601_boundaries() -> Result<(), TimestampParseError> {
+    fn parse_iso8601_boundaries() -> Result<(), TimestampParseError> {
         fn test(input: &str) -> Result<(), TimestampParseError> {
             assert_eq!(input, Timestamp::from_str(input)?.iso_8601().to_string());
 

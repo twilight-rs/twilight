@@ -97,7 +97,7 @@ mod test {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_days() {
+    fn days() {
         fn days_valid(days: u16) -> bool {
             let client = Client::new("".to_owned());
             let count = GetGuildPruneCount::new(&client, Id::new(1));

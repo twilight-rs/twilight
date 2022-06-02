@@ -80,7 +80,7 @@ mod tests {
     };
 
     #[test]
-    fn test_cache_emoji() {
+    fn cache_emoji() {
         let cache = InMemoryCache::new();
 
         // The user to do some of the inserts
@@ -146,7 +146,7 @@ mod tests {
     }
 
     #[test]
-    fn test_emoji_removal() {
+    fn emoji_removal() {
         let cache = InMemoryCache::new();
 
         let guild_id = Id::new(1);

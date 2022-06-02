@@ -41,7 +41,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_member_update() {
+    fn member_update() {
         let joined_at = Timestamp::from_micros(1_488_234_110_121_000).expect("non zero");
         let communication_disabled_until =
             Timestamp::from_micros(1_641_027_600_000_000).expect("non zero");

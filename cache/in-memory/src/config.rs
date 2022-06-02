@@ -97,7 +97,7 @@ mod tests {
     assert_fields!(Config: resource_types, message_cache_size);
 
     #[test]
-    fn test_defaults() {
+    fn defaults() {
         let conf = Config {
             resource_types: ResourceType::all(),
             message_cache_size: 100,
