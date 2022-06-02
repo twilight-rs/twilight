@@ -7,6 +7,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[must_use = "has no effect if not built into an AllowedMentions"]
 pub struct AllowedMentionsBuilder(AllowedMentions);
 
 impl AllowedMentionsBuilder {
@@ -21,7 +22,6 @@ impl AllowedMentionsBuilder {
     }
 
     /// Allow parsing of `@everyone`.
-    #[must_use = "has no effect if not built into an AllowedMentions"]
     pub fn everyone(mut self) -> Self {
         self.0.parse.push(ParseTypes::Everyone);
 
@@ -29,7 +29,6 @@ impl AllowedMentionsBuilder {
     }
 
     /// When replying, whether to mention the target user.
-    #[must_use = "has no effect if not built into an AllowedMentions"]
     pub const fn replied_user(mut self) -> Self {
         self.0.replied_user = true;
 
@@ -37,7 +36,6 @@ impl AllowedMentionsBuilder {
     }
 
     /// Allow parsing of all roles.
-    #[must_use = "has no effect if not built into an AllowedMentions"]
     pub fn roles(mut self) -> Self {
         self.0.parse.push(ParseTypes::Roles);
 
@@ -50,7 +48,6 @@ impl AllowedMentionsBuilder {
     /// specific role ids.
     ///
     /// [`roles`]: Self::roles
-    #[must_use = "has no effect if not built into an AllowedMentions"]
     pub fn role_ids(mut self, role_ids: impl IntoIterator<Item = Id<RoleMarker>>) -> Self {
         self.0.roles.extend(role_ids);
 
@@ -58,7 +55,6 @@ impl AllowedMentionsBuilder {
     }
 
     /// Allow parsing of all users.
-    #[must_use = "has no effect if not built into an AllowedMentions"]
     pub fn users(mut self) -> Self {
         self.0.parse.push(ParseTypes::Users);
 
@@ -71,7 +67,6 @@ impl AllowedMentionsBuilder {
     /// specific user ids.
     ///
     /// [`users`]: Self::users
-    #[must_use = "has no effect if not built into an AllowedMentions"]
     pub fn user_ids(mut self, user_ids: impl IntoIterator<Item = Id<UserMarker>>) -> Self {
         self.0.users.extend(user_ids);
 
