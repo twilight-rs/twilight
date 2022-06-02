@@ -1082,7 +1082,7 @@ mod tests {
     }
 
     #[test]
-    fn audit_reason() {
+    fn audit_reason_length() {
         assert!(audit_reason("").is_ok());
         assert!(audit_reason("a").is_ok());
         assert!(audit_reason("a".repeat(500)).is_ok());
@@ -1092,7 +1092,7 @@ mod tests {
     }
 
     #[test]
-    fn create_guild_ban_delete_message_days() {
+    fn create_guild_ban_delete_message_days_length() {
         assert!(create_guild_ban_delete_message_days(0).is_ok());
         assert!(create_guild_ban_delete_message_days(1).is_ok());
         assert!(create_guild_ban_delete_message_days(7).is_ok());
@@ -1101,7 +1101,7 @@ mod tests {
     }
 
     #[test]
-    fn communication_disabled_until() {
+    fn communication_disabled_until_max() {
         #[allow(clippy::cast_possible_wrap)]
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -1118,7 +1118,7 @@ mod tests {
     }
 
     #[test]
-    fn get_channel_messages_limit() {
+    fn get_channel_messages_limit_count() {
         assert!(get_channel_messages_limit(1).is_ok());
         assert!(get_channel_messages_limit(100).is_ok());
 
@@ -1127,7 +1127,7 @@ mod tests {
     }
 
     #[test]
-    fn get_current_user_guilds_limit() {
+    fn get_current_user_guilds_limit_count() {
         assert!(get_current_user_guilds_limit(1).is_ok());
         assert!(get_current_user_guilds_limit(200).is_ok());
 
@@ -1136,7 +1136,7 @@ mod tests {
     }
 
     #[test]
-    fn get_audit_log_limit() {
+    fn get_auild_log_limit_count() {
         assert!(get_guild_audit_log_limit(1).is_ok());
         assert!(get_guild_audit_log_limit(100).is_ok());
 
@@ -1145,7 +1145,7 @@ mod tests {
     }
 
     #[test]
-    fn get_guild_bans_limit() {
+    fn get_guild_bans_limit_count() {
         assert!(get_guild_bans_limit(0).is_ok());
         assert!(get_guild_bans_limit(1000).is_ok());
 
@@ -1153,7 +1153,7 @@ mod tests {
     }
 
     #[test]
-    fn get_guild_members_limit() {
+    fn get_guild_members_limit_count() {
         assert!(get_guild_members_limit(1).is_ok());
         assert!(get_guild_members_limit(1000).is_ok());
 
@@ -1162,7 +1162,7 @@ mod tests {
     }
 
     #[test]
-    fn get_reactions_limit() {
+    fn get_reactions_limit_count() {
         assert!(get_reactions_limit(1).is_ok());
         assert!(get_reactions_limit(100).is_ok());
 
@@ -1171,7 +1171,7 @@ mod tests {
     }
 
     #[test]
-    fn guild_name() {
+    fn guild_name_length() {
         assert!(guild_name("aa").is_ok());
         assert!(guild_name("a".repeat(100)).is_ok());
 
@@ -1181,7 +1181,7 @@ mod tests {
     }
 
     #[test]
-    fn guild_prune_days() {
+    fn guild_prune_days_length() {
         assert!(guild_prune_days(1).is_ok());
         assert!(guild_prune_days(30).is_ok());
 
@@ -1191,7 +1191,7 @@ mod tests {
     }
 
     #[test]
-    fn invite_max_age() {
+    fn invite_max_age_length() {
         assert!(invite_max_age(0).is_ok());
         assert!(invite_max_age(86_400).is_ok());
         assert!(invite_max_age(604_800).is_ok());
@@ -1200,7 +1200,7 @@ mod tests {
     }
 
     #[test]
-    fn invite_max_uses() {
+    fn invite_max_uses_count() {
         assert!(invite_max_uses(0).is_ok());
         assert!(invite_max_uses(100).is_ok());
 
@@ -1208,7 +1208,7 @@ mod tests {
     }
 
     #[test]
-    fn nickname() {
+    fn nickname_length() {
         assert!(nickname("a").is_ok());
         assert!(nickname("a".repeat(32)).is_ok());
 
@@ -1217,7 +1217,7 @@ mod tests {
     }
 
     #[test]
-    fn scheduled_event_description() {
+    fn scheduled_event_description_length() {
         assert!(scheduled_event_description("a").is_ok());
         assert!(scheduled_event_description("a".repeat(1000)).is_ok());
 
@@ -1226,7 +1226,7 @@ mod tests {
     }
 
     #[test]
-    fn scheduled_event_name() {
+    fn scheduled_event_name_length() {
         assert!(scheduled_event_name("a").is_ok());
         assert!(scheduled_event_name("a".repeat(100)).is_ok());
 
@@ -1235,7 +1235,7 @@ mod tests {
     }
 
     #[test]
-    fn search_guild_members_limit() {
+    fn search_guild_members_limit_count() {
         assert!(search_guild_members_limit(1).is_ok());
         assert!(search_guild_members_limit(1000).is_ok());
 
@@ -1244,7 +1244,7 @@ mod tests {
     }
 
     #[test]
-    fn stage_topic() {
+    fn stage_topic_length() {
         assert!(stage_topic("a").is_ok());
         assert!(stage_topic("a".repeat(120)).is_ok());
 
@@ -1253,7 +1253,7 @@ mod tests {
     }
 
     #[test]
-    fn template_description() {
+    fn template_description_length() {
         assert!(template_description("").is_ok());
         assert!(template_description("a").is_ok());
         assert!(template_description("a".repeat(120)).is_ok());
@@ -1262,7 +1262,7 @@ mod tests {
     }
 
     #[test]
-    fn template_name() {
+    fn template_name_length() {
         assert!(template_name("a").is_ok());
         assert!(template_name("a".repeat(100)).is_ok());
 
@@ -1271,7 +1271,7 @@ mod tests {
     }
 
     #[test]
-    fn username() {
+    fn username_length() {
         assert!(username("aa").is_ok());
         assert!(username("a".repeat(32)).is_ok());
 
@@ -1288,7 +1288,7 @@ mod tests {
     }
 
     #[test]
-    fn webhook_username() {
+    fn webhook_username_length() {
         assert!(webhook_username("aa").is_ok());
         assert!(webhook_username("a".repeat(80)).is_ok());
 

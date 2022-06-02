@@ -158,7 +158,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn description() {
+    fn description_length() {
         assert!(description("aa").is_ok());
         assert!(description("a".repeat(200)).is_ok());
 
@@ -167,7 +167,7 @@ mod tests {
     }
 
     #[test]
-    fn name() {
+    fn name_length() {
         assert!(name("aa").is_ok());
         assert!(name("a".repeat(30)).is_ok());
 
@@ -176,7 +176,7 @@ mod tests {
     }
 
     #[test]
-    fn tags() {
+    fn tags_length() {
         assert!(tags("aa").is_ok());
         assert!(tags("a".repeat(200)).is_ok());
 

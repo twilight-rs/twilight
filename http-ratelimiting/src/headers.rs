@@ -793,7 +793,7 @@ mod tests {
     }
 
     #[test]
-    fn type() {
+    fn type_name() {
         assert_eq!("bool", HeaderType::Bool.name());
         assert_eq!("float", HeaderType::Float.name());
         assert_eq!("integer", HeaderType::Integer.name());
