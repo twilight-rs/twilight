@@ -14,7 +14,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_empty() {
+    fn empty() {
         let value = ActivityTimestamps {
             end: None,
             start: None,
@@ -33,7 +33,7 @@ mod tests {
     }
 
     #[test]
-    fn test_start() {
+    fn start() {
         let value = ActivityTimestamps {
             end: Some(1),
             start: None,
@@ -55,7 +55,7 @@ mod tests {
     }
 
     #[test]
-    fn test_end() {
+    fn end() {
         let value = ActivityTimestamps {
             end: None,
             start: Some(1),
@@ -77,7 +77,7 @@ mod tests {
     }
 
     #[test]
-    fn test_present() {
+    fn present() {
         let value = ActivityTimestamps {
             end: Some(2),
             start: Some(1),

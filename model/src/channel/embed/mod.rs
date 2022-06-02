@@ -55,7 +55,7 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    fn test_embed() -> Result<(), TimestampParseError> {
+    fn embed() -> Result<(), TimestampParseError> {
         let timestamp = Timestamp::from_str("2021-08-02T16:56:43.772000+00:00")?;
 
         let value = Embed {
@@ -107,7 +107,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_embed_complete() -> Result<(), TimestampParseError> {
+    fn embed_complete() -> Result<(), TimestampParseError> {
         let timestamp = Timestamp::from_str("2021-08-02T16:56:43.772000+00:00")?;
 
         let value = Embed {

@@ -23,7 +23,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_integration_account() {
+    fn integration_account() {
         let value = IntegrationApplication {
             bot: None,
             description: "Friendship is Magic".to_string(),
@@ -54,7 +54,7 @@ mod tests {
     }
 
     #[test]
-    fn test_integration_account_complete() {
+    fn integration_account_complete() {
         let value = IntegrationApplication {
             bot: Some(User {
                 accent_color: None,

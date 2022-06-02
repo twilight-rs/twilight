@@ -114,7 +114,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_connected() {
+    fn connected() {
         let value = Connected {
             heartbeat_interval: 41_250,
             shard_id: 4,
@@ -137,7 +137,7 @@ mod tests {
     }
 
     #[test]
-    fn test_connecting() {
+    fn connecting() {
         let value = Connecting {
             gateway: "https://example.com".to_owned(),
             shard_id: 4,
@@ -160,7 +160,7 @@ mod tests {
     }
 
     #[test]
-    fn test_disconnected() {
+    fn disconnected() {
         let value = Disconnected {
             code: Some(4_000),
             reason: Some("the reason".to_owned()),
@@ -188,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn test_identifying() {
+    fn identifying() {
         let value = Identifying {
             shard_id: 4,
             shard_total: 7,
@@ -211,7 +211,7 @@ mod tests {
     }
 
     #[test]
-    fn test_payload() {
+    fn payload() {
         let value = Payload { bytes: vec![1, 2] };
 
         serde_test::assert_tokens(
@@ -232,7 +232,7 @@ mod tests {
     }
 
     #[test]
-    fn test_reconnecting() {
+    fn reconnecting() {
         let value = Reconnecting { shard_id: 4 };
 
         serde_test::assert_tokens(
@@ -250,7 +250,7 @@ mod tests {
     }
 
     #[test]
-    fn test_resuming() {
+    fn resuming() {
         let value = Resuming {
             seq: 100,
             shard_id: 4,
@@ -273,7 +273,7 @@ mod tests {
     }
 
     #[test]
-    fn test_shard_event_try_from_event() {
+    fn shard_event_try_from_event() {
         let connected = Event::ShardConnected(Connected {
             heartbeat_interval: 41_250,
             shard_id: 4,

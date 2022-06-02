@@ -375,7 +375,7 @@ mod tests {
     assert_impl_all!(Id<UserMarker>: ParseMention, Sealed);
 
     #[test]
-    fn test_sigils() {
+    fn sigils() {
         assert_eq!(&["#"], Id::<ChannelMarker>::SIGILS);
         assert_eq!(&[":"], Id::<EmojiMarker>::SIGILS);
         assert_eq!(&["#", ":", "@&", "@", "t:"], MentionType::SIGILS);
@@ -384,7 +384,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_channel_id() {
+    fn parse_channel_id() {
         assert_eq!(Id::<ChannelMarker>::new(123), Id::parse("<#123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::Sigil {
@@ -396,7 +396,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_emoji_id() {
+    fn parse_emoji_id() {
         assert_eq!(
             Id::<EmojiMarker>::new(123),
             Id::parse("<:name:123>").unwrap()
@@ -411,7 +411,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_mention_type() {
+    fn parse_mention_type() {
         assert_eq!(
             MentionType::Channel(Id::new(123)),
             MentionType::parse("<#123>").unwrap()
@@ -438,7 +438,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_role_id() {
+    fn parse_role_id() {
         assert_eq!(Id::<RoleMarker>::new(123), Id::parse("<@&123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::Sigil {
@@ -450,7 +450,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_timestamp() -> Result<(), ParseMentionError<'static>> {
+    fn parse_timestamp() -> Result<(), ParseMentionError<'static>> {
         assert_eq!(Timestamp::new(123, None), Timestamp::parse("<t:123>")?);
         assert_eq!(
             Timestamp::new(123, Some(TimestampStyle::RelativeTime)),
@@ -465,7 +465,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_user_id() {
+    fn parse_user_id() {
         assert_eq!(Id::<UserMarker>::new(123), Id::parse("<@123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::IdNotU64 { found: "&123" },
@@ -474,7 +474,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_id_wrong_sigil() {
+    fn parse_id_wrong_sigil() {
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &["@"],

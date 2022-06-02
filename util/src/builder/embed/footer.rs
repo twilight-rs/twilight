@@ -77,7 +77,7 @@ mod tests {
     assert_impl_all!(EmbedFooter: From<EmbedFooterBuilder>);
 
     #[test]
-    fn test_builder() {
+    fn builder() {
         let expected = EmbedFooter {
             icon_url: Some("https://example.com/1.png".to_owned()),
             proxy_icon_url: None,

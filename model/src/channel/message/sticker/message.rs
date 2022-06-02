@@ -34,7 +34,7 @@ mod tests {
     );
 
     #[test]
-    fn test_full() {
+    fn full() {
         let value = MessageSticker {
             format_type: StickerFormatType::Lottie,
             id: Id::new(1),

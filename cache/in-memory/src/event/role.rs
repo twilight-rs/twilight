@@ -75,7 +75,7 @@ mod tests {
     use crate::test;
 
     #[test]
-    fn test_insert_role_on_event() {
+    fn insert_role_on_event() {
         let cache = InMemoryCache::new();
 
         cache.update(&RoleCreate {
@@ -92,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cache_role() {
+    fn cache_role() {
         let cache = InMemoryCache::new();
 
         // Single inserts

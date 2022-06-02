@@ -379,7 +379,7 @@ mod tests {
     assert_impl_all!(Embed: TryFrom<EmbedBuilder>);
 
     #[test]
-    fn test_builder() {
+    fn builder() {
         let footer_image = ImageSource::url(
             "https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png",
         )

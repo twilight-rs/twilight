@@ -17,7 +17,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_webhooks_update() {
+    fn webhooks_update() {
         let value = RoleDelete {
             guild_id: Id::new(1),
             role_id: Id::new(2),

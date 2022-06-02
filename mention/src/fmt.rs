@@ -233,7 +233,7 @@ mod tests {
     assert_impl_all!(&'static User: Mention<Id<UserMarker>>);
 
     #[test]
-    fn test_mention_format_channel_id() {
+    fn mention_format_channel_id() {
         assert_eq!(
             "<#123>",
             Id::<ChannelMarker>::new(123).mention().to_string()
@@ -241,7 +241,7 @@ mod tests {
     }
 
     #[test]
-    fn test_mention_format_emoji_id() {
+    fn mention_format_emoji_id() {
         assert_eq!(
             "<:emoji:123>",
             Id::<EmojiMarker>::new(123).mention().to_string()
@@ -249,13 +249,13 @@ mod tests {
     }
 
     #[test]
-    fn test_mention_format_role_id() {
+    fn mention_format_role_id() {
         assert_eq!("<@&123>", Id::<RoleMarker>::new(123).mention().to_string());
     }
 
     /// Test that a timestamp with a style displays correctly.
     #[test]
-    fn test_mention_format_timestamp_styled() {
+    fn mention_format_timestamp_styled() {
         let timestamp = Timestamp::new(1_624_047_064, Some(TimestampStyle::RelativeTime));
 
         assert_eq!("<t:1624047064:R>", timestamp.mention().to_string());
@@ -263,14 +263,14 @@ mod tests {
 
     /// Test that a timestamp without a style displays correctly.
     #[test]
-    fn test_mention_format_timestamp_unstyled() {
+    fn mention_format_timestamp_unstyled() {
         let timestamp = Timestamp::new(1_624_047_064, None);
 
         assert_eq!("<t:1624047064>", timestamp.mention().to_string());
     }
 
     #[test]
-    fn test_mention_format_user_id() {
+    fn mention_format_user_id() {
         assert_eq!("<@123>", Id::<UserMarker>::new(123).mention().to_string());
     }
 }

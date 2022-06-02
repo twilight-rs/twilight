@@ -21,7 +21,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_guild_delete_available() {
+    fn guild_delete_available() {
         let expected = GuildDelete {
             id: Id::new(123),
             unavailable: true,
@@ -60,7 +60,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_delete_unavailable() {
+    fn guild_delete_unavailable() {
         let expected = GuildDelete {
             id: Id::new(123),
             unavailable: false,
@@ -99,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_delete_unavailable_null_default() {
+    fn guild_delete_unavailable_null_default() {
         let expected = GuildDelete {
             id: Id::new(123),
             unavailable: false,

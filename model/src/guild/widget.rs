@@ -14,7 +14,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_guild_widget() {
+    fn guild_widget() {
         let value = GuildWidget {
             channel_id: Some(Id::new(111_111_111_111_111_111)),
             enabled: true,

@@ -787,7 +787,7 @@ mod tests {
     }
 
     #[test]
-    fn test_role_fields() {
+    fn role_fields() {
         assert!(matches!(
             RoleFieldsBuilder::new("role".to_owned())
                 .color(123_123_123)
@@ -821,7 +821,7 @@ mod tests {
     }
 
     #[test]
-    fn test_voice_fields() {
+    fn voice_fields() {
         assert!(matches!(
             VoiceFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
             VoiceFieldsErrorType::NameTooShort { name }
@@ -860,7 +860,7 @@ mod tests {
     }
 
     #[test]
-    fn test_text_fields() {
+    fn text_fields() {
         assert!(matches!(
             TextFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
             TextFieldsErrorType::NameTooShort { name }
@@ -895,7 +895,7 @@ mod tests {
     }
 
     #[test]
-    fn test_category_fields() {
+    fn category_fields() {
         assert!(matches!(
             CategoryFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
             CategoryFieldsErrorType::NameTooShort { name }
@@ -956,7 +956,7 @@ mod tests {
     }
 
     #[test]
-    fn test_channels() {
+    fn channels() {
         let channels = GuildChannelFieldsBuilder::new()
             .add_text(text())
             .add_voice(voice());

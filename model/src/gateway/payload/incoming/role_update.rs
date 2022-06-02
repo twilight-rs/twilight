@@ -17,7 +17,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_role_update() {
+    fn role_update() {
         let value = RoleUpdate {
             guild_id: Id::new(1),
             role: Role {

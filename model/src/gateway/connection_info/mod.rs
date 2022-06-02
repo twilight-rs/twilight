@@ -17,7 +17,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_connection_info() {
+    fn connection_info() {
         let value = ConnectionInfo {
             url: "wss://gateway.discord.gg".to_owned(),
         };

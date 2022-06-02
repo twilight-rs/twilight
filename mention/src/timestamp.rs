@@ -314,7 +314,7 @@ mod tests {
 
     /// Test the corresponding style modifiers.
     #[test]
-    fn test_timestamp_style_modifiers() {
+    fn timestamp_style_modifiers() {
         assert_eq!("F", TimestampStyle::LongDateTime.style());
         assert_eq!("D", TimestampStyle::LongDate.style());
         assert_eq!("T", TimestampStyle::LongTime.style());
@@ -326,7 +326,7 @@ mod tests {
 
     /// Test that style modifiers correctly parse from their string slice variants.
     #[test]
-    fn test_timestamp_style_try_from() -> Result<(), TimestampStyleConversionError> {
+    fn timestamp_style_try_from() -> Result<(), TimestampStyleConversionError> {
         assert_eq!(TimestampStyle::try_from("F")?, TimestampStyle::LongDateTime);
         assert_eq!(TimestampStyle::try_from("D")?, TimestampStyle::LongDate);
         assert_eq!(TimestampStyle::try_from("T")?, TimestampStyle::LongTime);
@@ -344,7 +344,7 @@ mod tests {
     /// Test that timestamps are correctly compared based on their inner unix
     /// timestamp value.
     #[test]
-    fn test_timestamp_cmp() {
+    fn timestamp_cmp() {
         // Assert that a higher timestamp is greater than a lesser timestamp.
         assert!(TIMESTAMP_NEW > TIMESTAMP_OLD);
 
@@ -359,7 +359,7 @@ mod tests {
 
     /// Test that whether a timestamp has a style incurs no effect on results.
     #[test]
-    fn test_timestamp_cmp_styles() {
+    fn timestamp_cmp_styles() {
         // Assert that a higher timestamp is greater than a lesser timestamp
         // regardless of style combinations.
         assert!(TIMESTAMP_NEW_STYLED > TIMESTAMP_OLD);

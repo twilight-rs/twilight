@@ -21,7 +21,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_guild_info() {
+    fn guild_info() {
         let value = GuildInfo {
             icon: Some(image_hash::ICON),
             id: Id::new(1),
