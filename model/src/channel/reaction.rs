@@ -176,7 +176,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_reaction_with_member() -> Result<(), TimestampParseError> {
+    fn reaction_with_member() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = Reaction {
@@ -304,7 +304,7 @@ mod tests {
     }
 
     #[test]
-    fn test_reaction_without_member() {
+    fn reaction_without_member() {
         let value = Reaction {
             channel_id: Id::new(2),
             emoji: ReactionType::Unicode {

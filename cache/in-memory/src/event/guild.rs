@@ -299,7 +299,7 @@ mod tests {
     };
 
     #[test]
-    fn test_guild_create_channels_have_guild_ids() -> Result<(), TimestampParseError> {
+    fn guild_create_channels_have_guild_ids() -> Result<(), TimestampParseError> {
         const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
 
         let timestamp = Timestamp::from_str(DATETIME)?;
@@ -446,7 +446,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_update() {
+    fn guild_update() {
         let cache = InMemoryCache::new();
         let guild = test::guild(Id::new(1), None);
 
@@ -497,7 +497,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_member_count() {
+    fn guild_member_count() {
         let user_id = Id::new(2);
         let guild_id = Id::new(1);
         let cache = InMemoryCache::new();
@@ -516,7 +516,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_members_size_after_unavailable() {
+    fn guild_members_size_after_unavailable() {
         let user_id = Id::new(2);
         let guild_id = Id::new(1);
         let cache = InMemoryCache::new();

@@ -98,11 +98,8 @@ This should be preferred over `rustls-native-roots` in Docker containers based o
 
 ### HTTP
 
-The `twilight-http` feature enables the gateway to retrieve Discord's gateway
-url and recommended shard count at runtime. If this is statically known, for
-example when running a shard behind a proxy, http support is optional.
-
-**Note**: Discord's gateway url is not stable and should not be hard-coded.
+The `twilight-http` feature enables the gateway to validate its token at startup
+and for the cluster to retrieve Discord's recommended shard count at runtime.
 
 `twilight-http` is enabled by default.
 
@@ -111,12 +108,12 @@ example when running a shard behind a proxy, http support is optional.
 zlib compression is enabled with one of the two `zlib` features described below.
 
 There are 2 zlib features `zlib-stock` and `zlib-simd`, if both are enabled it
-will use `zlib-stock`.
+will use `zlib-simd`.
 
 `zlib-stock` is enabled by default.
 
-Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
-fork of zlib that is faster and more effective, but it needs `cmake` to compile.
+Enabling `zlib-simd` will make the library use [`zlib-ng`] which is a modern
+fork of zlib that is faster and more efficient, but it needs `cmake` to compile.
 
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls

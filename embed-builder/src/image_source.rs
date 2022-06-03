@@ -207,7 +207,7 @@ mod tests {
     assert_impl_all!(ImageSource: Clone, Debug, Eq, PartialEq, Send, Sync);
 
     #[test]
-    fn test_attachment() -> Result<(), Box<dyn Error>> {
+    fn attachment() -> Result<(), Box<dyn Error>> {
         assert!(matches!(
             ImageSource::attachment("abc").unwrap_err().kind(),
             ImageSourceAttachmentErrorType::ExtensionMissing
@@ -225,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn test_url() -> Result<(), Box<dyn Error>> {
+    fn url() -> Result<(), Box<dyn Error>> {
         assert!(matches!(
             ImageSource::url("ftp://example.com/foo").unwrap_err().kind(),
             ImageSourceUrlErrorType::ProtocolUnsupported { url }

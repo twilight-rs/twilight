@@ -1,10 +1,10 @@
 use futures_util::StreamExt;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
-use std::{env, error::Error, time::Duration};
+use std::{env, time::Duration};
 use twilight_gateway::{Cluster, Intents};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> anyhow::Result<()> {
     let receiver = Receiver::builder()
         .build()
         .expect("failed to create receiver");

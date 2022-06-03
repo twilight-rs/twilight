@@ -125,7 +125,7 @@ mod tests {
     );
 
     #[test]
-    fn test_eq_with_integer() {
+    fn eq_with_integer() {
         assert_eq!(200_u16, StatusCode::new(200));
         assert_eq!(StatusCode::new(404), 404_u16);
     }
@@ -136,14 +136,14 @@ mod tests {
     /// the same value (as if it were hardcoded), and that it's instead
     /// returning the provided value.
     #[test]
-    fn test_get() {
+    fn get() {
         assert_eq!(200, StatusCode::new(200).get());
         assert_eq!(403, StatusCode::new(403).get());
         assert_eq!(404, StatusCode::new(404).get());
     }
 
     #[test]
-    fn test_ranges() {
+    fn ranges() {
         assert!(StatusCode::new(100).is_informational());
         assert!(StatusCode::new(199).is_informational());
         assert!(StatusCode::new(200).is_success());

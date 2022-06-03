@@ -79,7 +79,7 @@ mod private {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::AuditLogReason;
     use crate::request::{
         channel::{

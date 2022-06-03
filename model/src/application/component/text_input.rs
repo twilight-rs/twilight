@@ -75,7 +75,7 @@ mod tests {
     const_assert_eq!(2, TextInputStyle::Paragraph as u8);
 
     #[test]
-    fn test_text_input_style() {
+    fn text_input_style() {
         serde_test::assert_tokens(&TextInputStyle::Short, &[Token::U8(1)]);
         serde_test::assert_tokens(&TextInputStyle::Paragraph, &[Token::U8(2)]);
     }

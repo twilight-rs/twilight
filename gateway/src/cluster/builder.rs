@@ -16,12 +16,12 @@ use std::{
     sync::Arc,
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
+#[cfg(feature = "twilight-http")]
+use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
-#[cfg(feature = "twilight-http")]
-use {twilight_http::Client, twilight_model::gateway::connection_info::BotConnectionInfo};
 
 #[cfg(any(
     feature = "native",
@@ -53,6 +53,7 @@ use crate::shard::tls::TlsContainer;
 ///
 /// [`large_threshold`]: Self::large_threshold
 // Remember to sync this with the custom Debug implementation.
+#[must_use = "has no effect if not built"]
 pub struct ClusterBuilder {
     queue: Arc<dyn Queue>,
     resume_sessions: HashMap<u64, ResumeSession>,
@@ -78,32 +79,21 @@ impl ClusterBuilder {
     ///
     /// # Errors
     ///
-    /// Returns a [`ClusterStartErrorType::RetrievingGatewayInfo`] error type if
-    /// there was an HTTP error Retrieving the gateway information.
+    /// Returns a [`ClusterStartErrorType::AutoSharding`] error type if
+    /// there was an HTTP error retrieving the number of recommended shards.
     ///
     /// # Panics
     ///
-    /// Panics if the `twilight-http` feature is disabled and the gateway url
-    /// or [`ShardScheme`] is unset.
+    /// Panics if the `twilight-http` feature is disabled and [`ShardScheme`]
+    /// is unset.
     ///
     /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
+    /// [`ClusterStartErrorType::AutoSharding`]: super::ClusterStartErrorType::AutoSharding
     #[cfg_attr(not(feature = "twilight-http"), allow(unused_mut))]
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
         #[cfg(feature = "twilight-http")]
-        if self.shard.gateway_url.is_none() || self.shard_scheme.is_none() {
-            let gateway = Self::retrieve_connect_info(&self.shard.http_client).await?;
-
-            if self.shard.gateway_url.is_none() {
-                self = self.gateway_url(gateway.url);
-            }
-
-            if self.shard_scheme.is_none() {
-                self.shard_scheme = Some(ShardScheme::Range {
-                    from: 0,
-                    to: gateway.shards - 1,
-                    total: gateway.shards,
-                });
-            }
+        if self.shard_scheme.is_none() {
+            self.shard_scheme = Some(Self::recommended_shards(&self.shard.http_client).await?);
         }
 
         #[cfg(not(any(
@@ -140,24 +130,30 @@ impl ClusterBuilder {
         Cluster::new_with_config(config, shard_config).await
     }
 
-    /// Retrieves [`BotConnectionInfo`], containing the gateway url and
-    /// recommended shard count.
+    /// Retrieves the recommended shard count as a [`ShardScheme::Range`].
     #[cfg(feature = "twilight-http")]
-    async fn retrieve_connect_info(http: &Client) -> Result<BotConnectionInfo, ClusterStartError> {
-        http.gateway()
+    async fn recommended_shards(http: &Client) -> Result<ShardScheme, ClusterStartError> {
+        let info = http
+            .gateway()
             .authed()
             .exec()
             .await
             .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                kind: ClusterStartErrorType::AutoSharding,
                 source: Some(Box::new(source)),
             })?
             .model()
             .await
             .map_err(|source| ClusterStartError {
-                kind: ClusterStartErrorType::RetrievingGatewayInfo,
+                kind: ClusterStartErrorType::AutoSharding,
                 source: Some(Box::new(source)),
-            })
+            })?;
+
+        Ok(ShardScheme::Range {
+            from: 0,
+            to: info.shards - 1,
+            total: info.shards,
+        })
     }
 
     /// Set the event types to process.
@@ -169,21 +165,15 @@ impl ClusterBuilder {
     ///
     /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn event_types(mut self, event_types: EventTypeFlags) -> Self {
         self.shard = self.shard.event_types(event_types);
 
         self
     }
 
-    /// Set the URL that will be used to connect to the gateway.
+    /// Set the proxy URL for connecting to the gateway.
     ///
-    /// **Note**: Discord's gateway url is not stable and should not be
-    /// hard-coded.
-    /// ***Must*** be set if the `twilight-http` feature is disabled.
-    ///
-    /// Default is to fetch it from the HTTP API.
-    #[must_use = "has no effect if not built"]
+    /// Default is to use Discord's gateway URL.
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
         self.shard = self.shard.gateway_url(gateway_url);
 
@@ -197,7 +187,6 @@ impl ClusterBuilder {
     /// information.
     ///
     /// Defaults to a new, default HTTP client is used.
-    #[must_use = "has no effect if not built"]
     #[cfg(feature = "twilight-http")]
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
         self.shard = self.shard.http_client(http_client);
@@ -228,7 +217,6 @@ impl ClusterBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn identify_properties(mut self, identify_properties: IdentifyProperties) -> Self {
         self.shard = self.shard.identify_properties(identify_properties);
 
@@ -243,7 +231,6 @@ impl ClusterBuilder {
     /// # Panics
     ///
     /// Panics if the provided value is below 50 or above 250.
-    #[must_use = "has no effect if not built"]
     pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         self.shard = self.shard.large_threshold(large_threshold);
 
@@ -253,7 +240,6 @@ impl ClusterBuilder {
     /// Set the presence to use when identifying with the gateway.
     ///
     /// Refer to the shard's [`ShardBuilder::presence`] for more information.
-    #[must_use = "has no effect if not built"]
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.shard = self.shard.presence(presence);
 
@@ -267,7 +253,6 @@ impl ClusterBuilder {
     ///
     /// Defaults to being enabled.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
         self.shard = self.shard.ratelimit_payloads(ratelimit_payloads);
 
@@ -281,7 +266,6 @@ impl ClusterBuilder {
     /// by [`presence`], even if the provided closure returns [`None`].
     ///
     /// [`presence`]: Self::presence
-    #[must_use = "has no effect if not built"]
     pub fn shard_presence<F>(mut self, shard_presence: F) -> Self
     where
         F: Fn(u64) -> Option<UpdatePresencePayload> + Send + Sync + 'static,
@@ -319,7 +303,6 @@ impl ClusterBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn shard_scheme(mut self, scheme: ShardScheme) -> Self {
         self.shard_scheme = Some(scheme);
 
@@ -334,7 +317,6 @@ impl ClusterBuilder {
     /// Refer to the [`queue`] module for more information.
     ///
     /// [`queue`]: crate::queue
-    #[must_use = "has no effect if not built"]
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
         self.queue = Arc::clone(&queue);
         self.shard = self.shard.queue(queue);
@@ -351,7 +333,6 @@ impl ClusterBuilder {
     /// to resume. If their sessions are invalid they will have to re-identify
     /// to initialize a new session.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn resume_sessions(mut self, resume_sessions: HashMap<u64, ResumeSession>) -> Self {
         self.resume_sessions = resume_sessions;
         self

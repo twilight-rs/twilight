@@ -226,9 +226,7 @@ impl Display for ShardStartError {
 
                 f.write_str("` is invalid")
             }
-            ShardStartErrorType::RetrievingGatewayUrl => {
-                f.write_str("retrieving the gateway URL via HTTP failed")
-            }
+            ShardStartErrorType::InvalidToken => f.write_str("token is invid"),
         }
     }
 }
@@ -252,14 +250,14 @@ pub enum ShardStartErrorType {
     AlreadyStarted,
     /// Establishing a connection to the gateway failed.
     Establishing,
+    /// Token is invalid.
+    InvalidToken,
     /// Parsing the gateway URL provided by Discord to connect to the gateway
     /// failed due to an invalid URL.
     ParsingGatewayUrl {
         /// URL that couldn't be parsed.
         url: String,
     },
-    /// Retrieving the gateway URL via the Twilight HTTP client failed.
-    RetrievingGatewayUrl,
 }
 
 /// Information about a shard, including its latency, current session sequence,
@@ -439,11 +437,10 @@ impl Shard {
     ///
     /// # Errors
     ///
-    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
-    /// the gateway URL couldn't be retrieved from the HTTP API.
+    /// Returns a [`ShardStartErrorType::InvalidToken`] error type if
+    /// the token failed validation.
     ///
     /// [`start`]: Self::start
-    #[cfg(feature = "twilight-http")]
     pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ShardStartError> {
         Self::builder(token, intents).build().await
     }

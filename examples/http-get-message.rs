@@ -1,10 +1,10 @@
 use futures_util::future;
-use std::{env, error::Error};
+use std::env;
 use twilight_http::Client;
 use twilight_model::id::Id;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 

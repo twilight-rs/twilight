@@ -133,7 +133,7 @@ mod tests {
     );
 
     #[test]
-    fn test_eq_emoji() {
+    fn eq_emoji() {
         let emoji = Emoji {
             id: Id::new(123),
             animated: true,

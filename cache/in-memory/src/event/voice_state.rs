@@ -103,7 +103,7 @@ mod tests {
     };
 
     #[test]
-    fn test_voice_state_inserts_and_removes() {
+    fn voice_state_inserts_and_removes() {
         let cache = InMemoryCache::new();
 
         // Note: Channel ids are `<guildid><idx>` where idx is the index of the channel id
@@ -240,7 +240,7 @@ mod tests {
     }
 
     #[test]
-    fn test_voice_states() {
+    fn voice_states() {
         let cache = InMemoryCache::new();
         cache.cache_voice_state(test::voice_state(Id::new(1), Some(Id::new(2)), Id::new(3)));
         cache.cache_voice_state(test::voice_state(Id::new(1), Some(Id::new(2)), Id::new(4)));
@@ -253,7 +253,7 @@ mod tests {
     }
 
     #[test]
-    fn test_voice_states_with_no_cached_guilds() {
+    fn voice_states_with_no_cached_guilds() {
         let cache = InMemoryCache::builder()
             .resource_types(ResourceType::VOICE_STATE)
             .build();
@@ -279,7 +279,7 @@ mod tests {
     }
 
     #[test]
-    fn test_voice_states_members() -> Result<(), ImageHashParseError> {
+    fn voice_states_members() -> Result<(), ImageHashParseError> {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         use twilight_model::{guild::member::Member, user::User};
 
@@ -352,7 +352,7 @@ mod tests {
     /// Assert that the a cached variant of the voice state is correctly
     /// inserted.
     #[test]
-    fn test_uses_cached_variant() {
+    fn uses_cached_variant() {
         const CHANNEL_ID: Id<ChannelMarker> = Id::new(2);
         const GUILD_ID: Id<GuildMarker> = Id::new(1);
         const USER_ID: Id<UserMarker> = Id::new(3);

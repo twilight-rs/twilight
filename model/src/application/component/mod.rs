@@ -567,7 +567,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_component_full() {
+    fn component_full() {
         let component = Component::ActionRow(ActionRow {
             components: Vec::from([
                 Component::Button(Button {
@@ -668,7 +668,7 @@ mod tests {
     }
 
     #[test]
-    fn test_action_row() {
+    fn action_row() {
         let value = Component::ActionRow(ActionRow {
             components: Vec::from([Component::Button(Button {
                 custom_id: Some("button-1".to_owned()),
@@ -713,7 +713,7 @@ mod tests {
     }
 
     #[test]
-    fn test_button() {
+    fn button() {
         // Free Palestine.
         //
         // Palestinian Flag.
@@ -765,7 +765,7 @@ mod tests {
     }
 
     #[test]
-    fn test_text_input() {
+    fn text_input() {
         let value = Component::TextInput(TextInput {
             custom_id: "test".to_owned(),
             label: "The label".to_owned(),

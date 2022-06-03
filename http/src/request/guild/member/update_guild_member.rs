@@ -212,7 +212,7 @@ mod tests {
     const USER_ID: Id<UserMarker> = Id::new(1);
 
     #[test]
-    fn test_request() -> Result<(), Box<dyn Error>> {
+    fn request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID)
             .deaf(true)
@@ -240,7 +240,7 @@ mod tests {
     }
 
     #[test]
-    fn test_nick_set_null() -> Result<(), Box<dyn Error>> {
+    fn nick_set_null() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(None)?;
         let actual = builder.try_into_request()?;
@@ -265,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    fn test_nick_set_value() -> Result<(), Box<dyn Error>> {
+    fn nick_set_value() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let builder = UpdateGuildMember::new(&client, GUILD_ID, USER_ID).nick(Some("foo"))?;
         let actual = builder.try_into_request()?;

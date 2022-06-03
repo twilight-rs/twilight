@@ -163,7 +163,7 @@ pub fn add_url_feature(buf: &mut String) {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_add_url_features() {
+    fn add_url_features() {
         let mut buf = String::new();
         super::add_url_feature(&mut buf);
 

@@ -186,7 +186,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_display() {
+    fn display() {
         let mut expected = "id portion ('abcd') of mention is not a u64";
         assert_eq!(
             expected,

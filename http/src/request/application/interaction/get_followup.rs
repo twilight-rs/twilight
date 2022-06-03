@@ -102,7 +102,7 @@ mod tests {
     assert_impl_all!(GetFollowup<'_>: Send, Sync);
 
     #[test]
-    fn test_request() -> Result<(), Box<dyn Error>> {
+    fn request() -> Result<(), Box<dyn Error>> {
         const APPLICATION_ID: Id<ApplicationMarker> = Id::new(1);
         const MESSAGE_ID: Id<MessageMarker> = Id::new(2);
         const TOKEN: &str = "token";

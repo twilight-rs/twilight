@@ -80,7 +80,7 @@ mod tests {
     assert_impl_all!(EmbedField: From<EmbedFieldBuilder>);
 
     #[test]
-    fn test_builder_inline() {
+    fn builder_inline() {
         let expected = EmbedField {
             inline: true,
             name: "name".to_owned(),
@@ -92,7 +92,7 @@ mod tests {
     }
 
     #[test]
-    fn test_builder_no_inline() {
+    fn builder_no_inline() {
         let expected = EmbedField {
             inline: false,
             name: "name".to_owned(),

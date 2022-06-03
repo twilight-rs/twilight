@@ -75,7 +75,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_role_tags_all() {
+    fn role_tags_all() {
         let tags = RoleTags {
             bot_id: Some(Id::new(1)),
             integration_id: Some(Id::new(2)),
@@ -108,7 +108,7 @@ mod tests {
     /// serialize back into the source payload (where all fields are not
     /// present).
     #[test]
-    fn test_role_tags_none() {
+    fn role_tags_none() {
         let tags = RoleTags {
             bot_id: None,
             integration_id: None,
