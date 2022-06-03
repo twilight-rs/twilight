@@ -77,7 +77,11 @@ pub struct Channel {
     /// Bitrate setting of audio channels.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bitrate: Option<u64>,
-    /// Default duration before the channel's threads archive.
+    /// Default duration without messages before the channel's threads
+    /// automatically archive.
+    ///
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
     /// ID of the guild the channel is in.
@@ -182,7 +186,7 @@ mod tests {
     // The deserializer for GuildChannel should skip over fields names that
     // it couldn't deserialize.
     #[test]
-    fn test_guild_channel_unknown_field_deserialization() {
+    fn guild_channel_unknown_field_deserialization() {
         let input = serde_json::json!({
             "type": 0,
             "topic": "a",
@@ -244,7 +248,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_category_channel_deserialization() {
+    fn guild_category_channel_deserialization() {
         let value = Channel {
             application_id: None,
             bitrate: None,
@@ -291,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_news_channel_deserialization() {
+    fn guild_news_channel_deserialization() {
         let value = Channel {
             application_id: None,
             bitrate: None,
@@ -342,7 +346,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_news_thread_deserialization() {
+    fn guild_news_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
 
@@ -424,7 +428,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_public_thread_deserialization() {
+    fn guild_public_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
 
         let value = Channel {
@@ -505,7 +509,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_private_thread_deserialization() {
+    fn guild_private_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
 

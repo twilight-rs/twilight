@@ -2,6 +2,40 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+This major version bump of the Cache crate is done to match all
+of the other crates in the ecosystem receiving a major version bump.
+There are no changes.
+
+## [0.10.4] - 2022-05-15
+
+Pin `dashmap` to 5.3 to receive library security fixes. This bumps the crate's
+MSRV to 1.59.
+
+## [0.10.3] - 2022-05-15
+
+### Additions
+
+Fix some typos in the stats interface documentation ([#1680] - [@zeylahellyer]).
+
+Document the stats interface in the crate documentation
+([#1679] - [@zeylahellyer]).
+
+Document message content intent caveats on fields
+([#1677] - [@itohatweb], [@zeylahellyer]).
+
+### Fixes
+
+Fix off-by-one on configuration for message cache size ([#1703] - [@vilgotf]).
+
+[#1703]: https://github.com/twilight-rs/twilight/pull/1703
+[#1680]: https://github.com/twilight-rs/twilight/pull/1680
+[#1679]: https://github.com/twilight-rs/twilight/pull/1679
+[#1677]: https://github.com/twilight-rs/twilight/pull/1677
+
 ## [0.10.2] - 2022-04-15
 
 ### Changes
@@ -707,6 +741,9 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.11.0
+[0.10.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.4
+[0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.3
 [0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.0

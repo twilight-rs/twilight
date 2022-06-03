@@ -486,6 +486,7 @@ mod tests {
             application_id: Id::new(100),
             channel_id: Id::new(200),
             data: CommandData {
+                guild_id: None,
                 id: Id::new(300),
                 name: "command name".into(),
                 kind: CommandType::ChatInput,

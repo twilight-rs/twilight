@@ -525,7 +525,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_deserialize_dispatch_role_delete() {
+    fn deserialize_dispatch_role_delete() {
         let input = r#"{
             "d": {
                 "guild_id": "1",
@@ -543,7 +543,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_dispatch_guild_update() {
+    fn deserialize_dispatch_guild_update() {
         let input = format!(
             r#"{{
   "d": {{
@@ -621,7 +621,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_dispatch_guild_update_2() {
+    fn deserialize_dispatch_guild_update_2() {
         let input = format!(
             r#"{{
   "d": {{
@@ -697,7 +697,7 @@ mod tests {
     // Test that events which are not documented to have any data will not fail if
     // they contain it
     #[test]
-    fn test_deserialize_dispatch_resumed() {
+    fn deserialize_dispatch_resumed() {
         let input = r#"{
   "t": "RESUMED",
   "s": 37448,
@@ -717,7 +717,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_heartbeat() {
+    fn deserialize_heartbeat() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -733,7 +733,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_heartbeat_ack() {
+    fn deserialize_heartbeat_ack() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -749,7 +749,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_hello() {
+    fn deserialize_hello() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -770,7 +770,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_invalidate_session() {
+    fn deserialize_invalidate_session() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -786,7 +786,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_reconnect() {
+    fn deserialize_reconnect() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -804,7 +804,7 @@ mod tests {
     /// Test that the deserializer won't mess up on a nested "t" in user input
     /// while searching for the event type.
     #[test]
-    fn test_deserializer_from_json_nested_quotes() {
+    fn deserializer_from_json_nested_quotes() {
         let input = r#"{
             "t": "DOESNT_MATTER",
             "s": 5144,
@@ -823,7 +823,7 @@ mod tests {
     // event types. For example HeartbeatAck
     #[allow(unused)]
     #[test]
-    fn test_deserializer_handles_null_event_types() {
+    fn deserializer_handles_null_event_types() {
         let input = r#"{"t":null,"op":11}"#;
 
         let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
@@ -834,7 +834,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_dispatch() {
+    fn serialize_dispatch() {
         let role_delete = RoleDelete {
             guild_id: Id::new(1),
             role_id: Id::new(2),
@@ -876,7 +876,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_heartbeat() {
+    fn serialize_heartbeat() {
         serde_test::assert_ser_tokens(
             &GatewayEvent::Heartbeat(1024),
             &[
@@ -898,7 +898,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_heartbeat_ack() {
+    fn serialize_heartbeat_ack() {
         serde_test::assert_ser_tokens(
             &GatewayEvent::HeartbeatAck,
             &[
@@ -920,7 +920,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_hello() {
+    fn serialize_hello() {
         serde_test::assert_ser_tokens(
             &GatewayEvent::Hello(41250),
             &[
@@ -948,7 +948,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_invalidate() {
+    fn serialize_invalidate() {
         let value = GatewayEvent::InvalidateSession(true);
 
         serde_test::assert_ser_tokens(
@@ -972,7 +972,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_reconnect() {
+    fn serialize_reconnect() {
         serde_test::assert_ser_tokens(
             &GatewayEvent::Reconnect,
             &[

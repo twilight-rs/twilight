@@ -70,45 +70,6 @@ jobs:
           cargo doc --no-deps --features=permission-calculator
           cargo doc -p twilight-util --no-deps --all-features
 
-  sync-readme:
-    name: Sync readme
-    needs: [MSRV]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v3
-
-      - name: Install cargo-sync-readme
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-sync-readme
-
-      - name: Run in cache-inmemory
-        run: cd cache/in-memory && cargo sync-readme --check
-      - name: Run in embed-builder
-        run: cd embed-builder && cargo sync-readme --check
-      - name: Run in gateway
-        run: cd gateway && cargo sync-readme --check
-      - name: Run in gateway-queue
-        run: cd gateway-queue && cargo sync-readme --check
-      - name: Run in http
-        run: cd http && cargo sync-readme --check
-      - name: Run in lavalink
-        run: cd lavalink && cargo sync-readme --check
-      - name: Run in mention
-        run: cd mention && cargo sync-readme --check
-      - name: Run in model
-        run: cd model && cargo sync-readme --check
-      - name: Run in standby
-        run: cd standby && cargo sync-readme --check
-      - name: Run in twilight
-        run: cd twilight && cargo sync-readme --check
-      - name: Run in util
-        run: cd util && cargo sync-readme --check
-      - name: Run in validate
-        run: cd validate && cargo sync-readme --check
-
   # Lints
   clippy:
     name: Clippy
@@ -130,7 +91,6 @@ jobs:
 
   codespell:
     name: Spelling
-    needs: [MSRV]
     runs-on: ubuntu-latest
 
     steps:
@@ -142,7 +102,6 @@ jobs:
 
   rustfmt:
     name: Format
-    needs: [MSRV]
     runs-on: ubuntu-latest
 
     steps:
@@ -170,21 +129,17 @@ jobs:
           toolchain: nightly
           profile: minimal
 
-      - name: Install cargo-hack
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-hack
-
-      - name: Install cargo-minimal-versions
-        uses: baptiste0928/cargo-install@v1
-        with:
-          crate: cargo-minimal-versions
-
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v1
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Install cargo-minimal-versions
+        uses: taiki-e/install-action@cargo-minimal-versions
 
       - name: Check minimal versions
         run: cargo minimal-versions check
@@ -214,45 +169,10 @@ jobs:
       - name: Run doctests
         run: cargo test --doc
 
-  test-features:
-    name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
-    needs: [test]
+  feature-combinations:
+    name: Feature combinations
+    needs: [MSRV]
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        package:
-          - http
-          - gateway
-          - lavalink
-        features:
-          - native
-          - rustls-native-roots
-          - simd-json
-
-        include:
-          - package: http
-            features: simd-json
-            additional: --features rustls-native-roots
-          - package: gateway
-            features: rustls-native-roots
-            additional: --features zlib-stock
-          - package: gateway
-            features: native
-            additional: --features zlib-stock
-          - package: gateway
-            features: simd-json
-            additional: --features rustls-native-roots,zlib-stock
-          - package: lavalink
-            additional: --features http-support
-
-          - package: util
-            features: full
-
-        exclude:
-          - package: lavalink
-            features: simd-json
 
     steps:
       - name: Checkout sources
@@ -264,10 +184,8 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - name: Install nextest
-        uses: taiki-e/install-action@nextest
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
 
-      - name: Test ${{ matrix.package }} feat. ${{ matrix.features }}
-        working-directory: ${{ matrix.package }}
-        run: |
-          cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --no-default-features --features ${{ matrix.features }} ${{ matrix.additional }}
+      - name: Check feature combinations
+        run: cargo hack check --feature-powerset

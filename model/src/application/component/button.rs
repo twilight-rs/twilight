@@ -98,7 +98,7 @@ mod tests {
     const_assert_eq!(5, ButtonStyle::Link as u8);
 
     #[test]
-    fn test_button_style() {
+    fn button_style() {
         serde_test::assert_tokens(&ButtonStyle::Primary, &[Token::U8(1)]);
         serde_test::assert_tokens(&ButtonStyle::Secondary, &[Token::U8(2)]);
         serde_test::assert_tokens(&ButtonStyle::Success, &[Token::U8(3)]);

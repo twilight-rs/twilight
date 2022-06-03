@@ -23,7 +23,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_minimal() {
+    fn minimal() {
         let value = MessageReference {
             channel_id: Some(Id::new(1)),
             guild_id: None,
@@ -48,7 +48,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complete() {
+    fn complete() {
         let value = MessageReference {
             channel_id: Some(Id::new(1)),
             guild_id: Some(Id::new(2)),

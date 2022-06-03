@@ -15,7 +15,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&ConnectionVisibility::None, &[Token::U8(0)]);
         serde_test::assert_tokens(&ConnectionVisibility::Everyone, &[Token::U8(1)]);
     }

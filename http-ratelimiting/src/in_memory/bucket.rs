@@ -215,9 +215,8 @@ impl BucketQueueTask {
 
     /// Process incoming ratelimit requests to this bucket and update the state
     /// based on received [`RatelimitHeaders`].
+    #[tracing::instrument(name = "background queue task", skip(self), fields(path = ?self.path))]
     pub async fn run(self) {
-        let span = tracing::debug_span!("background queue task", path=?self.path);
-
         while let Some(queue_tx) = self.next().await {
             if self.global.is_locked() {
                 self.global.0.lock().await;
@@ -229,23 +228,23 @@ impl BucketQueueTask {
                 continue;
             };
 
-            tracing::debug!(parent: &span, "starting to wait for response headers");
+            tracing::debug!("starting to wait for response headers");
 
             match timeout(Self::WAIT, ticket_headers).await {
                 Ok(Ok(Some(headers))) => self.handle_headers(&headers).await,
                 Ok(Ok(None)) => {
-                    tracing::debug!(parent: &span, "request aborted");
+                    tracing::debug!("request aborted");
                 }
                 Ok(Err(_)) => {
-                    tracing::debug!(parent: &span, "ticket channel closed");
+                    tracing::debug!("ticket channel closed");
                 }
                 Err(_) => {
-                    tracing::debug!(parent: &span, "receiver timed out");
+                    tracing::debug!("receiver timed out");
                 }
             }
         }
 
-        tracing::debug!(parent: &span, "bucket appears finished, removing");
+        tracing::debug!("bucket appears finished, removing");
 
         self.buckets
             .lock()
@@ -293,15 +292,14 @@ impl BucketQueueTask {
     }
 
     /// Wait for this bucket to refresh if it isn't ready yet.
+    #[tracing::instrument(name = "waiting for bucket to refresh", skip(self), fields(path = ?self.path))]
     async fn wait_if_needed(&self) {
-        let span = tracing::debug_span!("waiting for bucket to refresh", path=?self.path);
-
         let wait = {
             if self.bucket.remaining() > 0 {
                 return;
             }
 
-            tracing::debug!(parent: &span, "0 tickets remaining, may have to wait");
+            tracing::debug!("0 tickets remaining, may have to wait");
 
             match self.bucket.time_remaining() {
                 TimeRemaining::Finished => {
@@ -315,14 +313,13 @@ impl BucketQueueTask {
         };
 
         tracing::debug!(
-            parent: &span,
             milliseconds=%wait.as_millis(),
             "waiting for ratelimit to pass",
         );
 
         sleep(wait).await;
 
-        tracing::debug!(parent: &span, "done waiting for ratelimit to pass");
+        tracing::debug!("done waiting for ratelimit to pass");
 
         self.bucket.try_reset();
     }

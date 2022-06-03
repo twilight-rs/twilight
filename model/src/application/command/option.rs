@@ -775,7 +775,7 @@ mod tests {
     /// missing during deserialization that the field is defaulted instead of
     /// returning a missing field error.
     #[test]
-    fn test_issue_1150() {
+    fn issue_1150() {
         let value = CommandOption::SubCommand(OptionsCommandOptionData {
             description: "ponyville".to_owned(),
             description_localizations: None,
@@ -1184,7 +1184,7 @@ mod tests {
     }
 
     #[test]
-    fn test_number() {
+    fn number() {
         const NUMBER_1: Number = Number(12.34_f64);
         const NUMBER_2: Number = Number(12.34_f64);
 

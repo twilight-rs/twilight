@@ -15,7 +15,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&TeamMembershipState::Invited, &[Token::U8(1)]);
         serde_test::assert_tokens(&TeamMembershipState::Accepted, &[Token::U8(2)]);
     }

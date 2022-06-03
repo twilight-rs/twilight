@@ -161,9 +161,9 @@ impl InFlight {
 struct RatelimitQueue {
     guild_id: Option<Id<GuildMarker>>,
     invalid_token: Option<Arc<AtomicBool>>,
-    pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
-    request_timeout: Duration,
     response_future: HyperResponseFuture,
+    timeout: Duration,
+    pre_flight_check: Option<Box<dyn FnOnce() -> bool + Send + 'static>>,
     wait_for_sender: WaitForTicketFuture,
 }
 
@@ -182,17 +182,15 @@ impl RatelimitQueue {
 
         if let Some(pre_flight_check) = self.pre_flight_check {
             if !pre_flight_check() {
-                return InnerPoll::Advance(ResponseFutureStage::Failed(Failed {
-                    source: Error {
-                        kind: ErrorType::RequestCanceled,
-                        source: None,
-                    },
+                return InnerPoll::Ready(Err(Error {
+                    kind: ErrorType::RequestCanceled,
+                    source: None,
                 }));
             }
         }
 
         InnerPoll::Advance(ResponseFutureStage::InFlight(InFlight {
-            future: Box::pin(time::timeout(self.request_timeout, self.response_future)),
+            future: Box::pin(time::timeout(self.timeout, self.response_future)),
             guild_id: self.guild_id,
             invalid_token: self.invalid_token,
             tx: Some(tx),
@@ -256,18 +254,17 @@ pub struct ResponseFuture<T> {
 }
 
 impl<T> ResponseFuture<T> {
-    pub(crate) fn new(
+    pub(crate) const fn new(
+        future: Pin<Box<Timeout<HyperResponseFuture>>>,
         invalid_token: Option<Arc<AtomicBool>>,
-        future: Timeout<HyperResponseFuture>,
-        ratelimit_tx: Option<TicketSender>,
     ) -> Self {
         Self {
             phantom: PhantomData,
             stage: ResponseFutureStage::InFlight(InFlight {
-                future: Box::pin(future),
+                future,
                 guild_id: None,
                 invalid_token,
-                tx: ratelimit_tx,
+                tx: None,
             }),
         }
     }
@@ -343,20 +340,19 @@ impl<T> ResponseFuture<T> {
     }
 
     pub(crate) fn ratelimit(
-        guild_id: Option<Id<GuildMarker>>,
         invalid_token: Option<Arc<AtomicBool>>,
-        wait_for_sender: WaitForTicketFuture,
-        request_timeout: Duration,
         response_future: HyperResponseFuture,
+        timeout: Duration,
+        wait_for_sender: WaitForTicketFuture,
     ) -> Self {
         Self {
             phantom: PhantomData,
             stage: ResponseFutureStage::RatelimitQueue(RatelimitQueue {
-                guild_id,
+                guild_id: None,
                 invalid_token,
-                pre_flight_check: None,
-                request_timeout,
                 response_future,
+                timeout,
+                pre_flight_check: None,
                 wait_for_sender,
             }),
         }

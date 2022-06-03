@@ -2776,7 +2776,7 @@ mod tests {
 
     /// Test a route for each method.
     #[test]
-    fn test_methods() {
+    fn methods() {
         assert_eq!(
             Method::Delete,
             Route::DeleteInvite {
@@ -2837,7 +2837,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_public_archived_threads() {
+    fn get_public_archived_threads() {
         let route = Route::GetPublicArchivedThreads {
             channel_id: 1,
             before: Some("2021-01-01T00:00:00Z"),
@@ -2851,7 +2851,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_webhook_message_thread_id() {
+    fn update_webhook_message_thread_id() {
         let route = Route::UpdateWebhookMessage {
             message_id: 1,
             thread_id: Some(2),
@@ -2863,7 +2863,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_guild_member() {
+    fn add_guild_member() {
         let route = Route::AddGuildMember {
             guild_id: GUILD_ID,
             user_id: USER_ID,
@@ -2875,7 +2875,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_member() {
+    fn get_member() {
         let route = Route::GetMember {
             guild_id: GUILD_ID,
             user_id: USER_ID,
@@ -2887,7 +2887,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove_member() {
+    fn remove_member() {
         let route = Route::RemoveMember {
             guild_id: GUILD_ID,
             user_id: USER_ID,
@@ -2899,7 +2899,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_member() {
+    fn update_member() {
         let route = Route::UpdateMember {
             guild_id: GUILD_ID,
             user_id: USER_ID,
@@ -2911,7 +2911,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_member_role() {
+    fn add_member_role() {
         let route = Route::AddMemberRole {
             guild_id: GUILD_ID,
             role_id: ROLE_ID,
@@ -2924,7 +2924,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove_member_role() {
+    fn remove_member_role() {
         let route = Route::RemoveMemberRole {
             guild_id: GUILD_ID,
             role_id: ROLE_ID,
@@ -2937,7 +2937,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_thread_member() {
+    fn add_thread_member() {
         let route = Route::AddThreadMember {
             channel_id: CHANNEL_ID,
             user_id: USER_ID,
@@ -2949,7 +2949,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_thread_member() {
+    fn get_thread_member() {
         let route = Route::GetThreadMember {
             channel_id: CHANNEL_ID,
             user_id: USER_ID,
@@ -2961,7 +2961,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove_thread_member() {
+    fn remove_thread_member() {
         let route = Route::RemoveThreadMember {
             channel_id: CHANNEL_ID,
             user_id: USER_ID,
@@ -2973,37 +2973,37 @@ mod tests {
     }
 
     #[test]
-    fn test_create_channel() {
+    fn create_channel() {
         let route = Route::CreateChannel { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/channels"));
     }
 
     #[test]
-    fn test_get_channels() {
+    fn get_channels() {
         let route = Route::GetChannels { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/channels"));
     }
 
     #[test]
-    fn test_update_guild_channels() {
+    fn update_guild_channels() {
         let route = Route::UpdateGuildChannels { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/channels"));
     }
 
     #[test]
-    fn test_create_emoji() {
+    fn create_emoji() {
         let route = Route::CreateEmoji { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/emojis"));
     }
 
     #[test]
-    fn test_get_emojis() {
+    fn get_emojis() {
         let route = Route::GetEmojis { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/emojis"));
     }
 
     #[test]
-    fn test_create_global_command() {
+    fn create_global_command() {
         let route = Route::CreateGlobalCommand {
             application_id: APPLICATION_ID,
         };
@@ -3014,7 +3014,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_global_commands() {
+    fn get_global_commands() {
         let route = Route::GetGlobalCommands {
             application_id: APPLICATION_ID,
             with_localizations: Some(true),
@@ -3038,7 +3038,7 @@ mod tests {
     }
 
     #[test]
-    fn test_set_global_commands() {
+    fn set_global_commands() {
         let route = Route::SetGlobalCommands {
             application_id: APPLICATION_ID,
         };
@@ -3049,13 +3049,13 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild() {
+    fn create_guild() {
         let route = Route::CreateGuild;
         assert_eq!(route.to_string(), "guilds");
     }
 
     #[test]
-    fn test_create_guild_command() {
+    fn create_guild_command() {
         let route = Route::CreateGuildCommand {
             application_id: APPLICATION_ID,
             guild_id: GUILD_ID,
@@ -3067,7 +3067,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_commands() {
+    fn get_guild_commands() {
         let route = Route::GetGuildCommands {
             application_id: APPLICATION_ID,
             guild_id: GUILD_ID,
@@ -3094,7 +3094,7 @@ mod tests {
     }
 
     #[test]
-    fn test_set_guild_commands() {
+    fn set_guild_commands() {
         let route = Route::SetGuildCommands {
             application_id: APPLICATION_ID,
             guild_id: GUILD_ID,
@@ -3106,7 +3106,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_from_template() {
+    fn create_guild_from_template() {
         let route = Route::CreateGuildFromTemplate {
             template_code: TEMPLATE_CODE,
         };
@@ -3117,7 +3117,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_template() {
+    fn get_template() {
         let route = Route::GetTemplate {
             template_code: TEMPLATE_CODE,
         };
@@ -3128,31 +3128,31 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_integration() {
+    fn create_guild_integration() {
         let route = Route::CreateGuildIntegration { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/integrations"));
     }
 
     #[test]
-    fn test_get_guild_integrations() {
+    fn get_guild_integrations() {
         let route = Route::GetGuildIntegrations { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/integrations"));
     }
 
     #[test]
-    fn test_create_guild_sticker() {
+    fn create_guild_sticker() {
         let route = Route::CreateGuildSticker { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/stickers"));
     }
 
     #[test]
-    fn test_get_guild_stickers() {
+    fn get_guild_stickers() {
         let route = Route::GetGuildStickers { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/stickers"));
     }
 
     #[test]
-    fn test_create_invite() {
+    fn create_invite() {
         let route = Route::CreateInvite {
             channel_id: CHANNEL_ID,
         };
@@ -3160,7 +3160,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_channel_invites() {
+    fn get_channel_invites() {
         let route = Route::GetChannelInvites {
             channel_id: CHANNEL_ID,
         };
@@ -3168,7 +3168,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_message() {
+    fn create_message() {
         let route = Route::CreateMessage {
             channel_id: CHANNEL_ID,
         };
@@ -3176,19 +3176,19 @@ mod tests {
     }
 
     #[test]
-    fn test_create_private_channel() {
+    fn create_private_channel() {
         let route = Route::CreatePrivateChannel;
         assert_eq!(route.to_string(), "users/@me/channels");
     }
 
     #[test]
-    fn test_get_user_private_channels() {
+    fn get_user_private_channels() {
         let route = Route::GetUserPrivateChannels;
         assert_eq!(route.to_string(), "users/@me/channels");
     }
 
     #[test]
-    fn test_create_reaction() {
+    fn create_reaction() {
         let emoji = emoji();
 
         let route = Route::CreateReaction {
@@ -3203,7 +3203,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_reaction_current_user() {
+    fn delete_reaction_current_user() {
         let emoji = emoji();
 
         let route = Route::DeleteReactionCurrentUser {
@@ -3218,43 +3218,43 @@ mod tests {
     }
 
     #[test]
-    fn test_create_role() {
+    fn create_role() {
         let route = Route::CreateRole { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/roles"));
     }
 
     #[test]
-    fn test_get_guild_roles() {
+    fn get_guild_roles() {
         let route = Route::GetGuildRoles { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/roles"));
     }
 
     #[test]
-    fn test_update_role_positions() {
+    fn update_role_positions() {
         let route = Route::UpdateRolePositions { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/roles"));
     }
 
     #[test]
-    fn test_create_stage_instance() {
+    fn create_stage_instance() {
         let route = Route::CreateStageInstance;
         assert_eq!(route.to_string(), "stage-instances");
     }
 
     #[test]
-    fn test_create_template() {
+    fn create_template() {
         let route = Route::CreateTemplate { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/templates"));
     }
 
     #[test]
-    fn test_get_templates() {
+    fn get_templates() {
         let route = Route::GetTemplates { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/templates"));
     }
 
     #[test]
-    fn test_create_thread() {
+    fn create_thread() {
         let route = Route::CreateThread {
             channel_id: CHANNEL_ID,
         };
@@ -3262,7 +3262,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_thread_from_message() {
+    fn create_thread_from_message() {
         let route = Route::CreateThreadFromMessage {
             channel_id: CHANNEL_ID,
             message_id: MESSAGE_ID,
@@ -3274,7 +3274,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_typing_trigger() {
+    fn create_typing_trigger() {
         let route = Route::CreateTypingTrigger {
             channel_id: CHANNEL_ID,
         };
@@ -3282,7 +3282,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_webhook() {
+    fn create_webhook() {
         let route = Route::CreateWebhook {
             channel_id: CHANNEL_ID,
         };
@@ -3290,7 +3290,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_channel_webhooks() {
+    fn get_channel_webhooks() {
         let route = Route::GetChannelWebhooks {
             channel_id: CHANNEL_ID,
         };
@@ -3298,7 +3298,7 @@ mod tests {
     }
 
     #[test]
-    fn test_crosspost_message() {
+    fn crosspost_message() {
         let route = Route::CrosspostMessage {
             channel_id: CHANNEL_ID,
             message_id: MESSAGE_ID,
@@ -3310,7 +3310,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_ban() {
+    fn delete_ban() {
         let route = Route::DeleteBan {
             guild_id: GUILD_ID,
             user_id: USER_ID,
@@ -3322,7 +3322,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_ban() {
+    fn get_ban() {
         let route = Route::GetBan {
             guild_id: GUILD_ID,
             user_id: USER_ID,
@@ -3334,7 +3334,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_channel() {
+    fn delete_channel() {
         let route = Route::DeleteChannel {
             channel_id: CHANNEL_ID,
         };
@@ -3342,7 +3342,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_channel() {
+    fn get_channel() {
         let route = Route::GetChannel {
             channel_id: CHANNEL_ID,
         };
@@ -3350,7 +3350,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_channel() {
+    fn update_channel() {
         let route = Route::UpdateChannel {
             channel_id: CHANNEL_ID,
         };
@@ -3358,7 +3358,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_emoji() {
+    fn delete_emoji() {
         let route = Route::DeleteEmoji {
             emoji_id: EMOJI_ID,
             guild_id: GUILD_ID,
@@ -3370,7 +3370,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_emoji() {
+    fn get_emoji() {
         let route = Route::GetEmoji {
             emoji_id: EMOJI_ID,
             guild_id: GUILD_ID,
@@ -3382,7 +3382,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_emoji() {
+    fn update_emoji() {
         let route = Route::UpdateEmoji {
             emoji_id: EMOJI_ID,
             guild_id: GUILD_ID,
@@ -3394,7 +3394,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_global_command() {
+    fn delete_global_command() {
         let route = Route::DeleteGlobalCommand {
             application_id: APPLICATION_ID,
             command_id: COMMAND_ID,
@@ -3406,7 +3406,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_global_command() {
+    fn get_global_command() {
         let route = Route::GetGlobalCommand {
             application_id: APPLICATION_ID,
             command_id: COMMAND_ID,
@@ -3418,7 +3418,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_global_command() {
+    fn update_global_command() {
         let route = Route::UpdateGlobalCommand {
             application_id: APPLICATION_ID,
             command_id: COMMAND_ID,
@@ -3430,19 +3430,19 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_guild() {
+    fn delete_guild() {
         let route = Route::DeleteGuild { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}"));
     }
 
     #[test]
-    fn test_update_guild() {
+    fn update_guild() {
         let route = Route::UpdateGuild { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}"));
     }
 
     #[test]
-    fn test_delete_guild_command() {
+    fn delete_guild_command() {
         let route = Route::DeleteGuildCommand {
             application_id: APPLICATION_ID,
             command_id: COMMAND_ID,
@@ -3455,7 +3455,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_command() {
+    fn get_guild_command() {
         let route = Route::GetGuildCommand {
             application_id: APPLICATION_ID,
             command_id: COMMAND_ID,
@@ -3468,7 +3468,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_guild_command() {
+    fn update_guild_command() {
         let route = Route::UpdateGuildCommand {
             application_id: APPLICATION_ID,
             command_id: COMMAND_ID,
@@ -3481,7 +3481,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_guild_integration() {
+    fn delete_guild_integration() {
         let route = Route::DeleteGuildIntegration {
             guild_id: GUILD_ID,
             integration_id: INTEGRATION_ID,
@@ -3493,7 +3493,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_guild_integration() {
+    fn update_guild_integration() {
         let route = Route::UpdateGuildIntegration {
             guild_id: GUILD_ID,
             integration_id: INTEGRATION_ID,
@@ -3505,7 +3505,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_interaction_original() {
+    fn delete_interaction_original() {
         let route = Route::DeleteInteractionOriginal {
             application_id: APPLICATION_ID,
             interaction_token: INTERACTION_TOKEN,
@@ -3517,7 +3517,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_interaction_original() {
+    fn get_interaction_original() {
         let route = Route::GetInteractionOriginal {
             application_id: APPLICATION_ID,
             interaction_token: INTERACTION_TOKEN,
@@ -3529,7 +3529,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_interaction_original() {
+    fn update_interaction_original() {
         let route = Route::UpdateInteractionOriginal {
             application_id: APPLICATION_ID,
             interaction_token: INTERACTION_TOKEN,
@@ -3541,13 +3541,13 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_invite() {
+    fn delete_invite() {
         let route = Route::DeleteInvite { code: CODE };
         assert_eq!(route.to_string(), format!("invites/{CODE}"))
     }
 
     #[test]
-    fn test_delete_message_reactions() {
+    fn delete_message_reactions() {
         let route = Route::DeleteMessageReactions {
             channel_id: CHANNEL_ID,
             message_id: MESSAGE_ID,
@@ -3559,7 +3559,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_message_specific_reaction() {
+    fn delete_message_specific_reaction() {
         let emoji = emoji();
 
         let route = Route::DeleteMessageSpecificReaction {
@@ -3574,7 +3574,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_message() {
+    fn delete_message() {
         let route = Route::DeleteMessage {
             channel_id: CHANNEL_ID,
             message_id: MESSAGE_ID,
@@ -3586,7 +3586,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_message() {
+    fn get_message() {
         let route = Route::GetMessage {
             channel_id: CHANNEL_ID,
             message_id: MESSAGE_ID,
@@ -3598,7 +3598,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_message() {
+    fn update_message() {
         let route = Route::UpdateMessage {
             channel_id: CHANNEL_ID,
             message_id: MESSAGE_ID,
@@ -3610,7 +3610,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_messages() {
+    fn delete_messages() {
         let route = Route::DeleteMessages {
             channel_id: CHANNEL_ID,
         };
@@ -3621,7 +3621,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_permission_overwrite() {
+    fn delete_permission_overwrite() {
         let route = Route::DeletePermissionOverwrite {
             channel_id: CHANNEL_ID,
             target_id: ROLE_ID,
@@ -3633,7 +3633,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_permission_overwrite() {
+    fn update_permission_overwrite() {
         let route = Route::UpdatePermissionOverwrite {
             channel_id: CHANNEL_ID,
             target_id: USER_ID,
@@ -3645,7 +3645,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_reaction() {
+    fn delete_reaction() {
         let emoji = emoji();
 
         let route = Route::DeleteReaction {
@@ -3661,7 +3661,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_role() {
+    fn delete_role() {
         let route = Route::DeleteRole {
             guild_id: GUILD_ID,
             role_id: ROLE_ID,
@@ -3673,7 +3673,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_role() {
+    fn update_role() {
         let route = Route::UpdateRole {
             guild_id: GUILD_ID,
             role_id: ROLE_ID,
@@ -3685,7 +3685,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_stage_instance() {
+    fn delete_stage_instance() {
         let route = Route::DeleteStageInstance {
             channel_id: CHANNEL_ID,
         };
@@ -3693,7 +3693,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_stage_instance() {
+    fn get_stage_instance() {
         let route = Route::GetStageInstance {
             channel_id: CHANNEL_ID,
         };
@@ -3701,7 +3701,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_stage_instance() {
+    fn update_stage_instance() {
         let route = Route::UpdateStageInstance {
             channel_id: CHANNEL_ID,
         };
@@ -3709,7 +3709,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_template() {
+    fn delete_template() {
         let route = Route::DeleteTemplate {
             guild_id: GUILD_ID,
             template_code: TEMPLATE_CODE,
@@ -3721,7 +3721,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sync_template() {
+    fn sync_template() {
         let route = Route::SyncTemplate {
             guild_id: GUILD_ID,
             template_code: TEMPLATE_CODE,
@@ -3733,7 +3733,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_template() {
+    fn update_template() {
         let route = Route::UpdateTemplate {
             guild_id: GUILD_ID,
             template_code: TEMPLATE_CODE,
@@ -3745,7 +3745,7 @@ mod tests {
     }
 
     #[test]
-    fn test_follow_news_channel() {
+    fn follow_news_channel() {
         let route = Route::FollowNewsChannel {
             channel_id: CHANNEL_ID,
         };
@@ -3756,7 +3756,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_active_threads() {
+    fn get_active_threads() {
         let route = Route::GetActiveThreads { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
@@ -3765,13 +3765,13 @@ mod tests {
     }
 
     #[test]
-    fn test_get_bans() {
+    fn get_bans() {
         let route = Route::GetBans { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/bans"));
     }
 
     #[test]
-    fn test_get_bans_with_parameters() {
+    fn get_bans_with_parameters() {
         let route = Route::GetBansWithParameters {
             after: None,
             before: None,
@@ -3830,13 +3830,13 @@ mod tests {
     }
 
     #[test]
-    fn test_get_gateway_bot() {
+    fn get_gateway_bot() {
         let route = Route::GetGatewayBot;
         assert_eq!(route.to_string(), "gateway/bot");
     }
 
     #[test]
-    fn test_get_command_permissions() {
+    fn get_command_permissions() {
         let route = Route::GetCommandPermissions {
             application_id: APPLICATION_ID,
             command_id: COMMAND_ID,
@@ -3851,7 +3851,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_command_permissions() {
+    fn update_command_permissions() {
         let route = Route::UpdateCommandPermissions {
             application_id: APPLICATION_ID,
             command_id: COMMAND_ID,
@@ -3866,19 +3866,19 @@ mod tests {
     }
 
     #[test]
-    fn test_get_current_user_application_info() {
+    fn get_current_user_application_info() {
         let route = Route::GetCurrentUserApplicationInfo;
         assert_eq!(route.to_string(), "oauth2/applications/@me");
     }
 
     #[test]
-    fn test_get_current_user() {
+    fn get_current_user() {
         let route = Route::GetCurrentUser;
         assert_eq!(route.to_string(), "users/@me");
     }
 
     #[test]
-    fn test_get_current_user_guild_member() {
+    fn get_current_user_guild_member() {
         let route = Route::GetCurrentUserGuildMember { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
@@ -3887,19 +3887,19 @@ mod tests {
     }
 
     #[test]
-    fn test_update_current_user() {
+    fn update_current_user() {
         let route = Route::UpdateCurrentUser;
         assert_eq!(route.to_string(), "users/@me");
     }
 
     #[test]
-    fn test_get_gateway() {
+    fn get_gateway() {
         let route = Route::GetGateway;
         assert_eq!(route.to_string(), "gateway");
     }
 
     #[test]
-    fn test_get_guild_command_permissions() {
+    fn get_guild_command_permissions() {
         let route = Route::GetGuildCommandPermissions {
             application_id: APPLICATION_ID,
             guild_id: GUILD_ID,
@@ -3911,19 +3911,19 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_invites() {
+    fn get_guild_invites() {
         let route = Route::GetGuildInvites { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/invites"));
     }
 
     #[test]
-    fn test_get_guild_preview() {
+    fn get_guild_preview() {
         let route = Route::GetGuildPreview { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/preview"));
     }
 
     #[test]
-    fn test_get_guild_sticker() {
+    fn get_guild_sticker() {
         let route = Route::GetGuildSticker {
             guild_id: GUILD_ID,
             sticker_id: STICKER_ID,
@@ -3935,7 +3935,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_guild_sticker() {
+    fn delete_guild_sticker() {
         let route = Route::DeleteGuildSticker {
             guild_id: GUILD_ID,
             sticker_id: STICKER_ID,
@@ -3947,7 +3947,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_guild_sticker() {
+    fn update_guild_sticker() {
         let route = Route::UpdateGuildSticker {
             guild_id: GUILD_ID,
             sticker_id: STICKER_ID,
@@ -3959,19 +3959,19 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_vanity_url() {
+    fn get_guild_vanity_url() {
         let route = Route::GetGuildVanityUrl { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/vanity-url"));
     }
 
     #[test]
-    fn test_get_guild_voice_regions() {
+    fn get_guild_voice_regions() {
         let route = Route::GetGuildVoiceRegions { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/regions"));
     }
 
     #[test]
-    fn test_get_guild_welcome_screen() {
+    fn get_guild_welcome_screen() {
         let route = Route::GetGuildWelcomeScreen { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
@@ -3980,7 +3980,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_guild_welcome_screen() {
+    fn update_guild_welcome_screen() {
         let route = Route::UpdateGuildWelcomeScreen { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
@@ -3989,32 +3989,32 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_webhooks() {
+    fn get_guild_webhooks() {
         let route = Route::GetGuildWebhooks { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/webhooks"));
     }
 
     #[test]
-    fn test_get_guild_widget() {
+    fn get_guild_widget() {
         let route = Route::GetGuildWidget { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/widget"));
     }
 
     #[test]
-    fn test_update_guild_widget() {
+    fn update_guild_widget() {
         let route = Route::UpdateGuildWidget { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/widget"));
     }
 
     #[test]
-    fn test_get_nitro_sticker_packs() {
+    fn get_nitro_sticker_packs() {
         let route = Route::GetNitroStickerPacks;
 
         assert_eq!(route.to_string(), "sticker-packs");
     }
 
     #[test]
-    fn test_get_pins() {
+    fn get_pins() {
         let route = Route::GetPins {
             channel_id: CHANNEL_ID,
         };
@@ -4022,7 +4022,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_sticker() {
+    fn get_sticker() {
         let route = Route::GetSticker {
             sticker_id: STICKER_ID,
         };
@@ -4030,7 +4030,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_thread_members() {
+    fn get_thread_members() {
         let route = Route::GetThreadMembers {
             channel_id: CHANNEL_ID,
         };
@@ -4041,25 +4041,25 @@ mod tests {
     }
 
     #[test]
-    fn test_get_user_connections() {
+    fn get_user_connections() {
         let route = Route::GetUserConnections;
         assert_eq!(route.to_string(), "users/@me/connections");
     }
 
     #[test]
-    fn test_get_user() {
+    fn get_user() {
         let route = Route::GetUser { user_id: USER_ID };
         assert_eq!(route.to_string(), format!("users/{USER_ID}"));
     }
 
     #[test]
-    fn test_get_voice_regions() {
+    fn get_voice_regions() {
         let route = Route::GetVoiceRegions;
         assert_eq!(route.to_string(), "voice/regions");
     }
 
     #[test]
-    fn test_interaction_callback() {
+    fn interaction_callback() {
         let route = Route::InteractionCallback {
             interaction_id: INTERACTION_ID,
             interaction_token: INTERACTION_TOKEN,
@@ -4071,7 +4071,7 @@ mod tests {
     }
 
     #[test]
-    fn test_join_thread() {
+    fn join_thread() {
         let route = Route::JoinThread {
             channel_id: CHANNEL_ID,
         };
@@ -4082,7 +4082,7 @@ mod tests {
     }
 
     #[test]
-    fn test_leave_thread() {
+    fn leave_thread() {
         let route = Route::LeaveThread {
             channel_id: CHANNEL_ID,
         };
@@ -4093,13 +4093,13 @@ mod tests {
     }
 
     #[test]
-    fn test_leave_guild() {
+    fn leave_guild() {
         let route = Route::LeaveGuild { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("users/@me/guilds/{GUILD_ID}"));
     }
 
     #[test]
-    fn test_pin_message() {
+    fn pin_message() {
         let route = Route::PinMessage {
             channel_id: CHANNEL_ID,
             message_id: MESSAGE_ID,
@@ -4111,7 +4111,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unpin_message() {
+    fn unpin_message() {
         let route = Route::UnpinMessage {
             channel_id: CHANNEL_ID,
             message_id: MESSAGE_ID,
@@ -4123,7 +4123,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sync_guild_integration() {
+    fn sync_guild_integration() {
         let route = Route::SyncGuildIntegration {
             guild_id: GUILD_ID,
             integration_id: INTEGRATION_ID,
@@ -4135,13 +4135,13 @@ mod tests {
     }
 
     #[test]
-    fn test_update_current_member() {
+    fn update_current_member() {
         let route = Route::UpdateCurrentMember { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/members/@me"));
     }
 
     #[test]
-    fn test_update_current_user_voice_state() {
+    fn update_current_user_voice_state() {
         let route = Route::UpdateCurrentUserVoiceState { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
@@ -4150,7 +4150,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_nickname() {
+    fn update_nickname() {
         let route = Route::UpdateNickname { guild_id: GUILD_ID };
         assert_eq!(
             route.to_string(),
@@ -4159,7 +4159,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_user_voice_state() {
+    fn update_user_voice_state() {
         let route = Route::UpdateUserVoiceState {
             guild_id: GUILD_ID,
             user_id: USER_ID,
@@ -4171,7 +4171,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_ban() {
+    fn create_ban() {
         let mut route = Route::CreateBan {
             guild_id: GUILD_ID,
             delete_message_days: None,
@@ -4194,7 +4194,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_prune_none() {
+    fn create_guild_prune_none() {
         let route = Route::CreateGuildPrune {
             compute_prune_count: None,
             days: None,
@@ -4205,7 +4205,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_prune_compute_prune_count_true() {
+    fn create_guild_prune_compute_prune_count_true() {
         let route = Route::CreateGuildPrune {
             compute_prune_count: Some(true),
             days: None,
@@ -4219,7 +4219,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_prune_compute_prune_count_false() {
+    fn create_guild_prune_compute_prune_count_false() {
         let route = Route::CreateGuildPrune {
             compute_prune_count: Some(false),
             days: None,
@@ -4233,7 +4233,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_prune_days() {
+    fn create_guild_prune_days() {
         let route = Route::CreateGuildPrune {
             compute_prune_count: None,
             days: Some(4),
@@ -4247,7 +4247,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_prune_include_one_role() {
+    fn create_guild_prune_include_one_role() {
         let include_roles = [Id::new(1)];
 
         let route = Route::CreateGuildPrune {
@@ -4263,7 +4263,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_prune_include_two_roles() {
+    fn create_guild_prune_include_two_roles() {
         let include_roles = [Id::new(1), Id::new(2)];
 
         let route = Route::CreateGuildPrune {
@@ -4279,7 +4279,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_prune_all() {
+    fn create_guild_prune_all() {
         let include_roles = [Id::new(1), Id::new(2)];
 
         let route = Route::CreateGuildPrune {
@@ -4295,7 +4295,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_scheduled_events() {
+    fn get_guild_scheduled_events() {
         let route = Route::GetGuildScheduledEvents {
             guild_id: GUILD_ID,
             with_user_count: false,
@@ -4318,7 +4318,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_guild_scheduled_event() {
+    fn create_guild_scheduled_event() {
         let route = Route::CreateGuildScheduledEvent { guild_id: GUILD_ID };
 
         assert_eq!(
@@ -4328,7 +4328,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_scheduled_event() {
+    fn get_guild_scheduled_event() {
         let route = Route::GetGuildScheduledEvent {
             guild_id: GUILD_ID,
             scheduled_event_id: SCHEDULED_EVENT_ID,
@@ -4353,7 +4353,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_guild_scheduled_event() {
+    fn update_guild_scheduled_event() {
         let route = Route::UpdateGuildScheduledEvent {
             guild_id: GUILD_ID,
             scheduled_event_id: SCHEDULED_EVENT_ID,
@@ -4366,7 +4366,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_guild_scheduled_event() {
+    fn delete_guild_scheduled_event() {
         let route = Route::DeleteGuildScheduledEvent {
             guild_id: GUILD_ID,
             scheduled_event_id: SCHEDULED_EVENT_ID,
@@ -4379,7 +4379,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_scheduled_event_users() {
+    fn get_guild_scheduled_event_users() {
         let route = Route::GetGuildScheduledEventUsers {
             after: None,
             before: Some(USER_ID),
@@ -4430,7 +4430,7 @@ mod tests {
     }
 
     #[test]
-    fn test_search_guild_members() {
+    fn search_guild_members() {
         let route = Route::SearchGuildMembers {
             guild_id: GUILD_ID,
             limit: Some(99),

@@ -24,7 +24,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_connection() {
+    fn connection() {
         let value = Connection {
             friend_sync: true,
             id: "connection id".to_owned(),

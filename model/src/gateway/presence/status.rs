@@ -20,7 +20,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(
             &Status::DoNotDisturb,
             &[Token::UnitVariant {

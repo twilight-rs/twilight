@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-model
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -42,5 +40,3 @@ Some models have associated builders, which can be found in the
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->

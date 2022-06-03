@@ -12,7 +12,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_integration_account() {
+    fn integration_account() {
         let value = IntegrationAccount {
             id: "account-id".to_owned(),
             name: "account name".to_owned(),

@@ -86,7 +86,7 @@ mod tests {
     /// we just need to test that fields are present in deserialization and
     /// serialization as expected.
     #[test]
-    fn test_serde() {
+    fn serde() {
         let value = AuditLog {
             entries: Vec::new(),
             guild_scheduled_events: Vec::new(),

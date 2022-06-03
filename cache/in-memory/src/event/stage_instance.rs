@@ -80,7 +80,7 @@ mod tests {
     use twilight_model::{channel::stage_instance::PrivacyLevel, id::Id};
 
     #[test]
-    fn test_stage_channels() {
+    fn stage_channels() {
         let cache = InMemoryCache::new();
 
         let stage_instance = StageInstance {

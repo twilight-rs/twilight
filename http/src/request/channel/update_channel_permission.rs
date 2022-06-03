@@ -131,7 +131,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_request() {
+    fn request() {
         let permission_overwrite = PermissionOverwrite {
             allow: None,
             deny: Some(Permissions::SEND_MESSAGES),

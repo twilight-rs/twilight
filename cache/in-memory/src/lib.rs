@@ -1,76 +1,4 @@
-//! # twilight-cache-inmemory
-//!
-//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
-//!
-//! `twilight-cache-inmemory` is an in-process-memory cache for the
-//! [`twilight-rs`] ecosystem. It's responsible for processing events and
-//! caching things like guilds, channels, users, and voice states.
-//!
-//! ## Statistics
-//!
-//! Statistics can be an important debugging tool for determining how large a
-//! cache is or determining whether a cache has an expected amount of resources
-//! within it. An interface for retrieving statistics about the amount of a
-//! resource within the cache as a whole or on a guild-level can be retrieved
-//! via [`InMemoryCache::stats`].
-//!
-//! ## Features
-//!
-//! By default no feature is enabled.
-//!
-//! ### `permission-calculator`
-//!
-//! The `permission-calculator` feature flag will bring in support for the
-//! `PermissionCalculator`; an API for calculating permissions through it is
-//! exposed via `InMemoryCache::permissions`. Support for calculating the
-//! permissions of a member on a root guild-level and in a guild channel is
-//! included.
-//!
-//! Refer to the `permission` module for more documentation.
-//!
-//! ## Examples
-//!
-//! Update a cache with events that come in through the gateway:
-//!
-//! ```rust,no_run
-//! use std::env;
-//! use futures::stream::StreamExt;
-//! use twilight_cache_inmemory::InMemoryCache;
-//! use twilight_gateway::{Intents, Shard};
-//!
-//! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let token = env::var("DISCORD_TOKEN")?;
-//! let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES).await?;
-//! shard.start().await?;
-//!
-//! // Create a cache, caching up to 10 messages per channel:
-//! let cache = InMemoryCache::builder().message_cache_size(10).build();
-//!
-//! while let Some(event) = events.next().await {
-//!     // Update the cache with the event.
-//!     cache.update(&event);
-//! }
-//! # Ok(()) }
-//! ```
-//!
-//! ## License
-//!
-//! All first-party crates are licensed under [ISC][LICENSE.md]
-//!
-//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [`twilight-rs`]: https://github.com/twilight-rs/twilight
-//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
-//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
-//! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
-//! [discord link]: https://discord.gg/7jj8n7D
-//! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
-//! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
-//! [github link]: https://github.com/twilight-rs/twilight
-//! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-//! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
-
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(
     clippy::missing_const_for_fn,
     missing_docs,
@@ -79,6 +7,7 @@
     unsafe_code,
     unused
 )]
+#![doc = include_str!("../README.md")]
 
 pub mod iter;
 pub mod model;
@@ -169,6 +98,7 @@ pub struct Reference<'a, K, V> {
 
 impl<'a, K: Eq + Hash, V> Reference<'a, K, V> {
     /// Create a new reference from a DashMap reference.
+    #[allow(clippy::missing_const_for_fn)]
     fn new(inner: Ref<'a, K, V>) -> Self {
         Self { inner }
     }
@@ -986,7 +916,7 @@ mod tests {
     };
 
     #[test]
-    fn test_syntax_update() {
+    fn syntax_update() {
         let cache = InMemoryCache::new();
         cache.update(&RoleDelete {
             guild_id: Id::new(1),
@@ -995,7 +925,7 @@ mod tests {
     }
 
     #[test]
-    fn test_clear() {
+    fn clear() {
         let cache = InMemoryCache::new();
         cache.cache_emoji(Id::new(1), test::emoji(Id::new(3), None));
         cache.cache_member(Id::new(2), test::member(Id::new(4), Id::new(2)));
@@ -1005,7 +935,7 @@ mod tests {
     }
 
     #[test]
-    fn test_highest_role() {
+    fn highest_role() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
         let guild_id = Id::new(1);

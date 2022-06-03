@@ -2,6 +2,82 @@
 
 Changelog for `twilight-model`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Additions
+
+Support Guild Scheduled Events gateway events ([#1574] - [@itohatweb]).
+
+Support command localization via `description_localizations` and
+`name_localizations` fields on commands ([#1701] - [@baptiste0928]).
+
+### Changes
+
+Simplify the `PresenceUpdate` event by making it a newtype of `Presence`
+([#1582] - [@zeylahellyer]).
+
+Move the `datetime` module into the `util` module ([#1597] - [@vilgotf]).
+
+Make user `accent_color` fields a u32 instead of u64 ([#1695] - [@tomocrafter]).
+
+Remove application summary field names ([#1659] - [@zeylahellyer]).
+
+Remove store channel type as it was removed by Discord ([#1595] - [@itohatweb]).
+
+Use `ImageHash` for image related audit log changes ([#1632] - [@itohatweb]).
+
+Drop Clone, Copy implementations on ID markers since they have no effect
+([#1617] - [@vilgotf]).
+
+Remove identify referrer properties ([#1609] - [@vilgotf]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1695]: https://github.com/twilight-rs/twilight/pull/1695
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+[#1659]: https://github.com/twilight-rs/twilight/pull/1659
+[#1632]: https://github.com/twilight-rs/twilight/pull/1632
+[#1617]: https://github.com/twilight-rs/twilight/pull/1617
+[#1609]: https://github.com/twilight-rs/twilight/pull/1609
+[#1597]: https://github.com/twilight-rs/twilight/pull/1597
+[#1582]: https://github.com/twilight-rs/twilight/pull/1582
+[#1574]: https://github.com/twilight-rs/twilight/pull/1574
+
+## [0.10.3] - 2022-05-15
+
+### Additions
+
+Add getter for retrieving interaction tokens ([#1698] - [@laralove143]).
+
+Document interaction types valid for modal submitting
+([#1697] - [@laralove143]).
+
+Add `USE_EXTERNAL_STICKERS` permission ([#1694] - [@itohatweb]).
+
+Add `MANAGE_EVENTS` permission ([#1693] - [@itohatweb]).
+
+Document expected types of interactions ([#1687] - [@vilgotf]).
+
+Document message content intent caveats on fields
+([#1677] - [@itohatweb], [@zeylahellyer]).
+
+### Fixes
+
+Skip serializing `ModalSubmitInteraction::message` if none
+([#1705] - [@itohatweb]).
+
+[#1705]: https://github.com/twilight-rs/twilight/pull/1705
+[#1698]: https://github.com/twilight-rs/twilight/pull/1698
+[#1697]: https://github.com/twilight-rs/twilight/pull/1697
+[#1694]: https://github.com/twilight-rs/twilight/pull/1694
+[#1693]: https://github.com/twilight-rs/twilight/pull/1693
+[#1687]: https://github.com/twilight-rs/twilight/pull/1687
+[#1677]: https://github.com/twilight-rs/twilight/pull/1677
+
 ## [0.10.2] - 2022-04-15
 
 ### Additions
@@ -1458,6 +1534,7 @@ Initial release.
 [@PyroTechniac]: https://github.com/PyroTechniac
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
+[@tomocrafter]: https://github.com/tomocrafter
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
@@ -1485,6 +1562,8 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.11.0
+[0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.3
 [0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.0

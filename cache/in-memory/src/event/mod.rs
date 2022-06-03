@@ -104,7 +104,7 @@ mod tests {
     /// panic or do anything funny. This is the only synchronous mutex that we
     /// might have trouble with across await points if we're not careful.
     #[test]
-    fn test_current_user_retrieval() {
+    fn current_user_retrieval() {
         let cache = InMemoryCache::new();
         assert!(cache.current_user().is_none());
         cache.cache_current_user(test::current_user(1));
