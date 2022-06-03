@@ -590,10 +590,12 @@ mod tests {
     use serde_test::Token;
     use static_assertions::assert_impl_all;
 
-    assert_impl_all!(Component: From<ActionRow>);
-    assert_impl_all!(Component: From<Button>);
-    assert_impl_all!(Component: From<SelectMenu>);
-    assert_impl_all!(Component: From<TextInput>);
+    assert_impl_all!(
+        Component: From<ActionRow>,
+        From<Button>,
+        From<SelectMenu>,
+        From<TextInput>
+    );
 
     #[allow(clippy::too_many_lines)]
     #[test]
