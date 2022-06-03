@@ -313,6 +313,7 @@ impl Cluster {
                     fold
                 });
 
+        #[allow(clippy::from_iter_instead_of_collect)]
         let select_all = SelectAll::from_iter(streams);
 
         Ok((Self { config, shards }, Events::new(select_all)))
