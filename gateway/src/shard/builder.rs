@@ -215,10 +215,9 @@ impl ShardBuilder {
         self
     }
 
-    /// Set the HTTP client to be used by the shard for getting gateway
-    /// information.
+    /// Set the HTTP client for validating the token.
     ///
-    /// Default is a new, unconfigured instance of an HTTP client.
+    /// Default is a new, unconfigured HTTP client.
     #[allow(clippy::missing_const_for_fn)]
     #[cfg(feature = "twilight-http")]
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {

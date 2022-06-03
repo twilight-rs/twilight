@@ -179,13 +179,12 @@ impl ClusterBuilder {
         self
     }
 
-    /// Set the `twilight_http` Client used by the cluster and the shards it
-    /// manages.
+    /// Set the HTTP client for retrieving the recommended shard count, if not
+    /// manually specified with [`shard_scheme`].
     ///
-    /// This is needed so that the cluster and shards can retrieve gateway
-    /// information.
+    /// Default is a new, unconfigured HTTP client.
     ///
-    /// Defaults to a new, default HTTP client is used.
+    /// [`shard_scheme`]: Self::shard_scheme
     #[cfg(feature = "twilight-http")]
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
         self.shard = self.shard.http_client(http_client);
