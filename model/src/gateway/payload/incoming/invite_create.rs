@@ -129,7 +129,7 @@ mod tests {
     );
 
     #[test]
-    fn test_invite_create() {
+    fn invite_create() {
         let created_at = Timestamp::from_secs(1_609_459_200).expect("non zero");
 
         let value = InviteCreate {
@@ -177,7 +177,7 @@ mod tests {
     }
 
     #[test]
-    fn test_partial_user() {
+    fn partial_user() {
         let value = PartialUser {
             avatar: Some(image_hash::AVATAR),
             discriminator: 123,

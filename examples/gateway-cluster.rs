@@ -1,9 +1,9 @@
 use futures_util::StreamExt;
-use std::{env, error::Error, sync::Arc};
+use std::{env, sync::Arc};
 use twilight_gateway::{Cluster, Intents};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 

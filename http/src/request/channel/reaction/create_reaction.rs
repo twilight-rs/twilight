@@ -96,7 +96,7 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_request() -> Result<(), Box<dyn Error>> {
+    fn request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
 
         let emoji = RequestReactionType::Unicode { name: "🌃" };

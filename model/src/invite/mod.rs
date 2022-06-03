@@ -91,7 +91,7 @@ mod tests {
     );
 
     #[test]
-    fn test_invite() {
+    fn invite() {
         let value = Invite {
             approximate_member_count: Some(31),
             approximate_presence_count: Some(7),
@@ -150,7 +150,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_invite_complete() -> Result<(), TimestampParseError> {
+    fn invite_complete() -> Result<(), TimestampParseError> {
         let created_at = Timestamp::from_str("2021-08-03T16:08:36.325000+00:00")?;
         let expires_at = Timestamp::from_str("2021-08-10T16:08:36.325000+00:00")?;
 

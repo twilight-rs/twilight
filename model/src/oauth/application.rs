@@ -89,7 +89,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_current_application_info() {
+    fn current_application_info() {
         let value = Application {
             bot_public: true,
             bot_require_code_grant: false,

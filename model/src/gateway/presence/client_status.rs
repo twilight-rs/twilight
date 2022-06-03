@@ -17,7 +17,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_mobile_online() {
+    fn mobile_online() {
         let value = ClientStatus {
             desktop: Some(Status::Idle),
             mobile: Some(Status::Online),

@@ -82,7 +82,7 @@ mod tests {
     assert_impl_all!(EmbedFooter: From<EmbedFooterBuilder>);
 
     #[test]
-    fn test_text() {
+    fn text() {
         assert!(matches!(
             EmbedBuilder::new().footer(EmbedFooterBuilder::new("")).build().unwrap_err().kind(),
             EmbedErrorType::FooterTextEmpty { text }
@@ -105,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    fn test_builder() {
+    fn builder() {
         let expected = EmbedFooter {
             icon_url: Some("https://example.com/1.png".to_owned()),
             proxy_icon_url: None,

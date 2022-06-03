@@ -42,7 +42,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_current_user_guild() {
+    fn current_user_guild() {
         // The example partial guild from the Discord Docs
         let value = CurrentUserGuild {
             id: Id::new(80_351_110_224_678_912),

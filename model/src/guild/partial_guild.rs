@@ -71,7 +71,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_partial_guild() {
+    fn partial_guild() {
         let value = PartialGuild {
             id: Id::new(1),
             afk_channel_id: Some(Id::new(2)),

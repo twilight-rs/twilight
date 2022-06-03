@@ -200,7 +200,7 @@ mod tests {
     use crate::test;
 
     #[test]
-    fn test_cache_guild_member() {
+    fn cache_guild_member() {
         let cache = InMemoryCache::new();
 
         // Single inserts
@@ -257,7 +257,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cache_user_guild_state() {
+    fn cache_user_guild_state() {
         let user_id = Id::new(2);
         let cache = InMemoryCache::new();
         cache.cache_user(Cow::Owned(test::user(user_id)), Some(Id::new(1)));

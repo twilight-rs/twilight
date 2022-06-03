@@ -16,7 +16,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_voice_region() {
+    fn voice_region() {
         let value = VoiceRegion {
             custom: false,
             deprecated: false,

@@ -2,6 +2,21 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Changes
+
+Pin `dashmap` to 5.3 ([#1702] - [@baptiste0928]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1702]: https://github.com/twilight-rs/twilight/pull/1702
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+
 ## [0.10.2]
 
 ### Changes
@@ -351,6 +366,7 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.11.0
 [0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.2
 [0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.1
 [0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.0

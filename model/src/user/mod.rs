@@ -287,7 +287,7 @@ mod tests {
     }
 
     #[test]
-    fn test_discriminator_display() {
+    fn discriminator_display() {
         assert_eq!(3030, DiscriminatorDisplay::new(3030).get());
         assert_eq!("0003", DiscriminatorDisplay::new(3).to_string());
         assert_eq!("0033", DiscriminatorDisplay::new(33).to_string());
@@ -296,7 +296,7 @@ mod tests {
     }
 
     #[test]
-    fn test_user() {
+    fn user() {
         let value = User {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),
@@ -326,7 +326,7 @@ mod tests {
     }
 
     #[test]
-    fn test_user_complete() {
+    fn user_complete() {
         let value = User {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),

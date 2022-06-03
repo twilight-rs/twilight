@@ -14,7 +14,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&PrivacyLevel::GuildOnly, &[Token::U8(2)]);
     }
 }

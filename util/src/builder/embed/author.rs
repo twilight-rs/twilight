@@ -77,7 +77,7 @@ mod tests {
     assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);
 
     #[test]
-    fn test_builder() {
+    fn builder() {
         let expected = EmbedAuthor {
             icon_url: Some("https://example.com/1.png".to_owned()),
             name: "an author".to_owned(),

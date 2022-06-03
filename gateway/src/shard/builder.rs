@@ -1,6 +1,7 @@
 use super::{Config, Events, Shard, ShardStartError, ShardStartErrorType};
 use crate::EventTypeFlags;
 use std::{
+    borrow::Cow,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     sync::Arc,
@@ -96,9 +97,10 @@ pub enum ShardIdErrorType {
 /// [`large_threshold`]: Self::large_threshold
 /// [`shard`]: Self::shard
 #[derive(Debug)]
+#[must_use = "has no effect if not built"]
 pub struct ShardBuilder {
     event_types: EventTypeFlags,
-    pub(crate) gateway_url: Option<Box<str>>,
+    pub(crate) gateway_url: Option<String>,
     pub(crate) http_client: Arc<Client>,
     identify_properties: Option<IdentifyProperties>,
     intents: Intents,
@@ -134,13 +136,13 @@ impl ShardBuilder {
         }
     }
 
-    /// # Panics
-    ///
-    /// Panics if `gateway_url` is [`None`]
     pub(crate) fn into_config(self) -> Config {
         Config {
             event_types: self.event_types,
-            gateway_url: self.gateway_url.unwrap(),
+            gateway_url: match self.gateway_url {
+                Some(s) => Cow::Owned(s),
+                None => Cow::Borrowed(crate::URL),
+            },
             http_client: self.http_client,
             identify_properties: self.identify_properties,
             intents: self.intents,
@@ -165,32 +167,19 @@ impl ShardBuilder {
     ///
     /// # Errors
     ///
-    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
-    /// the gateway URL couldn't be retrieved from the HTTP API.
-    pub async fn build(mut self) -> Result<(Shard, Events), ShardStartError> {
-        if self.gateway_url.is_none() {
-            // By making an authenticated gateway information retrieval request
-            // we're also validating the configured token.
-            self.gateway_url = Some(
-                self.http_client
-                    .gateway()
-                    .authed()
-                    .exec()
-                    .await
-                    .map_err(|source| ShardStartError {
-                        source: Some(Box::new(source)),
-                        kind: ShardStartErrorType::RetrievingGatewayUrl,
-                    })?
-                    .model()
-                    .await
-                    .map_err(|source| ShardStartError {
-                        source: Some(Box::new(source)),
-                        kind: ShardStartErrorType::RetrievingGatewayUrl,
-                    })?
-                    .url
-                    .into_boxed_str(),
-            );
-        }
+    /// Returns a [`ShardStartErrorType::InvalidToken`] error type if
+    /// the token failed validation.
+    pub async fn build(self) -> Result<(Shard, Events), ShardStartError> {
+        // Authenticate the token
+        self.http_client
+            .gateway()
+            .authed()
+            .exec()
+            .await
+            .map_err(|source| ShardStartError {
+                source: Some(Box::new(source)),
+                kind: ShardStartErrorType::InvalidToken,
+            })?;
 
         Ok(Shard::new_with_config(self.into_config()))
     }
@@ -203,19 +192,18 @@ impl ShardBuilder {
     /// [`EventTypeFlags::SHARD_PAYLOAD`] is enabled.
     ///
     /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
-    #[must_use = "has no effect if not built"]
     pub const fn event_types(mut self, event_types: EventTypeFlags) -> Self {
         self.event_types = event_types;
 
         self
     }
 
-    /// Set the URL used for connecting to Discord's gateway
+    /// Set the proxy URL for connecting to the gateway.
     ///
-    /// Default is to fetch it from the HTTP API.
-    #[must_use = "has no effect if not built"]
+    /// Default is to use Discord's gateway URL.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
-        self.gateway_url = Some(gateway_url.into_boxed_str());
+        self.gateway_url = Some(gateway_url);
 
         self
     }
@@ -225,7 +213,6 @@ impl ShardBuilder {
     ///
     /// Default is a new, unconfigured instance of an HTTP client.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
         self.http_client = http_client;
 
@@ -255,7 +242,6 @@ impl ShardBuilder {
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn identify_properties(mut self, identify_properties: IdentifyProperties) -> Self {
         self.identify_properties = Some(identify_properties);
 
@@ -277,7 +263,6 @@ impl ShardBuilder {
     ///
     /// Panics if the provided value is below 50 or above 250.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         match large_threshold {
             0..=49 => panic!("provided large threshold value {large_threshold} is fewer than 50"),
@@ -324,7 +309,6 @@ impl ShardBuilder {
     /// # Ok(()) }
     ///
     /// ```
-    #[must_use = "has no effect if not built"]
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.presence.replace(presence);
 
@@ -342,7 +326,6 @@ impl ShardBuilder {
     ///
     /// [`Cluster`]: crate::cluster::Cluster
     /// [`queue`]: crate::queue
-    #[must_use = "has no effect if not built"]
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
         self.queue = queue;
 
@@ -356,7 +339,6 @@ impl ShardBuilder {
     ///
     /// Defaults to being enabled.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "has no effect if not built"]
     pub fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
         self.ratelimit_payloads = ratelimit_payloads;
 

@@ -782,7 +782,7 @@ mod tests {
     assert_impl_all!(Embed: TryFrom<EmbedBuilder>);
 
     #[test]
-    fn test_color_error() {
+    fn color_error() {
         assert!(matches!(
             EmbedBuilder::new().color(0).build().unwrap_err().kind(),
             EmbedErrorType::ColorZero
@@ -795,7 +795,7 @@ mod tests {
     }
 
     #[test]
-    fn test_description_error() {
+    fn description_error() {
         assert!(matches!(
             EmbedBuilder::new().description("").build().unwrap_err().kind(),
             EmbedErrorType::DescriptionEmpty { description }
@@ -810,7 +810,7 @@ mod tests {
     }
 
     #[test]
-    fn test_title_error() {
+    fn title_error() {
         assert!(matches!(
             EmbedBuilder::new().title("").build().unwrap_err().kind(),
             EmbedErrorType::TitleEmpty { title }
@@ -825,7 +825,7 @@ mod tests {
     }
 
     #[test]
-    fn test_builder() {
+    fn builder() {
         let footer_image = ImageSource::url(
             "https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png",
         )

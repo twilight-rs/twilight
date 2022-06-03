@@ -67,7 +67,6 @@ impl<'de> Deserialize<'de> for CommandPermissions {
             }
             CommandPermissionsDataType::Channel => {
                 let id = data.id.cast();
-                #[cfg(feature = "tracing")]
                 tracing::trace!(id = %id.get(), kind = ?data.kind);
 
                 CommandPermissionsType::Channel(id)
@@ -108,7 +107,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_command_permissions() {
+    fn command_permissions() {
         let value = CommandPermissions {
             id: CommandPermissionsType::Role(Id::new(100)),
             permission: true,

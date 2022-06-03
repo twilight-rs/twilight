@@ -1,19 +1,3 @@
-//! # twilight-http-ratelimiting
-//!
-//! Ratelimiting functionality for HTTP requests.
-//!
-//! Discord ratelimits requests to the HTTP API both globally and per-route.
-//! For more information on the specifics, please take a look at
-//! [Discord's documentation].
-//!
-//! This crate provides a common [`Ratelimiter`] trait that all ratelimiter
-//! implementations need to implement.
-//!
-//! It also ships a default implementation, [`InMemoryRatelimiter`], that manages
-//! the bucket states in memory.
-//!
-//! [Discord's documentation]: https://discord.com/developers/docs/topics/rate-limits
-
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -26,6 +10,7 @@
     unsafe_code,
     unused
 )]
+#![doc = include_str!("../README.md")]
 #![allow(
     clippy::module_name_repetitions,
     clippy::semicolon_if_nothing_returned,
@@ -110,7 +95,7 @@ pub type GenericError = Box<dyn Error + Send + Sync>;
 pub type GetBucketFuture =
     Pin<Box<dyn Future<Output = Result<Option<Bucket>, GenericError>> + Send + 'static>>;
 
-/// Future returned by [`Ratelimiter::globally_locked`].
+/// Future returned by [`Ratelimiter::is_globally_locked`].
 pub type IsGloballyLockedFuture =
     Pin<Box<dyn Future<Output = Result<bool, GenericError>> + Send + 'static>>;
 
@@ -147,7 +132,7 @@ pub trait Ratelimiter: Debug + Send + Sync {
     fn bucket(&self, path: &Path) -> GetBucketFuture;
 
     /// Whether the ratelimiter is currently globally locked.
-    fn globally_locked(&self) -> IsGloballyLockedFuture;
+    fn is_globally_locked(&self) -> IsGloballyLockedFuture;
 
     /// Determine if the ratelimiter has a bucket for the given path.
     fn has(&self, path: &Path) -> HasBucketFuture;

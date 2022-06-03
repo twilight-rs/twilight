@@ -298,7 +298,7 @@ mod tests {
     }
 
     #[test]
-    fn test_eq_member() {
+    fn eq_member() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
         let member = Member {
@@ -319,7 +319,7 @@ mod tests {
     }
 
     #[test]
-    fn test_eq_partial_member() {
+    fn eq_partial_member() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
         let member = PartialMember {

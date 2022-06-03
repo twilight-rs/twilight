@@ -29,7 +29,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_guild_preview() {
+    fn guild_preview() {
         let value = GuildPreview {
             approximate_member_count: 1_000,
             approximate_presence_count: 500,

@@ -16,7 +16,10 @@ pub struct GuildIntegration {
     pub application: Option<IntegrationApplication>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_emoticons: Option<bool>,
-    pub enabled: bool,
+    /// Whether the integration has been enabled.
+    ///
+    /// May be provided on some non-Discord application integrations.
+    pub enabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_behavior: Option<IntegrationExpireBehavior>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,7 +60,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild_integration() -> Result<(), TimestampParseError> {
+    fn guild_integration() -> Result<(), TimestampParseError> {
         let synced_at = Timestamp::from_str("2021-01-01T01:01:01+00:00")?;
 
         let value = GuildIntegration {
@@ -67,7 +70,7 @@ mod tests {
             },
             application: None,
             enable_emoticons: Some(true),
-            enabled: true,
+            enabled: Some(true),
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
@@ -119,6 +122,7 @@ mod tests {
                 Token::Some,
                 Token::Bool(true),
                 Token::Str("enabled"),
+                Token::Some,
                 Token::Bool(true),
                 Token::Str("expire_behavior"),
                 Token::Some,
@@ -181,7 +185,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild_integration_complete() -> Result<(), TimestampParseError> {
+    fn guild_integration_complete() -> Result<(), TimestampParseError> {
         let synced_at = Timestamp::from_str("2021-01-01T01:01:01+00:00")?;
 
         let value = GuildIntegration {
@@ -197,7 +201,7 @@ mod tests {
                 name: "Twilight".to_string(),
             }),
             enable_emoticons: Some(true),
-            enabled: true,
+            enabled: None,
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
@@ -265,7 +269,7 @@ mod tests {
                 Token::Some,
                 Token::Bool(true),
                 Token::Str("enabled"),
-                Token::Bool(true),
+                Token::None,
                 Token::Str("expire_behavior"),
                 Token::Some,
                 Token::U8(1),

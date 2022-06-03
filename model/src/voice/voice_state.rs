@@ -298,7 +298,7 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    fn test_voice_state() {
+    fn voice_state() {
         let value = VoiceState {
             channel_id: Some(Id::new(1)),
             deaf: false,
@@ -359,7 +359,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_voice_state_complete() -> Result<(), TimestampParseError> {
+    fn voice_state_complete() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
         let request_to_speak_timestamp = Timestamp::from_str("2021-04-21T22:16:50.000000+00:00")?;

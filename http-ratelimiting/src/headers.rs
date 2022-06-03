@@ -641,7 +641,7 @@ mod tests {
     assert_impl_all!(RatelimitHeaders: Clone, Debug, Send, Sync);
 
     #[test]
-    fn test_global() -> Result<(), Box<dyn Error>> {
+    fn global() -> Result<(), Box<dyn Error>> {
         let map = {
             let mut map = HeaderMap::new();
             map.insert(
@@ -664,7 +664,7 @@ mod tests {
     }
 
     #[test]
-    fn test_global_with_scope() -> Result<(), Box<dyn Error>> {
+    fn global_with_scope() -> Result<(), Box<dyn Error>> {
         let map = {
             let mut map = HeaderMap::new();
             map.insert(
@@ -700,7 +700,7 @@ mod tests {
     }
 
     #[test]
-    fn test_present() -> Result<(), Box<dyn Error>> {
+    fn present() -> Result<(), Box<dyn Error>> {
         let map = {
             let mut map = HeaderMap::new();
             map.insert(
@@ -768,7 +768,7 @@ mod tests {
     }
 
     #[test]
-    fn test_name() {
+    fn name() {
         assert_eq!("x-ratelimit-bucket", HeaderName::BUCKET);
         assert_eq!("x-ratelimit-global", HeaderName::GLOBAL);
         assert_eq!("x-ratelimit-limit", HeaderName::LIMIT);
@@ -788,7 +788,7 @@ mod tests {
     }
 
     #[test]
-    fn test_type() {
+    fn type_name() {
         assert_eq!("bool", HeaderType::Bool.name());
         assert_eq!("float", HeaderType::Float.name());
         assert_eq!("integer", HeaderType::Integer.name());

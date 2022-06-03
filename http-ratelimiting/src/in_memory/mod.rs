@@ -124,7 +124,7 @@ impl Ratelimiter for InMemoryRatelimiter {
             )
     }
 
-    fn globally_locked(&self) -> IsGloballyLockedFuture {
+    fn is_globally_locked(&self) -> IsGloballyLockedFuture {
         Box::pin(future::ok(self.global.is_locked()))
     }
 

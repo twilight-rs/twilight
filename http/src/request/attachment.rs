@@ -139,7 +139,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_push_digits() {
+    fn push_digits_limits() {
         let min_d = b"0";
         let max_d = b"18446744073709551615";
 
@@ -154,7 +154,7 @@ mod tests {
     }
 
     #[test]
-    fn test_num_digits() {
+    fn num_digits_count() {
         assert_eq!(1, num_digits(0));
         assert_eq!(1, num_digits(1));
         assert_eq!(2, num_digits(10));

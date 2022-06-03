@@ -14,7 +14,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_activity_secrets() {
+    fn activity_secrets() {
         let value = ActivityParty {
             id: Some("party id".to_owned()),
             size: Some([2, 6]),

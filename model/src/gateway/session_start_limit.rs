@@ -20,7 +20,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_connection_info() {
+    fn connection_info() {
         let value = SessionStartLimit {
             max_concurrency: 16,
             remaining: 998,

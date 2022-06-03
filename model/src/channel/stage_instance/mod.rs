@@ -22,13 +22,13 @@ pub struct StageInstance {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::{PrivacyLevel, StageInstance};
     use crate::id::Id;
     use serde_test::Token;
 
     #[test]
-    fn test_stage_instance() {
+    fn stage_instance() {
         let value = StageInstance {
             channel_id: Id::new(100),
             guild_id: Id::new(200),

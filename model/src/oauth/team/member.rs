@@ -20,7 +20,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_team_member() {
+    fn team_member() {
         let value = TeamMember {
             membership_state: TeamMembershipState::Accepted,
             permissions: vec!["*".to_owned()],

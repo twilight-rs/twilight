@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -21,11 +21,11 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct UpdateWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a [u8]>>,
+    avatar: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<NullableField<&'a str>>,
+    name: Option<&'a str>,
 }
 
 /// Update a webhook by ID.
@@ -59,8 +59,8 @@ impl<'a> UpdateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
-        self.fields.avatar = Some(NullableField(avatar));
+    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }
@@ -80,12 +80,10 @@ impl<'a> UpdateWebhook<'a> {
     /// invalid.
     ///
     /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
-    pub fn name(mut self, name: Option<&'a str>) -> Result<Self, ValidationError> {
-        if let Some(name) = name {
-            validate_webhook_username(name)?;
-        }
+    pub fn name(mut self, name: &'a str) -> Result<Self, ValidationError> {
+        validate_webhook_username(name)?;
 
-        self.fields.name = Some(NullableField(name));
+        self.fields.name = Some(name);
 
         Ok(self)
     }
@@ -129,5 +127,72 @@ impl TryIntoRequest for UpdateWebhook<'_> {
         }
 
         Ok(request.build())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_update_webhook() -> Result<(), Box<dyn Error>> {
+        const WEBHOOK_ID: Id<WebhookMarker> = Id::new(1);
+        const CHANNEL_ID: Id<ChannelMarker> = Id::new(2);
+
+        let client = Client::new("token".into());
+
+        {
+            let expected = r#"{}"#;
+            let actual = UpdateWebhook::new(&client, WEBHOOK_ID).try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"}"#;
+            let actual = UpdateWebhook::new(&client, WEBHOOK_ID)
+            .avatar(Some("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI"))
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+
+            let expected = r#"{"avatar":null}"#;
+            let actual = UpdateWebhook::new(&client, WEBHOOK_ID)
+                .avatar(None)
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"channel_id":"2"}"#;
+            let actual = UpdateWebhook::new(&client, WEBHOOK_ID)
+                .channel_id(CHANNEL_ID)
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"name":"Captain Hook"}"#;
+            let actual = UpdateWebhook::new(&client, WEBHOOK_ID)
+                .name("Captain Hook")?
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":null,"channel_id":"2","name":"Captain Hook"}"#;
+            let actual = UpdateWebhook::new(&client, WEBHOOK_ID)
+                .avatar(None)
+                .channel_id(CHANNEL_ID)
+                .name("Captain Hook")?
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+        Ok(())
     }
 }

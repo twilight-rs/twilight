@@ -160,7 +160,7 @@ mod tests {
     );
 
     #[test]
-    fn test_conversion() -> Result<(), Box<dyn Error>> {
+    fn conversion() -> Result<(), Box<dyn Error>> {
         assert_eq!(Stage::Connected, Stage::try_from(0)?);
         assert_eq!(Stage::Disconnected, Stage::try_from(1)?);
         assert_eq!(Stage::Handshaking, Stage::try_from(2)?);
@@ -172,7 +172,7 @@ mod tests {
     }
 
     #[test]
-    fn test_formatting() {
+    fn formatting() {
         assert_eq!("Connected", Stage::Connected.to_string());
         assert_eq!("Disconnected", Stage::Disconnected.to_string());
         assert_eq!("Handshaking", Stage::Handshaking.to_string());

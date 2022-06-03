@@ -62,7 +62,7 @@ impl<'a> CreateGuildStageInstanceScheduledEvent<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn image(mut self, image: &'a [u8]) -> Self {
+    pub const fn image(mut self, image: &'a str) -> Self {
         self.0.fields.image = Some(image);
 
         self
