@@ -22,7 +22,7 @@ tokio = { default-features = false, features = ["macros", "rt-multi-thread"], ve
 twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory" }
 twilight-embed-builder = { default-features = false, path = "../embed-builder" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
-twilight-gateway-queue = { default-features = false, features = ["rustls-native-roots"], path = "../gateway-queue" }
+twilight-gateway-queue = { default-features = false, path = "../gateway-queue" }
 twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http" }
 twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
 twilight-lavalink = { default-features = false, path = "../lavalink" }

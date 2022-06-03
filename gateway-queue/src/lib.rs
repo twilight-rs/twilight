@@ -2,24 +2,12 @@
 #![deny(unsafe_code)]
 #![doc = include_str!("../README.md")]
 
-#[cfg(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
+#[cfg(feature = "twilight-http")]
 mod day_limiter;
-#[cfg(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
+#[cfg(feature = "twilight-http")]
 mod large_bot_queue;
 
-#[cfg(any(
-    feature = "native",
-    feature = "rustls-native-roots",
-    feature = "rustls-webpki-roots"
-))]
+#[cfg(feature = "twilight-http")]
 pub use large_bot_queue::LargeBotQueue;
 
 use std::{

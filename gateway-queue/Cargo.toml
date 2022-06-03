@@ -26,10 +26,7 @@ twilight-http = { default-features = false, optional = true, path = "../http" }
 static_assertions = { default-features = false, version = "1" }
 
 [features]
-default = ["rustls-native-roots"]
-native = ["dep:twilight-http", "twilight-http?/native"]
-rustls-native-roots = ["dep:twilight-http", "twilight-http?/rustls-native-roots"]
-rustls-webpki-roots = ["dep:twilight-http", "twilight-http?/rustls-webpki-roots"]
+default = ["twilight-http"]
 
 [package.metadata.docs.rs]
 all-features = true
