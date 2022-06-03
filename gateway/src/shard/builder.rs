@@ -101,7 +101,7 @@ pub enum ShardIdErrorType {
 #[must_use = "has no effect if not built"]
 pub struct ShardBuilder {
     event_types: EventTypeFlags,
-    pub(crate) gateway_url: Option<String>,
+    gateway_url: Option<String>,
     #[cfg(feature = "twilight-http")]
     pub(crate) http_client: Arc<Client>,
     identify_properties: Option<IdentifyProperties>,

@@ -99,7 +99,7 @@ This should be preferred over `rustls-native-roots` in Docker containers based o
 ### HTTP
 
 The `twilight-http` feature enables the gateway to validate its token at startup
-and for the cluster to retrieve Discord's recommended shard count at runtime.
+and for the clusters to retrieve Discord's recommended shard count at runtime.
 
 `twilight-http` is enabled by default.
 

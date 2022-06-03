@@ -87,7 +87,6 @@ impl ClusterBuilder {
     /// Panics if the `twilight-http` feature is disabled and [`ShardScheme`]
     /// is unset.
     ///
-    /// [`ClusterStartErrorType::RetrievingGatewayInfo`]: super::ClusterStartErrorType::RetrievingGatewayInfo
     /// [`ClusterStartErrorType::AutoSharding`]: super::ClusterStartErrorType::AutoSharding
     #[cfg_attr(not(feature = "twilight-http"), allow(unused_mut))]
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
