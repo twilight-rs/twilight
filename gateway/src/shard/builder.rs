@@ -146,8 +146,6 @@ impl ShardBuilder {
                 Some(s) => Cow::Owned(s),
                 None => Cow::Borrowed(crate::URL),
             },
-            #[cfg(feature = "twilight-http")]
-            http_client: self.http_client,
             identify_properties: self.identify_properties,
             intents: self.intents,
             large_threshold: self.large_threshold,
