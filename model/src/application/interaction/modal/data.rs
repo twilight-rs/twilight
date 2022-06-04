@@ -95,7 +95,7 @@ mod tests {
     );
 
     #[test]
-    fn test_modal_data() {
+    fn modal_data() {
         let value = ModalInteractionData {
             custom_id: "test-modal".to_owned(),
             components: Vec::from([ModalInteractionDataActionRow {

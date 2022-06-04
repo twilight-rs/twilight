@@ -89,7 +89,7 @@ mod tests {
     };
 
     #[test]
-    fn test_interaction_create() -> Result<(), ImageHashParseError> {
+    fn interaction_create() -> Result<(), ImageHashParseError> {
         let timestamp = Timestamp::from_secs(1_632_072_645).expect("non zero");
         // let avatar1 = ImageHash::parse(b"1ef6bca4fddaa303a9cd32dd70fb395d")?;
         let avatar2 = ImageHash::parse(b"3a43231a99f4dfcf0fd94d1d8defd301")?;

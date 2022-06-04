@@ -258,7 +258,7 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_max_age() -> Result<(), Box<dyn Error>> {
+    fn max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let mut builder = CreateInvite::new(&client, Id::new(1)).max_age(0)?;
         assert_eq!(Some(0), builder.fields.max_age);
@@ -270,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn test_max_uses() -> Result<(), Box<dyn Error>> {
+    fn max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let mut builder = CreateInvite::new(&client, Id::new(1)).max_uses(0)?;
         assert_eq!(Some(0), builder.fields.max_uses);

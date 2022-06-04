@@ -1,6 +1,7 @@
 use rand::{distributions::Alphanumeric, Rng};
 
 #[derive(Clone, Debug)]
+#[must_use = "has no effect if not built into a Form"]
 pub struct Form {
     boundary: [u8; 15],
     buffer: Vec<u8>,
@@ -38,7 +39,6 @@ impl Form {
         content_type
     }
 
-    #[must_use = "has no effect if not built into a Form"]
     pub fn part(mut self, name: &[u8], value: &[u8]) -> Self {
         // Write the Content-Disposition header.
         self.buffer.extend(Self::NEWLINE);
@@ -58,7 +58,6 @@ impl Form {
         self
     }
 
-    #[must_use = "has no effect if not built into a Form"]
     pub fn file_part(mut self, name: &[u8], filename: &[u8], value: &[u8]) -> Self {
         // Write the Content-Disposition header.
         self.buffer.extend(Self::NEWLINE);
@@ -86,7 +85,6 @@ impl Form {
         self.buffer.len() + Self::BOUNDARY_TERMINATOR.len()
     }
 
-    #[must_use = "has no effect if not built into a Form"]
     pub fn json_part(mut self, name: &[u8], value: &[u8]) -> Self {
         // Write the Content-Disposition header.
         self.buffer.extend(Self::NEWLINE);
@@ -145,7 +143,7 @@ mod tests {
     use std::str;
 
     #[test]
-    fn test_form_builder() {
+    fn form_builder() {
         let form = Form::new()
             .json_part(b"payload_json", b"json_value")
             .file_part(b"files[0]", b"filename.jpg", b"file_value");

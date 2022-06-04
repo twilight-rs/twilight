@@ -17,7 +17,7 @@ pub use self::{
 #[cfg(tests)]
 mod tests {
     #[test]
-    fn test_reexports() {
+    fn reexports() {
         use super::{CachedEmoji, CachedGuild, CachedMember, CachedPresence, CachedVoiceState};
     }
 }

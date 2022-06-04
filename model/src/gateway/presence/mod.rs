@@ -293,7 +293,7 @@ mod tests {
     //
     // Can't test seeded deserializers with serde_test.
     #[test]
-    fn test_presence_map_guild_id_default() {
+    fn presence_map_guild_id_default() {
         let input = r#"[{
             "user": {
                 "id": "1"

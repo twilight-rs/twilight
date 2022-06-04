@@ -160,7 +160,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_message_deserialization() -> Result<(), TimestampParseError> {
+    fn message_deserialization() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
 
@@ -344,7 +344,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_message_deserialization_complete() -> Result<(), TimestampParseError> {
+    fn message_deserialization_complete() -> Result<(), TimestampParseError> {
         let edited_timestamp = Timestamp::from_str("2021-08-10T12:41:51.602000+00:00")?;
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");

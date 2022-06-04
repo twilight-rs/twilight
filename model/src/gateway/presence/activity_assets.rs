@@ -18,7 +18,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_activity_secrets() {
+    fn activity_secrets() {
         let value = ActivityAssets {
             large_image: Some("large image hash".to_owned()),
             large_text: Some("large image text".to_owned()),

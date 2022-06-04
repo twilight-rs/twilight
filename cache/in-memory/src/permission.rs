@@ -861,7 +861,7 @@ mod tests {
     ///
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
-    fn test_root_errors() {
+    fn root_errors() {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
         assert!(matches!(
@@ -887,7 +887,7 @@ mod tests {
     ///
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
-    fn test_root() -> Result<(), Box<dyn Error>> {
+    fn root() -> Result<(), Box<dyn Error>> {
         let joined_at = Timestamp::from_str("2021-09-19T14:17:32.000000+00:00")?;
 
         let cache = InMemoryCache::new();
@@ -932,7 +932,7 @@ mod tests {
     ///
     /// [`in_channel`]: super::InMemoryCachePermissions::in_channel
     #[test]
-    fn test_in_channel() -> Result<(), Box<dyn Error>> {
+    fn in_channel() -> Result<(), Box<dyn Error>> {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
 
@@ -994,7 +994,7 @@ mod tests {
     /// [`in_channel`]: super::InMemoryCachePermissions::in_channel
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
-    fn test_owner() -> Result<(), Box<dyn Error>> {
+    fn owner() -> Result<(), Box<dyn Error>> {
         let cache = InMemoryCache::new();
         let permissions = cache.permissions();
         cache.update(&GuildCreate(base_guild()));
@@ -1021,7 +1021,7 @@ mod tests {
     /// [`in_channel`]: super::InMemoryCachePermissions::in_channel
     /// [`root`]: super::InMemoryCachePermissions::root
     #[test]
-    fn test_member_communication_disabled() -> Result<(), Box<dyn Error>> {
+    fn member_communication_disabled() -> Result<(), Box<dyn Error>> {
         fn acceptable_time(in_future: bool) -> Result<Timestamp, Box<dyn Error>> {
             const TIME_RANGE: Duration = Duration::from_secs(60);
 

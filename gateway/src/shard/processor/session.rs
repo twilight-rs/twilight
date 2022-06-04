@@ -280,7 +280,7 @@ fn available_commands_per_interval(heartbeat_interval: u64) -> u8 {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_heartbeats_per_reset() {
+    fn heartbeats_per_reset() {
         assert_eq!(118, super::available_commands_per_interval(60_000));
         assert_eq!(116, super::available_commands_per_interval(42_500));
         assert_eq!(116, super::available_commands_per_interval(30_000));

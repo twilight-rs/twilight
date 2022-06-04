@@ -132,7 +132,7 @@ use twilight_http::Client as HttpClient;
 use twilight_model::gateway::Intents;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
 
     // Use intents to only receive guild message events.

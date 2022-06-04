@@ -174,7 +174,7 @@ mod tests {
     );
 
     #[test]
-    fn test_role() {
+    fn role() {
         let role = Role {
             color: 0,
             hoist: true,

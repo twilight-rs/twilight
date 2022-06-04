@@ -102,7 +102,7 @@ mod tests {
     /// sticker cache by testing their identity, and that the map of a guild's
     /// sticker associated IDs contains all stickers.
     #[test]
-    fn test_cache_stickers() {
+    fn cache_stickers() {
         let cache = cache_with_stickers();
         assert_eq!(cache.stickers.len(), 2);
         let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
@@ -135,7 +135,7 @@ mod tests {
     /// cached and a new list of stickers with only "foo" is cached, then "bar"
     /// will be removed.
     #[test]
-    fn test_cache_stickers_removal() {
+    fn cache_stickers_removal() {
         let cache = cache_with_stickers();
         let one = test::sticker(STICKER_ONE_ID, GUILD_ID);
         cache.cache_stickers(GUILD_ID, Vec::from([one]));

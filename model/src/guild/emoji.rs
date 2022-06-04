@@ -36,7 +36,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_emoji() {
+    fn emoji() {
         let emoji = Emoji {
             animated: false,
             available: true,
@@ -112,7 +112,7 @@ mod tests {
     }
 
     #[test]
-    fn test_emoji_complete() {
+    fn emoji_complete() {
         let emoji = Emoji {
             animated: false,
             available: true,

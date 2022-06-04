@@ -37,7 +37,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_message_interaction() -> Result<(), Box<dyn Error>> {
+    fn message_interaction() -> Result<(), Box<dyn Error>> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value = MessageInteraction {

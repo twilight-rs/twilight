@@ -15,7 +15,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&MessageActivityType::Join, &[Token::U8(1)]);
         serde_test::assert_tokens(&MessageActivityType::Spectate, &[Token::U8(2)]);
         serde_test::assert_tokens(&MessageActivityType::Listen, &[Token::U8(3)]);

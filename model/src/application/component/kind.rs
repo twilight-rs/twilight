@@ -87,14 +87,14 @@ mod tests {
     const_assert_eq!(3, ComponentType::SelectMenu as u8);
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&ComponentType::ActionRow, &[Token::U8(1)]);
         serde_test::assert_tokens(&ComponentType::Button, &[Token::U8(2)]);
         serde_test::assert_tokens(&ComponentType::SelectMenu, &[Token::U8(3)]);
     }
 
     #[test]
-    fn test_names() {
+    fn names() {
         assert_eq!("ActionRow", ComponentType::ActionRow.name());
         assert_eq!("Button", ComponentType::Button.name());
         assert_eq!("SelectMenu", ComponentType::SelectMenu.name());

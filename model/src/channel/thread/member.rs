@@ -68,7 +68,7 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    fn test_thread_member() -> Result<(), TimestampParseError> {
+    fn thread_member() -> Result<(), TimestampParseError> {
         const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
 
         let join_timestamp = Timestamp::from_str(DATETIME)?;

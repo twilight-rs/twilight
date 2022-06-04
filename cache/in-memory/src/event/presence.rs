@@ -48,7 +48,7 @@ mod tests {
     };
 
     #[test]
-    fn test_presence_update() {
+    fn presence_update() {
         let cache = InMemoryCache::new();
 
         let guild_id = Id::new(1);

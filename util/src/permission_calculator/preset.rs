@@ -100,7 +100,7 @@ mod tests {
     use twilight_model::guild::Permissions;
 
     #[test]
-    fn test_permissions_stage_omitted() {
+    fn permissions_stage_omitted() {
         let expected = Permissions::ADD_REACTIONS
             | Permissions::PRIORITY_SPEAKER
             | Permissions::STREAM
@@ -122,7 +122,7 @@ mod tests {
     }
 
     #[test]
-    fn test_permissions_text_omitted() {
+    fn permissions_text_omitted() {
         let expected = Permissions::CONNECT
             | Permissions::DEAFEN_MEMBERS
             | Permissions::MOVE_MEMBERS
@@ -137,7 +137,7 @@ mod tests {
     }
 
     #[test]
-    fn test_permissions_voice_omitted() {
+    fn permissions_voice_omitted() {
         let expected = Permissions::ADD_REACTIONS
             | Permissions::ATTACH_FILES
             | Permissions::EMBED_LINKS

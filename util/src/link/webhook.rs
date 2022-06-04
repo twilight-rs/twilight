@@ -169,7 +169,7 @@ mod tests {
     assert_impl_all!(WebhookParseError: Debug, Error, Send, Sync);
 
     #[test]
-    fn test_parse_no_token() {
+    fn parse_no_token() {
         assert_eq!(
             (Id::new(123), None),
             super::parse("https://discord.com/api/webhooks/123").unwrap(),
@@ -187,7 +187,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_with_token() {
+    fn parse_with_token() {
         assert_eq!(
             super::parse("https://discord.com/api/webhooks/456/token").unwrap(),
             (Id::new(456), Some("token")),
@@ -212,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_invalid() {
+    fn parse_invalid() {
         // Base URL is improper.
         assert!(matches!(
             super::parse("https://discord.com/foo/bar/456")

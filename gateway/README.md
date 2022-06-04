@@ -92,12 +92,12 @@ This should be preferred over `rustls-native-roots` in Docker containers based o
 zlib compression is enabled with one of the two `zlib` features described below.
 
 There are 2 zlib features `zlib-stock` and `zlib-simd`, if both are enabled it
-will use `zlib-stock`.
+will use `zlib-simd`.
 
 `zlib-stock` is enabled by default.
 
-Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
-fork of zlib that is faster and more effective, but it needs `cmake` to compile.
+Enabling `zlib-simd` will make the library use [`zlib-ng`] which is a modern
+fork of zlib that is faster and more efficient, but it needs `cmake` to compile.
 
 ### Metrics
 

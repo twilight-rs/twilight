@@ -14,7 +14,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_embed_field() {
+    fn embed_field() {
         let value = EmbedField {
             inline: true,
             name: "name".to_owned(),

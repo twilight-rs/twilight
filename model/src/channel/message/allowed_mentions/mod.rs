@@ -47,7 +47,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_minimal() {
+    fn minimal() {
         let value = AllowedMentions {
             parse: Vec::new(),
             users: Vec::new(),
@@ -71,7 +71,7 @@ mod tests {
     }
 
     #[test]
-    fn test_full() {
+    fn full() {
         let value = AllowedMentions {
             parse: vec![ParseTypes::Everyone],
             users: vec![Id::new(100)],

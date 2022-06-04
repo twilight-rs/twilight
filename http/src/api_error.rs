@@ -136,7 +136,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_api_error_deser() {
+    fn api_error_deser() {
         let expected = GeneralApiError {
             code: 10001,
             message: "Unknown account".to_owned(),
@@ -159,7 +159,7 @@ mod tests {
     }
 
     #[test]
-    fn test_api_error_message() {
+    fn api_error_message() {
         let expected = ApiError::Message(MessageApiError {
             embed: Some(
                 [
@@ -195,7 +195,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ratelimited_api_error() {
+    fn ratelimited_api_error() {
         let expected = RatelimitedApiError {
             global: true,
             message: "You are being rate limited.".to_owned(),
@@ -228,7 +228,7 @@ mod tests {
     ///
     /// [#1302]: https://github.com/twilight-rs/twilight/issues/1302
     #[test]
-    fn test_api_error_variant_ratelimited() {
+    fn api_error_variant_ratelimited() {
         let expected = ApiError::Ratelimited(RatelimitedApiError {
             global: false,
             message: "You are being rate limited.".to_owned(),

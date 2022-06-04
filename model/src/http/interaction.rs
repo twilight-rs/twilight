@@ -139,7 +139,7 @@ mod tests {
     );
 
     #[test]
-    fn test_interaction_response() {
+    fn interaction_response() {
         let value = InteractionResponse {
             kind: InteractionResponseType::ChannelMessageWithSource,
             data: Some(InteractionResponseData {
@@ -184,7 +184,7 @@ mod tests {
     }
 
     #[test]
-    fn test_interaction_response_with_attachments() {
+    fn interaction_response_with_attachments() {
         let value = InteractionResponse {
             kind: InteractionResponseType::ChannelMessageWithSource,
             data: Some(InteractionResponseData {
