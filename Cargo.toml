@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "cache/in-memory",
-    "embed-builder",
     "examples",
     "gateway",
     "gateway-queue",
