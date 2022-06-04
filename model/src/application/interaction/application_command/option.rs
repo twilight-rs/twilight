@@ -416,6 +416,7 @@ mod tests {
     #[test]
     fn with_option() {
         let value = CommandData {
+            guild_id: Some(Id::new(2)),
             id: Id::new(1),
             name: "permissions".to_owned(),
             kind: CommandType::ChatInput,
@@ -432,8 +433,12 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandData",
-                    len: 4,
+                    len: 5,
                 },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -463,6 +468,7 @@ mod tests {
     #[test]
     fn with_normal_option_and_autocomplete() {
         let value = CommandData {
+            guild_id: Some(Id::new(2)),
             id: Id::new(1),
             name: "permissions".to_owned(),
             kind: CommandType::ChatInput,
@@ -488,8 +494,12 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandData",
-                    len: 4,
+                    len: 5,
                 },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
