@@ -5,7 +5,7 @@ use crate::application::component::Component;
 /// Refer to [Discord Docs/Message Components] for additional information.
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#action-rows
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
 pub struct ActionRow {
     /// List of components in the action row.
     pub components: Vec<Component>,
