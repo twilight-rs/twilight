@@ -18,5 +18,14 @@ mod tests {
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(ActionRow: components);
-    assert_impl_all!(ActionRow: Clone, Debug, Default, Eq, Hash, PartialEq, Send, Sync);
+    assert_impl_all!(
+        ActionRow: Clone,
+        Debug,
+        Default,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Sync
+    );
 }
