@@ -14,10 +14,10 @@ pub struct EmbedAuthorBuilder(EmbedAuthor);
 
 impl EmbedAuthorBuilder {
     /// Create a new embed author builder.
-    pub const fn new(name: String) -> Self {
+    pub fn new(name: impl Into<String>) -> Self {
         Self(EmbedAuthor {
             icon_url: None,
-            name,
+            name: name.into(),
             proxy_icon_url: None,
             url: None,
         })
@@ -33,18 +33,6 @@ impl EmbedAuthorBuilder {
     /// Add an author icon.
     pub fn icon_url(mut self, image_source: ImageSource) -> Self {
         self.0.icon_url.replace(image_source.0);
-
-        self
-    }
-
-    /// The author's name.
-    ///
-    /// Refer to [`AUTHOR_NAME_LENGTH`] for the maximum number of UTF-16 code
-    /// points that can be in an author name.
-    ///
-    /// [`AUTHOR_NAME_LENGTH`]: twilight_validate::embed::AUTHOR_NAME_LENGTH
-    pub fn name(mut self, name: impl Into<String>) -> Self {
-        self.0.name = name.into();
 
         self
     }
@@ -86,7 +74,7 @@ mod tests {
         };
 
         let source = ImageSource::url("https://example.com/1.png").unwrap();
-        let actual = EmbedAuthorBuilder::new("an author".to_owned())
+        let actual = EmbedAuthorBuilder::new("an author")
             .icon_url(source)
             .url("https://example.com")
             .build();
