@@ -74,9 +74,9 @@ pub struct Channel {
     /// ID of the application that created the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
-    /// Bitrate setting of audio channels.
+    /// Bitrate (in bits) setting of audio channels.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
+    pub bitrate: Option<u32>,
     /// Default duration without messages before the channel's threads
     /// automatically archive.
     ///
@@ -145,10 +145,10 @@ pub struct Channel {
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     /// Sorting position of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub position: Option<i64>,
+    pub position: Option<i16>,
     /// Amount of seconds a user has to wait before sending another message.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rate_limit_per_user: Option<u64>,
+    pub rate_limit_per_user: Option<u32>,
     /// Recipients of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recipients: Option<Vec<User>>,
@@ -164,8 +164,10 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub topic: Option<String>,
     /// Number of users that may be in the channel.
+    ///
+    /// Zero refres to no limit.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_limit: Option<u64>,
+    pub user_limit: Option<u8>,
     /// Camera video quality mode of the channel.
     ///
     /// Defaults to [`VideoQualityMode::Auto`] for applicable channels.
@@ -378,7 +380,7 @@ mod tests {
             parent_id: Some(Id::new(2)),
             permission_overwrites: None,
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {
@@ -459,7 +461,7 @@ mod tests {
             parent_id: Some(Id::new(2)),
             permission_overwrites: None,
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {
@@ -546,7 +548,7 @@ mod tests {
                 kind: PermissionOverwriteType::Member,
             }])),
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {
