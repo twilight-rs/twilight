@@ -603,7 +603,7 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
     let host = format!("ws://{}", state.address);
     // All of these headers are required by either Lavalink or tungstenite
     let mut builder = Request::get(&host)
-        //.header("Host", host)
+        .header("Host", host)
         .header("Connection", "Upgrade")
         .header("Upgrade", "websocket")
         .header("Authorization", &state.authorization)
