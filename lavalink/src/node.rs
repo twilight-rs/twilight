@@ -41,7 +41,10 @@ use tokio::{
     time as tokio_time,
 };
 use tokio_tungstenite::{
-    tungstenite::{handshake::client::generate_key, Error as TungsteniteError, Message},
+    tungstenite::{
+        client::IntoClientRequest,
+        Error as TungsteniteError, Message,
+    },
     MaybeTlsStream, WebSocketStream,
 };
 use twilight_model::id::{marker::UserMarker, Id};
@@ -600,28 +603,21 @@ impl Drop for Connection {
 }
 
 fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
-    let host = format!("ws://{}", state.address);
-    // All of these headers are required by either Lavalink or tungstenite
-    let mut builder = Request::builder()
-        .method("GET")
-        .header("Host", state.address.to_string())
-        .header("Connection", "Upgrade")
-        .header("Upgrade", "websocket")
-        .header("Sec-WebSocket-Version", "13")
-        .header("Sec-WebSocket-Key", generate_key())
-        .header("User-Id", state.user_id.get())
-        .header("Authorization", &state.authorization)
-        .header("Num-Shards", state.shard_count)
-        .uri(host);
+    let mut request = format!("ws://{}", state.address).into_client_request()
+        .map_err(|source| NodeError {
+            kind: NodeErrorType::BuildingConnectionRequest,
+            source: Some(Box::new(source)),
+        })?;
+    let headers = request.headers_mut();
+    headers.insert("User-Id", state.user_id.get().into());
+    headers.insert("Authorization", state.authorization.parse().unwrap());
+    headers.insert("Num-Shards", state.shard_count.into());
 
     if state.resume.is_some() {
-        builder = builder.header("Resume-Key", state.address.to_string());
+        headers.insert("Resume-Key", state.address.to_string().parse().unwrap());
     }
 
-    builder.body(()).map_err(|source| NodeError {
-        kind: NodeErrorType::BuildingConnectionRequest,
-        source: Some(Box::new(source)),
-    })
+    Ok(request)
 }
 
 async fn reconnect(
