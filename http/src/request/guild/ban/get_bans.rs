@@ -98,6 +98,12 @@ impl<'a> GetBans<'a> {
     /// Defaults to Discord's default.
     ///
     /// Refer to [Discord Docs/Get Guild Bans] for more information.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`GetGuildBans`] if the limit is invalid.
+    ///
+    /// [`GetGuildBans`]: ValidationErrorType::GetGuildBans
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_guild_bans_limit(limit) {
             return Err(source);

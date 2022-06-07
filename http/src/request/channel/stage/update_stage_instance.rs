@@ -50,6 +50,12 @@ impl<'a> UpdateStageInstance<'a> {
     }
 
     /// Set the new topic of the instance.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`StageTopic`] if the length is invalid.
+    ///
+    /// [`StageTopic`]: ValidationErrorType::StageTopic
     pub fn topic(mut self, topic: &'a str) -> Result<Self, ValidationError> {
         validate_stage_topic(topic)?;
 

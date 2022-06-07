@@ -1686,8 +1686,17 @@ impl Client {
     /// To make a [`GuildPrivateThread`], the guild must also have the
     /// `PRIVATE_THREADS` feature.
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the channel's name's length is
+    /// incorrect.
+    ///
+    /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
+    ///
     /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
+    /// [`NameInvalid`]: ChannelValidationErrorType::NameInvalid
     /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
+    /// [`TypeInvalid`]: ChannelValidationErrorType::TypeInvalid
     /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread<'a>(
         &'a self,
@@ -1713,11 +1722,20 @@ impl Client {
     /// The thread's ID will be the same as its parent message. This ensures
     /// only one thread can be created per message.
     ///
-    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the channel's name's length is
+    /// incorrect.
+    ///
+    /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
+    ///
     /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
+    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
     /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+    /// [`NameInvalid`]: ChannelValidationErrorType::NameInvalid
     /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
+    /// [`TypeInvalid`]: ChannelValidationErrorType::TypeInvalid
     /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread_from_message<'a>(
         &'a self,
@@ -2306,6 +2324,18 @@ impl Client {
     /// println!("{sticker:#?}");
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`DescriptionInvalid`] if the length is invalid.
+    ///
+    /// Returns an error of type [`NameInvalid`] if the length is invalid.
+    ///
+    /// Returns an error of type [`TagsInvalid`] if the length is invalid.
+    ///
+    /// [`DescriptionInvalid`]: StickerValidationErrorType::DescriptionInvalid
+    /// [`NameInvalid`]: StickerValidationErrorType::NameInvalid
+    /// [`TagsInvalid`]: StickerValidationErrorType::TagsInvalid
     pub fn create_guild_sticker<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,

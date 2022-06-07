@@ -70,6 +70,12 @@ impl<'a> CreateGlobalUserCommand<'a> {
     /// Set the localization dictionary for the command name.
     ///
     /// Defaults to [`None`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameLengthInvalid`] if the name is invalid.
+    ///
+    /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
     pub fn name_localizations(
         mut self,
         localizations: &'a HashMap<String, String>,

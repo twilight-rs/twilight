@@ -80,6 +80,13 @@ impl<'a> UpdateGuildSticker<'a> {
         }
     }
 
+    /// Set the sticker's description.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`DescriptionInvalid`] if the length is invalid.
+    ///
+    /// [`DescriptionInvalid`]: StickerValidationErrorType::DescriptionInvalid
     pub fn description(mut self, description: &'a str) -> Result<Self, StickerValidationError> {
         validate_description(description)?;
 
@@ -88,6 +95,13 @@ impl<'a> UpdateGuildSticker<'a> {
         Ok(self)
     }
 
+    /// Set the sticker's name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the length is invalid.
+    ///
+    /// [`NameInvalid`]: StickerValidationErrorType::NameInvalid
     pub fn name(mut self, name: &'a str) -> Result<Self, StickerValidationError> {
         validate_name(name)?;
 
@@ -96,6 +110,13 @@ impl<'a> UpdateGuildSticker<'a> {
         Ok(self)
     }
 
+    /// Set the sticker's tags.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`TagsInvalid`] if the length is invalid.
+    ///
+    /// [`TagsInvalid`]: StickerValidationErrorType::TagsInvalid
     pub fn tags(mut self, tags: &'a str) -> Result<Self, StickerValidationError> {
         validate_tags(tags)?;
 
