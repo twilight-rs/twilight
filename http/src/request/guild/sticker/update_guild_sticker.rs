@@ -86,7 +86,7 @@ impl<'a> UpdateGuildSticker<'a> {
     ///
     /// Returns an error of type [`DescriptionInvalid`] if the length is invalid.
     ///
-    /// [`DescriptionInvalid`]: StickerValidationErrorType::DescriptionInvalid
+    /// [`DescriptionInvalid`]: twilight_validate::sticker::StickerValidationErrorType::DescriptionInvalid
     pub fn description(mut self, description: &'a str) -> Result<Self, StickerValidationError> {
         validate_description(description)?;
 
@@ -101,7 +101,7 @@ impl<'a> UpdateGuildSticker<'a> {
     ///
     /// Returns an error of type [`NameInvalid`] if the length is invalid.
     ///
-    /// [`NameInvalid`]: StickerValidationErrorType::NameInvalid
+    /// [`NameInvalid`]: twilight_validate::sticker::StickerValidationErrorType::NameInvalid
     pub fn name(mut self, name: &'a str) -> Result<Self, StickerValidationError> {
         validate_name(name)?;
 
@@ -116,7 +116,7 @@ impl<'a> UpdateGuildSticker<'a> {
     ///
     /// Returns an error of type [`TagsInvalid`] if the length is invalid.
     ///
-    /// [`TagsInvalid`]: StickerValidationErrorType::TagsInvalid
+    /// [`TagsInvalid`]: twilight_validate::sticker::StickerValidationErrorType::TagsInvalid
     pub fn tags(mut self, tags: &'a str) -> Result<Self, StickerValidationError> {
         validate_tags(tags)?;
 

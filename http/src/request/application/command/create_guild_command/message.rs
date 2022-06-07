@@ -70,7 +70,7 @@ impl<'a> CreateGuildMessageCommand<'a> {
     ///
     /// Returns an error of type [`NameLengthInvalid`] if the name is invalid.
     ///
-    /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
+    /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     pub fn name_localizations(
         mut self,
         localizations: &'a HashMap<String, String>,

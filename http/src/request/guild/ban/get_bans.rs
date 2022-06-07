@@ -103,7 +103,7 @@ impl<'a> GetBans<'a> {
     ///
     /// Returns an error of type [`GetGuildBans`] if the limit is invalid.
     ///
-    /// [`GetGuildBans`]: ValidationErrorType::GetGuildBans
+    /// [`GetGuildBans`]: twilight_validate::request::ValidationErrorType::GetGuildBans
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_guild_bans_limit(limit) {
             return Err(source);

@@ -119,7 +119,7 @@ impl<'a> CreateInvite<'a> {
     ///
     /// Returns an error of type [`InviteMaxAge`] if the age is invalid.
     ///
-    /// [`InviteMaxAge`]: ValidationErrorType::InviteMaxAge
+    /// [`InviteMaxAge`]: twilight_validate::request::ValidationErrorType::InviteMaxAge
     pub const fn max_age(mut self, max_age: u32) -> Result<Self, ValidationError> {
         if let Err(source) = validate_invite_max_age(max_age) {
             return Err(source);
@@ -161,7 +161,7 @@ impl<'a> CreateInvite<'a> {
     ///
     /// Returns an error of type [`InviteMaxUses`] if the uses is invalid.
     ///
-    /// [`InviteMaxUses`]: ValidationErrorType::InviteMaxUses
+    /// [`InviteMaxUses`]: twilight_validate::request::ValidationErrorType::InviteMaxUses
     pub const fn max_uses(mut self, max_uses: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_invite_max_uses(max_uses) {
             return Err(source);

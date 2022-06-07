@@ -111,7 +111,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     /// Returns an error of type [`DescriptionInvalid`] if the description is
     /// invalid.
     ///
-    /// [`DescriptionInvalid`]: CommandValidationErrorType::DescriptionInvalid
+    /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
     pub fn description_localizations(
         mut self,
         localizations: &'a HashMap<String, String>,
@@ -137,8 +137,8 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
     /// non-alphanumeric character or an uppercase character for which a
     /// lowercase variant exists.
     ///
-    /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
-    /// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
+    /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
+    /// [`NameCharacterInvalid`]: twilight_validate::command::CommandValidationErrorType::NameCharacterInvalid
     pub fn name_localizations(
         mut self,
         localizations: &'a HashMap<String, String>,

@@ -1694,9 +1694,9 @@ impl Client {
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
     /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
-    /// [`NameInvalid`]: ChannelValidationErrorType::NameInvalid
+    /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
     /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
-    /// [`TypeInvalid`]: ChannelValidationErrorType::TypeInvalid
+    /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread<'a>(
         &'a self,
@@ -1733,9 +1733,9 @@ impl Client {
     /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
     /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
-    /// [`NameInvalid`]: ChannelValidationErrorType::NameInvalid
+    /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
     /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
-    /// [`TypeInvalid`]: ChannelValidationErrorType::TypeInvalid
+    /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread_from_message<'a>(
         &'a self,
@@ -2333,9 +2333,9 @@ impl Client {
     ///
     /// Returns an error of type [`TagsInvalid`] if the length is invalid.
     ///
-    /// [`DescriptionInvalid`]: StickerValidationErrorType::DescriptionInvalid
-    /// [`NameInvalid`]: StickerValidationErrorType::NameInvalid
-    /// [`TagsInvalid`]: StickerValidationErrorType::TagsInvalid
+    /// [`DescriptionInvalid`]: twilight_validate::sticker::StickerValidationErrorType::DescriptionInvalid
+    /// [`NameInvalid`]: twilight_validate::sticker::StickerValidationErrorType::NameInvalid
+    /// [`TagsInvalid`]: twilight_validate::sticker::StickerValidationErrorType::TagsInvalid
     pub fn create_guild_sticker<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,
