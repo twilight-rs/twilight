@@ -373,8 +373,7 @@ pub struct ResumeSession {
 ///
 /// let (shard, mut events) = Shard::builder(token, Intents::GUILD_MESSAGES)
 ///     .event_types(event_types)
-///     .build()
-///     .await?;
+///     .build();
 ///
 /// // Start the shard.
 /// shard.start().await?;
@@ -582,7 +581,7 @@ impl Shard {
     /// let intents = Intents::GUILDS;
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let (shard, _events) = Shard::new(token, intents).await?;
+    /// let (shard, _events) = Shard::new(token, intents);
     /// shard.start().await?;
     ///
     /// let minimal_activity = MinimalActivity {
@@ -636,7 +635,7 @@ impl Shard {
     /// use twilight_gateway::{shard::{raw_message::Message, Shard}, Intents};
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let (shard, _) = Shard::new(token, Intents::GUILDS).await?;
+    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
     /// shard.start().await?;
     ///
     /// shard.send(Message::Ping(Vec::new())).await?;
@@ -657,7 +656,7 @@ impl Shard {
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let (shard, _) = Shard::new(token, Intents::GUILDS).await?;
+    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
     /// shard.start().await?;
     ///
     /// let close = CloseFrame::from((1000, ""));
