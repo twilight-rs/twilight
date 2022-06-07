@@ -97,8 +97,7 @@ impl UpdateCache for UserUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
+    use crate::{test, InMemoryCache};
 
     /// Test retrieval of the current user, notably that it doesn't simply
     /// panic or do anything funny. This is the only synchronous mutex that we
