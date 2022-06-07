@@ -113,7 +113,7 @@ impl ClusterBuilder {
             shard_scheme: self.shard_scheme.expect("always set"),
         };
 
-        Cluster::new_with_config(config, shard_config)
+        Ok(Cluster::new_with_config(config, &shard_config))
     }
 
     /// Retrieves the recommended shard count as a [`ShardScheme::Range`].
