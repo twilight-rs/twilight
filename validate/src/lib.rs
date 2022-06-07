@@ -1,6 +1,7 @@
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
+    clippy::missing_docs_in_private_items,
     clippy::pedantic,
     future_incompatible,
     missing_docs,
