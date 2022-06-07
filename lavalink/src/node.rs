@@ -339,8 +339,8 @@ impl Node {
     /// Returns an error of type [`BuildingConnectionRequest`] if the request
     /// failed to build.
     ///
-    /// Returns an error of type [`Unauthorized`] if the supplied authorization
-    /// is rejected by the node.
+    /// Returns an error of type [`Unauthorized`] if the given authorization for
+    /// the node is incorrect.
     ///
     /// [`Connecting`]: crate::node::NodeErrorType::Connecting
     /// [`BuildingConnectionRequest`]: crate::node::NodeErrorType::BuildingConnectionRequest
