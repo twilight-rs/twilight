@@ -269,7 +269,7 @@ impl Cluster {
         Self::builder(token, intents).build().await
     }
 
-    pub(super) async fn new_with_config(
+    pub(super) fn new_with_config(
         mut config: Config,
         shard_config: ShardConfig,
     ) -> Result<(Self, Events), ClusterStartError> {

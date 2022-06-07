@@ -425,7 +425,7 @@ impl Shard {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
     /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
-    /// let (shard, _) = Shard::new(token, intents).await?;
+    /// let (shard, _) = Shard::new(token, intents);
     /// shard.start().await?;
     ///
     /// tokio_time::sleep(Duration::from_secs(1)).await;
@@ -435,14 +435,9 @@ impl Shard {
     /// # Ok(()) }
     /// ```
     ///
-    /// # Errors
-    ///
-    /// Returns a [`ShardStartErrorType::InvalidToken`] error type if
-    /// the token failed validation.
-    ///
     /// [`start`]: Self::start
-    pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ShardStartError> {
-        Self::builder(token, intents).build().await
+    pub fn new(token: String, intents: Intents) -> (Self, Events) {
+        Self::builder(token, intents).build()
     }
 
     pub(crate) fn new_with_config(config: Config) -> (Self, Events) {
