@@ -1,4 +1,3 @@
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -7,11 +6,19 @@
     missing_docs,
     nonstandard_style,
     rust_2018_idioms,
+    rustdoc::broken_intra_doc_links,
     unsafe_code,
     unused
 )]
-#![doc = include_str!("../README.md")]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
+)]
 #![allow(clippy::semicolon_if_nothing_returned)]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![doc = include_str!("../README.md")]
 
 #[cfg(feature = "builder")]
 pub mod builder;
