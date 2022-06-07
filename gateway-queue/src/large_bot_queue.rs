@@ -36,7 +36,7 @@ impl LargeBotQueue {
 
             tokio::spawn(waiter(rx));
 
-            queues.push(tx)
+            queues.push(tx);
         }
 
         let limiter = DayLimiter::new(http).await.expect(
