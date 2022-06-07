@@ -15,7 +15,7 @@ impl UpdateCache for MessageCreate {
             self.guild_id,
             cache.wants(ResourceType::MEMBER),
         ) {
-            cache.cache_borrowed_partial_member(guild_id, member, self.author.id)
+            cache.cache_borrowed_partial_member(guild_id, member, self.author.id);
         }
 
         if !cache.wants(ResourceType::MESSAGE) {

@@ -81,8 +81,6 @@ mod tests {
 
     #[test]
     fn cache_emoji() {
-        let cache = InMemoryCache::new();
-
         // The user to do some of the inserts
         fn user_mod(id: Id<EmojiMarker>) -> Option<User> {
             if id.get() % 2 == 0 {
@@ -92,6 +90,8 @@ mod tests {
                 None
             }
         }
+
+        let cache = InMemoryCache::new();
 
         // Single inserts
         {
@@ -106,7 +106,7 @@ mod tests {
                 cache.cache_emoji(Id::new(1), emoji);
             }
 
-            for id in guild_1_emoji_ids.iter().cloned() {
+            for id in guild_1_emoji_ids.iter().copied() {
                 let global_emoji = cache.emoji(id);
                 assert!(global_emoji.is_some());
             }
@@ -131,7 +131,7 @@ mod tests {
                 .collect::<Vec<_>>();
             cache.cache_emojis(Id::new(2), guild_2_emojis);
 
-            for id in guild_2_emoji_ids.iter().cloned() {
+            for id in guild_2_emoji_ids.iter().copied() {
                 let global_emoji = cache.emoji(id);
                 assert!(global_emoji.is_some());
             }
