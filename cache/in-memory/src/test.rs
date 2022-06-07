@@ -182,7 +182,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
 pub fn current_user(id: u64) -> CurrentUser {
     CurrentUser {
-        accent_color: Some(16_711_680),
+        accent_color: Some(0xFF_00_00),
         avatar: None,
         banner: None,
         bot: true,
