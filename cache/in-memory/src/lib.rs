@@ -1,4 +1,3 @@
-#![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
@@ -17,6 +16,7 @@
     clippy::unnecessary_wraps,
     clippy::used_underscore_binding
 )]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 
 pub mod iter;
