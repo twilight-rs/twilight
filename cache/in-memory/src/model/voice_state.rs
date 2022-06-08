@@ -11,6 +11,7 @@ use twilight_model::{
 /// Represents a cached [`VoiceState`].
 ///
 /// [`VoiceState`]: twilight_model::voice::VoiceState
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
     channel_id: Id<ChannelMarker>,

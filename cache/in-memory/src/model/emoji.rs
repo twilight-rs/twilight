@@ -10,6 +10,7 @@ use twilight_model::{
 /// Represents a cached [`Emoji`].
 ///
 /// [`Emoji`]: twilight_model::guild::Emoji
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedEmoji {
     pub(crate) animated: bool,

@@ -88,6 +88,7 @@ mod tests {
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn interaction_create() -> Result<(), ImageHashParseError> {
         let timestamp = Timestamp::from_secs(1_632_072_645).expect("non zero");

@@ -132,7 +132,8 @@ impl CachedMember {
     }
 
     // clippy: the member field's destructor needs to drop
-    #[allow(clippy::missing_const_for_fn)]
+    // clippy: the contents of `fields` is consumed
+    #[allow(clippy::missing_const_for_fn, clippy::needless_pass_by_value)]
     pub(crate) fn from_interaction_member(
         guild_id: Id<GuildMarker>,
         user_id: Id<UserMarker>,
@@ -195,7 +196,7 @@ impl CachedMember {
             pending: false,
             premium_since,
             roles,
-            user_id: user.map(|user| user.id).unwrap_or(user_id),
+            user_id: user.map_or(user_id, |user| user.id),
         }
     }
 }

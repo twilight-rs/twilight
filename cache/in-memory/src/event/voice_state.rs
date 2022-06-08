@@ -90,15 +90,16 @@ impl UpdateCache for VoiceStateUpdate {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::*;
     use crate::test;
+    use std::str::FromStr;
     use twilight_model::{
+        guild::Member,
         id::{
             marker::{ChannelMarker, GuildMarker, UserMarker},
             Id,
         },
+        user::User,
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
@@ -281,7 +282,6 @@ mod tests {
     #[test]
     fn voice_states_members() -> Result<(), ImageHashParseError> {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
-        use twilight_model::{guild::member::Member, user::User};
 
         let cache = InMemoryCache::new();
 

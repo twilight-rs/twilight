@@ -120,7 +120,7 @@ mod tests {
                 .role(role.id)
                 .expect("Role missing from cache")
                 .resource()
-                == &role))
+                == &role));
         }
 
         // Bulk inserts
@@ -146,7 +146,7 @@ mod tests {
                 .role(role.id)
                 .expect("Role missing from cache")
                 .resource()
-                == &role))
+                == &role));
         }
     }
 }
