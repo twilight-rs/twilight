@@ -10,8 +10,13 @@
     unsafe_code,
     unused
 )]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
+)]
 #![doc = include_str!("../README.md")]
-#![allow(clippy::module_name_repetitions)]
 
 pub mod fmt;
 pub mod parse;
