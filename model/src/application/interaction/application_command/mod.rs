@@ -123,7 +123,6 @@ mod tests {
                 name: "search".to_owned(),
                 kind: CommandType::ChatInput,
                 options: Vec::from([CommandDataOption {
-                    focused: false,
                     name: "issue".to_owned(),
                     value: CommandOptionValue::Integer(1234),
                 }]),
