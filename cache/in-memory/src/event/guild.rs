@@ -12,6 +12,7 @@ use twilight_model::{
 };
 
 impl InMemoryCache {
+    #[allow(clippy::too_many_lines)]
     fn cache_guild(&self, guild: Guild) {
         let Guild {
             afk_channel_id,
@@ -119,7 +120,6 @@ impl InMemoryCache {
         }
 
         let guild = CachedGuild {
-            id,
             afk_channel_id,
             afk_timeout,
             application_id,
@@ -130,6 +130,7 @@ impl InMemoryCache {
             explicit_content_filter,
             features,
             icon,
+            id,
             joined_at,
             large,
             max_members,
@@ -139,8 +140,8 @@ impl InMemoryCache {
             mfa_level,
             name,
             nsfw_level,
-            owner,
             owner_id,
+            owner,
             permissions,
             preferred_locale,
             premium_progress_bar_enabled,
@@ -151,8 +152,8 @@ impl InMemoryCache {
             system_channel_id,
             system_channel_flags,
             unavailable,
-            verification_level,
             vanity_url_code,
+            verification_level,
             widget_channel_id,
             widget_enabled,
         };
@@ -298,6 +299,7 @@ mod tests {
         util::datetime::{Timestamp, TimestampParseError},
     };
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn guild_create_channels_have_guild_ids() -> Result<(), TimestampParseError> {
         const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";

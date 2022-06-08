@@ -5,6 +5,7 @@ use super::{
 
 /// Builder to configure and construct an [`InMemoryCache`].
 #[derive(Debug, Default)]
+#[must_use = "has no effect if not built"]
 pub struct InMemoryCacheBuilder(Config);
 
 impl InMemoryCacheBuilder {
