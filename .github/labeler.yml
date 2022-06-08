@@ -10,11 +10,6 @@ labels:
     matcher:
       files: "cache/**/*"
 
-  - label: "c-embed-builder"
-    sync: true
-    matcher:
-      files: "embed-builder/**/*"
-
   - label: "c-gateway"
     sync: true
     matcher:
