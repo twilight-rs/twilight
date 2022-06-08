@@ -20,7 +20,6 @@ anyhow = { default-features = false, features = ["std"], version = "1" }
 futures = { default-features = false, version = "0.3" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory" }
-twilight-embed-builder = { default-features = false, path = "../embed-builder" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
 twilight-gateway-queue = { default-features = false, features = ["rustls-native-roots"], path = "../gateway-queue" }
 twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http" }

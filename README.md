@@ -77,11 +77,6 @@ These are crates that are officially supported by Twilight, but aren't
 considered core crates due to being vendor-specific or non-essential for
 most users.
 
-### [`twilight-embed-builder`]
-
-Utility crate for creating and validating message embeds, to be used when
-creating or updating messages.
-
 ### [`twilight-lavalink`]
 
 Client for [Lavalink] as part of the twilight ecosystem.
@@ -216,7 +211,6 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [logo]: https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png
 [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
 [`twilight-cache-inmemory`]: https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html
-[`twilight-embed-builder`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_1_embed_builder.html
 [`twilight-gateway-queue`]: https://twilight.rs/chapter_1_crates/section_7_first_party/section_5_gateway_queue.html
 [`twilight-gateway`]: https://twilight.rs/chapter_1_crates/section_3_gateway.html
 [`twilight-http`]: https://twilight.rs/chapter_1_crates/section_2_http.html
