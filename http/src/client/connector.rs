@@ -37,7 +37,7 @@ pub fn create() -> Connector {
     #[cfg(not(feature = "trust-dns"))]
     let mut connector = hyper::client::HttpConnector::new();
     #[cfg(feature = "trust-dns")]
-    let mut connector = hyper_trust_dns::new_trust_dns_http_connector();
+    let mut connector = hyper_trust_dns::TrustDnsResolver::default().into_http_connector();
 
     connector.enforce_http(false);
 
