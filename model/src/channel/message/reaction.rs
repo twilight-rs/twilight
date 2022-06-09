@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Message reaction struct.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReaction {
-    /// Ammount of reactions this emoji has.
+    /// Amount of reactions this emoji has.
     pub count: u64,
     /// Emoji of this reaction.
     pub emoji: ReactionType,
