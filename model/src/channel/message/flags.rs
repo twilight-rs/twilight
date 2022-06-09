@@ -5,6 +5,7 @@ use serde::{
 };
 
 bitflags! {
+    /// Flags to either signal or to modify the look of a message.
     pub struct MessageFlags: u64 {
         /// Has been published to subscribed channels via Channel Following.
         const CROSSPOSTED = 1;
@@ -46,4 +47,25 @@ impl Serialize for MessageFlags {
     {
         serializer.serialize_u64(self.bits())
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::MessageFlags;
+    use serde::{Deserialize, Serialize};
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        MessageFlags: Copy,
+        Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
 }

@@ -1,25 +1,46 @@
 use crate::channel::ConversionError;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+/// Type of a [`Message`].
+///
+/// [`Message`]: super::Message
+#[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 pub enum MessageType {
+    /// Regular message.
     Regular = 0,
+    /// System message denoting a recipient has been added to a group.
     RecipientAdd = 1,
+    /// System message denoting a recipient has been removed from a group.
     RecipientRemove = 2,
+    /// System message denoting a call state, e.g. missed, started.
     Call = 3,
+    /// System message denoting a channel's name has been changed.
     ChannelNameChange = 4,
+    /// System message denoting a channel's icon has been changed.
     ChannelIconChange = 5,
+    /// System message denoting a message has been pinned.
     ChannelMessagePinned = 6,
+    /// System message denoting a member has joined a guild.
     GuildMemberJoin = 7,
+    /// System message denoting a user nitro boosted a guild.
     UserPremiumSub = 8,
+    /// System message denoting a user nitro boosted a guild to level 1.
     UserPremiumSubTier1 = 9,
+    /// System message denoting a user nitro boosted a guild to level 2.
     UserPremiumSubTier2 = 10,
+    /// System message denoting a user nitro boosted a guild to level 3.
     UserPremiumSubTier3 = 11,
+    /// System message denoting a channel has been followed.
     ChannelFollowAdd = 12,
+    /// System message denoting a guild has been disqualified for Server Discovery.
     GuildDiscoveryDisqualified = 14,
+    /// System message denoting a guild has been redisqualified for Server Discovery.
     GuildDiscoveryRequalified = 15,
+    /// System message denoting an initial warning for Server Discovery disqualification.
     GuildDiscoveryGracePeriodInitialWarning = 16,
+    /// System message denoting a final warning for Server Discovery disqualification.
     GuildDiscoveryGracePeriodFinalWarning = 17,
     ThreadCreated = 18,
     /// Message is an inline reply.

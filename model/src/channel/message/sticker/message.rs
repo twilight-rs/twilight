@@ -2,11 +2,16 @@ use super::StickerFormatType;
 use crate::id::{marker::StickerMarker, Id};
 use serde::{Deserialize, Serialize};
 
-/// Smallest amount of data required to render a sticker.
+/// Smallest amount of data required to render a [`Sticker`].
+///
+/// [`Sticker`]: super::Sticker
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageSticker {
+    /// Format type.
     pub format_type: StickerFormatType,
+    /// ID of the sticker.
     pub id: Id<StickerMarker>,
+    /// Name of the sticker.
     pub name: String,
 }
 

@@ -1,3 +1,9 @@
+//! Configure granular control over mentions and avoid phantom pings.
+
+mod builder;
+
+pub use self::builder::AllowedMentionsBuilder;
+
 use crate::{
     id::{
         marker::{RoleMarker, UserMarker},
@@ -7,37 +13,46 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-mod builder;
-
-pub use self::builder::AllowedMentionsBuilder;
-
-/// Parse types.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(rename_all = "lowercase")]
-pub enum ParseTypes {
-    Everyone,
-    Roles,
-    Users,
-}
-
-/// Allowed mentions structure.
+/// Allows for more granular control over mentions.
+///
+/// Validates against the message content to avoid phantom pings, but you must
+/// still have e.g. `@everyone` in the message content to ping everyone.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AllowedMentions {
+    /// List of allowed [`ParseTypes`].
     #[serde(default)]
     pub parse: Vec<ParseTypes>,
+    /// List of [`Id<UserMarker>`] to mention.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub users: Vec<Id<UserMarker>>,
+    /// List of [`Id<RoleMarker>`] to mention.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub roles: Vec<Id<RoleMarker>>,
+    /// For replies, whether to mention the message author being replied to.
+    ///
+    /// Defaults to false.
     #[serde(default, skip_serializing_if = "is_false")]
     pub replied_user: bool,
 }
 
 impl AllowedMentions {
+    /// Create a new builder to create a allowed mentions.
     pub const fn builder() -> AllowedMentionsBuilder {
         AllowedMentionsBuilder::new()
     }
+}
+
+/// Allowed mention type in message content.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[non_exhaustive]
+#[serde(rename_all = "lowercase")]
+pub enum ParseTypes {
+    /// `@everyone` and `here` mentions.
+    Everyone,
+    /// Role mentions.
+    Roles,
+    /// User mentions.
+    Users,
 }
 
 #[cfg(test)]
