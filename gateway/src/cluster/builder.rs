@@ -47,7 +47,7 @@ use crate::shard::tls::TlsContainer;
 // Remember to sync this with the custom Debug implementation.
 #[must_use = "has no effect if not built"]
 pub struct ClusterBuilder {
-    cluster_http_client: Arc<Client>,
+    http: Arc<Client>,
     queue: Arc<dyn Queue>,
     resume_sessions: HashMap<u64, ResumeSession>,
     shard: ShardBuilder,
@@ -60,7 +60,7 @@ impl ClusterBuilder {
     /// Create a new builder to construct and configure a cluster.
     pub fn new(token: String, intents: Intents) -> Self {
         Self {
-            cluster_http_client: Arc::new(Client::new(token.clone())),
+            http: Arc::new(Client::new(token.clone())),
             queue: Arc::new(LocalQueue::new()),
             resume_sessions: HashMap::new(),
             shard: ShardBuilder::new(token, intents),
@@ -79,7 +79,7 @@ impl ClusterBuilder {
     /// [`ClusterStartErrorType::AutoSharding`]: super::ClusterStartErrorType::AutoSharding
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
         if self.shard_scheme.is_none() {
-            self.shard_scheme = Some(Self::recommended_shards(&self.cluster_http_client).await?);
+            self.shard_scheme = Some(Self::recommended_shards(&self.http).await?);
         }
 
         #[cfg(not(any(
@@ -172,7 +172,7 @@ impl ClusterBuilder {
     ///
     /// Defaults to a new, default HTTP client is used.
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
-        self.cluster_http_client = http_client;
+        self.http = http_client;
 
         self
     }

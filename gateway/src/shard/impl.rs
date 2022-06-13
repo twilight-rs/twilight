@@ -226,7 +226,6 @@ impl Display for ShardStartError {
 
                 f.write_str("` is invalid")
             }
-            ShardStartErrorType::InvalidToken => f.write_str("token is invid"),
         }
     }
 }
@@ -250,8 +249,6 @@ pub enum ShardStartErrorType {
     AlreadyStarted,
     /// Establishing a connection to the gateway failed.
     Establishing,
-    /// Token is invalid.
-    InvalidToken,
     /// Parsing the gateway URL provided by Discord to connect to the gateway
     /// failed due to an invalid URL.
     ParsingGatewayUrl {
