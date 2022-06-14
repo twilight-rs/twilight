@@ -325,6 +325,7 @@ impl ClusterBuilder {
 impl Debug for ClusterBuilder {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("ClusterBuilder")
+            .field("http", &self.http)
             .field("queue", &self.queue)
             .field("resume_sessions", &self.resume_sessions)
             .field("shard", &self.shard)
