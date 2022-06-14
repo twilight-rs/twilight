@@ -63,7 +63,7 @@ impl UpdateCache for InteractionCreate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::InMemoryCache;
     use std::collections::HashMap;
     use twilight_model::{
         application::{
@@ -72,7 +72,7 @@ mod tests {
                 application_command::{
                     CommandData, CommandInteractionDataResolved, InteractionMember,
                 },
-                ApplicationCommand, InteractionType,
+                ApplicationCommand, Interaction, InteractionType,
             },
         },
         channel::{
@@ -82,6 +82,7 @@ mod tests {
             },
             Message,
         },
+        gateway::payload::incoming::InteractionCreate,
         guild::{PartialMember, Permissions, Role},
         id::Id,
         user::User,

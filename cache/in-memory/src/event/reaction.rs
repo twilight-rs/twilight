@@ -121,10 +121,10 @@ impl UpdateCache for ReactionRemoveEmoji {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::test;
     use twilight_model::{
         channel::{Reaction, ReactionType},
+        gateway::payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
         id::Id,
     };
 

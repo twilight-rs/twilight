@@ -76,8 +76,14 @@ impl UpdateCache for StageInstanceUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use twilight_model::{channel::stage_instance::PrivacyLevel, id::Id};
+    use crate::InMemoryCache;
+    use twilight_model::{
+        channel::{stage_instance::PrivacyLevel, StageInstance},
+        gateway::payload::incoming::{
+            StageInstanceCreate, StageInstanceDelete, StageInstanceUpdate,
+        },
+        id::Id,
+    };
 
     #[test]
     fn stage_channels() {
