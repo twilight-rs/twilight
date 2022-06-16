@@ -68,8 +68,8 @@ mod tests {
     #[test]
     fn values() {
         assert_eq!(1, u8::from(AutoModerationActionType::BlockMessage));
-        assert_eq!(1, u8::from(AutoModerationActionType::SendAlertMessage));
-        assert_eq!(1, u8::from(AutoModerationActionType::Timeout));
+        assert_eq!(2, u8::from(AutoModerationActionType::SendAlertMessage));
+        assert_eq!(3, u8::from(AutoModerationActionType::Timeout));
         assert_eq!(250, u8::from(AutoModerationActionType::Unknown(250)));
     }
 }

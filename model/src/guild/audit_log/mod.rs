@@ -105,7 +105,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "AuditLog",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("auto_moderation_rules"),
                 Token::Seq { len: Some(0) },
