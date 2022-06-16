@@ -29,7 +29,7 @@ pub enum MessageType {
     ThreadStarterMessage = 21,
     GuildInviteReminder = 22,
     ContextMenuCommand = 23,
-    /// Message is an auto-moderation action.
+    /// Message is an auto moderation action.
     AutoModerationAction = 24,
 }
 

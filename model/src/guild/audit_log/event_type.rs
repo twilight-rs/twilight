@@ -209,6 +209,20 @@ pub enum AuditLogEventType {
     ///
     /// [GuildCommandPermissions]: crate::application::command::permissions::GuildCommandPermissions
     ApplicationCommandPermissionUpdate = 121,
+    /// [`AutoModerationRule`] was created.
+    ///
+    /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+    AutoModerationRuleCreate = 140,
+    /// [`AutoModerationRule`] was updated.
+    ///
+    /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+    AutoModerationRuleUpdate = 141,
+    /// [`AutoModerationRule`] was deleted.
+    ///
+    /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+    AutoModerationRuleDelete = 142,
+    /// Message was blocked by AutoMod according to a rule.
+    AutoModerationBlockMessage = 143,
 }
 
 #[cfg(test)]

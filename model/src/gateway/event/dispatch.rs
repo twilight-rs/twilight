@@ -14,6 +14,10 @@ use serde::{
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum DispatchEvent {
+    AutoModerationActionExecution(AutoModerationActionExecution),
+    AutoModerationRuleCreate(AutoModerationRuleCreate),
+    AutoModerationRuleDelete(AutoModerationRuleDelete),
+    AutoModerationRuleUpdate(AutoModerationRuleUpdate),
     BanAdd(BanAdd),
     BanRemove(BanRemove),
     ChannelCreate(Box<ChannelCreate>),
@@ -78,6 +82,10 @@ impl DispatchEvent {
     /// Returns the type of event that this event is.
     pub const fn kind(&self) -> EventType {
         match self {
+            Self::AutoModerationActionExecution(_) => EventType::AutoModerationActionExecution,
+            Self::AutoModerationRuleCreate(_) => EventType::AutoModerationRuleCreate,
+            Self::AutoModerationRuleDelete(_) => EventType::AutoModerationRuleDelete,
+            Self::AutoModerationRuleUpdate(_) => EventType::AutoModerationRuleUpdate,
             Self::BanAdd(_) => EventType::BanAdd,
             Self::BanRemove(_) => EventType::BanRemove,
             Self::ChannelCreate(_) => EventType::ChannelCreate,
@@ -145,6 +153,10 @@ impl TryFrom<Event> for DispatchEvent {
 
     fn try_from(event: Event) -> Result<Self, Self::Error> {
         Ok(match event {
+            Event::AutoModerationActionExecution(v) => Self::AutoModerationActionExecution(v),
+            Event::AutoModerationRuleCreate(v) => Self::AutoModerationRuleCreate(v),
+            Event::AutoModerationRuleDelete(v) => Self::AutoModerationRuleDelete(v),
+            Event::AutoModerationRuleUpdate(v) => Self::AutoModerationRuleUpdate(v),
             Event::BanAdd(v) => Self::BanAdd(v),
             Event::BanRemove(v) => Self::BanRemove(v),
             Event::ChannelCreate(v) => Self::ChannelCreate(v),
@@ -228,6 +240,18 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
     #[allow(clippy::too_many_lines)]
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         Ok(match self.0 {
+            "AUTO_MODERATION_ACTION_EXECUTION" => DispatchEvent::AutoModerationActionExecution(
+                AutoModerationActionExecution::deserialize(deserializer)?,
+            ),
+            "AUTO_MODERATION_RULE_CREATE" => DispatchEvent::AutoModerationRuleCreate(
+                AutoModerationRuleCreate::deserialize(deserializer)?,
+            ),
+            "AUTO_MODERATION_RULE_DELETE" => DispatchEvent::AutoModerationRuleDelete(
+                AutoModerationRuleDelete::deserialize(deserializer)?,
+            ),
+            "AUTO_MODERATION_RULE_UPDATE" => DispatchEvent::AutoModerationRuleUpdate(
+                AutoModerationRuleUpdate::deserialize(deserializer)?,
+            ),
             "CHANNEL_CREATE" => {
                 DispatchEvent::ChannelCreate(Box::new(ChannelCreate::deserialize(deserializer)?))
             }

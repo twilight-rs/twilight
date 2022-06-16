@@ -4,6 +4,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EventType {
+    AutoModerationActionExecution,
+    AutoModerationRuleCreate,
+    AutoModerationRuleDelete,
+    AutoModerationRuleUpdate,
     #[serde(rename = "GUILD_BAN_ADD")]
     BanAdd,
     #[serde(rename = "GUILD_BAN_REMOVE")]
@@ -39,12 +43,12 @@ pub enum EventType {
     InviteDelete,
     #[serde(rename = "GUILD_MEMBER_ADD")]
     MemberAdd,
+    #[serde(rename = "GUILD_MEMBERS_CHUNK")]
+    MemberChunk,
     #[serde(rename = "GUILD_MEMBER_REMOVE")]
     MemberRemove,
     #[serde(rename = "GUILD_MEMBER_UPDATE")]
     MemberUpdate,
-    #[serde(rename = "GUILD_MEMBERS_CHUNK")]
-    MemberChunk,
     MessageCreate,
     MessageDelete,
     MessageDeleteBulk,
@@ -71,8 +75,8 @@ pub enum EventType {
     ShardConnecting,
     ShardDisconnected,
     ShardIdentifying,
-    ShardReconnecting,
     ShardPayload,
+    ShardReconnecting,
     ShardResuming,
     StageInstanceCreate,
     StageInstanceDelete,
@@ -94,6 +98,10 @@ pub enum EventType {
 impl EventType {
     pub const fn name(self) -> Option<&'static str> {
         match self {
+            Self::AutoModerationActionExecution => Some("AUTO_MODERATION_ACTION_EXECUTION"),
+            Self::AutoModerationRuleCreate => Some("AUTO_MODERATION_RULE_CREATE"),
+            Self::AutoModerationRuleDelete => Some("AUTO_MODERATION_RULE_DELETE"),
+            Self::AutoModerationRuleUpdate => Some("AUTO_MODERATION_RULE_UPDATE"),
             Self::BanAdd => Some("GUILD_BAN_ADD"),
             Self::BanRemove => Some("GUILD_BAN_REMOVE"),
             Self::ChannelCreate => Some("CHANNEL_CREATE"),
@@ -174,6 +182,10 @@ impl<'a> TryFrom<&'a str> for EventType {
 
     fn try_from(event_type: &'a str) -> Result<Self, Self::Error> {
         match event_type {
+            "AUTO_MODERATION_ACTION_EXECUTION" => Ok(Self::AutoModerationActionExecution),
+            "AUTO_MODERATION_RULE_CREATE" => Ok(Self::AutoModerationRuleCreate),
+            "AUTO_MODERATION_RULE_DELETE" => Ok(Self::AutoModerationRuleDelete),
+            "AUTO_MODERATION_RULE_UPDATE" => Ok(Self::AutoModerationRuleUpdate),
             "GUILD_BAN_ADD" => Ok(Self::BanAdd),
             "GUILD_BAN_REMOVE" => Ok(Self::BanRemove),
             "CHANNEL_CREATE" => Ok(Self::ChannelCreate),
@@ -252,8 +264,25 @@ mod tests {
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn variants() {
+        assert_variant(
+            EventType::AutoModerationActionExecution,
+            "AUTO_MODERATION_ACTION_EXECUTION",
+        );
+        assert_variant(
+            EventType::AutoModerationRuleCreate,
+            "AUTO_MODERATION_RULE_CREATE",
+        );
+        assert_variant(
+            EventType::AutoModerationRuleDelete,
+            "AUTO_MODERATION_RULE_DELETE",
+        );
+        assert_variant(
+            EventType::AutoModerationRuleUpdate,
+            "AUTO_MODERATION_RULE_UPDATE",
+        );
         assert_variant(EventType::BanAdd, "GUILD_BAN_ADD");
         assert_variant(EventType::BanRemove, "GUILD_BAN_REMOVE");
         assert_variant(EventType::ChannelCreate, "CHANNEL_CREATE");

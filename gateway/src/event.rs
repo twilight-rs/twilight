@@ -4,6 +4,20 @@ use twilight_model::gateway::event::EventType;
 bitflags! {
     /// Bitflags representing all of the possible types of events.
     pub struct EventTypeFlags: u128 {
+        /// Message was blocked by AutoMod according to a rule.
+        const AUTO_MODERATION_ACTION_EXECUTION = 1 << 71;
+        /// [`AutoModerationRule`] was created.
+        ///
+        /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+        const AUTO_MODERATION_RULE_CREATE = 1 << 72;
+        /// [`AutoModerationRule`] was deleted.
+        ///
+        /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+        const AUTO_MODERATION_RULE_DELETE = 1 << 73;
+        /// [`AutoModerationRule`] was updated.
+        ///
+        /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+        const AUTO_MODERATION_RULE_UPDATE = 1 << 74;
         /// User has been banned from a guild.
         const BAN_ADD = 1;
         /// User has been unbanned from a guild.
@@ -297,6 +311,12 @@ impl EventTypeFlags {
 impl From<EventType> for EventTypeFlags {
     fn from(event_type: EventType) -> Self {
         match event_type {
+            EventType::AutoModerationActionExecution => {
+                EventTypeFlags::AUTO_MODERATION_ACTION_EXECUTION
+            }
+            EventType::AutoModerationRuleCreate => EventTypeFlags::AUTO_MODERATION_RULE_CREATE,
+            EventType::AutoModerationRuleDelete => EventTypeFlags::AUTO_MODERATION_RULE_DELETE,
+            EventType::AutoModerationRuleUpdate => EventTypeFlags::AUTO_MODERATION_RULE_UPDATE,
             EventType::BanAdd => EventTypeFlags::BAN_ADD,
             EventType::BanRemove => EventTypeFlags::BAN_REMOVE,
             EventType::ChannelCreate => EventTypeFlags::CHANNEL_CREATE,

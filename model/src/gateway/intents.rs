@@ -215,6 +215,24 @@ bitflags! {
         ///
         /// [Discord Docs/Privileged Intents]: https://discord.com/developers/docs/topics/gateway#privileged-intents
         const MESSAGE_CONTENT = 1 << 15;
+        /// Auto moderation configuration intent.
+        ///
+        /// Event(s) received:
+        /// - [`AUTO_MODERATION_RULE_CREATE`]
+        /// - [`AUTO_MODERATION_RULE_DELETE`]
+        /// - [`AUTO_MODERATION_RULE_UPDATE`]
+        ///
+        /// [`AUTO_MODERATION_RULE_CREATE`]: super::event::Event::AutoModerationRuleCreate
+        /// [`AUTO_MODERATION_RULE_DELETE`]: super::event::Event::AutoModerationRuleDelete
+        /// [`AUTO_MODERATION_RULE_UPDATE`]: super::event::Event::AutoModerationRuleUpdate
+        const AUTO_MODERATION_CONFIGURATION = 1 << 16;
+        /// Auto moderation execution event.
+        ///
+        /// Event(s) received:
+        /// - [`AUTO_MODERATION_ACTION_EXECUTION`]
+        ///
+        /// [`AUTO_MODERATION_ACTION_EXECUTION`]: super::event::Event::AutoModerationActionExecution
+        const AUTO_MODERATION_EXECUTION = 1 << 17;
     }
 }
 

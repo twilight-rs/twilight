@@ -23,6 +23,14 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 /// [`GatewayEvent`]s, and [`ShardEvent`]s.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Event {
+    /// Message was blocked by AutoMod according to a rule.
+    AutoModerationActionExecution(AutoModerationActionExecution),
+    /// Sent when an auto moderation rule is created.
+    AutoModerationRuleCreate(AutoModerationRuleCreate),
+    /// Sent when an auto moderation rule is deleted.
+    AutoModerationRuleDelete(AutoModerationRuleDelete),
+    /// Sent when an auto moderation rule is updated.
+    AutoModerationRuleUpdate(AutoModerationRuleUpdate),
     /// A user was banned from a guild.
     BanAdd(BanAdd),
     /// A user's ban from a guild was removed.
@@ -179,6 +187,10 @@ pub enum Event {
 impl Event {
     pub const fn kind(&self) -> EventType {
         match self {
+            Self::AutoModerationActionExecution(_) => EventType::AutoModerationActionExecution,
+            Self::AutoModerationRuleCreate(_) => EventType::AutoModerationRuleCreate,
+            Self::AutoModerationRuleDelete(_) => EventType::AutoModerationRuleDelete,
+            Self::AutoModerationRuleUpdate(_) => EventType::AutoModerationRuleUpdate,
             Self::BanAdd(_) => EventType::BanAdd,
             Self::BanRemove(_) => EventType::BanRemove,
             Self::ChannelCreate(_) => EventType::ChannelCreate,
@@ -257,6 +269,12 @@ impl Event {
 impl From<DispatchEvent> for Event {
     fn from(event: DispatchEvent) -> Self {
         match event {
+            DispatchEvent::AutoModerationActionExecution(v) => {
+                Self::AutoModerationActionExecution(v)
+            }
+            DispatchEvent::AutoModerationRuleCreate(v) => Self::AutoModerationRuleCreate(v),
+            DispatchEvent::AutoModerationRuleDelete(v) => Self::AutoModerationRuleDelete(v),
+            DispatchEvent::AutoModerationRuleUpdate(v) => Self::AutoModerationRuleUpdate(v),
             DispatchEvent::BanAdd(v) => Self::BanAdd(v),
             DispatchEvent::BanRemove(v) => Self::BanRemove(v),
             DispatchEvent::ChannelCreate(v) => Self::ChannelCreate(v),
@@ -433,6 +451,10 @@ mod tests {
     const_assert!(mem::size_of::<VoiceStateUpdate>() > EVENT_THRESHOLD);
 
     // Unboxed.
+    const_assert!(mem::size_of::<AutoModerationActionExecution>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<AutoModerationRuleCreate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<AutoModerationRuleDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<AutoModerationRuleUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<BanAdd>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<BanRemove>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelPinsUpdate>() <= EVENT_THRESHOLD);
