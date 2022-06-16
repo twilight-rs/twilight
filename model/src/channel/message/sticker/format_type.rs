@@ -8,6 +8,7 @@ use std::{
 ///
 /// [`Sticker`]: super::Sticker
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum StickerFormatType {
     /// Sticker format is a PNG.

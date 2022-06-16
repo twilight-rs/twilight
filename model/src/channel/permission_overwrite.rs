@@ -17,6 +17,7 @@ pub struct PermissionOverwrite {
 
 /// Type of a permission overwrite target.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 #[serde(rename_all = "snake_case")]
 pub enum PermissionOverwriteType {

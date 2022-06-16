@@ -36,7 +36,8 @@ pub struct Button {
 /// Refer to [the Discord Docs/Button Object] for additional information.
 ///
 /// [the Discord Docs/Button Object]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Serialize_repr)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum ButtonStyle {
     /// Button indicates a primary action.
@@ -86,7 +87,6 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sync
