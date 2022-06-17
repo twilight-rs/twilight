@@ -5,7 +5,7 @@ use serde::{
 };
 
 bitflags! {
-    /// Flags to either signal or to modify the look of a message.
+    /// Flags to signal state and modify the look of a message.
     pub struct MessageFlags: u64 {
         /// Has been published to subscribed channels via Channel Following.
         const CROSSPOSTED = 1;

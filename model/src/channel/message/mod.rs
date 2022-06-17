@@ -42,7 +42,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Text message sent in a [`Channel`] within Discord.
+/// Text message sent in a [`Channel`].
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Message {
     /// Sent with Rich Presence-related chat embeds.
@@ -148,7 +148,7 @@ pub struct Message {
     ///
     /// [`Role`]: crate::guild::Role
     pub mention_roles: Vec<Id<RoleMarker>>,
-    /// users mentioned in the message.
+    /// Users mentioned in the message.
     pub mentions: Vec<Mention>,
     /// Whether the message is pinned.
     pub pinned: bool,
@@ -168,7 +168,7 @@ pub struct Message {
     pub sticker_items: Vec<MessageSticker>,
     /// Timestamp of when the message was created.
     pub timestamp: Timestamp,
-    /// Thread started from this message, including [`Channel::member`].
+    /// Thread started from this message, includes [`Channel::member`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread: Option<Channel>,
     /// Whether the message was a TTS message.

@@ -8,7 +8,7 @@ pub struct MessageReaction {
     pub count: u64,
     /// Emoji of this reaction.
     pub emoji: ReactionType,
-    /// Whether we have reacted with this emoji.
+    /// Whether the current user has reacted with this emoji.
     pub me: bool,
 }
 

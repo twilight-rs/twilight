@@ -36,7 +36,7 @@ pub struct AllowedMentions {
 }
 
 impl AllowedMentions {
-    /// Create a new builder to create a allowed mentions.
+    /// Create a new [`AllowedMentionsBuilder`].
     pub const fn builder() -> AllowedMentionsBuilder {
         AllowedMentionsBuilder::new()
     }
