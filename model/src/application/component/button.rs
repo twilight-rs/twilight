@@ -36,7 +36,7 @@ pub struct Button {
 /// Refer to [the Discord Docs/Button Object] for additional information.
 ///
 /// [the Discord Docs/Button Object]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
-// Keep this is sync with `twilight-validate`!
+// Keep in sync with `twilight-validate`!
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
