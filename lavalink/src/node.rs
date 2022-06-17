@@ -41,10 +41,7 @@ use tokio::{
     time as tokio_time,
 };
 use tokio_tungstenite::{
-    tungstenite::{
-        client::IntoClientRequest,
-        Error as TungsteniteError, Message,
-    },
+    tungstenite::{client::IntoClientRequest, Error as TungsteniteError, Message},
     MaybeTlsStream, WebSocketStream,
 };
 use twilight_model::id::{marker::UserMarker, Id};
@@ -603,7 +600,8 @@ impl Drop for Connection {
 }
 
 fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
-    let mut request = format!("ws://{}", state.address).into_client_request()
+    let mut request = format!("ws://{}", state.address)
+        .into_client_request()
         .map_err(|source| NodeError {
             kind: NodeErrorType::BuildingConnectionRequest,
             source: Some(Box::new(source)),
