@@ -45,15 +45,17 @@ use serde::{Deserialize, Serialize};
 /// Text message sent in a [`Channel`].
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Message {
-    /// Sent with Rich Presence-related chat embeds.
+    /// Present with Rich Presence-related chat embeds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub activity: Option<MessageActivity>,
-    /// Sent with Rich Presence-related chat embeds.
+    /// Present with Rich Presence-related chat embeds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application: Option<MessageApplication>,
     /// Associated application's ID.
     ///
-    /// Sent if the message is a response to an Interaction.
+    /// Present if the message is a response to an [`Interaction`].
+    ///
+    /// [`Interaction`]: crate::application::interaction::Interaction
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
     /// List of attachments.
@@ -155,12 +157,12 @@ pub struct Message {
     /// List of reactions to the message.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub reactions: Vec<MessageReaction>,
-    /// Reference data sent with crossposted messages and replies.
+    /// Crosspost, channel follow add, pin and reply source message data.
     #[serde(rename = "message_reference", skip_serializing_if = "Option::is_none")]
     pub reference: Option<MessageReference>,
-    /// The message associated with the [reference].
+    /// The message associated with the [`reference`].
     ///
-    /// [reference]: Self::reference
+    /// [`reference`]: Self::reference
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<Message>>,
     /// Stickers within the message.
