@@ -1100,7 +1100,7 @@ mod tests {
     assert_impl_all!(ComponentValidationError: Debug, Send, Sync);
 
     // All styles of buttons.
-    const ALL_BUTTON_STYLES: &'static [ButtonStyle] = &[
+    const ALL_BUTTON_STYLES: &[ButtonStyle] = &[
         ButtonStyle::Primary,
         ButtonStyle::Secondary,
         ButtonStyle::Success,
