@@ -174,6 +174,21 @@ bitflags! {
 }
 
 impl EventTypeFlags {
+    /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_CONFIGURATION`].
+    ///
+    /// [`Intents::AUTO_MODERATION_CONFIGURATION`]: crate::Intents::AUTO_MODERATION_CONFIGURATION
+    pub const AUTO_MODERATION_CONFIGURATION: EventTypeFlags = EventTypeFlags::from_bits_truncate(
+        EventTypeFlags::AUTO_MODERATION_RULE_CREATE.bits()
+            | EventTypeFlags::AUTO_MODERATION_RULE_DELETE.bits()
+            | EventTypeFlags::AUTO_MODERATION_RULE_UPDATE.bits(),
+    );
+
+    /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_EXECUTION`].
+    ///
+    /// [`Intents::AUTO_MODERATION_EXECUTION`]: crate::Intents::AUTO_MODERATION_EXECUTION
+    pub const AUTO_MODERATION_EXECUTION: EventTypeFlags =
+        EventTypeFlags::from_bits_truncate(EventTypeFlags::AUTO_MODERATION_ACTION_EXECUTION.bits());
+
     /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
     ///
     /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES

@@ -9,8 +9,6 @@
 #![deny(missing_docs)]
 
 mod action;
-mod action_metadata;
-mod action_type;
 mod event_type;
 mod preset_type;
 mod rule;
@@ -18,8 +16,10 @@ mod trigger_metadata;
 mod trigger_type;
 
 pub use self::{
-    action::AutoModerationAction, action_metadata::AutoModerationActionMetadata,
-    action_type::AutoModerationActionType, event_type::AutoModerationEventType,
-    preset_type::AutoModerationKeywordPresetType, rule::AutoModerationRule,
-    trigger_metadata::AutoModerationTriggerMetadata, trigger_type::AutoModerationTriggerType,
+    action::{AutoModerationAction, AutoModerationActionMetadata, AutoModerationActionType},
+    event_type::AutoModerationEventType,
+    preset_type::AutoModerationKeywordPresetType,
+    rule::AutoModerationRule,
+    trigger_metadata::AutoModerationTriggerMetadata,
+    trigger_type::AutoModerationTriggerType,
 };
