@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-gateway
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -53,6 +51,9 @@ twilight-gateway = { default-features = false, features = ["rustls-native-roots"
 
 ### TLS
 
+**Note**: not enabling any TLS feature is support for use behind a proxy;
+Discord's API is HTTPS only.
+
 `twilight-gateway` has features to enable [`tokio-tungstenite`] and
 [`twilight-http`]'s TLS features. These features are mutually exclusive.
 `rustls-native-roots` is enabled by default.
@@ -91,18 +92,12 @@ This should be preferred over `rustls-native-roots` in Docker containers based o
 zlib compression is enabled with one of the two `zlib` features described below.
 
 There are 2 zlib features `zlib-stock` and `zlib-simd`, if both are enabled it
-will use `zlib-stock`.
+will use `zlib-simd`.
 
 `zlib-stock` is enabled by default.
 
-Enabling **only** `zlib-simd` will make the library use [`zlib-ng`] which is a modern
-fork of zlib that is faster and more effective, but it needs `cmake` to compile.
-
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
+Enabling `zlib-simd` will make the library use [`zlib-ng`] which is a modern
+fork of zlib that is faster and more efficient, but it needs `cmake` to compile.
 
 ### Metrics
 
@@ -119,7 +114,6 @@ This is disabled by default.
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
 [`tokio-tungstenite`]: https://crates.io/crates/tokio-tungstenite
-[`tracing`]: https://crates.io/crates/tracing
 [`twilight-http`]: https://twilight-rs.github.io/twilight/twilight_http/index.html
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [`zlib-ng`]: https://github.com/zlib-ng/zlib-ng
@@ -133,6 +127,4 @@ This is disabled by default.
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->
+[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust

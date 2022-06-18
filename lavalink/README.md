@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-lavalink
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -53,12 +51,6 @@ which uses [`rustls`] as the TLS backend and [`webpki-roots`] for root certifica
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
-
 ## Examples
 
 Create a [client], add a [node], and give events to the client to [process]
@@ -68,7 +60,6 @@ events:
 use futures_util::stream::StreamExt;
 use std::{
     env,
-    error::Error,
     future::Future,
     net::SocketAddr,
     str::FromStr,
@@ -78,7 +69,7 @@ use twilight_http::Client as HttpClient;
 use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
     let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
@@ -91,7 +82,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     lavalink.add(lavalink_host, lavalink_auth).await?;
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-    let (shard, mut events) = Shard::new(token, intents);
+    let (shard, mut events) = Shard::new(token, intents).await?;
     shard.start().await?;
 
     while let Some(event) = events.next().await {
@@ -123,6 +114,4 @@ There is also an example of a basic bot located in the [root of the
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [node]: Node
 [process]: Lavalink::process
-[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->
+[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust

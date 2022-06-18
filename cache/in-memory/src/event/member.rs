@@ -1,4 +1,8 @@
-use crate::{config::ResourceType, model::CachedMember, InMemoryCache, UpdateCache};
+use crate::{
+    config::ResourceType,
+    model::{member::ComputedInteractionMemberFields, CachedMember},
+    InMemoryCache, UpdateCache,
+};
 use std::borrow::Cow;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
@@ -31,22 +35,8 @@ impl InMemoryCache {
             }
         }
 
-        let user_id = member.user.id;
-
-        self.cache_user(Cow::Owned(member.user), Some(guild_id));
-        let cached = CachedMember {
-            avatar: member.avatar,
-            communication_disabled_until: member.communication_disabled_until,
-            deaf: Some(member.deaf),
-            guild_id,
-            joined_at: member.joined_at,
-            mute: Some(member.mute),
-            nick: member.nick,
-            pending: member.pending,
-            premium_since: member.premium_since,
-            roles: member.roles,
-            user_id,
-        };
+        self.cache_user(Cow::Borrowed(&member.user), Some(guild_id));
+        let cached = CachedMember::from_model(member);
         self.members.insert(id, cached);
         self.guild_members
             .entry(guild_id)
@@ -73,19 +63,7 @@ impl InMemoryCache {
             .or_default()
             .insert(user_id);
 
-        let cached = CachedMember {
-            avatar: member.avatar.to_owned(),
-            communication_disabled_until: member.communication_disabled_until.to_owned(),
-            deaf: Some(member.deaf),
-            guild_id,
-            joined_at: member.joined_at,
-            mute: Some(member.mute),
-            nick: member.nick.to_owned(),
-            pending: false,
-            premium_since: None,
-            roles: member.roles.to_owned(),
-            user_id,
-        };
+        let cached = CachedMember::from_partial_member(guild_id, user_id, member.clone());
         self.members.insert(id, cached);
     }
 
@@ -108,19 +86,12 @@ impl InMemoryCache {
             .or_default()
             .insert(user_id);
 
-        let cached = CachedMember {
-            avatar,
-            communication_disabled_until: member.communication_disabled_until.to_owned(),
-            deaf,
+        let cached = CachedMember::from_interaction_member(
             guild_id,
-            joined_at: member.joined_at,
-            mute,
-            nick: member.nick.to_owned(),
-            pending: false,
-            premium_since: member.premium_since.to_owned(),
-            roles: member.roles.to_owned(),
             user_id,
-        };
+            member.clone(),
+            ComputedInteractionMemberFields { avatar, deaf, mute },
+        );
 
         self.members.insert(id, cached);
     }
@@ -204,9 +175,12 @@ impl UpdateCache for MemberUpdate {
             return;
         }
 
-        let mut member = match cache.members.get_mut(&(self.guild_id, self.user.id)) {
-            Some(member) => member,
-            None => return,
+        let key = (self.guild_id, self.user.id);
+
+        let mut member = if let Some(member) = cache.members.get_mut(&key) {
+            member
+        } else {
+            return;
         };
 
         member.avatar = self.avatar;
@@ -222,11 +196,12 @@ impl UpdateCache for MemberUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
+    use crate::{test, InMemoryCache};
+    use std::borrow::Cow;
+    use twilight_model::{gateway::payload::incoming::MemberRemove, id::Id};
 
     #[test]
-    fn test_cache_guild_member() {
+    fn cache_guild_member() {
         let cache = InMemoryCache::new();
 
         // Single inserts
@@ -283,7 +258,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cache_user_guild_state() {
+    fn cache_user_guild_state() {
         let user_id = Id::new(2);
         let cache = InMemoryCache::new();
         cache.cache_user(Cow::Owned(test::user(user_id)), Some(Id::new(1)));

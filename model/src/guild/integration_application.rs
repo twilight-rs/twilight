@@ -14,7 +14,6 @@ pub struct IntegrationApplication {
     pub icon: Option<ImageHash>,
     pub id: Id<ApplicationMarker>,
     pub name: String,
-    pub summary: String,
 }
 
 #[cfg(test)]
@@ -24,14 +23,13 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_integration_account() {
+    fn integration_account() {
         let value = IntegrationApplication {
             bot: None,
             description: "Friendship is Magic".to_string(),
             icon: None,
             id: Id::new(123),
             name: "Twilight".to_string(),
-            summary: "A cool pony".to_string(),
         };
 
         serde_test::assert_tokens(
@@ -39,7 +37,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "IntegrationApplication",
-                    len: 5,
+                    len: 4,
                 },
                 Token::Str("description"),
                 Token::Str("Friendship is Magic"),
@@ -50,15 +48,13 @@ mod tests {
                 Token::Str("123"),
                 Token::Str("name"),
                 Token::Str("Twilight"),
-                Token::Str("summary"),
-                Token::Str("A cool pony"),
                 Token::StructEnd,
             ],
         );
     }
 
     #[test]
-    fn test_integration_account_complete() {
+    fn integration_account_complete() {
         let value = IntegrationApplication {
             bot: Some(User {
                 accent_color: None,
@@ -81,7 +77,6 @@ mod tests {
             icon: None,
             id: Id::new(123),
             name: "Twilight".to_string(),
-            summary: "A cool pony".to_string(),
         };
 
         serde_test::assert_tokens(
@@ -89,7 +84,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "IntegrationApplication",
-                    len: 6,
+                    len: 5,
                 },
                 Token::Str("bot"),
                 Token::Some,
@@ -122,8 +117,6 @@ mod tests {
                 Token::Str("123"),
                 Token::Str("name"),
                 Token::Str("Twilight"),
-                Token::Str("summary"),
-                Token::Str("A cool pony"),
                 Token::StructEnd,
             ],
         );

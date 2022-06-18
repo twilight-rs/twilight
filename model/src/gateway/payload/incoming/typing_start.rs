@@ -48,38 +48,25 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
         let mut timestamp = None;
         let mut user_id = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing typing start");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over element");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
+                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -131,7 +118,6 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
         let timestamp = timestamp.ok_or_else(|| DeError::missing_field("timestamp"))?;
         let user_id = user_id.ok_or_else(|| DeError::missing_field("user_id"))?;
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             %channel_id,
             ?guild_id,
@@ -140,7 +126,6 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
         );
 
         if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, ?member, "setting member guild id");
 
             member.guild_id = guild_id;
@@ -168,18 +153,18 @@ impl<'de> Deserialize<'de> for TypingStart {
 mod tests {
     use super::TypingStart;
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         guild::Member,
         id::Id,
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_typing_start_with_member() -> Result<(), TimestampParseError> {
+    fn typing_start_with_member() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = TypingStart {
@@ -295,7 +280,7 @@ mod tests {
     }
 
     #[test]
-    fn test_typing_start_without_member() {
+    fn typing_start_without_member() {
         let value = TypingStart {
             channel_id: Id::new(2),
             guild_id: None,

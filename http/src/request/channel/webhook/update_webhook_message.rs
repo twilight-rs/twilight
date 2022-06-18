@@ -4,92 +4,91 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{
-        self, AttachmentFile, AuditLogReason, AuditLogReasonError, Form, NullableField, Request,
-        TryIntoRequest,
+        attachment::{AttachmentManager, PartialAttachment},
+        Nullable, Request, TryIntoRequest,
     },
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
-use std::borrow::Cow;
 use twilight_model::{
     application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions, Attachment},
+    channel::{embed::Embed, message::AllowedMentions},
+    http::attachment::Attachment,
     id::{
-        marker::{ChannelMarker, MessageMarker, WebhookMarker},
+        marker::{AttachmentMarker, ChannelMarker, MessageMarker, WebhookMarker},
         Id,
     },
 };
 use twilight_validate::message::{
-    components as validate_components, content as validate_content, embeds as validate_embeds,
-    MessageValidationError,
+    attachment_filename as validate_attachment_filename, components as validate_components,
+    content as validate_content, embeds as validate_embeds, MessageValidationError,
 };
 
 #[derive(Serialize)]
 struct UpdateWebhookMessageFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    allowed_mentions: Option<AllowedMentions>,
-    #[serde(skip_serializing_if = "request::slice_is_empty")]
-    attachments: &'a [Attachment],
+    allowed_mentions: Option<Nullable<&'a AllowedMentions>>,
+    /// List of attachments to keep, and new attachments to add.
     #[serde(skip_serializing_if = "Option::is_none")]
-    components: Option<NullableField<&'a [Component]>>,
+    attachments: Option<Nullable<Vec<PartialAttachment<'a>>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    content: Option<NullableField<&'a str>>,
+    components: Option<Nullable<&'a [Component]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    embeds: Option<NullableField<&'a [Embed]>>,
+    content: Option<Nullable<&'a str>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    embeds: Option<Nullable<&'a [Embed]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
 }
 
 /// Update a message created by a webhook.
 ///
-/// A webhook's message must always have at least one embed or some amount of
-/// content. If you wish to delete a webhook's message refer to
-/// [`DeleteWebhookMessage`].
+/// You can pass [`None`] to any of the methods to remove the associated field.
+/// Pass [`None`] to [`content`] to remove the content. You must ensure that the
+/// message still contains at least one of [`attachments`], [`content`], or
+/// [`embeds`].
 ///
 /// # Examples
 ///
 /// Update a webhook's message by setting the content to `test <@3>` -
-/// attempting to mention user ID 3 - and specifying that only that the user may
-/// not be mentioned.
+/// attempting to mention user ID 3 - while specifying that no entities can be
+/// mentioned.
 ///
 /// ```no_run
-/// # use twilight_http::Client;
+/// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use twilight_http::Client;
 /// use twilight_model::{
 ///     channel::message::AllowedMentions,
 ///     id::Id,
 /// };
 ///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # let client = Client::new("token".to_owned());
+/// let client = Client::new("token".to_owned());
 /// client.update_webhook_message(Id::new(1), "token here", Id::new(2))
 ///     // By creating a default set of allowed mentions, no entity can be
 ///     // mentioned.
-///     .allowed_mentions(AllowedMentions::default())
+///     .allowed_mentions(Some(&AllowedMentions::default()))
 ///     .content(Some("test <@3>"))?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
 ///
-/// [`DeleteWebhookMessage`]: super::DeleteWebhookMessage
+/// [`attachments`]: Self::attachments
+/// [`content`]: Self::content
+/// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct UpdateWebhookMessage<'a> {
-    attachments: Cow<'a, [AttachmentFile<'a>]>,
+    attachment_manager: AttachmentManager<'a>,
     fields: UpdateWebhookMessageFields<'a>,
     http: &'a Client,
     message_id: Id<MessageMarker>,
-    reason: Option<&'a str>,
     thread_id: Option<Id<ChannelMarker>>,
     token: &'a str,
     webhook_id: Id<WebhookMarker>,
 }
 
 impl<'a> UpdateWebhookMessage<'a> {
-    /// Maximum number of embeds that a webhook's message may have.
-    pub const EMBED_COUNT_LIMIT: usize = 10;
-
     pub(crate) const fn new(
         http: &'a Client,
         webhook_id: Id<WebhookMarker>,
@@ -97,46 +96,67 @@ impl<'a> UpdateWebhookMessage<'a> {
         message_id: Id<MessageMarker>,
     ) -> Self {
         Self {
+            attachment_manager: AttachmentManager::new(),
             fields: UpdateWebhookMessageFields {
                 allowed_mentions: None,
-                attachments: &[],
+                attachments: None,
                 components: None,
                 content: None,
                 embeds: None,
                 payload_json: None,
             },
-            attachments: Cow::Borrowed(&[]),
             http,
             message_id,
-            reason: None,
             thread_id: None,
             token,
             webhook_id,
         }
     }
 
-    /// Set the allowed mentions in the message.
-    pub fn allowed_mentions(mut self, allowed: AllowedMentions) -> Self {
-        self.fields.allowed_mentions.replace(allowed);
+    /// Specify the [`AllowedMentions`] for the message.
+    ///
+    /// Unless otherwise called, the request will use the client's default
+    /// allowed mentions. Set to `None` to ignore this default.
+    pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
+        self.fields.allowed_mentions = Some(Nullable(allowed_mentions));
 
         self
     }
 
-    /// Specify multiple attachments already present in the target message to keep.
+    /// Attach multiple new files to the message.
     ///
-    /// If called, all unspecified attachments will be removed from the message.
-    /// If not called, all attachments will be kept.
-    pub const fn attachments(mut self, attachments: &'a [Attachment]) -> Self {
-        self.fields.attachments = attachments;
+    /// This method clears previous calls.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`AttachmentFilename`] if any filename is
+    /// invalid.
+    ///
+    /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
+    pub fn attachments(
+        mut self,
+        attachments: &'a [Attachment],
+    ) -> Result<Self, MessageValidationError> {
+        attachments
+            .iter()
+            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
 
-        self
+        self.attachment_manager = self
+            .attachment_manager
+            .set_files(attachments.iter().collect());
+
+        Ok(self)
     }
 
-    /// Add multiple [`Component`]s to a message.
+    /// Set the message's list of [`Component`]s.
     ///
-    /// Calling this method multiple times will clear previous calls.
+    /// Calling this method will clear previous calls.
     ///
-    /// Pass `None` to clear existing components.
+    /// Requires a webhook owned by the application.
+    ///
+    /// # Editing
+    ///
+    /// Pass [`None`] to clear existing components.
     ///
     /// # Errors
     ///
@@ -151,19 +171,19 @@ impl<'a> UpdateWebhookMessage<'a> {
             validate_components(components)?;
         }
 
-        self.fields.components = Some(NullableField(components));
+        self.fields.components = Some(Nullable(components));
 
         Ok(self)
     }
 
-    /// Set the content of the message.
-    ///
-    /// Pass `None` if you want to remove the message content.
-    ///
-    /// Note that if there is are no embeds then you will not be able to remove
-    /// the content of the message.
+    /// Set the message's content.
     ///
     /// The maximum length is 2000 UTF-16 characters.
+    ///
+    /// # Editing
+    ///
+    /// Pass [`None`] to remove the message content. This is impossible if it
+    /// would leave the message empty of `attachments`, `content`, or `embeds`.
     ///
     /// # Errors
     ///
@@ -176,21 +196,27 @@ impl<'a> UpdateWebhookMessage<'a> {
             validate_content(content_ref)?;
         }
 
-        self.fields.content = Some(NullableField(content));
+        self.fields.content = Some(Nullable(content));
 
         Ok(self)
     }
 
-    /// Set the list of embeds of the webhook's message.
+    /// Set the message's list of embeds.
     ///
-    /// Pass `None` to remove all of the embeds.
+    /// Calling this method will clear previous calls.
     ///
-    /// The maximum number of allowed embeds is defined by
-    /// [`EMBED_COUNT_LIMIT`].
-    ///
-    /// The total character length of each embed must not exceed 6000
+    /// The amount of embeds must not exceed [`EMBED_COUNT_LIMIT`]. The total
+    /// character length of each embed must not exceed [`EMBED_TOTAL_LENGTH`]
     /// characters. Additionally, the internal fields also have character
     /// limits. See [Discord Docs/Embed Limits].
+    ///
+    /// # Editing
+    ///
+    /// To keep all embeds, do not call this method. To modify one or more
+    /// embeds in the message, acquire them from the previous message, mutate
+    /// them in place, then pass that list to this method. To remove all embeds,
+    /// pass [`None`]. This is impossible if it would leave the message empty of
+    /// attachments, content, or embeds.
     ///
     /// # Examples
     ///
@@ -199,19 +225,25 @@ impl<'a> UpdateWebhookMessage<'a> {
     /// modified.
     ///
     /// ```no_run
-    /// # use twilight_http::Client;
-    /// use twilight_embed_builder::EmbedBuilder;
-    /// use twilight_model::id::Id;
-    ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # let client = Client::new("token".to_owned());
+    /// use twilight_http::Client;
+    /// use twilight_model::id::Id;
+    /// use twilight_util::builder::embed::EmbedBuilder;
+    ///
+    /// let client = Client::new("token".to_owned());
+    ///
+    /// let webhook_id = Id::new(1);
+    /// let message_id = Id::new(2);
+    ///
     /// let embed = EmbedBuilder::new()
-    ///     .description("Powerful, flexible, and scalable ecosystem of Rust libraries for the Discord API.")
+    ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
+    ///     libraries for the Discord API.")
     ///     .title("Twilight")
     ///     .url("https://twilight.rs")
-    ///     .build()?;
+    ///     .validate()?
+    ///     .build();
     ///
-    /// client.update_webhook_message(Id::new(1), "token", Id::new(2))
+    /// client.update_webhook_message(webhook_id, "token", message_id)
     ///     .embeds(Some(&[embed]))?
     ///     .exec()
     ///     .await?;
@@ -222,11 +254,11 @@ impl<'a> UpdateWebhookMessage<'a> {
     ///
     /// Returns an error of type [`TooManyEmbeds`] if there are too many embeds.
     ///
-    /// Otherwise, refer to the errors section of [`embed`] for a list of errors
-    /// that may occur.
+    /// Otherwise, refer to the errors section of
+    /// [`twilight_validate::embed::embed`] for a list of errors that may occur.
     ///
     /// [`EMBED_COUNT_LIMIT`]: twilight_validate::message::EMBED_COUNT_LIMIT
-    /// [`embed`]: twilight_validate::embed::embed
+    /// [`EMBED_TOTAL_LENGTH`]: twilight_validate::embed::EMBED_TOTAL_LENGTH
     /// [`TooManyEmbeds`]: twilight_validate::message::MessageValidationErrorType::TooManyEmbeds
     /// [Discord Docs/Embed Limits]: https://discord.com/developers/docs/resources/channel#embed-limits
     pub fn embeds(mut self, embeds: Option<&'a [Embed]>) -> Result<Self, MessageValidationError> {
@@ -234,38 +266,37 @@ impl<'a> UpdateWebhookMessage<'a> {
             validate_embeds(embeds)?;
         }
 
-        self.fields.embeds = Some(NullableField(embeds));
+        self.fields.embeds = Some(Nullable(embeds));
 
         Ok(self)
     }
 
-    /// Attach multiple files to the message.
+    /// Specify multiple [`Id<AttachmentMarker>`]s already present in the target
+    /// message to keep.
     ///
-    /// Calling this method will clear any previous calls.
-    #[allow(clippy::missing_const_for_fn)] // False positive
-    pub fn attach(mut self, attachments: &'a [AttachmentFile<'a>]) -> Self {
-        self.attachments = Cow::Borrowed(attachments);
+    /// If called, all unspecified attachments (except ones added with
+    /// [`attachments`]) will be removed from the message. If not called, all
+    /// attachments will be kept.
+    ///
+    /// [`attachments`]: Self::attachments
+    pub fn keep_attachment_ids(mut self, attachment_ids: &'a [Id<AttachmentMarker>]) -> Self {
+        self.attachment_manager = self.attachment_manager.set_ids(attachment_ids.to_vec());
+
+        // Set an empty list. This will be overwritten in `TryIntoRequest` if
+        // the actual list is not empty.
+        self.fields.attachments = Some(Nullable(Some(Vec::new())));
 
         self
     }
 
-    /// Attach multiple files to the message.
+    /// JSON encoded body of request fields.
     ///
-    /// Calling this method will clear any previous calls.
-    #[deprecated(since = "0.7.2", note = "Use attach instead")]
-    pub fn files(mut self, files: &'a [(&'a str, &'a [u8])]) -> Self {
-        self.attachments = Cow::Owned(AttachmentFile::from_pairs(files));
-
-        self
-    }
-
-    /// JSON encoded body of any additional request fields.
+    /// If this method is called, all other methods are ignored, except for
+    /// [`attachments`]. If uploading attachments, you must ensure that the
+    /// `attachments` key corresponds properly to the provided list. See
+    /// [Discord Docs/Create Message] and [`ExecuteWebhook::payload_json`].
     ///
-    /// If this method is called, all other fields are ignored, except for
-    /// [`files`]. See [Discord Docs/Create Message] and
-    /// [`ExecuteWebhook::payload_json`].
-    ///
-    /// [`files`]: Self::files
+    /// [`attachments`]: Self::attachments
     /// [`ExecuteWebhook::payload_json`]: super::ExecuteWebhook::payload_json
     /// [Discord Docs/Create Message]: https://discord.com/developers/docs/resources/channel#create-message-params
     pub const fn payload_json(mut self, payload_json: &'a [u8]) -> Self {
@@ -295,63 +326,46 @@ impl<'a> UpdateWebhookMessage<'a> {
     }
 }
 
-impl<'a> AuditLogReason<'a> for UpdateWebhookMessage<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
-    }
-}
-
 impl TryIntoRequest for UpdateWebhookMessage<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
             webhook_id: self.webhook_id.get(),
-        })
-        .use_authorization_token(false);
+        });
 
-        if !self.attachments.is_empty() || self.fields.payload_json.is_some() {
-            let mut form = Form::new();
+        // Webhook executions don't need the authorization token, only the
+        // webhook token.
+        request = request.use_authorization_token(false);
 
-            if !self.attachments.is_empty() {
-                for (index, attachment) in self.attachments.iter().enumerate() {
-                    form.attach(
-                        index as u64,
-                        attachment.filename.as_bytes(),
-                        attachment.file,
-                    );
-                }
+        // Set the default allowed mentions if required.
+        if self.fields.allowed_mentions.is_none() {
+            if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
+                self.fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
             }
-
-            if let Some(payload_json) = &self.fields.payload_json {
-                form.payload_json(payload_json);
-            } else {
-                let mut fields = self.fields;
-
-                if fields.allowed_mentions.is_none() {
-                    fields.allowed_mentions = self.http.default_allowed_mentions();
-                }
-
-                let body = crate::json::to_vec(&fields).map_err(HttpError::json)?;
-                form.payload_json(&body);
-            }
-
-            request = request.form(form);
-        } else {
-            let mut fields = self.fields;
-
-            if fields.allowed_mentions.is_none() {
-                fields.allowed_mentions = self.http.default_allowed_mentions();
-            }
-
-            request = request.json(&fields)?;
         }
 
-        if let Some(reason) = self.reason.as_ref() {
-            request = request.headers(request::audit_header(reason)?);
+        // Determine whether we need to use a multipart/form-data body or a JSON
+        // body.
+        if !self.attachment_manager.is_empty() {
+            let form = if let Some(payload_json) = self.fields.payload_json {
+                self.attachment_manager.build_form(payload_json)
+            } else {
+                self.fields.attachments = Some(Nullable(Some(
+                    self.attachment_manager.get_partial_attachments(),
+                )));
+
+                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+
+                self.attachment_manager.build_form(fields.as_ref())
+            };
+
+            request = request.form(form);
+        } else if let Some(payload_json) = self.fields.payload_json {
+            request = request.body(payload_json.to_vec())
+        } else {
+            request = request.json(&self.fields)?;
         }
 
         Ok(request.build())
@@ -363,29 +377,28 @@ mod tests {
     use super::{UpdateWebhookMessage, UpdateWebhookMessageFields};
     use crate::{
         client::Client,
-        request::{AuditLogReason, NullableField, Request, TryIntoRequest},
+        request::{Nullable, Request, TryIntoRequest},
         routing::Route,
     };
     use twilight_model::id::Id;
 
     #[test]
-    fn test_request() {
+    fn request() {
         let client = Client::new("token".to_owned());
         let builder = UpdateWebhookMessage::new(&client, Id::new(1), "token", Id::new(2))
             .content(Some("test"))
             .expect("'test' content couldn't be set")
-            .thread_id(Id::new(3))
-            .reason("reason")
-            .expect("'reason' is not a valid reason");
+            .thread_id(Id::new(3));
+
         let actual = builder
             .try_into_request()
             .expect("failed to create request");
 
         let body = UpdateWebhookMessageFields {
             allowed_mentions: None,
-            attachments: &[],
+            attachments: None,
             components: None,
-            content: Some(NullableField(Some("test"))),
+            content: Some(Nullable(Some("test"))),
             embeds: None,
             payload_json: None,
         };

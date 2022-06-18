@@ -1,14 +1,13 @@
 //! Gateway event payload when an invite is created.
 
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
     invite::TargetType,
     user::{self, DiscriminatorDisplay, User},
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
 
@@ -86,7 +85,7 @@ impl PartialUser {
 #[cfg(test)]
 mod tests {
     use super::{InviteCreate, PartialUser};
-    use crate::{datetime::Timestamp, id::Id, test::image_hash};
+    use crate::{id::Id, test::image_hash, util::Timestamp};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -130,7 +129,7 @@ mod tests {
     );
 
     #[test]
-    fn test_invite_create() {
+    fn invite_create() {
         let created_at = Timestamp::from_secs(1_609_459_200).expect("non zero");
 
         let value = InviteCreate {
@@ -178,7 +177,7 @@ mod tests {
     }
 
     #[test]
-    fn test_partial_user() {
+    fn partial_user() {
         let value = PartialUser {
             avatar: Some(image_hash::AVATAR),
             discriminator: 123,

@@ -2,7 +2,6 @@ use std::slice::Iter;
 
 use serde::Serialize;
 use twilight_model::{
-    datetime::Timestamp,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
         PremiumTier, SystemChannelFlags, VerificationLevel,
@@ -11,7 +10,7 @@ use twilight_model::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
 };
 
 /// Represents a cached [`Guild`].
@@ -34,6 +33,7 @@ pub struct CachedGuild {
     pub(crate) large: bool,
     pub(crate) max_members: Option<u64>,
     pub(crate) max_presences: Option<u64>,
+    pub(crate) max_video_channel_users: Option<u64>,
     pub(crate) member_count: Option<u64>,
     pub(crate) mfa_level: MfaLevel,
     pub(crate) name: String,
@@ -146,6 +146,11 @@ impl CachedGuild {
     /// Maximum presences.
     pub const fn max_presences(&self) -> Option<u64> {
         self.max_presences
+    }
+
+    /// Maximum number of users in a video channel.
+    pub const fn max_video_channel_users(&self) -> Option<u64> {
+        self.max_video_channel_users
     }
 
     /// Total number of members in the guild.
@@ -267,4 +272,61 @@ impl<'a> Iterator for Features<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(AsRef::as_ref)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CachedGuild, Features};
+    use serde::Serialize;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
+
+    assert_fields!(
+        CachedGuild: afk_channel_id,
+        afk_timeout,
+        application_id,
+        banner,
+        default_message_notifications,
+        description,
+        discovery_splash,
+        explicit_content_filter,
+        features,
+        icon,
+        id,
+        joined_at,
+        large,
+        max_members,
+        max_presences,
+        max_video_channel_users,
+        member_count,
+        mfa_level,
+        name,
+        nsfw_level,
+        owner_id,
+        owner,
+        permissions,
+        preferred_locale,
+        premium_progress_bar_enabled,
+        premium_subscription_count,
+        premium_tier,
+        rules_channel_id,
+        splash,
+        system_channel_id,
+        system_channel_flags,
+        unavailable,
+        vanity_url_code,
+        verification_level,
+        widget_channel_id,
+        widget_enabled
+    );
+    assert_impl_all!(
+        CachedGuild: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_impl_all!(Features<'_>: Iterator, Send, Sync);
 }

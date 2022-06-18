@@ -1,11 +1,11 @@
 use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
 use crate::{
-    datetime::Timestamp,
     id::{
         marker::{GuildMarker, IntegrationMarker, RoleMarker},
         Id,
     },
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +16,10 @@ pub struct GuildIntegration {
     pub application: Option<IntegrationApplication>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub enable_emoticons: Option<bool>,
-    pub enabled: bool,
+    /// Whether the integration has been enabled.
+    ///
+    /// May be provided on some non-Discord application integrations.
+    pub enabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expire_behavior: Option<IntegrationExpireBehavior>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -48,16 +51,16 @@ mod tests {
         User,
     };
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
         test::image_hash,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild_integration() -> Result<(), TimestampParseError> {
+    fn guild_integration() -> Result<(), TimestampParseError> {
         let synced_at = Timestamp::from_str("2021-01-01T01:01:01+00:00")?;
 
         let value = GuildIntegration {
@@ -67,7 +70,7 @@ mod tests {
             },
             application: None,
             enable_emoticons: Some(true),
-            enabled: true,
+            enabled: Some(true),
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
@@ -119,6 +122,7 @@ mod tests {
                 Token::Some,
                 Token::Bool(true),
                 Token::Str("enabled"),
+                Token::Some,
                 Token::Bool(true),
                 Token::Str("expire_behavior"),
                 Token::Some,
@@ -181,7 +185,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild_integration_complete() -> Result<(), TimestampParseError> {
+    fn guild_integration_complete() -> Result<(), TimestampParseError> {
         let synced_at = Timestamp::from_str("2021-01-01T01:01:01+00:00")?;
 
         let value = GuildIntegration {
@@ -195,10 +199,9 @@ mod tests {
                 icon: None,
                 id: Id::new(123),
                 name: "Twilight".to_string(),
-                summary: "A cool pony".to_string(),
             }),
             enable_emoticons: Some(true),
-            enabled: true,
+            enabled: None,
             expire_behavior: Some(IntegrationExpireBehavior::Kick),
             expire_grace_period: Some(3_600),
             guild_id: None,
@@ -250,7 +253,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "IntegrationApplication",
-                    len: 5,
+                    len: 4,
                 },
                 Token::Str("description"),
                 Token::Str("Friendship is Magic"),
@@ -261,14 +264,12 @@ mod tests {
                 Token::Str("123"),
                 Token::Str("name"),
                 Token::Str("Twilight"),
-                Token::Str("summary"),
-                Token::Str("A cool pony"),
                 Token::StructEnd,
                 Token::Str("enable_emoticons"),
                 Token::Some,
                 Token::Bool(true),
                 Token::Str("enabled"),
-                Token::Bool(true),
+                Token::None,
                 Token::Str("expire_behavior"),
                 Token::Some,
                 Token::U8(1),

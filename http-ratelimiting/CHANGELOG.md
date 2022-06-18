@@ -2,6 +2,44 @@
 
 Changelog for `twilight-http-ratelimiting`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Changes
+
+Rename `Ratelimiter::globally_locked` to `Ratelimiter::is_globally_locked`
+([#1729] - [@vilgotf]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1729]: https://github.com/twilight-rs/twilight/pull/1729
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+
+## [0.10.2] - 2022-05-15
+
+### Additions
+
+Catch erroneous bool header values ([#1724] - [@vilgotf]).
+
+[#1724]: https://github.com/twilight-rs/twilight/pull/1724
+
+## [0.10.1] - 2022-04-15
+
+### Changes
+
+Link to `tracing` in the README ([#1652] - [@zeylahellyer]).
+
+[#1652]: https://github.com/twilight-rs/twilight/pull/1652
+
+## [0.10.0] - 2022-03-10
+
+This major version bump of the HTTP Ratelimiting crate is done to match all
+of the other crates in the ecosystem receiving a major version bump.
+There are no changes.
+
 ## [0.9.0] - 2022-01-22
 
 ### Additions
@@ -89,6 +127,10 @@ For webhooks, the token is now a major parameter ([#1263] -
 [@vilgotf]: https://github.com/vilgotf
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.11.0
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.10.2
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.10.1
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.9.0
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.4
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/http-ratelimiting-0.8.3

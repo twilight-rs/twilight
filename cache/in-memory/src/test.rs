@@ -1,10 +1,13 @@
 use crate::InMemoryCache;
 use twilight_model::{
+    channel::message::sticker::{Sticker, StickerFormatType, StickerType},
+    id::marker::StickerMarker,
+};
+use twilight_model::{
     channel::{
         message::{Message, MessageFlags, MessageType},
-        ChannelType, GuildChannel, Reaction, ReactionType, TextChannel,
+        Channel, ChannelType, Reaction, ReactionType,
     },
-    datetime::Timestamp,
     gateway::payload::incoming::{MessageCreate, ReactionAdd},
     guild::{
         DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
@@ -16,10 +19,15 @@ use twilight_model::{
         Id,
     },
     user::{CurrentUser, User},
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
     voice::VoiceState,
 };
 
+pub fn cache() -> InMemoryCache {
+    InMemoryCache::new()
+}
+
+#[allow(clippy::too_many_lines)]
 pub fn cache_with_message_and_reactions() -> InMemoryCache {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
     let cache = InMemoryCache::new();
@@ -174,7 +182,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
 pub fn current_user(id: u64) -> CurrentUser {
     CurrentUser {
-        accent_color: Some(16711680),
+        accent_color: Some(0xFF_00_00),
         avatar: None,
         banner: None,
         bot: true,
@@ -204,23 +212,38 @@ pub fn emoji(id: Id<EmojiMarker>, user: Option<User>) -> Emoji {
     }
 }
 
-pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, GuildChannel) {
+pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
     let guild_id = Id::new(1);
     let channel_id = Id::new(2);
-    let channel = GuildChannel::Text(TextChannel {
+    let channel = Channel {
+        application_id: None,
+        bitrate: None,
+        default_auto_archive_duration: None,
         guild_id: Some(guild_id),
+        icon: None,
         id: channel_id,
+        invitable: None,
         kind: ChannelType::GuildText,
         last_message_id: None,
         last_pin_timestamp: None,
-        name: "test".to_owned(),
-        nsfw: false,
+        member: None,
+        member_count: None,
+        message_count: None,
+        name: Some("test".to_owned()),
+        newly_created: None,
+        nsfw: Some(false),
+        owner_id: None,
         parent_id: None,
-        permission_overwrites: Vec::new(),
-        position: 3,
+        permission_overwrites: Some(Vec::new()),
+        position: Some(3),
         rate_limit_per_user: None,
+        recipients: None,
+        rtc_region: None,
+        thread_metadata: None,
         topic: None,
-    });
+        user_limit: None,
+        video_quality_mode: None,
+    };
 
     (guild_id, channel_id, channel)
 }
@@ -256,6 +279,22 @@ pub fn role(id: Id<RoleMarker>) -> Role {
         position: 0,
         tags: None,
         unicode_emoji: None,
+    }
+}
+
+pub const fn sticker(id: Id<StickerMarker>, guild_id: Id<GuildMarker>) -> Sticker {
+    Sticker {
+        available: false,
+        description: None,
+        format_type: StickerFormatType::Png,
+        guild_id: Some(guild_id),
+        id,
+        kind: StickerType::Standard,
+        name: String::new(),
+        pack_id: None,
+        sort_value: None,
+        tags: String::new(),
+        user: None,
     }
 }
 

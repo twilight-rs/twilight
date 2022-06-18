@@ -2,6 +2,43 @@
 
 Changelog for `twilight-gateway-queue`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Changes
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+
+## [0.10.1] - 2022-04-15
+
+### Changes
+
+Link to `tracing` in the README ([#1652] - [@zeylahellyer]).
+
+[#1652]: https://github.com/twilight-rs/twilight/pull/1652
+
+## [0.10.0] - 2022-03-10
+
+### Changes
+
+`twilight-http` is now an optional feature, and enabled by default ([#1489] -
+[@Gelbpunkt]).
+
+[#1489]: https://github.com/twilight-rs/twilight/pull/1489
+
+## [0.9.1] - 2022-02-12
+
+### Additions
+
+Add `NoOpQueue`, which does not ratelimit any requests ([#1490] - [@Gelbpunkt]).
+
+[#1490]: https://github.com/twilight-rs/twilight/pull/1490
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
@@ -117,6 +154,10 @@ Initial release.
 
 [#595]: https://github.com/twilight-rs/twilight/pull/595
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.11.0
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.10.1
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.10.0
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.9.0
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.8.1
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-queue-0.8.0

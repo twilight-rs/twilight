@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,8 +10,9 @@ use twilight_model::{
     channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType, VideoQualityMode},
     id::{marker::ChannelMarker, Id},
 };
-use twilight_validate::channel::{
-    name as validate_name, topic as validate_topic, ChannelValidationError,
+use twilight_validate::{
+    channel::{name as validate_name, topic as validate_topic, ChannelValidationError},
+    request::{audit_reason as validate_audit_reason, ValidationError},
 };
 
 // The Discord API doesn't require the `name` and `kind` fields to be present,
@@ -19,23 +20,23 @@ use twilight_validate::channel::{
 #[derive(Serialize)]
 struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    bitrate: Option<u64>,
+    bitrate: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     nsfw: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<NullableField<Id<ChannelMarker>>>,
+    parent_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permission_overwrites: Option<&'a [PermissionOverwrite]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    rate_limit_per_user: Option<u64>,
+    rate_limit_per_user: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    user_limit: Option<u64>,
+    user_limit: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     video_quality_mode: Option<VideoQualityMode>,
     #[serde(rename = "type")]
@@ -78,7 +79,7 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Set the bitrate of the channel. Applicable to voice channels only.
-    pub const fn bitrate(mut self, bitrate: u64) -> Self {
+    pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.fields.bitrate = Some(bitrate);
 
         self
@@ -110,7 +111,7 @@ impl<'a> UpdateChannel<'a> {
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, move this
     /// channel to a child of the category channel.
     pub const fn parent_id(mut self, parent_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.parent_id = Some(NullableField(parent_id));
+        self.fields.parent_id = Some(Nullable(parent_id));
 
         self
     }
@@ -151,7 +152,7 @@ impl<'a> UpdateChannel<'a> {
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     pub const fn rate_limit_per_user(
         mut self,
-        rate_limit_per_user: u64,
+        rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
         if let Err(source) = twilight_validate::channel::rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
@@ -188,7 +189,7 @@ impl<'a> UpdateChannel<'a> {
     /// inclusive. See [Discord Docs/Modify Channel].
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
-    pub const fn user_limit(mut self, user_limit: u64) -> Self {
+    pub const fn user_limit(mut self, user_limit: u16) -> Self {
         self.fields.user_limit = Some(user_limit);
 
         self
@@ -228,8 +229,10 @@ impl<'a> UpdateChannel<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateChannel<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

@@ -260,34 +260,34 @@ mod tests {
     assert_obj_safe!(Snowflake);
 
     #[test]
-    fn test_timestamp() {
+    fn timestamp() {
         let expected: i64 = 1_445_219_918_546;
         let id = Id::<GenericMarker>::new(105_484_726_235_607_040);
 
-        assert_eq!(expected, id.timestamp())
+        assert_eq!(expected, id.timestamp());
     }
 
     #[test]
-    fn test_worker_id() {
+    fn worker_id() {
         let expected: u8 = 8;
         let id = Id::<GenericMarker>::new(762_022_344_856_174_632);
 
-        assert_eq!(expected, id.worker_id())
+        assert_eq!(expected, id.worker_id());
     }
 
     #[test]
-    fn test_process_id() {
+    fn process_id() {
         let expected: u8 = 1;
         let id = Id::<GenericMarker>::new(61_189_081_970_774_016);
 
-        assert_eq!(expected, id.process_id())
+        assert_eq!(expected, id.process_id());
     }
 
     #[test]
-    fn test_increment() {
+    fn increment() {
         let expected: u16 = 40;
         let id = Id::<GenericMarker>::new(762_022_344_856_174_632);
 
-        assert_eq!(expected, id.increment())
+        assert_eq!(expected, id.increment());
     }
 }

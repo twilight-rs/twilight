@@ -10,7 +10,7 @@
 //! [read the position]: Player::position
 
 use crate::{
-    model::*,
+    model::{Destroy, OutgoingEvent},
     node::{Node, NodeSenderError},
 };
 use dashmap::DashMap;
@@ -143,17 +143,13 @@ impl Player {
     }
 
     fn _send(&self, event: OutgoingEvent) -> Result<(), NodeSenderError> {
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            "sending event on guild player {}: {:?}",
-            self.guild_id,
-            event
-        );
+        tracing::debug!("sending event on guild player {}: {event:?}", self.guild_id);
 
         match &event {
             OutgoingEvent::Pause(event) => self.paused.store(event.pause, Ordering::Release),
             OutgoingEvent::Volume(event) => {
-                self.volume.store(event.volume as u16, Ordering::Release)
+                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                self.volume.store(event.volume as u16, Ordering::Release);
             }
             _ => {}
         }
@@ -179,10 +175,8 @@ impl Player {
 
     /// Sets the channel ID the player is currently connected to.
     pub(crate) fn set_channel_id(&self, channel_id: Option<Id<ChannelMarker>>) {
-        self.channel_id.store(
-            channel_id.map(|id| id.get()).unwrap_or(0_u64),
-            Ordering::Release,
-        );
+        self.channel_id
+            .store(channel_id.map_or(0_u64, Id::get), Ordering::Release);
     }
 
     /// Return the player's guild ID.
@@ -202,7 +196,7 @@ impl Player {
 
     /// Set the player's position.
     pub(crate) fn set_position(&self, position: i64) {
-        self.position.store(position, Ordering::Release)
+        self.position.store(position, Ordering::Release);
     }
 
     /// Return the player's time.
@@ -212,7 +206,7 @@ impl Player {
 
     /// Set the player's time.
     pub(crate) fn set_time(&self, time: i64) {
-        self.time.store(time, Ordering::Release)
+        self.time.store(time, Ordering::Release);
     }
 
     /// Return the player's volume.

@@ -186,7 +186,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_display() {
+    fn display() {
         let mut expected = "id portion ('abcd') of mention is not a u64";
         assert_eq!(
             expected,
@@ -242,12 +242,12 @@ mod tests {
             .to_string(),
         );
 
-        expected = "expected to find a mention sigil ('@!', '@') but instead found '#'";
+        expected = "expected to find a mention sigil ('@') but instead found '#'";
         assert_eq!(
             expected,
             ParseMentionError {
                 kind: ParseMentionErrorType::Sigil {
-                    expected: &["@!", "@"],
+                    expected: &["@"],
                     found: Some('#'),
                 },
                 source: None,
@@ -255,12 +255,12 @@ mod tests {
             .to_string(),
         );
 
-        expected = "expected to find a mention sigil ('@!', '@') but instead found nothing";
+        expected = "expected to find a mention sigil ('@') but instead found nothing";
         assert_eq!(
             expected,
             ParseMentionError {
                 kind: ParseMentionErrorType::Sigil {
-                    expected: &["@!", "@"],
+                    expected: &["@"],
                     found: None
                 },
                 source: None,

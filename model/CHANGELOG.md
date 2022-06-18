@@ -2,6 +2,320 @@
 
 Changelog for `twilight-model`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Additions
+
+Support Guild Scheduled Events gateway events ([#1574] - [@itohatweb]).
+
+Support command localization via `description_localizations` and
+`name_localizations` fields on commands ([#1701] - [@baptiste0928]).
+
+### Changes
+
+Simplify the `PresenceUpdate` event by making it a newtype of `Presence`
+([#1582] - [@zeylahellyer]).
+
+Move the `datetime` module into the `util` module ([#1597] - [@vilgotf]).
+
+Make user `accent_color` fields a u32 instead of u64 ([#1695] - [@tomocrafter]).
+
+Remove application summary field names ([#1659] - [@zeylahellyer]).
+
+Remove store channel type as it was removed by Discord ([#1595] - [@itohatweb]).
+
+Use `ImageHash` for image related audit log changes ([#1632] - [@itohatweb]).
+
+Drop Clone, Copy implementations on ID markers since they have no effect
+([#1617] - [@vilgotf]).
+
+Remove identify referrer properties ([#1609] - [@vilgotf]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1695]: https://github.com/twilight-rs/twilight/pull/1695
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+[#1659]: https://github.com/twilight-rs/twilight/pull/1659
+[#1632]: https://github.com/twilight-rs/twilight/pull/1632
+[#1617]: https://github.com/twilight-rs/twilight/pull/1617
+[#1609]: https://github.com/twilight-rs/twilight/pull/1609
+[#1597]: https://github.com/twilight-rs/twilight/pull/1597
+[#1582]: https://github.com/twilight-rs/twilight/pull/1582
+[#1574]: https://github.com/twilight-rs/twilight/pull/1574
+
+## [0.10.3] - 2022-05-15
+
+### Additions
+
+Add getter for retrieving interaction tokens ([#1698] - [@laralove143]).
+
+Document interaction types valid for modal submitting
+([#1697] - [@laralove143]).
+
+Add `USE_EXTERNAL_STICKERS` permission ([#1694] - [@itohatweb]).
+
+Add `MANAGE_EVENTS` permission ([#1693] - [@itohatweb]).
+
+Document expected types of interactions ([#1687] - [@vilgotf]).
+
+Document message content intent caveats on fields
+([#1677] - [@itohatweb], [@zeylahellyer]).
+
+### Fixes
+
+Skip serializing `ModalSubmitInteraction::message` if none
+([#1705] - [@itohatweb]).
+
+[#1705]: https://github.com/twilight-rs/twilight/pull/1705
+[#1698]: https://github.com/twilight-rs/twilight/pull/1698
+[#1697]: https://github.com/twilight-rs/twilight/pull/1697
+[#1694]: https://github.com/twilight-rs/twilight/pull/1694
+[#1693]: https://github.com/twilight-rs/twilight/pull/1693
+[#1687]: https://github.com/twilight-rs/twilight/pull/1687
+[#1677]: https://github.com/twilight-rs/twilight/pull/1677
+
+## [0.10.2] - 2022-04-15
+
+### Additions
+
+Add `#[repr(transparent)]` to `Id<T>` ([#1619] - [@PyroTechniac]).
+
+Add quality-of-life methods on some `Interaction` types ([#1620] - [@vilgotf]):
+- `Interaction`
+  - `fn application_id(&self) -> Id<ApplicationMarker>`
+  - `fn kind(&self) -> InteractionType`
+- `ApplicationCommand`, `ApplicationCommandAutocomplete`
+  - `fn author_id(&self) -> Option<Id<UserMarker>>`
+- `ApplicationCommand`, `ApplicationCommandAutocomplete`,
+`MessageComponentInteraction`, `ModalSubmitInteraction`
+  - `fn is_dm(&self) -> bool`
+  - `fn is_guild(&self) -> bool`
+
+Add `AuditLogChange::ImageHash` and `AuditLogChangeKey::ImageHash` ([#1631] -
+[@itohatweb]]).
+
+Add `ChannelType::GuildDirectory` ([#1655] - [@zeylahellyer]).
+
+Add `InviteGuild::premium_subscription_count` ([#1661] - [@zeylahellyer]).
+
+Add `Application::{custom_install_url, install_params, tags}` ([#1670] -
+[@zeylahellyer]).
+
+Add `ChannelType::GuildForum` ([#1682] - [@7596ff]).
+
+### Changes
+
+Standardize documentation on `Interaction` types ([#1620] - [@vilgotf]).
+
+Rename `CurrentApplicationInfo` to `Application` ([#1648] - [@zeylahellyer]).
+Additionally, restructure the `oauth` module and deprecate old exports of its
+types.
+
+Update `UserFlags::HYPESQUAD` docs ([#1658] - [@zeylahellyer]).
+
+Make `Application::owner` an `Option` ([#1671] - [@zeylahellyer]).
+
+### Fixes
+
+In order to properly send attachments when using `CreateResponse`, rework
+`Attachment` ([#1624] - [@7596ff]). This is a breaking change; the user is now
+required to supply a custom unique ID. Changes:
+- Add `id: u64` field, add `id` parameter to `from_bytes`
+- Skip serializing on `description` if empty
+- Skip serializing `file` entirely
+
+[#1619]: https://github.com/twilight-rs/twilight/pull/1619
+[#1620]: https://github.com/twilight-rs/twilight/pull/1620
+[#1624]: https://github.com/twilight-rs/twilight/pull/1624
+[#1631]: https://github.com/twilight-rs/twilight/pull/1631
+[#1648]: https://github.com/twilight-rs/twilight/pull/1648
+[#1655]: https://github.com/twilight-rs/twilight/pull/1655
+[#1661]: https://github.com/twilight-rs/twilight/pull/1661
+[#1670]: https://github.com/twilight-rs/twilight/pull/1670
+[#1671]: https://github.com/twilight-rs/twilight/pull/1671
+[#1682]: https://github.com/twilight-rs/twilight/pull/1682
+
+## [0.10.1] - 2022-03-20
+
+### Additions
+
+Add `StageInstance::guild_scheduled_event_id` ([#1567] - [@itohatweb]).
+
+Document `ApplicationFlags` ([#1578] - [@7596ff]).
+
+Add `Channel::newly_created` ([#1588] - [@7596ff]).
+
+Add `guild_locale`, `locale`, and `message` to `ModalSubmitInteraction` ([#1613]
+- [@itohatweb]).
+
+### Changes
+
+Rename `Permissions::START_EMBEDDED_ACTIVITIES` to `USE_EMBEDDED_ACTIVITIES`
+([#1568] - [@itohatweb]).
+
+Remove `Invite::stage_instance` ([#1569] - [@itohatweb]).
+
+Remove `Ord` and `PartialOrd` implementations on the following ([#1572] -
+[@vilgotf]):
+- `ActivityType`
+- `ApplicationCommandAutocompleteDataOptionType`
+- `AuditLogEventType`
+- `ChannelType`
+- `CommandOptionType`
+- `CommandType`
+- `ComponentType`
+- `InteractionResponseType`
+- `InteractionType`
+- `MessageActivityType`
+- `MessageType`
+- `PremiumType`
+- `Status`
+- `StickerFormatType`
+- `StickerType`
+- `TargetType`
+- `WebhookType`
+
+### Fixes
+
+Correct time unit on `AutoArchiveDuration::number` ([#1571] - [@vilgotf]).
+
+[#1567]: https://github.com/twilight-rs/twilight/pull/1567
+[#1568]: https://github.com/twilight-rs/twilight/pull/1568
+[#1569]: https://github.com/twilight-rs/twilight/pull/1569
+[#1571]: https://github.com/twilight-rs/twilight/pull/1571
+[#1572]: https://github.com/twilight-rs/twilight/pull/1572
+[#1578]: https://github.com/twilight-rs/twilight/pull/1578
+[#1588]: https://github.com/twilight-rs/twilight/pull/1588
+[#1613]: https://github.com/twilight-rs/twilight/pull/1613
+
+## [0.10.0] - 2022-03-10
+
+### Channels
+
+The `Channel` type has been unified into a struct ([#1449] - [@zeylahellyer],
+[@itohatweb]). All possible fields of every channel variant and thread variant
+are now present on this type. This change was prompted by Discord's own storage
+of channels, and that variants do not necessarily have guaranteed fields. See
+the PR description for more details.
+
+### New `http` module
+
+Add a new module, `http` ([#1508], [#1521] - [@7596ff]). This module contains
+types that are only sent to Discord.
+
+`AttachmentFile` has been moved from `twilight-http` and renamed to
+`model::http::attachment::Attachment`.
+
+`InteractionResponse` has been moved to
+`model::http::interaction::InteractionResponse`. `CallbackData` has been
+renamed to `InteractionResponseData`.
+
+`PermissionOverwrite` now has a separate type in `model::http`; it differs from
+a received `PermissionOverwrite` in that its `allow` and `deny` fields are
+optional.
+
+### Additions
+
+Add support for modals ([#1300] - [@itohatweb], [@7596ff]):
+- Sending
+  - add a new component, `TextInput`
+  - move `Component` de/serialization to the enum itself, and remove all
+    de/serialization from its variants
+- Receiving
+  - add `Interaction::Modal`, `InteractionType::ModalSubmit`
+  - add `ModalSubmitInteraction`, `ModalInteractionData`,
+    `ModalInteractionDataActionRow`, `ModalInteractionDataComponent`
+
+Add `GuildStickersUpdate` to the `Event` enum ([#1520] - [@HTG-YT]).
+
+### Changes
+
+`Event` variants have been boxed or unboxed based on a new threshold, making the
+size of the enum more consistent ([#1436] - [@vilgotf]).
+
+Rename `Intents::GUILD_EMOJIS` to `GUILD_EMOJIS_AND_STICKERS` ([#1520] -
+[@HTG-YT]).
+
+`PermissionOverwrite` has been refactored to more closely represent Discord's
+model ([#1521] - [@7596ff]). Its ID is stored with a generic marker, and can be
+casted to a member or role ID as needed.
+
+Update to Discord API version 10 ([#1540] - [@zeylahellyer]). This involves two
+changes:
+- remove `CurrentApplicationInfo`'s `summary` field
+- add `Intents::MESSAGE_CONTENT`
+
+[#1300]: https://github.com/twilight-rs/twilight/pull/1300
+[#1436]: https://github.com/twilight-rs/twilight/pull/1436
+[#1449]: https://github.com/twilight-rs/twilight/pull/1449
+[#1508]: https://github.com/twilight-rs/twilight/pull/1508
+[#1520]: https://github.com/twilight-rs/twilight/pull/1520
+[#1521]: https://github.com/twilight-rs/twilight/pull/1521
+[#1540]: https://github.com/twilight-rs/twilight/pull/1540
+
+## [0.9.2] - 2022-02-12
+
+### Additions
+
+Support the `Attachment` command option type ([#1537] - [@Erk-]). This includes
+a new variant of `CommandOption` and a new field in
+`CommandInteractionDataResolved`.
+
+### Fixes
+
+Autocomplete values no longer use the `ApplicationCommand` structure, they
+rather use a separate struct that parses all `options` as `String`s ([#1542] -
+[@7596ff]).
+
+Add missing variants of `AuditLogEventType` pertaining to Stage Instances
+([#1547] - [@7596ff]).
+
+[#1537]: https://github.com/twilight-rs/twilight/pull/1537
+[#1542]: https://github.com/twilight-rs/twilight/pull/1542
+[#1547]: https://github.com/twilight-rs/twilight/pull/1547
+
+## [0.9.1] - 2022-02-12
+
+### Additions
+
+Add new `Id<T>` implementations ([#1493] - [@dnaka91]):
+- `From<Id<T>> for NonZeroU64`
+- `From<Id<T>> for u64`
+- `Id::into_nonzero`
+
+Add `CommandData::{kind, target_id}` ([#1522] - [@Liamolucko]).
+
+Add `ScheduledEvent::image` ([#1525] - [@7596ff]).
+
+Add `MessageFlags::{LOADING, FAILED_TO_MENTION_SOME_ROLES_IN_THREAD}` ([#1526] -
+[@7596ff]).
+
+Add `MessageInteraction::member` ([#1532] - [@7596ff]).
+
+### Changes
+
+Update many links to Discord documentation with consistent capitalization and
+page titles ([#1429] - [@itohatweb], [@7596ff]).
+
+Implement `Display` directly on `Id` ([#1494] - [@vilgotf]).
+
+### Fixes
+
+Update links to builders in `twilight-util` ([#1516] - [@laralove143]).
+
+[#1429]: https://github.com/twilight-rs/twilight/pull/1429
+[#1493]: https://github.com/twilight-rs/twilight/pull/1493
+[#1494]: https://github.com/twilight-rs/twilight/pull/1494
+[#1516]: https://github.com/twilight-rs/twilight/pull/1516
+[#1522]: https://github.com/twilight-rs/twilight/pull/1522
+[#1525]: https://github.com/twilight-rs/twilight/pull/1525
+[#1526]: https://github.com/twilight-rs/twilight/pull/1526
+[#1532]: https://github.com/twilight-rs/twilight/pull/1532
+
 ## [0.9.0] - 2022-01-22
 
 ### `Id<T>`
@@ -1203,6 +1517,7 @@ Initial release.
 [@BlackHoleFox]: https://github.com/BlackHoleFox
 [@chamburr]: https://github.com/chamburr
 [@coadler]: https://github.com/coadler
+[@dnaka91]: https://github.com/dnaka91
 [@DusterTheFirst]: https://github.com/DusterTheFirst
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
@@ -1211,12 +1526,15 @@ Initial release.
 [@james7132]: https://github.com/james7132
 [@jazevedo620]: https://github.com/jazevedo620
 [@kotx]: https://github.com/kotx
+[@laralove143]: https://github.com/laralove143
 [@LeSeulArtichaut]: https://github.com/LeSeulArtichaut
+[@Liamolucko]: https://github.com/Liamolucko
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@PyroTechniac]: https://github.com/PyroTechniac
 [@sam-kirby]: https://github.com/sam-kirby
 [@tbnritzdoge]: https://github.com/tbnritzdoge
+[@tomocrafter]: https://github.com/tomocrafter
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
@@ -1244,6 +1562,13 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.11.0
+[0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.3
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.2
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.1
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.10.0
+[0.9.2]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.2
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/model-0.9.0
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/model-0.8.4

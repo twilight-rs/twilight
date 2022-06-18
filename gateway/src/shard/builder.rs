@@ -1,4 +1,4 @@
-use super::{config::Config, Events, Shard};
+use super::{Config, Events, Shard, ShardStartError, ShardStartErrorType};
 use crate::EventTypeFlags;
 use std::{
     error::Error,
@@ -6,76 +6,11 @@ use std::{
     sync::Arc,
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
-use twilight_http::Client as HttpClient;
+use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
-
-/// Large threshold configuration is invalid.
-///
-/// Returned by [`ShardBuilder::large_threshold`].
-#[derive(Debug)]
-pub struct LargeThresholdError {
-    kind: LargeThresholdErrorType,
-}
-
-impl LargeThresholdError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &LargeThresholdErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::unused_self)]
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        None
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        LargeThresholdErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for LargeThresholdError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            LargeThresholdErrorType::TooFew { .. } => {
-                f.write_str("provided large threshold value is fewer than 50")
-            }
-            LargeThresholdErrorType::TooMany { .. } => {
-                f.write_str("provided large threshold value is more than 250")
-            }
-        }
-    }
-}
-
-impl Error for LargeThresholdError {}
-
-/// Type of [`LargeThresholdError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum LargeThresholdErrorType {
-    /// Provided large threshold value is too few in number.
-    TooFew {
-        /// Provided value.
-        value: u64,
-    },
-    /// Provided large threshold value is too many in number.
-    TooMany {
-        /// Provided value.
-        value: u64,
-    },
-}
 
 /// Shard ID configuration is invalid.
 ///
@@ -151,7 +86,7 @@ pub enum ShardIdErrorType {
 /// let token = env::var("DISCORD_TOKEN")?;
 ///
 /// let shard = Shard::builder(token, Intents::GUILD_MESSAGE_REACTIONS)
-///     .large_threshold(100)?
+///     .large_threshold(100)
 ///     .shard(5, 10)?
 ///     .build();
 /// # Ok(()) }
@@ -161,7 +96,20 @@ pub enum ShardIdErrorType {
 /// [`large_threshold`]: Self::large_threshold
 /// [`shard`]: Self::shard
 #[derive(Debug)]
-pub struct ShardBuilder(pub(crate) Config);
+#[must_use = "has no effect if not built"]
+pub struct ShardBuilder {
+    event_types: EventTypeFlags,
+    pub(crate) gateway_url: Option<Box<str>>,
+    pub(crate) http_client: Arc<Client>,
+    identify_properties: Option<IdentifyProperties>,
+    intents: Intents,
+    large_threshold: u64,
+    presence: Option<UpdatePresencePayload>,
+    queue: Arc<dyn Queue>,
+    ratelimit_payloads: bool,
+    shard: [u64; 2],
+    token: Box<str>,
+}
 
 impl ShardBuilder {
     /// Create a new builder to configure and construct a shard.
@@ -172,26 +120,80 @@ impl ShardBuilder {
             token.insert_str(0, "Bot ");
         }
 
-        Self(Config {
+        Self {
             event_types: EventTypeFlags::default(),
             gateway_url: None,
-            http_client: Arc::new(HttpClient::new(token.clone())),
+            http_client: Arc::new(Client::new(token.clone())),
             identify_properties: None,
             intents,
             large_threshold: 50,
             presence: None,
             queue: Arc::new(LocalQueue::new()),
+            ratelimit_payloads: true,
             shard: [0, 1],
             token: token.into_boxed_str(),
+        }
+    }
+
+    /// # Panics
+    ///
+    /// Panics if `gateway_url` is [`None`]
+    pub(crate) fn into_config(self) -> Config {
+        Config {
+            event_types: self.event_types,
+            gateway_url: self.gateway_url.unwrap(),
+            http_client: self.http_client,
+            identify_properties: self.identify_properties,
+            intents: self.intents,
+            large_threshold: self.large_threshold,
+            presence: self.presence,
+            queue: self.queue,
+            ratelimit_payloads: self.ratelimit_payloads,
             session_id: None,
             sequence: None,
+            shard: self.shard,
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
             tls: None,
-        })
+            token: self.token,
+        }
     }
 
     /// Consume the builder, constructing a shard.
-    pub fn build(self) -> (Shard, Events) {
-        Shard::new_with_config(self.0)
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
+    /// the gateway URL couldn't be retrieved from the HTTP API.
+    pub async fn build(mut self) -> Result<(Shard, Events), ShardStartError> {
+        if self.gateway_url.is_none() {
+            // By making an authenticated gateway information retrieval request
+            // we're also validating the configured token.
+            self.gateway_url = Some(
+                self.http_client
+                    .gateway()
+                    .authed()
+                    .exec()
+                    .await
+                    .map_err(|source| ShardStartError {
+                        source: Some(Box::new(source)),
+                        kind: ShardStartErrorType::RetrievingGatewayUrl,
+                    })?
+                    .model()
+                    .await
+                    .map_err(|source| ShardStartError {
+                        source: Some(Box::new(source)),
+                        kind: ShardStartErrorType::RetrievingGatewayUrl,
+                    })?
+                    .url
+                    .into_boxed_str(),
+            );
+        }
+
+        Ok(Shard::new_with_config(self.into_config()))
     }
 
     /// Set the event types to process.
@@ -203,14 +205,16 @@ impl ShardBuilder {
     ///
     /// [`EventTypeFlags::SHARD_PAYLOAD`]: crate::EventTypeFlags::SHARD_PAYLOAD
     pub const fn event_types(mut self, event_types: EventTypeFlags) -> Self {
-        self.0.event_types = event_types;
+        self.event_types = event_types;
 
         self
     }
 
     /// Set the URL used for connecting to Discord's gateway
-    pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
-        self.0.gateway_url = gateway_url.map(String::into_boxed_str);
+    ///
+    /// Default is to fetch it from the HTTP API.
+    pub fn gateway_url(mut self, gateway_url: String) -> Self {
+        self.gateway_url = Some(gateway_url.into_boxed_str());
 
         self
     }
@@ -220,8 +224,8 @@ impl ShardBuilder {
     ///
     /// Default is a new, unconfigured instance of an HTTP client.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn http_client(mut self, http_client: Arc<HttpClient>) -> Self {
-        self.0.http_client = http_client;
+    pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
+        self.http_client = http_client;
 
         self
     }
@@ -242,13 +246,7 @@ impl ShardBuilder {
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let properties = IdentifyProperties::new(
-    ///     "twilight.rs",
-    ///     "twilight.rs",
-    ///     OS,
-    ///     "",
-    ///     "",
-    /// );
+    /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
     /// let builder = Shard::builder(token, Intents::empty())
     ///     .identify_properties(properties);
@@ -256,7 +254,7 @@ impl ShardBuilder {
     /// ```
     #[allow(clippy::missing_const_for_fn)]
     pub fn identify_properties(mut self, identify_properties: IdentifyProperties) -> Self {
-        self.0.identify_properties = Some(identify_properties);
+        self.identify_properties = Some(identify_properties);
 
         self
     }
@@ -272,36 +270,20 @@ impl ShardBuilder {
     /// list won't be sent. If there are 150 members, then the list *will* be
     /// sent.
     ///
-    /// # Errors
+    /// # Panics
     ///
-    /// Returns a [`LargeThresholdErrorType::TooFew`] error type if the provided
-    /// value is below 50.
-    ///
-    /// Returns a [`LargeThresholdErrorType::TooMany`] error type if the
-    /// provided value is above 250.
+    /// Panics if the provided value is below 50 or above 250.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn large_threshold(mut self, large_threshold: u64) -> Result<Self, LargeThresholdError> {
+    pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         match large_threshold {
-            0..=49 => {
-                return Err(LargeThresholdError {
-                    kind: LargeThresholdErrorType::TooFew {
-                        value: large_threshold,
-                    },
-                })
-            }
-            50..=250 => {}
-            251..=u64::MAX => {
-                return Err(LargeThresholdError {
-                    kind: LargeThresholdErrorType::TooMany {
-                        value: large_threshold,
-                    },
-                })
-            }
+            0..=49 => panic!("provided large threshold value {large_threshold} is fewer than 50"),
+            50..=250 => (),
+            251.. => panic!("provided large threshold value {large_threshold} is more than 250"),
         }
 
-        self.0.large_threshold = large_threshold;
+        self.large_threshold = large_threshold;
 
-        Ok(self)
+        self
     }
 
     /// Set the presence to use automatically when starting a new session.
@@ -339,7 +321,7 @@ impl ShardBuilder {
     ///
     /// ```
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
-        self.0.presence.replace(presence);
+        self.presence.replace(presence);
 
         self
     }
@@ -356,7 +338,20 @@ impl ShardBuilder {
     /// [`Cluster`]: crate::cluster::Cluster
     /// [`queue`]: crate::queue
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {
-        self.0.queue = queue;
+        self.queue = queue;
+
+        self
+    }
+
+    /// Set whether or not outgoing payloads will be ratelimited.
+    ///
+    /// Useful when running behind a proxy gateway. Running without a
+    /// functional ratelimiter **will** get you ratelimited.
+    ///
+    /// Defaults to being enabled.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
+        self.ratelimit_payloads = ratelimit_payloads;
 
         self
     }
@@ -404,7 +399,7 @@ impl ShardBuilder {
             });
         }
 
-        self.0.shard = [shard_id, shard_total];
+        self.shard = [shard_id, shard_total];
 
         Ok(self)
     }
@@ -418,17 +413,11 @@ impl From<(String, Intents)> for ShardBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        LargeThresholdError, LargeThresholdErrorType, ShardBuilder, ShardIdError, ShardIdErrorType,
-    };
+    use super::{ShardBuilder, ShardIdError, ShardIdErrorType};
     use crate::Intents;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
-    assert_impl_all!(LargeThresholdErrorType: Debug, Send, Sync);
-    assert_fields!(LargeThresholdErrorType::TooFew: value);
-    assert_fields!(LargeThresholdErrorType::TooMany: value);
-    assert_impl_all!(LargeThresholdError: Error, Send, Sync);
     assert_impl_all!(ShardBuilder: Debug, From<(String, Intents)>, Send, Sync);
     assert_impl_all!(ShardIdErrorType: Debug, Send, Sync);
     assert_fields!(ShardIdErrorType::IdTooLarge: id, total);

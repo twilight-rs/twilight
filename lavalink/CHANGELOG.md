@@ -2,6 +2,57 @@
 
 Changelog for `twilight-lavalink`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Changes
+
+Pin `dashmap` to 5.3 ([#1702] - [@baptiste0928]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1702]: https://github.com/twilight-rs/twilight/pull/1702
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+
+## [0.10.2]
+
+### Changes
+
+Link to `tracing` in the README ([#1652] - [@zeylahellyer]).
+
+### Fixes
+
+Include `Sec-WebSocket-Key` header in order to fix a `tokio-tungstenite`
+regression ([#1666] - [@7596ff]).
+
+[#1652]: https://github.com/twilight-rs/twilight/pull/1652
+[#1666]: https://github.com/twilight-rs/twilight/pull/1666
+
+## [0.10.1] - 2022-03-20
+
+### Changes
+
+`tokio-tungstenite` has been updated to `0.17` ([#1551] - [@Gelbpunkt]).
+
+[#1551]: https://github.com/twilight-rs/twilight/pull/1551
+
+## [0.10.0] - 2022-03-10
+
+This major version bump of the Lavalink crate is done to match all of the other
+crates in the ecosystem receiving a major version bump. There are no changes.
+
+## [0.9.1] - 2022-02-12
+
+### Changes
+
+Update `dashmap` to `5.1`, which fixes unsoundness present in `5.0` (which
+previously forced a downgrade to `4.0`) ([#1517] - [@Gelbpunkt]).
+
+[#1517]: https://github.com/twilight-rs/twilight/pull/1517
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
@@ -315,6 +366,10 @@ Initial release.
 [#548]: https://github.com/twilight-rs/twilight/pull/548
 [#518]: https://github.com/twilight-rs/twilight/pull/518
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.11.0
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.2
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.1
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.9.0
 [0.8.3]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.3
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/lavalink-0.8.2

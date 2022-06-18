@@ -2,6 +2,54 @@
 
 Changelog for `twilight-util`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+This major version bump of the Util crate is done to match all of the
+other crates in the ecosystem receiving a major version bump.  There are
+no changes.
+
+## [0.10.1] - 2022-03-20
+
+### Additions
+
+Add `builder::embed` ([#1539] - [@7596ff], [@vilgotf]).
+
+Add `CommandBuilder::validate` ([#1549] - [@7586ff]).
+
+### Changes
+
+Update documentation for `InteractionResponseDataBuilder::flags` ([#1579] -
+[@laralove143]).
+
+[#1539]: https://github.com/twilight-rs/twilight/pull/1539
+[#1549]: https://github.com/twilight-rs/twilight/pull/1549
+[#1579]: https://github.com/twilight-rs/twilight/pull/1579
+
+## [0.10.0] - 2022-03-10
+
+### Changes
+
+Rename `CallbackDataBuilder` to `InteractionResponseDataBuilder`, and add the
+methods `attachments`, `choices`, `custom_id`, and `title` ([#1300], [#1508] -
+[@itohatweb], [@7596ff]).
+
+Update the permission calculator to use the new `PermissionOverwrite` type
+([#1521] - [@7596ff]).
+
+[#1300]: https://github.com/twilight-rs/twilight/pull/1300
+[#1508]: https://github.com/twilight-rs/twilight/pull/1508
+[#1521]: https://github.com/twilight-rs/twilight/pull/1521
+
+## [0.9.1] - 2022-02-21
+
+### Additions
+
+Add an `AttachmentBuilder` option to `CommandBuilder` ([#1545] - [@Erk-]).
+
+[#1545]: https://github.com/twilight-rs/twilight/pull/1545
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
@@ -180,10 +228,15 @@ Initial release.
 [@7596ff]: https://github.com/7596ff
 [@baptiste0928]: https://github.com/baptiste0928
 [@itohatweb]: https://github.com/itohatweb
+[@laralove143]: https://github.com/laralove143
 [@vilgotf]: https://github.com/vilgotf
 [@vivian]: https://github.com/vivian
 [@zeylahellyer]: https://github.com/zeylahellyer
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.11.0
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.10.1
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.10.0
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/util-0.9.0
 [0.8.2]: https://github.com/twilight-rs/twilight/releases/tag/util-0.8.2
 [0.8.1]: https://github.com/twilight-rs/twilight/releases/tag/util-0.8.1

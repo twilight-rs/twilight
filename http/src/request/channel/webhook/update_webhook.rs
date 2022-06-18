@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -13,15 +13,22 @@ use twilight_model::{
         Id,
     },
 };
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, webhook_username as validate_webhook_username,
+    ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateWebhookFields<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a str>>,
+    #[serde(
+        serialize_with = "request::serialize_optional_nullable_image",
+        skip_serializing_if = "Option::is_none"
+    )]
+    avatar: Option<Nullable<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<NullableField<&'a str>>,
+    name: Option<Nullable<&'a str>>,
 }
 
 /// Update a webhook by ID.
@@ -55,8 +62,8 @@ impl<'a> UpdateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        self.fields.avatar = Some(NullableField(avatar));
+    pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }
@@ -69,10 +76,21 @@ impl<'a> UpdateWebhook<'a> {
     }
 
     /// Change the name of the webhook.
-    pub const fn name(mut self, name: Option<&'a str>) -> Self {
-        self.fields.name = Some(NullableField(name));
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`WebhookUsername`] if the webhook's name is
+    /// invalid.
+    ///
+    /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
+    pub fn name(mut self, name: Option<&'a str>) -> Result<Self, ValidationError> {
+        if let Some(name) = name {
+            validate_webhook_username(name)?;
+        }
 
-        self
+        self.fields.name = Some(Nullable(name));
+
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -89,8 +107,10 @@ impl<'a> UpdateWebhook<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateWebhook<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

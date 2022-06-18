@@ -1,18 +1,23 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, AuditLogReasonError, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::user::User;
-use twilight_validate::request::{username as validate_username, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason, username as validate_username, ValidationError,
+};
 
 #[derive(Serialize)]
 struct UpdateCurrentUserFields<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a str>>,
+    #[serde(
+        serialize_with = "request::serialize_optional_nullable_image",
+        skip_serializing_if = "Option::is_none"
+    )]
+    avatar: Option<Nullable<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<&'a str>,
 }
@@ -47,8 +52,8 @@ impl<'a> UpdateCurrentUser<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        self.fields.avatar = Some(NullableField(avatar));
+    pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }
@@ -84,6 +89,16 @@ impl<'a> UpdateCurrentUser<'a> {
     }
 }
 
+impl<'a> AuditLogReason<'a> for UpdateCurrentUser<'a> {
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
+
+        Ok(self)
+    }
+}
+
 impl TryIntoRequest for UpdateCurrentUser<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
         let mut request = Request::builder(&Route::UpdateCurrentUser);
@@ -95,13 +110,5 @@ impl TryIntoRequest for UpdateCurrentUser<'_> {
         }
 
         Ok(request.build())
-    }
-}
-
-impl<'a> AuditLogReason<'a> for UpdateCurrentUser<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
-
-        Ok(self)
     }
 }

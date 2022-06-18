@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    channel::PrivateChannel,
+    channel::Channel,
     id::{marker::UserMarker, Id},
 };
 
@@ -32,7 +32,7 @@ impl<'a> CreatePrivateChannel<'a> {
             http,
         }
     }
-    pub fn exec(self) -> ResponseFuture<PrivateChannel> {
+    pub fn exec(self) -> ResponseFuture<Channel> {
         let http = self.http;
 
         match self.try_into_request() {

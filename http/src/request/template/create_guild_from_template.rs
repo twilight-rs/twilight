@@ -1,3 +1,6 @@
+// clippy: due to the image serializer, which has a signature required by serde
+#![allow(clippy::ref_option_ref)]
+
 use crate::{
     client::Client,
     error::Error as HttpError,
@@ -12,7 +15,8 @@ use twilight_validate::request::{guild_name as validate_guild_name, ValidationEr
 #[derive(Serialize)]
 struct CreateGuildFromTemplateFields<'a> {
     name: &'a str,
-    icon: Option<&'a str>,
+    #[serde(serialize_with = "crate::request::serialize_optional_image")]
+    icon: Option<&'a [u8]>,
 }
 
 /// Create a new guild based on a template.
@@ -54,7 +58,7 @@ impl<'a> CreateGuildFromTemplate<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn icon(mut self, icon: &'a str) -> Self {
+    pub const fn icon(mut self, icon: &'a [u8]) -> Self {
         self.fields.icon = Some(icon);
 
         self

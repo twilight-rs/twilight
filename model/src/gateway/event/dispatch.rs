@@ -16,20 +16,26 @@ use serde::{
 pub enum DispatchEvent {
     BanAdd(BanAdd),
     BanRemove(BanRemove),
-    ChannelCreate(ChannelCreate),
-    ChannelDelete(ChannelDelete),
+    ChannelCreate(Box<ChannelCreate>),
+    ChannelDelete(Box<ChannelDelete>),
     ChannelPinsUpdate(ChannelPinsUpdate),
-    ChannelUpdate(ChannelUpdate),
+    ChannelUpdate(Box<ChannelUpdate>),
+    CommandPermissionsUpdate(CommandPermissionsUpdate),
     GiftCodeUpdate,
     GuildCreate(Box<GuildCreate>),
-    GuildDelete(Box<GuildDelete>),
+    GuildDelete(GuildDelete),
     GuildEmojisUpdate(GuildEmojisUpdate),
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
+    GuildScheduledEventCreate(Box<GuildScheduledEventCreate>),
+    GuildScheduledEventDelete(Box<GuildScheduledEventDelete>),
+    GuildScheduledEventUpdate(Box<GuildScheduledEventUpdate>),
+    GuildScheduledEventUserAdd(GuildScheduledEventUserAdd),
+    GuildScheduledEventUserRemove(GuildScheduledEventUserRemove),
     GuildUpdate(Box<GuildUpdate>),
     IntegrationCreate(Box<IntegrationCreate>),
     IntegrationDelete(IntegrationDelete),
     IntegrationUpdate(Box<IntegrationUpdate>),
-    InteractionCreate(Box<InteractionCreate>),
+    InteractionCreate(InteractionCreate),
     InviteCreate(Box<InviteCreate>),
     InviteDelete(InviteDelete),
     MemberAdd(Box<MemberAdd>),
@@ -54,12 +60,12 @@ pub enum DispatchEvent {
     StageInstanceCreate(StageInstanceCreate),
     StageInstanceDelete(StageInstanceDelete),
     StageInstanceUpdate(StageInstanceUpdate),
-    ThreadCreate(ThreadCreate),
+    ThreadCreate(Box<ThreadCreate>),
     ThreadDelete(ThreadDelete),
     ThreadListSync(ThreadListSync),
-    ThreadMemberUpdate(ThreadMemberUpdate),
+    ThreadMemberUpdate(Box<ThreadMemberUpdate>),
     ThreadMembersUpdate(ThreadMembersUpdate),
-    ThreadUpdate(ThreadUpdate),
+    ThreadUpdate(Box<ThreadUpdate>),
     TypingStart(Box<TypingStart>),
     UnavailableGuild(UnavailableGuild),
     UserUpdate(UserUpdate),
@@ -78,11 +84,17 @@ impl DispatchEvent {
             Self::ChannelDelete(_) => EventType::ChannelDelete,
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
+            Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
             Self::GiftCodeUpdate => EventType::GiftCodeUpdate,
             Self::GuildCreate(_) => EventType::GuildCreate,
             Self::GuildDelete(_) => EventType::GuildDelete,
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
+            Self::GuildScheduledEventCreate(_) => EventType::GuildScheduledEventCreate,
+            Self::GuildScheduledEventDelete(_) => EventType::GuildScheduledEventDelete,
+            Self::GuildScheduledEventUpdate(_) => EventType::GuildScheduledEventUpdate,
+            Self::GuildScheduledEventUserAdd(_) => EventType::GuildScheduledEventUserAdd,
+            Self::GuildScheduledEventUserRemove(_) => EventType::GuildScheduledEventUserRemove,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
             Self::IntegrationCreate(_) => EventType::IntegrationCreate,
             Self::IntegrationDelete(_) => EventType::IntegrationDelete,
@@ -139,11 +151,17 @@ impl TryFrom<Event> for DispatchEvent {
             Event::ChannelDelete(v) => Self::ChannelDelete(v),
             Event::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             Event::ChannelUpdate(v) => Self::ChannelUpdate(v),
+            Event::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
             Event::GiftCodeUpdate => Self::GiftCodeUpdate,
             Event::GuildCreate(v) => Self::GuildCreate(v),
             Event::GuildDelete(v) => Self::GuildDelete(v),
             Event::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
             Event::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
+            Event::GuildScheduledEventCreate(v) => Self::GuildScheduledEventCreate(v),
+            Event::GuildScheduledEventDelete(v) => Self::GuildScheduledEventDelete(v),
+            Event::GuildScheduledEventUpdate(v) => Self::GuildScheduledEventUpdate(v),
+            Event::GuildScheduledEventUserAdd(v) => Self::GuildScheduledEventUserAdd(v),
+            Event::GuildScheduledEventUserRemove(v) => Self::GuildScheduledEventUserRemove(v),
             Event::GuildUpdate(v) => Self::GuildUpdate(v),
             Event::IntegrationCreate(v) => Self::IntegrationCreate(v),
             Event::IntegrationDelete(v) => Self::IntegrationDelete(v),
@@ -211,17 +229,20 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
         Ok(match self.0 {
             "CHANNEL_CREATE" => {
-                DispatchEvent::ChannelCreate(ChannelCreate::deserialize(deserializer)?)
+                DispatchEvent::ChannelCreate(Box::new(ChannelCreate::deserialize(deserializer)?))
             }
             "CHANNEL_DELETE" => {
-                DispatchEvent::ChannelDelete(ChannelDelete::deserialize(deserializer)?)
+                DispatchEvent::ChannelDelete(Box::new(ChannelDelete::deserialize(deserializer)?))
             }
             "CHANNEL_PINS_UPDATE" => {
                 DispatchEvent::ChannelPinsUpdate(ChannelPinsUpdate::deserialize(deserializer)?)
             }
             "CHANNEL_UPDATE" => {
-                DispatchEvent::ChannelUpdate(ChannelUpdate::deserialize(deserializer)?)
+                DispatchEvent::ChannelUpdate(Box::new(ChannelUpdate::deserialize(deserializer)?))
             }
+            "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => DispatchEvent::CommandPermissionsUpdate(
+                CommandPermissionsUpdate::deserialize(deserializer)?,
+            ),
             "GIFT_CODE_UPDATE" => {
                 deserializer.deserialize_ignored_any(IgnoredAny)?;
 
@@ -232,14 +253,27 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "GUILD_CREATE" => {
                 DispatchEvent::GuildCreate(Box::new(GuildCreate::deserialize(deserializer)?))
             }
-            "GUILD_DELETE" => {
-                DispatchEvent::GuildDelete(Box::new(GuildDelete::deserialize(deserializer)?))
-            }
+            "GUILD_DELETE" => DispatchEvent::GuildDelete(GuildDelete::deserialize(deserializer)?),
             "GUILD_EMOJIS_UPDATE" => {
                 DispatchEvent::GuildEmojisUpdate(GuildEmojisUpdate::deserialize(deserializer)?)
             }
             "GUILD_INTEGRATIONS_UPDATE" => DispatchEvent::GuildIntegrationsUpdate(
                 GuildIntegrationsUpdate::deserialize(deserializer)?,
+            ),
+            "GUILD_SCHEDULED_EVENT_CREATE" => DispatchEvent::GuildScheduledEventCreate(Box::new(
+                GuildScheduledEventCreate::deserialize(deserializer)?,
+            )),
+            "GUILD_SCHEDULED_EVENT_DELETE" => DispatchEvent::GuildScheduledEventDelete(Box::new(
+                GuildScheduledEventDelete::deserialize(deserializer)?,
+            )),
+            "GUILD_SCHEDULED_EVENT_UPDATE" => DispatchEvent::GuildScheduledEventUpdate(Box::new(
+                GuildScheduledEventUpdate::deserialize(deserializer)?,
+            )),
+            "GUILD_SCHEDULED_EVENT_USER_ADD" => DispatchEvent::GuildScheduledEventUserAdd(
+                GuildScheduledEventUserAdd::deserialize(deserializer)?,
+            ),
+            "GUILD_SCHEDULED_EVENT_USER_REMOVE" => DispatchEvent::GuildScheduledEventUserRemove(
+                GuildScheduledEventUserRemove::deserialize(deserializer)?,
             ),
             "GUILD_MEMBERS_CHUNK" => {
                 DispatchEvent::MemberChunk(MemberChunk::deserialize(deserializer)?)
@@ -274,9 +308,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "INTEGRATION_UPDATE" => DispatchEvent::IntegrationUpdate(Box::new(
                 IntegrationUpdate::deserialize(deserializer)?,
             )),
-            "INTERACTION_CREATE" => DispatchEvent::InteractionCreate(Box::new(
-                InteractionCreate::deserialize(deserializer)?,
-            )),
+            "INTERACTION_CREATE" => {
+                DispatchEvent::InteractionCreate(InteractionCreate::deserialize(deserializer)?)
+            }
             "INVITE_CREATE" => {
                 DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
             }
@@ -331,7 +365,7 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
                 DispatchEvent::StageInstanceUpdate(StageInstanceUpdate::deserialize(deserializer)?)
             }
             "THREAD_CREATE" => {
-                DispatchEvent::ThreadCreate(ThreadCreate::deserialize(deserializer)?)
+                DispatchEvent::ThreadCreate(Box::new(ThreadCreate::deserialize(deserializer)?))
             }
             "THREAD_DELETE" => {
                 DispatchEvent::ThreadDelete(ThreadDelete::deserialize(deserializer)?)
@@ -339,14 +373,14 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "THREAD_LIST_SYNC" => {
                 DispatchEvent::ThreadListSync(ThreadListSync::deserialize(deserializer)?)
             }
-            "THREAD_MEMBER_UPDATE" => {
-                DispatchEvent::ThreadMemberUpdate(ThreadMemberUpdate::deserialize(deserializer)?)
-            }
+            "THREAD_MEMBER_UPDATE" => DispatchEvent::ThreadMemberUpdate(Box::new(
+                ThreadMemberUpdate::deserialize(deserializer)?,
+            )),
             "THREAD_MEMBERS_UPDATE" => {
                 DispatchEvent::ThreadMembersUpdate(ThreadMembersUpdate::deserialize(deserializer)?)
             }
             "THREAD_UPDATE" => {
-                DispatchEvent::ThreadUpdate(ThreadUpdate::deserialize(deserializer)?)
+                DispatchEvent::ThreadUpdate(Box::new(ThreadUpdate::deserialize(deserializer)?))
             }
             "TYPING_START" => {
                 DispatchEvent::TypingStart(Box::new(TypingStart::deserialize(deserializer)?))
@@ -373,7 +407,7 @@ mod tests {
     use serde_json::Deserializer;
 
     #[test]
-    fn test_gift_code_update() {
+    fn gift_code_update() {
         // Input will be ignored so long as it's valid JSON.
         let input = r#"{
             "a": "b"

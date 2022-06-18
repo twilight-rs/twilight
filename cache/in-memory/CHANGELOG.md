@@ -2,6 +2,115 @@
 
 Changelog for `twilight-cache-inmemory`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+This major version bump of the Cache crate is done to match all
+of the other crates in the ecosystem receiving a major version bump.
+There are no changes.
+
+## [0.10.4] - 2022-05-15
+
+Pin `dashmap` to 5.3 to receive library security fixes. This bumps the crate's
+MSRV to 1.59.
+
+## [0.10.3] - 2022-05-15
+
+### Additions
+
+Fix some typos in the stats interface documentation ([#1680] - [@zeylahellyer]).
+
+Document the stats interface in the crate documentation
+([#1679] - [@zeylahellyer]).
+
+Document message content intent caveats on fields
+([#1677] - [@itohatweb], [@zeylahellyer]).
+
+### Fixes
+
+Fix off-by-one on configuration for message cache size ([#1703] - [@vilgotf]).
+
+[#1703]: https://github.com/twilight-rs/twilight/pull/1703
+[#1680]: https://github.com/twilight-rs/twilight/pull/1680
+[#1679]: https://github.com/twilight-rs/twilight/pull/1679
+[#1677]: https://github.com/twilight-rs/twilight/pull/1677
+
+## [0.10.2] - 2022-04-15
+
+### Changes
+
+Add a note that enabling `ResourceType::GUILD` is required for certain
+permission operations ([#1607] - [@laralove143]).
+
+### Fixes
+
+Fix a permission calculator issue by properly retrieving the parent channel of a
+thread ([#1645] - [@7596ff]).
+
+[#1607]: https://github.com/twilight-rs/twilight/pull/1607
+[#1645]: https://github.com/twilight-rs/twilight/pull/1645
+
+## [0.10.1] - 2022-03-20
+
+### Additions
+
+Cached field initializers are now abstracted into a function, which exhaustively
+destructures the given model, ensuring it remains up to date ([#1583] -
+[@zeylahellyer]]). As a result, the following missing cached fields have been
+added:
+- `CachedGuild::max_video_channel_users`
+- `CachedMessage::application_id`
+- `CachedMessage::components`
+- `CachedMessage::interaction`
+- `CachedMessage::thread_id`
+
+### Changes
+
+Improve performance when caching stickers ([#1580] - [@zeylahellyer]).
+
+[#1580]: https://github.com/twilight-rs/twilight/pull/1580
+[#1583]: https://github.com/twilight-rs/twilight/pull/1583
+
+## [0.10.0] - 2022-03-10
+
+### Changes
+
+Update cache accessor methods and internal logic to support the new `Channel`
+type ([#1449] - [@zeylahellyer]). `InMemoryCache::{group, guild_channel,
+private_channel}` have been replaced with `channel`,
+`InMemoryCacheIter::{groups, guild_channels, private_channels}` have been
+replaced with `channels`, and `InMemoryCacheStats::{groups, private_channels}`
+have been replaced with `channels`.
+
+Use a previously unused `CachedVoiceState` type ([#1491] - [@zeylahellyer]), add
+the `self_video` and `request_to_speak_timestamp` to it ([#1492] -
+[@zeylahellyer]), and make `channel_id` and `guild_id` non-optional ([#1503] -
+[@vilgotf]).
+
+[#1449]: https://github.com/twilight-rs/twilight/pull/1449
+[#1491]: https://github.com/twilight-rs/twilight/pull/1491
+[#1492]: https://github.com/twilight-rs/twilight/pull/1492
+[#1503]: https://github.com/twilight-rs/twilight/pull/1503
+
+## [0.9.1] - 2022-02-12
+
+### Changes
+
+Update `dashmap` to `5.1`, which fixes unsoundness present in `5.0` (which
+previously forced a downgrade to `4.0`) ([#1517] - [@Gelbpunkt]).
+
+### Fixes
+
+Update `member_count` on `MEMBER_ADD`/`MEMBER_REMOVE` events ([#1461] -
+[@Gelbpunkt]).
+
+Properly remove unavailable guilds from the cache ([#1506] - [@Gelbpunkt]).
+
+[#1461]: https://github.com/twilight-rs/twilight/pull/1461
+[#1506]: https://github.com/twilight-rs/twilight/pull/1506
+[#1517]: https://github.com/twilight-rs/twilight/pull/1517
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
@@ -608,6 +717,7 @@ Initial release.
 [@HTG-YT]: https://github.com/HTG-YT
 [@itohatweb]: https://github.com/itohatweb
 [@james7132]: https://github.com/james7132
+[@laralove143]: https://github.com/laralove143
 [@MaxOhn]: https://github.com/MaxOhn
 [@nickelc]: https://github.com/nickelc
 [@Purpzie]: https://github.com/Purpzie
@@ -631,6 +741,13 @@ Initial release.
 [#528]: https://github.com/twilight-rs/twilight/pull/528
 [#524]: https://github.com/twilight-rs/twilight/pull/524
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.11.0
+[0.10.4]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.4
+[0.10.3]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.3
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.2
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.1
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.10.0
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.9.0
 [0.8.6]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.6
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/cache-in-memory-0.8.5

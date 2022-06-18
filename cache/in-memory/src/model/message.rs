@@ -1,22 +1,80 @@
+//! Cached message-related models.
+
 use serde::Serialize;
 use twilight_model::{
+    application::{component::Component, interaction::InteractionType},
     channel::{
         embed::Embed,
         message::{
             sticker::MessageSticker, Message, MessageActivity, MessageApplication, MessageFlags,
-            MessageReaction, MessageReference, MessageType,
+            MessageInteraction, MessageReaction, MessageReference, MessageType,
         },
         Attachment, ChannelMention,
     },
-    datetime::Timestamp,
     guild::PartialMember,
     id::{
         marker::{
-            ChannelMarker, GuildMarker, MessageMarker, RoleMarker, UserMarker, WebhookMarker,
+            ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, MessageMarker,
+            RoleMarker, UserMarker, WebhookMarker,
         },
         Id,
     },
+    util::Timestamp,
 };
+
+/// Information about the message interaction.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct CachedMessageInteraction {
+    id: Id<InteractionMarker>,
+    #[serde(rename = "type")]
+    kind: InteractionType,
+    name: String,
+    user_id: Id<UserMarker>,
+}
+
+impl CachedMessageInteraction {
+    /// ID of the interaction.
+    pub const fn id(&self) -> Id<InteractionMarker> {
+        self.id
+    }
+
+    /// Type of the interaction.
+    pub const fn kind(&self) -> InteractionType {
+        self.kind
+    }
+
+    /// Name of the interaction used.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// ID of the user who invoked the interaction.
+    pub const fn user_id(&self) -> Id<UserMarker> {
+        self.user_id
+    }
+
+    /// Construct a cached message interaction from its [`twilight_model`] form.
+    #[allow(clippy::missing_const_for_fn)]
+    pub(crate) fn from_model(message_interaction: MessageInteraction) -> Self {
+        // Reasons for dropping fields:
+        //
+        // - `member`: we have the user's ID from the `user_id` field
+        let MessageInteraction {
+            id,
+            kind,
+            member: _,
+            name,
+            user,
+        } = message_interaction;
+
+        Self {
+            id,
+            kind,
+            name,
+            user_id: user.id,
+        }
+    }
+}
 
 /// Represents a cached [`Message`].
 ///
@@ -25,15 +83,18 @@ use twilight_model::{
 pub struct CachedMessage {
     activity: Option<MessageActivity>,
     application: Option<MessageApplication>,
+    application_id: Option<Id<ApplicationMarker>>,
     pub(crate) attachments: Vec<Attachment>,
     author: Id<UserMarker>,
     channel_id: Id<ChannelMarker>,
+    components: Vec<Component>,
     pub(crate) content: String,
     pub(crate) edited_timestamp: Option<Timestamp>,
     pub(crate) embeds: Vec<Embed>,
     flags: Option<MessageFlags>,
     guild_id: Option<Id<GuildMarker>>,
     id: Id<MessageMarker>,
+    interaction: Option<CachedMessageInteraction>,
     kind: MessageType,
     member: Option<PartialMember>,
     mention_channels: Vec<ChannelMention>,
@@ -44,6 +105,7 @@ pub struct CachedMessage {
     pub(crate) reactions: Vec<MessageReaction>,
     reference: Option<MessageReference>,
     sticker_items: Vec<MessageSticker>,
+    thread_id: Option<Id<ChannelMarker>>,
     pub(crate) timestamp: Timestamp,
     pub(crate) tts: bool,
     webhook_id: Option<Id<WebhookMarker>>,
@@ -60,7 +122,19 @@ impl CachedMessage {
         self.application.as_ref()
     }
 
-    /// Attached files.
+    /// Associated application's ID.
+    ///
+    /// Sent if the message is a response to an Interaction.
+    pub const fn application_id(&self) -> Option<Id<ApplicationMarker>> {
+        self.application_id
+    }
+
+    /// List of attached files.
+    ///
+    /// Refer to the documentation for [`Message::attachments`] for caveats with
+    /// receiving the attachments of messages.
+    ///
+    /// [`Message::attachments`]: twilight_model::channel::Message::attachments
     pub fn attachments(&self) -> &[Attachment] {
         &self.attachments
     }
@@ -77,7 +151,22 @@ impl CachedMessage {
         self.channel_id
     }
 
-    /// Content of the message.
+    /// List of provided components, such as buttons.
+    ///
+    /// Refer to the documentation for [`Message::components`] for caveats with
+    /// receiving the components of messages.
+    ///
+    /// [`Message::components`]: twilight_model::channel::Message::components
+    pub fn components(&self) -> &[Component] {
+        &self.components
+    }
+
+    /// Content of a message.
+    ///
+    /// Refer to the documentation for [`Message::content`] for caveats with
+    /// receiving the content of messages.
+    ///
+    /// [`Message::content`]: twilight_model::channel::Message::content
     pub fn content(&self) -> &str {
         &self.content
     }
@@ -87,7 +176,12 @@ impl CachedMessage {
         self.edited_timestamp
     }
 
-    /// Embeds attached to the message.
+    /// List of embeds.
+    ///
+    /// Refer to the documentation for [`Message::embeds`] for caveats with
+    /// receiving the embeds of messages.
+    ///
+    /// [`Message::embeds`]: twilight_model::channel::Message::embeds
     pub fn embeds(&self) -> &[Embed] {
         &self.embeds
     }
@@ -105,6 +199,11 @@ impl CachedMessage {
     /// ID of the message.
     pub const fn id(&self) -> Id<MessageMarker> {
         self.id
+    }
+
+    /// Information about the message interaction.
+    pub const fn interaction(&self) -> Option<&CachedMessageInteraction> {
+        self.interaction.as_ref()
     }
 
     /// Type of the message.
@@ -157,6 +256,11 @@ impl CachedMessage {
         &self.sticker_items
     }
 
+    /// ID of the thread the message was sent in.
+    pub const fn thread_id(&self) -> Option<Id<ChannelMarker>> {
+        self.thread_id
+    }
+
     /// [`Timestamp`] of the date the message was sent.
     pub const fn timestamp(&self) -> Timestamp {
         self.timestamp
@@ -171,35 +275,136 @@ impl CachedMessage {
     pub const fn webhook_id(&self) -> Option<Id<WebhookMarker>> {
         self.webhook_id
     }
+
+    /// Construct a cached message from its [`twilight_model`] form.
+    pub(crate) fn from_model(message: Message) -> Self {
+        let Message {
+            activity,
+            application,
+            application_id,
+            attachments,
+            author,
+            channel_id,
+            components,
+            content,
+            edited_timestamp,
+            embeds,
+            flags,
+            guild_id,
+            id,
+            interaction,
+            kind,
+            member,
+            mention_channels,
+            mention_everyone,
+            mention_roles,
+            mentions,
+            pinned,
+            reactions,
+            reference,
+            referenced_message: _,
+            sticker_items,
+            timestamp,
+            thread,
+            tts,
+            webhook_id,
+        } = message;
+
+        Self {
+            id,
+            activity,
+            application,
+            application_id,
+            attachments,
+            author: author.id,
+            channel_id,
+            components,
+            content,
+            edited_timestamp,
+            embeds,
+            flags,
+            guild_id,
+            interaction: interaction.map(CachedMessageInteraction::from_model),
+            kind,
+            member,
+            mention_channels,
+            mention_everyone,
+            mention_roles,
+            mentions: mentions.into_iter().map(|mention| mention.id).collect(),
+            pinned,
+            reactions,
+            reference,
+            sticker_items,
+            thread_id: thread.map(|thread| thread.id),
+            timestamp,
+            tts,
+            webhook_id,
+        }
+    }
 }
 
 impl From<Message> for CachedMessage {
-    fn from(msg: Message) -> Self {
-        Self {
-            id: msg.id,
-            activity: msg.activity,
-            application: msg.application,
-            attachments: msg.attachments,
-            author: msg.author.id,
-            channel_id: msg.channel_id,
-            content: msg.content,
-            edited_timestamp: msg.edited_timestamp,
-            embeds: msg.embeds,
-            flags: msg.flags,
-            guild_id: msg.guild_id,
-            kind: msg.kind,
-            member: msg.member,
-            mention_channels: msg.mention_channels,
-            mention_everyone: msg.mention_everyone,
-            mention_roles: msg.mention_roles,
-            mentions: msg.mentions.iter().map(|mention| mention.id).collect(),
-            pinned: msg.pinned,
-            reactions: msg.reactions,
-            reference: msg.reference,
-            sticker_items: msg.sticker_items,
-            timestamp: msg.timestamp,
-            tts: msg.tts,
-            webhook_id: msg.webhook_id,
-        }
+    fn from(message: Message) -> Self {
+        Self::from_model(message)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CachedMessage, CachedMessageInteraction};
+    use serde::Serialize;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::fmt::Debug;
+    use twilight_model::channel::message::Message;
+
+    assert_fields!(
+        CachedMessage: activity,
+        application,
+        application_id,
+        attachments,
+        author,
+        channel_id,
+        components,
+        content,
+        edited_timestamp,
+        embeds,
+        flags,
+        guild_id,
+        id,
+        interaction,
+        kind,
+        member,
+        mention_channels,
+        mention_everyone,
+        mention_roles,
+        mentions,
+        pinned,
+        reactions,
+        reference,
+        sticker_items,
+        thread_id,
+        timestamp,
+        tts,
+        webhook_id
+    );
+    assert_impl_all!(
+        CachedMessage: Clone,
+        Debug,
+        Eq,
+        From<Message>,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+    );
+    assert_fields!(CachedMessageInteraction: id, kind, name, user_id);
+    assert_impl_all!(
+        CachedMessageInteraction: Clone,
+        Debug,
+        Eq,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+    );
 }

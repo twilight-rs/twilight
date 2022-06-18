@@ -1,19 +1,17 @@
 mod channel;
 mod guild;
-mod stage_instance;
 mod target_type;
 mod welcome_screen;
 
 pub use self::{
     channel::InviteChannel,
     guild::InviteGuild,
-    stage_instance::{InviteStageInstance, InviteStageInstanceMember},
     target_type::TargetType,
     welcome_screen::{WelcomeScreen, WelcomeScreenChannel},
 };
 
 use super::user::User;
-use crate::datetime::Timestamp;
+use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -37,8 +35,6 @@ pub struct Invite {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_uses: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub stage_instance: Option<InviteStageInstance>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_type: Option<TargetType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_user: Option<User>,
@@ -51,15 +47,15 @@ pub struct Invite {
 #[cfg(test)]
 mod tests {
     use super::{
-        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild,
-        InviteStageInstance, InviteStageInstanceMember, TargetType, User, WelcomeScreen,
+        welcome_screen::WelcomeScreenChannel, Invite, InviteChannel, InviteGuild, TargetType, User,
+        WelcomeScreen,
     };
     use crate::{
         channel::ChannelType,
-        datetime::{Timestamp, TimestampParseError},
         guild::VerificationLevel,
         id::Id,
         test::image_hash,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -77,7 +73,6 @@ mod tests {
         inviter,
         max_age,
         max_uses,
-        stage_instance,
         target_type,
         target_user,
         temporary,
@@ -96,7 +91,7 @@ mod tests {
     );
 
     #[test]
-    fn test_invite() {
+    fn invite() {
         let value = Invite {
             approximate_member_count: Some(31),
             approximate_presence_count: Some(7),
@@ -112,7 +107,6 @@ mod tests {
             inviter: None,
             max_age: None,
             max_uses: None,
-            stage_instance: None,
             target_type: Some(TargetType::Stream),
             target_user: None,
             temporary: None,
@@ -156,10 +150,9 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_invite_complete() -> Result<(), TimestampParseError> {
+    fn invite_complete() -> Result<(), TimestampParseError> {
         let created_at = Timestamp::from_str("2021-08-03T16:08:36.325000+00:00")?;
         let expires_at = Timestamp::from_str("2021-08-10T16:08:36.325000+00:00")?;
-        let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value = Invite {
             approximate_member_count: Some(31),
@@ -179,6 +172,7 @@ mod tests {
                 icon: Some(image_hash::ICON),
                 id: Id::new(1),
                 name: "guild name".to_owned(),
+                premium_subscription_count: None,
                 splash: Some(image_hash::SPLASH),
                 vanity_url_code: Some("twilight".to_owned()),
                 verification_level: VerificationLevel::Medium,
@@ -219,36 +213,6 @@ mod tests {
             }),
             max_age: Some(86_400),
             max_uses: Some(10),
-            stage_instance: Some(InviteStageInstance {
-                members: Vec::from([InviteStageInstanceMember {
-                    avatar: None,
-                    joined_at,
-                    nick: None,
-                    pending: None,
-                    premium_since: None,
-                    roles: Vec::new(),
-                    user: User {
-                        accent_color: None,
-                        avatar: None,
-                        banner: None,
-                        bot: false,
-                        discriminator: 1,
-                        email: None,
-                        flags: None,
-                        id: Id::new(2),
-                        locale: None,
-                        mfa_enabled: None,
-                        name: "test".to_owned(),
-                        premium_type: None,
-                        public_flags: None,
-                        system: None,
-                        verified: None,
-                    },
-                }]),
-                participant_count: 4,
-                speaker_count: 2,
-                topic: "who is the best pony".into(),
-            }),
             target_type: Some(TargetType::Stream),
             target_user: Some(User {
                 accent_color: None,
@@ -276,7 +240,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Invite",
-                    len: 15,
+                    len: 14,
                 },
                 Token::Str("approximate_member_count"),
                 Token::Some,
@@ -308,7 +272,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "InviteGuild",
-                    len: 10,
+                    len: 11,
                 },
                 Token::Str("banner"),
                 Token::Some,
@@ -328,6 +292,8 @@ mod tests {
                 Token::Str("1"),
                 Token::Str("name"),
                 Token::Str("guild name"),
+                Token::Str("premium_subscription_count"),
+                Token::None,
                 Token::Str("splash"),
                 Token::Some,
                 Token::Str(image_hash::SPLASH_INPUT),
@@ -410,50 +376,6 @@ mod tests {
                 Token::Str("max_uses"),
                 Token::Some,
                 Token::U64(10),
-                Token::Str("stage_instance"),
-                Token::Some,
-                Token::Struct {
-                    name: "InviteStageInstance",
-                    len: 4,
-                },
-                Token::Str("members"),
-                Token::Seq { len: Some(1) },
-                Token::Struct {
-                    name: "InviteStageInstanceMember",
-                    len: 2,
-                },
-                Token::Str("joined_at"),
-                Token::Str("2015-04-26T06:26:56.936000+00:00"),
-                Token::Str("user"),
-                Token::Struct {
-                    name: "User",
-                    len: 7,
-                },
-                Token::Str("accent_color"),
-                Token::None,
-                Token::Str("avatar"),
-                Token::None,
-                Token::Str("banner"),
-                Token::None,
-                Token::Str("bot"),
-                Token::Bool(false),
-                Token::Str("discriminator"),
-                Token::Str("0001"),
-                Token::Str("id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("2"),
-                Token::Str("username"),
-                Token::Str("test"),
-                Token::StructEnd,
-                Token::StructEnd,
-                Token::SeqEnd,
-                Token::Str("participant_count"),
-                Token::U64(4),
-                Token::Str("speaker_count"),
-                Token::U64(2),
-                Token::Str("topic"),
-                Token::Str("who is the best pony"),
-                Token::StructEnd,
                 Token::Str("target_type"),
                 Token::Some,
                 Token::U8(1),

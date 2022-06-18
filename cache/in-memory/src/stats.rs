@@ -7,6 +7,26 @@ use super::InMemoryCache;
 
 /// Retrieve statistics about the number of entities of each resource in the
 /// cache.
+///
+/// Statistics can be retrieved about the amount of resources on a cache-level
+/// via a method such as [`users`] or in a particular channel via a method
+/// such as [`channel_messages`].
+///
+/// # Examples
+///
+/// Retrieve the number of users stored in the cache:
+///
+/// ```no_run
+/// use twilight_cache_inmemory::InMemoryCache;
+///
+/// let cache = InMemoryCache::new();
+///
+/// // later on...
+/// println!("user count: {}", cache.stats().users());
+/// ```
+///
+/// [`channel_messages`]: Self::channel_messages
+/// [`users`]: Self::users
 #[derive(Clone, Debug)]
 pub struct InMemoryCacheStats<'a>(&'a InMemoryCache);
 
@@ -24,6 +44,11 @@ impl<'a> InMemoryCacheStats<'a> {
     /// reference.
     pub const fn into_cache(self) -> &'a InMemoryCache {
         self.0
+    }
+
+    /// Number of channels in the cache.
+    pub fn channels(&self) -> usize {
+        self.0.channels.len()
     }
 
     /// Number of messages in a given channel in the cache.
@@ -51,11 +76,6 @@ impl<'a> InMemoryCacheStats<'a> {
     /// Number of emojis in the cache.
     pub fn emojis(&self) -> usize {
         self.0.emojis.len()
-    }
-
-    /// Number of groups in the cache.
-    pub fn groups(&self) -> usize {
-        self.0.groups.len()
     }
 
     /// Number of guilds in the cache.
@@ -127,17 +147,12 @@ impl<'a> InMemoryCacheStats<'a> {
         self.0.presences.len()
     }
 
-    /// Number of private channels in the cache.
-    pub fn private_channels(&self) -> usize {
-        self.0.channels_private.len()
-    }
-
     /// Number of roles in the cache.
     pub fn roles(&self) -> usize {
         self.0.roles.len()
     }
 
-    /// Number of unavailable_guilds in the cache.
+    /// Number of unavailable guilds in the cache.
     pub fn unavailable_guilds(&self) -> usize {
         self.0.unavailable_guilds.len()
     }
@@ -147,7 +162,7 @@ impl<'a> InMemoryCacheStats<'a> {
         self.0.users.len()
     }
 
-    /// Number of voice_states in the cache.
+    /// Number of voice states in the cache.
     pub fn voice_states(&self) -> usize {
         self.0.voice_states.len()
     }
@@ -155,7 +170,7 @@ impl<'a> InMemoryCacheStats<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::InMemoryCacheStats;
+    use crate::InMemoryCacheStats;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 

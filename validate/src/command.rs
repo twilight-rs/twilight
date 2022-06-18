@@ -223,12 +223,29 @@ pub enum CommandValidationErrorType {
 pub fn command(value: &Command) -> Result<(), CommandValidationError> {
     let Command {
         description,
+        description_localizations,
         name,
+        name_localizations,
         kind,
         ..
     } = value;
 
     self::description(description)?;
+
+    if let Some(description_localizations) = description_localizations {
+        for description in description_localizations.values() {
+            self::description(description)?;
+        }
+    }
+
+    if let Some(name_localizations) = name_localizations {
+        for name in name_localizations.values() {
+            match kind {
+                CommandType::ChatInput => self::chat_input_name(name)?,
+                CommandType::User | CommandType::Message => self::name(name)?,
+            }
+        }
+    }
 
     match kind {
         CommandType::ChatInput => self::chat_input_name(name),
@@ -403,7 +420,8 @@ pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
         CommandOption::Boolean(data)
         | CommandOption::User(data)
         | CommandOption::Role(data)
-        | CommandOption::Mentionable(data) => (&data.description, &data.name),
+        | CommandOption::Mentionable(data)
+        | CommandOption::Attachment(data) => (&data.description, &data.name),
     };
 
     let description_len = description.chars().count();
@@ -489,19 +507,26 @@ mod tests {
     #![allow(clippy::non_ascii_literal)]
 
     use super::*;
+    use std::collections::HashMap;
     use twilight_model::{application::command::CommandType, id::Id};
 
     // This tests [`description`] and [`name`] by proxy.
     #[test]
-    fn test_command() {
+    fn command_length() {
         let valid_command = Command {
             application_id: Some(Id::new(1)),
-            default_permission: None,
+            default_member_permissions: None,
+            dm_permission: None,
             description: "a".repeat(100),
+            description_localizations: Some(HashMap::from([(
+                "en-US".to_string(),
+                "a".repeat(100),
+            )])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
             kind: CommandType::ChatInput,
             name: "b".repeat(32),
+            name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
             options: Vec::new(),
             version: Id::new(4),
         };
@@ -518,7 +543,7 @@ mod tests {
     }
 
     #[test]
-    fn test_name_characters() {
+    fn name_allowed_characters() {
         assert!(name_characters("hello-command").is_ok()); // Latin language
         assert!(name_characters("Hello").is_err()); // Latin language with uppercase
         assert!(name_characters("hello!").is_err()); // Latin language with non-alphanumeric
@@ -532,7 +557,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_permissions() {
+    fn guild_permissions_count() {
         assert!(guild_permissions(0).is_ok());
         assert!(guild_permissions(1).is_ok());
         assert!(guild_permissions(10).is_ok());

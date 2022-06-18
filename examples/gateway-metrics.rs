@@ -1,10 +1,10 @@
 use futures_util::StreamExt;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
-use std::{env, error::Error, time::Duration};
+use std::{env, time::Duration};
 use twilight_gateway::{Cluster, Intents};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> anyhow::Result<()> {
     let receiver = Receiver::builder()
         .build()
         .expect("failed to create receiver");
@@ -20,7 +20,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
+    let intents =
+        Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
     let (cluster, mut events) = Cluster::new(env::var("DISCORD_TOKEN")?, intents).await?;
     println!("Created cluster");
 

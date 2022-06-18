@@ -62,13 +62,15 @@
 //!     PermissionOverwrite {
 //!         allow: Permissions::ADD_REACTIONS | Permissions::EMBED_LINKS,
 //!         deny: Permissions::empty(),
-//!         kind: PermissionOverwriteType::Role(Id::new(1)),
+//!         id: Id::new(1),
+//!         kind: PermissionOverwriteType::Role,
 //!     },
 //!     // Member is denied the Send Messages permission.
 //!     PermissionOverwrite {
 //!         allow: Permissions::empty(),
 //!         deny: Permissions::SEND_MESSAGES,
-//!         kind: PermissionOverwriteType::Member(user_id),
+//!         id: user_id.cast(),
+//!         kind: PermissionOverwriteType::Member,
 //!     },
 //! ];
 //!
@@ -447,11 +449,11 @@ const fn process_permission_overwrites(
         let overwrite = &channel_overwrites[idx];
 
         match overwrite.kind {
-            PermissionOverwriteType::Role(role) => {
+            PermissionOverwriteType::Role => {
                 // We need to process the @everyone role first, so apply it
                 // straight to the permissions. The other roles' permissions
                 // will be applied later.
-                if role.get() == configured_guild_id.get() {
+                if overwrite.id.get() == configured_guild_id.get() {
                     permissions = bitops::remove(permissions, overwrite.deny);
                     permissions = bitops::insert(permissions, overwrite.allow);
 
@@ -460,7 +462,7 @@ const fn process_permission_overwrites(
                     continue;
                 }
 
-                if !has_role(member_roles, role) {
+                if !has_role(member_roles, overwrite.id.cast()) {
                     idx += 1;
 
                     continue;
@@ -469,13 +471,12 @@ const fn process_permission_overwrites(
                 roles_allow = bitops::insert(roles_allow, overwrite.allow);
                 roles_deny = bitops::insert(roles_deny, overwrite.deny);
             }
-            PermissionOverwriteType::Member(user_id)
-                if user_id.get() == configured_user_id.get() =>
-            {
-                member_allow = bitops::insert(member_allow, overwrite.allow);
-                member_deny = bitops::insert(member_deny, overwrite.deny);
+            PermissionOverwriteType::Member => {
+                if overwrite.id.get() == configured_user_id.get() {
+                    member_allow = bitops::insert(member_allow, overwrite.allow);
+                    member_deny = bitops::insert(member_deny, overwrite.deny);
+                }
             }
-            PermissionOverwriteType::Member(_) => {}
         }
 
         idx += 1;
@@ -533,7 +534,7 @@ mod tests {
     assert_impl_all!(PermissionCalculator<'_>: Clone, Debug, Eq, PartialEq, Send, Sync);
 
     #[test]
-    fn test_owner_is_admin() {
+    fn owner_is_admin() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::SEND_MESSAGES;
@@ -548,7 +549,7 @@ mod tests {
     // Test that a permission overwrite denying the "View Channel" permission
     // implicitly denies all other permissions.
     #[test]
-    fn test_view_channel_deny_implicit() {
+    fn view_channel_deny_implicit() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::MENTION_EVERYONE | Permissions::SEND_MESSAGES;
@@ -560,7 +561,8 @@ mod tests {
             let overwrites = &[PermissionOverwrite {
                 allow: Permissions::SEND_TTS_MESSAGES,
                 deny: Permissions::VIEW_CHANNEL,
-                kind: PermissionOverwriteType::Role(Id::new(3)),
+                id: Id::new(3),
+                kind: PermissionOverwriteType::Role,
             }];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -574,7 +576,8 @@ mod tests {
             let overwrites = &[PermissionOverwrite {
                 allow: Permissions::SEND_TTS_MESSAGES,
                 deny: Permissions::VIEW_CHANNEL,
-                kind: PermissionOverwriteType::Member(Id::new(2)),
+                id: Id::new(2),
+                kind: PermissionOverwriteType::Member,
             }];
 
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -585,7 +588,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove_text_and_stage_perms_when_voice() {
+    fn remove_text_and_stage_perms_when_voice() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
@@ -598,7 +601,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove_audio_perms_when_text() {
+    fn remove_audio_perms_when_text() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role = Permissions::CONNECT;
@@ -615,7 +618,7 @@ mod tests {
     // Test that denying the "Send Messages" permission denies all message
     // send related permissions.
     #[test]
-    fn test_deny_send_messages_removes_related() {
+    fn deny_send_messages_removes_related() {
         let guild_id = Id::new(1);
         let user_id = Id::new(2);
         let everyone_role =
@@ -626,7 +629,8 @@ mod tests {
         let overwrites = &[PermissionOverwrite {
             allow: Permissions::ATTACH_FILES,
             deny: Permissions::SEND_MESSAGES,
-            kind: PermissionOverwriteType::Role(Id::new(3)),
+            id: Id::new(3),
+            kind: PermissionOverwriteType::Role,
         }];
 
         let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
@@ -638,7 +642,7 @@ mod tests {
     /// Test that a member that has a role with the "administrator" permission
     /// has all denying overwrites ignored.
     #[test]
-    fn test_admin() {
+    fn admin() {
         let member_roles = &[(Id::new(3), Permissions::ADMINISTRATOR)];
         let calc =
             PermissionCalculator::new(Id::new(1), Id::new(2), Permissions::empty(), member_roles);
@@ -652,12 +656,11 @@ mod tests {
     /// Test that guild-level permissions are removed in the permissions for a
     /// channel of any type.
     #[test]
-    fn test_guild_level_removed_in_channel() {
+    fn guild_level_removed_in_channel() {
         const CHANNEL_TYPES: &[ChannelType] = &[
             ChannelType::GuildCategory,
             ChannelType::GuildNews,
             ChannelType::GuildStageVoice,
-            ChannelType::GuildStore,
             ChannelType::GuildText,
             ChannelType::GuildVoice,
         ];

@@ -7,43 +7,49 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     time::{SystemTime, UNIX_EPOCH},
 };
-use twilight_model::datetime::Timestamp;
+use twilight_model::util::Timestamp;
+
+/// The maximum audit log reason length in UTF-16 codepoints.
+pub const AUDIT_REASON_MAX: usize = 512;
 
 /// Maximum amount of days for messages to be deleted upon ban.
-pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u64 = 7;
+pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u16 = 7;
 
 /// Maximum amount of time a member can be timed out for.
 pub const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
 
 /// Maximum amount of messages to get.
-pub const GET_CHANNEL_MESSAGES_LIMIT_MAX: u64 = 100;
+pub const GET_CHANNEL_MESSAGES_LIMIT_MAX: u16 = 100;
 
 /// Minimum amount of messages to get.
-pub const GET_CHANNEL_MESSAGES_LIMIT_MIN: u64 = 1;
+pub const GET_CHANNEL_MESSAGES_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of guilds to get.
-pub const GET_CURRENT_USER_GUILDS_LIMIT_MAX: u64 = 200;
+pub const GET_CURRENT_USER_GUILDS_LIMIT_MAX: u16 = 200;
 
 /// Minimum amount of guilds to get.
-pub const GET_CURRENT_USER_GUILDS_LIMIT_MIN: u64 = 1;
+pub const GET_CURRENT_USER_GUILDS_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of audit log entries to list.
-pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u64 = 100;
+pub const GET_GUILD_AUDIT_LOG_LIMIT_MAX: u16 = 100;
 
 /// Minimum amount of audit log entries to list.
-pub const GET_GUILD_AUDIT_LOG_LIMIT_MIN: u64 = 1;
+pub const GET_GUILD_AUDIT_LOG_LIMIT_MIN: u16 = 1;
+
+/// Maximum amount of guild bans to list.
+pub const GET_GUILD_BANS_LIMIT_MAX: u16 = 1000;
 
 /// Maximum amount of guild members to list.
-pub const GET_GUILD_MEMBERS_LIMIT_MAX: u64 = 1000;
+pub const GET_GUILD_MEMBERS_LIMIT_MAX: u16 = 1000;
 
 /// Minimum amount of guild members to list.
-pub const GET_GUILD_MEMBERS_LIMIT_MIN: u64 = 1;
+pub const GET_GUILD_MEMBERS_LIMIT_MIN: u16 = 1;
 
 /// Maximum amount of users to return when getting reactions.
-pub const GET_REACTIONS_LIMIT_MIN: u64 = 1;
+pub const GET_REACTIONS_LIMIT_MIN: u16 = 1;
 
 /// Minimum amount of users to return when getting reactions.
-pub const GET_REACTIONS_LIMIT_MAX: u64 = 100;
+pub const GET_REACTIONS_LIMIT_MAX: u16 = 100;
 
 /// Maximum length of a guild's name.
 pub const GUILD_NAME_LENGTH_MAX: usize = 100;
@@ -52,16 +58,16 @@ pub const GUILD_NAME_LENGTH_MAX: usize = 100;
 pub const GUILD_NAME_LENGTH_MIN: usize = 2;
 
 /// Maximum amount of days to prune users from a guild.
-pub const GUILD_PRUNE_DAYS_MAX: u64 = 30;
+pub const GUILD_PRUNE_DAYS_MAX: u16 = 30;
 
 /// Minimum amount of days to prune users from a guild.
-pub const GUILD_PRUNE_DAYS_MIN: u64 = 1;
+pub const GUILD_PRUNE_DAYS_MIN: u16 = 1;
 
 /// Maximum length of an invite's age, in seconds.
-pub const INVITE_AGE_MAX: u64 = 604_800;
+pub const INVITE_AGE_MAX: u32 = 604_800;
 
 /// Maximum uses of an invite, if not unlimited.
-pub const INVITE_USES_MAX: u64 = 100;
+pub const INVITE_USES_MAX: u16 = 100;
 
 /// Maximum length of a maximum.
 pub const NICKNAME_LIMIT_MAX: usize = 32;
@@ -76,10 +82,10 @@ pub const SCHEDULED_EVENT_DESCRIPTION_MAX: usize = 1000;
 pub const SCHEDULED_EVENT_DESCRIPTION_MIN: usize = 1;
 
 /// Maximum amount of scheduled event users to get.
-pub const SCHEDULED_EVENT_GET_USERS_MAX: u64 = 100;
+pub const SCHEDULED_EVENT_GET_USERS_MAX: u16 = 100;
 
 /// Minimum amount of scheduled event users to get.
-pub const SCHEDULED_EVENT_GET_USERS_MIN: u64 = 1;
+pub const SCHEDULED_EVENT_GET_USERS_MIN: u16 = 1;
 
 /// Maximum length of a scheduled event's name.
 pub const SCHEDULED_EVENT_NAME_MAX: usize = 100;
@@ -88,10 +94,10 @@ pub const SCHEDULED_EVENT_NAME_MAX: usize = 100;
 pub const SCHEDULED_EVENT_NAME_MIN: usize = 1;
 
 /// Maximum amount of guild members to search for.
-pub const SEARCH_GUILD_MEMBERS_LIMIT_MAX: u64 = 1000;
+pub const SEARCH_GUILD_MEMBERS_LIMIT_MAX: u16 = 1000;
 
 /// Minimum amount of guild members to search for.
-pub const SEARCH_GUILD_MEMBERS_LIMIT_MIN: u64 = 1;
+pub const SEARCH_GUILD_MEMBERS_LIMIT_MIN: u16 = 1;
 
 /// Maximum stage instance topic length.
 pub const STAGE_TOPIC_LENGTH_MAX: usize = 120;
@@ -113,6 +119,21 @@ pub const USERNAME_LIMIT_MAX: usize = 32;
 
 /// Minimum length of a username.
 pub const USERNAME_LIMIT_MIN: usize = 2;
+
+/// Maximum length of a webhook username.
+pub const WEBHOOK_USERNAME_LIMIT_MAX: usize = 80;
+
+/// Minimum length of a webhook username.
+pub const WEBHOOK_USERNAME_LIMIT_MIN: usize = 2;
+
+/// Forbidden substrings in usernames.
+const USERNAME_INVALID_SUBSTRINGS: [&str; 5] = ["@", "#", ":", "```", "discord"];
+
+/// Forbidden usernames.
+const USERNAME_INVALID_STRINGS: [&str; 2] = ["everyone", "here"];
+
+/// Forbidden webhook usernames.
+const WEBHOOK_INVALID_STRINGS: [&str; 1] = ["clyde"];
 
 /// A field is not valid.
 #[derive(Debug)]
@@ -146,6 +167,13 @@ impl Display for ValidationError {
     #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            ValidationErrorType::AuditReason { len } => {
+                f.write_str("provided audit reason length is ")?;
+                Display::fmt(len, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUDIT_REASON_MAX, f)
+            }
             ValidationErrorType::CreateGuildBanDeleteMessageDays {
                 days: delete_message_days,
             } => {
@@ -184,6 +212,13 @@ impl Display for ValidationError {
                 f.write_str(" and at most ")?;
 
                 Display::fmt(&GET_GUILD_MEMBERS_LIMIT_MAX, f)
+            }
+            ValidationErrorType::GetGuildBans { limit } => {
+                f.write_str("provided get guild bans limit is ")?;
+                Display::fmt(limit, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&GET_GUILD_BANS_LIMIT_MAX, f)
             }
             ValidationErrorType::GetGuildMembers { limit } => {
                 f.write_str("provided get guild members limit is ")?;
@@ -305,14 +340,29 @@ impl Display for ValidationError {
 
                 Display::fmt(&TEMPLATE_NAME_LENGTH_MAX, f)
             }
-            ValidationErrorType::Username { len } => {
-                f.write_str("provided username length is ")?;
-                Display::fmt(len, f)?;
-                f.write_str(", but it must be at least ")?;
-                Display::fmt(&USERNAME_LIMIT_MIN, f)?;
-                f.write_str(" and at most ")?;
+            ValidationErrorType::Username { len, substring }
+            | ValidationErrorType::WebhookUsername { len, substring } => {
+                f.write_str("provided username")?;
 
-                Display::fmt(&USERNAME_LIMIT_MAX, f)
+                if let Some(len) = len {
+                    f.write_str(" length is ")?;
+                    Display::fmt(len, f)?;
+                    f.write_str(", but it must be at least ")?;
+                    Display::fmt(&USERNAME_LIMIT_MIN, f)?;
+                    f.write_str(" and at most ")?;
+                    Display::fmt(&USERNAME_LIMIT_MAX, f)?;
+                }
+
+                if let Some(substring) = substring {
+                    if len.is_some() {
+                        f.write_str(", and")?;
+                    }
+
+                    f.write_str(" cannot contain ")?;
+                    Display::fmt(substring, f)?;
+                }
+
+                Ok(())
             }
         }
     }
@@ -323,10 +373,15 @@ impl Error for ValidationError {}
 /// Type of [`ValidationError`] that occurred.
 #[derive(Debug)]
 pub enum ValidationErrorType {
+    /// Provided audit reason was too large.
+    AuditReason {
+        /// Invalid length.
+        len: usize,
+    },
     /// Provided create guild ban delete message days was invalid.
     CreateGuildBanDeleteMessageDays {
         /// Invalid days.
-        days: u64,
+        days: u16,
     },
     /// Provided timestamp is too far in the future.
     CommunicationDisabledUntil {
@@ -336,27 +391,32 @@ pub enum ValidationErrorType {
     /// Provided get channel messages limit was invalid.
     GetChannelMessages {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
     },
     /// Provided get current user guilds limit was invalid.
     GetCurrentUserGuilds {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
     },
     /// Provided get guild audit log limit was invalid.
     GetGuildAuditLog {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
+    },
+    /// Provided get guild bans limit was invalid.
+    GetGuildBans {
+        /// Invalid limit.
+        limit: u16,
     },
     /// Provided get guild members limit was invalid.
     GetGuildMembers {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
     },
     /// Provided get reactions limit was invalid.
     GetReactions {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
     },
     /// Provided guild name was invalid.
     GuildName {
@@ -366,17 +426,17 @@ pub enum ValidationErrorType {
     /// Provided guild prune days was invalid.
     GuildPruneDays {
         /// Invalid days.
-        days: u64,
+        days: u16,
     },
     /// Provided invite max age was invalid.
     InviteMaxAge {
         /// Invalid age.
-        max_age: u64,
+        max_age: u32,
     },
     /// Provided invite max uses was invalid.
     InviteMaxUses {
         /// Invalid age.
-        max_uses: u64,
+        max_uses: u16,
     },
     /// Provided nickname length was invalid.
     Nickname {
@@ -391,7 +451,7 @@ pub enum ValidationErrorType {
     /// Scheduled event get users limit is invalid.
     ScheduledEventGetUsers {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
     },
     /// Scheduled event name is invalid.
     ScheduledEventName {
@@ -401,7 +461,7 @@ pub enum ValidationErrorType {
     /// Provided search guild members limit was invalid.
     SearchGuildMembers {
         /// Invalid limit.
-        limit: u64,
+        limit: u16,
     },
     /// Provided stage instance topic was invalid.
     StageTopic {
@@ -418,11 +478,43 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
-    /// Provided username length was invalid.
+    /// Provided username was invalid.
     Username {
         /// Invalid length.
-        len: usize,
+        len: Option<usize>,
+        /// Invalid substring.
+        substring: Option<&'static str>,
     },
+    /// Provided webhook username was invalid.
+    WebhookUsername {
+        /// Invalid length.
+        len: Option<usize>,
+        /// Invalid substring.
+        substring: Option<&'static str>,
+    },
+}
+
+/// Ensure that an audit reason is correct.
+///
+/// The length must be at most [`AUDIT_REASON_MAX`]. This is based on
+/// [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AuditReason`] if the length is invalid.
+///
+/// [`AuditReason`]: ValidationErrorType::AuditReason
+/// [this documentation entry]: https://discord.com/developers/docs/resources/audit-log#audit-log-entry-object-audit-log-entry-structure
+pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError> {
+    let len = audit_reason.as_ref().chars().count();
+
+    if len <= AUDIT_REASON_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AuditReason { len },
+        })
+    }
 }
 
 /// Ensure that the delete message days amount for the Create Guild Ban request
@@ -438,7 +530,7 @@ pub enum ValidationErrorType {
 ///
 /// [`CreateGuildBanDeleteMessageDays`]: ValidationErrorType::CreateGuildBanDeleteMessageDays
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#create-guild-ban
-pub const fn create_guild_ban_delete_message_days(days: u64) -> Result<(), ValidationError> {
+pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), ValidationError> {
     if days <= CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX {
         Ok(())
     } else {
@@ -486,7 +578,7 @@ pub fn communication_disabled_until(timestamp: Timestamp) -> Result<(), Validati
 ///
 /// [`GetChannelMessages`]: ValidationErrorType::GetChannelMessages
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#get-channel-messages
-pub const fn get_channel_messages_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_channel_messages_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_CHANNEL_MESSAGES_LIMIT_MIN && limit <= GET_CHANNEL_MESSAGES_LIMIT_MAX {
         Ok(())
     } else {
@@ -508,7 +600,7 @@ pub const fn get_channel_messages_limit(limit: u64) -> Result<(), ValidationErro
 ///
 /// [`GetCurrentUserGuilds`]: ValidationErrorType::GetCurrentUserGuilds
 /// [this documentation entry]: https://discord.com/developers/docs/resources/user#get-current-user-guilds
-pub const fn get_current_user_guilds_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_current_user_guilds_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_CURRENT_USER_GUILDS_LIMIT_MIN && limit <= GET_CURRENT_USER_GUILDS_LIMIT_MAX {
         Ok(())
     } else {
@@ -530,12 +622,33 @@ pub const fn get_current_user_guilds_limit(limit: u64) -> Result<(), ValidationE
 ///
 /// [`GetGuildAuditLog`]: ValidationErrorType::GetGuildAuditLog
 /// [this documentation entry]: https://discord.com/developers/docs/resources/audit-log#get-guild-audit-log
-pub const fn get_guild_audit_log_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_guild_audit_log_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_GUILD_AUDIT_LOG_LIMIT_MIN && limit <= GET_GUILD_AUDIT_LOG_LIMIT_MAX {
         Ok(())
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::GetGuildAuditLog { limit },
+        })
+    }
+}
+
+/// Ensure that the limit for the Get Guild Bans endpoint is correct.
+///
+/// The limit must be at most [`GET_GUILD_BANS_LIMIT_MAX`]. This is based on
+/// [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`GetGuildBans`] if the limit is invalid.
+///
+/// [`GetGuildBans`]: ValidationErrorType::GetGuildBans
+/// [this documentation entry]: https://discord.com/developers/docs/resources/guild#get-guild-bans
+pub const fn get_guild_bans_limit(limit: u16) -> Result<(), ValidationError> {
+    if limit <= GET_GUILD_BANS_LIMIT_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::GetGuildBans { limit },
         })
     }
 }
@@ -552,7 +665,7 @@ pub const fn get_guild_audit_log_limit(limit: u64) -> Result<(), ValidationError
 ///
 /// [`GetGuildMembers`]: ValidationErrorType::GetGuildMembers
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#list-guild-members
-pub const fn get_guild_members_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_guild_members_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_GUILD_MEMBERS_LIMIT_MIN && limit <= GET_GUILD_MEMBERS_LIMIT_MAX {
         Ok(())
     } else {
@@ -573,7 +686,7 @@ pub const fn get_guild_members_limit(limit: u64) -> Result<(), ValidationError> 
 ///
 /// [`GetReactions`]: ValidationErrorType::GetReactions
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#get-reactions
-pub const fn get_reactions_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn get_reactions_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= GET_REACTIONS_LIMIT_MIN && limit <= GET_REACTIONS_LIMIT_MAX {
         Ok(())
     } else {
@@ -617,7 +730,7 @@ pub fn guild_name(name: impl AsRef<str>) -> Result<(), ValidationError> {
 ///
 /// [`GuildPruneDays`]: ValidationErrorType::GuildPruneDays
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#get-guild-prune-count
-pub const fn guild_prune_days(days: u64) -> Result<(), ValidationError> {
+pub const fn guild_prune_days(days: u16) -> Result<(), ValidationError> {
     if days >= GUILD_PRUNE_DAYS_MIN && days <= GUILD_PRUNE_DAYS_MAX {
         Ok(())
     } else {
@@ -638,7 +751,7 @@ pub const fn guild_prune_days(days: u64) -> Result<(), ValidationError> {
 ///
 /// [`InviteMaxAge`]: ValidationErrorType::InviteMaxAge
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#create-channel-invite
-pub const fn invite_max_age(max_age: u64) -> Result<(), ValidationError> {
+pub const fn invite_max_age(max_age: u32) -> Result<(), ValidationError> {
     if max_age <= INVITE_AGE_MAX {
         Ok(())
     } else {
@@ -659,7 +772,7 @@ pub const fn invite_max_age(max_age: u64) -> Result<(), ValidationError> {
 ///
 /// [`InviteMaxUses`]: ValidationErrorType::InviteMaxUses
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#create-channel-invite
-pub const fn invite_max_uses(max_uses: u64) -> Result<(), ValidationError> {
+pub const fn invite_max_uses(max_uses: u16) -> Result<(), ValidationError> {
     if max_uses <= INVITE_USES_MAX {
         Ok(())
     } else {
@@ -692,7 +805,7 @@ pub fn nickname(nickname: impl AsRef<str>) -> Result<(), ValidationError> {
     }
 }
 
-/// Ensure that a scheduled even't description is correct.
+/// Ensure that a scheduled event's description is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_DESCRIPTION_MIN`] and at most
 /// [`SCHEDULED_EVENT_DESCRIPTION_MAX`]. This is based on
@@ -717,7 +830,7 @@ pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), V
     }
 }
 
-/// Ensure that a scheduled event get users limit amount is correct.
+/// Ensure that a scheduled event's get users limit amount is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_GET_USERS_MIN`] and at most
 /// [`SCHEDULED_EVENT_GET_USERS_MAX`]. This is based on [this documentation
@@ -729,7 +842,7 @@ pub fn scheduled_event_description(description: impl AsRef<str>) -> Result<(), V
 ///
 /// [`ScheduledEventGetUsers`]: ValidationErrorType::ScheduledEventGetUsers
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild-scheduled-event#get-guild-scheduled-event-users-query-string-params
-pub const fn scheduled_event_get_users(limit: u64) -> Result<(), ValidationError> {
+pub const fn scheduled_event_get_users(limit: u16) -> Result<(), ValidationError> {
     if limit <= SCHEDULED_EVENT_GET_USERS_MIN && limit >= SCHEDULED_EVENT_GET_USERS_MAX {
         Ok(())
     } else {
@@ -739,7 +852,7 @@ pub const fn scheduled_event_get_users(limit: u64) -> Result<(), ValidationError
     }
 }
 
-/// Ensure that a scheduled even't name is correct.
+/// Ensure that a scheduled event's name is correct.
 ///
 /// The length must be at least [`SCHEDULED_EVENT_NAME_MIN`] and at most
 /// [`SCHEDULED_EVENT_NAME_MAX`]. This is based on [this documentation entry].
@@ -774,7 +887,7 @@ pub fn scheduled_event_name(name: impl AsRef<str>) -> Result<(), ValidationError
 ///
 /// [`SearchGuildMembers`]: ValidationErrorType::SearchGuildMembers
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#search-guild-members
-pub const fn search_guild_members_limit(limit: u64) -> Result<(), ValidationError> {
+pub const fn search_guild_members_limit(limit: u16) -> Result<(), ValidationError> {
     if limit >= SEARCH_GUILD_MEMBERS_LIMIT_MIN && limit <= SEARCH_GUILD_MEMBERS_LIMIT_MAX {
         Ok(())
     } else {
@@ -784,7 +897,7 @@ pub const fn search_guild_members_limit(limit: u64) -> Result<(), ValidationErro
     }
 }
 
-/// Ensure that the stage instance topic length is correct.
+/// Ensure that the stage instance's topic length is correct.
 ///
 /// The length must be at least [`STAGE_TOPIC_LENGTH_MIN`] and at most
 /// [`STAGE_TOPIC_LENGTH_MAX`]. This is based on [this documentation entry].
@@ -853,10 +966,11 @@ pub fn template_name(name: impl AsRef<str>) -> Result<(), ValidationError> {
     }
 }
 
-/// Ensure that the username length is correct.
+/// Ensure that a username is correct.
 ///
 /// The length must be at least [`USERNAME_LIMIT_MIN`] and at most
-/// [`USERNAME_LIMIT_MAX`]. This is based on [this documentation entry].
+/// [`USERNAME_LIMIT_MAX`]. It must also be free of certain substrings. This is
+/// based on [this documentation entry].
 ///
 /// # Errors
 ///
@@ -865,13 +979,64 @@ pub fn template_name(name: impl AsRef<str>) -> Result<(), ValidationError> {
 /// [`Username`]: ValidationErrorType::Username
 /// [this documentation entry]: https://discord.com/developers/docs/resources/user#usernames-and-nicknames
 pub fn username(value: impl AsRef<str>) -> Result<(), ValidationError> {
-    let len = value.as_ref().chars().count();
+    let value = value.as_ref();
+    let len = value.chars().count();
 
-    if (USERNAME_LIMIT_MIN..=USERNAME_LIMIT_MAX).contains(&len) {
+    let range = USERNAME_LIMIT_MIN..=USERNAME_LIMIT_MAX;
+    let invalid_len = (!range.contains(&len)).then(|| len);
+
+    let invalid_substring = USERNAME_INVALID_SUBSTRINGS
+        .into_iter()
+        .find(|invalid_substring| value.contains(invalid_substring))
+        .or_else(|| {
+            USERNAME_INVALID_STRINGS
+                .into_iter()
+                .find(|invalid_string| value == *invalid_string)
+        });
+
+    if invalid_len.is_none() && invalid_substring.is_none() {
         Ok(())
     } else {
         Err(ValidationError {
-            kind: ValidationErrorType::Username { len },
+            kind: ValidationErrorType::Username {
+                len: invalid_len,
+                substring: invalid_substring,
+            },
+        })
+    }
+}
+
+/// Ensure that a webhook is correct.
+///
+/// The length must be at least [`WEBHOOK_USERNAME_LIMIT_MIN`] and at most
+/// [`WEBHOOK_USERNAME_LIMIT_MAX`]. It must also be free of certain substrings.
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`WebhookUsername`] if the length is invalid.
+///
+/// [`WebhookUsername`]: ValidationErrorType::WebhookUsername
+/// [this documentation entry]: https://discord.com/developers/docs/resources/webhook#create-webhook
+pub fn webhook_username(value: impl AsRef<str>) -> Result<(), ValidationError> {
+    let value = value.as_ref();
+    let len = value.chars().count();
+
+    let range = WEBHOOK_USERNAME_LIMIT_MIN..=WEBHOOK_USERNAME_LIMIT_MAX;
+    let invalid_len = (!range.contains(&len)).then(|| len);
+
+    let invalid_substring = WEBHOOK_INVALID_STRINGS
+        .into_iter()
+        .find(|invalid_string| value == *invalid_string);
+
+    if invalid_len.is_none() && invalid_substring.is_none() {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::WebhookUsername {
+                len: invalid_len,
+                substring: invalid_substring,
+            },
         })
     }
 }
@@ -881,7 +1046,53 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_create_guild_ban_delete_message_days() {
+    fn username_variants() {
+        let expected = format!(
+            "provided username length is 200, but it must be at least {USERNAME_LIMIT_MIN} and at \
+            most {USERNAME_LIMIT_MAX}, and cannot contain :"
+        );
+        let actual = ValidationError {
+            kind: ValidationErrorType::Username {
+                len: Some(200),
+                substring: Some(":"),
+            },
+        };
+        assert_eq!(expected, actual.to_string());
+
+        let expected = format!(
+            "provided username length is 200, but it must be at least {USERNAME_LIMIT_MIN} and at \
+            most {USERNAME_LIMIT_MAX}",
+        );
+        let actual = ValidationError {
+            kind: ValidationErrorType::Username {
+                len: Some(200),
+                substring: None,
+            },
+        };
+        assert_eq!(expected, actual.to_string());
+
+        let expected = "provided username cannot contain :".to_string();
+        let actual = ValidationError {
+            kind: ValidationErrorType::Username {
+                len: None,
+                substring: Some(":"),
+            },
+        };
+        assert_eq!(expected, actual.to_string());
+    }
+
+    #[test]
+    fn audit_reason_length() {
+        assert!(audit_reason("").is_ok());
+        assert!(audit_reason("a").is_ok());
+        assert!(audit_reason("a".repeat(500)).is_ok());
+        assert!(audit_reason("a".repeat(512)).is_ok());
+
+        assert!(audit_reason("a".repeat(513)).is_err());
+    }
+
+    #[test]
+    fn create_guild_ban_delete_message_days_length() {
         assert!(create_guild_ban_delete_message_days(0).is_ok());
         assert!(create_guild_ban_delete_message_days(1).is_ok());
         assert!(create_guild_ban_delete_message_days(7).is_ok());
@@ -890,7 +1101,7 @@ mod tests {
     }
 
     #[test]
-    fn test_communication_disabled_until() {
+    fn communication_disabled_until_max() {
         #[allow(clippy::cast_possible_wrap)]
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -907,7 +1118,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_channel_messages_limit() {
+    fn get_channel_messages_limit_count() {
         assert!(get_channel_messages_limit(1).is_ok());
         assert!(get_channel_messages_limit(100).is_ok());
 
@@ -916,7 +1127,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_current_user_guilds_limit() {
+    fn get_current_user_guilds_limit_count() {
         assert!(get_current_user_guilds_limit(1).is_ok());
         assert!(get_current_user_guilds_limit(200).is_ok());
 
@@ -925,7 +1136,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_audit_log_limit() {
+    fn get_auild_log_limit_count() {
         assert!(get_guild_audit_log_limit(1).is_ok());
         assert!(get_guild_audit_log_limit(100).is_ok());
 
@@ -934,7 +1145,15 @@ mod tests {
     }
 
     #[test]
-    fn test_get_guild_members_limit() {
+    fn get_guild_bans_limit_count() {
+        assert!(get_guild_bans_limit(0).is_ok());
+        assert!(get_guild_bans_limit(1000).is_ok());
+
+        assert!(get_guild_bans_limit(1001).is_err());
+    }
+
+    #[test]
+    fn get_guild_members_limit_count() {
         assert!(get_guild_members_limit(1).is_ok());
         assert!(get_guild_members_limit(1000).is_ok());
 
@@ -943,7 +1162,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_reactions_limit() {
+    fn get_reactions_limit_count() {
         assert!(get_reactions_limit(1).is_ok());
         assert!(get_reactions_limit(100).is_ok());
 
@@ -952,7 +1171,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_name() {
+    fn guild_name_length() {
         assert!(guild_name("aa").is_ok());
         assert!(guild_name("a".repeat(100)).is_ok());
 
@@ -962,7 +1181,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_prune_days() {
+    fn guild_prune_days_length() {
         assert!(guild_prune_days(1).is_ok());
         assert!(guild_prune_days(30).is_ok());
 
@@ -972,7 +1191,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invite_max_age() {
+    fn invite_max_age_length() {
         assert!(invite_max_age(0).is_ok());
         assert!(invite_max_age(86_400).is_ok());
         assert!(invite_max_age(604_800).is_ok());
@@ -981,7 +1200,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invite_max_uses() {
+    fn invite_max_uses_count() {
         assert!(invite_max_uses(0).is_ok());
         assert!(invite_max_uses(100).is_ok());
 
@@ -989,7 +1208,7 @@ mod tests {
     }
 
     #[test]
-    fn test_nickname() {
+    fn nickname_length() {
         assert!(nickname("a").is_ok());
         assert!(nickname("a".repeat(32)).is_ok());
 
@@ -998,7 +1217,7 @@ mod tests {
     }
 
     #[test]
-    fn test_scheduled_event_description() {
+    fn scheduled_event_description_length() {
         assert!(scheduled_event_description("a").is_ok());
         assert!(scheduled_event_description("a".repeat(1000)).is_ok());
 
@@ -1007,7 +1226,7 @@ mod tests {
     }
 
     #[test]
-    fn test_scheduled_event_name() {
+    fn scheduled_event_name_length() {
         assert!(scheduled_event_name("a").is_ok());
         assert!(scheduled_event_name("a".repeat(100)).is_ok());
 
@@ -1016,7 +1235,7 @@ mod tests {
     }
 
     #[test]
-    fn test_search_guild_members_limit() {
+    fn search_guild_members_limit_count() {
         assert!(search_guild_members_limit(1).is_ok());
         assert!(search_guild_members_limit(1000).is_ok());
 
@@ -1025,7 +1244,7 @@ mod tests {
     }
 
     #[test]
-    fn test_stage_topic() {
+    fn stage_topic_length() {
         assert!(stage_topic("a").is_ok());
         assert!(stage_topic("a".repeat(120)).is_ok());
 
@@ -1034,7 +1253,7 @@ mod tests {
     }
 
     #[test]
-    fn test_template_description() {
+    fn template_description_length() {
         assert!(template_description("").is_ok());
         assert!(template_description("a").is_ok());
         assert!(template_description("a".repeat(120)).is_ok());
@@ -1043,7 +1262,7 @@ mod tests {
     }
 
     #[test]
-    fn test_template_name() {
+    fn template_name_length() {
         assert!(template_name("a").is_ok());
         assert!(template_name("a".repeat(100)).is_ok());
 
@@ -1052,11 +1271,30 @@ mod tests {
     }
 
     #[test]
-    fn test_username() {
+    fn username_length() {
         assert!(username("aa").is_ok());
         assert!(username("a".repeat(32)).is_ok());
 
         assert!(username("a").is_err());
         assert!(username("a".repeat(33)).is_err());
+
+        assert!(username("no @ in username").is_err());
+        assert!(username("no # in username").is_err());
+        assert!(username("no : in username").is_err());
+        assert!(username(r#"no ``` in username"#).is_err());
+        assert!(username("no discord in username").is_err());
+        assert!(username("everyone").is_err());
+        assert!(username("here").is_err());
+    }
+
+    #[test]
+    fn webhook_username_length() {
+        assert!(webhook_username("aa").is_ok());
+        assert!(webhook_username("a".repeat(80)).is_ok());
+
+        assert!(webhook_username("a").is_err());
+        assert!(webhook_username("a".repeat(81)).is_err());
+
+        assert!(webhook_username("clyde").is_err());
     }
 }

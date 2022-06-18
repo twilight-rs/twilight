@@ -7,7 +7,6 @@ on:
     paths:
       - ".github/**"
       - "cache/**"
-      - "command-parser/**"
       - "embed-builder/**"
       - "gateway/**"
       - "gateway-queue/**"
@@ -27,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1

@@ -20,6 +20,17 @@ impl StatusCode {
 
     /// Raw status code value.
     #[must_use = "status code must be used to be useful"]
+    pub const fn get(self) -> u16 {
+        self.0
+    }
+
+    /// Raw status code value.
+    ///
+    /// Deprecated alias for [`get`].
+    ///
+    /// [`get`]: Self::get
+    #[deprecated(since = "0.10.2", note = "renamed to `get`")]
+    #[must_use = "status code must be used to be useful"]
     pub const fn raw(self) -> u16 {
         self.0
     }
@@ -80,13 +91,13 @@ impl Display for StatusCode {
 
 impl PartialEq<u16> for StatusCode {
     fn eq(&self, other: &u16) -> bool {
-        self.raw() == *other
+        self.get() == *other
     }
 }
 
 impl PartialEq<StatusCode> for u16 {
     fn eq(&self, other: &StatusCode) -> bool {
-        *self == other.raw()
+        *self == other.get()
     }
 }
 
@@ -114,13 +125,25 @@ mod tests {
     );
 
     #[test]
-    fn test_eq_with_integer() {
+    fn eq_with_integer() {
         assert_eq!(200_u16, StatusCode::new(200));
         assert_eq!(StatusCode::new(404), 404_u16);
     }
 
+    /// Test that [`StatusCode::get`] returns the raw value of the status code.
+    ///
+    /// Notably what we want to test here is that it's not repeatedly returning
+    /// the same value (as if it were hardcoded), and that it's instead
+    /// returning the provided value.
     #[test]
-    fn test_ranges() {
+    fn get() {
+        assert_eq!(200, StatusCode::new(200).get());
+        assert_eq!(403, StatusCode::new(403).get());
+        assert_eq!(404, StatusCode::new(404).get());
+    }
+
+    #[test]
+    fn ranges() {
         assert!(StatusCode::new(100).is_informational());
         assert!(StatusCode::new(199).is_informational());
         assert!(StatusCode::new(200).is_success());

@@ -63,12 +63,17 @@ impl UpdateCache for InteractionCreate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::InMemoryCache;
     use std::collections::HashMap;
     use twilight_model::{
-        application::interaction::{
-            application_command::{CommandData, CommandInteractionDataResolved, InteractionMember},
-            ApplicationCommand, InteractionType,
+        application::{
+            command::CommandType,
+            interaction::{
+                application_command::{
+                    CommandData, CommandInteractionDataResolved, InteractionMember,
+                },
+                ApplicationCommand, Interaction, InteractionType,
+            },
         },
         channel::{
             message::{
@@ -77,15 +82,16 @@ mod tests {
             },
             Message,
         },
-        datetime::Timestamp,
+        gateway::payload::incoming::InteractionCreate,
         guild::{PartialMember, Permissions, Role},
         id::Id,
         user::User,
-        util::{image_hash::ImageHashParseError, ImageHash},
+        util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
+    #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_interaction_create() -> Result<(), ImageHashParseError> {
+    fn interaction_create() -> Result<(), ImageHashParseError> {
         let timestamp = Timestamp::from_secs(1_632_072_645).expect("non zero");
         // let avatar1 = ImageHash::parse(b"1ef6bca4fddaa303a9cd32dd70fb395d")?;
         let avatar2 = ImageHash::parse(b"3a43231a99f4dfcf0fd94d1d8defd301")?;
@@ -98,10 +104,13 @@ mod tests {
                 application_id: Id::new(1),
                 channel_id: Id::new(2),
                 data: CommandData {
+                    guild_id: None,
                     id: Id::new(5),
                     name: "command name".into(),
+                    kind: CommandType::ChatInput, // This isn't actually a valid command, so just mark it as a slash command.
                     options: Vec::new(),
                     resolved: Some(CommandInteractionDataResolved {
+                        attachments: HashMap::new(),
                         channels: HashMap::new(),
                         members: IntoIterator::into_iter([(
                             Id::new(7),
@@ -222,6 +231,7 @@ mod tests {
                         )])
                         .collect(),
                     }),
+                    target_id: None,
                 },
                 guild_id: Some(Id::new(3)),
                 guild_locale: None,

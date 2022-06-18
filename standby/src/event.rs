@@ -3,7 +3,6 @@
 //! This is in its own file for better maintainability when a new event is added.
 
 use twilight_model::{
-    channel::Channel,
     gateway::event::Event,
     id::{marker::GuildMarker, Id},
 };
@@ -24,13 +23,20 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
     match event {
         Event::BanAdd(e) => Some(e.guild_id),
         Event::BanRemove(e) => Some(e.guild_id),
-        Event::ChannelCreate(e) => channel_guild_id(&e.0),
-        Event::ChannelDelete(e) => channel_guild_id(&e.0),
-        Event::ChannelUpdate(e) => channel_guild_id(&e.0),
+        Event::ChannelCreate(e) => e.0.guild_id,
+        Event::ChannelDelete(e) => e.0.guild_id,
+        Event::ChannelUpdate(e) => e.0.guild_id,
+        Event::CommandPermissionsUpdate(e) => Some(e.0.guild_id),
         Event::GuildCreate(e) => Some(e.0.id),
         Event::GuildDelete(e) => Some(e.id),
         Event::GuildEmojisUpdate(e) => Some(e.guild_id),
         Event::GuildIntegrationsUpdate(e) => Some(e.guild_id),
+        Event::GuildScheduledEventCreate(e) => Some(e.0.guild_id),
+        Event::GuildScheduledEventDelete(e) => Some(e.0.guild_id),
+        Event::GuildScheduledEventUpdate(e) => Some(e.0.guild_id),
+        Event::GuildScheduledEventUserAdd(e) => Some(e.guild_id),
+        Event::GuildScheduledEventUserRemove(e) => Some(e.guild_id),
+        Event::GuildStickersUpdate(e) => Some(e.guild_id),
         Event::GuildUpdate(e) => Some(e.0.id),
         Event::IntegrationCreate(e) => e.0.guild_id,
         Event::IntegrationDelete(e) => Some(e.guild_id),
@@ -43,7 +49,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::MemberRemove(e) => Some(e.guild_id),
         Event::MemberUpdate(e) => Some(e.guild_id),
         Event::MessageCreate(e) => e.0.guild_id,
-        Event::PresenceUpdate(e) => Some(e.guild_id),
+        Event::PresenceUpdate(e) => Some(e.0.guild_id),
         Event::ReactionAdd(e) => e.0.guild_id,
         Event::ReactionRemove(e) => e.0.guild_id,
         Event::ReactionRemoveAll(e) => e.guild_id,
@@ -54,19 +60,19 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::StageInstanceCreate(e) => Some(e.0.guild_id),
         Event::StageInstanceDelete(e) => Some(e.0.guild_id),
         Event::StageInstanceUpdate(e) => Some(e.0.guild_id),
-        Event::ThreadCreate(e) => channel_guild_id(&e.0),
+        Event::ThreadCreate(e) => e.0.guild_id,
         Event::ThreadDelete(e) => Some(e.guild_id),
         Event::ThreadListSync(e) => Some(e.guild_id),
         Event::ThreadMembersUpdate(e) => Some(e.guild_id),
-        Event::ThreadUpdate(e) => channel_guild_id(&e.0),
+        Event::ThreadUpdate(e) => e.0.guild_id,
         Event::TypingStart(e) => e.guild_id,
         Event::UnavailableGuild(e) => Some(e.id),
         Event::VoiceServerUpdate(e) => e.guild_id,
         Event::VoiceStateUpdate(e) => e.0.guild_id,
         Event::WebhooksUpdate(e) => Some(e.guild_id),
         Event::ChannelPinsUpdate(_)
-        | Event::GatewayHeartbeatAck
         | Event::GatewayHeartbeat(_)
+        | Event::GatewayHeartbeatAck
         | Event::GatewayHello(_)
         | Event::GatewayInvalidateSession(_)
         | Event::GatewayReconnect
@@ -84,18 +90,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         | Event::ShardPayload(_)
         | Event::ShardReconnecting(_)
         | Event::ShardResuming(_)
-        | Event::ThreadMemberUpdate(_) => None,
-        Event::UserUpdate(_) => None,
-    }
-}
-
-/// Retrieve the guild ID of a channel if it's a [`GuildChannel`].
-///
-/// [`GuildChannel`]: twilight_model::channel::GuildChannel
-const fn channel_guild_id(channel: &Channel) -> Option<Id<GuildMarker>> {
-    if let Channel::Guild(guild_channel) = channel {
-        guild_channel.guild_id()
-    } else {
-        None
+        | Event::ThreadMemberUpdate(_)
+        | Event::UserUpdate(_) => None,
     }
 }

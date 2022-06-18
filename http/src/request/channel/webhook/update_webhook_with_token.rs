@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{NullableField, Request, TryIntoRequest},
+    request::{Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,13 +10,17 @@ use twilight_model::{
     channel::Webhook,
     id::{marker::WebhookMarker, Id},
 };
+use twilight_validate::request::{webhook_username as validate_webhook_username, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateWebhookWithTokenFields<'a> {
+    #[serde(
+        serialize_with = "crate::request::serialize_optional_nullable_image",
+        skip_serializing_if = "Option::is_none"
+    )]
+    avatar: Option<Nullable<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<NullableField<&'a str>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<NullableField<&'a str>>,
+    name: Option<Nullable<&'a str>>,
 }
 
 /// Update a webhook, with a token, by ID.
@@ -52,17 +56,28 @@ impl<'a> UpdateWebhookWithToken<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: Option<&'a str>) -> Self {
-        self.fields.avatar = Some(NullableField(avatar));
+    pub const fn avatar(mut self, avatar: Option<&'a [u8]>) -> Self {
+        self.fields.avatar = Some(Nullable(avatar));
 
         self
     }
 
     /// Change the name of the webhook.
-    pub const fn name(mut self, name: Option<&'a str>) -> Self {
-        self.fields.name = Some(NullableField(name));
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`WebhookUsername`] if the webhook's name is
+    /// invalid.
+    ///
+    /// [`WebhookUsername`]: twilight_validate::request::ValidationErrorType::WebhookUsername
+    pub fn name(mut self, name: Option<&'a str>) -> Result<Self, ValidationError> {
+        if let Some(name) = name {
+            validate_webhook_username(name)?;
+        }
 
-        self
+        self.fields.name = Some(Nullable(name));
+
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].

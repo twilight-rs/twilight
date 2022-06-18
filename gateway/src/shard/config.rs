@@ -1,4 +1,4 @@
-use crate::{shard::tls::TlsContainer, EventTypeFlags};
+use crate::EventTypeFlags;
 use std::sync::Arc;
 use twilight_gateway_queue::Queue;
 use twilight_http::Client;
@@ -6,6 +6,13 @@ use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use super::tls::TlsContainer;
 
 /// The configuration used by the shard to identify with the gateway and
 /// operate.
@@ -15,19 +22,25 @@ use twilight_model::gateway::{
 /// [`Shard::builder`]: super::Shard::builder
 #[derive(Clone, Debug)]
 pub struct Config {
-    pub(crate) event_types: EventTypeFlags,
-    pub(crate) gateway_url: Option<Box<str>>,
-    pub(crate) http_client: Arc<Client>,
+    pub(super) event_types: EventTypeFlags,
+    pub(super) gateway_url: Box<str>,
+    pub(super) http_client: Arc<Client>,
     pub(super) identify_properties: Option<IdentifyProperties>,
     pub(super) intents: Intents,
     pub(super) large_threshold: u64,
     pub(crate) presence: Option<UpdatePresencePayload>,
     pub(super) queue: Arc<dyn Queue>,
-    pub(crate) shard: [u64; 2],
-    pub(super) token: Box<str>,
+    pub(crate) ratelimit_payloads: bool,
     pub(crate) session_id: Option<Box<str>>,
     pub(crate) sequence: Option<u64>,
+    pub(crate) shard: [u64; 2],
+    #[cfg(any(
+        feature = "native",
+        feature = "rustls-native-roots",
+        feature = "rustls-webpki-roots"
+    ))]
     pub(crate) tls: Option<TlsContainer>,
+    pub(super) token: Box<str>,
 }
 
 impl Config {
@@ -37,8 +50,8 @@ impl Config {
     }
 
     /// Return an immutable reference to the url used to connect to the gateway.
-    pub fn gateway_url(&self) -> Option<&str> {
-        self.gateway_url.as_deref()
+    pub const fn gateway_url(&self) -> &str {
+        &self.gateway_url
     }
 
     /// Return an immutable reference to the `twilight_http` client to be used
@@ -71,6 +84,11 @@ impl Config {
     /// to Do Not Disturb will show the status in the bot's presence.
     pub const fn presence(&self) -> Option<&UpdatePresencePayload> {
         self.presence.as_ref()
+    }
+
+    /// Whether or not payload ratelimiting is enabled.
+    pub const fn ratelimit_payloads(&self) -> bool {
+        self.ratelimit_payloads
     }
 
     /// The shard's ID and the total number of shards used by the bot.

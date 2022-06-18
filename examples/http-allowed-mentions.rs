@@ -1,4 +1,4 @@
-use std::{env, error::Error};
+use std::env;
 use twilight_http::Client;
 use twilight_model::{
     channel::message::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder},
@@ -6,7 +6,7 @@ use twilight_model::{
 };
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
@@ -16,22 +16,22 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         //add an empty allowed mentions, this will prevent any and all pings
         .default_allowed_mentions(AllowedMentions::default())
         .build();
+
     let channel_id = Id::new(381_926_291_785_383_946);
     let user_id = Id::new(77_469_400_222_932_992);
 
-    //here we want to warn a user about trying to ping everyone so we override to allow pinging them
-    //but since we did not allow @everyone pings it will not ping everyone
+    // Since we wish to warn a user that they attempted to ping @everyone, we
+    // allow the user ID to be pinged with allowed mentions.
+    let allowed_mentions = AllowedMentionsBuilder::new()
+        .user_ids(Vec::from([user_id]))
+        .build();
+
     client
         .create_message(channel_id)
         .content(&format!(
-            "<@{}> you are not allowed to ping @everyone!",
-            user_id
+            "<@{user_id}> you are not allowed to ping @everyone!"
         ))?
-        .allowed_mentions(
-            AllowedMentionsBuilder::new()
-                .user_ids(vec![user_id])
-                .build(),
-        )
+        .allowed_mentions(Some(&allowed_mentions))
         .exec()
         .await?;
 

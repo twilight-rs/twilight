@@ -12,9 +12,12 @@ impl UpdateCache for ReactionAdd {
             return;
         }
 
-        let mut message = match cache.messages.get_mut(&self.0.message_id) {
-            Some(message) => message,
-            None => return,
+        let key = self.0.message_id;
+
+        let mut message = if let Some(message) = cache.messages.get_mut(&key) {
+            message
+        } else {
+            return;
         };
 
         if let Some(reaction) = message
@@ -52,9 +55,10 @@ impl UpdateCache for ReactionRemove {
             return;
         }
 
-        let mut message = match cache.messages.get_mut(&self.0.message_id) {
-            Some(message) => message,
-            None => return,
+        let mut message = if let Some(message) = cache.messages.get_mut(&self.0.message_id) {
+            message
+        } else {
+            return;
         };
 
         if let Some(reaction) = message
@@ -85,9 +89,10 @@ impl UpdateCache for ReactionRemoveAll {
             return;
         }
 
-        let mut message = match cache.messages.get_mut(&self.message_id) {
-            Some(message) => message,
-            None => return,
+        let mut message = if let Some(message) = cache.messages.get_mut(&self.message_id) {
+            message
+        } else {
+            return;
         };
 
         message.reactions.clear();
@@ -100,9 +105,10 @@ impl UpdateCache for ReactionRemoveEmoji {
             return;
         }
 
-        let mut message = match cache.messages.get_mut(&self.message_id) {
-            Some(message) => message,
-            None => return,
+        let mut message = if let Some(message) = cache.messages.get_mut(&self.message_id) {
+            message
+        } else {
+            return;
         };
 
         let maybe_index = message.reactions.iter().position(|r| r.emoji == self.emoji);
@@ -115,15 +121,15 @@ impl UpdateCache for ReactionRemoveEmoji {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::test;
     use twilight_model::{
         channel::{Reaction, ReactionType},
+        gateway::payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
         id::Id,
     };
 
     #[test]
-    fn test_reaction_add() {
+    fn reaction_add() {
         let cache = test::cache_with_message_and_reactions();
         let msg = cache.message(Id::new(4)).unwrap();
 
@@ -145,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn test_reaction_remove() {
+    fn reaction_remove() {
         let cache = test::cache_with_message_and_reactions();
         cache.update(&ReactionRemove(Reaction {
             channel_id: Id::new(2),
@@ -178,7 +184,7 @@ mod tests {
     }
 
     #[test]
-    fn test_reaction_remove_all() {
+    fn reaction_remove_all() {
         let cache = test::cache_with_message_and_reactions();
         cache.update(&ReactionRemoveAll {
             channel_id: Id::new(2),
@@ -192,7 +198,7 @@ mod tests {
     }
 
     #[test]
-    fn test_reaction_remove_emoji() {
+    fn reaction_remove_emoji() {
         let cache = test::cache_with_message_and_reactions();
         cache.update(&ReactionRemoveEmoji {
             channel_id: Id::new(2),

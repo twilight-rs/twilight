@@ -1,16 +1,14 @@
 use super::{
     super::{
-        config::Config,
         emitter::{EmitJsonErrorType, Emitter},
         json::{self, GatewayEventParsingError, GatewayEventParsingErrorType},
-        stage::Stage,
-        ShardStream,
+        Config, ShardStream, Stage,
     },
     compression::{self, Compression},
     session::{Session, SessionSendError, SessionSendErrorType},
     socket_forwarder::SocketForwarder,
 };
-use crate::{event::EventTypeFlags, shard::tls::TlsContainer};
+use crate::{EventTypeFlags, API_VERSION};
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -44,6 +42,13 @@ use twilight_model::gateway::{
     Intents, OpCode,
 };
 use url::Url;
+
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
+use crate::shard::tls::TlsContainer;
 
 /// Connecting to the gateway failed.
 #[derive(Debug)]
@@ -311,25 +316,24 @@ pub struct ShardProcessor {
 impl ShardProcessor {
     pub async fn new(
         config: Arc<Config>,
-        mut url: String,
         emitter: Emitter,
     ) -> Result<(Self, WatchReceiver<Arc<Session>>), ConnectingError> {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
         if !resumable {
-            #[cfg(feature = "tracing")]
-            tracing::debug!("shard {:?} is not resumable", shard_id);
-            #[cfg(feature = "tracing")]
-            tracing::debug!("shard {:?} queued", shard_id);
+            tracing::debug!("shard {shard_id:?} is not resumable");
+            tracing::debug!("shard {shard_id:?} queued");
 
             config.queue.request(shard_id).await;
 
-            #[cfg(feature = "tracing")]
             tracing::debug!("shard {:?} finished queue", config.shard());
         }
 
-        url.push_str("?v=9");
+        let mut url = config.gateway_url().to_owned();
+
+        url.push_str("?v=");
+        url.push_str(&API_VERSION.to_string());
 
         // Discord's documentation states:
         //
@@ -345,11 +349,21 @@ impl ShardProcessor {
             gateway: url.clone(),
             shard_id: config.shard()[0],
         }));
-        let stream = Self::connect(&url, config.tls.as_ref()).await?;
+        let stream = Self::connect(
+            &url,
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
+            config.tls.as_ref(),
+        )
+        .await?;
         let (forwarder, rx, tx) = SocketForwarder::new(stream);
         tokio::spawn(forwarder.run());
 
-        let session = Arc::new(Session::new(tx));
+        let session = Arc::new(Session::new(tx, config.ratelimit_payloads));
+
         if resumable {
             session.set_id(config.session_id.clone().unwrap());
             session
@@ -371,8 +385,7 @@ impl ShardProcessor {
         };
 
         if resumable {
-            #[cfg(feature = "tracing")]
-            tracing::debug!("resuming shard {:?}", shard_id);
+            tracing::debug!("resuming shard {shard_id:?}");
 
             processor.resume().await;
         }
@@ -383,8 +396,7 @@ impl ShardProcessor {
     pub async fn run(mut self) {
         loop {
             if let Err(source) = self.next_payload().await {
-                #[cfg(feature = "tracing")]
-                tracing::warn!("{}", source);
+                tracing::warn!("{source}");
 
                 self.emit_disconnected(None, None).await;
 
@@ -404,25 +416,21 @@ impl ShardProcessor {
             }
 
             if let Err(source) = self.process().await {
-                #[cfg(feature = "tracing")]
                 if matches!(&source.kind, ProcessErrorType::EventTypeUnknown { .. }) {
                     tracing::debug!(
                         shard_id = self.config.shard()[0],
                         shard_total = self.config.shard()[1],
-                        "processing incoming event failed: {:?}",
-                        source,
+                        "processing incoming event failed: {source:?}",
                     );
                 } else {
                     tracing::error!(
                         shard_id = self.config.shard()[0],
                         shard_total = self.config.shard()[1],
-                        "processing incoming event failed: {:?}",
-                        source,
+                        "processing incoming event failed: {source:?}",
                     );
                 }
 
                 if source.fatal() {
-                    #[cfg(feature = "tracing")]
                     tracing::debug!("error processing event; reconnecting");
                     self.emit_disconnected(None, None).await;
 
@@ -441,7 +449,6 @@ impl ShardProcessor {
                 source: Some(Box::new(source)),
             })?;
 
-            #[cfg(feature = "tracing")]
             tracing::trace!(%json, "Received JSON");
 
             let emitter = self.emitter.clone();
@@ -457,7 +464,6 @@ impl ShardProcessor {
                     // should be a good trade-off either way.
                     (op, seq, event_type.map(ToOwned::to_owned))
                 } else {
-                    #[cfg(feature = "tracing")]
                     tracing::error!(
                         json = ?self.compression.buffer_slice_mut(),
                         shard_id = self.config.shard()[0],
@@ -627,9 +633,8 @@ impl ShardProcessor {
             self.resume().await;
         }
 
-        if let Err(_source) = self.session.heartbeat() {
-            #[cfg(feature = "tracing")]
-            tracing::warn!("error sending heartbeat; reconnecting: {}", _source);
+        if let Err(source) = self.session.heartbeat() {
+            tracing::warn!("error sending heartbeat; reconnecting: {source}");
 
             self.emit_disconnected(None, None).await;
 
@@ -641,16 +646,14 @@ impl ShardProcessor {
         #[cfg(feature = "metrics")]
         metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Hello");
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!("got hello with interval {}", interval);
+        tracing::debug!("got hello with interval {interval}");
 
         if self.session.stage() == Stage::Resuming && self.resume.is_some() {
             // Safe to unwrap so here as we have just checked that
             // it is some.
             let (seq, id) = self.resume.take().unwrap();
 
-            #[cfg(feature = "tracing")]
-            tracing::debug!("resuming with sequence {}, session id {}", seq, id);
+            tracing::debug!("resuming with sequence {seq}, session id {id}");
 
             let payload = Resume::new(seq, id.clone().into_string(), self.config.token());
 
@@ -690,7 +693,6 @@ impl ShardProcessor {
             #[cfg(feature = "metrics")]
             metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionTrue");
 
-            #[cfg(feature = "tracing")]
             tracing::debug!("got request to resume the session");
 
             self.resume().await;
@@ -698,7 +700,6 @@ impl ShardProcessor {
             #[cfg(feature = "metrics")]
             metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "InvalidateSessionFalse");
 
-            #[cfg(feature = "tracing")]
             tracing::debug!("got request to invalidate the session and reconnect");
 
             self.reconnect().await;
@@ -709,7 +710,6 @@ impl ShardProcessor {
         #[cfg(feature = "metrics")]
         metrics::counter!("GatewayEvent", 1, "GatewayEvent" => "Reconnect");
 
-        #[cfg(feature = "tracing")]
         tracing::debug!("got request to reconnect");
 
         let frame = CloseFrame {
@@ -731,8 +731,7 @@ impl ShardProcessor {
 
     pub async fn send(&mut self, payload: impl Serialize) -> Result<(), SessionSendError> {
         if let Err(source) = self.session.send(payload) {
-            #[cfg(feature = "tracing")]
-            tracing::warn!("sending message failed: {:?}", source);
+            tracing::warn!("sending message failed: {source:?}");
 
             if matches!(source.kind(), SessionSendErrorType::Sending { .. }) {
                 self.emit_disconnected(None, None).await;
@@ -825,7 +824,9 @@ impl ShardProcessor {
             }
             // Discord doesn't appear to send Text messages, so we can ignore
             // these.
-            Message::Ping(_) | Message::Pong(_) => Ok(false),
+            // Message::Frame is send-only and therefore falls into the same group,
+            // see https://docs.rs/tungstenite/latest/tungstenite/enum.Message.html#variant.Frame
+            Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => Ok(false),
         }
     }
 
@@ -833,8 +834,7 @@ impl ShardProcessor {
         &mut self,
         close_frame: Option<&CloseFrame<'_>>,
     ) -> Result<(), ReceivingEventError> {
-        #[cfg(feature = "tracing")]
-        tracing::info!("got close code: {:?}", close_frame);
+        tracing::info!("got close code: {close_frame:?}");
 
         self.emit_disconnected(
             close_frame.map(|c| c.code.into()),
@@ -903,6 +903,11 @@ impl ShardProcessor {
 
     async fn connect(
         url: &str,
+        #[cfg(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        ))]
         tls: Option<&TlsContainer>,
     ) -> Result<ShardStream, ConnectingError> {
         let url = Url::parse(url).map_err(|source| ConnectingError {
@@ -924,18 +929,35 @@ impl ShardProcessor {
             max_send_queue: None,
         };
 
-        let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(
-            url,
-            Some(config),
-            tls.map(TlsContainer::connector),
-        )
+        let (stream, _) = {
+            #[cfg(not(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            )))]
+            {
+                tokio_tungstenite::connect_async_with_config(url, Some(config))
+            }
+
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
+            {
+                tokio_tungstenite::connect_async_tls_with_config(
+                    url,
+                    Some(config),
+                    tls.map(TlsContainer::connector),
+                )
+            }
+        }
         .await
         .map_err(|source| ConnectingError {
             kind: ConnectingErrorType::Establishing,
             source: Some(Box::new(source)),
         })?;
 
-        #[cfg(feature = "tracing")]
         tracing::debug!("Shook hands with remote");
 
         Ok(stream)
@@ -970,13 +992,11 @@ impl ShardProcessor {
 
     /// Perform a full reconnect to the gateway, instantiating a new session.
     async fn reconnect(&mut self) {
-        #[cfg(feature = "tracing")]
         tracing::info!("reconnection started");
 
         let mut wait = Duration::from_secs(1);
 
         loop {
-            #[cfg(feature = "tracing")]
             tracing::debug!(
                 shard_id = self.config.shard()[0],
                 shard_total = self.config.shard()[1],
@@ -993,11 +1013,20 @@ impl ShardProcessor {
                 shard_id: self.config.shard()[0],
             }));
 
-            let stream = match Self::connect(&self.url, self.config.tls.as_ref()).await {
+            let stream = match Self::connect(
+                &self.url,
+                #[cfg(any(
+                    feature = "native",
+                    feature = "rustls-native-roots",
+                    feature = "rustls-webpki-roots"
+                ))]
+                self.config.tls.as_ref(),
+            )
+            .await
+            {
                 Ok(s) => s,
-                Err(_source) => {
-                    #[cfg(feature = "tracing")]
-                    tracing::warn!("reconnecting failed: {:?}", _source);
+                Err(source) => {
+                    tracing::warn!("reconnecting failed: {source:?}");
 
                     if wait < Duration::from_secs(128) {
                         wait *= 2;
@@ -1021,7 +1050,6 @@ impl ShardProcessor {
     /// Resume a session if possible, defaulting to instantiating a new
     /// connection.
     async fn resume(&mut self) {
-        #[cfg(feature = "tracing")]
         tracing::debug!("resuming shard {:?}", self.config.shard());
 
         self.session.set_stage(Stage::Resuming);
@@ -1032,7 +1060,6 @@ impl ShardProcessor {
         let id = if let Some(id) = self.session.id() {
             id
         } else {
-            #[cfg(feature = "tracing")]
             tracing::info!("session id unavailable, reconnecting");
 
             self.reconnect().await;
@@ -1041,14 +1068,12 @@ impl ShardProcessor {
 
         self.resume = Some((seq, id));
 
-        if let Err(_source) = self.try_resume().await {
-            #[cfg(feature = "tracing")]
+        if let Err(source) = self.try_resume().await {
             tracing::warn!(
                 seq = seq,
                 session_id = ?self.session.id(),
                 shard_id = self.config.shard()[0],
-                "failed to resume session: {:?}",
-                _source,
+                "failed to resume session: {source:?}",
             );
 
             self.reconnect().await;
@@ -1062,7 +1087,16 @@ impl ShardProcessor {
             shard_id: self.config.shard()[0],
         }));
 
-        let stream = Self::connect(&self.url, self.config.tls.as_ref()).await?;
+        let stream = Self::connect(
+            &self.url,
+            #[cfg(any(
+                feature = "native",
+                feature = "rustls-native-roots",
+                feature = "rustls-webpki-roots"
+            ))]
+            self.config.tls.as_ref(),
+        )
+        .await?;
 
         self.set_session(stream, Stage::Resuming);
 
@@ -1079,11 +1113,10 @@ impl ShardProcessor {
         tokio::spawn(forwarder.run());
 
         self.rx = rx;
-        self.session = Arc::new(Session::new(tx));
+        self.session = Arc::new(Session::new(tx, self.config.ratelimit_payloads));
 
-        if let Err(_source) = self.wtx.send(Arc::clone(&self.session)) {
-            #[cfg(feature = "tracing")]
-            tracing::error!("failed to broadcast new session: {:?}", _source);
+        if let Err(source) = self.wtx.send(Arc::clone(&self.session)) {
+            tracing::error!("failed to broadcast new session: {source:?}");
         }
 
         self.session.set_stage(stage);
@@ -1104,5 +1137,5 @@ impl ShardProcessor {
 ///
 /// [`ShardBuilder::identify_properties`]: super::super::ShardBuilder::identify_properties
 fn default_identify_properties() -> IdentifyProperties {
-    IdentifyProperties::new("twilight.rs", "twilight.rs", OS, "", "")
+    IdentifyProperties::new("twilight.rs", "twilight.rs", OS)
 }

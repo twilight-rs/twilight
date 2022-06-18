@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-gateway-queue
 
 Ratelimiting functionality for queueing new gateway sessions.
@@ -19,7 +17,7 @@ either mean using IPC to communicate ratelimiting or a broker.
 
 Most users only need the [`LocalQueue`]: it's a single-process queue for
 smaller bots. Larger bots need the [`LargeBotQueue`], which supports
-single-process [Sharding for Very Large Bots] through the use of bucket
+single-process [Sharding for Large Bots] through the use of bucket
 releasing.
 
 By default, the gateway's `Cluster` and `Shard`s use the [`LocalQueue`]. You
@@ -36,12 +34,10 @@ create sessions.
 
 ## Features
 
-### Tracing
+### Twilight-HTTP
 
-The `tracing` feature enables logging via the [`tracing`] crate.
+The `twilight-http` feature brings in support for [`LargeBotQueue`].
 
 This is enabled by default.
 
-[Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
-
-<!-- cargo-sync-readme end -->
+[Sharding for Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-large-bots

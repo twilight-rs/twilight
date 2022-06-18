@@ -1,4 +1,4 @@
-use super::Client;
+use crate::{client::connector, Client};
 use hyper::header::HeaderMap;
 use std::{
     sync::{atomic::AtomicBool, Arc},
@@ -9,6 +9,7 @@ use twilight_model::channel::message::allowed_mentions::AllowedMentions;
 
 #[derive(Debug)]
 /// A builder for [`Client`].
+#[must_use = "has no effect if not built into a Client"]
 pub struct ClientBuilder {
     pub(crate) default_allowed_mentions: Option<AllowedMentions>,
     pub(crate) proxy: Option<Box<str>>,
@@ -28,37 +29,9 @@ impl ClientBuilder {
 
     /// Build the [`Client`].
     pub fn build(self) -> Client {
-        #[cfg(not(feature = "trust-dns"))]
-        let mut http_connector = hyper::client::HttpConnector::new();
-        #[cfg(feature = "trust-dns")]
-        let mut http_connector = hyper_trust_dns::new_trust_dns_http_connector();
+        let connector = connector::create();
 
-        http_connector.enforce_http(false);
-
-        #[cfg(feature = "rustls-native-roots")]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_native_roots()
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .wrap_connector(http_connector);
-
-        #[cfg(all(feature = "rustls-webpki-roots", not(feature = "rustls-native-roots")))]
-        let connector = hyper_rustls::HttpsConnectorBuilder::new()
-            .with_webpki_roots()
-            .https_or_http()
-            .enable_http1()
-            .enable_http2()
-            .wrap_connector(http_connector);
-
-        #[cfg(all(
-            feature = "hyper-tls",
-            not(feature = "rustls-native-roots"),
-            not(feature = "rustls-webpki-roots")
-        ))]
-        let connector = hyper_tls::HttpsConnector::new_with_connector(http_connector);
-
-        let http = hyper::client::Builder::default().build(connector);
+        let http = hyper::Client::builder().build(connector);
 
         let token_invalidated = if self.remember_invalid_token {
             Some(Arc::new(AtomicBool::new(false)))

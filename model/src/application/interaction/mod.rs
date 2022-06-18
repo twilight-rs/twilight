@@ -1,21 +1,25 @@
 //! Used when receiving interactions through gateway or webhooks.
 
 pub mod application_command;
+pub mod application_command_autocomplete;
 pub mod message_component;
+pub mod modal;
 
 mod interaction_type;
 mod ping;
 
+use self::modal::ModalSubmitInteraction;
 pub use self::{
-    application_command::ApplicationCommand, interaction_type::InteractionType,
-    message_component::MessageComponentInteraction, ping::Ping,
+    application_command::ApplicationCommand,
+    application_command_autocomplete::ApplicationCommandAutocomplete,
+    interaction_type::InteractionType, message_component::MessageComponentInteraction, ping::Ping,
 };
 
 use crate::{
     channel::Message,
     guild::PartialMember,
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker},
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
     },
     user::User,
@@ -42,19 +46,33 @@ pub enum Interaction {
     /// Application command variant.
     ApplicationCommand(Box<ApplicationCommand>),
     /// Application command autocomplete variant.
-    ApplicationCommandAutocomplete(Box<ApplicationCommand>),
+    ApplicationCommandAutocomplete(Box<ApplicationCommandAutocomplete>),
     /// Message component variant.
     MessageComponent(Box<MessageComponentInteraction>),
+    /// Modal submit variant.
+    ModalSubmit(Box<ModalSubmitInteraction>),
 }
 
 impl Interaction {
+    /// Id of the associated application.
+    pub const fn application_id(&self) -> Id<ApplicationMarker> {
+        match self {
+            Self::Ping(ping) => ping.application_id,
+            Self::ApplicationCommand(command) => command.application_id,
+            Self::ApplicationCommandAutocomplete(command) => command.application_id,
+            Self::MessageComponent(component) => component.application_id,
+            Self::ModalSubmit(modal) => modal.application_id,
+        }
+    }
+
+    /// ID of the guild the interaction was invoked in.
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Self::Ping(_) => None,
-            Self::ApplicationCommand(inner) | Self::ApplicationCommandAutocomplete(inner) => {
-                inner.guild_id
-            }
-            Self::MessageComponent(inner) => inner.guild_id,
+            Self::ApplicationCommand(command) => command.guild_id,
+            Self::ApplicationCommandAutocomplete(command) => command.guild_id,
+            Self::MessageComponent(component) => component.guild_id,
+            Self::ModalSubmit(modal) => modal.guild_id,
         }
     }
 
@@ -62,10 +80,34 @@ impl Interaction {
     pub const fn id(&self) -> Id<InteractionMarker> {
         match self {
             Self::Ping(ping) => ping.id,
-            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
-                command.id
-            }
+            Self::ApplicationCommand(command) => command.id,
+            Self::ApplicationCommandAutocomplete(command) => command.id,
             Self::MessageComponent(component) => component.id,
+            Self::ModalSubmit(modal) => modal.id,
+        }
+    }
+
+    /// Type of interaction.
+    pub const fn kind(&self) -> InteractionType {
+        match self {
+            Interaction::Ping(_) => InteractionType::Ping,
+            Interaction::ApplicationCommand(_) => InteractionType::ApplicationCommand,
+            Interaction::ApplicationCommandAutocomplete(_) => {
+                InteractionType::ApplicationCommandAutocomplete
+            }
+            Interaction::MessageComponent(_) => InteractionType::MessageComponent,
+            Interaction::ModalSubmit(_) => InteractionType::ModalSubmit,
+        }
+    }
+
+    /// Token of the interaction.
+    pub fn token(&self) -> &str {
+        match self {
+            Self::Ping(ping) => &ping.token,
+            Self::ApplicationCommand(command) => &command.token,
+            Self::ApplicationCommandAutocomplete(command) => &command.token,
+            Self::MessageComponent(component) => &component.token,
+            Self::ModalSubmit(modal) => &modal.token,
         }
     }
 }
@@ -74,6 +116,20 @@ impl<'de> Deserialize<'de> for Interaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_map(InteractionVisitor)
     }
+}
+
+const fn author_id(user: Option<&User>, member: Option<&PartialMember>) -> Option<Id<UserMarker>> {
+    if let Some(member) = member {
+        if let Some(user) = &member.user {
+            return Some(user.id);
+        }
+    }
+
+    if let Some(user) = user {
+        return Some(user.id);
+    }
+
+    None
 }
 
 #[derive(Debug, Deserialize)]
@@ -117,38 +173,25 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut locale: Option<String> = None;
         let mut user: Option<Option<User>> = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing interaction");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over interaction");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
+                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -248,7 +291,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let token = token.ok_or_else(|| DeError::missing_field("token"))?;
         let kind = kind.ok_or_else(|| DeError::missing_field("kind"))?;
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             %application_id,
             %id,
@@ -259,7 +301,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
         Ok(match kind {
             InteractionType::Ping => {
-                #[cfg(feature = "tracing")]
                 tracing::trace!("handling ping");
 
                 Self::Value::Ping(Box::new(Ping {
@@ -269,8 +310,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     token,
                 }))
             }
-            InteractionType::ApplicationCommandAutocomplete
-            | InteractionType::ApplicationCommand => {
+            InteractionType::ApplicationCommand => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
@@ -283,7 +323,6 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let member = member.unwrap_or_default();
                 let user = user.unwrap_or_default();
 
-                #[cfg(feature = "tracing")]
                 tracing::trace!(%channel_id, "handling application command");
 
                 let command = Box::new(ApplicationCommand {
@@ -300,13 +339,38 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     user,
                 });
 
-                match kind {
-                    InteractionType::ApplicationCommand => Self::Value::ApplicationCommand(command),
-                    InteractionType::ApplicationCommandAutocomplete => {
-                        Self::Value::ApplicationCommandAutocomplete(command)
-                    }
-                    _ => unreachable!(),
-                }
+                Self::Value::ApplicationCommand(command)
+            }
+            InteractionType::ApplicationCommandAutocomplete => {
+                let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
+                let data = data
+                    .ok_or_else(|| DeError::missing_field("data"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                let guild_id = guild_id.unwrap_or_default();
+                let guild_locale = guild_locale.unwrap_or_default();
+                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
+                let member = member.unwrap_or_default();
+                let user = user.unwrap_or_default();
+
+                tracing::trace!(%channel_id, "handling application command autocomplete");
+
+                let command = Box::new(ApplicationCommandAutocomplete {
+                    application_id,
+                    channel_id,
+                    data,
+                    guild_id,
+                    guild_locale,
+                    id,
+                    kind,
+                    locale,
+                    member,
+                    token,
+                    user,
+                });
+
+                Self::Value::ApplicationCommandAutocomplete(command)
             }
             InteractionType::MessageComponent => {
                 let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
@@ -339,15 +403,43 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                     user,
                 }))
             }
+            InteractionType::ModalSubmit => {
+                let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
+                let data = data
+                    .ok_or_else(|| DeError::missing_field("data"))?
+                    .deserialize_into()
+                    .map_err(|_| DeError::custom("expected ModalInteractionData struct"))?;
+
+                let guild_id = guild_id.unwrap_or_default();
+                let guild_locale = guild_locale.unwrap_or_default();
+                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
+                let member = member.unwrap_or_default();
+                let user = user.unwrap_or_default();
+
+                Self::Value::ModalSubmit(Box::new(ModalSubmitInteraction {
+                    application_id,
+                    channel_id,
+                    data,
+                    guild_id,
+                    guild_locale,
+                    id,
+                    kind,
+                    locale,
+                    member,
+                    message,
+                    token,
+                    user,
+                }))
+            }
         })
     }
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use crate::{
         application::{
-            command::CommandOptionType,
+            command::{CommandOptionType, CommandType},
             interaction::{
                 application_command::{
                     ApplicationCommand, CommandData, CommandDataOption,
@@ -356,14 +448,34 @@ mod test {
                 Interaction, InteractionType,
             },
         },
-        datetime::{Timestamp, TimestampParseError},
         guild::{PartialMember, Permissions},
-        id::Id,
+        id::{marker::UserMarker, Id},
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::{collections::HashMap, str::FromStr};
+
+    pub(super) fn user(id: Id<UserMarker>) -> User {
+        User {
+            accent_color: None,
+            avatar: None,
+            banner: None,
+            bot: false,
+            discriminator: 4444,
+            email: None,
+            flags: None,
+            id,
+            locale: None,
+            mfa_enabled: None,
+            name: "twilight".to_owned(),
+            premium_type: None,
+            public_flags: None,
+            system: None,
+            verified: None,
+        }
+    }
 
     #[test]
     #[allow(clippy::too_many_lines)]
@@ -374,14 +486,17 @@ mod test {
             application_id: Id::new(100),
             channel_id: Id::new(200),
             data: CommandData {
+                guild_id: None,
                 id: Id::new(300),
                 name: "command name".into(),
+                kind: CommandType::ChatInput,
                 options: Vec::from([CommandDataOption {
                     focused: false,
                     name: "member".into(),
                     value: CommandOptionValue::User(Id::new(600)),
                 }]),
                 resolved: Some(CommandInteractionDataResolved {
+                    attachments: HashMap::new(),
                     channels: HashMap::new(),
                     members: IntoIterator::into_iter([(
                         Id::new(600),
@@ -421,6 +536,7 @@ mod test {
                     )])
                     .collect(),
                 }),
+                target_id: None,
             },
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
@@ -475,13 +591,15 @@ mod test {
                 Token::Str("data"),
                 Token::Struct {
                     name: "CommandData",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("300"),
                 Token::Str("name"),
                 Token::Str("command name"),
+                Token::Str("type"),
+                Token::U8(1),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -566,7 +684,7 @@ mod test {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("500"),
                 Token::Str("type"),
-                Token::U8(2),
+                Token::U8(InteractionType::ApplicationCommand as u8),
                 Token::Str("locale"),
                 Token::Str("en-GB"),
                 Token::Str("member"),

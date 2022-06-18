@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{self, AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -13,10 +13,12 @@ use twilight_model::{
         Id,
     },
 };
+use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 #[derive(Serialize)]
 struct CreateEmojiFields<'a> {
-    image: &'a str,
+    #[serde(serialize_with = "request::serialize_image")]
+    image: &'a [u8],
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<&'a [Id<RoleMarker>]>,
@@ -42,7 +44,7 @@ impl<'a> CreateEmoji<'a> {
         http: &'a Client,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-        image: &'a str,
+        image: &'a [u8],
     ) -> Self {
         Self {
             fields: CreateEmojiFields {
@@ -81,8 +83,10 @@ impl<'a> CreateEmoji<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateEmoji<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

@@ -247,6 +247,10 @@ pub struct RotatingNanoIpDetails {
 ///
 /// The response will include a body which can be deserialized into a
 /// [`LoadedTracks`].
+///
+/// # Errors
+///
+/// See the documentation for [`http::Error`].
 pub fn load_track(
     address: SocketAddr,
     identifier: impl AsRef<str>,
@@ -254,7 +258,7 @@ pub fn load_track(
 ) -> Result<Request<&'static [u8]>, HttpError> {
     let identifier =
         percent_encoding::percent_encode(identifier.as_ref().as_bytes(), NON_ALPHANUMERIC);
-    let url = format!("http://{}/loadtracks?identifier={}", address, identifier);
+    let url = format!("http://{address}/loadtracks?identifier={identifier}");
 
     let mut req = Request::get(url);
 
@@ -268,11 +272,15 @@ pub fn load_track(
 ///
 /// The response will include a body which can be deserialized into a
 /// [`RoutePlanner`].
+///
+/// # Errors
+///
+/// See the documentation for [`http::Error`].
 pub fn get_route_planner(
     address: SocketAddr,
     authorization: impl AsRef<str>,
 ) -> Result<Request<&'static [u8]>, HttpError> {
-    let mut req = Request::get(format!("{}/routeplanner/status", address));
+    let mut req = Request::get(format!("{address}/routeplanner/status"));
 
     let auth_value = HeaderValue::from_str(authorization.as_ref())?;
     req = req.header(AUTHORIZATION, auth_value);
@@ -283,6 +291,14 @@ pub fn get_route_planner(
 /// Unmark an IP address as being failed, meaning that it can be used again.
 ///
 /// The response will not include a body on success.
+///
+/// # Errors
+///
+/// See the documentation for [`http::Error`].
+///
+/// # Panics
+///
+/// Panics if serde serialization fails.
 pub fn unmark_failed_address(
     node_address: impl Into<SocketAddr>,
     authorization: impl AsRef<str>,

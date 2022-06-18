@@ -28,13 +28,15 @@ pub enum Event {
     /// A user's ban from a guild was removed.
     BanRemove(BanRemove),
     /// A channel was created.
-    ChannelCreate(ChannelCreate),
+    ChannelCreate(Box<ChannelCreate>),
     /// A channel was deleted.
-    ChannelDelete(ChannelDelete),
+    ChannelDelete(Box<ChannelDelete>),
     /// A channel's pins were updated.
     ChannelPinsUpdate(ChannelPinsUpdate),
     /// A channel was updated.
-    ChannelUpdate(ChannelUpdate),
+    ChannelUpdate(Box<ChannelUpdate>),
+    /// A command's permissions were updated.
+    CommandPermissionsUpdate(CommandPermissionsUpdate),
     /// A heartbeat was sent to or received from the gateway.
     GatewayHeartbeat(u64),
     /// A heartbeat acknowledgement was received from the gateway.
@@ -47,16 +49,28 @@ pub enum Event {
     GatewayInvalidateSession(bool),
     /// The gateway is indicating to perform a reconnect.
     GatewayReconnect,
-    /// Undocumented event, should be ignored
+    /// Undocumented event, should be ignored.
     GiftCodeUpdate,
     /// A guild was created.
     GuildCreate(Box<GuildCreate>),
     /// A guild was deleted or the current user was removed from a guild.
-    GuildDelete(Box<GuildDelete>),
+    GuildDelete(GuildDelete),
     /// A guild's emojis were updated.
     GuildEmojisUpdate(GuildEmojisUpdate),
     /// A guild's integrations were updated.
     GuildIntegrationsUpdate(GuildIntegrationsUpdate),
+    /// A guild scheduled event was created.
+    GuildScheduledEventCreate(Box<GuildScheduledEventCreate>),
+    /// A guild scheduled event was deleted.
+    GuildScheduledEventDelete(Box<GuildScheduledEventDelete>),
+    /// A guild scheduled event was updated.
+    GuildScheduledEventUpdate(Box<GuildScheduledEventUpdate>),
+    /// A user was added to a guild scheduled event.
+    GuildScheduledEventUserAdd(GuildScheduledEventUserAdd),
+    /// A user was removed from a guild scheduled event.
+    GuildScheduledEventUserRemove(GuildScheduledEventUserRemove),
+    /// A guild's stickers were updated.
+    GuildStickersUpdate(GuildStickersUpdate),
     /// A guild was updated.
     GuildUpdate(Box<GuildUpdate>),
     /// A guild integration was created.
@@ -66,7 +80,7 @@ pub enum Event {
     /// A guild integration was deleted.
     IntegrationUpdate(Box<IntegrationUpdate>),
     /// An interaction was invoked by a user.
-    InteractionCreate(Box<InteractionCreate>),
+    InteractionCreate(InteractionCreate),
     /// A invite was made.
     InviteCreate(Box<InviteCreate>),
     /// A invite was deleted.
@@ -137,17 +151,17 @@ pub enum Event {
     StageInstanceUpdate(StageInstanceUpdate),
     /// A thread has been created, relevant to the current user,
     /// or the current user has been added to a thread.
-    ThreadCreate(ThreadCreate),
+    ThreadCreate(Box<ThreadCreate>),
     /// A thread, relevant to the current user, has been deleted.
     ThreadDelete(ThreadDelete),
     /// The current user has gained access to a thread.
     ThreadListSync(ThreadListSync),
     /// The thread member object for the current user has been updated.
-    ThreadMemberUpdate(ThreadMemberUpdate),
+    ThreadMemberUpdate(Box<ThreadMemberUpdate>),
     /// A user has been added to or removed from a thread.
     ThreadMembersUpdate(ThreadMembersUpdate),
     /// A thread has been updated.
-    ThreadUpdate(ThreadUpdate),
+    ThreadUpdate(Box<ThreadUpdate>),
     /// A user started typing in a channel.
     TypingStart(Box<TypingStart>),
     /// A guild is now unavailable.
@@ -171,6 +185,7 @@ impl Event {
             Self::ChannelDelete(_) => EventType::ChannelDelete,
             Self::ChannelPinsUpdate(_) => EventType::ChannelPinsUpdate,
             Self::ChannelUpdate(_) => EventType::ChannelUpdate,
+            Self::CommandPermissionsUpdate(_) => EventType::CommandPermissionsUpdate,
             Self::GatewayHeartbeat(_) => EventType::GatewayHeartbeat,
             Self::GatewayHeartbeatAck => EventType::GatewayHeartbeatAck,
             Self::GatewayHello(_) => EventType::GatewayHello,
@@ -181,6 +196,12 @@ impl Event {
             Self::GuildDelete(_) => EventType::GuildDelete,
             Self::GuildEmojisUpdate(_) => EventType::GuildEmojisUpdate,
             Self::GuildIntegrationsUpdate(_) => EventType::GuildIntegrationsUpdate,
+            Self::GuildScheduledEventCreate(_) => EventType::GuildScheduledEventCreate,
+            Self::GuildScheduledEventDelete(_) => EventType::GuildScheduledEventDelete,
+            Self::GuildScheduledEventUpdate(_) => EventType::GuildScheduledEventUpdate,
+            Self::GuildScheduledEventUserAdd(_) => EventType::GuildScheduledEventUserAdd,
+            Self::GuildScheduledEventUserRemove(_) => EventType::GuildScheduledEventUserRemove,
+            Self::GuildStickersUpdate(_) => EventType::GuildStickersUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
             Self::IntegrationCreate(_) => EventType::IntegrationCreate,
             Self::IntegrationDelete(_) => EventType::IntegrationDelete,
@@ -233,20 +254,28 @@ impl Event {
     }
 }
 
-impl From<Box<DispatchEvent>> for Event {
-    fn from(event: Box<DispatchEvent>) -> Self {
-        match *event {
+impl From<DispatchEvent> for Event {
+    fn from(event: DispatchEvent) -> Self {
+        match event {
             DispatchEvent::BanAdd(v) => Self::BanAdd(v),
             DispatchEvent::BanRemove(v) => Self::BanRemove(v),
             DispatchEvent::ChannelCreate(v) => Self::ChannelCreate(v),
             DispatchEvent::ChannelDelete(v) => Self::ChannelDelete(v),
             DispatchEvent::ChannelPinsUpdate(v) => Self::ChannelPinsUpdate(v),
             DispatchEvent::ChannelUpdate(v) => Self::ChannelUpdate(v),
+            DispatchEvent::CommandPermissionsUpdate(v) => Self::CommandPermissionsUpdate(v),
             DispatchEvent::GiftCodeUpdate => Self::GiftCodeUpdate,
             DispatchEvent::GuildCreate(v) => Self::GuildCreate(v),
             DispatchEvent::GuildDelete(v) => Self::GuildDelete(v),
             DispatchEvent::GuildEmojisUpdate(v) => Self::GuildEmojisUpdate(v),
             DispatchEvent::GuildIntegrationsUpdate(v) => Self::GuildIntegrationsUpdate(v),
+            DispatchEvent::GuildScheduledEventCreate(v) => Self::GuildScheduledEventCreate(v),
+            DispatchEvent::GuildScheduledEventDelete(v) => Self::GuildScheduledEventDelete(v),
+            DispatchEvent::GuildScheduledEventUpdate(v) => Self::GuildScheduledEventUpdate(v),
+            DispatchEvent::GuildScheduledEventUserAdd(v) => Self::GuildScheduledEventUserAdd(v),
+            DispatchEvent::GuildScheduledEventUserRemove(v) => {
+                Self::GuildScheduledEventUserRemove(v)
+            }
             DispatchEvent::IntegrationCreate(v) => Self::IntegrationCreate(v),
             DispatchEvent::IntegrationDelete(v) => Self::IntegrationDelete(v),
             DispatchEvent::IntegrationUpdate(v) => Self::IntegrationUpdate(v),
@@ -295,7 +324,7 @@ impl From<Box<DispatchEvent>> for Event {
 impl From<GatewayEvent> for Event {
     fn from(event: GatewayEvent) -> Self {
         match event {
-            GatewayEvent::Dispatch(_, e) => Self::from(e),
+            GatewayEvent::Dispatch(_, e) => Self::from(*e),
             GatewayEvent::Heartbeat(interval) => Self::GatewayHeartbeat(interval),
             GatewayEvent::HeartbeatAck => Self::GatewayHeartbeatAck,
             GatewayEvent::Hello(interval) => Self::GatewayHello(interval),
@@ -349,3 +378,96 @@ impl Display for EventConversionError {
 }
 
 impl Error for EventConversionError {}
+
+#[cfg(test)]
+mod tests {
+    //! `EVENT_THRESHOLD` is equivalent to 192 bytes. This was decided based on
+    //! the size of `Event` at the time of writing. The assertions here are to
+    //! ensure that in the case the events themselves grow or shrink past the
+    //! threshold, they are properly boxed or unboxed respectively.
+    //!
+    //! If a field has been added to an event in the "unboxed" section and its
+    //! assertion now fails, then you will need to wrap the event in a box in
+    //! the `Event` type and move the assertion to the "boxed" section.
+    //!
+    //! Likewise, if a field has been removed from an event in the "boxed"
+    //! section and the assertion now fails, you will need to remove the box
+    //! wrapping the event in the `Event` type and move the assertion to the
+    //! "unboxed" section.
+
+    use super::{super::payload::incoming::*, shard::*, Event};
+    use static_assertions::const_assert;
+    use std::mem;
+
+    // `dead_code`: `const_assert` operates at the compiler level, and the lint
+    // requires a variable to be used in a function, so this is a false
+    // positive.
+    #[allow(dead_code)]
+    const EVENT_THRESHOLD: usize = 184;
+
+    const_assert!(mem::size_of::<Event>() == EVENT_THRESHOLD);
+
+    // Boxed events.
+    const_assert!(mem::size_of::<ChannelCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ChannelDelete>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ChannelUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventDelete>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<IntegrationCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<IntegrationUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<InviteCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MemberAdd>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MemberUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MessageCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MessageUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<PresenceUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ReactionAdd>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ReactionRemove>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Ready>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<TypingStart>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ThreadCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ThreadMemberUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ThreadUpdate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<VoiceStateUpdate>() > EVENT_THRESHOLD);
+
+    // Unboxed.
+    const_assert!(mem::size_of::<BanAdd>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<BanRemove>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ChannelPinsUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<CommandPermissionsUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Connected>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Connecting>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Disconnected>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildEmojisUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildIntegrationsUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventUserAdd>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<GuildScheduledEventUserRemove>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Identifying>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<IntegrationDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<InteractionCreate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<InviteDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MemberChunk>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MemberRemove>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MessageDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<MessageDeleteBulk>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Payload>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ReactionRemoveAll>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Reconnecting>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<Resuming>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<RoleCreate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<RoleDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<RoleUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<StageInstanceCreate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<StageInstanceDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<StageInstanceUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ThreadDelete>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ThreadListSync>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<ThreadMembersUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<UnavailableGuild>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<UserUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<VoiceServerUpdate>() <= EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<WebhooksUpdate>() <= EVENT_THRESHOLD);
+}

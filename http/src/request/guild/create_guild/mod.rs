@@ -1,3 +1,6 @@
+// clippy: due to the image serializer, which has a signature required by serde
+#![allow(clippy::ref_option_ref)]
+
 use crate::{
     client::Client,
     error::Error as HttpError,
@@ -11,11 +14,12 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, ChannelType},
+    channel::ChannelType,
     guild::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions,
         SystemChannelFlags, VerificationLevel,
     },
+    http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{ChannelMarker, RoleMarker},
         Id,
@@ -97,7 +101,7 @@ pub enum CreateGuildErrorType {
 }
 
 #[derive(Serialize)]
-struct CreateGuildFields {
+struct CreateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -108,8 +112,11 @@ struct CreateGuildFields {
     default_message_notifications: Option<DefaultMessageNotificationLevel>,
     #[serde(skip_serializing_if = "Option::is_none")]
     explicit_content_filter: Option<ExplicitContentFilter>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    icon: Option<String>,
+    #[serde(
+        serialize_with = "crate::request::serialize_optional_image",
+        skip_serializing_if = "Option::is_none"
+    )]
+    icon: Option<&'a [u8]>,
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<Vec<RoleFields>>,
@@ -191,7 +198,7 @@ pub struct TextFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rate_limit_per_user: Option<u64>,
+    pub rate_limit_per_user: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub topic: Option<String>,
 }
@@ -202,7 +209,7 @@ pub struct TextFields {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
+    pub bitrate: Option<u32>,
     pub id: Id<ChannelMarker>,
     #[serde(rename = "type")]
     pub kind: ChannelType,
@@ -212,7 +219,7 @@ pub struct VoiceFields {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_limit: Option<u64>,
+    pub user_limit: Option<u16>,
 }
 
 /// Create a new request to create a guild.
@@ -221,7 +228,7 @@ pub struct VoiceFields {
 /// This endpoint can only be used by bots in less than 10 guilds.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuild<'a> {
-    fields: CreateGuildFields,
+    fields: CreateGuildFields<'a>,
     http: &'a Client,
 }
 
@@ -370,7 +377,7 @@ impl<'a> CreateGuild<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub fn icon(mut self, icon: String) -> Self {
+    pub fn icon(mut self, icon: &'a [u8]) -> Self {
         self.fields.icon.replace(icon);
 
         self

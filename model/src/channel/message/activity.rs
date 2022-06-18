@@ -15,7 +15,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_message_activity() {
+    fn message_activity() {
         let value = MessageActivity {
             kind: MessageActivityType::Join,
             party_id: None,
@@ -36,7 +36,7 @@ mod tests {
     }
 
     #[test]
-    fn test_message_activity_complete() {
+    fn message_activity_complete() {
         let value = MessageActivity {
             kind: MessageActivityType::Join,
             party_id: Some("test".to_owned()),

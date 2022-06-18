@@ -3,9 +3,7 @@
 use super::timestamp::Timestamp;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use twilight_model::{
-    channel::{
-        CategoryChannel, Channel, Group, GuildChannel, PrivateChannel, TextChannel, VoiceChannel,
-    },
+    channel::Channel,
     guild::{Emoji, Member, Role},
     id::{
         marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
@@ -120,17 +118,10 @@ impl Mention<Id<ChannelMarker>> for Id<ChannelMarker> {
     }
 }
 
-/// Mention a guild category channel. This will format as `<#ID>`.
-impl Mention<Id<ChannelMarker>> for CategoryChannel {
-    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
-        MentionFormat(self.id)
-    }
-}
-
 /// Mention a channel. This will format as `<#ID>`.
 impl Mention<Id<ChannelMarker>> for Channel {
     fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
-        MentionFormat(self.id())
+        MentionFormat(self.id)
     }
 }
 
@@ -155,31 +146,10 @@ impl Mention<Id<EmojiMarker>> for Emoji {
     }
 }
 
-/// Mention a group. This will format as `<#ID>`.
-impl Mention<Id<ChannelMarker>> for Group {
-    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
-        MentionFormat(self.id)
-    }
-}
-
-/// Mention a guild channel. This will format as `<#ID>`.
-impl Mention<Id<ChannelMarker>> for GuildChannel {
-    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
-        MentionFormat(self.id())
-    }
-}
-
 /// Mention a member's user. This will format as `<@ID>`.
 impl Mention<Id<UserMarker>> for Member {
     fn mention(&self) -> MentionFormat<Id<UserMarker>> {
         MentionFormat(self.user.id)
-    }
-}
-
-/// Mention a private channel. This will format as `<#ID>`.
-impl Mention<Id<ChannelMarker>> for PrivateChannel {
-    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
-        MentionFormat(self.id)
     }
 }
 
@@ -193,13 +163,6 @@ impl Mention<Id<RoleMarker>> for Id<RoleMarker> {
 /// Mention a role ID. This will format as `<@&ID>`.
 impl Mention<Id<RoleMarker>> for Role {
     fn mention(&self) -> MentionFormat<Id<RoleMarker>> {
-        MentionFormat(self.id)
-    }
-}
-
-/// Mention a guild text channel. This will format as `<#ID>`.
-impl Mention<Id<ChannelMarker>> for TextChannel {
-    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
         MentionFormat(self.id)
     }
 }
@@ -226,13 +189,6 @@ impl Mention<Id<UserMarker>> for User {
     }
 }
 
-/// Mention a guild voice channel. This will format as `<#ID>`.
-impl Mention<Id<ChannelMarker>> for VoiceChannel {
-    fn mention(&self) -> MentionFormat<Id<ChannelMarker>> {
-        MentionFormat(self.id)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::timestamp::{Timestamp, TimestampStyle};
@@ -241,10 +197,7 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::{Debug, Display};
     use twilight_model::{
-        channel::{
-            CategoryChannel, Channel, Group, GuildChannel, PrivateChannel, TextChannel,
-            VoiceChannel,
-        },
+        channel::Channel,
         guild::{Emoji, Member, Role},
         id::{
             marker::{ChannelMarker, EmojiMarker, RoleMarker, UserMarker},
@@ -260,8 +213,6 @@ mod tests {
     assert_impl_all!(MentionFormat<Id<UserMarker>>: Clone, Copy, Debug, Display, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Id<ChannelMarker>: Mention<Id<ChannelMarker>>);
     assert_impl_all!(&'static Id<ChannelMarker>: Mention<Id<ChannelMarker>>);
-    assert_impl_all!(CategoryChannel: Mention<Id<ChannelMarker>>);
-    assert_impl_all!(&'static CategoryChannel: Mention<Id<ChannelMarker>>);
     assert_impl_all!(Channel: Mention<Id<ChannelMarker>>);
     assert_impl_all!(&'static Channel: Mention<Id<ChannelMarker>>);
     assert_impl_all!(CurrentUser: Mention<Id<UserMarker>>);
@@ -270,29 +221,19 @@ mod tests {
     assert_impl_all!(&'static Id<EmojiMarker>: Mention<Id<EmojiMarker>>);
     assert_impl_all!(Emoji: Mention<Id<EmojiMarker>>);
     assert_impl_all!(&'static Emoji: Mention<Id<EmojiMarker>>);
-    assert_impl_all!(Group: Mention<Id<ChannelMarker>>);
-    assert_impl_all!(&'static Group: Mention<Id<ChannelMarker>>);
-    assert_impl_all!(GuildChannel: Mention<Id<ChannelMarker>>);
-    assert_impl_all!(&'static GuildChannel: Mention<Id<ChannelMarker>>);
     assert_impl_all!(Member: Mention<Id<UserMarker>>);
     assert_impl_all!(&'static Member: Mention<Id<UserMarker>>);
-    assert_impl_all!(PrivateChannel: Mention<Id<ChannelMarker>>);
-    assert_impl_all!(&'static PrivateChannel: Mention<Id<ChannelMarker>>);
     assert_impl_all!(Id<RoleMarker>: Mention<Id<RoleMarker>>);
     assert_impl_all!(&'static Id<RoleMarker>: Mention<Id<RoleMarker>>);
     assert_impl_all!(Role: Mention<Id<RoleMarker>>);
     assert_impl_all!(&'static Role: Mention<Id<RoleMarker>>);
-    assert_impl_all!(TextChannel: Mention<Id<ChannelMarker>>);
-    assert_impl_all!(&'static TextChannel: Mention<Id<ChannelMarker>>);
     assert_impl_all!(Id<UserMarker>: Mention<Id<UserMarker>>);
     assert_impl_all!(&'static Id<UserMarker>: Mention<Id<UserMarker>>);
     assert_impl_all!(User: Mention<Id<UserMarker>>);
     assert_impl_all!(&'static User: Mention<Id<UserMarker>>);
-    assert_impl_all!(VoiceChannel: Mention<Id<ChannelMarker>>);
-    assert_impl_all!(&'static VoiceChannel: Mention<Id<ChannelMarker>>);
 
     #[test]
-    fn test_mention_format_channel_id() {
+    fn mention_format_channel_id() {
         assert_eq!(
             "<#123>",
             Id::<ChannelMarker>::new(123).mention().to_string()
@@ -300,7 +241,7 @@ mod tests {
     }
 
     #[test]
-    fn test_mention_format_emoji_id() {
+    fn mention_format_emoji_id() {
         assert_eq!(
             "<:emoji:123>",
             Id::<EmojiMarker>::new(123).mention().to_string()
@@ -308,13 +249,13 @@ mod tests {
     }
 
     #[test]
-    fn test_mention_format_role_id() {
+    fn mention_format_role_id() {
         assert_eq!("<@&123>", Id::<RoleMarker>::new(123).mention().to_string());
     }
 
     /// Test that a timestamp with a style displays correctly.
     #[test]
-    fn test_mention_format_timestamp_styled() {
+    fn mention_format_timestamp_styled() {
         let timestamp = Timestamp::new(1_624_047_064, Some(TimestampStyle::RelativeTime));
 
         assert_eq!("<t:1624047064:R>", timestamp.mention().to_string());
@@ -322,14 +263,14 @@ mod tests {
 
     /// Test that a timestamp without a style displays correctly.
     #[test]
-    fn test_mention_format_timestamp_unstyled() {
+    fn mention_format_timestamp_unstyled() {
         let timestamp = Timestamp::new(1_624_047_064, None);
 
         assert_eq!("<t:1624047064>", timestamp.mention().to_string());
     }
 
     #[test]
-    fn test_mention_format_user_id() {
+    fn mention_format_user_id() {
         assert_eq!("<@123>", Id::<UserMarker>::new(123).mention().to_string());
     }
 }

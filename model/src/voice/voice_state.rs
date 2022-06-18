@@ -1,10 +1,10 @@
 use crate::{
-    datetime::Timestamp,
     guild::member::{Member, OptionalMemberDeserializer},
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
+    util::Timestamp,
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -88,38 +88,25 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mut user_id = None;
         let mut request_to_speak_timestamp = None;
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing voice state");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
 
         loop {
-            #[cfg(feature = "tracing")]
             let span_child = tracing::trace_span!("iterating over element");
-            #[cfg(feature = "tracing")]
             let _span_child_enter = span_child.enter();
 
             let key = match map.next_key() {
                 Ok(Some(key)) => {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!(?key, "found key");
 
                     key
                 }
                 Ok(None) => break,
-                #[cfg(feature = "tracing")]
                 Err(why) => {
                     // Encountered when we run into an unknown key.
                     map.next_value::<IgnoredAny>()?;
 
-                    tracing::trace!("ran into an unknown key: {:?}", why);
-
-                    continue;
-                }
-                #[cfg(not(feature = "tracing"))]
-                Err(_) => {
-                    // Encountered when we run into an unknown key.
-                    map.next_value::<IgnoredAny>()?;
+                    tracing::trace!("ran into an unknown key: {why:?}");
 
                     continue;
                 }
@@ -240,7 +227,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
 
         let self_stream = self_stream.unwrap_or_default();
 
-        #[cfg(feature = "tracing")]
         tracing::trace!(
             %deaf,
             %mute,
@@ -254,7 +240,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         );
 
         if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, ?member, "setting member guild id");
 
             member.guild_id = guild_id;
@@ -305,15 +290,15 @@ impl<'de> Deserialize<'de> for VoiceState {
 mod tests {
     use super::{Member, VoiceState};
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[test]
-    fn test_voice_state() {
+    fn voice_state() {
         let value = VoiceState {
             channel_id: Some(Id::new(1)),
             deaf: false,
@@ -374,7 +359,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_voice_state_complete() -> Result<(), TimestampParseError> {
+    fn voice_state_complete() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
         let request_to_speak_timestamp = Timestamp::from_str("2021-04-21T22:16:50.000000+00:00")?;

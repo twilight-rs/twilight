@@ -47,14 +47,14 @@ impl Mention {
 mod tests {
     use super::{Mention, PartialMember, UserFlags};
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[test]
-    fn test_mention_without_member() {
+    fn mention_without_member() {
         let value = Mention {
             avatar: None,
             bot: false,
@@ -93,7 +93,7 @@ mod tests {
     }
 
     #[test]
-    fn test_mention_with_member() -> Result<(), TimestampParseError> {
+    fn mention_with_member() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value = Mention {

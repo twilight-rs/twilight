@@ -6,8 +6,10 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
+use std::collections::HashMap;
 use twilight_model::{
     application::command::{Command, CommandType},
+    guild::Permissions,
     id::{
         marker::{ApplicationMarker, GuildMarker},
         Id,
@@ -25,10 +27,11 @@ use twilight_validate::command::{name as validate_name, CommandValidationError};
 #[must_use = "requests must be configured and executed"]
 pub struct CreateGuildMessageCommand<'a> {
     application_id: Id<ApplicationMarker>,
-    default_permission: Option<bool>,
+    default_member_permissions: Option<Permissions>,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
+    name_localizations: Option<&'a HashMap<String, String>>,
 }
 
 impl<'a> CreateGuildMessageCommand<'a> {
@@ -42,19 +45,37 @@ impl<'a> CreateGuildMessageCommand<'a> {
 
         Ok(Self {
             application_id,
-            default_permission: None,
+            default_member_permissions: None,
             guild_id,
             http,
             name,
+            name_localizations: None,
         })
     }
 
-    /// Whether the command is enabled by default when the app is added to a
-    /// guild.
-    pub const fn default_permission(mut self, default: bool) -> Self {
-        self.default_permission = Some(default);
+    /// Default permissions required for a member to run the command.
+    ///
+    /// Defaults to [`None`].
+    pub const fn default_member_permissions(mut self, default: Permissions) -> Self {
+        self.default_member_permissions = Some(default);
 
         self
+    }
+
+    /// Set the localization dictionary for the command name.
+    ///
+    /// Defaults to [`None`].
+    pub fn name_localizations(
+        mut self,
+        localizations: &'a HashMap<String, String>,
+    ) -> Result<Self, CommandValidationError> {
+        for name in localizations.values() {
+            validate_name(name)?;
+        }
+
+        self.name_localizations = Some(localizations);
+
+        Ok(self)
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -78,10 +99,13 @@ impl TryIntoRequest for CreateGuildMessageCommand<'_> {
         })
         .json(&CommandBorrowed {
             application_id: Some(self.application_id),
-            default_permission: self.default_permission,
+            default_member_permissions: self.default_member_permissions,
+            dm_permission: None,
             description: None,
+            description_localizations: None,
             kind: CommandType::Message,
             name: self.name,
+            name_localizations: self.name_localizations,
             options: None,
         })
         .map(RequestBuilder::build)

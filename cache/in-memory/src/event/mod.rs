@@ -30,8 +30,8 @@ impl InMemoryCache {
     }
 
     pub(crate) fn cache_user(&self, user: Cow<'_, User>, guild_id: Option<Id<GuildMarker>>) {
-        match self.users.get_mut(&user.id) {
-            Some(u) if u.value() == user.as_ref() => {
+        if let Some(cached_user) = self.users.get_mut(&user.id) {
+            if cached_user.value() == user.as_ref() {
                 if let Some(guild_id) = guild_id {
                     self.user_guilds
                         .entry(user.id)
@@ -41,8 +41,8 @@ impl InMemoryCache {
 
                 return;
             }
-            Some(_) | None => {}
         }
+
         let user = user.into_owned();
         let user_id = user.id;
 
@@ -97,14 +97,13 @@ impl UpdateCache for UserUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
+    use crate::{test, InMemoryCache};
 
     /// Test retrieval of the current user, notably that it doesn't simply
     /// panic or do anything funny. This is the only synchronous mutex that we
     /// might have trouble with across await points if we're not careful.
     #[test]
-    fn test_current_user_retrieval() {
+    fn current_user_retrieval() {
         let cache = InMemoryCache::new();
         assert!(cache.current_user().is_none());
         cache.cache_current_user(test::current_user(1));

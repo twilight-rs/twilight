@@ -1,180 +1,171 @@
 use rand::{distributions::Alphanumeric, Rng};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
+#[must_use = "has no effect if not built into a Form"]
 pub struct Form {
     boundary: [u8; 15],
     buffer: Vec<u8>,
 }
 
 impl Form {
+    const APPLICATION_JSON: &'static [u8; 16] = b"application/json";
+
+    const BOUNDARY_TERMINATOR: &'static [u8; 2] = b"--";
+    const CONTENT_DISPOSITION_1: &'static [u8; 38] = b"Content-Disposition: form-data; name=\"";
+    const CONTENT_DISPOSITION_2: &'static [u8; 13] = b"\"; filename=\"";
+    const CONTENT_DISPOSITION_3: &'static [u8; 1] = b"\"";
+    const CONTENT_TYPE: &'static [u8; 14] = b"Content-Type: ";
+    const NEWLINE: &'static [u8; 2] = b"\r\n";
+
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Write the data needed to attach a multipart file to the buffer.
-    pub fn attach(&mut self, id: u64, filename: &[u8], data: &[u8]) -> &mut Self {
-        self.start();
-        self.name_id(id);
-        self.filename(filename);
-        self.data(data);
-
-        self
-    }
-
+    /// Consume the form, returning the buffer's contents.
     pub fn build(mut self) -> Vec<u8> {
-        self.buffer.extend(b"\r\n");
-        self.boundary();
-        self.buffer.extend(b"--");
+        self.buffer.extend(Self::BOUNDARY_TERMINATOR);
 
         self.buffer
     }
 
+    /// Get the form's appropriate content type for requests.
     pub fn content_type(&self) -> Vec<u8> {
         const NAME: &str = "multipart/form-data; boundary=";
 
-        let mut content_type = Vec::with_capacity(NAME.len() + 15);
+        let mut content_type = Vec::with_capacity(NAME.len() + self.boundary.len());
         content_type.extend(NAME.as_bytes());
-        content_type.extend(&self.boundary);
+        content_type.extend(self.boundary);
 
         content_type
     }
 
-    #[deprecated(since = "0.7.2", note = "use attach instead")]
-    pub fn file(&mut self, name: &[u8], filename: &[u8], data: &[u8]) -> &mut Self {
-        self.start();
-        self.name(name);
-        self.filename(filename);
-        self.data(data);
-
-        self
-    }
-
-    pub fn part(&mut self, name: &[u8], data: &[u8]) -> &mut Self {
-        self.start();
-        self.name(name);
-        self.data(data);
-
-        self
-    }
-
-    pub fn payload_json(&mut self, json: &[u8]) -> &mut Self {
-        self.start();
-        self.name(b"payload_json");
-        self.buffer.extend(b"\r\nContent-Type: application/json");
-        self.data(json);
-
-        self
-    }
-
-    fn start(&mut self) {
-        self.buffer.extend(b"\r\n");
-        self.boundary();
-        self.buffer.extend(b"\r\nContent-Disposition: form-data");
-    }
-
-    fn boundary(&mut self) {
-        self.buffer.extend(b"--");
-        self.buffer.extend(&self.boundary);
-    }
-
-    fn filename(&mut self, filename: &[u8]) {
-        self.buffer.extend(br#"; filename=""#);
-        self.buffer.extend(filename);
-        self.buffer.push(b'"');
-    }
-
-    fn name(&mut self, name: &[u8]) {
-        self.buffer.extend(br#"; name=""#);
+    pub fn part(mut self, name: &[u8], value: &[u8]) -> Self {
+        // Write the Content-Disposition header.
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(Self::CONTENT_DISPOSITION_1);
         self.buffer.extend(name);
-        self.buffer.push(b'"');
+        self.buffer.extend(Self::CONTENT_DISPOSITION_3);
+        self.buffer.extend(Self::NEWLINE);
+
+        // Write a newline between the headers and the value, the value
+        // itself, a newline, and finally the boundary.
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(value);
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(Self::BOUNDARY_TERMINATOR);
+        self.buffer.extend(self.boundary);
+
+        self
     }
 
-    fn name_id(&mut self, id: u64) {
-        self.buffer.extend(br#"; name="files["#);
-        push_digits(id, &mut self.buffer);
-        self.buffer.extend(br#"]""#);
+    pub fn file_part(mut self, name: &[u8], filename: &[u8], value: &[u8]) -> Self {
+        // Write the Content-Disposition header.
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(Self::CONTENT_DISPOSITION_1);
+        self.buffer.extend(name);
+        self.buffer.extend(Self::CONTENT_DISPOSITION_2);
+        self.buffer.extend(filename);
+        self.buffer.extend(Self::CONTENT_DISPOSITION_3);
+        self.buffer.extend(Self::NEWLINE);
+
+        // Write a newline between the headers and the value, the value
+        // itself, a newline, and finally the boundary.
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(value);
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(Self::BOUNDARY_TERMINATOR);
+        self.buffer.extend(self.boundary);
+
+        self
     }
 
-    fn data(&mut self, data: &[u8]) {
-        self.buffer.extend(b"\r\n\r\n");
-        self.buffer.extend(data);
+    /// Preview the built buffer's length without consuming the form.
+    #[allow(clippy::len_without_is_empty)]
+    pub fn len(&self) -> usize {
+        self.buffer.len() + Self::BOUNDARY_TERMINATOR.len()
+    }
+
+    pub fn json_part(mut self, name: &[u8], value: &[u8]) -> Self {
+        // Write the Content-Disposition header.
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(Self::CONTENT_DISPOSITION_1);
+        self.buffer.extend(name);
+        self.buffer.extend(Self::CONTENT_DISPOSITION_3);
+        self.buffer.extend(Self::NEWLINE);
+
+        // If there is a Content-Type, write its key, itself, and a newline.
+        self.buffer.extend(Self::CONTENT_TYPE);
+        self.buffer.extend(Self::APPLICATION_JSON);
+        self.buffer.extend(Self::NEWLINE);
+
+        // Write a newline between the headers and the value, the value
+        // itself, a newline, and finally the boundary.
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(value);
+        self.buffer.extend(Self::NEWLINE);
+        self.buffer.extend(Self::BOUNDARY_TERMINATOR);
+        self.buffer.extend(self.boundary);
+
+        self
     }
 }
 
 impl Default for Form {
     fn default() -> Self {
-        let mut boundary = [0; 15];
-        let mut rng = rand::thread_rng();
-
-        for value in &mut boundary {
-            *value = rng.sample(Alphanumeric);
-        }
-
-        Self {
-            boundary,
+        let mut form = Self {
+            boundary: random_boundary(),
             buffer: Vec::new(),
-        }
+        };
+
+        // Write the first boundary.
+        form.buffer.extend(Self::BOUNDARY_TERMINATOR);
+        form.buffer.extend(form.boundary);
+
+        form
     }
 }
 
-/// Value of '0' in ascii
-const ASCII_NUMBER: u8 = 0x30;
+/// Generate a random boundary that is 15 characters long.
+pub fn random_boundary() -> [u8; 15] {
+    let mut boundary = [0; 15];
+    let mut rng = rand::thread_rng();
 
-/// Extend the buffer with the digits of the integer `id`, the reason
-/// for this is to get around a allocation by for example using
-/// `format!("files[{}]", id)`.
-fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
-    // The largest 64 bit integer is 20 digits.
-    let mut inner_buf = [0_u8; 20];
-    // Amount of digits written to the inner buffer.
-    let mut i = 0;
-
-    // While the number have more than one digit we print the last
-    // digit by taking the rest after modulo 10. We then divide with
-    // 10 to truncate the number from the right and then loop
-    while id >= 10 {
-        // To go from the integer to the ascii value we add the
-        // ascii value of '0'.
-        //
-        // (id % 10) will always be less than 10 so trunccation cannot
-        // happen.
-        #[allow(clippy::cast_possible_truncation)]
-        let ascii = (id % 10) as u8 + ASCII_NUMBER;
-        inner_buf[i] = ascii;
-        id /= 10;
-        i += 1;
+    for value in &mut boundary {
+        *value = rng.sample(Alphanumeric);
     }
-    // (id % 10) will always be less than 10 so trunccation cannot
-    // happen.
-    #[allow(clippy::cast_possible_truncation)]
-    let ascii = (id % 10) as u8 + ASCII_NUMBER;
-    inner_buf[i] = ascii;
-    i += 1;
 
-    // As we have written the digits in reverse we reverse the area of
-    // the array we have been using to get the characters in the
-    // correct order.
-    inner_buf[..i].reverse();
-
-    buf.extend_from_slice(&inner_buf[..i])
+    boundary
 }
 
 #[cfg(test)]
 mod tests {
-    use super::push_digits;
+    use super::*;
+    use std::str;
 
     #[test]
-    fn test_push_digits() {
-        let min_d = b"0";
-        let max_d = b"18446744073709551615";
+    fn form_builder() {
+        let form = Form::new()
+            .json_part(b"payload_json", b"json_value")
+            .file_part(b"files[0]", b"filename.jpg", b"file_value");
 
-        let mut min_v = Vec::new();
-        let mut max_v = Vec::new();
+        let boundary = str::from_utf8(&form.boundary).unwrap();
+        let expected = format!(
+            "--{boundary}\r\n\
+        Content-Disposition: form-data; name=\"payload_json\"\r\n\
+        Content-Type: application/json\r\n\
+        \r\n\
+        json_value\r\n\
+        --{boundary}\r\n\
+        Content-Disposition: form-data; name=\"files[0]\"; filename=\"filename.jpg\"\r\n\
+        \r\n\
+        file_value\r\n\
+        --{boundary}--",
+        );
 
-        push_digits(u64::MIN, &mut min_v);
-        push_digits(u64::MAX, &mut max_v);
+        let buffer_len = form.len();
+        let buffer = form.build();
 
-        assert_eq!(min_d[..], min_v[..]);
-        assert_eq!(max_d[..], max_v[..]);
+        assert_eq!(expected.as_bytes(), buffer);
+        assert_eq!(buffer_len, buffer.len());
     }
 }

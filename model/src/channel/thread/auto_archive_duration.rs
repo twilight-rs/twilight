@@ -15,7 +15,7 @@ pub enum AutoArchiveDuration {
 }
 
 impl AutoArchiveDuration {
-    /// Retrieve the length of the duration in seconds, used by the API
+    /// Retrieve the length of the duration in minutes, used by the API
     ///
     /// # Examples
     ///
@@ -81,7 +81,7 @@ mod tests {
     ];
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         for (kind, num) in MAP {
             serde_test::assert_tokens(kind, &[Token::U16(*num)]);
             assert_eq!(*kind, AutoArchiveDuration::from(*num));
@@ -90,7 +90,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unknown_conversion() {
+    fn unknown_conversion() {
         assert_eq!(
             AutoArchiveDuration::Unknown { value: 250 },
             AutoArchiveDuration::from(250)
@@ -98,7 +98,7 @@ mod tests {
     }
 
     #[test]
-    fn test_std_time_duration() {
+    fn std_time_duration() {
         for (kind, _) in MAP {
             let std_duration = Duration::from(*kind);
             assert_eq!(u64::from(kind.number()) * 60, std_duration.as_secs());

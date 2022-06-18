@@ -273,14 +273,12 @@ impl GatewayEventVisitor<'_> {
     }
 
     fn ignore_all<'de, V: MapAccess<'de>>(map: &mut V) -> Result<(), V::Error> {
-        #[cfg(feature = "tracing")]
         tracing::trace!("ignoring all other fields");
 
         while let Ok(Some(_)) | Err(_) = map.next_key::<Field>() {
             map.next_value::<IgnoredAny>()?;
         }
 
-        #[cfg(feature = "tracing")]
         tracing::trace!("ignored all other fields");
 
         Ok(())
@@ -309,17 +307,13 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
             "RECONNECT",
         ];
 
-        #[cfg(feature = "tracing")]
         let span = tracing::trace_span!("deserializing gateway event");
-        #[cfg(feature = "tracing")]
         let _span_enter = span.enter();
-        #[cfg(feature = "tracing")]
         tracing::trace!(event_type=?self.2, op=self.0, seq=?self.1);
 
         let op_deser: U8Deserializer<V::Error> = self.0.into_deserializer();
 
         let op = OpCode::deserialize(op_deser).ok().ok_or_else(|| {
-            #[cfg(feature = "tracing")]
             tracing::trace!(op = self.0, "unknown opcode");
             let unexpected = Unexpected::Unsigned(u64::from(self.0));
 
@@ -332,36 +326,25 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                     .2
                     .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
 
-                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing gateway dispatch");
 
                 let mut d = None;
 
                 loop {
-                    #[cfg(feature = "tracing")]
                     let span_child = tracing::trace_span!("iterating over element");
-                    #[cfg(feature = "tracing")]
                     let _span_child_enter = span_child.enter();
 
                     let key = match map.next_key() {
                         Ok(Some(key)) => {
-                            #[cfg(feature = "tracing")]
                             tracing::trace!(?key, "found key");
 
                             key
                         }
                         Ok(None) => break,
-                        #[cfg(feature = "tracing")]
                         Err(why) => {
                             map.next_value::<IgnoredAny>()?;
 
-                            tracing::trace!("ran into an unknown key: {:?}", why);
-
-                            continue;
-                        }
-                        #[cfg(not(feature = "tracing"))]
-                        Err(_) => {
-                            map.next_value::<IgnoredAny>()?;
+                            tracing::trace!("ran into an unknown key: {why:?}");
 
                             continue;
                         }
@@ -380,7 +363,6 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                         Field::Op | Field::S | Field::T => {
                             map.next_value::<IgnoredAny>()?;
 
-                            #[cfg(feature = "tracing")]
                             tracing::trace!(key=?key, "ignoring key");
                         }
                     }
@@ -394,10 +376,8 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Dispatch(s, Box::new(d))
             }
             OpCode::Heartbeat => {
-                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing gateway heartbeat");
                 let seq = Self::field(&mut map, Field::D)?;
-                #[cfg(feature = "tracing")]
                 tracing::trace!(seq = %seq);
 
                 Self::ignore_all(&mut map)?;
@@ -405,7 +385,6 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Heartbeat(seq)
             }
             OpCode::HeartbeatAck => {
-                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing gateway heartbeat ack");
 
                 Self::ignore_all(&mut map)?;
@@ -413,10 +392,8 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::HeartbeatAck
             }
             OpCode::Hello => {
-                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing gateway hello");
                 let hello = Self::field::<Hello, _>(&mut map, Field::D)?;
-                #[cfg(feature = "tracing")]
                 tracing::trace!(hello = ?hello);
 
                 Self::ignore_all(&mut map)?;
@@ -424,10 +401,8 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 GatewayEvent::Hello(hello.heartbeat_interval)
             }
             OpCode::InvalidSession => {
-                #[cfg(feature = "tracing")]
                 tracing::trace!("deserializing invalid session");
                 let invalidate = Self::field::<bool, _>(&mut map, Field::D)?;
-                #[cfg(feature = "tracing")]
                 tracing::trace!(invalidate = %invalidate);
 
                 Self::ignore_all(&mut map)?;
@@ -550,7 +525,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_deserialize_dispatch_role_delete() {
+    fn deserialize_dispatch_role_delete() {
         let input = r#"{
             "d": {
                 "guild_id": "1",
@@ -568,7 +543,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_dispatch_guild_update() {
+    fn deserialize_dispatch_guild_update() {
         let input = format!(
             r#"{{
   "d": {{
@@ -646,7 +621,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_dispatch_guild_update_2() {
+    fn deserialize_dispatch_guild_update_2() {
         let input = format!(
             r#"{{
   "d": {{
@@ -722,7 +697,7 @@ mod tests {
     // Test that events which are not documented to have any data will not fail if
     // they contain it
     #[test]
-    fn test_deserialize_dispatch_resumed() {
+    fn deserialize_dispatch_resumed() {
         let input = r#"{
   "t": "RESUMED",
   "s": 37448,
@@ -742,7 +717,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_heartbeat() {
+    fn deserialize_heartbeat() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -758,7 +733,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_heartbeat_ack() {
+    fn deserialize_heartbeat_ack() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -774,7 +749,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_hello() {
+    fn deserialize_hello() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -795,7 +770,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_invalidate_session() {
+    fn deserialize_invalidate_session() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -811,7 +786,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_reconnect() {
+    fn deserialize_reconnect() {
         let input = r#"{
             "t": null,
             "s": null,
@@ -829,7 +804,7 @@ mod tests {
     /// Test that the deserializer won't mess up on a nested "t" in user input
     /// while searching for the event type.
     #[test]
-    fn test_deserializer_from_json_nested_quotes() {
+    fn deserializer_from_json_nested_quotes() {
         let input = r#"{
             "t": "DOESNT_MATTER",
             "s": 5144,
@@ -848,7 +823,7 @@ mod tests {
     // event types. For example HeartbeatAck
     #[allow(unused)]
     #[test]
-    fn test_deserializer_handles_null_event_types() {
+    fn deserializer_handles_null_event_types() {
         let input = r#"{"t":null,"op":11}"#;
 
         let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
@@ -859,7 +834,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_dispatch() {
+    fn serialize_dispatch() {
         let role_delete = RoleDelete {
             guild_id: Id::new(1),
             role_id: Id::new(2),
@@ -901,7 +876,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_heartbeat() {
+    fn serialize_heartbeat() {
         serde_test::assert_ser_tokens(
             &GatewayEvent::Heartbeat(1024),
             &[
@@ -923,7 +898,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_heartbeat_ack() {
+    fn serialize_heartbeat_ack() {
         serde_test::assert_ser_tokens(
             &GatewayEvent::HeartbeatAck,
             &[
@@ -945,7 +920,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_hello() {
+    fn serialize_hello() {
         serde_test::assert_ser_tokens(
             &GatewayEvent::Hello(41250),
             &[
@@ -973,7 +948,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_invalidate() {
+    fn serialize_invalidate() {
         let value = GatewayEvent::InvalidateSession(true);
 
         serde_test::assert_ser_tokens(
@@ -997,7 +972,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_reconnect() {
+    fn serialize_reconnect() {
         serde_test::assert_ser_tokens(
             &GatewayEvent::Reconnect,
             &[

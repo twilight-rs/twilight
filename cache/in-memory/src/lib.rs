@@ -1,77 +1,23 @@
-//! # twilight-cache-inmemory
-//!
-//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
-//!
-//! `twilight-cache-inmemory` is an in-process-memory cache for the
-//! [`twilight-rs`] ecosystem. It's responsible for processing events and
-//! caching things like guilds, channels, users, and voice states.
-//!
-//! ## Features
-//!
-//! By default no feature is enabled.
-//!
-//! ### `permission-calculator`
-//!
-//! The `permission-calculator` feature flag will bring in support for the
-//! `PermissionCalculator`; an API for calculating permissions through it is
-//! exposed via `InMemoryCache::permissions`. Support for calculating the
-//! permissions of a member on a root guild-level and in a guild channel is
-//! included.
-//!
-//! Refer to the `permission` module for more documentation.
-//!
-//! ## Examples
-//!
-//! Update a cache with events that come in through the gateway:
-//!
-//! ```rust,no_run
-//! use std::env;
-//! use futures::stream::StreamExt;
-//! use twilight_cache_inmemory::InMemoryCache;
-//! use twilight_gateway::{Intents, Shard};
-//!
-//! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let token = env::var("DISCORD_TOKEN")?;
-//! let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
-//! shard.start().await?;
-//!
-//! // Create a cache, caching up to 10 messages per channel:
-//! let cache = InMemoryCache::builder().message_cache_size(10).build();
-//!
-//! while let Some(event) = events.next().await {
-//!     // Update the cache with the event.
-//!     cache.update(&event);
-//! }
-//! # Ok(()) }
-//! ```
-//!
-//! ## License
-//!
-//! All first-party crates are licensed under [ISC][LICENSE.md]
-//!
-//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [`twilight-rs`]: https://github.com/twilight-rs/twilight
-//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
-//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
-//! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
-//! [discord link]: https://discord.gg/7jj8n7D
-//! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
-//! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
-//! [github link]: https://github.com/twilight-rs/twilight
-//! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-//! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
-
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
+    clippy::all,
     clippy::missing_const_for_fn,
+    clippy::pedantic,
+    future_incompatible,
     missing_docs,
+    nonstandard_style,
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
+)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
 
 pub mod iter;
 pub mod model;
@@ -96,7 +42,13 @@ pub use self::{
 #[cfg(feature = "permission-calculator")]
 pub use self::permission::InMemoryCachePermissions;
 
-use self::{iter::InMemoryCacheIter, model::*};
+use self::{
+    iter::InMemoryCacheIter,
+    model::{
+        CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence, CachedSticker,
+        CachedVoiceState,
+    },
+};
 use dashmap::{
     mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
@@ -110,7 +62,7 @@ use std::{
     sync::Mutex,
 };
 use twilight_model::{
-    channel::{Group, GuildChannel, PrivateChannel, StageInstance},
+    channel::{Channel, StageInstance},
     gateway::event::Event,
     guild::{GuildIntegration, Role},
     id::{
@@ -121,7 +73,6 @@ use twilight_model::{
         Id,
     },
     user::{CurrentUser, User},
-    voice::VoiceState,
 };
 
 /// Resource associated with a guild.
@@ -162,7 +113,8 @@ pub struct Reference<'a, K, V> {
 }
 
 impl<'a, K: Eq + Hash, V> Reference<'a, K, V> {
-    /// Create a new reference from a DashMap reference.
+    /// Create a new reference from a `DashMap` reference.
+    #[allow(clippy::missing_const_for_fn)]
     fn new(inner: Ref<'a, K, V>) -> Self {
         Self { inner }
     }
@@ -211,10 +163,6 @@ fn upsert_guild_item<K: Eq + Hash, V: PartialEq>(
     }
 }
 
-fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
-    map.insert(k, v);
-}
-
 /// An in-memory cache of Discord data.
 ///
 /// This is an implementation of a cache designed to be used by only the
@@ -250,13 +198,11 @@ fn upsert_item<K: Eq + Hash, V: PartialEq>(map: &DashMap<K, V>, k: K, v: V) {
 #[derive(Debug, Default)]
 pub struct InMemoryCache {
     config: Config,
-    channels_guild: DashMap<Id<ChannelMarker>, GuildResource<GuildChannel>>,
-    channels_private: DashMap<Id<ChannelMarker>, PrivateChannel>,
+    channels: DashMap<Id<ChannelMarker>, Channel>,
     channel_messages: DashMap<Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>,
     // So long as the lock isn't held across await or panic points this is fine.
     current_user: Mutex<Option<CurrentUser>>,
     emojis: DashMap<Id<EmojiMarker>, GuildResource<CachedEmoji>>,
-    groups: DashMap<Id<ChannelMarker>, Group>,
     guilds: DashMap<Id<GuildMarker>, CachedGuild>,
     guild_channels: DashMap<Id<GuildMarker>, HashSet<Id<ChannelMarker>>>,
     guild_emojis: DashMap<Id<GuildMarker>, HashSet<Id<EmojiMarker>>>,
@@ -283,7 +229,7 @@ pub struct InMemoryCache {
     /// Mapping of guilds and users currently connected to its voice channels.
     voice_state_guilds: DashMap<Id<GuildMarker>, HashSet<Id<UserMarker>>>,
     /// Mapping of guild ID and user ID pairs to their voice states.
-    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
+    voice_states: DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>,
 }
 
 /// Implemented methods and types for the cache.
@@ -313,15 +259,13 @@ impl InMemoryCache {
     ///
     /// This is equal to creating a new empty cache.
     pub fn clear(&self) {
-        self.channels_guild.clear();
-        self.channels_private.clear();
+        self.channels.clear();
         self.channel_messages.clear();
         self.current_user
             .lock()
             .expect("current user poisoned")
             .take();
         self.emojis.clear();
-        self.groups.clear();
         self.guilds.clear();
         self.guild_channels.clear();
         self.guild_emojis.clear();
@@ -369,6 +313,7 @@ impl InMemoryCache {
     ///     println!("{}: {}", guild.id(), guild.name());
     /// }
     /// ```
+    #[allow(clippy::iter_not_returning_iterator)]
     pub const fn iter(&self) -> InMemoryCacheIter<'_> {
         InMemoryCacheIter::new(self)
     }
@@ -386,7 +331,7 @@ impl InMemoryCache {
     ///
     /// // later on...
     /// let guilds = cache.stats().guilds();
-    /// println!("guild count: {}", guilds);
+    /// println!("guild count: {guilds}");
     /// ```
     pub const fn stats(&self) -> InMemoryCacheStats<'_> {
         InMemoryCacheStats::new(self)
@@ -420,7 +365,7 @@ impl InMemoryCache {
     /// let user_id = Id::new(5);
     ///
     /// let permissions = cache.permissions().in_channel(user_id, channel_id)?;
-    /// println!("member has these permissions: {:?}", permissions);
+    /// println!("member has these permissions: {permissions:?}");
     /// # Ok(()) }
     /// ```
     #[cfg(feature = "permission-calculator")]
@@ -439,6 +384,14 @@ impl InMemoryCache {
             .lock()
             .expect("current user poisoned")
             .clone()
+    }
+
+    /// Gets a channel by ID.
+    pub fn channel(
+        &self,
+        channel_id: Id<ChannelMarker>,
+    ) -> Option<Reference<'_, Id<ChannelMarker>, Channel>> {
+        self.channels.get(&channel_id).map(Reference::new)
     }
 
     /// Gets the set of messages in a channel.
@@ -461,22 +414,14 @@ impl InMemoryCache {
 
     /// Gets an emoji by ID.
     ///
-    /// This requires the [`GUILD_EMOJIS`] intent.
+    /// This requires the [`GUILD_EMOJIS_AND_STICKERS`] intent.
     ///
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     pub fn emoji(
         &self,
         emoji_id: Id<EmojiMarker>,
     ) -> Option<Reference<'_, Id<EmojiMarker>, GuildResource<CachedEmoji>>> {
         self.emojis.get(&emoji_id).map(Reference::new)
-    }
-
-    /// Gets a group by ID.
-    pub fn group(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, Group>> {
-        self.groups.get(&channel_id).map(Reference::new)
     }
 
     /// Gets a guild by ID.
@@ -489,18 +434,6 @@ impl InMemoryCache {
         guild_id: Id<GuildMarker>,
     ) -> Option<Reference<'_, Id<GuildMarker>, CachedGuild>> {
         self.guilds.get(&guild_id).map(Reference::new)
-    }
-
-    /// Gets a channel by ID.
-    ///
-    /// This requires the [`GUILDS`] intent.
-    ///
-    /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    pub fn guild_channel(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, GuildResource<GuildChannel>>> {
-        self.channels_guild.get(&channel_id).map(Reference::new)
     }
 
     /// Gets the set of channels in a guild.
@@ -517,10 +450,11 @@ impl InMemoryCache {
 
     /// Gets the set of emojis in a guild.
     ///
-    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS`] intents.
+    /// This requires both the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// intents.
     ///
     /// [`GUILDS`]: ::twilight_model::gateway::Intents::GUILDS
-    /// [`GUILD_EMOJIS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     pub fn guild_emojis(
         &self,
         guild_id: Id<GuildMarker>,
@@ -598,10 +532,11 @@ impl InMemoryCache {
     /// Gets the set of the stickers in a guild.
     ///
     /// This is an O(m) operation, where m is the amount of stickers in the
-    /// guild. This requires the [`GUILDS`] intent and the [`STICKER`] resource
-    /// type.
+    /// guild. This requires the [`GUILDS`] and [`GUILD_EMOJIS_AND_STICKERS`]
+    /// intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn guild_stickers(
         &self,
@@ -684,18 +619,6 @@ impl InMemoryCache {
         self.presences.get(&(guild_id, user_id)).map(Reference::new)
     }
 
-    /// Gets a private channel by ID.
-    ///
-    /// This requires the [`DIRECT_MESSAGES`] intent.
-    ///
-    /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
-    pub fn private_channel(
-        &self,
-        channel_id: Id<ChannelMarker>,
-    ) -> Option<Reference<'_, Id<ChannelMarker>, PrivateChannel>> {
-        self.channels_private.get(&channel_id).map(Reference::new)
-    }
-
     /// Gets a role by ID.
     ///
     /// This requires the [`GUILDS`] intent.
@@ -722,10 +645,11 @@ impl InMemoryCache {
 
     /// Gets a sticker by ID.
     ///
-    /// This is the O(1) operation. This requires the [`GUILDS`] intent and the
-    /// [`STICKER`] resource type.
+    /// This is the O(1) operation. This requires the [`GUILDS`] and the
+    /// [`GUILD_EMOJIS_AND_STICKERS`] intents and the [`STICKER`] resource type.
     ///
     /// [`GUILDS`]: twilight_model::gateway::Intents::GUILDS
+    /// [`GUILD_EMOJIS_AND_STICKERS`]: ::twilight_model::gateway::Intents::GUILD_EMOJIS_AND_STICKERS
     /// [`STICKER`]: crate::config::ResourceType::STICKER
     pub fn sticker(
         &self,
@@ -773,7 +697,7 @@ impl InMemoryCache {
         &self,
         user_id: Id<UserMarker>,
         guild_id: Id<GuildMarker>,
-    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), VoiceState>> {
+    ) -> Option<Reference<'_, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>> {
         self.voice_states
             .get(&(guild_id, user_id))
             .map(Reference::new)
@@ -790,10 +714,7 @@ impl InMemoryCache {
         guild_id: Id<GuildMarker>,
         user_id: Id<UserMarker>,
     ) -> Option<Id<RoleMarker>> {
-        let member = match self.members.get(&(guild_id, user_id)) {
-            Some(member) => member,
-            None => return None,
-        };
+        let member = self.members.get(&(guild_id, user_id))?;
 
         let mut highest_role: Option<(i64, Id<RoleMarker>)> = None;
 
@@ -815,7 +736,7 @@ impl InMemoryCache {
     fn new_with_config(config: Config) -> Self {
         Self {
             config,
-            ..Default::default()
+            ..InMemoryCache::default()
         }
     }
 
@@ -901,11 +822,11 @@ pub struct VoiceChannelStates<'a> {
     index: usize,
     #[allow(clippy::type_complexity)]
     user_ids: Ref<'a, Id<ChannelMarker>, HashSet<(Id<GuildMarker>, Id<UserMarker>)>>,
-    voice_states: &'a DashMap<(Id<GuildMarker>, Id<UserMarker>), VoiceState>,
+    voice_states: &'a DashMap<(Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>,
 }
 
 impl<'a> Iterator for VoiceChannelStates<'a> {
-    type Item = Reference<'a, (Id<GuildMarker>, Id<UserMarker>), VoiceState>;
+    type Item = Reference<'a, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some((guild_id, user_id)) = self.user_ids.iter().nth(self.index) {
@@ -921,75 +842,82 @@ impl<'a> Iterator for VoiceChannelStates<'a> {
 }
 
 impl UpdateCache for Event {
-    #[allow(clippy::cognitive_complexity)]
+    // clippy: using `.deref()` is cleaner
+    #[allow(clippy::cognitive_complexity, clippy::explicit_deref_methods)]
     fn update(&self, c: &InMemoryCache) {
-        use Event::*;
-
         match self {
-            BanAdd(_) => {}
-            BanRemove(_) => {}
-            ChannelCreate(v) => c.update(v),
-            ChannelDelete(v) => c.update(v),
-            ChannelPinsUpdate(v) => c.update(v),
-            ChannelUpdate(v) => c.update(v),
-            GatewayHeartbeat(_) => {}
-            GatewayHeartbeatAck => {}
-            GatewayHello(_) => {}
-            GatewayInvalidateSession(_v) => {}
-            GatewayReconnect => {}
-            GiftCodeUpdate => {}
-            GuildCreate(v) => c.update(v.deref()),
-            GuildDelete(v) => c.update(v.deref()),
-            GuildEmojisUpdate(v) => c.update(v),
-            GuildIntegrationsUpdate(_) => {}
-            GuildUpdate(v) => c.update(v.deref()),
-            IntegrationCreate(v) => c.update(v.deref()),
-            IntegrationDelete(v) => c.update(v.deref()),
-            IntegrationUpdate(v) => c.update(v.deref()),
-            InteractionCreate(v) => c.update(v.deref()),
-            InviteCreate(_) => {}
-            InviteDelete(_) => {}
-            MemberAdd(v) => c.update(v.deref()),
-            MemberRemove(v) => c.update(v),
-            MemberUpdate(v) => c.update(v.deref()),
-            MemberChunk(v) => c.update(v),
-            MessageCreate(v) => c.update(v.deref()),
-            MessageDelete(v) => c.update(v),
-            MessageDeleteBulk(v) => c.update(v),
-            MessageUpdate(v) => c.update(v.deref()),
-            PresenceUpdate(v) => c.update(v.deref()),
-            PresencesReplace => {}
-            ReactionAdd(v) => c.update(v.deref()),
-            ReactionRemove(v) => c.update(v.deref()),
-            ReactionRemoveAll(v) => c.update(v),
-            ReactionRemoveEmoji(v) => c.update(v),
-            Ready(v) => c.update(v.deref()),
-            Resumed => {}
-            RoleCreate(v) => c.update(v),
-            RoleDelete(v) => c.update(v),
-            RoleUpdate(v) => c.update(v),
-            ShardConnected(_) => {}
-            ShardConnecting(_) => {}
-            ShardDisconnected(_) => {}
-            ShardIdentifying(_) => {}
-            ShardReconnecting(_) => {}
-            ShardPayload(_) => {}
-            ShardResuming(_) => {}
-            StageInstanceCreate(v) => c.update(v),
-            StageInstanceDelete(v) => c.update(v),
-            StageInstanceUpdate(v) => c.update(v),
-            ThreadCreate(v) => c.update(v),
-            ThreadUpdate(v) => c.update(v),
-            ThreadDelete(v) => c.update(v),
-            ThreadListSync(v) => c.update(v),
-            ThreadMemberUpdate(_) => {}
-            ThreadMembersUpdate(_) => {}
-            TypingStart(_) => {}
-            UnavailableGuild(v) => c.update(v),
-            UserUpdate(v) => c.update(v),
-            VoiceServerUpdate(_) => {}
-            VoiceStateUpdate(v) => c.update(v.deref()),
-            WebhooksUpdate(_) => {}
+            Event::ChannelCreate(v) => c.update(v.deref()),
+            Event::ChannelDelete(v) => c.update(v.deref()),
+            Event::ChannelPinsUpdate(v) => c.update(v),
+            Event::ChannelUpdate(v) => c.update(v.deref()),
+            Event::GuildCreate(v) => c.update(v.deref()),
+            Event::GuildDelete(v) => c.update(v),
+            Event::GuildEmojisUpdate(v) => c.update(v),
+            Event::GuildStickersUpdate(v) => c.update(v),
+            Event::GuildUpdate(v) => c.update(v.deref()),
+            Event::IntegrationCreate(v) => c.update(v.deref()),
+            Event::IntegrationDelete(v) => c.update(v.deref()),
+            Event::IntegrationUpdate(v) => c.update(v.deref()),
+            Event::InteractionCreate(v) => c.update(v),
+            Event::MemberAdd(v) => c.update(v.deref()),
+            Event::MemberRemove(v) => c.update(v),
+            Event::MemberUpdate(v) => c.update(v.deref()),
+            Event::MemberChunk(v) => c.update(v),
+            Event::MessageCreate(v) => c.update(v.deref()),
+            Event::MessageDelete(v) => c.update(v),
+            Event::MessageDeleteBulk(v) => c.update(v),
+            Event::MessageUpdate(v) => c.update(v.deref()),
+            Event::PresenceUpdate(v) => c.update(v.deref()),
+            Event::ReactionAdd(v) => c.update(v.deref()),
+            Event::ReactionRemove(v) => c.update(v.deref()),
+            Event::ReactionRemoveAll(v) => c.update(v),
+            Event::ReactionRemoveEmoji(v) => c.update(v),
+            Event::Ready(v) => c.update(v.deref()),
+            Event::RoleCreate(v) => c.update(v),
+            Event::RoleDelete(v) => c.update(v),
+            Event::RoleUpdate(v) => c.update(v),
+            Event::StageInstanceCreate(v) => c.update(v),
+            Event::StageInstanceDelete(v) => c.update(v),
+            Event::StageInstanceUpdate(v) => c.update(v),
+            Event::ThreadCreate(v) => c.update(v.deref()),
+            Event::ThreadUpdate(v) => c.update(v.deref()),
+            Event::ThreadDelete(v) => c.update(v),
+            Event::ThreadListSync(v) => c.update(v),
+            Event::UnavailableGuild(v) => c.update(v),
+            Event::UserUpdate(v) => c.update(v),
+            Event::VoiceStateUpdate(v) => c.update(v.deref()),
+            // Ignored events.
+            Event::BanAdd(_)
+            | Event::BanRemove(_)
+            | Event::CommandPermissionsUpdate(_)
+            | Event::GatewayHeartbeat(_)
+            | Event::GatewayHeartbeatAck
+            | Event::GatewayHello(_)
+            | Event::GatewayInvalidateSession(_)
+            | Event::GatewayReconnect
+            | Event::GiftCodeUpdate
+            | Event::GuildIntegrationsUpdate(_)
+            | Event::GuildScheduledEventCreate(_)
+            | Event::GuildScheduledEventDelete(_)
+            | Event::GuildScheduledEventUpdate(_)
+            | Event::GuildScheduledEventUserAdd(_)
+            | Event::GuildScheduledEventUserRemove(_)
+            | Event::InviteCreate(_)
+            | Event::InviteDelete(_)
+            | Event::PresencesReplace
+            | Event::Resumed
+            | Event::ShardConnected(_)
+            | Event::ShardConnecting(_)
+            | Event::ShardDisconnected(_)
+            | Event::ShardIdentifying(_)
+            | Event::ShardPayload(_)
+            | Event::ShardReconnecting(_)
+            | Event::ShardResuming(_)
+            | Event::ThreadMembersUpdate(_)
+            | Event::ThreadMemberUpdate(_)
+            | Event::TypingStart(_)
+            | Event::VoiceServerUpdate(_)
+            | Event::WebhooksUpdate(_) => {}
         }
     }
 }
@@ -998,14 +926,14 @@ impl UpdateCache for Event {
 mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
-        datetime::Timestamp,
         gateway::payload::incoming::RoleDelete,
         guild::{Member, Permissions, Role},
         id::Id,
+        util::Timestamp,
     };
 
     #[test]
-    fn test_syntax_update() {
+    fn syntax_update() {
         let cache = InMemoryCache::new();
         cache.update(&RoleDelete {
             guild_id: Id::new(1),
@@ -1014,7 +942,7 @@ mod tests {
     }
 
     #[test]
-    fn test_clear() {
+    fn clear() {
         let cache = InMemoryCache::new();
         cache.cache_emoji(Id::new(1), test::emoji(Id::new(3), None));
         cache.cache_member(Id::new(2), test::member(Id::new(4), Id::new(2)));
@@ -1024,7 +952,7 @@ mod tests {
     }
 
     #[test]
-    fn test_highest_role() {
+    fn highest_role() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
         let guild_id = Id::new(1);

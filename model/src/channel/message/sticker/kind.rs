@@ -7,9 +7,7 @@ use std::{
 /// Type of a [`Sticker`].
 ///
 /// [`Sticker`]: super::Sticker
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 pub enum StickerType {
     /// Official sticker in a pack.
@@ -64,13 +62,13 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&StickerType::Standard, &[Token::U8(1)]);
         serde_test::assert_tokens(&StickerType::Guild, &[Token::U8(2)]);
     }
 
     #[test]
-    fn test_conversions() {
+    fn conversions() {
         assert_eq!(StickerType::try_from(1).unwrap(), StickerType::Standard);
         assert_eq!(StickerType::try_from(2).unwrap(), StickerType::Guild);
     }

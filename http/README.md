@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-http
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -51,6 +49,9 @@ twilight-http = { default-features = false, features = ["rustls-native-roots", "
 
 ### TLS
 
+**Note**: not enabling any TLS feature is supported for use behind a proxy;
+Discord's API is HTTPS only.
+
 `twilight-http` has features to enable HTTPS connectivity with [`hyper`]. These
 features are mutually exclusive. `rustls-native-roots` is enabled by default.
 
@@ -81,12 +82,6 @@ for root certificates.
 
 This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
 
-### Tracing
-
-The `tracing` feature enables logging via the [`tracing`] crate.
-
-This is enabled by default.
-
 ### Trust-DNS
 
 The `trust-dns` enables [`hyper-trust-dns`], which replaces the default
@@ -101,7 +96,6 @@ async DNS resolver on the application level.
 [`rustls-native-certs`]: https://crates.io/crates/rustls-native-certs
 [`serde_json`]: https://crates.io/crates/serde_json
 [`simd-json`]: https://crates.io/crates/simd-json
-[`tracing`]: https://crates.io/crates/tracing
 [`hyper-trust-dns`]: https://crates.io/crates/hyper-trust-dns
 [`webpki-roots`]: https://crates.io/crates/webpki-roots
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
@@ -113,6 +107,4 @@ async DNS resolver on the application level.
 [github link]: https://github.com/twilight-rs/twilight
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-[rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->
+[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust

@@ -42,7 +42,7 @@ mod tests {
     );
 
     #[test]
-    fn test_message_component_interaction_data() {
+    fn message_component_interaction_data() {
         let value = MessageComponentInteractionData {
             custom_id: "test".to_owned(),
             component_type: ComponentType::Button,

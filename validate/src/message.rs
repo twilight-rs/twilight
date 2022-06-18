@@ -5,6 +5,7 @@
 use crate::{
     component::{ComponentValidationErrorType, COMPONENT_COUNT},
     embed::{chars as embed_chars, EmbedValidationErrorType, EMBED_TOTAL_LENGTH},
+    request::ValidationError,
 };
 use std::{
     error::Error,
@@ -24,6 +25,15 @@ pub const MESSAGE_CONTENT_LENGTH_MAX: usize = 2000;
 
 /// Maximum amount of stickers.
 pub const STICKER_MAX: usize = 3;
+
+/// ASCII dash.
+const DASH: char = '-';
+
+/// ASCII dot.
+const DOT: char = '.';
+
+/// ASCII underscore.
+const UNDERSCORE: char = '_';
 
 /// A message is not valid.
 #[derive(Debug)]
@@ -57,11 +67,29 @@ impl MessageValidationError {
     ) {
         (self.kind, self.source)
     }
+
+    /// Create a [`MessageValidationError`] from a [`ValidationError`].
+    #[must_use = "has no effect if unused"]
+    pub fn from_validation_error(
+        kind: MessageValidationErrorType,
+        source: ValidationError,
+    ) -> Self {
+        Self {
+            kind,
+            source: Some(Box::new(source)),
+        }
+    }
 }
 
 impl Display for MessageValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            MessageValidationErrorType::AttachmentFilename { filename } => {
+                f.write_str("attachment filename `")?;
+                Display::fmt(filename, f)?;
+
+                f.write_str("`is invalid")
+            }
             MessageValidationErrorType::ComponentCount { count } => {
                 Display::fmt(count, f)?;
                 f.write_str(" components were provided, but only ")?;
@@ -89,6 +117,13 @@ impl Display for MessageValidationError {
             MessageValidationErrorType::TooManyEmbeds { .. } => {
                 f.write_str("message has too many embeds")
             }
+            MessageValidationErrorType::WebhookUsername { .. } => {
+                if let Some(source) = self.source() {
+                    Display::fmt(&source, f)
+                } else {
+                    f.write_str("webhook username is invalid")
+                }
+            }
         }
     }
 }
@@ -98,6 +133,11 @@ impl Error for MessageValidationError {}
 /// Type of [`MessageValidationError`] that occurred.
 #[derive(Debug)]
 pub enum MessageValidationErrorType {
+    /// Attachment filename is not valid.
+    AttachmentFilename {
+        /// Invalid filename.
+        filename: String,
+    },
     /// Too many message components were provided.
     ComponentCount {
         /// Number of components that were provided.
@@ -128,6 +168,35 @@ pub enum MessageValidationErrorType {
     ///
     /// A followup message can have up to 10 embeds.
     TooManyEmbeds,
+    /// Provided webhook username was invalid.
+    WebhookUsername,
+}
+
+/// Ensure an attachment's filename is correct.
+///
+/// The filename can contain ASCII alphanumeric characters, dots, dashes, and
+/// underscores.
+///
+/// # Errors
+///
+/// Returns an error of type [`AttachmentFilename`] if the filename is invalid.
+///
+/// [`AttachmentFilename`]: MessageValidationErrorType::AttachmentFilename
+pub fn attachment_filename(filename: impl AsRef<str>) -> Result<(), MessageValidationError> {
+    if filename
+        .as_ref()
+        .chars()
+        .all(|c| (c.is_ascii_alphanumeric() || c == DOT || c == DASH || c == UNDERSCORE))
+    {
+        Ok(())
+    } else {
+        Err(MessageValidationError {
+            kind: MessageValidationErrorType::AttachmentFilename {
+                filename: filename.as_ref().to_string(),
+            },
+            source: None,
+        })
+    }
 }
 
 /// Ensure a list of components is correct.
@@ -242,8 +311,8 @@ pub fn embeds(embeds: &[Embed]) -> Result<(), MessageValidationError> {
 ///
 /// [`StickersInvalid`]: MessageValidationErrorType::StickersInvalid
 /// [this documentation entry]: https://discord.com/developers/docs/resources/channel#create-message-jsonform-params
-pub fn stickers(stickers: &[Id<StickerMarker>]) -> Result<(), MessageValidationError> {
-    let len = stickers.len();
+pub fn sticker_ids(sticker_ids: &[Id<StickerMarker>]) -> Result<(), MessageValidationError> {
+    let len = sticker_ids.len();
 
     if len <= STICKER_MAX {
         Ok(())
@@ -257,10 +326,20 @@ pub fn stickers(stickers: &[Id<StickerMarker>]) -> Result<(), MessageValidationE
 
 #[cfg(test)]
 mod tests {
-    use super::content;
+    use super::*;
 
     #[test]
-    fn test_content() {
+    fn attachment_allowed_filename() {
+        assert!(attachment_filename("one.jpg").is_ok());
+        assert!(attachment_filename("two.png").is_ok());
+        assert!(attachment_filename("three.gif").is_ok());
+        assert!(attachment_filename(".dots-dashes_underscores.gif").is_ok());
+
+        assert!(attachment_filename("????????").is_err());
+    }
+
+    #[test]
+    fn content_length() {
         assert!(content("").is_ok());
         assert!(content("a".repeat(2000)).is_ok());
 

@@ -2,22 +2,21 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{
-        AuditLogReason, AuditLogReasonError, NullableField, Request, RequestBuilder, TryIntoRequest,
-    },
+    request::{AuditLogReason, Nullable, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
-    datetime::Timestamp,
     id::{
         marker::{ChannelMarker, GuildMarker, ScheduledEventMarker},
         Id,
     },
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
+    util::Timestamp,
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     scheduled_event_description as validate_scheduled_event_description,
     scheduled_event_name as validate_scheduled_event_name, ValidationError,
 };
@@ -25,19 +24,24 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct UpdateGuildScheduledEventFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    channel_id: Option<NullableField<Id<ChannelMarker>>>,
+    channel_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    description: Option<NullableField<&'a str>>,
+    description: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_metadata: Option<EntityMetadataFields<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
+    #[serde(
+        serialize_with = "crate::request::serialize_optional_nullable_image",
+        skip_serializing_if = "Option::is_none"
+    )]
+    image: Option<Nullable<&'a [u8]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     privacy_level: Option<PrivacyLevel>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    scheduled_end_time: Option<NullableField<&'a Timestamp>>,
+    scheduled_end_time: Option<Nullable<&'a Timestamp>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     scheduled_start_time: Option<&'a Timestamp>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,6 +85,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
                 description: None,
                 entity_metadata: None,
                 entity_type: None,
+                image: None,
                 name: None,
                 privacy_level: None,
                 scheduled_end_time: None,
@@ -103,7 +108,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
             }
         }
 
-        self.fields.channel_id = Some(NullableField(Some(channel_id)));
+        self.fields.channel_id = Some(Nullable(Some(channel_id)));
 
         self
     }
@@ -123,7 +128,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
             validate_scheduled_event_description(description)?;
         }
 
-        self.fields.description = Some(NullableField(description));
+        self.fields.description = Some(Nullable(description));
 
         Ok(self)
     }
@@ -138,6 +143,21 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
         }
 
         self.fields.entity_type = Some(entity_type);
+
+        self
+    }
+
+    /// Set the cover image of the event.
+    ///
+    /// Pass [`None`] to clear the image.
+    ///
+    /// This must be a Data URI, in the form of
+    /// `data:image/{type};base64,{data}` where `{type}` is the image MIME type
+    /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
+    ///
+    /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
+    pub const fn image(mut self, image: Option<&'a [u8]>) -> Self {
+        self.fields.image = Some(Nullable(image));
 
         self
     }
@@ -174,7 +194,7 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     ///
     /// Required for external events.
     pub const fn scheduled_end_time(mut self, scheduled_end_time: Option<&'a Timestamp>) -> Self {
-        self.fields.scheduled_end_time = Some(NullableField(scheduled_end_time));
+        self.fields.scheduled_end_time = Some(Nullable(scheduled_end_time));
 
         self
     }
@@ -216,8 +236,10 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

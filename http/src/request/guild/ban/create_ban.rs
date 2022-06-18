@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -10,12 +10,13 @@ use twilight_model::id::{
     Id,
 };
 use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
     create_guild_ban_delete_message_days as validate_create_guild_ban_delete_message_days,
     ValidationError,
 };
 
 struct CreateBanFields<'a> {
-    delete_message_days: Option<u64>,
+    delete_message_days: Option<u16>,
     reason: Option<&'a str>,
 }
 
@@ -79,7 +80,7 @@ impl<'a> CreateBan<'a> {
     /// number of days is greater than 7.
     ///
     /// [`CreateGuildBanDeleteMessageDays`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageDays
-    pub const fn delete_message_days(mut self, days: u64) -> Result<Self, ValidationError> {
+    pub const fn delete_message_days(mut self, days: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_create_guild_ban_delete_message_days(days) {
             return Err(source);
         }
@@ -103,10 +104,10 @@ impl<'a> CreateBan<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateBan<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.fields
-            .reason
-            .replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.fields.reason.replace(reason);
 
         Ok(self)
     }
@@ -114,11 +115,59 @@ impl<'a> AuditLogReason<'a> for CreateBan<'a> {
 
 impl TryIntoRequest for CreateBan<'_> {
     fn try_into_request(self) -> Result<Request, HttpError> {
-        Ok(Request::from_route(&Route::CreateBan {
+        let mut request = Request::builder(&Route::CreateBan {
             delete_message_days: self.fields.delete_message_days,
             guild_id: self.guild_id.get(),
-            reason: self.fields.reason,
             user_id: self.user_id.get(),
-        }))
+        });
+
+        if let Some(reason) = self.fields.reason.as_ref() {
+            let header = request::audit_header(reason)?;
+
+            request = request.headers(header);
+        }
+
+        Ok(request.build())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        client::Client,
+        request::{AuditLogReason, TryIntoRequest, REASON_HEADER_NAME},
+    };
+    use hyper::header::HeaderValue;
+    use std::error::Error;
+    use twilight_http_ratelimiting::Method;
+    use twilight_model::id::{
+        marker::{GuildMarker, UserMarker},
+        Id,
+    };
+
+    #[test]
+    fn request() -> Result<(), Box<dyn Error>> {
+        const GUILD_ID: Id<GuildMarker> = Id::new(1);
+        const REASON: &str = "spam";
+        const USER_ID: Id<UserMarker> = Id::new(2);
+
+        let client = Client::new(String::new());
+        let request = client
+            .create_ban(GUILD_ID, USER_ID)
+            .reason(REASON)?
+            .try_into_request()?;
+
+        assert!(request.body().is_none());
+        assert!(request.form().is_none());
+        assert_eq!(Method::Put, request.method());
+
+        let header = HeaderValue::from_static(REASON);
+        assert!(matches!(
+            request.headers(),
+            Some(map)
+            if map.len() == 1 && map.get(REASON_HEADER_NAME) == Some(&header)));
+        assert!(request.use_authorization_token());
+
+        Ok(())
     }
 }

@@ -16,8 +16,10 @@ pub struct Ping {
     pub application_id: Id<ApplicationMarker>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
-    #[serde(rename = "type")]
     /// Kind of the interaction.
+    ///
+    /// Should always be `InteractionType::Ping`.
+    #[serde(rename = "type")]
     pub kind: InteractionType,
     /// Token of the interaction.
     pub token: String,

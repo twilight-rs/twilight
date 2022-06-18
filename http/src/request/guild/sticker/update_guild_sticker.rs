@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{AuditLogReason, AuditLogReasonError, Request, TryIntoRequest},
+    request::{AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -13,9 +13,12 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::sticker::{
-    description as validate_description, name as validate_name, tags as validate_tags,
-    StickerValidationError,
+use twilight_validate::{
+    request::{audit_reason as validate_audit_reason, ValidationError},
+    sticker::{
+        description as validate_description, name as validate_name, tags as validate_tags,
+        StickerValidationError,
+    },
 };
 
 #[derive(Serialize)]
@@ -47,7 +50,7 @@ struct UpdateGuildStickerFields<'a> {
 ///     .model()
 ///     .await?;
 ///
-/// println!("{:#?}", sticker);
+/// println!("{sticker:#?}");
 /// # Ok(()) }
 /// ```
 pub struct UpdateGuildSticker<'a> {
@@ -115,8 +118,10 @@ impl<'a> UpdateGuildSticker<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for UpdateGuildSticker<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

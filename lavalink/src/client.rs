@@ -171,8 +171,7 @@ impl Lavalink {
     ///
     /// [crate documentation]: crate#examples
     pub async fn process(&self, event: &Event) -> Result<(), ClientError> {
-        #[cfg(feature = "tracing")]
-        tracing::trace!("processing event: {:?}", event);
+        tracing::trace!("processing event: {event:?}");
 
         let guild_id = match event {
             Event::Ready(e) => {
@@ -187,14 +186,12 @@ impl Lavalink {
                     self.server_updates.insert(guild_id, e.clone().into());
                     guild_id
                 } else {
-                    #[cfg(feature = "tracing")]
-                    tracing::trace!("event has no guild ID: {:?}", e);
+                    tracing::trace!("event has no guild ID: {e:?}");
                     return Ok(());
                 }
             }
             Event::VoiceStateUpdate(e) => {
                 if e.0.user_id != self.user_id {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!("got voice state update from another user");
 
                     return Ok(());
@@ -214,20 +211,14 @@ impl Lavalink {
                     }
                     guild_id
                 } else {
-                    #[cfg(feature = "tracing")]
-                    tracing::trace!("event has no guild ID: {:?}", e);
+                    tracing::trace!("event has no guild ID: {e:?}");
                     return Ok(());
                 }
             }
             _ => return Ok(()),
         };
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!(
-            "got voice server/state update for {:?}: {:?}",
-            guild_id,
-            event
-        );
+        tracing::debug!("got voice server/state update for {guild_id:?}: {event:?}");
 
         let update = {
             let server = self.server_updates.get(&guild_id);
@@ -236,29 +227,21 @@ impl Lavalink {
                 (Some(server), Some(session)) => {
                     let server = server.value();
                     let session = session.value();
-                    #[cfg(feature = "tracing")]
                     tracing::debug!(
-                        "got both halves for {}: {:?}; Session ID: {:?}",
-                        guild_id,
-                        server,
-                        session,
+                        "got both halves for {guild_id}: {server:?}; Session ID: {session:?}",
                     );
                     VoiceUpdate::new(guild_id, session.as_ref(), server.clone())
                 }
-                #[cfg(feature = "tracing")]
                 (Some(server), None) => {
                     tracing::debug!(
-                        "guild {} is now waiting for other half; got: {:?}",
-                        guild_id,
+                        "guild {guild_id} is now waiting for other half; got: {:?}",
                         server.value()
                     );
                     return Ok(());
                 }
-                #[cfg(feature = "tracing")]
                 (None, Some(session)) => {
                     tracing::debug!(
-                        "guild {} is now waiting for other half; got session ID: {:?}",
-                        guild_id,
+                        "guild {guild_id} is now waiting for other half; got session ID: {:?}",
                         session.value()
                     );
                     return Ok(());
@@ -267,21 +250,18 @@ impl Lavalink {
             }
         };
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!("getting player for guild {}", guild_id);
+        tracing::debug!("getting player for guild {guild_id}");
 
         let player = self.player(guild_id).await?;
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!("sending voice update for guild {}: {:?}", guild_id, update);
+        tracing::debug!("sending voice update for guild {guild_id}: {update:?}");
 
         player.send(update).map_err(|source| ClientError {
             kind: ClientErrorType::SendingVoiceUpdate,
             source: Some(Box::new(source)),
         })?;
 
-        #[cfg(feature = "tracing")]
-        tracing::debug!("sent voice update for guild {}", guild_id);
+        tracing::debug!("sent voice update for guild {guild_id}");
 
         Ok(())
     }
@@ -290,6 +270,10 @@ impl Lavalink {
     ///
     /// If a node already exists with the provided address, then it will be
     /// replaced.
+    ///
+    /// # Errors
+    ///
+    /// See the errors section of [`Node::connect`].
     pub async fn add(
         &self,
         address: SocketAddr,

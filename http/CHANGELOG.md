@@ -2,6 +2,272 @@
 
 Changelog for `twilight-http`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Additions
+
+Support Application Command Permissions V2 ([#1708] - [@baptiste0928]).
+
+Support command localization via `description_localizations` and
+`name_localizations` fields on request builders ([#1701] - [@baptiste0928]).
+
+### Changes
+
+`Route::GetGuildScheduledEventUsers` now defers to Discord's default values if
+none are provided ([#1692] - [@zeylahellyer]).
+
+Make image data values take a slice of bytes instead of a string slice
+([#1618] - [@itohatweb]).
+
+Take a boolean parameter for `CreateMessage::fail_if_not_exists`
+([#1707] - [@itohatweb]).
+
+Validate webhook usernames, now returning an error if invalid ([#1586] - [@7596ff]).
+
+Remove the `Set Command Permissions` request and `dm_permission` field
+([#1708], [#1706] - [@baptiste0928]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1708]: https://github.com/twilight-rs/twilight/pull/1708
+[#1707]: https://github.com/twilight-rs/twilight/pull/1707
+[#1706]: https://github.com/twilight-rs/twilight/pull/1706
+[#1701]: https://github.com/twilight-rs/twilight/pull/1701
+[#1692]: https://github.com/twilight-rs/twilight/pull/1692
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+[#1618]: https://github.com/twilight-rs/twilight/pull/1618
+[#1586]: https://github.com/twilight-rs/twilight/pull/1586
+
+## [0.10.3] - 2022-05-15
+
+### Additions
+
+Display API v8 errors for error printing ([#1719] - [@vilgotf]).
+
+Support Get Guild Bans request pagination ([#1657] - [@zeylahellyer]).
+
+[#1719]: https://github.com/twilight-rs/twilight/pull/1719
+[#1657]: https://github.com/twilight-rs/twilight/pull/1657
+
+## [0.10.2] - 2022-04-15
+
+### Additions
+
+Add `CreateStageInstance::send_start_notification` ([#1653] - [@zeylahellyer]).
+
+Add a note on `UpdateGuild::features` regarding the `COMMUNITY` feature ([#1663]
+- [@zeylahellyer]).
+
+### Changes
+
+Account for `Application`'s new name in `GetUserApplicationInfo` ([#1670] -
+[@zeylahellyer]).
+
+Add `StatusCode::get` and deprecate `StatusCode::raw` ([#1672] -
+[@zeylahellyer]).
+
+### Fixes
+
+Update `AttachmentManager` logic to account for
+`model::http::attachment::Attachment` changes ([#1624] - [@7596ff]). See the
+`twilight-model` changelog.
+
+[#1624]: https://github.com/twilight-rs/twilight/pull/1624
+[#1653]: https://github.com/twilight-rs/twilight/pull/1653
+[#1663]: https://github.com/twilight-rs/twilight/pull/1663
+[#1670]: https://github.com/twilight-rs/twilight/pull/1670
+[#1672]: https://github.com/twilight-rs/twilight/pull/1672
+
+## [0.10.1] - 2022-03-20
+
+### Additions
+
+Support compilation without a TLS backend ([#1392] - [@vilgotf], [@7596ff]).
+Discord's API remains HTTPS-only, this feature is intended for use behind
+proxies.
+
+`CreateStageInstance` and `UpdateStageInstance` now return a `StageInstance`
+([#1565] - [@itohatweb]).
+
+### Fixes
+
+Update documentation for `Client::active_threads` ([#1544] - [@mu-arch],
+[@7596ff]).
+
+Encode `Route::SearchGuildMembers`' query string ([#1575] - [@itohatweb]).
+
+Update documentation for `CreateFollowup::flags` ([#1579] - [@laralove143]).
+
+`value-trait`, a dependency of `simd-json`, has been limited to at most `0.2.10`
+([#1596] - [@7596ff], [@vilgotf]). The crate updated its MSRV in a minor
+version, which Twilight is unable to follow.
+
+Fix a typo, renaming `communication_disabled_util` to
+`communication_disabled_until` in `UpdateGuildMember` ([#1612] - [@oceaann]).
+
+[#1392]: https://github.com/twilight-rs/twilight/pull/1392
+[#1544]: https://github.com/twilight-rs/twilight/pull/1544
+[#1565]: https://github.com/twilight-rs/twilight/pull/1565
+[#1575]: https://github.com/twilight-rs/twilight/pull/1575
+[#1596]: https://github.com/twilight-rs/twilight/pull/1596
+
+## [0.10.0] - 2022-03-10
+
+### InteractionClient
+
+`InteractionClient` functions have been renamed with a consistent style
+([#1433] - [@7596ff]):
+
+| New                          | Old                             |
+| ---------------------------- | ------------------------------- |
+| `create_response`            | `interaction_callback`          |
+| `delete_response`            | `delete_interaction_original`   |
+| `response`                   | `get_interaction_original`      |
+| `update_response`            | `update_interaction_original`   |
+| `create_followup`            | `create_followup_message`       |
+| `delete_followup`            | `delete_followup_message`       |
+| `followup`                   | `followup_message`              |
+| `update_followup`            | `update_followup_message`       |
+| `create_global_command`      | unchanged                       |
+| `delete_global_command`      | unchanged                       |
+| `global_command`             | `get_global_command`            |
+| `global_commands`            | `get_global_commands`           |
+| `set_global_commands`        | unchanged                       |
+| `update_global_command`      | unchanged                       |
+| `create_guild_command`       | unchanged                       |
+| `delete_guild_command`       | unchanged                       |
+| `guild_command`              | `get_guild_command`             |
+| `guild_commands`             | `get_guild_commands`            |
+| `set_guild_commands`         | unchanged                       |
+| `update_guild_command`       | unchanged                       |
+| `command_permissions`        | `get_command_permissions`       |
+| `guild_command_permissions`  | `get_guild_command_permissions` |
+| `set_command_permissions`    | unchanged                       |
+| `update_command_permissions` | unchanged                       |
+
+Respective request builders have been renamed to match.
+
+### Sending Messages
+
+Sending messages has been refactored and made consistent across all methods
+([#1354] - [@7596ff]). This is a full log of all message-sending related
+changes, with [#1354] being the majority of the changes, and other PRs being
+noted.
+
+`AttachmentFile` has been renamed to `model::http::Attachment`, and now holds
+owned values ([#1508] - [@7596ff]).
+
+`Client::default_allowed_mentions` now returns a reference instead of
+cloning.
+
+Documentation for request builder methods have been updated and made
+consistent with each other.
+
+`CreateMessage`
+- `allowed_mentions` is actually used in `try_into_request`
+- `allowed_mentions` now takes a reference, and is nullable
+- `attach` and `files` have been replaced with `attachments`
+- rename `stickers` to `sticker_ids`
+- `attachments` now validates filenames ([#1530] - [@7596ff])
+
+`UpdateMessage`
+- `allowed_mentions` is actually used in `try_into_request`
+- `allowed_mentions` now takes a reference, and is nullable
+- `attachments` now takes a list of `http::attachment::Attachment`s
+- `attachments` now validates filenames ([#1530] - [@7596ff])
+- `embeds` now accepts an `Option` instead of a slice
+- add `payload_json`
+
+`ExecuteWebhook`:
+- `allowed_mentions` is actually used in `try_into_request`
+- `allowed_mentions` now takes a reference, and is nullable
+- `attach` and `files` have been replaced with `attachments`
+- `attachments` now validates filenames ([#1530] - [@7596ff])
+- refactored `wait` to use a field on the request itself instead of calling a
+  `request` method
+
+`UpdateWebhookMessage`
+- `allowed_mentions` now takes a reference, and is nullable
+- `attach` and `files` have been replaced with `attachments` and
+  `keep_attachment_ids`
+- `attachments` now validates filenames ([#1530] - [@7596ff])
+- no longer auditable
+
+`CreateResponse`
+- now takes `model::http::InteractionResponse` ([#1508] - [@7596ff])
+- send attachments using a form rather than JSON ([#1509] - [@7596ff])
+
+`UpdateResponse`
+- `allowed_mentions` now takes a reference, and is nullable
+- `attach` and `files` have been replaced with `attachments` and
+  `keep_attachment_ids`
+- `attachments` now validates filenames ([#1530] - [@7596ff])
+
+`CreateFollowup`
+- `allowed_mentions` is actually used in `try_into_request`
+- `allowed_mentions` now takes a reference, and is nullable
+- `attach` and `files` have been replaced with `attachments`
+- `attachments` now validates filenames ([#1530] - [@7596ff])
+
+`UpdateFollowup`
+- `allowed_mentions` now takes a reference, and is nullable
+- `attach` and `files` have been replaced with `attachments` and
+  `keep_attachment_ids`
+- `attachments` now validates filenames ([#1530] - [@7596ff])
+
+### Changes
+
+Many integer sizes used for functions such as `CreateInvite::max_age` have been
+reduced to `u32`s or `u16`s based on their documented maximum value ([#1505] -
+[@laralove143]).
+
+`Client::update_channel_permissions` now takes a new type,
+`model::http::PermissionOverwrite`, instead of involving a more complicated
+request builder ([#1521] - [@7596ff]). This removes
+`UpdateChannelPermissionConfigured`.
+
+`AuditLogReason::reason` is now validated with `twilight_validate`, and returns
+a `ValidationError` ([#1527] - [@7596ff]). `AuditLogReasonError` has been
+removed.
+
+Update to Discord API version 10 ([#1540] - [@zeylahellyer]). This involves
+two changes:
+- remove `Route::CreateBan`'s `reason` struct field
+- update `CreateBan` to specify the reason in the headers, not URL
+
+[#1354]: https://github.com/twilight-rs/twilight/pull/1354
+[#1433]: https://github.com/twilight-rs/twilight/pull/1433
+[#1508]: https://github.com/twilight-rs/twilight/pull/1508
+[#1509]: https://github.com/twilight-rs/twilight/pull/1508
+[#1521]: https://github.com/twilight-rs/twilight/pull/1521
+[#1540]: https://github.com/twilight-rs/twilight/pull/1540
+
+## [0.9.1] - 2022-02-12
+
+### Additions
+
+Support setting a cover image for scheduled events ([#1525] - [@7596ff]).
+
+### Changes
+
+Update many links to Discord documentation with consistent capitalization and
+page titles ([#1429] - [@itohatweb], [@7596ff]).
+
+### Fixes
+
+Properly clear attachments on edit-message-like requests ([#1499] - [@7596ff]).
+
+Update links to builders in `twilight-util` ([#1516] - [@laralove143]).
+
+[#1429]: https://github.com/twilight-rs/twilight/pull/1429
+[#1499]: https://github.com/twilight-rs/twilight/pull/1499
+[#1516]: https://github.com/twilight-rs/twilight/pull/1516
+[#1525]: https://github.com/twilight-rs/twilight/pull/1525
+
 ## [0.9.0] - 2022-01-22
 
 ### Validation
@@ -85,7 +351,7 @@ The following functions now perform validation:
 Add a sealed trait located at `request::TryIntoRequest` for converting a typed
 request builder into a raw `request::Request` ([#1162] - [@zeylahellyer]). This
 allows users to inspect requests prior to sending them which may be useful for
-debugging and unit testing. 
+debugging and unit testing.
 
 Support guild scheduled events ([#1347] - [@7596ff]). Adds the following
 methods: `Client::create_guild_scheduled_event`,
@@ -1604,9 +1870,12 @@ Initial release.
 [@HTG-YT]: https://github.com/HTG-YT
 [@itohatweb]: https://github.com/itohatweb
 [@jazevedo620]: https://github.com/jazevedo620
+[@laralove143]: https://github.com/laralove143
 [@Learath2]: https://github.com/Learath2
 [@MaxOhn]: https://github.com/MaxOhn
+[@mu-arch]: https://github.com/mu-arch
 [@nickelc]: https://github.com/nickelc
+[@oceaann]: https://github.com/oceaann
 [@sam-kirby]: https://github.com/sam-kirby
 [@Silvea12]: https://github.com/Silvea12
 [@SuperiorJT]: https://github.com/SuperiorJT
@@ -1652,6 +1921,11 @@ Initial release.
 
 [0.2.0-beta.1:app integrations]: https://github.com/discord/discord-api-docs/commit/a926694e2f8605848bda6b57d21c8817559e5cec
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.11.0
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.2
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.1
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.10.0
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/http-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/http-0.9.0
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/http-0.8.4

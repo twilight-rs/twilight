@@ -106,7 +106,7 @@ mod tests {
     assert_impl_all!(RequestReactionType<'_>: Clone, Copy, Debug, Display, Eq, Hash, PartialEq, Send, Sync);
 
     #[test]
-    fn test_display_custom_with_name() {
+    fn display_custom_with_name() {
         let reaction = RequestReactionType::Custom {
             id: Id::new(123),
             name: Some("foo"),
@@ -116,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn test_display_custom_without_name() {
+    fn display_custom_without_name() {
         let reaction = RequestReactionType::Custom {
             id: Id::new(123),
             name: None,
@@ -128,7 +128,7 @@ mod tests {
     /// Test that unicode reactions format with percent encoding.
     // We can't use the actual flag here
     #[test]
-    fn test_display_unicode() {
+    fn display_unicode() {
         let reaction = RequestReactionType::Unicode {
             // Rainbow flag 🏳️‍🌈
             name: "🏳️‍🌈",

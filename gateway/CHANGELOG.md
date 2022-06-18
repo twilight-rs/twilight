@@ -2,6 +2,104 @@
 
 Changelog for `twilight-gateway`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Additions
+
+Support Guild Scheduled Events gateway events ([#1574] - [@itohatweb]).
+
+Support Application Command Permissions V2's `COMMAND_PERMISSIONS_UPDATE`
+event ([#1708] - [@baptiste0928]).
+
+### Fixes
+
+Deduplicate `EventTypeFlags`' `GATEWAY_INVALIDATE_SESSION` value from
+`GATEWAY_HELLO` ([#1577] - [@7596ff]).
+
+### Changes
+
+Panic instead of returning an error on `ClusterBuilder::large_threshold` and
+`ShardBuilder::large_threshold` ([#1599] - [@vilgotf]).
+
+Remove `ShardScheme::Auto` and make it the cluster default ([#1600] - [@vilgotf]).
+
+Remove option around parameter in `ClusterBuilder::gateway_url` and
+`ShardBuilder::gateway_url` ([#1601] - [@vilgotf]).
+
+`tracing` is no longer an optional dependency and is always enabled
+([#1684], [#1730] - [@vilgotf], [@zeylahellyer]).
+
+[#1730]: https://github.com/twilight-rs/twilight/pull/1730
+[#1684]: https://github.com/twilight-rs/twilight/pull/1684
+[#1601]: https://github.com/twilight-rs/twilight/pull/1601
+[#1600]: https://github.com/twilight-rs/twilight/pull/1600
+[#1599]: https://github.com/twilight-rs/twilight/pull/1599
+[#1574]: https://github.com/twilight-rs/twilight/pull/1574
+[#1577]: https://github.com/twilight-rs/twilight/pull/1577
+[#1574]: https://github.com/twilight-rs/twilight/pull/1574
+
+## [0.10.2] - 2022-05-15
+
+Support gateway connections without TLS ([#1483], [#1727] - [@vilgotf]).
+
+Prominently document member chunking with an example
+([#1678] - [@zeylahellyer]).
+
+[#1727]: https://github.com/twilight-rs/twilight/pull/1727
+[#1678]: https://github.com/twilight-rs/twilight/pull/1678
+[#1483]: https://github.com/twilight-rs/twilight/pull/1483
+
+## [0.10.1] - 2022-03-20
+
+### Changes
+
+`tokio-tungstenite` has been updated to `0.17` ([#1551] - [@Gelbpunkt]).
+
+### Fixes
+
+`value-trait`, a dependency of `simd-json`, has been limited to at most `0.2.10`
+([#1596] - [@7596ff], [@vilgotf]). The crate updated its MSRV in a minor
+version, which Twilight is unable to follow.
+
+[#1551]: https://github.com/twilight-rs/twilight/pull/1551
+[#1596]: https://github.com/twilight-rs/twilight/pull/1596
+
+## [0.10.0] - 2022-03-10
+
+### Additions
+
+Add `{ClusterBuilder, ShardBuilder}::ratelimit_payloads`, which if set to false,
+enables the sending of un-ratelimited payloads ([#1501] - [@Gelbpunkt]). This is
+`true` by default. Additionally, `Information::{ratelimit_refill,
+ratelimit_requests}` are now optional.
+
+Add `EventTypeFlags::GUILD_STICKERS_UPDATE`, and rename/update
+`GUILD_EMOJIS_AND_STICKERS` ([#1520] - [@HTG-YT]).
+
+### Changes
+
+Remove the `compression` feature, which was not used in any code ([#1497] -
+[@vilgotf]).
+
+Update to Discord API version 10 ([#1540] - [@zeylahellyer]).
+
+[#1497]: https://github.com/twilight-rs/twilight/pull/1497
+[#1501]: https://github.com/twilight-rs/twilight/pull/1501
+[#1520]: https://github.com/twilight-rs/twilight/pull/1520
+[#1540]: https://github.com/twilight-rs/twilight/pull/1540
+
+## [0.9.1] - 2022-02-12
+
+### Fixes
+
+The `compression` feature was broken, so "fix" it by making it do nothing at all
+([#1482] - [@vilgotf]). Feature gates that previously required `compression` now
+require one of `zlib-stock` or `zlib-simd`. See the readme for more details.
+
+[#1482]: https://github.com/twilight-rs/twilight/pull/1482
+
 ## [0.9.0] - 2022-01-22
 
 ### Additions
@@ -716,10 +814,12 @@ Initial release.
 
 [@7596ff]: https://github.com/7596ff
 [@AEnterprise]: https://github.com/AEnterprise
+[@baptiste0928]: https://github.com/baptiste0928
 [@chamburr]: https://github.com/chamburr
 [@dvtkrlbs]: https://github.com/dvtkrlbs
 [@Erk-]: https://github.com/Erk-
 [@Gelbpunkt]: https://github.com/Gelbpunkt
+[@HTG-YT]: https://github.com/HTG-YT
 [@itohatweb]: https://github.com/itohatweb
 [@james7132]: https://github.com/james7132
 [@kotx]: https://github.com/kotx
@@ -747,6 +847,11 @@ Initial release.
 [#515]: https://github.com/twilight-rs/twilight/pull/515
 [#512]: https://github.com/twilight-rs/twilight/pull/512
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.11.0
+[0.10.2]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.2
+[0.10.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.1
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.10.0
+[0.9.1]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.1
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.9.0
 [0.8.5]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.5
 [0.8.4]: https://github.com/twilight-rs/twilight/releases/tag/gateway-0.8.4

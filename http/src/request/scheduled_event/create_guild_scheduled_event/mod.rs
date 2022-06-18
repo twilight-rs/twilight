@@ -1,3 +1,6 @@
+// clippy: due to the image serializer, which has a signature required by serde
+#![allow(clippy::ref_option_ref)]
+
 mod external;
 mod stage_instance;
 mod voice;
@@ -11,21 +14,22 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, AuditLogReasonError, Request, RequestBuilder, TryIntoRequest},
+    request::{AuditLogReason, Request, RequestBuilder, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
-    datetime::Timestamp,
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
     },
     scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
+    util::Timestamp,
 };
 use twilight_validate::request::{
-    scheduled_event_name as validate_scheduled_event_name, ValidationError,
+    audit_reason as validate_audit_reason, scheduled_event_name as validate_scheduled_event_name,
+    ValidationError,
 };
 
 #[derive(Serialize)]
@@ -38,6 +42,11 @@ struct CreateGuildScheduledEventFields<'a> {
     entity_metadata: Option<EntityMetadataFields<'a>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     entity_type: Option<EntityType>,
+    #[serde(
+        serialize_with = "crate::request::serialize_optional_image",
+        skip_serializing_if = "Option::is_none"
+    )]
+    image: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -63,7 +72,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{datetime::Timestamp, id::Id};
+/// use twilight_model::{id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
@@ -88,7 +97,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{datetime::Timestamp, id::Id};
+/// use twilight_model::{id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
@@ -129,6 +138,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 description: None,
                 entity_metadata: None,
                 entity_type: None,
+                image: None,
                 name: None,
                 privacy_level: None,
                 scheduled_end_time: None,
@@ -226,8 +236,10 @@ impl<'a> CreateGuildScheduledEvent<'a> {
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
-    fn reason(mut self, reason: &'a str) -> Result<Self, AuditLogReasonError> {
-        self.reason.replace(AuditLogReasonError::validate(reason)?);
+    fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
+        validate_audit_reason(reason)?;
+
+        self.reason.replace(reason);
 
         Ok(self)
     }

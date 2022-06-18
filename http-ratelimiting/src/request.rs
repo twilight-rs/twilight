@@ -461,7 +461,7 @@ mod tests {
     assert_impl_all!(Path: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
 
     #[test]
-    fn test_prefix_unimportant() -> Result<(), Box<dyn Error>> {
+    fn prefix_unimportant() -> Result<(), Box<dyn Error>> {
         assert_eq!(Path::Guilds, Path::from_str("guilds")?);
         assert_eq!(Path::Guilds, Path::from_str("/guilds")?);
 
@@ -469,7 +469,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_str() -> Result<(), Box<dyn Error>> {
+    fn from_str() -> Result<(), Box<dyn Error>> {
         assert_eq!(Path::ChannelsId(123), Path::from_str("/channels/123")?);
         assert_eq!(Path::WebhooksId(123), Path::from_str("/webhooks/123")?);
         assert_eq!(Path::InvitesCode, Path::from_str("/invites/abc")?);
@@ -478,7 +478,7 @@ mod tests {
     }
 
     #[test]
-    fn test_message_id() -> Result<(), Box<dyn Error>> {
+    fn message_id() -> Result<(), Box<dyn Error>> {
         assert!(matches!(
             Path::from_str("channels/123/messages/456")
                 .unwrap_err()
@@ -496,7 +496,7 @@ mod tests {
     assert_impl_all!(Method: Clone, Copy, Debug, Eq, PartialEq);
 
     #[test]
-    fn test_method_conversions() {
+    fn method_conversions() {
         assert_eq!(HttpMethod::DELETE, Method::Delete.to_http());
         assert_eq!(HttpMethod::GET, Method::Get.to_http());
         assert_eq!(HttpMethod::PATCH, Method::Patch.to_http());

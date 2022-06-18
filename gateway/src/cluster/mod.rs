@@ -12,9 +12,9 @@
 //! use std::{env, sync::Arc};
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! async fn main() -> anyhow::Result<()> {
 //!     let token = env::var("DISCORD_TOKEN")?;
-//!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS | Intents::GUILD_MESSAGES;
+//!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
 //!     let (cluster, mut events) = Cluster::new(token, intents).await?;
 //!     let cluster = Arc::new(cluster);
 //!     cluster.up().await;
@@ -31,20 +31,20 @@
 //! async fn handle_event(cluster: Arc<Cluster>, shard_id: u64, event: Event) {
 //!     match event {
 //!         Event::ShardConnected { .. } => {
-//!             println!("Shard {} is now connected", shard_id);
+//!             println!("Shard {shard_id} is now connected");
 //!         },
 //!         Event::ShardDisconnected { .. } => {
-//!             println!("Shard {} is now disconnected", shard_id);
+//!             println!("Shard {shard_id} is now disconnected");
 //!         },
 //!         Event::MessageCreate(msg) if msg.content == "!latency" => {
 //!             if let Some(shard) = cluster.shard(shard_id) {
 //!                 if let Ok(info) = shard.info() {
-//!                     println!("Shard {}'s latency is {:?}", shard_id, info.latency());
+//!                     println!("Shard {shard_id}'s latency is {:?}", info.latency());
 //!                 }
 //!             }
 //!         },
 //!         Event::MessageCreate(msg) if msg.content == "!shutdown" => {
-//!             println!("Got a shutdown request from shard {}", shard_id);
+//!             println!("Got a shutdown request from shard {shard_id}");
 //!
 //!             cluster.down();
 //!         },
@@ -62,7 +62,7 @@
 //! use std::env;
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! async fn main() -> anyhow::Result<()> {
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!     let intents = Intents::GUILD_MESSAGES;
 //!     let scheme = ShardScheme::try_from((1, 16, 320))?;

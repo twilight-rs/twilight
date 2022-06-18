@@ -41,6 +41,8 @@ pub enum AuditLogChangeKey {
     Code,
     /// Color of a role.
     Color,
+    /// Permissions for a command were updated.
+    CommandId,
     /// Member timeout state changed.
     CommunicationDisabledUntil,
     /// Whether a user is guild deafened.
@@ -75,6 +77,8 @@ pub enum AuditLogChangeKey {
     IconHash,
     /// ID of an entity.
     Id,
+    /// Hash of a guild scheduled event cover.
+    ImageHash,
     /// Invitable state of a private thread.
     Invitable,
     /// ID of the user who created an invite.
@@ -193,6 +197,7 @@ impl AuditLogChangeKey {
             Self::ChannelId => "channel_id",
             Self::Code => "code",
             Self::Color => "color",
+            Self::CommandId => "command_id",
             Self::CommunicationDisabledUntil => "communication_disabled_until",
             Self::Deaf => "deaf",
             Self::DefaultAutoArchiveDuration => "default_auto_archive_duration",
@@ -210,6 +215,7 @@ impl AuditLogChangeKey {
             Self::Hoist => "hoist",
             Self::IconHash => "icon_hash",
             Self::Id => "id",
+            Self::ImageHash => "image_hash",
             Self::Invitable => "invitable",
             Self::InviterId => "inviter_id",
             Self::Location => "location",
@@ -286,7 +292,7 @@ mod tests {
     );
 
     #[test]
-    fn test_name() {
+    fn name() {
         assert_eq!("afk_channel_id", AuditLogChangeKey::AfkChannelId.name());
         assert_eq!("afk_timeout", AuditLogChangeKey::AfkTimeout.name());
         assert_eq!("allow", AuditLogChangeKey::Allow.name());
@@ -297,6 +303,7 @@ mod tests {
         assert_eq!("channel_id", AuditLogChangeKey::ChannelId.name());
         assert_eq!("code", AuditLogChangeKey::Code.name());
         assert_eq!("color", AuditLogChangeKey::Color.name());
+        assert_eq!("command_id", AuditLogChangeKey::CommandId.name());
         assert_eq!(
             "communication_disabled_until",
             AuditLogChangeKey::CommunicationDisabledUntil.name()
@@ -328,6 +335,7 @@ mod tests {
         assert_eq!("hoist", AuditLogChangeKey::Hoist.name());
         assert_eq!("icon_hash", AuditLogChangeKey::IconHash.name());
         assert_eq!("id", AuditLogChangeKey::Id.name());
+        assert_eq!("image_hash", AuditLogChangeKey::ImageHash.name());
         assert_eq!("invitable", AuditLogChangeKey::Invitable.name());
         assert_eq!("inviter_id", AuditLogChangeKey::InviterId.name());
         assert_eq!("max_age", AuditLogChangeKey::MaxAge.name());
@@ -385,7 +393,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_serde() {
+    fn serde() {
         serde_test::assert_tokens(
             &AuditLogChangeKey::AfkChannelId,
             &[Token::UnitVariant {
@@ -454,6 +462,13 @@ mod tests {
             &[Token::UnitVariant {
                 name: "AuditLogChangeKey",
                 variant: "color",
+            }],
+        );
+        serde_test::assert_tokens(
+            &AuditLogChangeKey::CommandId,
+            &[Token::UnitVariant {
+                name: "AuditLogChangeKey",
+                variant: "command_id",
             }],
         );
         serde_test::assert_tokens(
@@ -545,6 +560,13 @@ mod tests {
             &[Token::UnitVariant {
                 name: "AuditLogChangeKey",
                 variant: "id",
+            }],
+        );
+        serde_test::assert_tokens(
+            &AuditLogChangeKey::ImageHash,
+            &[Token::UnitVariant {
+                name: "AuditLogChangeKey",
+                variant: "image_hash",
             }],
         );
         serde_test::assert_tokens(

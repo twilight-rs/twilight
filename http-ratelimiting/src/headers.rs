@@ -195,6 +195,8 @@ impl Display for HeaderName {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum HeaderType {
+    /// Type of header value is a bool.
+    Bool,
     /// Type of header value is a float.
     Float,
     /// Type of header value is an integer.
@@ -207,6 +209,7 @@ impl HeaderType {
     /// Name of the type of header.
     const fn name(self) -> &'static str {
         match self {
+            Self::Bool => "bool",
             Self::Float => "float",
             Self::Integer => "integer",
             Self::String => "string",
@@ -410,10 +413,10 @@ impl RatelimitHeaders {
     /// Parse a standard list of headers from a response:
     ///
     /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::array::IntoIter;
     /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let iter = IntoIter::new([
     ///     ("x-ratelimit-bucket", "d721dea6054f6322373d361f98e5c38b".as_bytes()),
     ///     ("x-ratelimit-limit", "10".as_bytes()),
@@ -434,10 +437,10 @@ impl RatelimitHeaders {
     /// ratelimited:
     ///
     /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::array::IntoIter;
     /// use twilight_http_ratelimiting::RatelimitHeaders;
     ///
-    /// fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let headers = Vec::from([
     ///     ("retry-after", "487".as_bytes()),
     ///     ("x-ratelimit-global", "true".as_bytes()),
@@ -473,7 +476,7 @@ impl RatelimitHeaders {
                     bucket.replace(header_str(HeaderName::Bucket, value)?);
                 }
                 HeaderName::GLOBAL => {
-                    global = header_bool(value);
+                    global = header_bool(HeaderName::Global, value)?;
                 }
                 HeaderName::LIMIT => {
                     limit.replace(header_int(HeaderName::Limit, value)?);
@@ -544,14 +547,24 @@ impl RatelimitHeaders {
 }
 
 /// Parse a value as a boolean.
-fn header_bool(value: &[u8]) -> bool {
-    value == b"true"
+fn header_bool(name: HeaderName, value: &[u8]) -> Result<bool, HeaderParsingError> {
+    let text = header_str(name, value)?;
+
+    let end = text.parse().map_err(|source| HeaderParsingError {
+        kind: HeaderParsingErrorType::Parsing {
+            kind: HeaderType::Bool,
+            name,
+            value: text.to_owned(),
+        },
+        source: Some(Box::new(source)),
+    })?;
+
+    Ok(end)
 }
 
 /// Parse a value expected to be a float.
 fn header_float(name: HeaderName, value: &[u8]) -> Result<f64, HeaderParsingError> {
-    let text = str::from_utf8(value)
-        .map_err(|source| HeaderParsingError::not_utf8(name, value.to_owned(), source))?;
+    let text = header_str(name, value)?;
 
     let end = text.parse().map_err(|source| HeaderParsingError {
         kind: HeaderParsingErrorType::Parsing {
@@ -567,8 +580,7 @@ fn header_float(name: HeaderName, value: &[u8]) -> Result<f64, HeaderParsingErro
 
 /// Parse a value expected to be an integer.
 fn header_int(name: HeaderName, value: &[u8]) -> Result<u64, HeaderParsingError> {
-    let text = str::from_utf8(value)
-        .map_err(|source| HeaderParsingError::not_utf8(name, value.to_owned(), source))?;
+    let text = header_str(name, value)?;
 
     let end = text.parse().map_err(|source| HeaderParsingError {
         kind: HeaderParsingErrorType::Parsing {
@@ -634,7 +646,7 @@ mod tests {
     assert_impl_all!(RatelimitHeaders: Clone, Debug, Send, Sync);
 
     #[test]
-    fn test_global() -> Result<(), Box<dyn Error>> {
+    fn global() -> Result<(), Box<dyn Error>> {
         let map = {
             let mut map = HeaderMap::new();
             map.insert(
@@ -657,7 +669,7 @@ mod tests {
     }
 
     #[test]
-    fn test_global_with_scope() -> Result<(), Box<dyn Error>> {
+    fn global_with_scope() -> Result<(), Box<dyn Error>> {
         let map = {
             let mut map = HeaderMap::new();
             map.insert(
@@ -693,7 +705,7 @@ mod tests {
     }
 
     #[test]
-    fn test_present() -> Result<(), Box<dyn Error>> {
+    fn present() -> Result<(), Box<dyn Error>> {
         let map = {
             let mut map = HeaderMap::new();
             map.insert(
@@ -761,7 +773,7 @@ mod tests {
     }
 
     #[test]
-    fn test_name() {
+    fn name() {
         assert_eq!("x-ratelimit-bucket", HeaderName::BUCKET);
         assert_eq!("x-ratelimit-global", HeaderName::GLOBAL);
         assert_eq!("x-ratelimit-limit", HeaderName::LIMIT);
@@ -781,7 +793,8 @@ mod tests {
     }
 
     #[test]
-    fn test_type() {
+    fn type_name() {
+        assert_eq!("bool", HeaderType::Bool.name());
         assert_eq!("float", HeaderType::Float.name());
         assert_eq!("integer", HeaderType::Integer.name());
         assert_eq!("string", HeaderType::String.name());

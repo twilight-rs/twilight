@@ -13,7 +13,10 @@
 //! dereferences to the value.
 
 use crate::{
-    model::{CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence, CachedSticker},
+    model::{
+        CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence, CachedSticker,
+        CachedVoiceState,
+    },
     GuildResource, InMemoryCache,
 };
 use dashmap::{
@@ -22,7 +25,7 @@ use dashmap::{
 };
 use std::{collections::VecDeque, hash::Hash, ops::Deref};
 use twilight_model::{
-    channel::{Group, GuildChannel, PrivateChannel, StageInstance},
+    channel::{Channel, StageInstance},
     guild::{GuildIntegration, Role},
     id::{
         marker::{
@@ -32,7 +35,6 @@ use twilight_model::{
         Id,
     },
     user::User,
-    voice::VoiceState,
 };
 
 /// Reference to a resource value being iterated over in the cache.
@@ -96,7 +98,7 @@ impl<K: Eq + Hash, V> Deref for IterReference<'_, K, V> {
 ///     .filter(|user| user.name.starts_with("twi"))
 ///     .count();
 ///
-/// println!("'twi' users: {}", count);
+/// println!("'twi' users: {count}");
 /// ```
 ///
 /// # Potential inefficiency
@@ -144,29 +146,19 @@ impl<'a> InMemoryCacheIter<'a> {
         self.0
     }
 
+    /// Create an iterator over the channels in the cache.
+    pub fn channels(&self) -> ResourceIter<'a, Id<ChannelMarker>, Channel> {
+        ResourceIter::new(self.0.channels.iter())
+    }
+
     /// Create an iterator over the emojis in the cache.
     pub fn emojis(&self) -> ResourceIter<'a, Id<EmojiMarker>, GuildResource<CachedEmoji>> {
         ResourceIter::new(self.0.emojis.iter())
     }
 
-    /// Create an iterator over the groups in the cache.
-    pub fn groups(&self) -> ResourceIter<'a, Id<ChannelMarker>, Group> {
-        ResourceIter::new(self.0.groups.iter())
-    }
-
     /// Create an iterator over the guilds in the cache.
     pub fn guilds(&self) -> ResourceIter<'a, Id<GuildMarker>, CachedGuild> {
         ResourceIter::new(self.0.guilds.iter())
-    }
-
-    /// Create an iterator over the guild channels in the cache.
-    ///
-    /// This does *not* iterate over the channels in a particular guild but
-    /// rather iterates over all [`GuildChannel`]s in the cache.
-    pub fn guild_channels(
-        &self,
-    ) -> ResourceIter<'a, Id<ChannelMarker>, GuildResource<GuildChannel>> {
-        ResourceIter::new(self.0.channels_guild.iter())
     }
 
     /// Create an iterator over the integrations in the cache.
@@ -192,11 +184,6 @@ impl<'a> InMemoryCacheIter<'a> {
         ResourceIter::new(self.0.presences.iter())
     }
 
-    /// Create an iterator over the private channels in the cache.
-    pub fn private_channels(&self) -> ResourceIter<'a, Id<ChannelMarker>, PrivateChannel> {
-        ResourceIter::new(self.0.channels_private.iter())
-    }
-
     /// Create an iterator over the roles in the cache.
     pub fn roles(&self) -> ResourceIter<'a, Id<RoleMarker>, GuildResource<Role>> {
         ResourceIter::new(self.0.roles.iter())
@@ -220,7 +207,9 @@ impl<'a> InMemoryCacheIter<'a> {
     }
 
     /// Create an iterator over the voice states in the cache.
-    pub fn voice_states(&self) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), VoiceState> {
+    pub fn voice_states(
+        &self,
+    ) -> ResourceIter<'a, (Id<GuildMarker>, Id<UserMarker>), CachedVoiceState> {
         ResourceIter::new(self.0.voice_states.iter())
     }
 }
@@ -244,7 +233,7 @@ impl<'a> InMemoryCacheIter<'a> {
 ///     .filter(|member| member.pending())
 ///     .count();
 ///
-/// println!("pending users: {}", count);
+/// println!("pending users: {count}");
 /// ```
 pub struct ResourceIter<'a, K, V> {
     iter: Iter<'a, K, V>,
@@ -286,11 +275,7 @@ impl<'a, K: Eq + Hash, V> Iterator for ResourceIter<'a, K, V> {
 ///
 /// for message_id in message_ids {
 ///     if let Some(message) = cache.message(message_id) {
-///         println!(
-///             "message {} content: {}",
-///             message_id,
-///             message.content(),
-///         );
+///         println!("message {message_id} content: {}", message.content());
 ///     }
 /// }
 /// # Some(()) }
@@ -348,7 +333,7 @@ mod tests {
     assert_impl_all!(ResourceIter<'_, Id<UserMarker>, User>: Iterator, Send, Sync);
 
     #[test]
-    fn test_iter() {
+    fn iter() {
         let guild_id = Id::new(1);
         let users = &[
             (Id::new(2), Some(guild_id)),

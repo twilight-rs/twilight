@@ -7,6 +7,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[must_use = "has no effect if not built into an AllowedMentions"]
 pub struct AllowedMentionsBuilder(AllowedMentions);
 
 impl AllowedMentionsBuilder {
@@ -122,7 +123,7 @@ mod tests {
     );
 
     #[test]
-    fn test_max_mentioned() {
+    fn max_mentioned() {
         let value = AllowedMentionsBuilder::new()
             .everyone()
             .replied_user()
@@ -142,7 +143,7 @@ mod tests {
     }
 
     #[test]
-    fn test_validation() {
+    fn validation() {
         let value = AllowedMentionsBuilder::new()
             .users()
             .user_ids(vec![Id::new(100), Id::new(200)])

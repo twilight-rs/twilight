@@ -10,7 +10,7 @@ pub struct UserProfile {
     /// Accent color of the user's banner.
     ///
     /// This is an integer representation of a hexadecimal color code.
-    pub accent_color: Option<u64>,
+    pub accent_color: Option<u32>,
     pub avatar: Option<ImageHash>,
     /// Hash of the user's banner image.
     pub banner: Option<ImageHash>,
@@ -65,7 +65,7 @@ mod tests {
             },
             Token::Str("accent_color"),
             Token::Some,
-            Token::U64(16_579_836),
+            Token::U32(16_579_836),
             Token::Str("avatar"),
             Token::Some,
             Token::Str(image_hash::AVATAR_INPUT),
@@ -103,7 +103,7 @@ mod tests {
     }
 
     #[test]
-    fn test_user_profile() {
+    fn user_profile() {
         let value = UserProfile {
             accent_color: Some(16_579_836),
             avatar: Some(image_hash::AVATAR),

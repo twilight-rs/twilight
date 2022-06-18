@@ -7,7 +7,7 @@ use twilight_model::id::{
 };
 
 fn format_id<T: Display>(input: &mut String, formatter: &T) {
-    input.write_fmt(format_args!("{}", formatter)).unwrap();
+    input.write_fmt(format_args!("{formatter}")).unwrap();
 }
 
 fn criterion_benchmark(c: &mut Criterion) {

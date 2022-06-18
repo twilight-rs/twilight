@@ -41,14 +41,13 @@ pub use self::{
 use self::member::MemberListDeserializer;
 use super::gateway::presence::PresenceListDeserializer;
 use crate::{
-    channel::{message::sticker::Sticker, GuildChannel, StageInstance},
-    datetime::Timestamp,
+    channel::{message::sticker::Sticker, Channel, StageInstance},
     gateway::presence::Presence,
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
     voice::voice_state::VoiceState,
 };
 use serde::{
@@ -68,7 +67,7 @@ pub struct Guild {
     pub approximate_presence_count: Option<u64>,
     pub banner: Option<ImageHash>,
     #[serde(default)]
-    pub channels: Vec<GuildChannel>,
+    pub channels: Vec<Channel>,
     pub default_message_notifications: DefaultMessageNotificationLevel,
     pub description: Option<String>,
     pub discovery_splash: Option<ImageHash>,
@@ -117,7 +116,7 @@ pub struct Guild {
     pub system_channel_flags: SystemChannelFlags,
     pub system_channel_id: Option<Id<ChannelMarker>>,
     #[serde(default)]
-    pub threads: Vec<GuildChannel>,
+    pub threads: Vec<Channel>,
     #[serde(default)]
     pub unavailable: bool,
     pub vanity_url_code: Option<String>,
@@ -202,7 +201,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut approximate_member_count = None::<Option<_>>;
                 let mut approximate_presence_count = None::<Option<_>>;
                 let mut banner = None::<Option<_>>;
-                let mut channels = None::<Vec<GuildChannel>>;
+                let mut channels = None::<Vec<Channel>>;
                 let mut default_message_notifications = None;
                 let mut description = None::<Option<_>>;
                 let mut discovery_splash = None::<Option<_>>;
@@ -235,7 +234,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut stickers = None::<Vec<Sticker>>;
                 let mut system_channel_id = None::<Option<_>>;
                 let mut system_channel_flags = None;
-                let mut threads = None::<Vec<GuildChannel>>;
+                let mut threads = None::<Vec<Channel>>;
                 let mut rules_channel_id = None::<Option<_>>;
                 let mut unavailable = None;
                 let mut verification_level = None;
@@ -244,38 +243,25 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut widget_channel_id = None::<Option<_>>;
                 let mut widget_enabled = None::<Option<_>>;
 
-                #[cfg(feature = "tracing")]
                 let span = tracing::trace_span!("deserializing guild");
-                #[cfg(feature = "tracing")]
                 let _span_enter = span.enter();
 
                 loop {
-                    #[cfg(feature = "tracing")]
                     let span_child = tracing::trace_span!("iterating over element");
-                    #[cfg(feature = "tracing")]
                     let _span_child_enter = span_child.enter();
 
                     let key = match map.next_key() {
                         Ok(Some(key)) => {
-                            #[cfg(feature = "tracing")]
                             tracing::trace!(?key, "found key");
 
                             key
                         }
                         Ok(None) => break,
-                        #[cfg(feature = "tracing")]
                         Err(why) => {
                             // Encountered when we run into an unknown key.
                             map.next_value::<IgnoredAny>()?;
 
-                            tracing::trace!("ran into an unknown key: {:?}", why);
-
-                            continue;
-                        }
-                        #[cfg(not(feature = "tracing"))]
-                        Err(_) => {
-                            // Encountered when we run into an unknown key.
-                            map.next_value::<IgnoredAny>()?;
+                            tracing::trace!("ran into an unknown key: {why:?}");
 
                             continue;
                         }
@@ -678,7 +664,6 @@ impl<'de> Deserialize<'de> for Guild {
                 let widget_channel_id = widget_channel_id.unwrap_or_default();
                 let widget_enabled = widget_enabled.unwrap_or_default();
 
-                #[cfg(feature = "tracing")]
                 tracing::trace!(
                     ?afk_channel_id,
                     %afk_timeout,
@@ -712,7 +697,6 @@ impl<'de> Deserialize<'de> for Guild {
                 );
 
                 // Split in two due to generic impl only going up to 32.
-                #[cfg(feature = "tracing")]
                 tracing::trace!(
                     ?premium_subscription_count,
                     ?premium_tier,
@@ -734,26 +718,7 @@ impl<'de> Deserialize<'de> for Guild {
                 );
 
                 for channel in &mut channels {
-                    match channel {
-                        GuildChannel::Category(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::NewsThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::PrivateThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::PublicThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::Text(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::Voice(c) | GuildChannel::Stage(c) => {
-                            c.guild_id.replace(id);
-                        }
-                    }
+                    channel.guild_id = Some(id);
                 }
 
                 for member in &mut members {
@@ -765,22 +730,7 @@ impl<'de> Deserialize<'de> for Guild {
                 }
 
                 for thread in &mut threads {
-                    match thread {
-                        GuildChannel::NewsThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::PrivateThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        GuildChannel::PublicThread(c) => {
-                            c.guild_id.replace(id);
-                        }
-                        _ => {
-                            return Err(DeError::custom(
-                                "non-thread channel found in threads field",
-                            ))
-                        }
-                    }
+                    thread.guild_id = Some(id);
                 }
 
                 for voice_state in &mut voice_states {
@@ -898,16 +848,16 @@ mod tests {
         Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     };
     use crate::{
-        datetime::{Timestamp, TimestampParseError},
         id::Id,
         test::image_hash,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_guild() -> Result<(), TimestampParseError> {
+    fn guild() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
 
         let value = Guild {

@@ -2,6 +2,27 @@
 
 Changelog for `twilight-mention`.
 
+## [0.11.0] - 2022-05-15
+
+MSRV has been bumped to 1.60.
+
+### Changes
+
+Remove member nickname support as it was removed by Discord
+([#1650] - [@zeylahellyer]).
+
+[#1650]: https://github.com/twilight-rs/twilight/pull/1650
+
+## [0.10.0] - 2022-03-10
+
+### Changes
+
+Implementations of `Mention` for `CategoryChannel`, `Group`, `GuildChannel`,
+`PrivateChannel`, `TextChannel`, and `VoiceChannel` have been removed now that
+`Channel` is a unified type ([#1449] - [@zeylahellyer]).
+
+[#1449]: https://github.com/twilight-rs/twilight/pull/1449
+
 ## [0.9.0] - 2022-01-22
 
 ### Changes
@@ -149,6 +170,8 @@ Initial release.
 
 [#513]: https://github.com/twilight-rs/twilight/pull/513
 
+[0.11.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.11.0
+[0.10.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.10.0
 [0.9.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.9.0
 [0.8.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.8.0
 [0.7.0]: https://github.com/twilight-rs/twilight/releases/tag/mention-0.7.0

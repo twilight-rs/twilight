@@ -85,7 +85,7 @@ mod tests {
     assert_impl_all!(EmbedField: From<EmbedFieldBuilder>);
 
     #[test]
-    fn test_new_errors() {
+    fn new_errors() {
         assert!(matches!(
             EmbedBuilder::new().field(EmbedFieldBuilder::new("", "a")).build().unwrap_err().kind(),
             EmbedErrorType::FieldNameEmpty { name, value }
@@ -109,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn test_builder_inline() {
+    fn builder_inline() {
         let expected = EmbedField {
             inline: true,
             name: "name".to_owned(),
@@ -121,7 +121,7 @@ mod tests {
     }
 
     #[test]
-    fn test_builder_no_inline() {
+    fn builder_no_inline() {
         let expected = EmbedField {
             inline: false,
             name: "name".to_owned(),

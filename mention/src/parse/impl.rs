@@ -19,7 +19,7 @@ pub trait ParseMention: private::Sealed {
     /// Leading sigil(s) of the mention after the leading arrow (`<`).
     ///
     /// In a channel mention, the sigil is `#`. In the case of a user mention,
-    /// the sigil may be either `@` or `@!`.
+    /// the sigil would be `@`.
     const SIGILS: &'static [&'static str];
 
     /// Parse a mention out of a buffer.
@@ -102,7 +102,7 @@ impl ParseMention for MentionType {
     /// Sigils for any type of mention.
     ///
     /// Contains all of the sigils of every other type of mention.
-    const SIGILS: &'static [&'static str] = &["#", ":", "@&", "@!", "@", "t:"];
+    const SIGILS: &'static [&'static str] = &["#", ":", "@&", "@", "t:"];
 
     /// Parse a mention from a string slice.
     ///
@@ -193,10 +193,8 @@ impl ParseMention for Timestamp {
 }
 
 impl ParseMention for Id<UserMarker> {
-    /// Sigils for User ID mentions.
-    ///
-    /// Unlike other IDs, user IDs have two possible sigils: `@!` and `@`.
-    const SIGILS: &'static [&'static str] = &["@!", "@"];
+    /// Sigil for User ID mentions.
+    const SIGILS: &'static [&'static str] = &["@"];
 
     fn parse(buf: &str) -> Result<Self, ParseMentionError<'_>>
     where
@@ -377,16 +375,16 @@ mod tests {
     assert_impl_all!(Id<UserMarker>: ParseMention, Sealed);
 
     #[test]
-    fn test_sigils() {
+    fn sigils() {
         assert_eq!(&["#"], Id::<ChannelMarker>::SIGILS);
         assert_eq!(&[":"], Id::<EmojiMarker>::SIGILS);
-        assert_eq!(&["#", ":", "@&", "@!", "@", "t:"], MentionType::SIGILS);
+        assert_eq!(&["#", ":", "@&", "@", "t:"], MentionType::SIGILS);
         assert_eq!(&["@&"], Id::<RoleMarker>::SIGILS);
-        assert_eq!(&["@!", "@"], Id::<UserMarker>::SIGILS);
+        assert_eq!(&["@"], Id::<UserMarker>::SIGILS);
     }
 
     #[test]
-    fn test_parse_channel_id() {
+    fn parse_channel_id() {
         assert_eq!(Id::<ChannelMarker>::new(123), Id::parse("<#123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::Sigil {
@@ -398,7 +396,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_emoji_id() {
+    fn parse_emoji_id() {
         assert_eq!(
             Id::<EmojiMarker>::new(123),
             Id::parse("<:name:123>").unwrap()
@@ -413,7 +411,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_mention_type() {
+    fn parse_mention_type() {
         assert_eq!(
             MentionType::Channel(Id::new(123)),
             MentionType::parse("<#123>").unwrap()
@@ -432,7 +430,7 @@ mod tests {
         );
         assert_eq!(
             &ParseMentionErrorType::Sigil {
-                expected: &["#", ":", "@&", "@!", "@", "t:"],
+                expected: &["#", ":", "@&", "@", "t:"],
                 found: Some(';'),
             },
             MentionType::parse("<;123>").unwrap_err().kind(),
@@ -440,7 +438,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_role_id() {
+    fn parse_role_id() {
         assert_eq!(Id::<RoleMarker>::new(123), Id::parse("<@&123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::Sigil {
@@ -452,7 +450,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_timestamp() -> Result<(), ParseMentionError<'static>> {
+    fn parse_timestamp() -> Result<(), ParseMentionError<'static>> {
         assert_eq!(Timestamp::new(123, None), Timestamp::parse("<t:123>")?);
         assert_eq!(
             Timestamp::new(123, Some(TimestampStyle::RelativeTime)),
@@ -467,7 +465,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_user_id() {
+    fn parse_user_id() {
         assert_eq!(Id::<UserMarker>::new(123), Id::parse("<@123>").unwrap());
         assert_eq!(
             &ParseMentionErrorType::IdNotU64 { found: "&123" },
@@ -476,7 +474,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_id_wrong_sigil() {
+    fn parse_id_wrong_sigil() {
         assert_eq!(
             &ParseMentionErrorType::Sigil {
                 expected: &["@"],

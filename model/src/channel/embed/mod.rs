@@ -11,7 +11,7 @@ pub use self::{
     provider::EmbedProvider, thumbnail::EmbedThumbnail, video::EmbedVideo,
 };
 
-use crate::datetime::Timestamp;
+use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -50,12 +50,12 @@ mod tests {
         Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedProvider, EmbedThumbnail,
         EmbedVideo,
     };
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use crate::util::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
     use std::str::FromStr;
 
     #[test]
-    fn test_embed() -> Result<(), TimestampParseError> {
+    fn embed() -> Result<(), TimestampParseError> {
         let timestamp = Timestamp::from_str("2021-08-02T16:56:43.772000+00:00")?;
 
         let value = Embed {
@@ -107,7 +107,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_embed_complete() -> Result<(), TimestampParseError> {
+    fn embed_complete() -> Result<(), TimestampParseError> {
         let timestamp = Timestamp::from_str("2021-08-02T16:56:43.772000+00:00")?;
 
         let value = Embed {

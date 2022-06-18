@@ -40,17 +40,21 @@ bitflags! {
         const MANAGE_EMOJIS_AND_STICKERS = 1 << 30;
         const USE_SLASH_COMMANDS = 1 << 31;
         const REQUEST_TO_SPEAK = 1 << 32;
+        /// Allows for creating, editing, and deleting scheduled events.
+        const MANAGE_EVENTS = 1 << 33;
         /// Allows for deleting and archiving threads, and viewing all private threads.
         const MANAGE_THREADS = 1 << 34;
         /// Allows for creating public threads.
         const CREATE_PUBLIC_THREADS = 1 << 35;
         /// Allows for creating private threads.
         const CREATE_PRIVATE_THREADS = 1 << 36;
+        /// Allows the usage of custom stickers from other servers.
+        const USE_EXTERNAL_STICKERS = 1 << 37;
         /// Allows for sending messages in threads.
         const SEND_MESSAGES_IN_THREADS = 1 << 38;
-        /// Allows for launching activities (applications with the `EMBEDDED`
+        /// Allows for using activities (applications with the `EMBEDDED`
         /// flag) in a voice channel.
-        const START_EMBEDDED_ACTIVITIES = 1 << 39;
+        const USE_EMBEDDED_ACTIVITIES = 1 << 39;
         /// Allows for timing out users to prevent them from sending or reacting
         /// to messages in chat and threads, and from speaking in voice and
         /// stage channels.

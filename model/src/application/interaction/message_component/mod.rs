@@ -22,11 +22,11 @@ use serde::Serialize;
 pub struct MessageComponentInteraction {
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
-    /// ID of the channel the interaction was triggered from.
+    /// ID of the channel the interaction was invoked in.
     pub channel_id: Id<ChannelMarker>,
     /// Data from the invoked command.
     pub data: MessageComponentInteractionData,
-    /// ID of the guild the interaction was triggered from.
+    /// ID of the guild the interaction was invoked in.
     pub guild_id: Option<Id<GuildMarker>>,
     /// Guild's preferred locale.
     ///
@@ -38,11 +38,13 @@ pub struct MessageComponentInteraction {
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of the interaction.
+    ///
+    /// Should always be `InteractionType::MessageComponent`.
     #[serde(rename = "type")]
     pub kind: InteractionType,
-    /// Selected language of the user who triggered the interaction.
+    /// Selected language of the user who invoked the interaction.
     pub locale: String,
-    /// Member that triggered the interaction.
+    /// Member that invoked the interaction.
     ///
     /// Present when the command is used in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,7 +56,7 @@ pub struct MessageComponentInteraction {
     pub message: Message,
     /// Token of the interaction.
     pub token: String,
-    /// User that triggered the interaction.
+    /// User that invoked the interaction.
     ///
     /// Present when the command is used in a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -71,17 +73,17 @@ impl MessageComponentInteraction {
     /// [`member`]: Self::member
     /// [`user`]: Self::user
     pub const fn author_id(&self) -> Option<Id<UserMarker>> {
-        if let Some(member) = &self.member {
-            if let Some(user) = &member.user {
-                return Some(user.id);
-            }
-        }
+        super::author_id(self.user.as_ref(), self.member.as_ref())
+    }
 
-        if let Some(user) = &self.user {
-            return Some(user.id);
-        }
+    /// Whether the interaction was invoked in a DM.
+    pub const fn is_dm(&self) -> bool {
+        self.user.is_some()
+    }
 
-        None
+    /// Whether the interaction was invoked in a guild.
+    pub const fn is_guild(&self) -> bool {
+        self.member.is_some()
     }
 }
 
@@ -89,12 +91,14 @@ impl MessageComponentInteraction {
 mod tests {
     use super::{MessageComponentInteraction, MessageComponentInteractionData};
     use crate::{
-        application::{component::ComponentType, interaction::InteractionType},
+        application::{
+            component::ComponentType,
+            interaction::{tests::user, InteractionType},
+        },
         channel::message::{Message, MessageType},
-        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::{marker::UserMarker, Id},
-        user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -123,28 +127,8 @@ mod tests {
         Sync
     );
 
-    fn user(id: Id<UserMarker>) -> User {
-        User {
-            accent_color: None,
-            avatar: None,
-            banner: None,
-            bot: false,
-            discriminator: 4444,
-            email: None,
-            flags: None,
-            id,
-            locale: None,
-            mfa_enabled: None,
-            name: "twilight".to_owned(),
-            premium_type: None,
-            public_flags: None,
-            system: None,
-            verified: None,
-        }
-    }
-
     #[test]
-    fn test_author_id() -> Result<(), TimestampParseError> {
+    fn author_id() -> Result<(), TimestampParseError> {
         const USER_ID: Id<UserMarker> = Id::new(7);
 
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
@@ -210,6 +194,7 @@ mod tests {
         };
 
         assert_eq!(Some(USER_ID), in_guild.author_id());
+        assert!(in_guild.is_guild());
 
         let in_dm = MessageComponentInteraction {
             member: None,
@@ -221,6 +206,7 @@ mod tests {
             ..in_guild
         };
         assert_eq!(Some(USER_ID), in_dm.author_id());
+        assert!(in_dm.is_dm());
 
         Ok(())
     }

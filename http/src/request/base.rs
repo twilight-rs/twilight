@@ -25,11 +25,11 @@ use serde::Serialize;
 /// }).body(body).build();
 /// ```
 #[derive(Debug)]
+#[must_use = "request has not been fully built"]
 pub struct RequestBuilder(Request);
 
 impl RequestBuilder {
     /// Create a new request builder.
-    #[must_use = "request has not been fully built"]
     pub fn new(route: &Route<'_>) -> Self {
         Self(Request::from_route(route))
     }
@@ -63,7 +63,6 @@ impl RequestBuilder {
     /// ).build();
     /// # Ok(()) }
     /// ```
-    #[must_use = "request has not been fully built"]
     pub const fn raw(method: Method, ratelimit_path: Path, path_and_query: String) -> Self {
         Self(Request {
             body: None,
@@ -84,7 +83,6 @@ impl RequestBuilder {
     }
 
     /// Set the contents of the body.
-    #[must_use = "request has not been fully built"]
     pub fn body(mut self, body: Vec<u8>) -> Self {
         self.0.body = Some(body);
 
@@ -93,7 +91,6 @@ impl RequestBuilder {
 
     /// Set the multipart form.
     #[allow(clippy::missing_const_for_fn)]
-    #[must_use = "request has not been fully built"]
     pub fn form(mut self, form: Form) -> Self {
         self.0.form = Some(form);
 
@@ -101,7 +98,6 @@ impl RequestBuilder {
     }
 
     /// Set the headers to add.
-    #[must_use = "request has not been fully built"]
     pub fn headers(mut self, iter: impl Iterator<Item = (HeaderName, HeaderValue)>) -> Self {
         self.0.headers.replace(iter.collect());
 
@@ -116,7 +112,6 @@ impl RequestBuilder {
     /// serialized as JSON.
     ///
     /// [`ErrorType::Json`]: crate::error::ErrorType::Json
-    #[must_use = "request has not been fully built"]
     pub fn json(self, to: &impl Serialize) -> Result<Self, Error> {
         let bytes = crate::json::to_vec(to).map_err(Error::json)?;
 
@@ -134,7 +129,7 @@ impl RequestBuilder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Request {
     pub(crate) body: Option<Vec<u8>>,
     pub(crate) form: Option<Form>,

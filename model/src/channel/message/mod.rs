@@ -22,7 +22,6 @@ use self::sticker::MessageSticker;
 use crate::{
     application::component::Component,
     channel::{embed::Embed, Attachment, Channel, ChannelMention},
-    datetime::Timestamp,
     guild::PartialMember,
     id::{
         marker::{
@@ -31,6 +30,7 @@ use crate::{
         Id,
     },
     user::User,
+    util::Timestamp,
 };
 use serde::{Deserialize, Serialize};
 
@@ -45,14 +45,61 @@ pub struct Message {
     /// Sent if the message is a response to an Interaction.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
+    /// List of attachments.
+    ///
+    /// Receiving the attachments of messages requires that the
+    /// [Message Content Intent] be enabled for the application. In the case of
+    /// receiving messages over the Gateway, the intent must also be enabled for
+    /// the session.
+    ///
+    /// Message attachments will be empty unless the [Message Content Intent] is
+    /// enabled, the message was sent by the current user, or the message is in
+    /// a direct message channel.
+    ///
+    /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     pub attachments: Vec<Attachment>,
     pub author: User,
     pub channel_id: Id<ChannelMarker>,
-    /// List of provided message components.
+    /// List of provided components, such as buttons.
+    ///
+    /// Receiving the components of messages requires that the
+    /// [Message Content Intent] be enabled for the application. In the case of
+    /// receiving messages over the Gateway, the intent must also be enabled for
+    /// the session.
+    ///
+    /// Message components will be empty unless the [Message Content Intent] is
+    /// enabled, the message was sent by the current user, or the message is in
+    /// a direct message channel.
+    ///
+    /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub components: Vec<Component>,
+    /// Content of the message.
+    ///
+    /// Receiving the content of messages requires that the
+    /// [Message Content Intent] be enabled for the application. In the case of
+    /// receiving messages over the Gateway, the intent must also be enabled for
+    /// the session.
+    ///
+    /// Message content will be empty unless the [Message Content Intent] is
+    /// enabled, the message was sent by the current user, or the message is in
+    /// a direct message channel.
+    ///
+    /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     pub content: String,
     pub edited_timestamp: Option<Timestamp>,
+    /// List of embeds.
+    ///
+    /// Receiving the embeds of messages requires that the
+    /// [Message Content Intent] be enabled for the application. In the case of
+    /// receiving messages over the Gateway, the intent must also be enabled for
+    /// the session.
+    ///
+    /// Message embeds will be empty unless the [Message Content Intent] is
+    /// enabled, the message was sent by the current user, or the message is in
+    /// a direct message channel.
+    ///
+    /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     pub embeds: Vec<Embed>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
@@ -102,18 +149,18 @@ mod tests {
     };
     use crate::{
         channel::{ChannelType, ReactionType},
-        datetime::{Timestamp, TimestampParseError},
         guild::PartialMember,
         id::Id,
         test::image_hash,
         user::User,
+        util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
     use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_message_deserialization() -> Result<(), TimestampParseError> {
+    fn message_deserialization() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");
 
@@ -297,7 +344,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_message_deserialization_complete() -> Result<(), TimestampParseError> {
+    fn message_deserialization_complete() -> Result<(), TimestampParseError> {
         let edited_timestamp = Timestamp::from_str("2021-08-10T12:41:51.602000+00:00")?;
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
         let timestamp = Timestamp::from_micros(1_580_608_922_020_000).expect("non zero");

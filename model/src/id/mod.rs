@@ -72,7 +72,7 @@ use std::{
 /// [channel]: marker::ChannelMarker
 /// [marker documentation]: marker
 /// [user]: marker::UserMarker
-#[derive(Clone, Copy)]
+#[repr(transparent)]
 pub struct Id<T> {
     phantom: PhantomData<T>,
     value: NonZeroU64,
@@ -99,7 +99,7 @@ impl<T> Id<T> {
     ///
     /// const ID: Id<GenericMarker> = Id::new(123);
     ///
-    /// println!("id: {}", ID);
+    /// println!("id: {ID}");
     /// ```
     ///
     /// # Panics
@@ -204,6 +204,14 @@ impl<T> Id<T> {
         Id::from_nonzero(self.value)
     }
 }
+
+impl<T> Clone for Id<T> {
+    fn clone(&self) -> Self {
+        Self::from_nonzero(self.value)
+    }
+}
+
+impl<T> Copy for Id<T> {}
 
 impl<T> Debug for Id<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -414,22 +422,22 @@ mod tests {
         str::FromStr,
     };
 
-    assert_impl_all!(ApplicationMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(AttachmentMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(AuditLogEntryMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(ChannelMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(CommandMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(CommandVersionMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(EmojiMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(GenericMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(GuildMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(IntegrationMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(InteractionMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(MessageMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(RoleMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(StageMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(UserMarker: Clone, Copy, Debug, Send, Sync);
-    assert_impl_all!(WebhookMarker: Clone, Copy, Debug, Send, Sync);
+    assert_impl_all!(ApplicationMarker: Debug, Send, Sync);
+    assert_impl_all!(AttachmentMarker: Debug, Send, Sync);
+    assert_impl_all!(AuditLogEntryMarker: Debug, Send, Sync);
+    assert_impl_all!(ChannelMarker: Debug, Send, Sync);
+    assert_impl_all!(CommandMarker: Debug, Send, Sync);
+    assert_impl_all!(CommandVersionMarker: Debug, Send, Sync);
+    assert_impl_all!(EmojiMarker: Debug, Send, Sync);
+    assert_impl_all!(GenericMarker: Debug, Send, Sync);
+    assert_impl_all!(GuildMarker: Debug, Send, Sync);
+    assert_impl_all!(IntegrationMarker: Debug, Send, Sync);
+    assert_impl_all!(InteractionMarker: Debug, Send, Sync);
+    assert_impl_all!(MessageMarker: Debug, Send, Sync);
+    assert_impl_all!(RoleMarker: Debug, Send, Sync);
+    assert_impl_all!(StageMarker: Debug, Send, Sync);
+    assert_impl_all!(UserMarker: Debug, Send, Sync);
+    assert_impl_all!(WebhookMarker: Debug, Send, Sync);
     assert_impl_all!(Id<GenericMarker>:
         Clone, Copy, Debug, Deserialize<'static>, Display, Eq, From<NonZeroU64>,
         FromStr, Hash, Into<NonZeroU64>, Into<u64>, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
@@ -439,7 +447,7 @@ mod tests {
     /// Test that various methods of initializing IDs are correct, such as via
     /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
     #[test]
-    fn test_initializers() -> Result<(), Box<dyn Error>> {
+    fn initializers() -> Result<(), Box<dyn Error>> {
         // `Id::new_checked`
         assert!(Id::<GenericMarker>::new_checked(0).is_none());
         assert_eq!(Some(1), Id::<GenericMarker>::new_checked(1).map(Id::get));
@@ -470,7 +478,7 @@ mod tests {
 
     /// Test that conversion methods are correct.
     #[test]
-    fn test_conversions() {
+    fn conversions() {
         // `Into`
         assert_eq!(1, u64::from(Id::<GenericMarker>::new(1)));
         assert_eq!(
@@ -488,22 +496,22 @@ mod tests {
 
     /// Test that casting IDs maintains the original value.
     #[test]
-    fn test_cast() {
+    fn cast() {
         let id = Id::<GenericMarker>::new(123);
         assert_eq!(123_u64, id.cast::<RoleMarker>());
     }
 
     /// Test that debugging IDs formats the generic and value as a newtype.
     #[test]
-    fn test_debug() {
+    fn debug() {
         let id = Id::<RoleMarker>::new(114_941_315_417_899_012);
 
-        assert_eq!("Id<RoleMarker>(114941315417899012)", format!("{:?}", id));
+        assert_eq!("Id<RoleMarker>(114941315417899012)", format!("{id:?}"));
     }
 
     /// Test that display formatting an ID formats the value.
     #[test]
-    fn test_display() {
+    fn display() {
         let id = Id::<GenericMarker>::new(114_941_315_417_899_012);
 
         assert_eq!("114941315417899012", id.to_string());
@@ -511,7 +519,7 @@ mod tests {
 
     /// Test that hashing an ID is equivalent to hashing only its inner value.
     #[test]
-    fn test_hash() {
+    fn hash() {
         let id = Id::<GenericMarker>::new(123);
 
         let mut id_hasher = DefaultHasher::new();
@@ -525,7 +533,7 @@ mod tests {
 
     /// Test that IDs are ordered exactly like their inner values.
     #[test]
-    fn test_ordering() {
+    fn ordering() {
         let lesser = Id::<GenericMarker>::new(911_638_235_594_244_096);
         let center = Id::<GenericMarker>::new(911_638_263_322_800_208);
         let greater = Id::<GenericMarker>::new(911_638_287_939_166_208);
@@ -537,7 +545,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_serde() {
+    fn serde() {
         serde_test::assert_tokens(
             &Id::<ApplicationMarker>::new(114_941_315_417_899_012),
             &[

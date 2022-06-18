@@ -19,7 +19,7 @@ use twilight_validate::request::{
 struct GetAuditLogFields {
     action_type: Option<AuditLogEventType>,
     before: Option<u64>,
-    limit: Option<u64>,
+    limit: Option<u16>,
     user_id: Option<Id<UserMarker>>,
 }
 
@@ -49,7 +49,7 @@ struct GetAuditLogFields {
 ///     println!("  Changes:");
 ///
 ///     for change in entry.changes {
-///         println!("{:?}", change);
+///         println!("{change:?}");
 ///     }
 /// }
 /// # Ok(()) }
@@ -99,7 +99,7 @@ impl<'a> GetAuditLog<'a> {
     /// greater than 100.
     ///
     /// [`GetGuildAuditLog`]: twilight_validate::request::ValidationErrorType::GetGuildAuditLog
-    pub const fn limit(mut self, limit: u64) -> Result<Self, ValidationError> {
+    pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_get_guild_audit_log_limit(limit) {
             return Err(source);
         }

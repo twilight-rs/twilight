@@ -1,157 +1,23 @@
-//! # twilight-standby
-//!
-//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
-//!
-//! Standby is a utility to wait for an event to happen based on a predicate
-//! check. For example, you may have a command that has a reaction menu of ✅
-//! and ❌. If you want to handle a reaction to these, using something like an
-//! application-level state or event stream may not suit your use case. It may
-//! be cleaner to wait for a reaction inline to your function. This is where
-//! Twilight Standby comes in.
-//!
-//! Standby allows you to wait for things like an event in a certain guild
-//! ([`Standby::wait_for`]), a new message in a channel
-//! ([`Standby::wait_for_message`]), a new reaction on a message
-//! ([`Standby::wait_for_reaction`]), and any event that might not take place in
-//! a guild, such as a new `Ready` event ([`Standby::wait_for_event`]). Each
-//! method also has a stream variant.
-//!
-//! To use Standby it must process events, such as in an event loop of events
-//! received by the gateway. Check out the [`Standby::process`] method.
-//!
-//! ## When to use futures and streams
-//!
-//! [`Standby`] has two variants of each method: a future variant and a stream
-//! variant. An example is [`Standby::wait_for_message`], which also has a
-//! [`Standby::wait_for_message_stream`] variant. The future variant is useful
-//! when you want to oneshot an event that you need to wait for. This means that
-//! if you only need to wait for one message in a channel to come in, you'd use
-//! the future variant. If you need to wait for multiple messages, such as maybe
-//! all of the messages within a minute's timespan, you'd use the
-//! [`Standby::wait_for_message_stream`] method.
-//!
-//! The difference is that if you use the futures variant in a loop then you may
-//! miss some events while processing a received event. By using a stream, you
-//! won't miss any events.
-//!
-//! ## Features
-//!
-//! ### Tracing
-//!
-//! The `tracing` feature enables logging via the [`tracing`] crate.
-//!
-//! This is enabled by default.
-//!
-//! ## Examples
-//!
-//! ### At a glance
-//!
-//! Wait for a message in channel 123 by user 456 with the content "test":
-//!
-//! ```rust,no_run
-//! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! use twilight_model::{
-//!     gateway::payload::incoming::MessageCreate,
-//!     id::Id,
-//! };
-//! use twilight_standby::Standby;
-//!
-//! let standby = Standby::new();
-//!
-//! let channel_id = Id::new(123);
-//!
-//! let message = standby.wait_for_message(channel_id, |event: &MessageCreate| {
-//!     event.author.id.get() == 456 && event.content == "test"
-//! }).await?;
-//! # Ok(()) }
-//! ```
-//!
-//! ### A full example
-//!
-//! A full sample bot connecting to the gateway, processing events, and
-//! including a handler to wait for reactions:
-//!
-//! ```rust,no_run
-//! use futures_util::StreamExt;
-//! use std::{env, error::Error, sync::Arc};
-//! use twilight_gateway::{Event, Intents, Shard};
-//! use twilight_model::{
-//!     channel::Message,
-//!     gateway::payload::incoming::ReactionAdd,
-//! };
-//! use twilight_standby::Standby;
-//!
-//! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn Error>> {
-//!     let token = env::var("DISCORD_TOKEN")?;
-//!
-//!     // Start a shard connected to the gateway to receive events.
-//!     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-//!     let (shard, mut events) = Shard::new(token, intents);
-//!     shard.start().await?;
-//!
-//!     let standby = Arc::new(Standby::new());
-//!
-//!     while let Some(event) = events.next().await {
-//!         // Have standby process the event, which will fulfill any futures
-//!         // that are waiting for an event.
-//!         standby.process(&event);
-//!
-//!         match event {
-//!             Event::MessageCreate(msg) if msg.content == "!react" => {
-//!                 tokio::spawn(react(msg.0, Arc::clone(&standby)));
-//!             },
-//!             _ => {},
-//!         }
-//!     }
-//!
-//!     Ok(())
-//! }
-//!
-//! // Wait for a reaction from the user who sent the message, and then print it
-//! // once they react.
-//! async fn react(
-//!     msg: Message,
-//!     standby: Arc<Standby>,
-//! ) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-//!     let author_id = msg.author.id;
-//!
-//!     let reaction = standby.wait_for_reaction(msg.id, move |event: &ReactionAdd| {
-//!         event.user_id == author_id
-//!     }).await?;
-//!
-//!     println!("user reacted with {:?}", reaction.emoji);
-//!
-//!     Ok(())
-//! }
-//! ```
-//!
-//! For more examples, check out each of the methods on [`Standby`].
-//!
-//! [`tracing`]: https://crates.io/crates/tracing
-//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
-//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
-//! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
-//! [discord link]: https://discord.gg/7jj8n7D
-//! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
-//! [github link]: https://github.com/twilight-rs/twilight
-//! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-//! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.57+-93450a.svg?style=for-the-badge&logo=rust
-
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
     clippy::missing_docs_in_private_items,
+    clippy::pedantic,
     future_incompatible,
     missing_docs,
     nonstandard_style,
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
     unsafe_code,
-    unused,
-    warnings
+    unused
 )]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
+)]
+#![doc = include_str!("../README.md")]
 
 pub mod future;
 
@@ -286,7 +152,6 @@ impl Standby {
     /// This function must be called when events are received in order for
     /// futures returned by methods to fulfill.
     pub fn process(&self, event: &Event) -> ProcessResults {
-        #[cfg(feature = "tracing")]
         tracing::trace!(event_type = ?event.kind(), ?event, "processing event");
 
         let mut completions = ProcessResults::new();
@@ -369,7 +234,6 @@ impl Standby {
         guild_id: Id<GuildMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%guild_id, "waiting for event in guild");
 
         WaitForGuildEventFuture {
@@ -428,7 +292,6 @@ impl Standby {
         guild_id: Id<GuildMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForGuildEventStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%guild_id, "waiting for event in guild");
 
         WaitForGuildEventStream {
@@ -477,7 +340,6 @@ impl Standby {
         &self,
         check: impl Into<Box<F>>,
     ) -> WaitForEventFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!("waiting for event");
 
         let (tx, rx) = oneshot::channel();
@@ -537,7 +399,6 @@ impl Standby {
         &self,
         check: impl Into<Box<F>>,
     ) -> WaitForEventStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!("waiting for event");
 
         let (tx, rx) = mpsc::unbounded_channel();
@@ -595,7 +456,6 @@ impl Standby {
         channel_id: Id<ChannelMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%channel_id, "waiting for message in channel");
 
         WaitForMessageFuture {
@@ -649,7 +509,6 @@ impl Standby {
         channel_id: Id<ChannelMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForMessageStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%channel_id, "waiting for message in channel");
 
         WaitForMessageStream {
@@ -699,7 +558,6 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for reaction on message");
 
         WaitForReactionFuture {
@@ -752,7 +610,6 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForReactionStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for reaction on message");
 
         WaitForReactionStream {
@@ -797,7 +654,6 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForComponentFuture {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for component on message");
 
         WaitForComponentFuture {
@@ -814,7 +670,8 @@ impl Standby {
     ///
     /// # Examples
     ///
-    /// Wait for multiple button components on message 123 with a custom_id of "Click":
+    /// Wait for multiple button components on message 123 with a `custom_id` of
+    /// "Click":
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -846,7 +703,6 @@ impl Standby {
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
     ) -> WaitForComponentStream {
-        #[cfg(feature = "tracing")]
         tracing::trace!(%message_id, "waiting for component on message");
 
         WaitForComponentStream {
@@ -895,22 +751,19 @@ impl Standby {
 
     /// Process a general event that is not of any particular type or in any
     /// particular guild.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     fn process_event<K: Debug + Display + Eq + Hash + PartialEq + 'static, V: Clone + Debug>(
         map: &DashMap<K, Bystander<V>>,
         event: &V,
     ) -> ProcessResults {
-        #[cfg(feature = "tracing")]
         tracing::trace!(?event, "processing event");
 
         let mut results = ProcessResults::new();
 
-        #[cfg_attr(not(feature = "tracing"), allow(clippy::let_and_return))]
         map.retain(|id, bystander| {
             let result = Self::bystander_process(bystander, event);
             results.handle(result);
 
-            #[cfg(feature = "tracing")]
             tracing::trace!(bystander_id = %id, ?result, "event bystander processed");
 
             // We want to retain bystanders that are *incomplete* and remove
@@ -923,7 +776,7 @@ impl Standby {
 
     /// Process a general event that is either of a particular type or in a
     /// particular guild.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     fn process_specific_event<
         K: Debug + Display + Eq + Hash + PartialEq + 'static,
         V: Clone + Debug,
@@ -939,14 +792,12 @@ impl Standby {
 
             (bystanders.is_empty(), results)
         } else {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, "guild has no event bystanders");
 
             return ProcessResults::new();
         };
 
         if remove_guild {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%guild_id, "removing guild from map");
 
             map.remove(&guild_id);
@@ -956,12 +807,11 @@ impl Standby {
     }
 
     /// Iterate over bystanders and remove the ones that match the predicate.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     fn bystander_iter<E: Clone + Debug>(
         bystanders: &mut Vec<Bystander<E>>,
         event: &E,
     ) -> ProcessResults {
-        #[cfg(feature = "tracing")]
         tracing::trace!(?bystanders, "iterating over bystanders");
 
         // Iterate over the list of bystanders by using an index and manually
@@ -998,13 +848,11 @@ impl Standby {
         let mut results = ProcessResults::new();
 
         while index < bystanders.len() {
-            #[cfg(feature = "tracing")]
             tracing::trace!(%index, "checking bystander");
 
             let status = Self::bystander_process(&mut bystanders[index], event);
             results.handle(status);
 
-            #[cfg(feature = "tracing")]
             tracing::trace!(%index, ?status, "checked bystander");
 
             if status.is_complete() {
@@ -1022,7 +870,7 @@ impl Standby {
     ///
     /// Returns whether the bystander is fulfilled; if the bystander has been
     /// fulfilled then the channel is now closed.
-    #[cfg_attr(feature = "tracing", tracing::instrument(level = "trace"))]
+    #[tracing::instrument(level = "trace")]
     fn bystander_process<T: Clone + Debug>(
         bystander: &mut Bystander<T>,
         event: &T,
@@ -1032,7 +880,6 @@ impl Standby {
         let sender = if let Some(sender) = bystander.sender.take() {
             sender
         } else {
-            #[cfg(feature = "tracing")]
             tracing::trace!("bystander has no sender, indicating for removal");
 
             return ProcessStatus::AlreadyComplete;
@@ -1041,7 +888,6 @@ impl Standby {
         // The channel may have closed due to the receiver dropping their end,
         // in which case we can say we're done.
         if sender.is_closed() {
-            #[cfg(feature = "tracing")]
             tracing::trace!("bystander's rx dropped, indicating for removal");
 
             return ProcessStatus::Dropped;
@@ -1050,7 +896,6 @@ impl Standby {
         // Lastly check to see if the predicate matches the event. If it doesn't
         // then we can short-circuit.
         if !(bystander.func)(event) {
-            #[cfg(feature = "tracing")]
             tracing::trace!("bystander check doesn't match, not removing");
 
             // Put the sender back into its bystander since we'll still need it
@@ -1066,7 +911,6 @@ impl Standby {
                 // we're going to be tossing out the bystander anyway.
                 drop(tx.send(event.clone()));
 
-                #[cfg(feature = "tracing")]
                 tracing::trace!("bystander matched event, indicating for removal");
 
                 ProcessStatus::SentFuture
@@ -1076,7 +920,6 @@ impl Standby {
                 // still open then we need to retain the bystander, otherwise we
                 // need to mark it for removal.
                 if tx.send(event.clone()).is_ok() {
-                    #[cfg(feature = "tracing")]
                     tracing::trace!("bystander is a stream, retaining in map");
 
                     bystander.sender.replace(Sender::Stream(tx));
@@ -1229,14 +1072,14 @@ mod tests {
             message::{Message, MessageType},
             Reaction, ReactionType,
         },
-        datetime::Timestamp,
         gateway::{
             event::{Event, EventType},
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
         id::{marker::GuildMarker, Id},
-        oauth::{current_application_info::ApplicationFlags, PartialApplication},
+        oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
+        util::Timestamp,
     };
 
     assert_impl_all!(Standby: Debug, Default, Send, Sync);
@@ -1508,7 +1351,7 @@ mod tests {
 
         let standby = Standby::new();
         let wait = standby.wait_for_event(|event: &Event| match event {
-            Event::Ready(ready) => ready.shard.map(|[id, _]| id == 5).unwrap_or(false),
+            Event::Ready(ready) => ready.shard.map_or(false, |[id, _]| id == 5),
             _ => false,
         });
         assert!(!standby.events.is_empty());
@@ -1606,8 +1449,8 @@ mod tests {
     /// the matching of a later event.
     #[tokio::test]
     async fn test_wait_for_component() {
-        let event = Event::InteractionCreate(Box::new(InteractionCreate(
-            Interaction::MessageComponent(Box::new(button())),
+        let event = Event::InteractionCreate(InteractionCreate(Interaction::MessageComponent(
+            Box::new(button()),
         )));
 
         let standby = Standby::new();
@@ -1630,20 +1473,20 @@ mod tests {
         let standby = Standby::new();
         let mut stream =
             standby.wait_for_component_stream(Id::new(3), |_: &MessageComponentInteraction| true);
-        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+        standby.process(&Event::InteractionCreate(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
-        ))));
-        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+        )));
+        standby.process(&Event::InteractionCreate(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
-        ))));
+        )));
 
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
         assert_eq!(1, standby.components.len());
-        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+        standby.process(&Event::InteractionCreate(InteractionCreate(
             Interaction::MessageComponent(Box::new(button())),
-        ))));
+        )));
         assert!(standby.components.is_empty());
     }
 

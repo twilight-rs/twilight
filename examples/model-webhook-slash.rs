@@ -8,12 +8,10 @@ use hyper::{
 };
 use once_cell::sync::Lazy;
 use std::future::Future;
-use twilight_model::application::{
-    callback::{CallbackData, InteractionResponse},
-    interaction::Interaction,
+use twilight_model::{
+    application::interaction::Interaction,
+    http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
-
-type GenericError = Box<dyn std::error::Error + Send + Sync>;
 
 /// Public key given from Discord.
 static PUB_KEY: Lazy<PublicKey> = Lazy::new(|| {
@@ -28,9 +26,9 @@ static PUB_KEY: Lazy<PublicKey> = Lazy::new(|| {
 async fn interaction_handler<F>(
     req: Request<Body>,
     f: impl Fn(Interaction) -> F,
-) -> Result<Response<Body>, GenericError>
+) -> anyhow::Result<Response<Body>>
 where
-    F: Future<Output = Result<InteractionResponse, GenericError>>,
+    F: Future<Output = anyhow::Result<InteractionResponse>>,
 {
     // Check that the method used is a POST, all other methods are not allowed.
     if req.method() != Method::POST {
@@ -94,7 +92,10 @@ where
     match interaction {
         // Return a Pong if a Ping is received.
         Interaction::Ping(_) => {
-            let response = InteractionResponse::Pong;
+            let response = InteractionResponse {
+                kind: InteractionResponseType::Pong,
+                data: None,
+            };
 
             let json = serde_json::to_vec(&response)?;
 
@@ -125,47 +126,41 @@ where
 
 /// Interaction handler that matches on the name of the interaction that
 /// have been dispatched from Discord.
-async fn handler(i: Interaction) -> Result<InteractionResponse, GenericError> {
+async fn handler(i: Interaction) -> anyhow::Result<InteractionResponse> {
     match &i {
         Interaction::ApplicationCommand(cmd) => match cmd.data.name.as_ref() {
             "vroom" => vroom(i).await,
             "debug" => debug(i).await,
             _ => debug(i).await,
         },
-        _ => Err("invalid interaction data".into()),
+        _ => Err(anyhow::anyhow!("invalid interaction data")),
     }
 }
 
 /// Example of a handler that returns the formatted version of the interaction.
-async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
-    Ok(InteractionResponse::ChannelMessageWithSource(
-        CallbackData {
-            allowed_mentions: None,
-            components: None,
-            flags: None,
-            tts: None,
-            content: Some(format!("```rust\n{:?}\n```", i)),
-            embeds: None,
-        },
-    ))
+async fn debug(i: Interaction) -> anyhow::Result<InteractionResponse> {
+    Ok(InteractionResponse {
+        kind: InteractionResponseType::ChannelMessageWithSource,
+        data: Some(InteractionResponseData {
+            content: Some(format!("```rust\n{i:?}\n```")),
+            ..Default::default()
+        }),
+    })
 }
 
 /// Example of interaction that responds with a message saying "Vroom vroom".
-async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
-    Ok(InteractionResponse::ChannelMessageWithSource(
-        CallbackData {
-            allowed_mentions: None,
-            components: None,
-            flags: None,
-            tts: None,
+async fn vroom(_: Interaction) -> anyhow::Result<InteractionResponse> {
+    Ok(InteractionResponse {
+        kind: InteractionResponseType::ChannelMessageWithSource,
+        data: Some(InteractionResponseData {
             content: Some("Vroom vroom".to_owned()),
-            embeds: None,
-        },
-    ))
+            ..Default::default()
+        }),
+    })
 }
 
 #[tokio::main]
-async fn main() -> Result<(), GenericError> {
+async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
@@ -174,7 +169,7 @@ async fn main() -> Result<(), GenericError> {
 
     // Make the interaction handler into a service function.
     let interaction_service = make_service_fn(|_| async {
-        Ok::<_, GenericError>(service_fn(|req| interaction_handler(req, handler)))
+        Ok::<_, anyhow::Error>(service_fn(|req| interaction_handler(req, handler)))
     });
 
     // Construct the server and serve the interaction service.

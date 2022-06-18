@@ -5,19 +5,19 @@ description = "In-process-memory based cache for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-cache-inmemory"
 edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html"
-include = ["src/**/*.rs", "Cargo.toml"]
+include = ["src/**/*.rs", "README.md"]
 keywords = ["discord", "discord-api", "twilight"]
 license = "ISC"
 name = "twilight-cache-inmemory"
 publish = false
 repository = "https://github.com/twilight-rs/twilight"
 readme = "README.md"
-rust-version = "1.57"
-version = "0.9.0"
+rust-version = "1.60"
+version = "0.11.0"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
-dashmap = { default-features = false, version = "5.1" }
+dashmap = { default-features = false, version = "5.3" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 twilight-model = { default-features = false, path = "../../model" }
 
@@ -31,7 +31,7 @@ tokio = { default-features = false, features = ["macros", "rt-multi-thread"], ve
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../../gateway" }
 
 [features]
-permission-calculator = ["twilight-util"]
+permission-calculator = ["dep:twilight-util"]
 
 [package.metadata.docs.rs]
 all-features = true

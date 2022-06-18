@@ -19,7 +19,7 @@ mod tests {
     use twilight_model::guild::Permissions;
 
     #[test]
-    fn test_insert() {
+    fn insert() {
         let actual = super::insert(
             Permissions::KICK_MEMBERS,
             Permissions::BAN_MEMBERS | Permissions::CONNECT,
@@ -30,7 +30,7 @@ mod tests {
     }
 
     #[test]
-    fn test_insert_duplicate() {
+    fn insert_duplicate() {
         let expected = Permissions::BAN_MEMBERS | Permissions::KICK_MEMBERS;
         let actual = super::insert(expected, Permissions::KICK_MEMBERS);
 
@@ -38,7 +38,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove() {
+    fn remove() {
         let actual = super::remove(
             Permissions::BAN_MEMBERS | Permissions::KICK_MEMBERS,
             Permissions::BAN_MEMBERS,
@@ -48,7 +48,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove_nonexistent() {
+    fn remove_nonexistent() {
         let actual = super::remove(Permissions::KICK_MEMBERS, Permissions::BAN_MEMBERS);
 
         assert_eq!(actual, Permissions::KICK_MEMBERS);

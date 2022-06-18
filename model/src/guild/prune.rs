@@ -11,7 +11,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_guild_prune() {
+    fn guild_prune() {
         let prune = GuildPrune { pruned: 31 };
 
         serde_test::assert_tokens(

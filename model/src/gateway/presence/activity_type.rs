@@ -1,8 +1,6 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 pub enum ActivityType {
     Playing = 0,
@@ -25,12 +23,12 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_default() {
+    fn default() {
         assert_eq!(ActivityType::Playing, ActivityType::default());
     }
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&ActivityType::Playing, &[Token::U8(0)]);
         serde_test::assert_tokens(&ActivityType::Streaming, &[Token::U8(1)]);
         serde_test::assert_tokens(&ActivityType::Listening, &[Token::U8(2)]);

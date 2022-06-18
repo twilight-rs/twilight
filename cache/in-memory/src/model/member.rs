@@ -1,14 +1,21 @@
 use serde::Serialize;
 use twilight_model::{
     application::interaction::application_command::InteractionMember,
-    datetime::Timestamp,
     guild::{Member, PartialMember},
     id::{
         marker::{GuildMarker, RoleMarker, UserMarker},
         Id,
     },
-    util::image_hash::ImageHash,
+    util::{ImageHash, Timestamp},
 };
+
+/// Computed fields required to complete a full cached member via
+/// [`CachedMember::from_interaction_member`] that are not otherwise present.
+pub(crate) struct ComputedInteractionMemberFields {
+    pub avatar: Option<ImageHash>,
+    pub deaf: Option<bool>,
+    pub mute: Option<bool>,
+}
 
 /// Represents a cached [`Member`].
 ///
@@ -91,6 +98,107 @@ impl CachedMember {
     pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
     }
+
+    /// Construct a cached member from its [`twilight_model`] form.
+    #[allow(clippy::missing_const_for_fn)]
+    pub(crate) fn from_model(member: Member) -> Self {
+        let Member {
+            avatar,
+            communication_disabled_until,
+            deaf,
+            guild_id,
+            joined_at,
+            mute,
+            nick,
+            pending,
+            premium_since,
+            roles,
+            user,
+        } = member;
+
+        Self {
+            avatar,
+            communication_disabled_until,
+            deaf: Some(deaf),
+            guild_id,
+            joined_at,
+            mute: Some(mute),
+            nick,
+            pending,
+            premium_since,
+            roles,
+            user_id: user.id,
+        }
+    }
+
+    // clippy: the member field's destructor needs to drop
+    // clippy: the contents of `fields` is consumed
+    #[allow(clippy::missing_const_for_fn, clippy::needless_pass_by_value)]
+    pub(crate) fn from_interaction_member(
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+        member: InteractionMember,
+        fields: ComputedInteractionMemberFields,
+    ) -> Self {
+        let InteractionMember {
+            avatar: _,
+            communication_disabled_until,
+            joined_at,
+            nick,
+            pending,
+            permissions: _,
+            premium_since,
+            roles,
+        } = member;
+        let ComputedInteractionMemberFields { avatar, deaf, mute } = fields;
+
+        Self {
+            avatar,
+            communication_disabled_until,
+            deaf,
+            guild_id,
+            joined_at,
+            mute,
+            nick,
+            pending,
+            premium_since,
+            roles,
+            user_id,
+        }
+    }
+
+    pub(crate) fn from_partial_member(
+        guild_id: Id<GuildMarker>,
+        user_id: Id<UserMarker>,
+        member: PartialMember,
+    ) -> Self {
+        let PartialMember {
+            avatar,
+            communication_disabled_until,
+            deaf,
+            joined_at,
+            mute,
+            nick,
+            permissions: _,
+            premium_since,
+            roles,
+            user,
+        } = member;
+
+        Self {
+            avatar,
+            communication_disabled_until,
+            deaf: Some(deaf),
+            guild_id,
+            joined_at,
+            mute: Some(mute),
+            nick,
+            pending: false,
+            premium_since,
+            roles,
+            user_id: user.map_or(user_id, |user| user.id),
+        }
+    }
 }
 
 impl PartialEq<Member> for CachedMember {
@@ -134,10 +242,10 @@ mod tests {
     use super::CachedMember;
     use static_assertions::assert_fields;
     use twilight_model::{
-        datetime::Timestamp,
         guild::{Member, PartialMember},
         id::Id,
         user::User,
+        util::Timestamp,
     };
 
     assert_fields!(
@@ -191,7 +299,7 @@ mod tests {
     }
 
     #[test]
-    fn test_eq_member() {
+    fn eq_member() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
         let member = Member {
@@ -212,7 +320,7 @@ mod tests {
     }
 
     #[test]
-    fn test_eq_partial_member() {
+    fn eq_partial_member() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
         let member = PartialMember {

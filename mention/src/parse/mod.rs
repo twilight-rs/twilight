@@ -43,7 +43,7 @@
 //! Parse a timestamp:
 //!
 //! ```
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use twilight_mention::{
 //!     timestamp::{TimestampStyle, Timestamp},
 //!     parse::ParseMention,
@@ -104,10 +104,6 @@ use twilight_model::id::{
 /// assert_eq!(
 ///     MentionType::Role(Id::<RoleMarker>::new(123)),
 ///     MentionType::parse("<@&123>")?,
-/// );
-/// assert_eq!(
-///     MentionType::User(Id::<UserMarker>::new(123)),
-///     MentionType::parse("<@!123>")?,
 /// );
 ///
 /// let timestamp = Timestamp::new(123, None);

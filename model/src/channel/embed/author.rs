@@ -17,7 +17,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_embed_author() {
+    fn embed_author() {
         let value = EmbedAuthor {
             icon_url: Some("https://example.com/1.png".to_owned()),
             name: "test".to_owned(),
@@ -46,7 +46,7 @@ mod tests {
     }
 
     #[test]
-    fn test_embed_author_complete() {
+    fn embed_author_complete() {
         let value = EmbedAuthor {
             icon_url: Some("https://example.com/1.png".to_owned()),
             name: "test".to_owned(),

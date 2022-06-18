@@ -84,10 +84,12 @@ impl<'a, T: ParseMention> Iterator for MentionIter<'a, T> {
                 continue;
             }
 
-            let end = match self.chars.find(|c| c.1 == '>') {
-                Some((idx, _)) => idx,
-                None => continue,
+            let end = if let Some((idx, _)) = self.chars.find(|c| c.1 == '>') {
+                idx
+            } else {
+                continue;
             };
+
             let buf = self.buf.get(start..=end)?;
 
             if let Ok(id) = T::parse(buf) {
@@ -126,14 +128,14 @@ mod tests {
     );
 
     #[test]
-    fn test_iter_channel_id() {
+    fn iter_channel_id() {
         let mut iter = Id::<ChannelMarker>::iter("<#123>");
         assert_eq!(Id::new(123), iter.next().unwrap().0);
         assert!(iter.next().is_none());
     }
 
     #[test]
-    fn test_iter_multiple_ids() {
+    fn iter_multiple_ids() {
         let buf = "one <@123>two<#456><@789> ----";
         let mut iter = Id::<UserMarker>::iter(buf);
         assert_eq!(Id::new(123), iter.next().unwrap().0);
@@ -145,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_emoji_ids() {
+    fn iter_emoji_ids() {
         let mut iter = Id::<EmojiMarker>::iter("some <:name:123> emojis <:emoji:456>");
         assert_eq!(Id::new(123), iter.next().unwrap().0);
         assert_eq!(Id::new(456), iter.next().unwrap().0);
@@ -153,18 +155,17 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_mention_type() {
-        let mut iter = MentionType::iter("<#12><:name:34><@&56><@!78><@90>");
+    fn iter_mention_type() {
+        let mut iter = MentionType::iter("<#12><:name:34><@&56><@78>");
         assert_eq!(MentionType::Channel(Id::new(12)), iter.next().unwrap().0);
         assert_eq!(MentionType::Emoji(Id::new(34)), iter.next().unwrap().0);
         assert_eq!(MentionType::Role(Id::new(56)), iter.next().unwrap().0);
         assert_eq!(MentionType::User(Id::new(78)), iter.next().unwrap().0);
-        assert_eq!(MentionType::User(Id::new(90)), iter.next().unwrap().0);
         assert!(iter.next().is_none());
     }
 
     #[test]
-    fn test_iter_mention_type_with_timestamp() {
+    fn iter_mention_type_with_timestamp() {
         let mut iter = MentionType::iter("<#12> <t:34> <t:56:d>");
         assert_eq!(MentionType::Channel(Id::new(12)), iter.next().unwrap().0);
         assert_eq!(
@@ -179,7 +180,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_role_ids() {
+    fn iter_role_ids() {
         let mut iter = Id::<RoleMarker>::iter("some <@&123> roles <@&456>");
         assert_eq!(Id::new(123), iter.next().unwrap().0);
         assert_eq!(Id::new(456), iter.next().unwrap().0);
@@ -187,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_timestamps() {
+    fn iter_timestamps() {
         let mut iter = Timestamp::iter("some <t:123> roles <t:456:t>");
         assert_eq!(Timestamp::new(123, None), iter.next().unwrap().0);
         assert_eq!(
@@ -198,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_user_ids() {
+    fn iter_user_ids() {
         let mut iter = Id::<UserMarker>::iter("some <@123>users<@456>");
         assert_eq!(Id::new(123), iter.next().unwrap().0);
         assert_eq!(Id::new(456), iter.next().unwrap().0);
@@ -206,7 +207,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_no_id() {
+    fn iter_no_id() {
         let mention = "this is not <# actually a mention";
         let mut iter = Id::<ChannelMarker>::iter(mention);
 
@@ -214,7 +215,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_ignores_other_types() {
+    fn iter_ignores_other_types() {
         let mention = "<#123> <:name:456> <@&789>";
         let mut iter = Id::<UserMarker>::iter(mention);
 
@@ -222,7 +223,7 @@ mod tests {
     }
 
     #[test]
-    fn test_iter_as_str() {
+    fn iter_as_str() {
         let buf = "a buf";
         let mut iter = Id::<RoleMarker>::iter(buf);
         assert_eq!(buf, iter.as_str());

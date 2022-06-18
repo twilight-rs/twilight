@@ -1,5 +1,5 @@
 use super::AutoArchiveDuration;
-use crate::datetime::Timestamp;
+use crate::util::Timestamp;
 use serde::{Deserialize, Serialize};
 
 /// The thread metadata object contains a number of thread-specific channel fields
@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ThreadMetadata {
     pub archived: bool,
+    /// Duration without messages before the thread automatically archives.
+    ///
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     pub auto_archive_duration: AutoArchiveDuration,
     pub archive_timestamp: Timestamp,
     /// When the thread was created at.
@@ -23,12 +27,12 @@ pub struct ThreadMetadata {
 #[cfg(test)]
 mod tests {
     use super::{AutoArchiveDuration, ThreadMetadata};
-    use crate::datetime::{Timestamp, TimestampParseError};
+    use crate::util::datetime::{Timestamp, TimestampParseError};
     use serde_test::Token;
     use std::str::FromStr;
 
     #[test]
-    fn test_thread_metadata() -> Result<(), TimestampParseError> {
+    fn thread_metadata() -> Result<(), TimestampParseError> {
         const DATETIME: &str = "2021-09-19T14:17:32.000000+00:00";
 
         let timestamp = Timestamp::from_str(DATETIME)?;

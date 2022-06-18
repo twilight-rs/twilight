@@ -1,8 +1,6 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[repr(u8)]
 pub enum CommandType {
     /// Slash command.
@@ -44,23 +42,21 @@ mod tests {
         Deserialize<'static>,
         Eq,
         Hash,
-        Ord,
         PartialEq,
-        PartialOrd,
         Serialize,
         Send,
         Sync
     );
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&CommandType::ChatInput, &[Token::U8(1)]);
         serde_test::assert_tokens(&CommandType::User, &[Token::U8(2)]);
         serde_test::assert_tokens(&CommandType::Message, &[Token::U8(3)]);
     }
 
     #[test]
-    fn test_kinds() {
+    fn kinds() {
         assert_eq!("ChatInput", CommandType::ChatInput.kind());
         assert_eq!("User", CommandType::User.kind());
         assert_eq!("Message", CommandType::Message.kind());

@@ -33,8 +33,6 @@ pub struct IdentifyProperties {
     pub browser: String,
     pub device: String,
     pub os: String,
-    pub referrer: String,
-    pub referring_domain: String,
 }
 
 impl IdentifyProperties {
@@ -42,15 +40,11 @@ impl IdentifyProperties {
         browser: impl Into<String>,
         device: impl Into<String>,
         os: impl Into<String>,
-        referrer: impl Into<String>,
-        referring_domain: impl Into<String>,
     ) -> Self {
         Self {
             browser: browser.into(),
             device: device.into(),
             os: os.into(),
-            referrer: referrer.into(),
-            referring_domain: referring_domain.into(),
         }
     }
 }
