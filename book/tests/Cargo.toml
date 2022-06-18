@@ -1,0 +1,26 @@
+[package]
+name = "twilight-book"
+version = "0.1.0"
+authors = ["Twilight Contributors"]
+edition = "2018"
+build = "build.rs"
+
+[dependencies]
+futures = { version = "0.3", default-features = false }
+skeptic = "0.13.5"
+tokio = { version = "1.0", features = ["full"] }
+twilight-gateway = { version = "0.11" }
+twilight-http = { version = "0.11" }
+twilight-model = { version = "0.11" }
+twilight-lavalink = { version = "0.11" }
+twilight-cache-inmemory = { version = "0.11" }
+twilight-mention = { version = "0.11" }
+twilight-standby = { version = "0.11" }
+twilight-util = { version = "0.11", features = ["full"] }
+tracing-subscriber = "0.3"
+
+[build-dependencies]
+skeptic = "0.13.5"
+
+[dev-dependencies]
+skeptic = "0.13"
