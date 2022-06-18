@@ -164,7 +164,7 @@ jobs:
         uses: taiki-e/install-action@nextest
 
       - name: Run tests with nextest
-        run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci
+        run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --workspace --exclude twilight-book
 
       - name: Run doctests
         run: cargo test --doc
