@@ -47,6 +47,7 @@ use crate::shard::tls::TlsContainer;
 // Remember to sync this with the custom Debug implementation.
 #[must_use = "has no effect if not built"]
 pub struct ClusterBuilder {
+    http: Arc<Client>,
     queue: Arc<dyn Queue>,
     resume_sessions: HashMap<u64, ResumeSession>,
     shard: ShardBuilder,
@@ -59,6 +60,7 @@ impl ClusterBuilder {
     /// Create a new builder to construct and configure a cluster.
     pub fn new(token: String, intents: Intents) -> Self {
         Self {
+            http: Arc::new(Client::new(token.clone())),
             queue: Arc::new(LocalQueue::new()),
             resume_sessions: HashMap::new(),
             shard: ShardBuilder::new(token, intents),
@@ -77,7 +79,7 @@ impl ClusterBuilder {
     /// [`ClusterStartErrorType::AutoSharding`]: super::ClusterStartErrorType::AutoSharding
     pub async fn build(mut self) -> Result<(Cluster, Events), ClusterStartError> {
         if self.shard_scheme.is_none() {
-            self.shard_scheme = Some(Self::recommended_shards(&self.shard.http_client).await?);
+            self.shard_scheme = Some(Self::recommended_shards(&self.http).await?);
         }
 
         #[cfg(not(any(
@@ -111,7 +113,7 @@ impl ClusterBuilder {
             shard_scheme: self.shard_scheme.expect("always set"),
         };
 
-        Cluster::new_with_config(config, shard_config).await
+        Ok(Cluster::new_with_config(config, &shard_config))
     }
 
     /// Retrieves the recommended shard count as a [`ShardScheme::Range`].
@@ -163,15 +165,14 @@ impl ClusterBuilder {
         self
     }
 
-    /// Set the `twilight_http` Client used by the cluster and the shards it
-    /// manages.
+    /// Set the `twilight_http` Client used by the cluster.
     ///
-    /// This is needed so that the cluster and shards can retrieve gateway
+    /// This is needed so that the cluster can retrieve gateway
     /// information.
     ///
     /// Defaults to a new, default HTTP client is used.
     pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
-        self.shard = self.shard.http_client(http_client);
+        self.http = http_client;
 
         self
     }
@@ -324,6 +325,7 @@ impl ClusterBuilder {
 impl Debug for ClusterBuilder {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.debug_struct("ClusterBuilder")
+            .field("http", &self.http)
             .field("queue", &self.queue)
             .field("resume_sessions", &self.resume_sessions)
             .field("shard", &self.shard)

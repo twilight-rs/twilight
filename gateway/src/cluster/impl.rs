@@ -269,10 +269,10 @@ impl Cluster {
         Self::builder(token, intents).build().await
     }
 
-    pub(super) async fn new_with_config(
+    pub(super) fn new_with_config(
         mut config: Config,
-        shard_config: ShardConfig,
-    ) -> Result<(Self, Events), ClusterStartError> {
+        shard_config: &ShardConfig,
+    ) -> (Self, Events) {
         #[derive(Default)]
         struct ShardFold {
             shards: HashMap<u64, Shard>,
@@ -315,7 +315,7 @@ impl Cluster {
         #[allow(clippy::from_iter_instead_of_collect)]
         let select_all = SelectAll::from_iter(streams);
 
-        Ok((Self { config, shards }, Events::new(select_all)))
+        (Self { config, shards }, Events::new(select_all))
     }
 
     /// Create a builder to configure and construct a cluster.

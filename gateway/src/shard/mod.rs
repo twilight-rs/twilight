@@ -30,7 +30,7 @@
 //! let intents = Intents::GUILD_MEMBERS;
 //! let token = env::var("DISCORD_TOKEN")?;
 //!
-//! let (shard, _events) = Shard::new(token, intents).await?;
+//! let (shard, _events) = Shard::new(token, intents);
 //! shard.start().await?;
 //!
 //! // Query members whose names start with "tw" and limit the results to

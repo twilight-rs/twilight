@@ -41,7 +41,7 @@ use twilight_gateway::{Intents, Shard};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN")?;
-    let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES).await?;
+    let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
     shard.start().await?;
 
     // Create a cache, caching up to 10 messages per channel:

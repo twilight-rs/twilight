@@ -1,4 +1,4 @@
-use super::{Config, Events, Shard, ShardStartError, ShardStartErrorType};
+use super::{Config, Events, Shard};
 use crate::EventTypeFlags;
 use std::{
     borrow::Cow,
@@ -7,7 +7,6 @@ use std::{
     sync::Arc,
 };
 use twilight_gateway_queue::{LocalQueue, Queue};
-use twilight_http::Client;
 use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
@@ -101,7 +100,6 @@ pub enum ShardIdErrorType {
 pub struct ShardBuilder {
     event_types: EventTypeFlags,
     pub(crate) gateway_url: Option<String>,
-    pub(crate) http_client: Arc<Client>,
     identify_properties: Option<IdentifyProperties>,
     intents: Intents,
     large_threshold: u64,
@@ -124,7 +122,6 @@ impl ShardBuilder {
         Self {
             event_types: EventTypeFlags::default(),
             gateway_url: None,
-            http_client: Arc::new(Client::new(token.clone())),
             identify_properties: None,
             intents,
             large_threshold: 50,
@@ -143,7 +140,6 @@ impl ShardBuilder {
                 Some(s) => Cow::Owned(s),
                 None => Cow::Borrowed(crate::URL),
             },
-            http_client: self.http_client,
             identify_properties: self.identify_properties,
             intents: self.intents,
             large_threshold: self.large_threshold,
@@ -164,24 +160,8 @@ impl ShardBuilder {
     }
 
     /// Consume the builder, constructing a shard.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ShardStartErrorType::InvalidToken`] error type if
-    /// the token failed validation.
-    pub async fn build(self) -> Result<(Shard, Events), ShardStartError> {
-        // Authenticate the token
-        self.http_client
-            .gateway()
-            .authed()
-            .exec()
-            .await
-            .map_err(|source| ShardStartError {
-                source: Some(Box::new(source)),
-                kind: ShardStartErrorType::InvalidToken,
-            })?;
-
-        Ok(Shard::new_with_config(self.into_config()))
+    pub fn build(self) -> (Shard, Events) {
+        Shard::new_with_config(self.into_config())
     }
 
     /// Set the event types to process.
@@ -204,17 +184,6 @@ impl ShardBuilder {
     #[allow(clippy::missing_const_for_fn)]
     pub fn gateway_url(mut self, gateway_url: String) -> Self {
         self.gateway_url = Some(gateway_url);
-
-        self
-    }
-
-    /// Set the HTTP client to be used by the shard for getting gateway
-    /// information.
-    ///
-    /// Default is a new, unconfigured instance of an HTTP client.
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn http_client(mut self, http_client: Arc<Client>) -> Self {
-        self.http_client = http_client;
 
         self
     }
