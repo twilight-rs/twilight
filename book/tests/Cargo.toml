@@ -9,14 +9,14 @@ build = "build.rs"
 futures = { version = "0.3", default-features = false }
 skeptic = "0.13.5"
 tokio = { version = "1.0", features = ["full"] }
-twilight-gateway = { version = "0.11" }
-twilight-http = { version = "0.11" }
-twilight-model = { version = "0.11" }
-twilight-lavalink = { version = "0.11" }
-twilight-cache-inmemory = { version = "0.11" }
-twilight-mention = { version = "0.11" }
-twilight-standby = { version = "0.11" }
-twilight-util = { version = "0.11", features = ["full"] }
+twilight-gateway = { path = "../../gateway" }
+twilight-http = { path = "../../http" }
+twilight-model = { path = "../../model" }
+twilight-lavalink = { path = "../../lavalink" }
+twilight-cache-inmemory = { path = "../../cache/in-memory" }
+twilight-mention = { path = "../../mention" }
+twilight-standby = { path = "../../standby" }
+twilight-util = { features = ["full"], path = "../../util" }
 tracing-subscriber = "0.3"
 
 [build-dependencies]
