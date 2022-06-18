@@ -5,12 +5,8 @@ on:
     paths:
       - ".github/**"
       - "book/**"
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/**"
-      - "book/**"
+  release:
+    types: [created]
 
 jobs:
   test:
@@ -37,7 +33,7 @@ jobs:
   deploy:
     name: Deploy book
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'release' && github.event.action == 'created'
 
     steps:
       - name: Checkout sources
