@@ -52,7 +52,8 @@ jobs:
 
       - name: Publish book
         uses: cloudflare/wrangler-action@2.0.0
+        working-directory: book
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages publish book/render --project-name twilight-book --commit-dirty=true --branch docs
+          command: pages publish render --project-name twilight-book --commit-dirty=true --branch docs
