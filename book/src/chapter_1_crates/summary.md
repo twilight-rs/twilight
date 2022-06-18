@@ -16,7 +16,7 @@ of them. Most of them wrap Discord's various APIs.
 - [http]: HTTP client supporting all of the documented features of Discord's
   HTTP API, with support for ratelimiting, proxying, and more.
 - [gateway]: Clients supporting Discord's gateway API.
-- [cache]: Definitions for implementating a cache. An in-process memory
+- [cache]: Definitions for implementing a cache. An in-process memory
   implementation is included.
 - [standby]: Utility for asynchronously waiting for certain events, like a new
   message in a channel or a new reaction to a message.

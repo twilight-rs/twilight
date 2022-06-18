@@ -81,7 +81,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         cluster_spawn.up().await;
     });
 
-    // The http client is seperate from the gateway, so startup a new
+    // The http client is separate from the gateway, so startup a new
     // one, also use Arc such that it can be cloned to other threads.
     let http = Arc::new(HttpClient::new(token));
 

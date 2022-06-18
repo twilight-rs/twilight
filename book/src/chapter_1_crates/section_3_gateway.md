@@ -23,7 +23,7 @@ tasks as soon as they arrive.
 #    let token = String::from("dummy");
 let intents = Intents::GUILD_MESSAGES | Intents::GUILDS;
 let (cluster, mut events) = Cluster::new(token, intents).await?;
-let cluster = Arc::new(cluster);     
+let cluster = Arc::new(cluster);
 
 let cluster_spawn = cluster.clone();
 
@@ -97,7 +97,7 @@ upstream or the one included with the operating system.
 #### SIMD
 
 `zlib-simd` enables the use of [zlib-ng] which is a modern fork of zlib that in
-most cases will be more effective. However, this will add an externel dependency
+most cases will be more effective. However, this will add an external dependency
 on [cmake].
 
 If both are enabled or if the `zlib` feature of [flate2] is enabled anywhere in
