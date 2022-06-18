@@ -189,3 +189,25 @@ jobs:
 
       - name: Check feature combinations
         run: cargo hack check --feature-powerset
+
+  test-book:
+    name: Test book examples with skeptic
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Test
+        working-directory: book
+        run: cargo test --manifest-path tests/Cargo.toml

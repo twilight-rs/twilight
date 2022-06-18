@@ -1,39 +1,13 @@
 name: Twilight Book
 
 on:
-  pull_request:
-    paths:
-      - ".github/**"
-      - "book/**"
   release:
     types: [created]
 
 jobs:
-  test:
-    name: Test examples with skeptic
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
-
-      - name: Install rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-
-      - name: Test
-        working-directory: book
-        run: cargo test --manifest-path tests/Cargo.toml
   deploy:
     name: Deploy book
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'created'
 
     steps:
       - name: Checkout sources
