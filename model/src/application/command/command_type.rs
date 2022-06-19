@@ -9,7 +9,7 @@ pub enum CommandType {
     ChatInput = 1,
     /// UI-based command.
     ///
-    /// Appears when a user right clicks or taps om a user.
+    /// Appears when a user right clicks or taps on a user.
     User = 2,
     /// UI-based command.
     ///
