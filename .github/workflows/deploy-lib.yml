@@ -42,7 +42,7 @@ jobs:
         env:
           RUSTDOCFLAGS: --cfg docsrs
         run: |
-          cargo doc --no-deps --features=permission-calculator --exclude twilight-book
+          cargo doc --no-deps --features=permission-calculator --workspace --exclude twilight-book
           cargo doc -p twilight-util --no-deps --all-features
 
       - name: Prepare docs
