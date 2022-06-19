@@ -225,14 +225,14 @@ bitflags! {
         /// [`AUTO_MODERATION_RULE_CREATE`]: super::event::Event::AutoModerationRuleCreate
         /// [`AUTO_MODERATION_RULE_DELETE`]: super::event::Event::AutoModerationRuleDelete
         /// [`AUTO_MODERATION_RULE_UPDATE`]: super::event::Event::AutoModerationRuleUpdate
-        const AUTO_MODERATION_CONFIGURATION = 1 << 16;
+        const AUTO_MODERATION_CONFIGURATION = 1 << 20;
         /// Auto moderation execution event.
         ///
         /// Event(s) received:
         /// - [`AUTO_MODERATION_ACTION_EXECUTION`]
         ///
         /// [`AUTO_MODERATION_ACTION_EXECUTION`]: super::event::Event::AutoModerationActionExecution
-        const AUTO_MODERATION_EXECUTION = 1 << 17;
+        const AUTO_MODERATION_EXECUTION = 1 << 21;
     }
 }
 
