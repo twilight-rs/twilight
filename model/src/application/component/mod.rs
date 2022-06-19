@@ -443,7 +443,7 @@ impl Serialize for Component {
             // - label
             // - url
             Component::Button(button) => {
-                1 + usize::from(button.custom_id.is_some())
+                2 + usize::from(button.custom_id.is_some())
                     + usize::from(button.disabled)
                     + usize::from(button.emoji.is_some())
                     + usize::from(button.label.is_some())
@@ -640,7 +640,7 @@ mod tests {
                 Token::Seq { len: Some(2) },
                 Token::Struct {
                     name: "Component",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("type"),
                 Token::U8(ComponentType::Button as u8),
@@ -725,7 +725,7 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "Component",
-                    len: 3,
+                    len: 4,
                 },
                 Token::String("type"),
                 Token::U8(2),
@@ -767,7 +767,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Component",
-                    len: 5,
+                    len: 6,
                 },
                 Token::String("type"),
                 Token::U8(ComponentType::Button as u8),
