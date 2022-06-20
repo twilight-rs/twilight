@@ -111,7 +111,8 @@ pub enum ErrorType {
     RequestTimedOut,
     Response {
         body: Vec<u8>,
-        ratelimit: Option<Ratelimit>,
+        /// Deserialized context from [`body`].
+        context: ApiError,
         status: StatusCode,
     },
     /// API service is unavailable. Consider re-sending the request at a
@@ -128,38 +129,39 @@ pub enum ErrorType {
     Unauthorized,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+/// API returned error context.
+#[derive(Debug, Deserialize, Serialize)]
 #[non_exhaustive]
-pub struct Ratelimit {
-    /// Whether the ratelimit is global.
-    pub global: bool,
-    /// Number of seconds to wait before retrying.
+#[serde(untagged)]
+pub enum ApiError {
+    /// [JSON error code].
     ///
-    /// Up to three decimals may be set to match millisecond precision.
-    pub retry_after: f64,
-}
-
-impl Display for Ratelimit {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        if self.global {
-            f.write_str("globally ")?;
-        }
-
-        f.write_str("ratelimited for ")?;
-        Display::fmt(&self.retry_after, f)?;
-
-        f.write_str("s")
-    }
+    /// [JSON error code]: https://discord.com/developers/docs/topics/opcodes-and-status-codes#json-json-error-codes
+    Code(u64),
+    /// Request was ratelimited.
+    Ratelimit {
+        /// Whether the ratelimit is global.
+        global: bool,
+        /// Number of seconds to wait before retrying.
+        ///
+        /// Up to three decimals may be set to match millisecond precision.
+        retry_after: f64,
+    },
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Ratelimit;
+    use super::ApiError;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ApiError: Debug, Deserialize<'static>, Send, Serialize, Sync);
 
     #[test]
-    fn test_ratelimited_api_error() {
-        let expected = Ratelimit {
+    fn api_error_ratelimited() {
+        let expected = ApiError::Ratelimit {
             global: true,
             retry_after: 6.457,
         };
@@ -168,7 +170,7 @@ mod tests {
             &expected,
             &[
                 Token::Struct {
-                    name: "Ratelimit",
+                    name: "ApiError",
                     len: 2,
                 },
                 Token::Str("global"),
@@ -178,5 +180,12 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn api_error_code() {
+        let expected = ApiError::Code(0);
+
+        serde_test::assert_ser_tokens(&expected, &[Token::U64(0)]);
     }
 }

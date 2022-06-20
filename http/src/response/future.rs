@@ -33,15 +33,21 @@ struct Chunking {
 impl Chunking {
     fn poll<T>(mut self, cx: &mut Context<'_>) -> InnerPoll<T> {
         match Pin::new(&mut self.future).poll(cx) {
-            Poll::Ready(Ok(bytes)) => InnerPoll::Ready(Err(Error {
-                kind: ErrorType::Response {
-                    ratelimit: crate::json::from_bytes(&bytes).ok(),
-                    body: bytes,
-                    status: StatusCode::new(self.status.as_u16()),
-                },
-                source: None,
-            })),
-            Poll::Ready(Err(source)) => InnerPoll::Ready(Err(source)),
+            Poll::Ready(Ok(bytes)) => InnerPoll::Ready(match crate::json::from_bytes(&bytes) {
+                Ok(context) => Err(Error {
+                    kind: ErrorType::Response {
+                        body: bytes,
+                        context,
+                        status: StatusCode::new(self.status.as_u16()),
+                    },
+                    source: None,
+                }),
+                Err(source) => Err(Error {
+                    kind: ErrorType::Parsing { body: bytes },
+                    source: Some(Box::new(source)),
+                }),
+            }),
+            Poll::Ready(Err(e)) => InnerPoll::Ready(Err(e)),
             Poll::Pending => InnerPoll::Pending(ResponseFutureStage::Chunking(self)),
         }
     }
