@@ -1679,9 +1679,8 @@ impl Client {
 
     /// Start a thread that is not connected to a message.
     ///
-    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
-    /// The guild's features will indicate if a guild is able to use these
-    /// settings.
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     ///
     /// To make a [`GuildPrivateThread`], the guild must also have the
     /// `PRIVATE_THREADS` feature.
@@ -1695,9 +1694,7 @@ impl Client {
     ///
     /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
-    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
-    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
@@ -1715,9 +1712,8 @@ impl Client {
     /// When called on a [`GuildNews`] channel, this creates a
     /// [`GuildNewsThread`].
     ///
-    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
-    /// The guild's features will indicate if a guild is able to use these
-    /// settings.
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     ///
     /// The thread's ID will be the same as its parent message. This ensures
     /// only one thread can be created per message.
@@ -1734,9 +1730,7 @@ impl Client {
     /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
-    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
-    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
     pub fn create_thread_from_message<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
