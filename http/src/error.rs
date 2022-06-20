@@ -112,6 +112,8 @@ pub enum ErrorType {
     Response {
         body: Vec<u8>,
         /// Deserialized context from [`body`].
+        ///
+        /// [`body`]: Self::Response::body
         context: ApiError,
         status: StatusCode,
     },
