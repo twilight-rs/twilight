@@ -148,7 +148,7 @@ pub struct Channel {
     pub position: Option<i16>,
     /// Amount of seconds a user has to wait before sending another message.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rate_limit_per_user: Option<u32>,
+    pub rate_limit_per_user: Option<u16>,
     /// Recipients of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recipients: Option<Vec<User>>,

@@ -535,7 +535,7 @@ mod tests {
                 Token::I16(0),
                 Token::Str("rate_limit_per_user"),
                 Token::Some,
-                Token::U32(0),
+                Token::U16(0),
                 Token::StructEnd,
                 Token::Struct {
                     name: "Channel",
