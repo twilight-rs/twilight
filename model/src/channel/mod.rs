@@ -165,7 +165,7 @@ pub struct Channel {
     pub topic: Option<String>,
     /// Number of users that may be in the channel.
     ///
-    /// Zero refres to no limit.
+    /// Zero refers to no limit.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_limit: Option<u8>,
     /// Camera video quality mode of the channel.
