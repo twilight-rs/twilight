@@ -107,6 +107,7 @@ impl<T> Id<T> {
     /// Panics if the value is 0.
     ///
     /// [`new_checked`]: Self::new_checked
+    #[track_caller]
     pub const fn new(n: u64) -> Self {
         if let Some(id) = Self::new_checked(n) {
             id
