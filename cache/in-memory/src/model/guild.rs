@@ -1,10 +1,8 @@
-use std::slice::Iter;
-
 use serde::Serialize;
 use twilight_model::{
     guild::{
-        DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
-        PremiumTier, SystemChannelFlags, VerificationLevel,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, GuildFeature, MfaLevel, NSFWLevel,
+        Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     },
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
@@ -26,7 +24,7 @@ pub struct CachedGuild {
     pub(crate) description: Option<String>,
     pub(crate) discovery_splash: Option<ImageHash>,
     pub(crate) explicit_content_filter: ExplicitContentFilter,
-    pub(crate) features: Vec<String>,
+    pub(crate) features: Vec<GuildFeature>,
     pub(crate) icon: Option<ImageHash>,
     pub(crate) id: Id<GuildMarker>,
     pub(crate) joined_at: Option<Timestamp>,
@@ -108,10 +106,8 @@ impl CachedGuild {
     /// Enabled [guild features].
     ///
     /// [guild features]: https://discord.com/developers/docs/resources/guild#guild-object-guild-features
-    pub fn features(&self) -> Features<'_> {
-        Features {
-            inner: self.features.iter(),
-        }
+    pub fn features(&self) -> &[GuildFeature] {
+        &self.features
     }
 
     /// Icon hash.
@@ -262,21 +258,9 @@ impl CachedGuild {
     }
 }
 
-pub struct Features<'a> {
-    inner: Iter<'a, String>,
-}
-
-impl<'a> Iterator for Features<'a> {
-    type Item = &'a str;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(AsRef::as_ref)
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{CachedGuild, Features};
+    use super::CachedGuild;
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
@@ -328,5 +312,4 @@ mod tests {
         Serialize,
         Sync,
     );
-    assert_impl_all!(Features<'_>: Iterator, Send, Sync);
 }
