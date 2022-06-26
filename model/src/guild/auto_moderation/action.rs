@@ -9,6 +9,7 @@ pub struct AutoModerationAction {
     pub kind: AutoModerationActionType,
     /// Additional metadata needed during execution for this specific action
     /// type.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<AutoModerationActionMetadata>,
 }
 
@@ -19,11 +20,13 @@ pub struct AutoModerationAction {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AutoModerationActionMetadata {
     /// Channel to which user content should be logged.
-    pub channel_id: Id<ChannelMarker>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel_id: Option<Id<ChannelMarker>>,
     /// Timeout duration in seconds.
     ///
     /// Maximum value is 2419200 seconds, or 4 weeks.
-    pub duration_seconds: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_seconds: Option<u32>,
 }
 
 /// Type of [`AutoModerationAction`].
@@ -73,11 +76,35 @@ impl From<AutoModerationActionType> for u8 {
 
 #[cfg(test)]
 mod tests {
-    use super::AutoModerationActionType;
+    use super::{AutoModerationAction, AutoModerationActionMetadata, AutoModerationActionType};
     use serde::{Deserialize, Serialize};
-    use static_assertions::assert_impl_all;
+    use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
 
+    assert_fields!(AutoModerationAction: kind, metadata);
+    assert_fields!(AutoModerationActionMetadata: channel_id, duration_seconds);
+    assert_impl_all!(
+        AutoModerationAction: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize,
+        Send,
+        Sync
+    );
+    assert_impl_all!(
+        AutoModerationActionMetadata: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize,
+        Send,
+        Sync
+    );
     assert_impl_all!(
         AutoModerationActionType: Clone,
         Copy,

@@ -58,3 +58,187 @@ pub struct AutoModerationRule {
     /// Rule trigger type.
     pub trigger_type: AutoModerationTriggerType,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        AutoModerationAction, AutoModerationActionMetadata, AutoModerationActionType,
+        AutoModerationEventType, AutoModerationRule, AutoModerationTriggerMetadata,
+        AutoModerationTriggerType,
+    };
+    use crate::id::{
+        marker::{AutoModerationRuleMarker, ChannelMarker, GuildMarker, RoleMarker, UserMarker},
+        Id,
+    };
+    use serde::{Deserialize, Serialize};
+    use serde_test::Token;
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_fields!(
+        AutoModerationRule: actions,
+        creator_id,
+        enabled,
+        event_type,
+        exempt_channels,
+        exempt_roles,
+        guild_id,
+        id,
+        name,
+        trigger_metadata,
+        trigger_type
+    );
+    assert_impl_all!(
+        AutoModerationRule: Clone,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Serialize,
+        Send,
+        Sync,
+    );
+
+    #[allow(clippy::too_many_lines)]
+    #[test]
+    fn rule() {
+        const ACTION_CHANNEL_ID: Id<ChannelMarker> = Id::new(1);
+        const AUTO_MODERATION_RULE_ID: Id<AutoModerationRuleMarker> = Id::new(2);
+        const CREATOR_ID: Id<UserMarker> = Id::new(3);
+        const EXEMPT_CHANNEL_ID: Id<ChannelMarker> = Id::new(4);
+        const EXEMPT_ROLE_ID: Id<RoleMarker> = Id::new(5);
+        const GUILD_ID: Id<GuildMarker> = Id::new(6);
+
+        let value = AutoModerationRule {
+            actions: Vec::from([
+                AutoModerationAction {
+                    kind: AutoModerationActionType::BlockMessage,
+                    metadata: None,
+                },
+                AutoModerationAction {
+                    kind: AutoModerationActionType::SendAlertMessage,
+                    metadata: Some(AutoModerationActionMetadata {
+                        channel_id: Some(ACTION_CHANNEL_ID),
+                        duration_seconds: None,
+                    }),
+                },
+                AutoModerationAction {
+                    kind: AutoModerationActionType::Timeout,
+                    metadata: Some(AutoModerationActionMetadata {
+                        channel_id: None,
+                        duration_seconds: Some(120),
+                    }),
+                },
+            ]),
+            creator_id: CREATOR_ID,
+            enabled: true,
+            event_type: AutoModerationEventType::MessageSend,
+            exempt_channels: Vec::from([EXEMPT_CHANNEL_ID]),
+            exempt_roles: Vec::from([EXEMPT_ROLE_ID]),
+            guild_id: GUILD_ID,
+            id: AUTO_MODERATION_RULE_ID,
+            name: "rule".into(),
+            trigger_metadata: AutoModerationTriggerMetadata {
+                keyword_filter: Some(Vec::from(["shoot".into(), "darn".into()])),
+                presets: None,
+            },
+            trigger_type: AutoModerationTriggerType::Keyword,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "AutoModerationRule",
+                    len: 11,
+                },
+                Token::Str("actions"),
+                Token::Seq { len: Some(3) },
+                Token::Struct {
+                    name: "AutoModerationAction",
+                    len: 1,
+                },
+                Token::Str("type"),
+                Token::U8(u8::from(AutoModerationActionType::BlockMessage)),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "AutoModerationAction",
+                    len: 2,
+                },
+                Token::Str("type"),
+                Token::U8(u8::from(AutoModerationActionType::SendAlertMessage)),
+                Token::Str("metadata"),
+                Token::Some,
+                Token::Struct {
+                    name: "AutoModerationActionMetadata",
+                    len: 1,
+                },
+                Token::Str("channel_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::StructEnd,
+                Token::StructEnd,
+                Token::Struct {
+                    name: "AutoModerationAction",
+                    len: 2,
+                },
+                Token::Str("type"),
+                Token::U8(u8::from(AutoModerationActionType::Timeout)),
+                Token::Str("metadata"),
+                Token::Some,
+                Token::Struct {
+                    name: "AutoModerationActionMetadata",
+                    len: 1,
+                },
+                Token::Str("duration_seconds"),
+                Token::Some,
+                Token::U32(120),
+                Token::StructEnd,
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("creator_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("3"),
+                Token::Str("enabled"),
+                Token::Bool(true),
+                Token::Str("event_type"),
+                Token::U8(u8::from(AutoModerationEventType::MessageSend)),
+                Token::Str("exempt_channels"),
+                Token::Seq { len: Some(1) },
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("4"),
+                Token::SeqEnd,
+                Token::Str("exempt_roles"),
+                Token::Seq { len: Some(1) },
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::SeqEnd,
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("6"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("name"),
+                Token::Str("rule"),
+                Token::Str("trigger_metadata"),
+                Token::Struct {
+                    name: "AutoModerationTriggerMetadata",
+                    len: 1,
+                },
+                Token::Str("keyword_filter"),
+                Token::Some,
+                Token::Seq { len: Some(2) },
+                Token::Str("shoot"),
+                Token::Str("darn"),
+                Token::SeqEnd,
+                Token::StructEnd,
+                Token::Str("trigger_type"),
+                Token::U8(u8::from(AutoModerationTriggerType::Keyword)),
+                Token::StructEnd,
+            ],
+        );
+    }
+}
