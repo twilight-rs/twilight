@@ -13,17 +13,17 @@ use serde::{Deserialize, Serialize};
 pub struct AutoModerationRule {
     /// Actions which will execute when the rule is triggered.
     pub actions: Vec<AutoModerationAction>,
-    /// User which first created the rule.
+    /// User which created the rule.
     pub creator_id: Id<UserMarker>,
     /// Whether the rule is enabled.
     pub enabled: bool,
     /// Rule event type.
     pub event_type: AutoModerationEventType,
-    /// Channel ids that should not be affected by the rule.
+    /// Channels that should not be affected by the rule.
     ///
     /// Maximum of 50.
     pub exempt_channels: Vec<Id<ChannelMarker>>,
-    /// Role IDs that should not be affected by the rule.
+    /// Roles that should not be affected by the rule.
     ///
     /// Maximum of 20.
     pub exempt_roles: Vec<Id<RoleMarker>>,

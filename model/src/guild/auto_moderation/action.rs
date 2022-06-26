@@ -5,10 +5,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AutoModerationAction {
     /// Type of action.
+    #[serde(rename = "type")]
     pub kind: AutoModerationActionType,
     /// Additional metadata needed during execution for this specific action
     /// type.
-    pub metadata: AutoModerationActionMetadata,
+    pub metadata: Option<AutoModerationActionMetadata>,
 }
 
 /// Additional metadata needed during execution for a specific

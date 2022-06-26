@@ -42,7 +42,7 @@ pub struct AutoModerationActionExecution {
     pub message_id: Option<Id<MessageMarker>>,
     /// ID of the rule which action belongs to.
     pub rule_id: Id<AutoModerationRuleMarker>,
-    /// Trigger type of rule which was triggered.
+    /// Type of rule which was triggered.
     pub rule_trigger_type: AutoModerationTriggerType,
     /// ID of the user which generated the content which triggered the rule.
     pub user_id: Id<UserMarker>,

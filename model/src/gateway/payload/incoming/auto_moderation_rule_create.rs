@@ -2,7 +2,7 @@ use crate::guild::auto_moderation::AutoModerationRule;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
-/// Sent when an auto moderation rule is created.
+/// Sent when an auto moderation rule was created.
 ///
 /// Sent to bot users with [`Permissions::MANAGE_GUILD`].
 ///
