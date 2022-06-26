@@ -2,9 +2,9 @@ use crate::guild::auto_moderation::AutoModerationRule;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
-/// Sent when an auto moderation rule was updated.
+/// Auto moderation rule has been updated.
 ///
-/// Sent to bot users with [`Permissions::MANAGE_GUILD`].
+/// Requires [`Permissions::MANAGE_GUILD`].
 ///
 /// [`Permissions::MANAGE_GUILD`]: crate::guild::Permissions::MANAGE_GUILD
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

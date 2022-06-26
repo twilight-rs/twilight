@@ -7,9 +7,9 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Message was blocked by AutoMod according to a rule.
+/// Message has been blocked by AutoMod according to a rule.
 ///
-/// Sent to bot users with [`Permissions::MANAGE_GUILD`].
+/// Requires [`Permissions::MANAGE_GUILD`].
 ///
 /// [`Permissions::MANAGE_GUILD`]: crate::guild::Permissions::MANAGE_GUILD
 #[allow(clippy::doc_markdown)]

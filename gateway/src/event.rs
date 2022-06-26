@@ -4,17 +4,17 @@ use twilight_model::gateway::event::EventType;
 bitflags! {
     /// Bitflags representing all of the possible types of events.
     pub struct EventTypeFlags: u128 {
-        /// Message was blocked by AutoMod according to a rule.
+        /// Message has been blocked by AutoMod according to a rule.
         const AUTO_MODERATION_ACTION_EXECUTION = 1 << 71;
-        /// [`AutoModerationRule`] was created.
+        /// [`AutoModerationRule`] has been created.
         ///
         /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
         const AUTO_MODERATION_RULE_CREATE = 1 << 72;
-        /// [`AutoModerationRule`] was deleted.
+        /// [`AutoModerationRule`] has been deleted.
         ///
         /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
         const AUTO_MODERATION_RULE_DELETE = 1 << 73;
-        /// [`AutoModerationRule`] was updated.
+        /// [`AutoModerationRule`] has been updated.
         ///
         /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
         const AUTO_MODERATION_RULE_UPDATE = 1 << 74;
