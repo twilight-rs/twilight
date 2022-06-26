@@ -1,3 +1,5 @@
+use std::slice::Iter;
+
 use serde::Serialize;
 use twilight_model::{
     guild::{
@@ -106,8 +108,10 @@ impl CachedGuild {
     /// Enabled [guild features].
     ///
     /// [guild features]: https://discord.com/developers/docs/resources/guild#guild-object-guild-features
-    pub fn features(&self) -> &[GuildFeature] {
-        &self.features
+    pub fn features(&self) -> Features<'_> {
+        Features {
+            inner: self.features.iter(),
+        }
     }
 
     /// Icon hash.
@@ -255,6 +259,18 @@ impl CachedGuild {
     /// Whether the widget is enabled.
     pub const fn widget_enabled(&self) -> Option<bool> {
         self.widget_enabled
+    }
+}
+
+pub struct Features<'a> {
+    inner: Iter<'a, GuildFeature>,
+}
+
+impl<'a> Iterator for Features<'a> {
+    type Item = &'a GuildFeature;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
     }
 }
 
