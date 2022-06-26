@@ -276,7 +276,7 @@ impl<'a> Iterator for Features<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::CachedGuild;
+    use super::{CachedGuild, Features};
     use serde::Serialize;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
@@ -328,4 +328,5 @@ mod tests {
         Serialize,
         Sync,
     );
+    assert_impl_all!(Features<'_>: Iterator, Send, Sync);
 }
