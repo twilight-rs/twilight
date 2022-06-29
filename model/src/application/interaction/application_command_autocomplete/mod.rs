@@ -10,7 +10,7 @@ pub use self::{
 
 use crate::{
     application::interaction::InteractionType,
-    guild::PartialMember,
+    guild::{PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
@@ -26,6 +26,9 @@ use serde::Serialize;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename(serialize = "Interaction"))]
 pub struct ApplicationCommandAutocomplete {
+    /// Permissions the app or bot has within the channel the
+    /// interaction was sent from.
+    pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
     /// ID of the channel the interaction was invoked in.
@@ -97,6 +100,7 @@ mod tests {
             command::CommandType,
             interaction::{tests::user, Interaction},
         },
+        guild::Permissions,
         util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
@@ -109,6 +113,7 @@ mod tests {
 
         let value =
             Interaction::ApplicationCommandAutocomplete(Box::new(ApplicationCommandAutocomplete {
+                app_permissions: Some(Permissions::empty()),
                 application_id: Id::new(1),
                 channel_id: Id::new(2),
                 data: ApplicationCommandAutocompleteData {
@@ -150,8 +155,10 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 9,
+                    len: 10,
                 },
+                Token::Str("app_permissions"),
+                Token::Str("0"),
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -242,6 +249,7 @@ mod tests {
         let joined_at = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = ApplicationCommandAutocomplete {
+            app_permissions: Some(Permissions::MENTION_EVERYONE),
             application_id: Id::<ApplicationMarker>::new(1),
             channel_id: Id::<ChannelMarker>::new(1),
             data: ApplicationCommandAutocompleteData {

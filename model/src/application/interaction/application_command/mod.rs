@@ -10,7 +10,7 @@ pub use self::{
 
 use crate::{
     application::interaction::InteractionType,
-    guild::PartialMember,
+    guild::{PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
@@ -26,6 +26,9 @@ use serde::Serialize;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename(serialize = "Interaction"))]
 pub struct ApplicationCommand {
+    /// Permissions the app or bot has within the channel the
+    /// interaction was sent from.
+    pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
     /// ID of the channel the interaction was invoked in.
@@ -97,7 +100,7 @@ mod tests {
             command::CommandType,
             interaction::{application_command::CommandDataOption, tests::user, InteractionType},
         },
-        guild::PartialMember,
+        guild::{PartialMember, Permissions},
         id::{
             marker::{
                 ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker,
@@ -115,6 +118,7 @@ mod tests {
         let joined_at = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = ApplicationCommand {
+            app_permissions: Some(Permissions::empty()),
             application_id: Id::<ApplicationMarker>::new(1),
             channel_id: Id::<ChannelMarker>::new(1),
             data: CommandData {

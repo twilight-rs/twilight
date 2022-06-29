@@ -5,7 +5,7 @@ pub use self::data::MessageComponentInteractionData;
 use super::InteractionType;
 use crate::{
     channel::Message,
-    guild::PartialMember,
+    guild::{PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
@@ -20,6 +20,9 @@ use serde::Serialize;
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename(serialize = "Interaction"))]
 pub struct MessageComponentInteraction {
+    /// Permissions the app or bot has within the channel the
+    /// interaction was sent from.
+    pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
     /// ID of the channel the interaction was invoked in.
@@ -134,6 +137,7 @@ mod tests {
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = MessageComponentInteraction {
+            app_permissions: None,
             application_id: Id::new(1),
             channel_id: Id::new(2),
             data: MessageComponentInteractionData {
