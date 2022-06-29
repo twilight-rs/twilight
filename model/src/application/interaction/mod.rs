@@ -217,7 +217,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                         return Err(DeError::duplicate_field("app_permissions"));
                     }
 
-                    app_permissions = Some(map.next_value()?);
+                    app_permissions = map.next_value()?;
                 }
                 InteractionField::ApplicationId => {
                     if application_id.is_some() {
@@ -609,6 +609,7 @@ mod tests {
                     len: 11,
                 },
                 Token::Str("app_permissions"),
+                Token::Some,
                 Token::Str("2048"),
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },

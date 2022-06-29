@@ -113,7 +113,7 @@ mod tests {
 
         let value =
             Interaction::ApplicationCommandAutocomplete(Box::new(ApplicationCommandAutocomplete {
-                app_permissions: Some(Permissions::empty()),
+                app_permissions: Some(Permissions::SEND_MESSAGES),
                 application_id: Id::new(1),
                 channel_id: Id::new(2),
                 data: ApplicationCommandAutocompleteData {
@@ -158,7 +158,8 @@ mod tests {
                     len: 10,
                 },
                 Token::Str("app_permissions"),
-                Token::Str("0"),
+                Token::Some,
+                Token::Str("2048"),
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
