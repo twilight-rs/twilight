@@ -1679,16 +1679,22 @@ impl Client {
 
     /// Start a thread that is not connected to a message.
     ///
-    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
-    /// The guild's features will indicate if a guild is able to use these
-    /// settings.
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     ///
     /// To make a [`GuildPrivateThread`], the guild must also have the
     /// `PRIVATE_THREADS` feature.
     ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the channel's name's length is
+    /// incorrect.
+    ///
+    /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
+    ///
     /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
-    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
-    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
+    /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
@@ -1706,19 +1712,25 @@ impl Client {
     /// When called on a [`GuildNews`] channel, this creates a
     /// [`GuildNewsThread`].
     ///
-    /// Values of [`ThreeDays`] and [`Week`] require the guild to be boosted.
-    /// The guild's features will indicate if a guild is able to use these
-    /// settings.
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     ///
     /// The thread's ID will be the same as its parent message. This ensures
     /// only one thread can be created per message.
     ///
-    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameInvalid`] if the channel's name's length is
+    /// incorrect.
+    ///
+    /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
+    ///
     /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
+    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
     /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
-    /// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
-    /// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
+    /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread_from_message<'a>(
         &'a self,
         channel_id: Id<ChannelMarker>,
@@ -2306,6 +2318,18 @@ impl Client {
     /// println!("{sticker:#?}");
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`DescriptionInvalid`] if the length is invalid.
+    ///
+    /// Returns an error of type [`NameInvalid`] if the length is invalid.
+    ///
+    /// Returns an error of type [`TagsInvalid`] if the length is invalid.
+    ///
+    /// [`DescriptionInvalid`]: twilight_validate::sticker::StickerValidationErrorType::DescriptionInvalid
+    /// [`NameInvalid`]: twilight_validate::sticker::StickerValidationErrorType::NameInvalid
+    /// [`TagsInvalid`]: twilight_validate::sticker::StickerValidationErrorType::TagsInvalid
     pub fn create_guild_sticker<'a>(
         &'a self,
         guild_id: Id<GuildMarker>,

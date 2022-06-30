@@ -9,14 +9,13 @@
     unsafe_code,
     unused
 )]
-#![doc = include_str!("../README.md")]
 #![allow(
-    clippy::missing_errors_doc,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned,
-    clippy::unnecessary_wraps
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
 )]
+#![doc = include_str!("../README.md")]
 
 pub mod api_error;
 pub mod client;

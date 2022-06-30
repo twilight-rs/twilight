@@ -1660,7 +1660,7 @@ impl Display for Route<'_> {
 
                 if let Some(with_localizations) = with_localizations {
                     f.write_str("?with_localizations=")?;
-                    Display::fmt(with_localizations, f)?
+                    Display::fmt(with_localizations, f)?;
                 }
 
                 Ok(())
@@ -2859,7 +2859,7 @@ mod tests {
             webhook_id: 3,
         };
 
-        assert_eq!("webhooks/3/token/messages/1?thread_id=2", route.to_string())
+        assert_eq!("webhooks/3/token/messages/1?thread_id=2", route.to_string());
     }
 
     #[test]
@@ -3543,7 +3543,7 @@ mod tests {
     #[test]
     fn delete_invite() {
         let route = Route::DeleteInvite { code: CODE };
-        assert_eq!(route.to_string(), format!("invites/{CODE}"))
+        assert_eq!(route.to_string(), format!("invites/{CODE}"));
     }
 
     #[test]
@@ -3883,7 +3883,7 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("users/@me/guilds/{GUILD_ID}/member")
-        )
+        );
     }
 
     #[test]
