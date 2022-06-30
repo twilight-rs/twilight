@@ -220,6 +220,7 @@ impl ClusterBuilder {
     /// # Panics
     ///
     /// Panics if the provided value is below 50 or above 250.
+    #[track_caller]
     pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         self.shard = self.shard.large_threshold(large_threshold);
 
