@@ -66,6 +66,7 @@ pub struct CommandBuilder(Command);
 
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
@@ -187,6 +188,7 @@ pub struct AttachmentBuilder(BaseCommandOptionData);
 
 impl AttachmentBuilder {
     /// Create a new default [`AttachmentBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
             description: description.into(),
@@ -261,6 +263,7 @@ pub struct BooleanBuilder(BaseCommandOptionData);
 
 impl BooleanBuilder {
     /// Create a new default [`BooleanBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
             description: description.into(),
@@ -335,6 +338,7 @@ pub struct ChannelBuilder(ChannelCommandOptionData);
 
 impl ChannelBuilder {
     /// Create a new default [`ChannelBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(ChannelCommandOptionData {
             channel_types: Vec::new(),
@@ -418,6 +422,7 @@ pub struct IntegerBuilder(NumberCommandOptionData);
 
 impl IntegerBuilder {
     /// Create a new default [`IntegerBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(NumberCommandOptionData {
             autocomplete: false,
@@ -572,6 +577,7 @@ pub struct MentionableBuilder(BaseCommandOptionData);
 
 impl MentionableBuilder {
     /// Create a new default [`MentionableBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
             description: description.into(),
@@ -646,6 +652,7 @@ pub struct NumberBuilder(NumberCommandOptionData);
 
 impl NumberBuilder {
     /// Create a new default [`NumberBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(NumberCommandOptionData {
             autocomplete: false,
@@ -803,6 +810,7 @@ pub struct RoleBuilder(BaseCommandOptionData);
 
 impl RoleBuilder {
     /// Create a new default [`RoleBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
             description: description.into(),
@@ -877,6 +885,7 @@ pub struct StringBuilder(ChoiceCommandOptionData);
 
 impl StringBuilder {
     /// Create a new default [`StringBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(ChoiceCommandOptionData {
             autocomplete: false,
@@ -1011,6 +1020,7 @@ pub struct SubCommandBuilder(OptionsCommandOptionData);
 
 impl SubCommandBuilder {
     /// Create a new default [`SubCommandBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(OptionsCommandOptionData {
             description: description.into(),
@@ -1089,6 +1099,7 @@ pub struct SubCommandGroupBuilder(OptionsCommandOptionData);
 
 impl SubCommandGroupBuilder {
     /// Create a new default [`SubCommandGroupBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(OptionsCommandOptionData {
             description: description.into(),
@@ -1163,6 +1174,7 @@ pub struct UserBuilder(BaseCommandOptionData);
 
 impl UserBuilder {
     /// Create a new default [`UserBuilder`].
+    #[must_use = "builders have no effect if unused"]
     pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
             description: description.into(),
