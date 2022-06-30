@@ -1,3 +1,5 @@
+//! Types for Auto Moderation.
+//! 
 //! Auto Moderation is a feature which allows each guild to set up rules that
 //! trigger based on some criteria. For example, a rule can trigger whenever a
 //! message contains a specific keyword.
