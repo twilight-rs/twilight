@@ -719,16 +719,13 @@ impl NumberBuilder {
     /// Defaults to no choices.
     ///
     /// [`choice_localizations`]: Self::choice_localizations
-    pub fn choices<K: Into<String>, V: Into<Number>>(
-        mut self,
-        choices: impl IntoIterator<Item = (K, V)>,
-    ) -> Self {
+    pub fn choices<K: Into<String>>(mut self, choices: impl IntoIterator<Item = (K, f64)>) -> Self {
         self.0.choices = choices
             .into_iter()
             .map(|(name, value, ..)| CommandOptionChoice::Number {
                 name: name.into(),
                 name_localizations: None,
-                value: value.into(),
+                value: Number(value),
             })
             .collect();
 
