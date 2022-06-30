@@ -255,8 +255,8 @@ impl BucketQueueTask {
     /// Update the bucket's ratelimit state.
     async fn handle_headers(&self, headers: &RatelimitHeaders) {
         let ratelimits = match headers {
-            RatelimitHeaders::GlobalLimited(global_limited) => {
-                self.lock_global(Duration::from_secs(global_limited.retry_after()))
+            RatelimitHeaders::Global(global) => {
+                self.lock_global(Duration::from_secs(global.retry_after()))
                     .await;
 
                 None
