@@ -26,9 +26,9 @@ use serde::Serialize;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename(serialize = "Interaction"))]
 pub struct ApplicationCommandAutocomplete {
-    /// Permissions the app or bot has within the channel the
-    /// interaction was sent from. It is none if the interaction
-    /// happens in a direct message channel.
+    /// App's permissions in the channel the interaction was sent from.
+    ///
+    /// None if the interaction happens in a direct message channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
