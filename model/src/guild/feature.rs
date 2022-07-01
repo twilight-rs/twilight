@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// Special and optional guild features.
 ///
-/// See [Discord Docs/Guild Features]
+/// See [Discord Docs/Guild Features].
 ///
 /// [Discord Docs/Guild Features]: https://discord.com/developers/docs/resources/guild#guild-object-guild-features
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
