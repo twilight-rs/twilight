@@ -21,7 +21,9 @@ use serde::Serialize;
 #[serde(rename(serialize = "Interaction"))]
 pub struct MessageComponentInteraction {
     /// Permissions the app or bot has within the channel the
-    /// interaction was sent from.
+    /// interaction was sent from. It is none if the interaction
+    /// happens in a direct message channel.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
