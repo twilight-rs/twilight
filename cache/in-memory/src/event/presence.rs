@@ -40,11 +40,14 @@ impl UpdateCache for PresenceUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
-    use twilight_model::gateway::{
-        event::Event,
-        presence::{ClientStatus, Presence, Status, UserOrId},
+    use crate::{test, InMemoryCache};
+    use twilight_model::{
+        gateway::{
+            event::Event,
+            payload::incoming::PresenceUpdate,
+            presence::{ClientStatus, Presence, Status, UserOrId},
+        },
+        id::Id,
     };
 
     #[test]

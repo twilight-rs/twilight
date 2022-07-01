@@ -312,6 +312,13 @@ impl<'a> InteractionClient<'a> {
     ///
     /// This overwrites the command permissions so the full set of permissions
     /// have to be sent every time.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`PermissionsCountInvalid`] if the permissions
+    /// are invalid.
+    ///
+    /// [`PermissionsCountInvalid`]: twilight_validate::command::CommandValidationErrorType::PermissionsCountInvalid
     pub fn update_command_permissions(
         &'a self,
         guild_id: Id<GuildMarker>,

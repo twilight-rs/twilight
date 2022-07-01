@@ -72,9 +72,9 @@ impl UpdateCache for GuildEmojisUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
+    use crate::{test, InMemoryCache};
     use twilight_model::{
+        gateway::payload::incoming::GuildEmojisUpdate,
         id::{marker::EmojiMarker, Id},
         user::User,
     };

@@ -231,12 +231,12 @@ impl ShardBuilder {
     /// # Panics
     ///
     /// Panics if the provided value is below 50 or above 250.
-    #[allow(clippy::missing_const_for_fn)]
+    #[track_caller]
     pub fn large_threshold(mut self, large_threshold: u64) -> Self {
         match large_threshold {
-            0..=49 => panic!("provided large threshold value {large_threshold} is fewer than 50"),
+            0..=49 => panic!("threshold {large_threshold} is below 50"),
             50..=250 => (),
-            251.. => panic!("provided large threshold value {large_threshold} is more than 250"),
+            251.. => panic!("threshold {large_threshold} is above 250"),
         }
 
         self.large_threshold = large_threshold;

@@ -29,6 +29,8 @@ pub enum MessageType {
     ThreadStarterMessage = 21,
     GuildInviteReminder = 22,
     ContextMenuCommand = 23,
+    /// Message is an auto-moderation action.
+    AutoModerationAction = 24,
 }
 
 impl TryFrom<u8> for MessageType {
@@ -59,6 +61,7 @@ impl TryFrom<u8> for MessageType {
             21 => MessageType::ThreadStarterMessage,
             22 => MessageType::GuildInviteReminder,
             23 => MessageType::ContextMenuCommand,
+            24 => MessageType::AutoModerationAction,
             _ => return Err(ConversionError::MessageType(value)),
         };
 
@@ -102,6 +105,7 @@ mod tests {
         serde_test::assert_tokens(&MessageType::ThreadStarterMessage, &[Token::U8(21)]);
         serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
         serde_test::assert_tokens(&MessageType::ContextMenuCommand, &[Token::U8(23)]);
+        serde_test::assert_tokens(&MessageType::AutoModerationAction, &[Token::U8(24)]);
     }
 
     #[test]
@@ -185,6 +189,10 @@ mod tests {
         assert_eq!(
             MessageType::try_from(23).unwrap(),
             MessageType::ContextMenuCommand
+        );
+        assert_eq!(
+            MessageType::try_from(24).unwrap(),
+            MessageType::AutoModerationAction
         );
         assert_eq!(
             MessageType::try_from(250).unwrap_err(),

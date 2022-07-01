@@ -281,18 +281,18 @@ impl UpdateCache for GuildUpdate {
 
 #[cfg(test)]
 mod tests {
+    use crate::{test, InMemoryCache};
     use std::str::FromStr;
-
-    use super::*;
-    use crate::test;
     use twilight_model::{
         channel::{
             thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
             Channel, ChannelType,
         },
-        gateway::payload::incoming::{MemberAdd, MemberRemove, UnavailableGuild},
+        gateway::payload::incoming::{
+            GuildCreate, GuildUpdate, MemberAdd, MemberRemove, UnavailableGuild,
+        },
         guild::{
-            DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel,
+            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
             PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
         },
         id::Id,
@@ -381,10 +381,11 @@ mod tests {
         }]);
 
         let guild = Guild {
-            id: Id::new(123),
             afk_channel_id: None,
             afk_timeout: 300,
             application_id: None,
+            approximate_member_count: None,
+            approximate_presence_count: None,
             banner: None,
             channels,
             default_message_notifications: DefaultMessageNotificationLevel::Mentions,
@@ -394,17 +395,19 @@ mod tests {
             explicit_content_filter: ExplicitContentFilter::AllMembers,
             features: vec![],
             icon: None,
+            id: Id::new(123),
             joined_at: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
             large: false,
             max_members: Some(50),
             max_presences: Some(100),
+            max_video_channel_users: None,
             member_count: Some(25),
             members: Vec::new(),
             mfa_level: MfaLevel::Elevated,
             name: "this is a guild".to_owned(),
             nsfw_level: NSFWLevel::AgeRestricted,
-            owner: Some(false),
             owner_id: Id::new(456),
+            owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
             preferred_locale: "en-GB".to_owned(),
             premium_progress_bar_enabled: true,
@@ -412,22 +415,19 @@ mod tests {
             premium_tier: PremiumTier::None,
             presences: Vec::new(),
             roles: Vec::new(),
+            rules_channel_id: None,
             splash: None,
             stage_instances: Vec::new(),
             stickers: Vec::new(),
-            system_channel_id: None,
             system_channel_flags: SystemChannelFlags::SUPPRESS_JOIN_NOTIFICATIONS,
-            rules_channel_id: None,
+            system_channel_id: None,
             threads,
             unavailable: false,
+            vanity_url_code: None,
             verification_level: VerificationLevel::VeryHigh,
             voice_states: Vec::new(),
-            vanity_url_code: None,
             widget_channel_id: None,
             widget_enabled: None,
-            max_video_channel_users: None,
-            approximate_member_count: None,
-            approximate_presence_count: None,
         };
 
         let cache = InMemoryCache::new();

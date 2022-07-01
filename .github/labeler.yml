@@ -5,6 +5,11 @@ labels:
     matcher:
       files: "*"
 
+  - label: "c-book"
+    sync: true
+    matcher:
+      files: "book/**/*"
+
   - label: "c-cache"
     sync: true
     matcher:

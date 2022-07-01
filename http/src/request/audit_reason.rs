@@ -1,6 +1,13 @@
 use twilight_validate::request::ValidationError;
 
 pub trait AuditLogReason<'a>: private::Sealed {
+    /// Attach an audit log reason to the request.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`AuditReason`] if the length is invalid.
+    ///
+    /// [`AuditReason`]: twilight_validate::request::ValidationErrorType::AuditReason
     fn reason(self, reason: &'a str) -> Result<Self, ValidationError>
     where
         Self: Sized;

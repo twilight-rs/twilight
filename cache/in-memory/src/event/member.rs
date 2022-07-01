@@ -196,8 +196,9 @@ impl UpdateCache for MemberUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
+    use crate::{test, InMemoryCache};
+    use std::borrow::Cow;
+    use twilight_model::{gateway::payload::incoming::MemberRemove, id::Id};
 
     #[test]
     fn cache_guild_member() {

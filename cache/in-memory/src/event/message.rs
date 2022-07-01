@@ -130,9 +130,10 @@ impl UpdateCache for MessageUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{InMemoryCache, ResourceType};
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
+        gateway::payload::incoming::MessageCreate,
         guild::PartialMember,
         id::Id,
         user::User,
