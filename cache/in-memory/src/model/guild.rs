@@ -3,8 +3,8 @@ use std::slice::Iter;
 use serde::Serialize;
 use twilight_model::{
     guild::{
-        DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, Permissions,
-        PremiumTier, SystemChannelFlags, VerificationLevel,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, GuildFeature, MfaLevel, NSFWLevel,
+        Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     },
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
@@ -26,7 +26,7 @@ pub struct CachedGuild {
     pub(crate) description: Option<String>,
     pub(crate) discovery_splash: Option<ImageHash>,
     pub(crate) explicit_content_filter: ExplicitContentFilter,
-    pub(crate) features: Vec<String>,
+    pub(crate) features: Vec<GuildFeature>,
     pub(crate) icon: Option<ImageHash>,
     pub(crate) id: Id<GuildMarker>,
     pub(crate) joined_at: Option<Timestamp>,
@@ -263,14 +263,14 @@ impl CachedGuild {
 }
 
 pub struct Features<'a> {
-    inner: Iter<'a, String>,
+    inner: Iter<'a, GuildFeature>,
 }
 
 impl<'a> Iterator for Features<'a> {
-    type Item = &'a str;
+    type Item = &'a GuildFeature;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(AsRef::as_ref)
+        self.inner.next()
     }
 }
 
