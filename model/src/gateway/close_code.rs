@@ -5,9 +5,7 @@ use std::{
 };
 
 /// Gateway close event codes.
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u16)]
 pub enum CloseCode {
