@@ -1,6 +1,8 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+// Keep in sync with `twilight-validate::command`!
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum CommandType {
     /// Slash command.
@@ -9,7 +11,7 @@ pub enum CommandType {
     ChatInput = 1,
     /// UI-based command.
     ///
-    /// Appears when a user right clicks or taps om a user.
+    /// Appears when a user right clicks or taps on a user.
     User = 2,
     /// UI-based command.
     ///

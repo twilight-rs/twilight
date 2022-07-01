@@ -18,6 +18,7 @@ pub struct ApplicationCommandAutocompleteDataOption {
 
 /// Type of option data received.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum ApplicationCommandAutocompleteDataOptionType {
     SubCommand = 1,

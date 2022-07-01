@@ -90,6 +90,8 @@ impl<'a> UpdateChannel<'a> {
     /// The minimum length is 1 UTF-16 character and the maximum is 100 UTF-16
     /// characters.
     ///
+    /// # Errors
+    ///
     /// Returns an error of type [`NameInvalid`] if the name is invalid.
     ///
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid

@@ -295,10 +295,6 @@ pub fn get_route_planner(
 /// # Errors
 ///
 /// See the documentation for [`http::Error`].
-///
-/// # Panics
-///
-/// Panics if serde serialization fails.
 pub fn unmark_failed_address(
     node_address: impl Into<SocketAddr>,
     authorization: impl AsRef<str>,
@@ -313,7 +309,7 @@ pub fn unmark_failed_address(
         serde_json::to_vec(&serde_json::json!({
             "address": route_address.into(),
         }))
-        .unwrap(),
+        .expect("valid json"),
     )
 }
 

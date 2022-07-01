@@ -1100,28 +1100,13 @@ mod tests {
     assert_impl_all!(ComponentValidationError: Debug, Send, Sync);
 
     // All styles of buttons.
-    const fn all_button_styles() -> &'static [ButtonStyle] {
-        const BUTTON_STYLES: &[ButtonStyle] = &[
-            ButtonStyle::Primary,
-            ButtonStyle::Secondary,
-            ButtonStyle::Success,
-            ButtonStyle::Danger,
-            ButtonStyle::Link,
-        ];
-
-        // No-op match to ensure we've registered all styles.
-        //
-        // If a new variant has been added please add it to the above constant.
-        match ButtonStyle::Primary {
-            ButtonStyle::Primary
-            | ButtonStyle::Secondary
-            | ButtonStyle::Success
-            | ButtonStyle::Danger
-            | ButtonStyle::Link => {}
-        }
-
-        BUTTON_STYLES
-    }
+    const ALL_BUTTON_STYLES: &[ButtonStyle] = &[
+        ButtonStyle::Primary,
+        ButtonStyle::Secondary,
+        ButtonStyle::Success,
+        ButtonStyle::Danger,
+        ButtonStyle::Link,
+    ];
 
     #[test]
     fn component_action_row() {
@@ -1203,7 +1188,7 @@ mod tests {
     // [`ComponentValidationErrorType::ButtonStyle`] error type.
     #[test]
     fn button_style() {
-        for style in all_button_styles().iter() {
+        for style in ALL_BUTTON_STYLES.iter() {
             let button = Button {
                 custom_id: None,
                 disabled: false,

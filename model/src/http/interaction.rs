@@ -80,6 +80,7 @@ pub struct InteractionResponseData {
 
 /// Type of interaction response.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum InteractionResponseType {
     /// Used when responding to a Ping from Discord.

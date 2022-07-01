@@ -29,8 +29,7 @@ struct CreateThreadFromMessageFields<'a> {
 ///
 /// When called on a [`GuildNews`] channel, this creates a [`GuildNewsThread`].
 ///
-/// To use auto archive durations of [`ThreeDays`] or [`Week`], the guild must
-/// be boosted.
+/// Automatic archive durations are not locked behind the guild's boost level.
 ///
 /// The thread's ID will be the same as its parent message. This ensures only
 /// one thread can be created per message.
@@ -39,8 +38,6 @@ struct CreateThreadFromMessageFields<'a> {
 /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
 /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
-/// [`ThreeDays`]: twilight_model::channel::thread::AutoArchiveDuration::ThreeDays
-/// [`Week`]: twilight_model::channel::thread::AutoArchiveDuration::Week
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
     channel_id: Id<ChannelMarker>,

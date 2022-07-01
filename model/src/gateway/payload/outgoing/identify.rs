@@ -30,11 +30,8 @@ pub struct IdentifyInfo {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IdentifyProperties {
-    #[serde(rename = "$browser")]
     pub browser: String,
-    #[serde(rename = "$device")]
     pub device: String,
-    #[serde(rename = "$os")]
     pub os: String,
 }
 
