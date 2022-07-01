@@ -16,7 +16,7 @@ pub struct PermissionOverwrite {
 }
 
 /// Type of a permission overwrite target.
-// Keep in sync with `PermissionCalculator`!
+// Keep in sync with `twilight_util::permission_calculator::PermissionCalculator`!
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
