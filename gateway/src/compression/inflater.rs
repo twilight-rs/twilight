@@ -1,3 +1,4 @@
+use crate::config::ShardId;
 use flate2::{Decompress, DecompressError, FlushDecompress};
 use std::{mem, time::Instant};
 
@@ -11,19 +12,19 @@ pub struct Inflater {
     internal_buffer: Vec<u8>,
     buffer: Vec<u8>,
     last_resize: Instant,
-    shard: [u64; 2],
+    shard_id: ShardId,
 }
 
 impl Inflater {
     /// Create a new inflater for a shard.
-    pub fn new(shard: [u64; 2]) -> Self {
+    pub fn new(shard_id: ShardId) -> Self {
         Self {
             buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
             compressed: Vec::new(),
             decompress: Decompress::new(true),
             internal_buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
             last_resize: Instant::now(),
-            shard,
+            shard_id,
         }
     }
 
@@ -83,8 +84,7 @@ impl Inflater {
         tracing::trace!(
             bytes_in = self.compressed.len(),
             bytes_out = self.buffer.len(),
-            shard_id = self.shard[0],
-            shard_total = self.shard[1],
+            shard_id = %self.shard_id,
             "payload lengths",
         );
 
@@ -101,8 +101,7 @@ impl Inflater {
             tracing::trace!(
                 saved_kib = saved_kib,
                 saved_percentage = %saved_percentage_readable,
-                shard_id = self.shard[0],
-                shard_total = self.shard[1],
+                shard_id = %self.shard_id,
                 total_in = self.decompress.total_in(),
                 total_out = self.decompress.total_out(),
                 "data saved",
@@ -132,7 +131,12 @@ impl Inflater {
 
     /// Reset the state of the inflater back to its default state.
     pub fn reset(&mut self) {
-        let _old_inflater = mem::replace(self, Self::new(self.shard));
+        *self = Self::new(self.shard_id);
+    }
+
+    /// Take the buffer, replacing it with a new one.
+    pub fn take(&mut self) -> Vec<u8> {
+        mem::take(&mut self.buffer)
     }
 
     /// Log metrics about the inflater.
@@ -140,15 +144,15 @@ impl Inflater {
     #[allow(clippy::cast_precision_loss)]
     fn inflater_metrics(&self) {
         metrics::gauge!(
-            format!("Inflater-Capacity-{}", self.shard[0]),
+            format!("Inflater-Capacity-{}", self.shard_id[0]),
             self.buffer.capacity() as f64
         );
         metrics::gauge!(
-            format!("Inflater-In-{}", self.shard[0]),
+            format!("Inflater-In-{}", self.shard_id[0]),
             self.decompress.total_in() as f64
         );
         metrics::gauge!(
-            format!("Inflater-Out-{}", self.shard[0]),
+            format!("Inflater-Out-{}", self.shard_id[0]),
             self.decompress.total_out() as f64
         );
     }
@@ -165,14 +169,12 @@ impl Inflater {
 
         tracing::trace!(
             capacity = self.compressed.capacity(),
-            shard_id = self.shard[0],
-            shard_total = self.shard[1],
+            shard_id = %self.shard_id,
             "compressed capacity",
         );
         tracing::trace!(
             capacity = self.buffer.capacity(),
-            shard_id = self.shard[0],
-            shard_total = self.shard[1],
+            shard_id = %self.shard_id,
             "buffer capacity",
         );
 
@@ -183,6 +185,7 @@ impl Inflater {
 #[cfg(test)]
 mod tests {
     use super::Inflater;
+    use crate::config::ShardId;
     use std::error::Error;
 
     const MESSAGE: &[u8] = &[
@@ -201,7 +204,7 @@ mod tests {
         112, 114, 100, 45, 109, 97, 105, 110, 45, 56, 53, 56, 100, 92, 34, 44, 123, 92, 34, 109,
         105, 99, 114, 111, 115, 92, 34, 58, 48, 46, 48, 125, 93, 34, 93, 125, 125,
     ];
-    const SHARD: [u64; 2] = [2, 5];
+    const SHARD: ShardId = ShardId::new(2, 5);
 
     #[test]
     fn inflater() -> Result<(), Box<dyn Error>> {

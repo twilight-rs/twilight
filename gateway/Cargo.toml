@@ -18,6 +18,7 @@ version = "0.11.0"
 [dependencies]
 bitflags = { default-features = false, version = "1" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
+leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.5" }
@@ -27,7 +28,6 @@ twilight-gateway-queue = { default-features = false, path = "../gateway-queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
 url = { default-features = false, version = "2" }
-leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
@@ -48,6 +48,7 @@ webpki-roots = { default-features = false, optional = true, version = "0.22" }
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
 futures = { default-features = false, version = "0.3" }
+serde_test = { default-features = false, version = "1.0.136" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.12" }
 

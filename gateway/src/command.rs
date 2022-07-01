@@ -2,18 +2,28 @@
 //!
 //! [`Shard::command`]: super::Shard::command
 
+use crate::{
+    error::{SendError, SendErrorType},
+    json,
+    message::Message,
+};
 use twilight_model::gateway::payload::outgoing::{
     identify::Identify, resume::Resume, Heartbeat, RequestGuildMembers, UpdatePresence,
     UpdateVoiceState,
 };
 
 mod private {
+    //! Private module to provide a sealed trait depended on by [`Command`],
+    //! disallowing consumers from implementing it.
+    //!
+    //! [`Command`]: super::Command
     use serde::Serialize;
     use twilight_model::gateway::payload::outgoing::{
         identify::Identify, resume::Resume, Heartbeat, RequestGuildMembers, UpdatePresence,
         UpdateVoiceState,
     };
 
+    /// Sealed trait to prevent users from implementing the Command trait.
     pub trait Sealed: Serialize {}
 
     impl Sealed for Heartbeat {}
@@ -42,6 +52,21 @@ impl Command for RequestGuildMembers {}
 impl Command for Resume {}
 impl Command for UpdatePresence {}
 impl Command for UpdateVoiceState {}
+
+/// Prepare a command for sending by serializing it and creating a message.
+///
+/// # Errors
+///
+/// Returns a [`SendErrorType::Serializing`] error type if the provided value
+/// failed to serialize into JSON.
+pub fn prepare(command: &impl Command) -> Result<Message, SendError> {
+    let bytes = json::to_vec(command).map_err(|source| SendError {
+        source: Some(Box::new(source)),
+        kind: SendErrorType::Serializing,
+    })?;
+
+    Ok(Message::Binary(bytes))
+}
 
 #[cfg(test)]
 mod tests {

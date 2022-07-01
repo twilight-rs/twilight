@@ -1,46 +1,31 @@
-use futures_util::stream::StreamExt;
 use std::{
     env,
     time::{Duration, Instant},
 };
-use twilight_gateway::{
-    shard::{Events, Shard},
-    Event, Intents,
-};
+use twilight_gateway::{config::ShardId, Event, Intents, Shard};
 use twilight_model::gateway::{
     payload::outgoing::UpdatePresence,
     presence::{Activity, ActivityType, Status},
 };
 
-async fn shard() -> (Shard, Events) {
+async fn shard() -> Shard {
     let token = env::var("DISCORD_TOKEN").unwrap();
 
-    Shard::new(token, Intents::empty())
+    Shard::new(ShardId::ONE, token, Intents::empty())
+        .await
+        .unwrap()
 }
 
 #[ignore]
 #[tokio::test]
 async fn test_shard_command_ratelimit() {
-    let (shard, mut events) = shard().await;
-    shard.start().await.unwrap();
+    let mut shard = shard().await;
 
     assert!(matches!(
-        events.next().await.unwrap(),
-        Event::ShardConnecting(_)
-    ));
-    assert!(matches!(
-        events.next().await.unwrap(),
-        Event::ShardIdentifying(_)
-    ));
-    assert!(matches!(
-        events.next().await.unwrap(),
+        shard.next_event().await.unwrap(),
         Event::GatewayHello(_)
     ));
-    assert!(matches!(
-        events.next().await.unwrap(),
-        Event::ShardConnected(_)
-    ));
-    assert!(matches!(events.next().await.unwrap(), Event::Ready(_)));
+    assert!(matches!(shard.next_event().await.unwrap(), Event::Ready(_)));
 
     // now that we're connected we can test sending
     let payload = UpdatePresence::new(
@@ -73,5 +58,5 @@ async fn test_shard_command_ratelimit() {
     // check that the ~500ms ratelimit has passed
     shard.command(&payload).await.unwrap();
     assert!(now.elapsed() > Duration::from_millis(500));
-    shard.shutdown();
+    shard.close(None).await.unwrap();
 }

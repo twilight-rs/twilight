@@ -111,20 +111,6 @@ bitflags! {
         const ROLE_DELETE = 1 << 31;
         /// Role has been updated in a guild.
         const ROLE_UPDATE = 1 << 32;
-        /// Shard has finalized a session with the gateway.
-        const SHARD_CONNECTED = 1 << 33;
-        /// Shard has begun connecting to the gateway.
-        const SHARD_CONNECTING = 1 << 34;
-        /// Shard has disconnected from the gateway.
-        const SHARD_DISCONNECTED = 1 << 35;
-        /// Shard is identifying to create a session with the gateway.
-        const SHARD_IDENTIFYING = 1 << 36;
-        /// Incoming message has been received from the gateway.
-        const SHARD_PAYLOAD = 1 << 45;
-        /// Shard is reconnecting to the gateway.
-        const SHARD_RECONNECTING = 1 << 37;
-        /// Shard is resuming a session with the gateway.
-        const SHARD_RESUMING = 1 << 38;
         /// Stage instance was created in a stage channel.
         const STAGE_INSTANCE_CREATE = 1 << 57;
         /// Stage instance was deleted in a stage channel.
@@ -348,13 +334,6 @@ impl From<EventType> for EventTypeFlags {
             EventType::RoleCreate => EventTypeFlags::ROLE_CREATE,
             EventType::RoleDelete => EventTypeFlags::ROLE_DELETE,
             EventType::RoleUpdate => EventTypeFlags::ROLE_UPDATE,
-            EventType::ShardConnected => EventTypeFlags::SHARD_CONNECTED,
-            EventType::ShardConnecting => EventTypeFlags::SHARD_CONNECTING,
-            EventType::ShardDisconnected => EventTypeFlags::SHARD_DISCONNECTED,
-            EventType::ShardIdentifying => EventTypeFlags::SHARD_IDENTIFYING,
-            EventType::ShardReconnecting => EventTypeFlags::SHARD_RECONNECTING,
-            EventType::ShardPayload => EventTypeFlags::SHARD_PAYLOAD,
-            EventType::ShardResuming => EventTypeFlags::SHARD_RESUMING,
             EventType::StageInstanceCreate => EventTypeFlags::STAGE_INSTANCE_CREATE,
             EventType::StageInstanceDelete => EventTypeFlags::STAGE_INSTANCE_DELETE,
             EventType::StageInstanceUpdate => EventTypeFlags::STAGE_INSTANCE_UPDATE,
@@ -396,10 +375,7 @@ impl<'a> TryFrom<(u8, Option<&'a str>)> for EventTypeFlags {
 
 impl Default for EventTypeFlags {
     fn default() -> Self {
-        let mut flags = Self::all();
-        flags.remove(Self::SHARD_PAYLOAD);
-
-        flags
+        Self::all()
     }
 }
 

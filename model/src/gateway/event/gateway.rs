@@ -167,7 +167,7 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 
     /// Return an immutable reference to the event type of the payload.
-    pub const fn event_type_ref(&self) -> Option<&str> {
+    pub const fn event_type_ref(&self) -> Option<&'a str> {
         self.event_type
     }
 

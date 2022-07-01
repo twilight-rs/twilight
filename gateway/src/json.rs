@@ -7,13 +7,14 @@ use serde::de::DeserializeSeed;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
+    str,
 };
 use twilight_model::gateway::event::{GatewayEvent, GatewayEventDeserializer};
 
 #[derive(Debug)]
 pub struct GatewayEventParsingError {
-    pub(super) source: Option<Box<dyn Error + Send + Sync>>,
-    pub(super) kind: GatewayEventParsingErrorType,
+    pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
+    pub(crate) kind: GatewayEventParsingErrorType,
 }
 
 impl Display for GatewayEventParsingError {
@@ -67,6 +68,35 @@ pub fn parse_gateway_event(
     json: &mut [u8],
 ) -> Result<GatewayEvent, GatewayEventParsingError> {
     let gateway_deserializer = GatewayEventDeserializer::new(op, sequence, event_type);
+    #[cfg(not(feature = "simd-json"))]
+    let mut json_deserializer = serde_json::Deserializer::from_slice(json);
+    #[cfg(feature = "simd-json")]
+    let mut json_deserializer =
+        simd_json::Deserializer::from_slice(json).map_err(|_| GatewayEventParsingError {
+            kind: GatewayEventParsingErrorType::PayloadInvalid,
+            source: None,
+        })?;
+
+    gateway_deserializer
+        .deserialize(&mut json_deserializer)
+        .map_err(|source| {
+            tracing::error!("invalid JSON: {}", String::from_utf8_lossy(json));
+
+            GatewayEventParsingError {
+                kind: GatewayEventParsingErrorType::Deserializing,
+                source: Some(Box::new(source)),
+            }
+        })
+}
+
+pub fn parse(json: &mut [u8]) -> Result<GatewayEvent, GatewayEventParsingError> {
+    let text = String::from_utf8_lossy(json);
+    let gateway_deserializer =
+        GatewayEventDeserializer::from_json(&text).ok_or(GatewayEventParsingError {
+            kind: GatewayEventParsingErrorType::PayloadInvalid,
+            source: None,
+        })?;
+
     #[cfg(not(feature = "simd-json"))]
     let mut json_deserializer = serde_json::Deserializer::from_slice(json);
     #[cfg(feature = "simd-json")]

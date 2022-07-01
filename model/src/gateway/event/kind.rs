@@ -67,13 +67,6 @@ pub enum EventType {
     RoleDelete,
     #[serde(rename = "GUILD_ROLE_UPDATE")]
     RoleUpdate,
-    ShardConnected,
-    ShardConnecting,
-    ShardDisconnected,
-    ShardIdentifying,
-    ShardReconnecting,
-    ShardPayload,
-    ShardResuming,
     StageInstanceCreate,
     StageInstanceDelete,
     StageInstanceUpdate,
@@ -157,14 +150,7 @@ impl EventType {
             | Self::GatewayHeartbeatAck
             | Self::GatewayHello
             | Self::GatewayInvalidateSession
-            | Self::GatewayReconnect
-            | Self::ShardConnected
-            | Self::ShardConnecting
-            | Self::ShardDisconnected
-            | Self::ShardIdentifying
-            | Self::ShardReconnecting
-            | Self::ShardPayload
-            | Self::ShardResuming => None,
+            | Self::GatewayReconnect => None,
         }
     }
 }
@@ -329,13 +315,6 @@ mod tests {
         assert_variant(EventType::RoleCreate, "GUILD_ROLE_CREATE");
         assert_variant(EventType::RoleDelete, "GUILD_ROLE_DELETE");
         assert_variant(EventType::RoleUpdate, "GUILD_ROLE_UPDATE");
-        assert_variant(EventType::ShardConnected, "SHARD_CONNECTED");
-        assert_variant(EventType::ShardConnecting, "SHARD_CONNECTING");
-        assert_variant(EventType::ShardDisconnected, "SHARD_DISCONNECTED");
-        assert_variant(EventType::ShardIdentifying, "SHARD_IDENTIFYING");
-        assert_variant(EventType::ShardPayload, "SHARD_PAYLOAD");
-        assert_variant(EventType::ShardReconnecting, "SHARD_RECONNECTING");
-        assert_variant(EventType::ShardResuming, "SHARD_RESUMING");
         assert_variant(EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE");
         assert_variant(EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE");
         assert_variant(EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE");

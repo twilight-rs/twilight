@@ -1,7 +1,6 @@
 #![allow(clippy::wildcard_imports)]
 
 pub mod gateway;
-pub mod shard;
 
 mod dispatch;
 mod kind;
@@ -12,15 +11,14 @@ pub use self::{
     kind::EventType,
 };
 
-use self::shard::*;
 use super::payload::incoming::*;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 /// Any type of event that a shard emits.
 ///
-/// This brings together all of the types of [`DispatchEvent`]s,
-/// [`GatewayEvent`]s, and [`ShardEvent`]s.
+/// This brings together all of the types of [`DispatchEvent`]s and
+/// [`GatewayEvent`]s.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Event {
     /// A user was banned from a guild.
@@ -126,23 +124,6 @@ pub enum Event {
     RoleDelete(RoleDelete),
     /// A role was updated in a guild.
     RoleUpdate(RoleUpdate),
-    /// A shard is now in a connected stage after being fully connected to the
-    /// gateway.
-    ShardConnected(Connected),
-    /// A shard is now in a connecting stage after starting to connect to the
-    /// gateway.
-    ShardConnecting(Connecting),
-    /// A shard is now in a disconnected stage after the connection was closed.
-    ShardDisconnected(Disconnected),
-    /// A shard is now in a identifying stage after starting a new session.
-    ShardIdentifying(Identifying),
-    /// A shard is now in a reconnecting stage after a disconnect or session was
-    /// ended.
-    ShardReconnecting(Reconnecting),
-    /// A payload of bytes came in through the shard's connection.
-    ShardPayload(Payload),
-    /// A shard is now in a Resuming stage after a disconnect.
-    ShardResuming(Resuming),
     /// A stage instance was created in a stage channel.
     StageInstanceCreate(StageInstanceCreate),
     /// A stage instance was deleted in a stage channel.
@@ -228,13 +209,6 @@ impl Event {
             Self::RoleCreate(_) => EventType::RoleCreate,
             Self::RoleDelete(_) => EventType::RoleDelete,
             Self::RoleUpdate(_) => EventType::RoleUpdate,
-            Self::ShardConnected(_) => EventType::ShardConnected,
-            Self::ShardConnecting(_) => EventType::ShardConnecting,
-            Self::ShardDisconnected(_) => EventType::ShardDisconnected,
-            Self::ShardIdentifying(_) => EventType::ShardIdentifying,
-            Self::ShardReconnecting(_) => EventType::ShardReconnecting,
-            Self::ShardPayload(_) => EventType::ShardPayload,
-            Self::ShardResuming(_) => EventType::ShardResuming,
             Self::StageInstanceCreate(_) => EventType::StageInstanceCreate,
             Self::StageInstanceDelete(_) => EventType::StageInstanceDelete,
             Self::StageInstanceUpdate(_) => EventType::StageInstanceUpdate,
@@ -334,20 +308,6 @@ impl From<GatewayEvent> for Event {
     }
 }
 
-impl From<ShardEvent> for Event {
-    fn from(event: ShardEvent) -> Self {
-        match event {
-            ShardEvent::Connected(v) => Self::ShardConnected(v),
-            ShardEvent::Connecting(v) => Self::ShardConnecting(v),
-            ShardEvent::Disconnected(v) => Self::ShardDisconnected(v),
-            ShardEvent::Identifying(v) => Self::ShardIdentifying(v),
-            ShardEvent::Payload(v) => Self::ShardPayload(v),
-            ShardEvent::Reconnecting(v) => Self::ShardReconnecting(v),
-            ShardEvent::Resuming(v) => Self::ShardResuming(v),
-        }
-    }
-}
-
 /// An error that describes a failure to convert from one event type to another.
 #[derive(Debug)]
 pub struct EventConversionError {
@@ -395,7 +355,7 @@ mod tests {
     //! wrapping the event in the `Event` type and move the assertion to the
     //! "unboxed" section.
 
-    use super::{super::payload::incoming::*, shard::*, Event};
+    use super::{super::payload::incoming::*, Event};
     use static_assertions::const_assert;
     use std::mem;
 
@@ -437,15 +397,11 @@ mod tests {
     const_assert!(mem::size_of::<BanRemove>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ChannelPinsUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<CommandPermissionsUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Connected>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Connecting>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Disconnected>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildEmojisUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildIntegrationsUpdate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildScheduledEventUserAdd>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildScheduledEventUserRemove>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Identifying>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<InteractionCreate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<InviteDelete>() <= EVENT_THRESHOLD);
@@ -453,10 +409,7 @@ mod tests {
     const_assert!(mem::size_of::<MemberRemove>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MessageDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MessageDeleteBulk>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Payload>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<ReactionRemoveAll>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Reconnecting>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Resuming>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<RoleCreate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<RoleDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<RoleUpdate>() <= EVENT_THRESHOLD);

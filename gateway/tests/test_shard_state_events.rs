@@ -1,14 +1,13 @@
 use futures::stream::StreamExt;
 use std::{env, error::Error};
-use twilight_gateway::{
-    shard::{raw_message::Message, Events, Shard},
-    Event, Intents,
-};
+use twilight_gateway::{Event, Intents, Shard, ShardId};
 
-async fn shard() -> Result<(Shard, Events), Box<dyn Error>> {
+async fn shard() -> Result<Shard, Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN")?;
 
-    Ok(Shard::new(token, Intents::empty()))
+    Shard::new(ShardId::ONE, token, Intents::empty())
+        .await
+        .map_err(From::from)
 }
 
 #[ignore]
@@ -17,10 +16,7 @@ async fn test_shard_event_emits() -> Result<(), Box<dyn Error>> {
     let (shard, mut events) = shard().await?;
     shard.start().await?;
 
-    assert!(matches!(events.next().await.unwrap(), Event::ShardConnecting(c) if c.shard_id == 0));
-    assert!(matches!(events.next().await.unwrap(), Event::ShardIdentifying(c) if c.shard_id == 0));
     assert!(matches!(events.next().await.unwrap(), Event::GatewayHello(x) if x > 0));
-    assert!(matches!(events.next().await.unwrap(), Event::ShardConnected(c) if c.shard_id == 0));
     assert!(matches!(events.next().await.unwrap(), Event::Ready(_)));
     assert!(matches!(
         events.next().await.unwrap(),
