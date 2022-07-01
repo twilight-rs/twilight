@@ -56,7 +56,7 @@ pub enum Interaction {
 impl Interaction {
     /// App's permissions in the channel the interaction was sent from.
     ///
-    ///None if the interaction happens in a direct message channel.
+    /// None if the interaction happens in a direct message channel.
     pub const fn app_permissions(&self) -> Option<Permissions> {
         match self {
             Self::Ping(_) => None,
