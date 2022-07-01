@@ -55,7 +55,8 @@ pub enum Interaction {
 
 impl Interaction {
     /// Permissions the app or bot has within the channel the
-    /// interaction was sent from.
+    /// interaction was sent from. It is none if the interaction
+    /// happens in a direct message channel.
     pub const fn app_permissions(&self) -> Option<Permissions> {
         match self {
             Self::Ping(_) => None,
