@@ -1,4 +1,5 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
+use twilight_model::channel::ReactionType;
 use twilight_model::{
     channel::message::MessageReaction,
     gateway::payload::incoming::{
@@ -23,7 +24,7 @@ impl UpdateCache for ReactionAdd {
         if let Some(reaction) = message
             .reactions
             .iter_mut()
-            .find(|r| r.emoji == self.0.emoji)
+            .find(|r| reactions_eq(&r.emoji, &self.0.emoji))
         {
             if !reaction.me {
                 if let Some(current_user) = cache.current_user() {
@@ -64,7 +65,7 @@ impl UpdateCache for ReactionRemove {
         if let Some(reaction) = message
             .reactions
             .iter_mut()
-            .find(|r| r.emoji == self.0.emoji)
+            .find(|r| reactions_eq(&r.emoji, &self.0.emoji))
         {
             if reaction.me {
                 if let Some(current_user) = cache.current_user() {
@@ -77,7 +78,9 @@ impl UpdateCache for ReactionRemove {
             if reaction.count > 1 {
                 reaction.count -= 1;
             } else {
-                message.reactions.retain(|e| !(e.emoji == self.0.emoji));
+                message
+                    .reactions
+                    .retain(|e| !(reactions_eq(&e.emoji, &self.0.emoji)));
             }
         }
     }
@@ -111,11 +114,26 @@ impl UpdateCache for ReactionRemoveEmoji {
             return;
         };
 
-        let maybe_index = message.reactions.iter().position(|r| r.emoji == self.emoji);
+        let maybe_index = message
+            .reactions
+            .iter()
+            .position(|r| reactions_eq(&r.emoji, &self.emoji));
 
         if let Some(index) = maybe_index {
             message.reactions.remove(index);
         }
+    }
+}
+
+fn reactions_eq(a: &ReactionType, b: &ReactionType) -> bool {
+    match (a, b) {
+        (ReactionType::Custom { id: id_a, .. }, ReactionType::Custom { id: id_b, .. }) => {
+            id_a == id_b
+        }
+        (ReactionType::Unicode { name: name_a }, ReactionType::Unicode { name: name_b }) => {
+            name_a == name_b
+        }
+        _ => false,
     }
 }
 
