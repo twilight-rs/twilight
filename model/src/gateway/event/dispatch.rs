@@ -35,7 +35,7 @@ pub enum DispatchEvent {
     IntegrationCreate(Box<IntegrationCreate>),
     IntegrationDelete(IntegrationDelete),
     IntegrationUpdate(Box<IntegrationUpdate>),
-    InteractionCreate(InteractionCreate),
+    InteractionCreate(Box<InteractionCreate>),
     InviteCreate(Box<InviteCreate>),
     InviteDelete(InviteDelete),
     MemberAdd(Box<MemberAdd>),
@@ -308,9 +308,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             "INTEGRATION_UPDATE" => DispatchEvent::IntegrationUpdate(Box::new(
                 IntegrationUpdate::deserialize(deserializer)?,
             )),
-            "INTERACTION_CREATE" => {
-                DispatchEvent::InteractionCreate(InteractionCreate::deserialize(deserializer)?)
-            }
+            "INTERACTION_CREATE" => DispatchEvent::InteractionCreate(Box::new(
+                InteractionCreate::deserialize(deserializer)?,
+            )),
             "INVITE_CREATE" => {
                 DispatchEvent::InviteCreate(Box::new(InviteCreate::deserialize(deserializer)?))
             }
