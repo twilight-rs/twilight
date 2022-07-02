@@ -42,14 +42,13 @@ Create a [client], add a [node], and give events to the client to [process]
 events:
 
 ```rust,no_run
-use futures::StreamExt;
 use std::{
     env,
     error::Error,
     net::SocketAddr,
     str::FromStr,
 };
-use twilight_gateway::{Intents, Shard};
+use twilight_gateway::{config::ShardId, Intents, Shard};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::Lavalink;
 
@@ -67,15 +66,20 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     lavalink.add(lavalink_host, lavalink_auth).await?;
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-    let (shard, mut events) = Shard::new(token, intents);
+    let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
 
-    shard.start().await?;
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
 
-    while let Some(event) = events.next().await {
+                continue;
+            }
+        };
+
         lavalink.process(&event).await?;
     }
-
-    Ok(())
 }
 ```
 

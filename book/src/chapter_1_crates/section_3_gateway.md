@@ -8,33 +8,6 @@ parses and processes them, and then gives them to you. It will automatically
 reconnect, resume, and identify, as well as do some additional connectivity
 checks.
 
-Also provided is the `Cluster`, which will automatically manage a collection of
-shards and unify their messages into one stream. It doesn't have a large API, you
-usually want to spawn a task to bring it up such that you can begin to receive
-tasks as soon as they arrive.
-
-```rust,no_run
-# use std::sync::Arc;
-# use futures::StreamExt;
-# use twilight_gateway::{Cluster, Intents};
-#
-# #[tokio::main]
-# async fn main() -> Result<(), Box<dyn std::error::Error>> {
-#    let token = String::from("dummy");
-let intents = Intents::GUILD_MESSAGES | Intents::GUILDS;
-let (cluster, mut events) = Cluster::new(token, intents).await?;
-let cluster = Arc::new(cluster);
-
-let cluster_spawn = cluster.clone();
-
-tokio::spawn(async move {
-    cluster_spawn.up().await;
-});
-# let _ = events.next().await;
-#     Ok(())
-# }
-```
-
 ## Features
 
 
@@ -108,9 +81,8 @@ the dependency tree it will make use of that instead of [zlib-ng].
 Starting a `Shard` and printing the contents of new messages as they come in:
 
 ```rust,no_run
-use futures::StreamExt;
 use std::{env, error::Error};
-use twilight_gateway::{Intents, Shard};
+use twilight_gateway::{config::ShardId, Intents, Shard};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -118,16 +90,22 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
-    let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
-
-    shard.start().await?;
+    let intents = Intents::GUILD_MESSAGES;
+    let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
     println!("Created shard");
 
-    while let Some(event) = events.next().await {
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                println!("error receiving event: {:?}", source);
+
+                continue;
+            }
+        };
+
         println!("Event: {:?}", event);
     }
-
-    Ok(())
 }
 ```
 
