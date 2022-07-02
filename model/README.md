@@ -21,7 +21,7 @@ let message_a = retrieve_message();
 let message_b = retrieve_message();
 
 if message_a.id == message_b.id {
-    println!("recieved the same message");
+    println!("received the same message");
     if message_a != message_b {
         println!("message was updated between the calls to `retrieve_message`")
     }
