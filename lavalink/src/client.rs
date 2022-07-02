@@ -270,6 +270,10 @@ impl Lavalink {
     ///
     /// If a node already exists with the provided address, then it will be
     /// replaced.
+    ///
+    /// # Errors
+    ///
+    /// See the errors section of [`Node::connect`].
     pub async fn add(
         &self,
         address: SocketAddr,

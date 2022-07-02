@@ -145,7 +145,7 @@ impl InFlight {
 
         match status {
             HyperStatusCode::TOO_MANY_REQUESTS => {
-                tracing::warn!("429 response: {resp:?}")
+                tracing::warn!("429 response: {resp:?}");
             }
             HyperStatusCode::SERVICE_UNAVAILABLE => {
                 return InnerPoll::Ready(Err(Error {

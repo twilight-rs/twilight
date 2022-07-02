@@ -170,7 +170,7 @@ impl<'a> InMemoryCacheStats<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::InMemoryCacheStats;
+    use crate::InMemoryCacheStats;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 

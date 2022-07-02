@@ -1,0 +1,29 @@
+name: Twilight Book
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+    name: Deploy book
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: 'latest'
+
+      - run: mdbook build book --dest-dir render
+
+      - name: Publish book
+        uses: cloudflare/wrangler-action@2.0.0
+        working-directory: book
+        with:
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: pages publish render --project-name twilight-book --commit-dirty=true --branch docs

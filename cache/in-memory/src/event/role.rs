@@ -71,8 +71,8 @@ impl UpdateCache for RoleUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
+    use crate::{test, InMemoryCache};
+    use twilight_model::{gateway::payload::incoming::RoleCreate, id::Id};
 
     #[test]
     fn insert_role_on_event() {

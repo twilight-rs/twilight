@@ -38,6 +38,7 @@ struct CommandPermissionsData {
 }
 
 #[derive(Clone, Debug, Deserialize_repr, Eq, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 enum CommandPermissionsDataType {
     Role = 1,

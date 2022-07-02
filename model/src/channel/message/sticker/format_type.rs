@@ -8,6 +8,7 @@ use std::{
 ///
 /// [`Sticker`]: super::Sticker
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum StickerFormatType {
     /// Sticker format is a PNG.
@@ -39,7 +40,7 @@ pub struct StickerFormatTypeConversionError {
     value: u8,
 }
 
-impl<'a> StickerFormatTypeConversionError {
+impl StickerFormatTypeConversionError {
     /// Retrieve a copy of the input value that couldn't be parsed.
     pub const fn value(&self) -> u8 {
         self.value

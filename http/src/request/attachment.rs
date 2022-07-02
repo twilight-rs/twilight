@@ -27,7 +27,7 @@ impl<'a> AttachmentManager<'a> {
             push_digits(file.id, &mut name);
             name.extend(b"]");
 
-            form = form.file_part(name.as_ref(), file.filename.as_bytes(), file.file.as_ref())
+            form = form.file_part(name.as_ref(), file.filename.as_bytes(), file.file.as_ref());
         }
 
         form
@@ -131,7 +131,7 @@ fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
     // we have been using to get the characters in the correct order.
     inner_buf[..i].reverse();
 
-    buf.extend_from_slice(&inner_buf[..i])
+    buf.extend_from_slice(&inner_buf[..i]);
 }
 
 #[cfg(test)]

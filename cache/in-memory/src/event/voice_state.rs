@@ -90,10 +90,10 @@ impl UpdateCache for VoiceStateUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
+    use crate::{model::CachedVoiceState, test, InMemoryCache, ResourceType};
     use std::str::FromStr;
     use twilight_model::{
+        gateway::payload::incoming::VoiceStateUpdate,
         guild::Member,
         id::{
             marker::{ChannelMarker, GuildMarker, UserMarker},
@@ -101,6 +101,7 @@ mod tests {
         },
         user::User,
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
+        voice::VoiceState,
     };
 
     #[test]

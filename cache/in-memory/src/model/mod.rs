@@ -13,11 +13,3 @@ pub use self::{
     emoji::CachedEmoji, guild::CachedGuild, member::CachedMember, message::CachedMessage,
     presence::CachedPresence, sticker::CachedSticker, voice_state::CachedVoiceState,
 };
-
-#[cfg(tests)]
-mod tests {
-    #[test]
-    fn reexports() {
-        use super::{CachedEmoji, CachedGuild, CachedMember, CachedPresence, CachedVoiceState};
-    }
-}

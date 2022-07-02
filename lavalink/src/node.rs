@@ -41,7 +41,7 @@ use tokio::{
     time as tokio_time,
 };
 use tokio_tungstenite::{
-    tungstenite::{handshake::client::generate_key, Error as TungsteniteError, Message},
+    tungstenite::{client::IntoClientRequest, Error as TungsteniteError, Message},
     MaybeTlsStream, WebSocketStream,
 };
 use twilight_model::id::{marker::UserMarker, Id};
@@ -330,6 +330,21 @@ impl Node {
     ///
     /// [`Lavalink`]: crate::client::Lavalink
     /// [module]: crate
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`Connecting`] if the connection fails after
+    /// several backoff attempts.
+    ///
+    /// Returns an error of type [`BuildingConnectionRequest`] if the request
+    /// failed to build.
+    ///
+    /// Returns an error of type [`Unauthorized`] if the supplied authorization
+    /// is rejected by the node.
+    ///
+    /// [`Connecting`]: crate::node::NodeErrorType::Connecting
+    /// [`BuildingConnectionRequest`]: crate::node::NodeErrorType::BuildingConnectionRequest
+    /// [`Unauthorized`]: crate::node::NodeErrorType::Unauthorized
     pub async fn connect(
         config: NodeConfig,
         players: PlayerManager,
@@ -415,6 +430,7 @@ impl Node {
     ///
     /// This score can be used to calculate how loaded the server is. A higher
     /// number means it is more heavily loaded.
+    #[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
     pub async fn penalty(&self) -> i32 {
         let stats = self.stats.lock().await;
         let cpu = 1.05f64.powf(100f64 * stats.cpu.system_load) * 10f64 - 10f64;
@@ -521,7 +537,7 @@ impl Connection {
         let text = match incoming {
             Message::Close(_) => {
                 tracing::debug!("got close, closing connection");
-                let _ = self.connection.send(Message::Close(None)).await;
+                let _result = self.connection.send(Message::Close(None)).await;
 
                 return Ok(false);
             }
@@ -530,7 +546,7 @@ impl Connection {
                 let msg = Message::Pong(data);
 
                 // We don't need to immediately care if a pong fails.
-                let _ = self.connection.send(msg).await;
+                let _result = self.connection.send(msg).await;
 
                 return Ok(true);
             }
@@ -559,7 +575,7 @@ impl Connection {
         // It's fine if the rx end dropped, often users don't need to care about
         // these events.
         if !self.node_to.is_closed() {
-            let _ = self.node_to.send(event);
+            let _result = self.node_to.send(event);
         }
 
         Ok(true)
@@ -600,20 +616,22 @@ impl Drop for Connection {
 }
 
 fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
-    let mut builder = Request::get(format!("ws://{}", state.address));
-    builder = builder.header("Authorization", &state.authorization);
-    builder = builder.header("Num-Shards", state.shard_count);
-    builder = builder.header("Sec-WebSocket-Key", generate_key());
-    builder = builder.header("User-Id", state.user_id.get());
+    let mut request = format!("ws://{}", state.address)
+        .into_client_request()
+        .map_err(|source| NodeError {
+            kind: NodeErrorType::BuildingConnectionRequest,
+            source: Some(Box::new(source)),
+        })?;
+    let headers = request.headers_mut();
+    headers.insert("User-Id", state.user_id.get().into());
+    headers.insert("Authorization", state.authorization.parse().unwrap());
+    headers.insert("Num-Shards", state.shard_count.into());
 
     if state.resume.is_some() {
-        builder = builder.header("Resume-Key", state.address.to_string());
+        headers.insert("Resume-Key", state.address.to_string().parse().unwrap());
     }
 
-    builder.body(()).map_err(|source| NodeError {
-        kind: NodeErrorType::BuildingConnectionRequest,
-        source: Some(Box::new(source)),
-    })
+    Ok(request)
 }
 
 async fn reconnect(
@@ -653,10 +671,10 @@ async fn backoff(
     let mut seconds = 1;
 
     loop {
-        let req = connect_request(config)?;
+        let request = connect_request(config)?;
 
-        match tokio_tungstenite::connect_async(req).await {
-            Ok((stream, res)) => return Ok((stream, res)),
+        match tokio_tungstenite::connect_async(request).await {
+            Ok((stream, response)) => return Ok((stream, response)),
             Err(source) => {
                 tracing::warn!("failed to connect to node {source}: {:?}", config.address);
 
@@ -665,7 +683,7 @@ async fn backoff(
                     return Err(NodeError {
                         kind: NodeErrorType::Unauthorized {
                             address: config.address,
-                            authorization: config.authorization.to_owned(),
+                            authorization: config.authorization.clone(),
                         },
                         source: None,
                     });
