@@ -33,7 +33,9 @@ pub type TlsConnector = Arc<ClientConfig>;
 
 #[derive(Debug)]
 pub struct TlsError {
+    /// Type of error.
     kind: TlsErrorType,
+    /// Source error if available.
     source: Option<Box<dyn Error + Send + Sync>>,
 }
 
@@ -84,7 +86,7 @@ impl Error for TlsError {
     }
 }
 
-/// Type of [`ClusterCommandError`] that occurred.
+/// Type of [`TlsError`] that occurred.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum TlsErrorType {

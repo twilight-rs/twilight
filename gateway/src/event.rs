@@ -3,6 +3,27 @@ use twilight_model::gateway::event::EventType;
 
 bitflags! {
     /// Bitflags representing all of the possible types of events.
+    ///
+    /// Specifying event types is an important optimization technique on top of
+    /// [intents], which can dramatically decrease processor usage in many
+    /// circumstances. While specifying intents are required by Discord and
+    /// allow filtering groups of [events], event type flags are a
+    /// Twilight-specific technique to filter out individual events from being
+    /// deserialized at all, effectively discarding those events.
+    ///
+    /// For example, [`Intents::GUILDS`] includes a wide range of events from
+    /// [`GuildCreate`] to [`GuildRoleUpdate`] to [`ChannelPinsUpdate`]. If the
+    /// only events used in this group of events is, say, [`ChannelCreate`] and
+    /// [`GuildRoleCreate`], then the [`CHANNEL_CREATE`] and
+    /// [`GUILD_ROLE_CREATE`] event type flags can be specified in combination
+    /// with that intent. This reduces the events deserialized and received to
+    /// only those events.
+    ///
+    /// [`CHANNEL_CREATE`]: Self::CHANNEL_CREATE
+    /// [`GUILD_ROLE_CREATE`]: Self::GUILD_ROLE_CREATE
+    /// [`ChannelCreate`]: twilight_model::gateway::payload::incoming::ChannelCreate
+    /// [`ChannelPinsUpdate`]: twilight_model::gateway::payload::incoming::ChannelPinsUpdate
+    /// [`GuildRoleCreate`]: twilight_model::gateway::payload::incoming::GuildRoleCreate
     pub struct EventTypeFlags: u128 {
         /// User has been banned from a guild.
         const BAN_ADD = 1;

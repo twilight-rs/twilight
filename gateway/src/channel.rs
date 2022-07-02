@@ -1,3 +1,9 @@
+//! Channel for users to [messages] across threads when calling [`Shard::send`]
+//! is not possible.
+//!
+//! [messages]: crate::message::Message
+//! [`Shard::send`]: crate::Shard::send
+
 use crate::{
     command::{self, Command},
     error::{SendError, SendErrorType},

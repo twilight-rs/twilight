@@ -1,3 +1,5 @@
+//! Errors returned by shard operations.
+
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -6,13 +8,17 @@ use twilight_model::gateway::Intents;
 
 use crate::{compression::CompressionError, json::GatewayEventParsingError};
 
+/// Received gateway message couldn't be processed.
 #[derive(Debug)]
 pub struct ProcessError {
+    /// Type of error.
     pub(crate) kind: ProcessErrorType,
+    /// Source error if available.
     pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ProcessError {
+    /// Shortcut to create a new error from a message compression error.
     pub(crate) fn from_compression(source: CompressionError) -> Self {
         Self {
             kind: ProcessErrorType::Compression,
@@ -20,6 +26,7 @@ impl ProcessError {
         }
     }
 
+    /// Shortcut to create a new error from a gateway event parsing error.
     pub(crate) fn from_json(source: GatewayEventParsingError) -> Self {
         Self {
             kind: ProcessErrorType::Deserializing,
@@ -27,6 +34,7 @@ impl ProcessError {
         }
     }
 
+    /// Shortcut to create a new error from a message sending error.
     pub(crate) fn from_send(source: SendError) -> Self {
         Self {
             kind: ProcessErrorType::SendingMessage,
@@ -63,21 +71,33 @@ impl Error for ProcessError {
 /// Type of [`ProcessError`] that occurred.
 #[derive(Debug)]
 pub enum ProcessErrorType {
+    /// Message could not be decompressed.
     Compression,
+    /// Received gateway event failed to be deserialized.
+    ///
+    /// The message payload is likely an unrecognized type that is not yet
+    /// supported.
     Deserializing,
     /// There was an error parsing a GatewayEvent payload.
     ParsingPayload,
+    /// Message could not be sent over the Websocket connection.
+    ///
+    /// This may happen when the shard sends heartbeats or attempts to identify
+    /// a new gateway session.
     SendingMessage,
 }
 
 /// Receiving the next Websocket message failed.
 #[derive(Debug)]
 pub struct ReceiveMessageError {
+    /// Type of error.
     pub(crate) kind: ReceiveMessageErrorType,
+    /// Source error if available.
     pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl ReceiveMessageError {
+    /// Shortcut to create a new error from a gateway event parsing error.
     pub(crate) fn from_json(source: GatewayEventParsingError) -> Self {
         Self {
             kind: ReceiveMessageErrorType::Deserializing,
@@ -85,16 +105,18 @@ impl ReceiveMessageError {
         }
     }
 
-    pub(crate) fn from_send(source: SendError) -> Self {
+    /// Shortcut to create a new error from a shard initialization error.
+    pub(crate) fn from_reconnect(source: ShardInitializeError) -> Self {
         Self {
-            kind: ReceiveMessageErrorType::SendingMessage,
+            kind: ReceiveMessageErrorType::Reconnect,
             source: Some(Box::new(source)),
         }
     }
 
-    pub(crate) fn with_reconnect(source: ShardInitializeError) -> Self {
+    /// Shortcut to create a new error from a message sending error.
+    pub(crate) fn from_send(source: SendError) -> Self {
         Self {
-            kind: ReceiveMessageErrorType::Reconnect,
+            kind: ReceiveMessageErrorType::SendingMessage,
             source: Some(Box::new(source)),
         }
     }
@@ -140,6 +162,19 @@ impl Display for ReceiveMessageError {
             ReceiveMessageErrorType::SendingMessage => {
                 f.write_str("failed to send a message over the websocket")
             }
+            ReceiveMessageErrorType::AuthorizationInvalid => {
+                f.write_str("authorization for the shard is invalid")
+            }
+            ReceiveMessageErrorType::IntentsDisallowed { intents } => {
+                f.write_str("at least one of the intents (")?;
+                Debug::fmt(intents, f)?;
+                f.write_str(") for the shard are disallowed, possibly because the application may not have access to all of them")
+            }
+            ReceiveMessageErrorType::IntentsInvalid { intents } => {
+                f.write_str("at least one of the intents (")?;
+                Debug::fmt(intents, f)?;
+                f.write_str(") for the shard are invalid")
+            }
         }
     }
 }
@@ -160,19 +195,47 @@ pub enum ReceiveMessageErrorType {
     Client,
     /// Decompressing a frame from Discord failed.
     Decompressing,
+    /// Received gateway event failed to be deserialized.
+    ///
+    /// The message payload is likely an unrecognized type that is not yet
+    /// supported.
     Deserializing,
     /// Processing the message failed.
     ///
     /// The associated error downcasts to [`ProcessError`].
     Process,
+    /// Shard failed to reconnect to the gateway.
     Reconnect,
+    /// Message could not be sent over the Websocket connection.
+    ///
+    /// This may happen when the shard sends heartbeats or attempts to identify
+    /// a new gateway session.
     SendingMessage,
+    /// Provided authorization token is invalid.
+    AuthorizationInvalid,
+    /// Current user isn't allowed to use at least one of the configured
+    /// intents.
+    ///
+    /// The intents are provided.
+    IntentsDisallowed {
+        /// Configured intents for the shard.
+        intents: Intents,
+    },
+    /// Configured intents aren't supported by Discord's gateway.
+    ///
+    /// The intents are provided.
+    IntentsInvalid {
+        /// Configured intents for the shard.
+        intents: Intents,
+    },
 }
 
 /// Sending a command failed.
 #[derive(Debug)]
 pub struct SendError {
+    /// Type of error.
     pub(crate) kind: SendErrorType,
+    /// Source error if available.
     pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
@@ -227,7 +290,9 @@ pub enum SendErrorType {
 /// Initializing a shard and connecting to the gateway failed.
 #[derive(Debug)]
 pub struct ShardInitializeError {
+    /// Type of error.
     pub(crate) kind: ShardInitializeErrorType,
+    /// Source error if available.
     pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
@@ -259,39 +324,8 @@ impl ShardInitializeError {
 impl Display for ShardInitializeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
-            ShardInitializeErrorType::AuthorizationInvalid { shard_id, .. } => {
-                f.write_str("the authorization token for shard ")?;
-                Display::fmt(shard_id, f)?;
-
-                f.write_str(" is invalid")
-            }
             ShardInitializeErrorType::Establishing => {
                 f.write_str("establishing the connection failed")
-            }
-            ShardInitializeErrorType::IntentsDisallowed { intents, shard_id } => {
-                f.write_str("at least one of the intents (")?;
-                Debug::fmt(intents, f)?;
-                f.write_str(") for shard ")?;
-                Display::fmt(shard_id, f)?;
-
-                f.write_str(" are disallowed")
-            }
-            ShardInitializeErrorType::IntentsInvalid { intents, shard_id } => {
-                f.write_str("at least one of the intents (")?;
-                Debug::fmt(intents, f)?;
-                f.write_str(") for shard ")?;
-                Display::fmt(shard_id, f)?;
-
-                f.write_str(" are invalid")
-            }
-            ShardInitializeErrorType::ParsingGatewayUrl { url } => {
-                f.write_str("the gateway url `")?;
-                f.write_str(url)?;
-
-                f.write_str("` is invalid")
-            }
-            ShardInitializeErrorType::RetrievingGatewayUrl => {
-                f.write_str("retrieving the gateway URL via HTTP failed")
             }
         }
     }
@@ -309,35 +343,6 @@ impl Error for ShardInitializeError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ShardInitializeErrorType {
-    /// Provided authorization token is invalid.
-    AuthorizationInvalid { shard_id: u64, token: String },
     /// Establishing a connection to the gateway failed.
     Establishing,
-    /// Current user isn't allowed to use at least one of the configured
-    /// intents.
-    ///
-    /// The intents are provided.
-    IntentsDisallowed {
-        /// The configured intents for the shard.
-        intents: Intents,
-        /// The ID of the shard.
-        shard_id: u64,
-    },
-    /// Configured intents aren't supported by Discord's gateway.
-    ///
-    /// The intents are provided.
-    IntentsInvalid {
-        /// Configured intents for the shard.
-        intents: Intents,
-        /// ID of the shard.
-        shard_id: u64,
-    },
-    /// Parsing the gateway URL provided by Discord to connect to the gateway
-    /// failed due to an invalid URL.
-    ParsingGatewayUrl {
-        /// URL that couldn't be parsed.
-        url: String,
-    },
-    /// Retrieving the gateway URL via the Twilight HTTP client failed.
-    RetrievingGatewayUrl,
 }

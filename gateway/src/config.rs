@@ -1,3 +1,5 @@
+//! Customizable configuration for shards.
+
 use super::session::Session;
 use crate::EventTypeFlags;
 use std::{
@@ -115,14 +117,19 @@ pub struct Config {
     queue: Arc<dyn Queue>,
     token: Box<str>,
     session: Option<Session>,
-    ratelimit_payloads: bool,
+    ratelimit_messages: bool,
 }
 
 impl Config {
+    /// Create a new default configuration for a shard.
+    ///
+    /// Shortcut for calling [`builder`][`Self::builder`] and immediately
+    /// finalizing the builder.
     pub fn new(token: String, intents: Intents) -> Self {
         Self::builder(token, intents).build()
     }
 
+    /// Create a builder to customize the configuration for a shard.
     pub fn builder(token: String, intents: Intents) -> ConfigBuilder {
         ConfigBuilder::new(token, intents)
     }
@@ -167,9 +174,11 @@ impl Config {
         self.presence.as_ref()
     }
 
-    /// Whether payload ratelimiting is enabled.
-    pub const fn ratelimit_payloads(&self) -> bool {
-        self.ratelimit_payloads
+    /// Whether [outgoing message] ratelimiting is enabled.
+    ///
+    /// [outgoing message]: crate::Shard::send
+    pub const fn ratelimit_messages(&self) -> bool {
+        self.ratelimit_messages
     }
 
     /// Session information to resume a shard on initialization.
@@ -184,9 +193,11 @@ impl Config {
     }
 }
 
+/// Builder to customize the operation of a shard.
 #[derive(Debug)]
 #[must_use = "builder must be completed to be used"]
 pub struct ConfigBuilder {
+    /// Inner configuration being modified.
     inner: Config,
 }
 
@@ -208,7 +219,7 @@ impl ConfigBuilder {
                 large_threshold: 50,
                 presence: None,
                 queue: Arc::new(LocalQueue::new()),
-                ratelimit_payloads: true,
+                ratelimit_messages: true,
                 session: None,
                 token: token.into_boxed_str(),
             },
@@ -352,14 +363,14 @@ impl ConfigBuilder {
         self
     }
 
-    /// Set whether or not outgoing payloads will be ratelimited.
+    /// Set whether or not outgoing messages will be ratelimited.
     ///
     /// Useful when running behind a proxy gateway. Running without a
     /// functional ratelimiter **will** get you ratelimited.
     ///
     /// Defaults to being enabled.
-    pub const fn ratelimit_payloads(mut self, ratelimit_payloads: bool) -> Self {
-        self.inner.ratelimit_payloads = ratelimit_payloads;
+    pub const fn ratelimit_messages(mut self, ratelimit_messages: bool) -> Self {
+        self.inner.ratelimit_messages = ratelimit_messages;
 
         self
     }

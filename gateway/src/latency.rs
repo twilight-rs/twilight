@@ -1,3 +1,5 @@
+//! Statistics about the latency of a shard, useful for debugging.
+
 use std::{
     iter::FusedIterator,
     slice::Iter,
@@ -107,6 +109,8 @@ impl Latency {
     /// Track that a heartbeat acknowledgement was received.
     ///
     /// The current time will be stored to be used in [`track_received`].
+    ///
+    /// [`track_received`]: Self::track_received
     pub(crate) fn track_sent(&mut self) {
         self.received = None;
         self.sent = Some(Instant::now());

@@ -1,3 +1,52 @@
+//! Primary logic and implementation details of Discord gateway websocket
+//! connections.
+//!
+//! Shards are, at their heart, a websocket connection with some state for
+//! maintaining an identified session with the Discord gateway. For more
+//! information about what a shard is in the context of Discord's gateway API,
+//! refer to the documentation for [`Shard`].
+//!
+//! # Implementation Flow
+//!
+//! Other than informative methods and getters, shards have two functions:
+//! sending websocket messages and receiving websocket messages, called
+//! "events" in the context of the Discord gateway.
+//!
+//! Sending a message is simple and the flow of it looks like:
+//!
+//! 1. If the user sends a [command] via [`Shard::command`] the command is
+//! serialized into a raw websocket message and [`Shard::send`] is called;
+//! 2. The user calls [`Shard::send`] and the sending of the message goes
+//! through ratelimiting via [`CommandRatelimiter`] if ratelimiting
+//! [is enabled];
+//! 3. The [websocket message] is sent over the [websocket connection].
+//!
+//! Receiving a message is a little bit more complicated, but follows as:
+//!
+//! 1. The user calls [`Shard::next_message`] to receive the next message from
+//! the Websocket;
+//! 2. If the shard is disconnected then the connection is reconnected;
+//! 3. One of three things wait to happen:
+//!   a. the interval for the shard to send the next heartbeat occurs, in which
+//!   case [`Shard::heartbeat`] is called; or
+//!   b. the shard receives a [raw websocket message] from the user over the
+//!   [user channel], which is then forwarded via [`Shard::send`]; or
+//!   c. the shard receives a message from Discord via the websocket connection.
+//! 4. In the case of 3(a) and 3(b), 3 is repeated; otherwise...
+//! 5. If the message is a close it's returned to the user; otherwise, the
+//! message is [processed] by the shard;
+//! 6. The raw Websocket message is returned to the user
+//!
+//! If the user called [`Shard::next_event`] instead of [`Shard::next_message`],
+//! then the previous steps are taken and the resultant message is deserialized
+//! into a [`GatewayEvent`].
+//!
+//! [command]: crate::Command
+//! [is enabled]: Config::ratelimit_messages
+//! [processed]: Shard::process
+//! [websocket message]: crate::message::Message
+//! [websocket connection]: Shard::connection
+
 use crate::{
     channel::{MessageChannel, ShardMessageSender},
     command::Command,
@@ -7,7 +56,7 @@ use crate::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
         SendErrorType, ShardInitializeError, ShardInitializeErrorType,
     },
-    future::TickHeartbeatFuture,
+    future::{NextMessageFuture, NextMessageFutureReturn, TickHeartbeatFuture},
     json,
     latency::Latency,
     message::{CloseFrame, Message},
@@ -195,13 +244,35 @@ struct Ready {
 #[derive(Debug)]
 pub struct Shard {
     compression: Compression,
+    /// User provided configuration.
+    ///
+    /// Configurations are provided or created in shard initializing via
+    /// [`Shard::new`] or [`Shard::with_config`].
     config: Config,
     connection: Connection,
+    /// Interval of how often the gateway would like the shard to
+    /// [send heartbeats][`Self::heartbeat`].
+    ///
+    /// The interval is received in the [`GatewayEvent::Hello`] event when
+    /// first opening a new [connection][`Self::connection`].
     heartbeat_interval: Option<Duration>,
+    /// ID of the shard.
     id: ShardId,
+    /// Recent heartbeat latency statistics.
     latency: Latency,
+    /// Command ratelimiter, if it was enabled via
+    /// [`Config::ratelimit_messages`].
     ratelimiter: Option<CommandRatelimiter>,
+    /// Active session of the shard.
+    ///
+    /// The shard may not have an active session if it hasn't completed a full
+    /// identify, done via [`identify`] in response to receiving a
+    /// [`GatewayEvent::Hello`].
+    ///
+    /// [`identify`]: Self::identify
     session: Option<Session>,
+    /// Current connection status of the Websocket connection, not necessarily
+    /// correlating to an [active session][`Self::session`].
     status: ConnectionStatus,
     user_channel: MessageChannel,
 }
@@ -233,6 +304,10 @@ impl Shard {
     /// println!("Shard stage: {}", info.stage());
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Refer to [`Shard::with_config`] for possible errors.
     pub async fn new(
         id: ShardId,
         token: String,
@@ -243,6 +318,13 @@ impl Shard {
         Self::with_config(id, config).await
     }
 
+    /// Create a new shard with the provided configuration.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ShardInitializeErrorType::Establishing`] error type if the
+    /// connection with the Discord gateway could not be established, such as
+    /// due to network or TLS errors.
     pub async fn with_config(id: ShardId, config: Config) -> Result<Self, ShardInitializeError> {
         let session = config.session().cloned();
 
@@ -301,17 +383,18 @@ impl Shard {
     /// ratelimiter will refresh.
     ///
     /// This won't be present if ratelimiting was disabled via
-    /// [`ConfigBuilder::ratelimit_payloads`].
+    /// [`ConfigBuilder::ratelimit_messages`].
     ///
-    /// [`ConfigBuilder::ratelimit_payloads`]: crate::config::ConfigBuilder::ratelimit_payloads
+    /// [`ConfigBuilder::ratelimit_messages`]: crate::config::ConfigBuilder::ratelimit_messages
     pub const fn ratelimiter(&self) -> Option<&CommandRatelimiter> {
         self.ratelimiter.as_ref()
     }
 
     /// Immutable reference to the active gateway session.
     ///
-    /// The session may not be present if the shard has recently disconnected or
-    /// had its session invalidated and has not yet performed a reconnect.
+    /// An active session may not be present if the shard has recently
+    /// disconnected or had its session invalidated and has not yet performed a
+    /// reconnect.
     pub const fn session(&self) -> Option<&Session> {
         self.session.as_ref()
     }
@@ -354,12 +437,17 @@ impl Shard {
         if self.status.is_disconnected() {
             self.connection = connect(self.id(), self.config.gateway_url())
                 .await
-                .map_err(ReceiveMessageError::with_reconnect)?;
+                .map_err(ReceiveMessageError::from_reconnect)?;
             self.status = ConnectionStatus::Connected;
         }
 
         let message = loop {
-            let future = NextMessageFuture::new(self);
+            let future = NextMessageFuture::new(
+                self.user_channel.rx_mut(),
+                self.connection.next(),
+                self.heartbeat_interval,
+                self.latency.sent(),
+            );
 
             // todo cleanup the match, it's not very clean
             let tungstenite_message = match future.await {
@@ -594,6 +682,31 @@ impl Shard {
         Ok(())
     }
 
+    /// Identify a new session with the Discord gateway.
+    ///
+    /// # Errors
+    ///
+    /// Refer to [`command`][`Self::command`] for possible errors.
+    async fn identify(&mut self) -> Result<(), SendError> {
+        let properties = self
+            .config()
+            .identify_properties()
+            .cloned()
+            .unwrap_or_else(default_identify_properties);
+
+        let identify = Identify::new(IdentifyInfo {
+            compress: false,
+            large_threshold: self.config.large_threshold(),
+            intents: self.config.intents(),
+            properties,
+            shard: Some([self.id().current(), self.id().total()]),
+            presence: self.config.presence().cloned(),
+            token: self.config.token().to_owned(),
+        });
+
+        self.command(&identify).await
+    }
+
     async fn process(&mut self) -> Result<(), ProcessError> {
         let buffer = match self.compression.message_mut() {
             Ok(Some(buffer)) => buffer,
@@ -676,28 +789,11 @@ impl Shard {
                 let heartbeat_duration = Duration::from_millis(heartbeat_interval);
                 self.heartbeat_interval = Some(heartbeat_duration);
 
-                if self.config().ratelimit_payloads() {
+                if self.config().ratelimit_messages() {
                     self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval));
                 }
 
-                let properties = self
-                    .config()
-                    .identify_properties()
-                    .cloned()
-                    .unwrap_or_else(default_identify_properties);
-                let identify = Identify::new(IdentifyInfo {
-                    compress: false,
-                    large_threshold: self.config.large_threshold(),
-                    intents: self.config.intents(),
-                    properties,
-                    shard: Some([self.id().current(), self.id().total()]),
-                    presence: self.config.presence().cloned(),
-                    token: self.config.token().to_owned(),
-                });
-
-                self.command(&identify)
-                    .await
-                    .map_err(ProcessError::from_send)?;
+                self.identify().await.map_err(ProcessError::from_send)?;
             }
             GatewayEvent::InvalidateSession(can_resume) => {
                 self.disconnect(Disconnect::from_resumable(can_resume));
@@ -708,55 +804,6 @@ impl Shard {
         }
 
         Ok(())
-    }
-}
-
-enum NextMessageFutureReturn {
-    GatewayMessage(Option<Result<TungsteniteMessage, TungsteniteError>>),
-    SendHeartbeat,
-    UserChannelMessage(Option<Message>),
-}
-
-struct NextMessageFuture<'a> {
-    channel_receive_future: &'a mut UnboundedReceiver<Message>,
-    message_future: Next<'a, Connection>,
-    tick_heartbeat_future: TickHeartbeatFuture,
-}
-
-impl<'a> NextMessageFuture<'a> {
-    fn new(shard: &'a mut Shard) -> Self {
-        let maybe_last_sent = shard.latency().sent();
-
-        Self {
-            channel_receive_future: shard.user_channel.rx_mut(),
-            message_future: shard.connection.next(),
-            tick_heartbeat_future: TickHeartbeatFuture::new(
-                maybe_last_sent,
-                shard.heartbeat_interval,
-            ),
-        }
-    }
-}
-
-impl Future for NextMessageFuture<'_> {
-    type Output = NextMessageFutureReturn;
-
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let mut this = self.as_mut();
-
-        if let Poll::Ready(()) = this.tick_heartbeat_future.poll_unpin(cx) {
-            return Poll::Ready(NextMessageFutureReturn::SendHeartbeat);
-        }
-
-        if let Poll::Ready(message) = this.channel_receive_future.poll_recv(cx) {
-            return Poll::Ready(NextMessageFutureReturn::UserChannelMessage(message));
-        }
-
-        if let Poll::Ready(message) = this.message_future.poll_unpin(cx) {
-            return Poll::Ready(NextMessageFutureReturn::GatewayMessage(message));
-        }
-
-        Poll::Pending
     }
 }
 
@@ -776,17 +823,23 @@ fn configure_url(url: &mut String) {
     compression::add_url_feature(url);
 }
 
+/// Connect to the gateway for a given URL, defaulting if not present.
+///
+/// If a URL isn't provided then [`GATEWAY_URL`] is used. The Shard ID is used
+/// only for tracing logs.
+///
+/// # Errors
+///
+/// Returns a [`ShardInitializeErrorType::Establishing`] error type if the
+/// connection with the Discord gateway could not be established, such as
+/// due to network or TLS errors.
 async fn connect(id: ShardId, maybe_url: Option<&str>) -> Result<Connection, ShardInitializeError> {
     let mut raw_url = maybe_url.unwrap_or(GATEWAY_URL).to_owned();
     configure_url(&mut raw_url);
 
-    let url = Url::parse(&raw_url).map_err(|source| ShardInitializeError {
-        kind: ShardInitializeErrorType::ParsingGatewayUrl { url: raw_url },
-        source: Some(Box::new(source)),
-    })?;
+    let url = Url::parse(&raw_url).expect("gateway url is valid");
 
     tracing::debug!(%id, ?url, "shaking hands with remote");
-
     let (stream, _) =
         tokio_tungstenite::connect_async_tls_with_config(url, Some(WEBSOCKET_CONFIG), None)
             .await
@@ -794,16 +847,15 @@ async fn connect(id: ShardId, maybe_url: Option<&str>) -> Result<Connection, Sha
                 kind: ShardInitializeErrorType::Establishing,
                 source: Some(Box::new(source)),
             })?;
-
     tracing::debug!(%id, "shook hands with remote");
 
     Ok(stream)
 }
 
-/// Default identify properties to use when the user has not customized it via
-/// [`ShardBuilder::identify_properties`].
+/// Default identify properties to use when the user hasn't customized it in
+/// [`Config::identify_properties`].
 ///
-/// [`ShardBuilder::identify_properties`]: super::super::ShardBuilder::identify_properties
+/// [`Config::identify_properties`]: Config::identify_properties
 fn default_identify_properties() -> IdentifyProperties {
     IdentifyProperties::new("twilight.rs", "twilight.rs", OS)
 }
@@ -817,7 +869,6 @@ mod tests {
 
     assert_impl_all!(SendErrorType: Debug, Send, Sync);
     assert_impl_all!(SendError: Error, Send, Sync);
-    assert_fields!(ShardInitializeErrorType::ParsingGatewayUrl: url);
     assert_impl_all!(ShardInitializeErrorType: Debug, Send, Sync);
     assert_impl_all!(ShardInitializeError: Error, Send, Sync);
     assert_impl_all!(Shard: Debug, Send, Sync);

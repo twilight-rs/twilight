@@ -1,3 +1,5 @@
+//! Function wrappers for deserializing and serializing events and commands.
+
 #[cfg(not(feature = "simd-json"))]
 pub use serde_json::{from_slice, to_vec};
 #[cfg(feature = "simd-json")]
@@ -11,10 +13,13 @@ use std::{
 };
 use twilight_model::gateway::event::{GatewayEvent, GatewayEventDeserializer};
 
+/// Parsing of a gateway event failed, likely due to a type being unrecognized.
 #[derive(Debug)]
 pub struct GatewayEventParsingError {
-    pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
+    /// Type of error.
     pub(crate) kind: GatewayEventParsingErrorType,
+    /// Source error if available.
+    pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
 impl Display for GatewayEventParsingError {

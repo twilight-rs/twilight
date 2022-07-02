@@ -1,10 +1,10 @@
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
-    // clippy::missing_docs_in_private_items, todo
+    clippy::missing_docs_in_private_items,
     clippy::pedantic,
     future_incompatible,
-    // missing_docs, todo
+    missing_docs,
     nonstandard_style,
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
@@ -18,7 +18,7 @@
     clippy::must_use_candidate,
     clippy::semicolon_if_nothing_returned,
     clippy::used_underscore_binding,
-    unused, // todo
+    unused
 )]
 
 pub mod config;
@@ -59,8 +59,13 @@ use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 /// Discord Gateway API version used by this crate.
 pub const API_VERSION: u8 = 10;
 
-/// Discord gateway url.
+/// URL of the Discord gateway.
 const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 
 /// [`tokio_tungstenite`] library Websocket connection.
+///
+/// Connections are used by [`Shard`]s when [initially connecting] and when
+/// reconnecting.
+///
+/// [initially connecting]: Shard::with_config
 type Connection = WebSocketStream<MaybeTlsStream<TcpStream>>;

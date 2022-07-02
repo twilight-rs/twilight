@@ -12,9 +12,13 @@ use std::{
 };
 use twilight_http::Client;
 
+/// Failure when fetching the recommended number of shards to use from Discord's
+/// REST API.
 #[derive(Debug)]
 pub struct StartRecommendedError {
+    /// Type of error.
     pub(crate) kind: StartRecommendedErrorType,
+    /// Source error if available.
     pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
@@ -40,10 +44,25 @@ impl Error for StartRecommendedError {
 /// Type of [`StartRecommendedError`] that occurred.
 #[derive(Debug)]
 pub enum StartRecommendedErrorType {
+    /// Received gateway event failed to be deserialized.
+    ///
+    /// The message payload is likely an unrecognized type that is not yet
+    /// supported.
     Deserializing,
+    /// Requesting recommended shards from Discord's REST API failed.
+    ///
+    /// May be due to something such as a network or authentication issue.
     Request,
 }
 
+/// Start a range of shards with provided configuration for each shard.
+///
+/// Lower end of the range must be less than the higher end. The higher end of
+/// the range is exclusive.
+///
+/// # Panics
+///
+/// Panics if TODO
 pub fn start_range(
     from: u64,
     to: u64,
@@ -90,7 +109,7 @@ pub fn start_range(
 /// let shards = twilight_gateway::stream::start_recommended(config)
 ///     .await?
 ///     .filter_map(|shard_result| {
-///         let shard = shard_result?;
+///         let shard = shard_result.ok()?;
 ///
 ///         (shard.id(), shard)
 ///     })

@@ -13,7 +13,9 @@ use inflater::Inflater;
 /// Sending a command failed.
 #[derive(Debug)]
 pub struct CompressionError {
+    /// Type of error.
     kind: CompressionErrorType,
+    /// Source error if available.
     source: Option<Box<dyn Error + Send + Sync>>,
 }
 

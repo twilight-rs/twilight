@@ -12,6 +12,9 @@ pub struct Inflater {
     internal_buffer: Vec<u8>,
     buffer: Vec<u8>,
     last_resize: Instant,
+    /// ID of the shard the inflater is owned by.
+    ///
+    /// Used solely for debugging purposes.
     shard_id: ShardId,
 }
 
