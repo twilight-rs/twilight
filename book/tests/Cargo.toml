@@ -1,5 +1,5 @@
 [package]
-name = "twilight-book"
+name = "book"
 version = "0.1.0"
 authors = ["Twilight Contributors"]
 edition = "2018"

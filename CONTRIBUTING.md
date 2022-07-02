@@ -83,6 +83,19 @@ made targeting the `main` branch, while larger `refactor` pull requests target
 
 Pull requests require two approvals before merging.
 
+### Releases
+
+Twilight uses `git-cliff` and `cargo-release` for releases. These are both
+available as binaries from `crates.io`. They are executed via
+`gen-changelogs.sh` and `release.sh` respectively. Invoking `release.sh` with
+extra arguments passes them to the saved `cargo-release` command.
+
+Steps to create a minor release across the workspace:
+- generate the changelogs: `$ ./gen-changelogs.sh`
+- customize the changelogs as necessary, and commit them
+- preview the release process: `$ ./release.sh patch -vv`
+- execute the release: `$ ./release.sh patch --execute`
+
 ## Code Style
 
 Not all of our codebase follows this style. But, in an effort to reach
