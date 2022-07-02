@@ -7,7 +7,7 @@ use crate::{
     response::ResponseFuture,
 };
 use twilight_model::{
-    scheduled_event::{EntityType, GuildScheduledEvent},
+    guild::scheduled_event::{EntityType, GuildScheduledEvent},
     util::Timestamp,
 };
 use twilight_validate::request::{

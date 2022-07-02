@@ -7,8 +7,8 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
+    guild::template::Template,
     id::{marker::GuildMarker, Id},
-    template::Template,
 };
 use twilight_validate::request::{
     template_description as validate_template_description, template_name as validate_template_name,

@@ -6,8 +6,8 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
+    guild::template::Template,
     id::{marker::GuildMarker, Id},
-    template::Template,
 };
 
 /// Sync a template to the current state of the guild, by ID and code.
