@@ -138,19 +138,32 @@ fn reactions_eq(a: &ReactionType, b: &ReactionType) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::test;
+    use crate::{event::reaction::reactions_eq, test, CachedMessage};
     use twilight_model::{
-        channel::{Reaction, ReactionType},
+        channel::{message::MessageReaction, Reaction, ReactionType},
         gateway::payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
         id::Id,
     };
+
+    fn find_custom_react(msg: &CachedMessage) -> Option<&MessageReaction> {
+        msg.reactions.iter().find(|&r| {
+            reactions_eq(
+                &r.emoji,
+                &ReactionType::Custom {
+                    animated: false,
+                    id: Id::new(6),
+                    name: None,
+                },
+            )
+        })
+    }
 
     #[test]
     fn reaction_add() {
         let cache = test::cache_with_message_and_reactions();
         let msg = cache.message(Id::new(4)).unwrap();
 
-        assert_eq!(msg.reactions.len(), 2);
+        assert_eq!(msg.reactions.len(), 3);
 
         let world_react = msg
             .reactions
@@ -160,11 +173,14 @@ mod tests {
             .reactions
             .iter()
             .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
+        let custom_react = find_custom_react(&msg);
 
         assert!(world_react.is_some());
         assert_eq!(world_react.unwrap().count, 1);
         assert!(smiley_react.is_some());
         assert_eq!(smiley_react.unwrap().count, 2);
+        assert!(custom_react.is_some());
+        assert_eq!(custom_react.unwrap().count, 1);
     }
 
     #[test]
@@ -174,6 +190,18 @@ mod tests {
             channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "😀".to_owned(),
+            },
+            guild_id: Some(Id::new(1)),
+            member: None,
+            message_id: Id::new(4),
+            user_id: Id::new(5),
+        }));
+        cache.update(&ReactionRemove(Reaction {
+            channel_id: Id::new(2),
+            emoji: ReactionType::Custom {
+                animated: false,
+                id: Id::new(6),
+                name: None,
             },
             guild_id: Some(Id::new(1)),
             member: None,
@@ -193,11 +221,13 @@ mod tests {
             .reactions
             .iter()
             .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
+        let custom_react = find_custom_react(&msg);
 
         assert!(world_react.is_some());
         assert_eq!(world_react.unwrap().count, 1);
         assert!(smiley_react.is_some());
         assert_eq!(smiley_react.unwrap().count, 1);
+        assert!(custom_react.is_none());
     }
 
     #[test]
@@ -225,6 +255,16 @@ mod tests {
             guild_id: Id::new(1),
             message_id: Id::new(4),
         });
+        cache.update(&ReactionRemoveEmoji {
+            channel_id: Id::new(2),
+            emoji: ReactionType::Custom {
+                animated: false,
+                id: Id::new(6),
+                name: None,
+            },
+            guild_id: Id::new(1),
+            message_id: Id::new(4),
+        });
 
         let msg = cache.message(Id::new(4)).unwrap();
 
@@ -238,9 +278,11 @@ mod tests {
             .reactions
             .iter()
             .find(|&r| matches!(&r.emoji, ReactionType::Unicode {name} if name == "😀"));
+        let custom_react = find_custom_react(&msg);
 
         assert!(world_react.is_some());
         assert_eq!(world_react.unwrap().count, 1);
         assert!(smiley_react.is_none());
+        assert!(custom_react.is_none());
     }
 }
