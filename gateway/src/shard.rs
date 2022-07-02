@@ -207,7 +207,13 @@ struct Ready {
 /// ```no_run
 /// use futures::stream::StreamExt;
 /// use std::env;
-/// use twilight_gateway::{EventTypeFlags, Event, Intents, Shard};
+/// use twilight_gateway::{
+///     config::{Config, ShardId},
+///     EventTypeFlags,
+///     Event,
+///     Intents,
+///     Shard,
+/// };
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
@@ -216,16 +222,23 @@ struct Ready {
 /// let token = env::var("DISCORD_TOKEN")?;
 /// let event_types = EventTypeFlags::MESSAGE_CREATE | EventTypeFlags::MESSAGE_DELETE;
 ///
-/// let (shard, mut events) = Shard::builder(token, Intents::GUILD_MESSAGES)
+/// let config = Config::builder(token, Intents::GUILD_MESSAGES)
 ///     .event_types(event_types)
 ///     .build();
+/// let mut shard = Shard::with_config(ShardId::ONE, config).await?;
 ///
-/// // Start the shard.
-/// shard.start().await?;
+/// // Create a loop of only new messages and deleted messages.
 ///
-/// // Create a loop of only new message and deleted message events.
+/// loop {
+///     let event = match shard.next_event().await {
+///         Ok(event) => event,
+///         Err(source) => {
+///             tracing::warn!(?source, "error receiving event");
 ///
-/// while let Some(event) = events.next().await {
+///             continue;
+///         }
+///     };
+///
 ///     match event {
 ///         Event::MessageCreate(message) => {
 ///             println!("message received with content: {}", message.content);
@@ -283,25 +296,20 @@ impl Shard {
     /// # Examples
     ///
     /// Create a new shard and start it, wait a second, and then print its
-    /// current connection stage:
+    /// current connection status:
     ///
     /// ```no_run
-    /// use twilight_gateway::{Intents, Shard};
+    /// use twilight_gateway::{config::ShardId, Intents, Shard};
     /// use std::{env, time::Duration};
     /// use tokio::time as tokio_time;
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;
-    ///
     /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
-    /// let (shard, _) = Shard::new(token, intents);
-    /// shard.start().await?;
+    /// let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
     ///
-    /// tokio_time::sleep(Duration::from_secs(1)).await;
-    ///
-    /// let info = shard.info()?;
-    /// println!("Shard stage: {}", info.stage());
+    /// println!("Shard connection status: {:?}", shard.status());
     /// # Ok(()) }
     /// ```
     ///
@@ -515,7 +523,7 @@ impl Shard {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
-    /// use twilight_gateway::{shard::Shard, Intents};
+    /// use twilight_gateway::{config::ShardId, Intents, Shard};
     /// use twilight_model::{
     ///     gateway::payload::outgoing::RequestGuildMembers,
     ///     id::Id,
@@ -524,8 +532,7 @@ impl Shard {
     /// let intents = Intents::GUILD_VOICE_STATES;
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let (shard, _events) = Shard::new(token, intents);
-    /// shard.start().await?;
+    /// let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
     ///
     /// // Query members whose names start with "tw" and limit the results to
     /// // 10 members.
@@ -556,40 +563,22 @@ impl Shard {
     ///
     /// # Examples
     ///
-    /// Send a ping message:
-    ///
-    /// ```no_run
-    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::env;
-    /// use twilight_gateway::{shard::{raw_message::Message, Shard}, Intents};
-    ///
-    /// let token = env::var("DISCORD_TOKEN")?;
-    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
-    /// shard.start().await?;
-    ///
-    /// shard.send(Message::Ping(Vec::new())).await?;
-    /// # Ok(()) }
-    /// ```
-    ///
     /// Send a normal close, which [`Shard::close`] is shorthand for:
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::{borrow::Cow, env};
     /// use twilight_gateway::{
-    ///     shard::{
-    ///         raw_message::{CloseFrame, Message},
-    ///         Shard,
-    ///     },
+    ///     config::ShardId,
+    ///     message::{CloseFrame, Message},
     ///     Intents,
+    ///     Shard,
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
-    /// shard.start().await?;
+    /// let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILDS).await?;
     ///
-    /// let close = CloseFrame::from((1000, ""));
-    /// let message = Message::Close(Some(close));
+    /// let message = Message::Close(Some(CloseFrame::NORMAL));
     /// shard.send(message).await?;
     /// # Ok(()) }
     /// ```
@@ -879,9 +868,12 @@ mod tests {
     /// want to make sure it formats right.
     #[test]
     fn test_configure_url() {
-        let buf = String::new();
-        super::configure_url(&mut String::new());
+        let mut buf = String::new();
+        super::configure_url(&mut buf);
 
-        assert_eq!(format!("?v={}&encoding=json", API_VERSION), buf);
+        assert_eq!(
+            format!("?v={}&encoding=json&compress=zlib-stream", API_VERSION),
+            buf
+        );
     }
 }

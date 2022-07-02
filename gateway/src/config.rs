@@ -43,7 +43,7 @@ impl ShardId {
     /// Create a new shard with a current index of 13 out of 24 shards:
     ///
     /// ```
-    /// use twilight_gateway::shard::ShardId;
+    /// use twilight_gateway::config::ShardId;
     ///
     /// let id = ShardId::new(13, 24);
     /// ```
@@ -267,14 +267,15 @@ impl ConfigBuilder {
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env::{self, consts::OS};
-    /// use twilight_gateway::{Intents, Shard};
+    /// use twilight_gateway::{config::Config, Intents, Shard};
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
-    /// let builder = Shard::builder(token, Intents::empty())
-    ///     .identify_properties(properties);
+    /// let config = Config::builder(token, Intents::empty())
+    ///     .identify_properties(properties)
+    ///     .build();
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
@@ -321,14 +322,15 @@ impl ConfigBuilder {
     ///
     /// ```no_run
     /// use std::env;
-    /// use twilight_gateway::{Intents, Shard};
+    /// use twilight_gateway::{config::{Config, ShardId}, Intents, Shard};
     /// use twilight_model::gateway::{
     ///     payload::outgoing::update_presence::UpdatePresencePayload,
     ///     presence::{ActivityType, MinimalActivity, Status},
     /// };
     ///
-    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let shard = Shard::builder(env::var("DISCORD_TOKEN")?, Intents::empty())
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let config = Config::builder(env::var("DISCORD_TOKEN")?, Intents::empty())
     ///     .presence(UpdatePresencePayload::new(
     ///         vec![MinimalActivity {
     ///             kind: ActivityType::Playing,
@@ -339,7 +341,10 @@ impl ConfigBuilder {
     ///         false,
     ///         None,
     ///         Status::Idle,
-    ///     )?);
+    ///     )?)
+    ///     .build();
+    ///
+    /// let shard = Shard::with_config(ShardId::ONE, config).await?;
     /// # Ok(()) }
     ///
     /// ```
@@ -429,7 +434,7 @@ mod tests {
     fn test_shard_id_new_checked() {
         assert!(ShardId::new_checked(0, 1).is_some());
         assert!(ShardId::new_checked(1, 1).is_none());
-        assert!(ShardId::new_checked(2, 1).is_some());
+        assert!(ShardId::new_checked(2, 1).is_none());
         assert!(ShardId::new_checked(0, 0).is_none());
     }
 

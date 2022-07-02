@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "book/tests",
+    # "book/tests",
     "cache/in-memory",
     "examples",
     "gateway",

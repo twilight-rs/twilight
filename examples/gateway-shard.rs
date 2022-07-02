@@ -1,4 +1,3 @@
-use futures_util::StreamExt;
 use std::env;
 use twilight_gateway::{config::ShardId, Intents, Shard};
 
@@ -12,9 +11,16 @@ async fn main() -> anyhow::Result<()> {
 
     println!("Created shard");
 
-    while let Ok(event) = shard.next_event().await {
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
+
+                continue;
+            }
+        };
+
         println!("Event: {event:?}");
     }
-
-    Ok(())
 }

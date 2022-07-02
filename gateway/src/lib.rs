@@ -18,7 +18,8 @@
     clippy::must_use_candidate,
     clippy::semicolon_if_nothing_returned,
     clippy::used_underscore_binding,
-    unused
+    unused,
+    clippy::missing_docs_in_private_items // todo
 )]
 
 pub mod config;

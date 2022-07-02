@@ -100,23 +100,24 @@ pub fn start_range(
 ///
 /// ```no_run
 /// use futures::StreamExt;
-/// use std::env;
-/// use twilight_gateway::{Config, Intents};
+/// use std::{collections::HashMap, env, future};
+/// use twilight_gateway::{config::Config, Intents};
 ///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
 /// let config = Config::new(token, Intents::GUILDS);
 ///
 /// let shards = twilight_gateway::stream::start_recommended(config)
 ///     .await?
-///     .filter_map(|shard_result| {
-///         let shard = shard_result.ok()?;
-///
-///         (shard.id(), shard)
+///     .filter_map(|shard_result| async move {
+///         shard_result.ok().map(|shard| (shard.id().current(), shard))
 ///     })
 ///     .collect::<HashMap<_, _>>()
 ///     .await;
 ///
-/// println!("total shards: {}", shards);
+/// println!("total shards: {}", shards.len());
+/// # Ok(()) }
 /// ```
 ///
 /// # Errors

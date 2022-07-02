@@ -46,6 +46,7 @@ impl MessageChannel {
 /// gateway.
 ///
 /// [`Shard`]: crate::Shard
+#[derive(Clone, Debug)]
 pub struct ShardMessageSender {
     /// Sending half of the channel for the user to send messages to a shard.
     tx: UnboundedSender<Message>,

@@ -81,12 +81,12 @@ impl<'a> CloseFrame<'a> {
 /// # Examples
 ///
 /// ```
-/// use twilight_gateway::shard::raw_message::CloseFrame;
+/// use twilight_gateway::message::CloseFrame;
 ///
 /// let frame = CloseFrame::from((1000, "reason here"));
 ///
-/// assert_eq!(1000, frame.code);
-/// assert_eq!("reason here", frame.reason);
+/// assert_eq!(1000, frame.code());
+/// assert_eq!("reason here", frame.reason());
 /// ```
 impl<'a, T: Into<Cow<'a, str>>> From<(u16, T)> for CloseFrame<'a> {
     fn from((code, reason): (u16, T)) -> Self {

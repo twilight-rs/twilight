@@ -1,6 +1,5 @@
-use futures_util::StreamExt;
 use std::env;
-use twilight_gateway::{Event, Intents, Shard};
+use twilight_gateway::{config::ShardId, Event, Intents, Shard};
 use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
 
 #[tokio::main]
@@ -8,15 +7,25 @@ async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    // To interact with the gateway we first need to connect to it (with a shard or cluster)
-    let (shard, mut events) = Shard::new(
+    // To interact with the gateway we need to first connect to it
+    let mut shard = Shard::new(
+        ShardId::ONE,
         env::var("DISCORD_TOKEN")?,
         Intents::GUILD_MEMBERS | Intents::GUILDS,
-    );
-    shard.start().await?;
+    )
+    .await?;
     println!("Created shard");
 
-    while let Some(event) = events.next().await {
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
+
+                continue;
+            }
+        };
+
         match event {
             Event::GuildCreate(guild) => {
                 // Let's request all of the guild's members for caching.
@@ -95,6 +104,4 @@ async fn main() -> anyhow::Result<()> {
             _ => {}
         }
     }
-
-    Ok(())
 }

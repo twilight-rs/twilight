@@ -26,10 +26,6 @@ twilight-model = { path = "../model" }
 twilight-standby = { path = "../standby" }
 
 [[example]]
-name = "gateway-cluster"
-path = "gateway-cluster.rs"
-
-[[example]]
 name = "gateway-intents"
 path = "gateway-intents.rs"
 

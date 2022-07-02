@@ -122,7 +122,7 @@ bot's token. You must also depend on `futures`, `tokio`,
 use std::{env, error::Error, sync::Arc};
 use futures::stream::StreamExt;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
-use twilight_gateway::{Cluster, Event};
+use twilight_gateway::{config::ShardId, Event, Shard};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::Intents;
 
@@ -134,16 +134,11 @@ async fn main() -> anyhow::Result<()> {
 
     // A cluster is a manager for multiple shards that by default
     // creates as many shards as Discord recommends.
-    let (cluster, mut events) = Cluster::new(token.to_owned(), Intents::GUILD_MESSAGES).await?;
-    let cluster = Arc::new(cluster);
-
-    // Start up the cluster.
-    let cluster_spawn = Arc::clone(&cluster);
-
-    // Start all shards in the cluster in the background.
-    tokio::spawn(async move {
-        cluster_spawn.up().await;
-    });
+    let mut shard = Shard::new(
+        ShardId::ONE,
+        token.to_owned(),
+        Intents::GUILD_MESSAGES,
+    ).await?;
 
     // HTTP is separate from the gateway, so create a new client.
     let http = Arc::new(HttpClient::new(token));
@@ -155,18 +150,26 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     // Process each event as they come in.
-    while let Some((shard_id, event)) = events.next().await {
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                println!("error receiving event: {:?}", source);
+
+                continue;
+            }
+        };
+
         // Update the cache with the event.
         cache.update(&event);
 
-        tokio::spawn(handle_event(shard_id, event, Arc::clone(&http)));
+        tokio::spawn(handle_event(event, Arc::clone(&http)));
     }
 
     Ok(())
 }
 
 async fn handle_event(
-    shard_id: u64,
     event: Event,
     http: Arc<HttpClient>,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -176,9 +179,6 @@ async fn handle_event(
                 .content("Pong!")?
                 .exec()
                 .await?;
-        }
-        Event::ShardConnected(_) => {
-            println!("Connected on shard {shard_id}");
         }
         // Other events here...
         _ => {}
