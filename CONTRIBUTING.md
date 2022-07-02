@@ -90,7 +90,7 @@ available as binaries from `crates.io`. They are executed via
 `gen-changelogs.sh` and `release.sh` respectively. Invoking `release.sh` with
 extra arguments passes them to the saved `cargo-release` command.
 
-Steps to create a minor release across the workspace:
+Steps to create a patch release across the workspace:
 - generate the changelogs: `$ ./gen-changelogs.sh`
 - customize the changelogs as necessary, and commit them
 - preview the release process: `$ ./release.sh patch -vv`
