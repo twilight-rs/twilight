@@ -2,24 +2,37 @@
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
-See the [`twilight`] documentation for more information.
+This crate models types from the Discord API with a few convenience methods on
+top. Types are reproducible: payloads may be serialized and deserialized
+without any information loss.
 
-`twilight-model` is a crate of serde models defining the Discord APIs with
-few convenience methods on top of them.
+Resources can be compared as objects, but as Discord may update them at any
+time, it is recommended to compare them by ID. Resources' IDs are stable and
+globally unique.
 
-These are in a single crate for ease of use, a single point of definition,
-and a sort of versioning of the Discord API. Similar to how a database
-schema progresses in versions, the definition of the API also progresses in
-versions.
+```rust,no_run
+use twilight_model::channel::Message;
 
-The types in this crate are reproducible: deserializing a payload into a
-type, serializing it, and then deserializing it again will work.
+fn retrieve_message() -> Message {
+    unimplemented!()
+}
 
-Defined are a number of modules defining types returned by or owned by
-resource categories. For example, `gateway` are types used to interact with
-and returned by the gateway API. `guild` contains types owned by the Guild
-resource category. These types may be directly returned by, built on top of,
-or extended by other crates.
+let message_a = retrieve_message();
+let message_b = retrieve_message();
+
+if message_a.id == message_b.id {
+    println!("recieved the same message");
+    if message_a != message_b {
+        println!("message was updated between the calls to `retrieve_message`")
+    }
+}
+```
+
+Related types are grouped together in modules, with `guild` and `channel` being
+the largest ones. Other crates may return, build on top of, or extend these
+types.
+
+Refer to the [Discord Docs] as the source of truth.
 
 Some models have associated builders, which can be found in the
 [`twilight-util`] crate.
@@ -34,6 +47,7 @@ Some models have associated builders, which can be found in the
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
+[Discord Docs]: https://discord.com/developers/docs
 [discord link]: https://discord.gg/7jj8n7D
 [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
 [github link]: https://github.com/twilight-rs/twilight
