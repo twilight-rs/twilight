@@ -87,7 +87,8 @@ impl<'de> Deserialize<'de> for CommandPermission {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let data = CommandPermissionData::deserialize(deserializer)?;
 
-        let _span = tracing::trace_span!("deserializing command permission").entered();
+        let span = tracing::trace_span!("deserializing command permission");
+        let _span_enter = span.enter();
 
         let id = match data.kind {
             CommandPermissionDataType::Role => {
@@ -185,7 +186,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "GuildCommandPermission",
+                    name: "GuildCommandPermissions",
                     len: 4,
                 },
                 Token::Str("application_id"),
