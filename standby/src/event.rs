@@ -41,7 +41,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::IntegrationCreate(e) => e.0.guild_id,
         Event::IntegrationDelete(e) => Some(e.guild_id),
         Event::IntegrationUpdate(e) => e.0.guild_id,
-        Event::InteractionCreate(e) => e.0.guild_id(),
+        Event::InteractionCreate(e) => e.0.guild_id,
         Event::InviteCreate(e) => Some(e.guild_id),
         Event::InviteDelete(e) => Some(e.guild_id),
         Event::MemberAdd(e) => Some(e.0.guild_id),
