@@ -25,12 +25,12 @@ pub struct GuildCommandPermissions {
     pub permissions: Vec<CommandPermission>,
 }
 
-/// Permission for a resource to use a command.
+/// Member, channel or role explicit permission to use a command.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct CommandPermission {
     /// Affected resource.
     pub id: CommandPermissionType,
-    /// Whether the resource is allowed or disallowed.
+    /// Whether the resource is allowed or disallowed to use the command.
     pub permission: bool,
 }
 
