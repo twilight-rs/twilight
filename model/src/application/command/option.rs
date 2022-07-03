@@ -8,6 +8,7 @@ use std::{cmp::Eq, collections::HashMap};
 /// Can be nested under other [`CommandOption`]s of type [`SubCommand`] and
 /// [`SubCommandGroup`].
 ///
+/// [`Command`]: super::Command
 /// [`SubCommand`]: CommandOptionType::SubCommand
 /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
