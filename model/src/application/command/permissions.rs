@@ -19,7 +19,9 @@ pub struct GuildCommandPermissions {
     pub guild_id: Id<GuildMarker>,
     /// ID of the command.
     pub id: Id<CommandMarker>,
-    /// Permissions of the command in the guild, max 100.
+    /// Command permissions in the guild.
+    ///
+    /// Max 100.
     pub permissions: Vec<CommandPermission>,
 }
 
@@ -35,9 +37,13 @@ pub struct CommandPermission {
 /// Resources commands can allow or disallow from executing them.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum CommandPermissionType {
-    /// Affected channel, `@everyone - 1` for all channels.
+    /// Affected channel.
+    ///
+    /// Use `@everyone - 1` for all channels in the guild.
     Channel(Id<ChannelMarker>),
-    /// Affected role, `@everyone` is permitted.
+    /// Affected role.
+    ///
+    /// The `@everyone` role is permitted.
     Role(Id<RoleMarker>),
     /// Affected member.
     User(Id<UserMarker>),
