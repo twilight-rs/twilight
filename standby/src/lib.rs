@@ -634,7 +634,7 @@ impl Standby {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
     /// use twilight_model::{
-    ///     application::interaction::message_component::MessageComponentInteraction,
+    ///     application::interaction::Interaction,
     ///     id::Id,
     /// };
     /// use twilight_standby::Standby;
@@ -642,7 +642,7 @@ impl Standby {
     /// let standby = Standby::new();
     /// let message_id = Id::new(123);
     ///
-    /// let component = standby.wait_for_component(message_id, |event: &MessageComponentInteraction| {
+    /// let component = standby.wait_for_component(message_id, |event: &Interaction| {
     ///     event.author_id() == Some(Id::new(456))
     /// }).await?;
     /// # Ok(()) }
@@ -677,7 +677,7 @@ impl Standby {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
-    ///     application::interaction::message_component::MessageComponentInteraction,
+    ///     application::interaction::{Interaction, InteractionData},
     ///     id::Id,
     /// };
     /// use twilight_standby::Standby;
@@ -685,8 +685,12 @@ impl Standby {
     /// let standby = Standby::new();
     /// let message_id = Id::new(123);
     ///
-    /// let mut components = standby.wait_for_component_stream(message_id, |event: &MessageComponentInteraction| {
-    ///     event.data.custom_id == "Click".to_string()
+    /// let mut components = standby.wait_for_component_stream(message_id, |event: &Interaction| {
+    ///     if let Some(InteractionData::MessageComponent(data)) = &event.data {
+    ///         data.custom_id == "Click".to_string()
+    ///     } else {
+    ///         false
+    ///     }
     /// });
     ///
     /// while let Some(component) = components.next().await {
