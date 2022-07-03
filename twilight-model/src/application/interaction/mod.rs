@@ -37,7 +37,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// See [Discord Docs/Interaction Object].
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Interaction {
     /// App's permissions in the channel the interaction was sent from.
     ///
@@ -382,7 +382,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 }
 
 /// Additional [`Interaction`] data, such as the invoking user.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum InteractionData {
     /// Data received for the [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]

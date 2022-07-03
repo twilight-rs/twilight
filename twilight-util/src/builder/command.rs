@@ -48,7 +48,7 @@
 use twilight_model::{
     application::command::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, Command,
-        CommandOption, CommandOptionChoice, CommandOptionValue, CommandType, Number,
+        CommandOption, CommandOptionChoice, CommandOptionValue, CommandType,
         NumberCommandOptionData, OptionsCommandOptionData,
     },
     channel::ChannelType,
@@ -638,7 +638,7 @@ impl From<MentionableBuilder> for CommandOption {
     }
 }
 
-/// Create a [`Number`] option with a builder.
+/// Create a number option with a builder.
 #[derive(Clone, Debug)]
 #[must_use = "should be used in a command builder"]
 pub struct NumberBuilder(NumberCommandOptionData);
@@ -700,7 +700,7 @@ impl NumberBuilder {
 
     /// Set the list of choices for an option.
     ///
-    /// Accepts tuples of `(String, Number)` corresponding to the name and
+    /// Accepts tuples of `(String, f64)` corresponding to the name and
     /// value. Localization may be added with [`choice_localizations`].
     ///
     /// Defaults to no choices.
@@ -712,7 +712,7 @@ impl NumberBuilder {
             .map(|(name, value, ..)| CommandOptionChoice::Number {
                 name: name.into(),
                 name_localizations: None,
-                value: Number(value),
+                value,
             })
             .collect();
 
@@ -740,7 +740,7 @@ impl NumberBuilder {
     ///
     /// Defaults to no limit.
     pub const fn max_value(mut self, value: f64) -> Self {
-        self.0.max_value = Some(CommandOptionValue::Number(Number(value)));
+        self.0.max_value = Some(CommandOptionValue::Number(value));
 
         self
     }
@@ -749,7 +749,7 @@ impl NumberBuilder {
     ///
     /// Defaults to no limit.
     pub const fn min_value(mut self, value: f64) -> Self {
-        self.0.min_value = Some(CommandOptionValue::Number(Number(value)));
+        self.0.min_value = Some(CommandOptionValue::Number(value));
 
         self
     }

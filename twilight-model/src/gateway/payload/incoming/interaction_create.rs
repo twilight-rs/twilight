@@ -2,7 +2,7 @@ use crate::application::interaction::Interaction;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct InteractionCreate(pub Interaction);
 
 impl Deref for InteractionCreate {
