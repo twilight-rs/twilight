@@ -35,7 +35,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// [Discord Docs/Interaction Object].
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 #[non_exhaustive]
 pub enum Interaction {

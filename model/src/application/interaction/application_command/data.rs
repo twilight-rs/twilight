@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the guild the command is registered to.
     #[serde(skip_serializing_if = "Option::is_none")]

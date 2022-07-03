@@ -23,7 +23,7 @@ use serde::Serialize;
 ///
 /// [`Interaction`]: super::Interaction
 /// [`ApplicationCommand`]: super::Interaction::ApplicationCommand
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename(serialize = "Interaction"))]
 pub struct ApplicationCommand {
     /// ID of the associated application.

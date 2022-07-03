@@ -1,5 +1,5 @@
 use crate::{
-    application::command::{CommandOptionType, Number},
+    application::command::CommandOptionType,
     id::{
         marker::{AttachmentMarker, ChannelMarker, GenericMarker, RoleMarker, UserMarker},
         Id,
@@ -17,7 +17,7 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 /// See [Discord Docs/Application Command Object].
 ///
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CommandDataOption {
     pub name: String,
     pub value: CommandOptionValue,
@@ -259,9 +259,9 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                     // but it is safe to cast as there can
                                     // not occur any loss.
                                     #[allow(clippy::cast_precision_loss)]
-                                    CommandOptionValue::Number(Number(i as f64))
+                                    CommandOptionValue::Number(i as f64)
                                 }
-                                ValueEnvelope::Number(f) => CommandOptionValue::Number(Number(f)),
+                                ValueEnvelope::Number(f) => CommandOptionValue::Number(f),
                                 other => {
                                     return Err(DeError::invalid_type(
                                         other.as_unexpected(),
@@ -320,7 +320,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 }
 
 /// Value of a [`CommandDataOption`].
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum CommandOptionValue {
     Attachment(Id<AttachmentMarker>),
     Boolean(bool),
@@ -339,7 +339,7 @@ pub enum CommandOptionValue {
     Focused(String, CommandOptionType),
     Integer(i64),
     Mentionable(Id<GenericMarker>),
-    Number(Number),
+    Number(f64),
     Role(Id<RoleMarker>),
     String(String),
     SubCommand(Vec<CommandDataOption>),
@@ -370,7 +370,7 @@ impl CommandOptionValue {
 mod tests {
     use crate::{
         application::{
-            command::{CommandOptionType, CommandType, Number},
+            command::{CommandOptionType, CommandType},
             interaction::application_command::{
                 CommandData, CommandDataOption, CommandOptionValue,
             },
@@ -590,7 +590,7 @@ mod tests {
     fn numbers() {
         let value = CommandDataOption {
             name: "opt".to_string(),
-            value: CommandOptionValue::Number(Number(5.0)),
+            value: CommandOptionValue::Number(5.0),
         };
 
         serde_test::assert_de_tokens(
