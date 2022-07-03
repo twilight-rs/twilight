@@ -11,42 +11,78 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
 
+/// Resolved data of [`ApplicationCommand`] options.
+///
+/// See [Discord Docs/Resolved Data Structure].
+///
+/// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
+/// [Discord Docs/Resolved Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-resolved-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandInteractionDataResolved {
+    /// Map of the resolved attachments.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub attachments: HashMap<Id<AttachmentMarker>, Attachment>,
+    /// Map of the resolved channels.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub channels: HashMap<Id<ChannelMarker>, InteractionChannel>,
+    /// Map of the resolved members.
+    ///
+    /// If a member is resolved, data for its correspondent user will be
+    /// included as well.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub members: HashMap<Id<UserMarker>, InteractionMember>,
+    /// Map of the resolved messages.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub messages: HashMap<Id<MessageMarker>, Message>,
+    /// Map of the resolved roles.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub roles: HashMap<Id<RoleMarker>, Role>,
+    /// Map of the resolved users.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub users: HashMap<Id<UserMarker>, User>,
 }
 
+/// Partial channel resolved from an [`Interaction`].
+///
+/// [`Interaction`]: crate::application::interaction::Interaction
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionChannel {
+    /// ID of the channel.
     pub id: Id<ChannelMarker>,
+    /// Type of the channel.
+    ///
+    /// This can be used to determine what fields *might* be available.
     #[serde(rename = "type")]
     pub kind: ChannelType,
+    /// Name of the channel.
     pub name: String,
+    /// ID of the parent channel.
+    ///
+    /// For guild channels this is the ID of the parent category channel.
+    ///
+    /// For threads this is the ID of the channel the thread was created in.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<Id<ChannelMarker>>,
+    /// Computed permissions for the invoking user in the channel.
     pub permissions: Permissions,
+    /// Metadata about a thread.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_metadata: Option<ThreadMetadata>,
 }
 
+/// Partial member resolved from an [`Interaction`].
+///
+/// [`Interaction`]: crate::application::interaction::Interaction
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    /// If the member is timed out, when the timeout will expire.
     pub communication_disabled_until: Option<Timestamp>,
+    /// Member guild join date.
     pub joined_at: Timestamp,
+    /// Member nickname.
     pub nick: Option<String>,
     /// Whether the user has yet to pass the guild's Membership Screening
     /// requirements.
@@ -55,6 +91,7 @@ pub struct InteractionMember {
     pub permissions: Permissions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
+    /// Member roles.
     #[serde(default)]
     pub roles: Vec<Id<RoleMarker>>,
 }

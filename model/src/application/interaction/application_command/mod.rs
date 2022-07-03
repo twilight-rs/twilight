@@ -1,3 +1,10 @@
+//! Data received when an [`ApplicationCommand`] interaction is executed.
+//!
+//! See [Discord Docs/Application Command Data Structure].
+//!
+//! [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
+//! [Discord Docs/Application Command Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-application-command-data-structure
+
 mod option;
 mod resolved;
 
@@ -17,10 +24,10 @@ use serde::{Deserialize, Serialize};
 
 /// Data received when an [`ApplicationCommand`] interaction is executed.
 ///
-/// See [Discord Docs/Interaction Object].
+/// See [Discord Docs/Application Command Data Structure].
 ///
-/// [`ApplicationCommand`]: crate::application::interaction::Interaction::ApplicationCommand
-/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
+/// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
+/// [Discord Docs/Application Command Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-application-command-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the guild the command is registered to.

@@ -1,4 +1,8 @@
 //! Used when receiving interactions through gateway or webhooks.
+//!
+//! See [Discord Docs/Receiving and Responding].
+//!
+//! [Discord Docs/Receiving and Responding]: https://discord.com/developers/docs/interactions/receiving-and-responding
 
 pub mod application_command;
 pub mod message_component;
@@ -30,6 +34,7 @@ use serde::{
 use serde_value::{DeserializerError, Value};
 
 /// Payload received when a user executes an interaction.
+///
 /// See [Discord Docs/Interaction Object].
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
@@ -137,11 +142,23 @@ impl Interaction {
     }
 }
 
+/// Data received when an [`Interaction`] is executed.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum InteractionData {
+    /// Data received for [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
+    /// interaction types.
+    ///
+    /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
+    /// [`ApplicationCommandAutocomplete`]: InteractionType::ApplicationCommandAutocomplete
     ApplicationCommand(Box<CommandData>),
+    /// Data received for [`MessageComponent`] interaction type.
+    ///
+    /// [`MessageComponent`]: InteractionType::MessageComponent
     MessageComponent(MessageComponentInteractionData),
+    /// Data received for [`ModalSubmit`] interaction type.
+    ///
+    /// [`ModalSubmit`]: InteractionType::ModalSubmit
     ModalSubmit(ModalInteractionData),
 }
 

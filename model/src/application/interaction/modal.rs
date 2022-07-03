@@ -1,26 +1,37 @@
+//! Data received when an [`ModalSubmit`] interaction is executed.
+//!
+//! See [Discord Docs/Modal Submit Data Structure].
+//!
+//! [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
+//! [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
+
 use crate::application::component::ComponentType;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
 /// Data received when an [`ModalSubmit`] interaction is executed.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Modal Submit Data Structure].
 ///
-/// [`ModalSubmit`]: crate::application::interaction::Interaction::ModalSubmit
-/// [the discord docs]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
+/// [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
+/// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ModalInteractionData {
     /// List of parsed user inputs.
     pub components: Vec<ModalInteractionDataActionRow>,
-    /// User defined identifier for the input text.
+    /// User defined identifier for the modal.
+    ///
+    /// See [Discord Docs/Custom ID].
+    ///
+    /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/interactions/message-components#custom-id
     pub custom_id: String,
 }
 
 /// The parsed [`ActionRow`] of the users input.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Modal Submit Data Structure].
 ///
 /// [`ActionRow`]: crate::application::interaction::modal::ModalInteractionDataActionRow
-/// [the discord docs]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
+/// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ModalInteractionDataActionRow {
     /// Parsed components.
@@ -40,14 +51,21 @@ impl Serialize for ModalInteractionDataActionRow {
 
 /// Data received when a user fills in a modal component.
 ///
-/// Refer to [the discord docs] for more information.
+/// See [Discord Docs/Message Components].
 ///
-/// [the discord docs]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
+/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ModalInteractionDataComponent {
+    /// User defined identifier for the component.
+    ///
+    /// See [Discord Docs/Custom ID].
+    ///
+    /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/interactions/message-components#custom-id
     pub custom_id: String,
+    /// Type of the component.
     #[serde(rename = "type")]
     pub kind: ComponentType,
+    /// Value submitted by the user.
     pub value: Option<String>,
 }
 

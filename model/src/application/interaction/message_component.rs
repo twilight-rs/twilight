@@ -1,16 +1,34 @@
+//! Data received when an [`MessageComponent`] interaction is executed.
+//!
+//! See [Discord Docs/Message Component Data Structure].
+//!
+//! [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
+//! [Discord Docs/Message Component Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-message-component-data-structure
+
 use crate::application::component::ComponentType;
 use serde::{Deserialize, Serialize};
 
 /// Data received when an [`MessageComponent`] interaction is executed.
 ///
-/// See [Discord Docs/Interaction Object].
+/// See [Discord Docs/Message Component Data Structure].
 ///
-/// [`MessageComponent`]: crate::application::interaction::Interaction::MessageComponent
-/// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data-structure
+/// [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
+/// [Discord Docs/Message Component Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-message-component-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageComponentInteractionData {
+    /// User defined identifier for the component.
+    ///
+    /// See [Discord Docs/Custom ID].
+    ///
+    /// [Discord Docs/Custom ID]: https://discord.com/developers/docs/interactions/message-components#custom-id
     pub custom_id: String,
+    /// Type of the component.
     pub component_type: ComponentType,
+    /// Values selected by the user.
+    ///
+    /// This is only used for [`SelectMenu`] components.
+    ///
+    /// [`SelectMenu`]: ComponentType::SelectMenu
     #[serde(default)]
     pub values: Vec<String>,
 }
