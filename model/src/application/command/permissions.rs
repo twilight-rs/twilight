@@ -107,7 +107,7 @@ impl<'de> Deserialize<'de> for CommandPermission {
             }
         };
 
-        tracing::trace!(id = %data.id.get(), kind = ?data.kind);
+        tracing::trace!(id = %data.id, kind = ?data.kind);
 
         Ok(Self {
             id,
