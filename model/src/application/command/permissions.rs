@@ -12,7 +12,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// List of [`CommandPermission`] for a command in a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct GuildCommandPermission {
+pub struct GuildCommandPermissions {
     /// ID of the application the command belongs to.
     pub application_id: Id<ApplicationMarker>,
     /// Id of the guild.
@@ -131,7 +131,8 @@ impl Serialize for CommandPermission {
 #[cfg(test)]
 mod tests {
     use super::{
-        CommandPermission, CommandPermissionDataType, CommandPermissionType, GuildCommandPermission,
+        CommandPermission, CommandPermissionDataType, CommandPermissionType,
+        GuildCommandPermissions,
     };
     use crate::id::Id;
     use serde_test::Token;
@@ -164,7 +165,7 @@ mod tests {
 
     #[test]
     fn serde_guild_command_permission() {
-        let value = GuildCommandPermission {
+        let value = GuildCommandPermissions {
             application_id: Id::new(1),
             guild_id: Id::new(2),
             id: Id::new(3),
