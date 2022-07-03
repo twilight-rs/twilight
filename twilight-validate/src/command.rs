@@ -416,21 +416,7 @@ fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 /// [`OptionNameLengthInvalid`]: CommandValidationErrorType::OptionNameLengthInvalid
 /// [`OptionNameCharacterInvalid`]: CommandValidationErrorType::OptionNameCharacterInvalid
 pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
-    let (description, name) = match option {
-        CommandOption::SubCommand(_) | CommandOption::SubCommandGroup(_) => return Ok(()),
-        CommandOption::String(data) => (&data.description, &data.name),
-        CommandOption::Integer(data) | CommandOption::Number(data) => {
-            (&data.description, &data.name)
-        }
-        CommandOption::Channel(data) => (&data.description, &data.name),
-        CommandOption::Boolean(data)
-        | CommandOption::User(data)
-        | CommandOption::Role(data)
-        | CommandOption::Mentionable(data)
-        | CommandOption::Attachment(data) => (&data.description, &data.name),
-    };
-
-    let description_len = description.chars().count();
+    let description_len = option.description.chars().count();
     if description_len > OPTION_DESCRIPTION_LENGTH_MAX
         && description_len < OPTION_DESCRIPTION_LENGTH_MIN
     {
@@ -439,7 +425,7 @@ pub fn option(option: &CommandOption) -> Result<(), CommandValidationError> {
         });
     }
 
-    self::option_name(name)
+    self::option_name(&option.name)
 }
 
 /// Validate a list of command options for count, order, and internal validity.
@@ -468,7 +454,7 @@ pub fn options(options: &[CommandOption]) -> Result<(), CommandValidationError> 
         .zip(options.iter().skip(1))
         .enumerate()
         .try_for_each(|(index, (first, second))| {
-            if !first.is_required() && second.is_required() {
+            if !first.required.unwrap_or_default() && second.required.unwrap_or_default() {
                 Err(CommandValidationError::option_required_first(index))
             } else {
                 Ok(())
@@ -476,11 +462,12 @@ pub fn options(options: &[CommandOption]) -> Result<(), CommandValidationError> 
         })?;
 
     // Validate that each option is correct.
-    options.iter().try_for_each(|option| match option {
-        CommandOption::SubCommandGroup(data) | CommandOption::SubCommand(data) => {
-            self::options(data.options.as_ref())
+    options.iter().try_for_each(|option| {
+        if let Some(options) = &option.options {
+            self::options(options)
+        } else {
+            self::option(option)
         }
-        other => self::option(other),
     })?;
 
     Ok(())
