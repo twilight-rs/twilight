@@ -27,6 +27,15 @@ bitflags! {
         ///  - [`CHANNEL_UPDATE`]
         ///  - [`CHANNEL_DELETE`]
         ///  - [`CHANNEL_PINS_UPDATE`]
+        ///  - [`THREAD_CREATE`]
+        ///  - [`THREAD_UPDATE`]
+        ///  - [`THREAD_DELETE`]
+        ///  - [`THREAD_LIST_SYNC`]
+        ///  - [`THREAD_MEMBER_UPDATE`]
+        ///  - [`THREAD_MEMBERS_UPDATE`]
+        ///  - [`STAGE_INSTANCE_CREATE`]
+        ///  - [`STAGE_INSTANCE_UPDATE`]
+        ///  - [`STAGE_INSTANCE_DELETE`]
         ///
         /// [`GUILD_CREATE`]: super::event::Event::GuildCreate
         /// [`GUILD_UPDATE`]: super::event::Event::GuildUpdate
@@ -38,6 +47,15 @@ bitflags! {
         /// [`CHANNEL_UPDATE`]: super::event::Event::ChannelUpdate
         /// [`CHANNEL_DELETE`]: super::event::Event::ChannelDelete
         /// [`CHANNEL_PINS_UPDATE`]: super::event::Event::ChannelPinsUpdate
+        /// [`THREAD_CREATE`]: super::event::Event::ThreadCreate
+        /// [`THREAD_UPDATE`]: super::event::Event::ThreadUpdate
+        /// [`THREAD_DELETE`]: super::event::Event::ThreadDelete
+        /// [`THREAD_LIST_SYNC`]: super::event::Event::ThreadListSync
+        /// [`THREAD_MEMBER_UPDATE`]: super::event::Event::ThreadMemberUpdate
+        /// [`THREAD_MEMBERS_UPDATE`]: super::event::Event::ThreadMembersUpdate
+        /// [`STAGE_INSTANCE_CREATE`]: super::event::Event::StageInstanceCreate
+        /// [`STAGE_INSTANCE_UPDATE`]: super::event::Event::StageInstanceUpdate
+        /// [`STAGE_INSTANCE_DELETE`]: super::event::Event::StageInstanceDelete
         const GUILDS = 1;
         /// Guild members intent.
         ///
@@ -47,11 +65,13 @@ bitflags! {
         ///  - [`GUILD_MEMBER_ADD`]
         ///  - [`GUILD_MEMBER_UPDATE`]
         ///  - [`GUILD_MEMBER_REMOVE`]
+        ///  - [`THREAD_MEMBERS_UPDATE`]
         ///
         /// [Discord Docs/Privileged Intents]: https://discord.com/developers/docs/topics/gateway#privileged-intents
         /// [`GUILD_MEMBER_ADD`]: super::event::Event::MemberAdd
         /// [`GUILD_MEMBER_UPDATE`]: super::event::Event::MemberUpdate
         /// [`GUILD_MEMBER_REMOVE`]: super::event::Event::MemberRemove
+        /// [`THREAD_MEMBERS_UPDATE`]: super::event::Event::ThreadMembersUpdate
         const GUILD_MEMBERS = 1 << 1;
         /// Guild bans intent.
         ///
@@ -75,8 +95,14 @@ bitflags! {
         ///
         /// Event(s) received:
         ///  - [`GUILD_INTEGRATIONS_UPDATE`]
+        ///  - [`INTEGRATION_CREATE`]
+        ///  - [`INTEGRATION_UPDATE`]
+        ///  - [`INTEGRATION_DELETE`]
         ///
         /// [`GUILD_INTEGRATIONS_UPDATE`]: super::event::Event::GuildIntegrationsUpdate
+        /// [`INTEGRATION_CREATE`]: super::event::Event::IntegrationCreate
+        /// [`INTEGRATION_UPDATE`]: super::event::Event::IntegrationUpdate
+        /// [`INTEGRATION_DELETE`]: super::event::Event::IntegrationDelete
         const GUILD_INTEGRATIONS = 1 << 4;
         /// Guild webhooks intent.
         ///
