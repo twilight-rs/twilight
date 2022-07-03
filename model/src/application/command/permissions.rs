@@ -15,7 +15,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 pub struct GuildCommandPermissions {
     /// ID of the application the command belongs to.
     pub application_id: Id<ApplicationMarker>,
-    /// Id of the guild.
+    /// ID of the guild.
     pub guild_id: Id<GuildMarker>,
     /// ID of the command.
     pub id: Id<CommandMarker>,
