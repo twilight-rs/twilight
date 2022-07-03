@@ -9,6 +9,10 @@ mod interaction_type;
 use std::fmt::{Formatter, Result as FmtResult};
 
 pub use self::interaction_type::InteractionType;
+use self::{
+    application_command::CommandData, message_component::MessageComponentInteractionData,
+    modal::ModalInteractionData,
+};
 
 use crate::{
     channel::Message,
@@ -102,9 +106,9 @@ pub struct Interaction {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum InteractionData {
-    ApplicationCommand(application_command::CommandData),
-    MessageComponent(message_component::MessageComponentInteractionData),
-    ModalSubmit(modal::ModalInteractionData),
+    ApplicationCommand(Box<CommandData>),
+    MessageComponent(MessageComponentInteractionData),
+    ModalSubmit(ModalInteractionData),
 }
 
 impl<'de> Deserialize<'de> for Interaction {
@@ -379,7 +383,7 @@ mod tests {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(100),
             channel_id: Some(Id::new(200)),
-            data: Some(InteractionData::ApplicationCommand(CommandData {
+            data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,
                 id: Id::new(300),
                 name: "command name".into(),
@@ -430,7 +434,7 @@ mod tests {
                     .collect(),
                 }),
                 target_id: None,
-            })),
+            }))),
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
             id: Id::new(500),
