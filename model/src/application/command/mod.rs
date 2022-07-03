@@ -217,7 +217,7 @@ mod tests {
                             description: "mentionable desc".to_owned(),
                             description_localizations: Some(HashMap::from([(
                                 "en-GB".to_owned(),
-                                "mentionable desc (but brittish)".to_owned(),
+                                "mentionable desc (but british)".to_owned(),
                             )])),
                             kind: CommandOptionType::Mentionable,
                             max_value: None,
@@ -450,7 +450,7 @@ mod tests {
                 Token::Some,
                 Token::Map { len: Some(1) },
                 Token::Str("en-GB"),
-                Token::Str("mentionable desc (but brittish)"),
+                Token::Str("mentionable desc (but british)"),
                 Token::MapEnd,
                 Token::Str("type"),
                 Token::U8(CommandOptionType::Mentionable as u8),
