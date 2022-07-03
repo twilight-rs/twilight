@@ -35,7 +35,7 @@ pub struct CommandPermission {
 /// Resources commands can allow or disallow from executing them.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum CommandPermissionType {
-    /// Affected channel, `@everone - 1` for all channels.
+    /// Affected channel, `@everyone - 1` for all channels.
     Channel(Id<ChannelMarker>),
     /// Affected role, `@everyone` is permitted.
     Role(Id<RoleMarker>),
