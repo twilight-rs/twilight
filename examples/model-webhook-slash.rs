@@ -9,7 +9,7 @@ use hyper::{
 use once_cell::sync::Lazy;
 use std::future::Future;
 use twilight_model::{
-    application::interaction::Interaction,
+    application::interaction::{Interaction, InteractionData, InteractionType},
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
 
@@ -89,9 +89,9 @@ where
     // Deserialize the body into a interaction.
     let interaction = serde_json::from_slice::<Interaction>(&whole_body)?;
 
-    match interaction {
+    match interaction.kind {
         // Return a Pong if a Ping is received.
-        Interaction::Ping(_) => {
+        InteractionType::Ping => {
             let response = InteractionResponse {
                 kind: InteractionResponseType::Pong,
                 data: None,
@@ -105,7 +105,7 @@ where
                 .body(json.into())?)
         }
         // Respond to a slash command.
-        Interaction::ApplicationCommand(_) => {
+        InteractionType::ApplicationCommand => {
             // Run the handler to gain a response.
             let response = f(interaction).await?;
 
@@ -127,8 +127,8 @@ where
 /// Interaction handler that matches on the name of the interaction that
 /// have been dispatched from Discord.
 async fn handler(i: Interaction) -> anyhow::Result<InteractionResponse> {
-    match &i {
-        Interaction::ApplicationCommand(cmd) => match cmd.data.name.as_ref() {
+    match &i.data {
+        Some(InteractionData::ApplicationCommand(data)) => match data.name.as_ref() {
             "vroom" => vroom(i).await,
             "debug" => debug(i).await,
             _ => debug(i).await,
