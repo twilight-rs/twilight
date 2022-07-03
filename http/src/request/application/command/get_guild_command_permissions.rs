@@ -6,7 +6,7 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    application::command::permissions::GuildCommandPermissions,
+    application::command::permissions::GuildCommandPermission,
     id::{
         marker::{ApplicationMarker, GuildMarker},
         Id,
@@ -37,7 +37,7 @@ impl<'a> GetGuildCommandPermissions<'a> {
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<ListBody<GuildCommandPermissions>> {
+    pub fn exec(self) -> ResponseFuture<ListBody<GuildCommandPermission>> {
         let http = self.http;
 
         match self.try_into_request() {

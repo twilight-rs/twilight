@@ -1,6 +1,6 @@
 use super::change_key::AuditLogChangeKey;
 use crate::{
-    application::command::permissions::GuildCommandPermissions,
+    application::command::permissions::GuildCommandPermission,
     channel::{
         message::sticker::StickerFormatType, permission_overwrite::PermissionOverwrite,
         stage_instance::PrivacyLevel, thread::AutoArchiveDuration,
@@ -171,10 +171,10 @@ pub enum AuditLogChange {
     CommandId {
         /// New command permissions.
         #[serde(rename = "new_value", skip_serializing_if = "Option::is_none")]
-        new: Option<GuildCommandPermissions>,
+        new: Option<GuildCommandPermission>,
         /// Old command permissions.
         #[serde(rename = "old_value", skip_serializing_if = "Option::is_none")]
-        old: Option<GuildCommandPermissions>,
+        old: Option<GuildCommandPermission>,
     },
     /// Member timeout state changed.
     CommunicationDisabledUntil {

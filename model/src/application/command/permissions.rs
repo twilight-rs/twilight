@@ -1,3 +1,5 @@
+//! Limit who and where commands can be executed.
+
 use crate::id::{
     marker::{
         ApplicationMarker, ChannelMarker, CommandMarker, GenericMarker, GuildMarker, RoleMarker,
@@ -8,71 +10,104 @@ use crate::id::{
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+/// List of [`CommandPermission`] for a command in a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct GuildCommandPermissions {
+pub struct GuildCommandPermission {
+    /// ID of the application the command belongs to.
     pub application_id: Id<ApplicationMarker>,
+    /// Id of the guild.
     pub guild_id: Id<GuildMarker>,
+    /// ID of the command.
     pub id: Id<CommandMarker>,
-    pub permissions: Vec<CommandPermissions>,
+    /// Permissions of the command in the guild, max 100.
+    pub permissions: Vec<CommandPermission>,
 }
 
+/// Permission for a resource to use a command.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct CommandPermissions {
-    pub id: CommandPermissionsType,
+pub struct CommandPermission {
+    /// Affected resource.
+    pub id: CommandPermissionType,
+    /// Whether the resource is allowed or disallowed.
     pub permission: bool,
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum CommandPermissionsType {
-    Role(Id<RoleMarker>),
-    User(Id<UserMarker>),
+/// Resources commands can allow or disallow from executing them.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum CommandPermissionType {
+    /// Affected channel, `@everone - 1` for all channels.
     Channel(Id<ChannelMarker>),
+    /// Affected role, `@everyone` is permitted.
+    Role(Id<RoleMarker>),
+    /// Affected member.
+    User(Id<UserMarker>),
+}
+
+impl CommandPermissionType {
+    /// Get the inner ID.
+    const fn id(self) -> Id<GenericMarker> {
+        match self {
+            Self::Channel(id) => id.cast(),
+            Self::Role(id) => id.cast(),
+            Self::User(id) => id.cast(),
+        }
+    }
+
+    /// Get the associated resource type.
+    const fn kind(self) -> CommandPermissionDataType {
+        match self {
+            Self::Channel(_) => CommandPermissionDataType::Channel,
+            Self::Role(_) => CommandPermissionDataType::Role,
+            Self::User(_) => CommandPermissionDataType::User,
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize)]
-struct CommandPermissionsData {
+struct CommandPermissionData {
+    /// Affected resource.
     id: Id<GenericMarker>,
+    /// Resource type.
     #[serde(rename = "type")]
-    kind: CommandPermissionsDataType,
+    kind: CommandPermissionDataType,
+    /// Whether the resource is allowed or disallowed.
     permission: bool,
 }
 
 #[derive(Clone, Debug, Deserialize_repr, Eq, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
-enum CommandPermissionsDataType {
+enum CommandPermissionDataType {
     Role = 1,
     User = 2,
     Channel = 3,
 }
 
-impl<'de> Deserialize<'de> for CommandPermissions {
+impl<'de> Deserialize<'de> for CommandPermission {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let data = CommandPermissionsData::deserialize(deserializer)?;
+        let data = CommandPermissionData::deserialize(deserializer)?;
 
-        let span = tracing::trace_span!("deserializing command permission");
-        let _span_enter = span.enter();
+        let _span = tracing::trace_span!("deserializing command permission").entered();
 
         let id = match data.kind {
-            CommandPermissionsDataType::Role => {
+            CommandPermissionDataType::Role => {
                 let id = data.id.cast();
-                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
-                CommandPermissionsType::Role(id)
+                CommandPermissionType::Role(id)
             }
-            CommandPermissionsDataType::User => {
+            CommandPermissionDataType::User => {
                 let id = data.id.cast();
-                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
-                CommandPermissionsType::User(id)
+                CommandPermissionType::User(id)
             }
-            CommandPermissionsDataType::Channel => {
+            CommandPermissionDataType::Channel => {
                 let id = data.id.cast();
-                tracing::trace!(id = %id.get(), kind = ?data.kind);
 
-                CommandPermissionsType::Channel(id)
+                CommandPermissionType::Channel(id)
             }
         };
+
+        tracing::trace!(id = %data.id.get(), kind = ?data.kind);
 
         Ok(Self {
             id,
@@ -81,19 +116,11 @@ impl<'de> Deserialize<'de> for CommandPermissions {
     }
 }
 
-impl Serialize for CommandPermissions {
+impl Serialize for CommandPermission {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let data = CommandPermissionsData {
-            id: match self.id {
-                CommandPermissionsType::Role(role_id) => role_id.cast(),
-                CommandPermissionsType::User(user_id) => user_id.cast(),
-                CommandPermissionsType::Channel(channel_id) => channel_id.cast(),
-            },
-            kind: match self.id {
-                CommandPermissionsType::Role(_) => CommandPermissionsDataType::Role,
-                CommandPermissionsType::User(_) => CommandPermissionsDataType::User,
-                CommandPermissionsType::Channel(_) => CommandPermissionsDataType::Channel,
-            },
+        let data = CommandPermissionData {
+            id: self.id.id(),
+            kind: self.id.kind(),
             permission: self.permission,
         };
 
@@ -103,14 +130,16 @@ impl Serialize for CommandPermissions {
 
 #[cfg(test)]
 mod tests {
-    use super::{CommandPermissions, CommandPermissionsType};
+    use super::{
+        CommandPermission, CommandPermissionDataType, CommandPermissionType, GuildCommandPermission,
+    };
     use crate::id::Id;
     use serde_test::Token;
 
     #[test]
-    fn command_permissions() {
-        let value = CommandPermissions {
-            id: CommandPermissionsType::Role(Id::new(100)),
+    fn serde_command_permission() {
+        let value = CommandPermission {
+            id: CommandPermissionType::Role(Id::new(100)),
             permission: true,
         };
 
@@ -118,16 +147,82 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "CommandPermissionsData",
+                    name: "CommandPermissionData",
                     len: 3,
                 },
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("type"),
-                Token::U8(1),
+                Token::U8(CommandPermissionDataType::Role as u8),
                 Token::Str("permission"),
                 Token::Bool(true),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn serde_guild_command_permission() {
+        let value = GuildCommandPermission {
+            application_id: Id::new(1),
+            guild_id: Id::new(2),
+            id: Id::new(3),
+            permissions: Vec::from([
+                CommandPermission {
+                    id: CommandPermissionType::Channel(Id::new(50)),
+                    permission: false,
+                },
+                CommandPermission {
+                    id: CommandPermissionType::User(Id::new(200)),
+                    permission: true,
+                },
+            ]),
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "GuildCommandPermission",
+                    len: 4,
+                },
+                Token::Str("application_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("guild_id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("3"),
+                Token::Str("permissions"),
+                Token::Seq { len: Some(2) },
+                Token::Struct {
+                    name: "CommandPermissionData",
+                    len: 3,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("50"),
+                Token::Str("type"),
+                Token::U8(CommandPermissionDataType::Channel as u8),
+                Token::Str("permission"),
+                Token::Bool(false),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandPermissionData",
+                    len: 3,
+                },
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("200"),
+                Token::Str("type"),
+                Token::U8(CommandPermissionDataType::User as u8),
+                Token::Str("permission"),
+                Token::Bool(true),
+                Token::StructEnd,
+                Token::SeqEnd,
                 Token::StructEnd,
             ],
         );
