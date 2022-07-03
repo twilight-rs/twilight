@@ -18,7 +18,7 @@ use crate::{
     channel::Message,
     guild::{PartialMember, Permissions},
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker},
+        marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
     },
     user::User,
@@ -101,6 +101,40 @@ pub struct Interaction {
     /// This field is present when the interaction is invoked in a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
+}
+
+impl Interaction {
+    /// ID of the user that invoked the interaction.
+    ///
+    /// This will first check for the [`member`]'s
+    /// [`user`][`PartialMember::user`]'s ID and, if not present, then check the
+    /// [`user`]'s ID.
+    ///
+    /// [`member`]: Self::member
+    /// [`user`]: Self::user
+    pub const fn author_id(&self) -> Option<Id<UserMarker>> {
+        if let Some(member) = &self.member {
+            if let Some(user) = &member.user {
+                return Some(user.id);
+            }
+        }
+
+        if let Some(user) = &self.user {
+            return Some(user.id);
+        }
+
+        None
+    }
+
+    /// Whether the interaction was invoked in a DM.
+    pub const fn is_dm(&self) -> bool {
+        self.user.is_some()
+    }
+
+    /// Whether the interaction was invoked in a guild.
+    pub const fn is_guild(&self) -> bool {
+        self.member.is_some()
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
