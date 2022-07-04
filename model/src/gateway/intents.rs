@@ -120,22 +120,6 @@ bitflags! {
         /// [`INVITE_CREATE`]: super::event::Event::InviteCreate
         /// [`INVITE_DELETE`]: super::event::Event::InviteDelete
         const GUILD_INVITES = 1 << 6;
-        /// Guild scheduled events intent.
-        ///
-        /// Event(s) received:
-        ///
-        /// - [`GUILD_SCHEDULED_EVENT_CREATE`]
-        /// - [`GUILD_SCHEDULED_EVENT_UPDATE`]
-        /// - [`GUILD_SCHEDULED_EVENT_DELETE`]
-        /// - [`GUILD_SCHEDULED_EVENT_USER_ADD`]
-        /// - [`GUILD_SCHEDULED_EVENT_USER_REMOVE`]
-        ///
-        /// [`GUILD_SCHEDULED_EVENT_CREATE`]: super::event::Event::GuildScheduledEventCreate
-        /// [`GUILD_SCHEDULED_EVENT_UPDATE`]: super::event::Event::GuildScheduledEventDelete
-        /// [`GUILD_SCHEDULED_EVENT_DELETE`]: super::event::Event::GuildScheduledEventUpdate
-        /// [`GUILD_SCHEDULED_EVENT_USER_ADD`]: super::event::Event::GuildScheduledEventUserAdd
-        /// [`GUILD_SCHEDULED_EVENT_USER_REMOVE`]: super::event::Event::GuildScheduledEventUserRemove
-        const GUILD_SCHEDULED_EVENTS = 1 << 16;
         /// Guild voice states intent.
         ///
         /// Event(s) received:
@@ -241,6 +225,22 @@ bitflags! {
         ///
         /// [Discord Docs/Privileged Intents]: https://discord.com/developers/docs/topics/gateway#privileged-intents
         const MESSAGE_CONTENT = 1 << 15;
+                /// Guild scheduled events intent.
+                ///
+                /// Event(s) received:
+                ///
+                /// - [`GUILD_SCHEDULED_EVENT_CREATE`]
+                /// - [`GUILD_SCHEDULED_EVENT_UPDATE`]
+                /// - [`GUILD_SCHEDULED_EVENT_DELETE`]
+                /// - [`GUILD_SCHEDULED_EVENT_USER_ADD`]
+                /// - [`GUILD_SCHEDULED_EVENT_USER_REMOVE`]
+                ///
+                /// [`GUILD_SCHEDULED_EVENT_CREATE`]: super::event::Event::GuildScheduledEventCreate
+                /// [`GUILD_SCHEDULED_EVENT_UPDATE`]: super::event::Event::GuildScheduledEventDelete
+                /// [`GUILD_SCHEDULED_EVENT_DELETE`]: super::event::Event::GuildScheduledEventUpdate
+                /// [`GUILD_SCHEDULED_EVENT_USER_ADD`]: super::event::Event::GuildScheduledEventUserAdd
+                /// [`GUILD_SCHEDULED_EVENT_USER_REMOVE`]: super::event::Event::GuildScheduledEventUserRemove
+        const GUILD_SCHEDULED_EVENTS = 1 << 16;
     }
 }
 
