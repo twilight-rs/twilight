@@ -1,9 +1,6 @@
-//! Data received when an [`ApplicationCommand`] interaction is executed.
-//!
-//! See [Discord Docs/Application Command Data Structure].
+//! [`ApplicationCommand`] interaction.
 //!
 //! [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
-//! [Discord Docs/Application Command Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-application-command-data-structure
 
 mod option;
 mod resolved;
@@ -22,11 +19,13 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Data received when an [`ApplicationCommand`] interaction is executed.
+/// Data received when an [`ApplicationCommand`] or [`ApplicationCommandAutocomplete`]
+/// interaction is executed.
 ///
 /// See [Discord Docs/Application Command Data Structure].
 ///
 /// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
+/// [`ApplicationCommandAutocomplete`]: crate::application::interaction::InteractionType::ApplicationCommandAutocomplete
 /// [Discord Docs/Application Command Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-application-command-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {
@@ -40,10 +39,10 @@ pub struct CommandData {
     /// Type of the command.
     #[serde(rename = "type")]
     pub kind: CommandType,
-    /// List of parsed options specified by the user.
+    /// List of options specified by the user.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub options: Vec<CommandDataOption>,
-    /// Data sent if any of the options are Discord types.
+    /// Resolved data from the interaction's options.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<CommandInteractionDataResolved>,
     /// If this is a user or message command, the ID of the targeted user/message.

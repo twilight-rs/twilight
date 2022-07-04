@@ -1,9 +1,7 @@
-//! Data received when an [`ModalSubmit`] interaction is executed.
+//! [`ModalSubmit`] interaction.
 //!
-//! See [Discord Docs/Modal Submit Data Structure].
 //!
 //! [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
-//! [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 
 use crate::application::component::ComponentType;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
@@ -16,7 +14,7 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 /// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ModalInteractionData {
-    /// List of parsed user inputs.
+    /// List of user inputs.
     pub components: Vec<ModalInteractionDataActionRow>,
     /// User defined identifier for the modal.
     ///
@@ -26,7 +24,7 @@ pub struct ModalInteractionData {
     pub custom_id: String,
 }
 
-/// The parsed [`ActionRow`] of the users input.
+/// User filled in [`ActionRow`].
 ///
 /// See [Discord Docs/Modal Submit Data Structure].
 ///
@@ -34,7 +32,7 @@ pub struct ModalInteractionData {
 /// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ModalInteractionDataActionRow {
-    /// Parsed components.
+    /// List of components.
     pub components: Vec<ModalInteractionDataComponent>,
 }
 
@@ -49,7 +47,7 @@ impl Serialize for ModalInteractionDataActionRow {
     }
 }
 
-/// Data received when a user fills in a modal component.
+/// User filled in modal component.
 ///
 /// See [Discord Docs/Message Components].
 ///

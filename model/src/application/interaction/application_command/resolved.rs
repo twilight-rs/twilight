@@ -11,7 +11,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
 
-/// Resolved data of [`ApplicationCommand`] options.
+/// Resolved mentioned resources.
 ///
 /// See [Discord Docs/Resolved Data Structure].
 ///
@@ -19,25 +19,24 @@ use std::collections::hash_map::HashMap;
 /// [Discord Docs/Resolved Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-resolved-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandInteractionDataResolved {
-    /// Map of the resolved attachments.
+    /// Map of resolved attachments.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub attachments: HashMap<Id<AttachmentMarker>, Attachment>,
-    /// Map of the resolved channels.
+    /// Map of resolved channels.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub channels: HashMap<Id<ChannelMarker>, InteractionChannel>,
-    /// Map of the resolved members.
+    /// Map of resolved members.
     ///
-    /// If a member is resolved, data for its correspondent user will be
-    /// included as well.
+    /// Resolved members' ID will map to a resolved user as well.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub members: HashMap<Id<UserMarker>, InteractionMember>,
-    /// Map of the resolved messages.
+    /// Map of resolved messages.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub messages: HashMap<Id<MessageMarker>, Message>,
-    /// Map of the resolved roles.
+    /// Map of resolved roles.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub roles: HashMap<Id<RoleMarker>, Role>,
-    /// Map of the resolved users.
+    /// Map of resolved users.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub users: HashMap<Id<UserMarker>, User>,
 }
@@ -56,14 +55,10 @@ pub struct InteractionChannel {
     pub kind: ChannelType,
     /// Name of the channel.
     pub name: String,
-    /// ID of the parent channel.
-    ///
-    /// For guild channels this is the ID of the parent category channel.
-    ///
-    /// For threads this is the ID of the channel the thread was created in.
+    /// ID of the channel the thread was created in.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_id: Option<Id<ChannelMarker>>,
-    /// Computed permissions for the invoking user in the channel.
+    /// Computed permissions, including overwrites, for the invoking user in the channel.
     pub permissions: Permissions,
     /// Metadata about a thread.
     #[serde(skip_serializing_if = "Option::is_none")]

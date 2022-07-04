@@ -10,13 +10,13 @@ pub mod modal;
 
 mod interaction_type;
 
-use std::fmt::{Formatter, Result as FmtResult};
-
 pub use self::interaction_type::InteractionType;
+
 use self::{
     application_command::CommandData, message_component::MessageComponentInteractionData,
     modal::ModalInteractionData,
 };
+use std::fmt::{Formatter, Result as FmtResult};
 
 use crate::{
     channel::Message,
@@ -42,14 +42,14 @@ use serde_value::{DeserializerError, Value};
 pub struct Interaction {
     /// App's permissions in the channel the interaction was sent from.
     ///
-    /// This field is present when the interaction is invoked in a guild.
+    /// Present when the interaction is invoked in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
     /// ID of the channel the interaction was invoked in.
     ///
-    /// This field is present on all interactions types, except [`Ping`].
+    /// Present on all interactions types, except [`Ping`].
     ///
     /// [`Ping`]: InteractionType::Ping
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +58,7 @@ pub struct Interaction {
     ///
     /// This field present on [`ApplicationCommand`], [`MessageComponent`],
     /// [`ApplicationCommandAutocomplete`] and [`ModalSubmit`] interactions.
-    /// The received enum variant matches the interaction type.
+    /// The inner enum variant matches the interaction type.
     ///
     /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
     /// [`MessageComponent`]: InteractionType::MessageComponent
@@ -71,8 +71,7 @@ pub struct Interaction {
     pub guild_id: Option<Id<GuildMarker>>,
     /// Guild’s preferred locale.
     ///
-    /// This field is present when the interaction is invoked in a guild.
-    /// Defaults to `en-US`.
+    /// Present when the interaction is invoked in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_locale: Option<String>,
     /// ID of the interaction.
@@ -82,19 +81,19 @@ pub struct Interaction {
     pub kind: InteractionType,
     /// Selected language of the user who invoked the interaction.
     ///
-    /// This field is present on all interactions types, except [`Ping`].
+    /// Present on all interactions types, except [`Ping`].
     ///
     /// [`Ping`]: InteractionType::Ping
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
     /// Member that invoked the interaction.
     ///
-    /// This field is present when the interaction is invoked in a guild.
+    /// Present when the interaction is invoked in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<PartialMember>,
     /// Message attached to the interaction.
     ///
-    /// This field is present on [`MessageComponent`] interactions.
+    /// Present on [`MessageComponent`] interactions.
     ///
     /// [`MessageComponent`]: InteractionType::MessageComponent
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -103,7 +102,7 @@ pub struct Interaction {
     pub token: String,
     /// User that invoked the interaction.
     ///
-    /// This field is present when the interaction is invoked in a direct message.
+    /// Present when the interaction is invoked in a direct message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user: Option<User>,
 }
@@ -112,7 +111,7 @@ impl Interaction {
     /// ID of the user that invoked the interaction.
     ///
     /// This will first check for the [`member`]'s
-    /// [`user`][`PartialMember::user`]'s ID and, if not present, then check the
+    /// [`user`][`PartialMember::user`]'s ID and then, if not present, check the
     /// [`user`]'s ID.
     ///
     /// [`member`]: Self::member
@@ -142,21 +141,21 @@ impl Interaction {
     }
 }
 
-/// Data received when an [`Interaction`] is executed.
+/// Additional [`Interaction`] data, such as the invoking user.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum InteractionData {
-    /// Data received for [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
+    /// Data received for the[`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
     /// interaction types.
     ///
     /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
     /// [`ApplicationCommandAutocomplete`]: InteractionType::ApplicationCommandAutocomplete
     ApplicationCommand(Box<CommandData>),
-    /// Data received for [`MessageComponent`] interaction type.
+    /// Data received for the [`MessageComponent`] interaction type.
     ///
     /// [`MessageComponent`]: InteractionType::MessageComponent
     MessageComponent(MessageComponentInteractionData),
-    /// Data received for [`ModalSubmit`] interaction type.
+    /// Data received for the [`ModalSubmit`] interaction type.
     ///
     /// [`ModalSubmit`]: InteractionType::ModalSubmit
     ModalSubmit(ModalInteractionData),
@@ -405,17 +404,15 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        application::{
-            command::{CommandOptionType, CommandType},
-            interaction::{
-                application_command::{
-                    CommandData, CommandDataOption, CommandInteractionDataResolved,
-                    CommandOptionValue, InteractionMember,
-                },
-                Interaction, InteractionData, InteractionType,
-            },
+    use super::{
+        application_command::{
+            CommandData, CommandDataOption, CommandInteractionDataResolved, CommandOptionValue,
+            InteractionMember,
         },
+        Interaction, InteractionData, InteractionType,
+    };
+    use crate::{
+        application::command::{CommandOptionType, CommandType},
         guild::{PartialMember, Permissions},
         id::Id,
         test::image_hash,

@@ -321,16 +321,16 @@ impl<'de> Deserialize<'de> for CommandDataOption {
     }
 }
 
-/// Value of a [`CommandDataOption`].
+/// Combined value and value type for a [`CommandDataOption`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
-    /// Value of an attachment option.
+    /// Attachment option.
     Attachment(Id<AttachmentMarker>),
-    /// Value of a boolean option.
+    /// Boolean option.
     Boolean(bool),
-    /// Value of a channel option.
+    /// Channel option.
     Channel(Id<ChannelMarker>),
-    /// Value of a focused field.
+    /// Focused option.
     ///
     /// Since Discord does not validate focused fields, they are sent as strings.
     /// This means that you will not necessarily get a valid number from number options.
@@ -342,21 +342,21 @@ pub enum CommandOptionValue {
     /// [Discord Docs/Autocomplete]: https://discord.com/developers/docs/interactions/application-commands#autocomplete
     /// [`CommandOptionType`]: crate::application::command::CommandOptionType
     Focused(String, CommandOptionType),
-    /// Value of an integer option.
+    /// Integer option.
     Integer(i64),
-    /// Value of a mentionable option.
+    /// Mentionable option.
     Mentionable(Id<GenericMarker>),
-    /// Value of a number option.
+    /// Number option.
     Number(Number),
-    /// Value of a role option.
+    /// Role option.
     Role(Id<RoleMarker>),
-    /// Value of a string option.
+    /// String option.
     String(String),
-    /// Value of a subcommand option.
+    /// Subcommand option.
     SubCommand(Vec<CommandDataOption>),
-    /// Value of a subcommand group option.
+    /// Subcommand group option.
     SubCommandGroup(Vec<CommandDataOption>),
-    /// Value of a user option.
+    /// User option.
     User(Id<UserMarker>),
 }
 

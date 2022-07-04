@@ -1,9 +1,6 @@
-//! Data received when an [`MessageComponent`] interaction is executed.
-//!
-//! See [Discord Docs/Message Component Data Structure].
+//! [`MessageComponent`] interaction.
 //!
 //! [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
-//! [Discord Docs/Message Component Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-message-component-data-structure
 
 use crate::application::component::ComponentType;
 use serde::{Deserialize, Serialize};
@@ -26,7 +23,7 @@ pub struct MessageComponentInteractionData {
     pub component_type: ComponentType,
     /// Values selected by the user.
     ///
-    /// This is only used for [`SelectMenu`] components.
+    /// Only used for [`SelectMenu`] components.
     ///
     /// [`SelectMenu`]: ComponentType::SelectMenu
     #[serde(default)]
