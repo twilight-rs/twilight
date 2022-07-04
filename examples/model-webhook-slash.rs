@@ -9,7 +9,9 @@ use hyper::{
 use once_cell::sync::Lazy;
 use std::future::Future;
 use twilight_model::{
-    application::interaction::{Interaction, InteractionData, InteractionType},
+    application::interaction::{
+        application_command::CommandData, Interaction, InteractionData, InteractionType,
+    },
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
 
@@ -25,7 +27,7 @@ static PUB_KEY: Lazy<PublicKey> = Lazy::new(|| {
 /// a InteractionResponse or a error.
 async fn interaction_handler<F>(
     req: Request<Body>,
-    f: impl Fn(Interaction) -> F,
+    f: impl Fn(Box<CommandData>) -> F,
 ) -> anyhow::Result<Response<Body>>
 where
     F: Future<Output = anyhow::Result<InteractionResponse>>,
@@ -107,7 +109,12 @@ where
         // Respond to a slash command.
         InteractionType::ApplicationCommand => {
             // Run the handler to gain a response.
-            let response = f(interaction).await?;
+            let data = match interaction.data {
+                Some(InteractionData::ApplicationCommand(data)) => Some(data),
+                _ => None,
+            }
+            .expect("`InteractionType::ApplicationCommand` has data");
+            let response = f(data).await?;
 
             // Serialize the response and return it back to Discord.
             let json = serde_json::to_vec(&response)?;
@@ -126,30 +133,27 @@ where
 
 /// Interaction handler that matches on the name of the interaction that
 /// have been dispatched from Discord.
-async fn handler(i: Interaction) -> anyhow::Result<InteractionResponse> {
-    match &i.data {
-        Some(InteractionData::ApplicationCommand(data)) => match data.name.as_ref() {
-            "vroom" => vroom(i).await,
-            "debug" => debug(i).await,
-            _ => debug(i).await,
-        },
-        _ => Err(anyhow::anyhow!("invalid interaction data")),
+async fn handler(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
+    match data.name.as_ref() {
+        "vroom" => vroom(data).await,
+        "debug" => debug(data).await,
+        _ => debug(data).await,
     }
 }
 
 /// Example of a handler that returns the formatted version of the interaction.
-async fn debug(i: Interaction) -> anyhow::Result<InteractionResponse> {
+async fn debug(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {
-            content: Some(format!("```rust\n{i:?}\n```")),
+            content: Some(format!("```rust\n{data:?}\n```")),
             ..Default::default()
         }),
     })
 }
 
 /// Example of interaction that responds with a message saying "Vroom vroom".
-async fn vroom(_: Interaction) -> anyhow::Result<InteractionResponse> {
+async fn vroom(_: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {
