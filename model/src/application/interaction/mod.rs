@@ -16,7 +16,6 @@ use self::{
     application_command::CommandData, message_component::MessageComponentInteractionData,
     modal::ModalInteractionData,
 };
-use std::fmt::{Formatter, Result as FmtResult};
 use crate::{
     channel::Message,
     guild::{PartialMember, Permissions},
@@ -31,6 +30,7 @@ use serde::{
     Deserialize, Deserializer, Serialize,
 };
 use serde_value::{DeserializerError, Value};
+use std::fmt::{Formatter, Result as FmtResult};
 
 /// Payload received when a user executes an interaction.
 ///
