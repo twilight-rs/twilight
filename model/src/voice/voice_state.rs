@@ -18,9 +18,9 @@ use std::fmt::{Formatter, Result as FmtResult};
 pub struct VoiceState {
     /// Channel this user is connected to.
     ///
-    /// [`None`] coresponds to being disconnected.
+    /// [`None`] corresponds to being disconnected.
     pub channel_id: Option<Id<ChannelMarker>>,
-    /// Wheather this user is server deafened.
+    /// Whether this user is server deafened.
     pub deaf: bool,
     /// Guild this voice state is for.
     #[serde(skip_serializing_if = "Option::is_none")]
