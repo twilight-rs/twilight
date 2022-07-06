@@ -17,7 +17,6 @@ use self::{
     modal::ModalInteractionData,
 };
 use std::fmt::{Formatter, Result as FmtResult};
-
 use crate::{
     channel::Message,
     guild::{PartialMember, Permissions},
@@ -145,7 +144,7 @@ impl Interaction {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum InteractionData {
-    /// Data received for the[`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
+    /// Data received for the [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
     /// interaction types.
     ///
     /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
