@@ -123,7 +123,7 @@ mod tests {
                             roles: vec![Id::new(8)],
                         },
                     )]),
-                    messages: IntoIterator::into_iter([(
+                    messages: HashMap::from([(
                         Id::new(4),
                         Message {
                             activity: None,
@@ -187,8 +187,7 @@ mod tests {
                             tts: false,
                             webhook_id: None,
                         },
-                    )])
-                    .collect(),
+                    )]),
                     roles: HashMap::from([(
                         Id::new(8),
                         Role {
