@@ -110,7 +110,7 @@ mod tests {
                 resolved: Some(CommandInteractionDataResolved {
                     attachments: HashMap::new(),
                     channels: HashMap::new(),
-                    members: IntoIterator::into_iter([(
+                    members: HashMap::from([(
                         Id::new(7),
                         InteractionMember {
                             avatar: None,
@@ -122,8 +122,7 @@ mod tests {
                             premium_since: None,
                             roles: vec![Id::new(8)],
                         },
-                    )])
-                    .collect(),
+                    )]),
                     messages: IntoIterator::into_iter([(
                         Id::new(4),
                         Message {
@@ -190,7 +189,7 @@ mod tests {
                         },
                     )])
                     .collect(),
-                    roles: IntoIterator::into_iter([(
+                    roles: HashMap::from([(
                         Id::new(8),
                         Role {
                             color: 0u32,
@@ -205,9 +204,8 @@ mod tests {
                             tags: None,
                             unicode_emoji: None,
                         },
-                    )])
-                    .collect(),
-                    users: IntoIterator::into_iter([(
+                    )]),
+                    users: HashMap::from([(
                         Id::new(7),
                         User {
                             accent_color: None,
@@ -226,8 +224,7 @@ mod tests {
                             system: None,
                             verified: None,
                         },
-                    )])
-                    .collect(),
+                    )]),
                 }),
                 target_id: None,
             }))),
