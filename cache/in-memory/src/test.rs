@@ -315,7 +315,6 @@ pub fn voice_state(
         self_video: false,
         session_id: "a".to_owned(),
         suppress: false,
-        token: None,
         user_id,
         request_to_speak_timestamp: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
     }

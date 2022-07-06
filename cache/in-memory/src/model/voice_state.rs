@@ -25,7 +25,6 @@ pub struct CachedVoiceState {
     self_video: bool,
     session_id: String,
     suppress: bool,
-    token: Option<String>,
     user_id: Id<UserMarker>,
 }
 
@@ -85,11 +84,6 @@ impl CachedVoiceState {
         self.suppress
     }
 
-    /// Voice connection token.
-    pub fn token(&self) -> Option<&str> {
-        self.token.as_deref()
-    }
-
     /// ID of the user.
     pub const fn user_id(&self) -> Id<UserMarker> {
         self.user_id
@@ -119,7 +113,6 @@ impl CachedVoiceState {
             self_video,
             session_id,
             suppress,
-            token,
             user_id,
             request_to_speak_timestamp,
         } = voice_state;
@@ -136,7 +129,6 @@ impl CachedVoiceState {
             self_video,
             session_id,
             suppress,
-            token,
             user_id,
         }
     }
@@ -155,7 +147,6 @@ impl PartialEq<VoiceState> for CachedVoiceState {
             && self.self_video == other.self_video
             && self.session_id == other.session_id
             && self.suppress == other.suppress
-            && self.token == other.token
             && self.user_id == other.user_id
     }
 }
@@ -187,7 +178,6 @@ mod tests {
         self_video,
         session_id,
         suppress,
-        token,
         user_id
     );
     assert_impl_all!(
@@ -230,7 +220,6 @@ mod tests {
         assert_eq!(cached.self_video(), voice_state.self_video);
         assert_eq!(cached.session_id(), voice_state.session_id);
         assert_eq!(cached.suppress(), voice_state.suppress);
-        assert_eq!(cached.token(), voice_state.token.as_deref());
         assert_eq!(cached.user_id(), voice_state.user_id);
     }
 }

@@ -62,7 +62,6 @@ mod tests {
             self_video: false,
             session_id: "a".to_owned(),
             suppress: false,
-            token: None,
             user_id: Id::new(1),
             request_to_speak_timestamp: None,
         });
@@ -203,7 +202,6 @@ mod tests {
             self_video: false,
             session_id: "asdasdas1da98da2b3ab3a".to_owned(),
             suppress: false,
-            token: None,
             user_id: Id::new(123_213),
             request_to_speak_timestamp: Some(request_to_speak_timestamp),
         });
