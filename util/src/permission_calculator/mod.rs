@@ -500,8 +500,7 @@ const fn process_permission_overwrites(
     // removed.
     let user_send_allowed = member_allow.contains(Permissions::SEND_MESSAGES);
 
-    let user_send_denied = member_deny.contains(Permissions::SEND_MESSAGES)
-        && !user_send_allowed;
+    let user_send_denied = member_deny.contains(Permissions::SEND_MESSAGES) && !user_send_allowed;
 
     let role_send_denied = roles_deny.contains(Permissions::SEND_MESSAGES)
         && !roles_allow.contains(Permissions::SEND_MESSAGES)
@@ -612,7 +611,12 @@ mod tests {
             let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
                 .in_channel(ChannelType::GuildText, overwrites);
 
-            assert_eq!(calculated, Permissions::VIEW_CHANNEL | Permissions::SEND_MESSAGES | Permissions::MENTION_EVERYONE);
+            assert_eq!(
+                calculated,
+                Permissions::VIEW_CHANNEL
+                    | Permissions::SEND_MESSAGES
+                    | Permissions::MENTION_EVERYONE
+            );
         }
     }
 
