@@ -1,0 +1,7 @@
+consolidate-pushes = true
+dependent-version = "upgrade"
+pre-release-commit-message = "release({{crate_name}}): bump to {{version}}"
+pre-release-replacements = [
+    { file = "CHANGELOG.md", search = "## \\[unreleased\\]", replace = "## [{{version}}] - {{date}}", min = 0 },
+]
+tag-name = "{{crate_name}}-{{version}}"

@@ -26,9 +26,9 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
-twilight-model = { default-features = false, path = "../model" }
-twilight-validate = { default-features = false, path = "../validate" }
+twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting", version = "0.11.0" }
+twilight-model = { default-features = false, path = "../model", version = "0.11.0" }
+twilight-validate = { default-features = false, path = "../validate", version = "0.11.0" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
@@ -45,5 +45,5 @@ trust-dns = ["dep:hyper-trust-dns"]
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-util = { default-features = false, features = ["builder"], path = "../util" }
+twilight-util = { default-features = false, features = ["builder"], path = "../util", version = "0.11.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
