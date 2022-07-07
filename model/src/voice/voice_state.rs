@@ -418,7 +418,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceState",
-                    len: 14,
+                    len: 13,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
