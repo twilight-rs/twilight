@@ -101,7 +101,11 @@ struct CommandOptionEnvelope<'ser> {
     choices: Option<&'ser [CommandOptionChoice]>,
     description: &'ser str,
     #[serde(skip_serializing_if = "Option::is_none")]
+    max_length: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     max_value: Option<CommandOptionValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    min_length: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     min_value: Option<CommandOptionValue>,
     name: &'ser str,
@@ -121,7 +125,9 @@ impl Serialize for CommandOption {
                 channel_types: None,
                 choices: None,
                 description: data.description.as_ref(),
+                max_length: None,
                 max_value: None,
+                min_length: None,
                 min_value: None,
                 name: data.name.as_ref(),
                 options: Some(data.options.as_ref()),
@@ -133,7 +139,9 @@ impl Serialize for CommandOption {
                 channel_types: None,
                 choices: Some(data.choices.as_ref()),
                 description: data.description.as_ref(),
+                max_length: data.max_length,
                 max_value: None,
+                min_length: data.min_length,
                 min_value: None,
                 name: data.name.as_ref(),
                 options: None,
@@ -145,7 +153,9 @@ impl Serialize for CommandOption {
                 channel_types: None,
                 choices: Some(data.choices.as_ref()),
                 description: data.description.as_ref(),
+                max_length: None,
                 max_value: data.max_value,
+                min_length: None,
                 min_value: data.min_value,
                 name: data.name.as_ref(),
                 options: None,
@@ -157,7 +167,9 @@ impl Serialize for CommandOption {
                 channel_types: Some(data.channel_types.as_ref()),
                 choices: None,
                 description: data.description.as_ref(),
+                max_length: None,
                 max_value: None,
+                min_length: None,
                 min_value: None,
                 name: data.name.as_ref(),
                 options: None,
@@ -173,7 +185,9 @@ impl Serialize for CommandOption {
                 channel_types: None,
                 choices: None,
                 description: data.description.as_ref(),
+                max_length: None,
                 max_value: None,
+                min_length: None,
                 min_value: None,
                 name: data.name.as_ref(),
                 options: None,
@@ -194,7 +208,9 @@ enum OptionField {
     Choices,
     Description,
     DescriptionLocalizations,
+    MaxLength,
     MaxValue,
+    MinLength,
     MinValue,
     Name,
     NameLocalizations,
@@ -220,7 +236,9 @@ impl<'de> Visitor<'de> for OptionVisitor {
         let mut description: Option<String> = None;
         let mut description_localizations: Option<Option<HashMap<String, String>>> = None;
         let mut kind: Option<CommandOptionType> = None;
+        let mut max_length: Option<u16> = None;
         let mut max_value: Option<Option<CommandOptionValue>> = None;
+        let mut min_length: Option<u16> = None;
         let mut min_value: Option<Option<CommandOptionValue>> = None;
         let mut name: Option<String> = None;
         let mut name_localizations: Option<Option<HashMap<String, String>>> = None;
@@ -286,12 +304,26 @@ impl<'de> Visitor<'de> for OptionVisitor {
 
                     description_localizations = Some(map.next_value()?);
                 }
+                OptionField::MaxLength => {
+                    if max_length.is_some() {
+                        return Err(DeError::duplicate_field("max_length"));
+                    }
+
+                    max_length = Some(map.next_value()?);
+                }
                 OptionField::MaxValue => {
                     if max_value.is_some() {
                         return Err(DeError::duplicate_field("max_value"));
                     }
 
                     max_value = Some(map.next_value()?);
+                }
+                OptionField::MinLength => {
+                    if min_length.is_some() {
+                        return Err(DeError::duplicate_field("min_length"));
+                    }
+
+                    min_length = Some(map.next_value()?);
                 }
                 OptionField::MinValue => {
                     if min_value.is_some() {
@@ -380,6 +412,8 @@ impl<'de> Visitor<'de> for OptionVisitor {
                 choices: choices.flatten().unwrap_or_default(),
                 description,
                 description_localizations: description_localizations.flatten(),
+                max_length,
+                min_length,
                 name,
                 name_localizations: name_localizations.flatten(),
                 required,
@@ -549,6 +583,16 @@ pub struct ChoiceCommandOptionData {
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
+    /// Maximum allowed length.
+    ///
+    /// Must be at least `1` and at most `6000`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_length: Option<u16>,
+    /// Minimum allowed length.
+    ///
+    /// Must be at most `6000`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_length: Option<u16>,
     /// Name of the option. It must be 32 characters or less.
     pub name: String,
     /// Localization dictionary for the `name` field.
@@ -838,6 +882,8 @@ mod tests {
                             choices: Vec::new(),
                             description: "string manual desc".into(),
                             description_localizations: None,
+                            max_length: None,
+                            min_length: None,
                             name: "string_manual".into(),
                             name_localizations: None,
                             required: false,
@@ -854,6 +900,8 @@ mod tests {
                             }]),
                             description: "string desc".into(),
                             description_localizations: None,
+                            max_length: Some(6000),
+                            min_length: Some(0),
                             name: "string".into(),
                             name_localizations: None,
                             required: false,
@@ -1023,7 +1071,7 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "CommandOptionChoice",
-                    len: 3,
+                    len: 5,
                 },
                 Token::Str("name"),
                 Token::Str("choicea"),
@@ -1039,6 +1087,12 @@ mod tests {
                 Token::SeqEnd,
                 Token::Str("description"),
                 Token::Str("string desc"),
+                Token::Str("max_length"),
+                Token::Some,
+                Token::U16(6000),
+                Token::Str("min_length"),
+                Token::Some,
+                Token::U16(0),
                 Token::Str("name"),
                 Token::Str("string"),
                 Token::Str("type"),
