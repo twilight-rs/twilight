@@ -15,7 +15,7 @@ impl UpdateCache for MessageCreate {
             self.guild_id,
             cache.wants(ResourceType::MEMBER),
         ) {
-            cache.cache_borrowed_partial_member(guild_id, member, self.author.id)
+            cache.cache_borrowed_partial_member(guild_id, member, self.author.id);
         }
 
         if !cache.wants(ResourceType::MESSAGE) {
@@ -130,9 +130,10 @@ impl UpdateCache for MessageUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{InMemoryCache, ResourceType};
     use twilight_model::{
         channel::message::{Message, MessageFlags, MessageType},
+        gateway::payload::incoming::MessageCreate,
         guild::PartialMember,
         id::Id,
         user::User,
@@ -224,13 +225,14 @@ mod tests {
             assert_eq!(entry.value().len(), 2);
         }
 
-        let mut iter = cache
+        let messages = cache
             .channel_messages(Id::new(2))
             .expect("channel is in cache");
 
+        let mut iter = messages.iter();
         // messages are iterated over in descending order from insertion
-        assert_eq!(Some(5), iter.next().map(Id::get));
-        assert_eq!(Some(4), iter.next().map(Id::get));
+        assert_eq!(Some(&Id::new(5)), iter.next());
+        assert_eq!(Some(&Id::new(4)), iter.next());
         assert!(iter.next().is_none());
 
         Ok(())

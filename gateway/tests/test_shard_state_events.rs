@@ -8,7 +8,7 @@ use twilight_gateway::{
 async fn shard() -> Result<(Shard, Events), Box<dyn Error>> {
     let token = env::var("DISCORD_TOKEN")?;
 
-    Ok(Shard::new(token, Intents::empty()).await?)
+    Ok(Shard::new(token, Intents::empty()))
 }
 
 #[ignore]

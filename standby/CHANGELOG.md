@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.11.1] - 2022-07-07
+
+### Features
+
+- add `app_permissions` field on interactions ([#1805](https://github.com/twilight-rs/twilight/issues/1805))
+
+### Refactor
+
+- standardize clippy lints ([#1785](https://github.com/twilight-rs/twilight/issues/1785))
+
 Changelog for `twilight-standby`.
 
 ## [0.11.0] - 2022-05-15

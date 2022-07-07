@@ -958,18 +958,25 @@ mod tests {
 
     #[test]
     fn stats_frames_not_provided() {
+        const LAVALINK_LOAD: f64 = 0.276_119_402_985_074_65;
+        const MEM_ALLOCATED: u64 = 62_914_560;
+        const MEM_FREE: u64 = 27_664_576;
+        const MEM_RESERVABLE: u64 = 4_294_967_296;
+        const MEM_USED: u64 = 35_249_984;
+        const SYSTEM_LOAD: f64 = 0.195_380_536_378_835_9;
+
         let expected = Stats {
             cpu: StatsCpu {
                 cores: 4,
-                lavalink_load: 0.27611940298507465,
-                system_load: 0.1953805363788359,
+                lavalink_load: LAVALINK_LOAD,
+                system_load: SYSTEM_LOAD,
             },
             frames: None,
             memory: StatsMemory {
-                allocated: 62914560,
-                free: 27664576,
-                reservable: 4294967296,
-                used: 35249984,
+                allocated: MEM_ALLOCATED,
+                free: MEM_FREE,
+                reservable: MEM_RESERVABLE,
+                used: MEM_USED,
             },
             players: 0,
             playing_players: 0,
@@ -992,9 +999,9 @@ mod tests {
                 Token::Str("cores"),
                 Token::U64(4),
                 Token::Str("lavalinkLoad"),
-                Token::F64(0.27611940298507465),
+                Token::F64(LAVALINK_LOAD),
                 Token::Str("systemLoad"),
-                Token::F64(0.1953805363788359),
+                Token::F64(SYSTEM_LOAD),
                 Token::StructEnd,
                 Token::Str("memory"),
                 Token::Struct {
@@ -1002,13 +1009,13 @@ mod tests {
                     len: 4,
                 },
                 Token::Str("allocated"),
-                Token::U64(62914560),
+                Token::U64(MEM_ALLOCATED),
                 Token::Str("free"),
-                Token::U64(27664576),
+                Token::U64(MEM_FREE),
                 Token::Str("reservable"),
-                Token::U64(4294967296),
+                Token::U64(MEM_RESERVABLE),
                 Token::Str("used"),
-                Token::U64(35249984),
+                Token::U64(MEM_USED),
                 Token::StructEnd,
                 Token::Str("op"),
                 Token::UnitVariant {

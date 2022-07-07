@@ -66,6 +66,28 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         })
     }
 
+    /// Add a list of command options.
+    ///
+    /// Required command options must be added before optional options.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`OptionsRequiredFirst`] if a required option
+    /// was added after an optional option. The problem option's index is
+    /// provided.
+    ///
+    /// [`OptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::OptionsRequiredFirst
+    pub fn command_options(
+        mut self,
+        options: &'a [CommandOption],
+    ) -> Result<Self, CommandValidationError> {
+        validate_options(options)?;
+
+        self.options = Some(options);
+
+        Ok(self)
+    }
+
     /// Default permissions required for a member to run the command.
     ///
     /// Defaults to [`None`].
@@ -78,6 +100,13 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// Set the localization dictionary for the command description.
     ///
     /// Defaults to [`None`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`DescriptionInvalid`] if the description is
+    /// invalid.
+    ///
+    /// [`DescriptionInvalid`]: twilight_validate::command::CommandValidationErrorType::DescriptionInvalid
     pub fn description_localizations(
         mut self,
         localizations: &'a HashMap<String, String>,
@@ -94,6 +123,17 @@ impl<'a> CreateGuildChatInputCommand<'a> {
     /// Set the localization dictionary for the command name.
     ///
     /// Defaults to [`None`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`NameLengthInvalid`] if the length is invalid.
+    ///
+    /// Returns an error of type [`NameCharacterInvalid`] if the name contains a
+    /// non-alphanumeric character or an uppercase character for which a
+    /// lowercase variant exists.
+    ///
+    /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
+    /// [`NameCharacterInvalid`]: twilight_validate::command::CommandValidationErrorType::NameCharacterInvalid
     pub fn name_localizations(
         mut self,
         localizations: &'a HashMap<String, String>,
@@ -103,28 +143,6 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         }
 
         self.name_localizations = Some(localizations);
-
-        Ok(self)
-    }
-
-    /// Add a list of command options.
-    ///
-    /// Required command options must be added before optional options.
-    ///
-    /// Errors
-    ///
-    /// Returns an error of type [`OptionsRequiredFirst`] if a required option
-    /// was added after an optional option. The problem option's index is
-    /// provided.
-    ///
-    /// [`OptionsRequiredFirst`]: twilight_validate::command::CommandValidationErrorType::OptionsRequiredFirst
-    pub fn command_options(
-        mut self,
-        options: &'a [CommandOption],
-    ) -> Result<Self, CommandValidationError> {
-        validate_options(options)?;
-
-        self.options = Some(options);
 
         Ok(self)
     }

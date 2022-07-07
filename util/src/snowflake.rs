@@ -264,7 +264,7 @@ mod tests {
         let expected: i64 = 1_445_219_918_546;
         let id = Id::<GenericMarker>::new(105_484_726_235_607_040);
 
-        assert_eq!(expected, id.timestamp())
+        assert_eq!(expected, id.timestamp());
     }
 
     #[test]
@@ -272,7 +272,7 @@ mod tests {
         let expected: u8 = 8;
         let id = Id::<GenericMarker>::new(762_022_344_856_174_632);
 
-        assert_eq!(expected, id.worker_id())
+        assert_eq!(expected, id.worker_id());
     }
 
     #[test]
@@ -280,7 +280,7 @@ mod tests {
         let expected: u8 = 1;
         let id = Id::<GenericMarker>::new(61_189_081_970_774_016);
 
-        assert_eq!(expected, id.process_id())
+        assert_eq!(expected, id.process_id());
     }
 
     #[test]
@@ -288,6 +288,6 @@ mod tests {
         let expected: u16 = 40;
         let id = Id::<GenericMarker>::new(762_022_344_856_174_632);
 
-        assert_eq!(expected, id.increment())
+        assert_eq!(expected, id.increment());
     }
 }

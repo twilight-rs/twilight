@@ -13,22 +13,22 @@ publish = false
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.60"
-version = "0.11.0"
+version = "0.11.1"
 
 [dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
 hyper-rustls = { default-features = false, optional = true, features = ["http1", "http2"], version = "0.23" }
 hyper-tls = { default-features = false, optional = true, version = "0.5" }
-hyper-trust-dns = { default-features = false, optional = true, version = "0.3.1" }
+hyper-trust-dns = { default-features = false, optional = true, version = "0.4" }
 percent-encoding = { default-features = false, version = "2" }
 rand = { default-features = false, features = ["std_rng", "std"], version = "0.8" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting" }
-twilight-model = { default-features = false, path = "../model" }
-twilight-validate = { default-features = false, path = "../validate" }
+twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting", version = "0.11.1" }
+twilight-model = { default-features = false, path = "../model", version = "0.11.1" }
+twilight-validate = { default-features = false, path = "../validate", version = "0.11.1" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
@@ -45,5 +45,5 @@ trust-dns = ["dep:hyper-trust-dns"]
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-util = { default-features = false, features = ["builder"], path = "../util" }
+twilight-util = { default-features = false, features = ["builder"], path = "../util", version = "0.11.1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }

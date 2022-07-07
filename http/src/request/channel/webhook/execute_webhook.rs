@@ -396,7 +396,7 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
 
             request = request.form(form);
         } else if let Some(payload_json) = self.fields.payload_json {
-            request = request.body(payload_json.to_vec())
+            request = request.body(payload_json.to_vec());
         } else {
             request = request.json(&self.fields)?;
         }

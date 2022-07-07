@@ -63,7 +63,7 @@ impl UpdateCache for InteractionCreate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::InMemoryCache;
     use std::collections::HashMap;
     use twilight_model::{
         application::{
@@ -72,7 +72,7 @@ mod tests {
                 application_command::{
                     CommandData, CommandInteractionDataResolved, InteractionMember,
                 },
-                ApplicationCommand, InteractionType,
+                ApplicationCommand, Interaction, InteractionType,
             },
         },
         channel::{
@@ -82,12 +82,14 @@ mod tests {
             },
             Message,
         },
+        gateway::payload::incoming::InteractionCreate,
         guild::{PartialMember, Permissions, Role},
         id::Id,
         user::User,
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn interaction_create() -> Result<(), ImageHashParseError> {
         let timestamp = Timestamp::from_secs(1_632_072_645).expect("non zero");
@@ -99,6 +101,7 @@ mod tests {
 
         cache.update(&InteractionCreate(Interaction::ApplicationCommand(
             Box::new(ApplicationCommand {
+                app_permissions: Some(Permissions::SEND_MESSAGES | Permissions::VIEW_CHANNEL),
                 application_id: Id::new(1),
                 channel_id: Id::new(2),
                 data: CommandData {

@@ -91,6 +91,7 @@ pub struct EntityMetadata {
 
 /// Type of event.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum EntityType {
     /// Event takes place in a stage instance.
@@ -103,6 +104,7 @@ pub enum EntityType {
 
 /// Privacy level of an event.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum PrivacyLevel {
     /// Event is only accessible to guild members.
@@ -111,6 +113,7 @@ pub enum PrivacyLevel {
 
 /// Status of an event.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum Status {
     /// Event is scheduled.

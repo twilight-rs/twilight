@@ -48,7 +48,7 @@ pub struct ModalInteractionDataComponent {
     pub custom_id: String,
     #[serde(rename = "type")]
     pub kind: ComponentType,
-    pub value: String,
+    pub value: Option<String>,
 }
 
 #[cfg(test)]
@@ -102,7 +102,7 @@ mod tests {
                 components: Vec::from([ModalInteractionDataComponent {
                     custom_id: "the-data-id".to_owned(),
                     kind: ComponentType::TextInput,
-                    value: "input value".into(),
+                    value: Some("input value".into()),
                 }]),
             }]),
         };
@@ -133,6 +133,7 @@ mod tests {
                 Token::String("type"),
                 Token::U8(ComponentType::TextInput as u8),
                 Token::String("value"),
+                Token::Some,
                 Token::String("input value"),
                 Token::StructEnd,
                 Token::SeqEnd,

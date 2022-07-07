@@ -8,6 +8,7 @@ use std::{
 ///
 /// [`Sticker`]: super::Sticker
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum StickerType {
     /// Official sticker in a pack.
@@ -38,7 +39,7 @@ pub struct StickerTypeConversionError {
     value: u8,
 }
 
-impl<'a> StickerTypeConversionError {
+impl StickerTypeConversionError {
     /// Retrieve a copy of the input value that couldn't be parsed.
     pub const fn value(&self) -> u8 {
         self.value

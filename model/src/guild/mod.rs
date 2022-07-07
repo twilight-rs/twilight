@@ -5,6 +5,7 @@ mod ban;
 mod default_message_notification_level;
 mod emoji;
 mod explicit_content_filter;
+mod feature;
 mod info;
 mod integration;
 mod integration_account;
@@ -28,8 +29,9 @@ mod widget;
 
 pub use self::{
     ban::Ban, default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
-    explicit_content_filter::ExplicitContentFilter, info::GuildInfo, integration::GuildIntegration,
-    integration_account::IntegrationAccount, integration_application::IntegrationApplication,
+    explicit_content_filter::ExplicitContentFilter, feature::GuildFeature, info::GuildInfo,
+    integration::GuildIntegration, integration_account::IntegrationAccount,
+    integration_application::IntegrationApplication,
     integration_expire_behavior::IntegrationExpireBehavior, member::Member, mfa_level::MfaLevel,
     nsfw_level::NSFWLevel, partial_guild::PartialGuild, partial_member::PartialMember,
     permissions::Permissions, premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune,
@@ -73,7 +75,8 @@ pub struct Guild {
     pub discovery_splash: Option<ImageHash>,
     pub emojis: Vec<Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
-    pub features: Vec<String>,
+    /// Enabled guild features
+    pub features: Vec<GuildFeature>,
     pub icon: Option<ImageHash>,
     pub id: Id<GuildMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -844,8 +847,8 @@ impl<'de> Deserialize<'de> for Guild {
 #[cfg(test)]
 mod tests {
     use super::{
-        DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
-        Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
+        DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, GuildFeature, MfaLevel,
+        NSFWLevel, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
     };
     use crate::{
         id::Id,
@@ -873,7 +876,7 @@ mod tests {
             discovery_splash: Some(image_hash::SPLASH),
             emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
-            features: vec!["a feature".to_owned()],
+            features: Vec::from([GuildFeature::Banner]),
             icon: Some(image_hash::ICON),
             id: Id::new(1),
             joined_at: Some(joined_at),
@@ -954,7 +957,7 @@ mod tests {
                 Token::U8(1),
                 Token::Str("features"),
                 Token::Seq { len: Some(1) },
-                Token::Str("a feature"),
+                Token::Str("BANNER"),
                 Token::SeqEnd,
                 Token::Str("icon"),
                 Token::Some,
