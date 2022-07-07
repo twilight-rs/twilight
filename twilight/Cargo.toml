@@ -23,7 +23,7 @@ twilight-cache-inmemory = { default-features = false, path = "../cache/in-memory
 twilight-embed-builder = { default-features = false, path = "../embed-builder", version = "0.11.0" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway", version = "0.11.0" }
 twilight-gateway-queue = { default-features = false, features = ["rustls-native-roots"], path = "../gateway-queue", version = "0.11.0" }
-twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http", version = "0.11.0" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http", version = "0.11.1" }
 twilight-http-ratelimiting = { default-features = false, path = "../http-ratelimiting", version = "0.11.1" }
 twilight-lavalink = { default-features = false, path = "../lavalink", version = "0.11.0" }
 twilight-mention = { default-features = false, path = "../mention", version = "0.11.0" }
