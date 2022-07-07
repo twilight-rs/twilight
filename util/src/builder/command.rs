@@ -45,7 +45,6 @@
 //! ```
 //!
 
-use std::collections::HashMap;
 use twilight_model::{
     application::command::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, Command,
@@ -469,13 +468,7 @@ impl IntegerBuilder {
         );
 
         if let Some(choice) = choice {
-            set_choice_localizations(
-                choice,
-                name_localizations
-                    .into_iter()
-                    .map(|(a, b)| (a.into(), b.into()))
-                    .collect(),
-            );
+            set_choice_localizations(choice, name_localizations);
         }
 
         self
@@ -699,13 +692,7 @@ impl NumberBuilder {
         );
 
         if let Some(choice) = choice {
-            set_choice_localizations(
-                choice,
-                name_localizations
-                    .into_iter()
-                    .map(|(a, b)| (a.into(), b.into()))
-                    .collect(),
-            );
+            set_choice_localizations(choice, name_localizations);
         }
 
         self
@@ -927,13 +914,7 @@ impl StringBuilder {
         );
 
         if let Some(choice) = choice {
-            set_choice_localizations(
-                choice,
-                name_localizations
-                    .into_iter()
-                    .map(|(a, b)| (a.into(), b.into()))
-                    .collect(),
-            );
+            set_choice_localizations(choice, name_localizations);
         }
 
         self
@@ -1242,9 +1223,9 @@ impl From<UserBuilder> for CommandOption {
     }
 }
 
-fn set_choice_localizations(
+fn set_choice_localizations<K: Into<String>, V: Into<String>>(
     choice: &mut CommandOptionChoice,
-    localizations: HashMap<String, String>,
+    localizations: impl IntoIterator<Item = (K, V)>,
 ) {
     let name_localizations = match choice {
         CommandOptionChoice::String {
@@ -1258,7 +1239,12 @@ fn set_choice_localizations(
         } => name_localizations,
     };
 
-    *name_localizations = Some(localizations);
+    *name_localizations = Some(
+        localizations
+            .into_iter()
+            .map(|(k, v)| (k.into(), v.into()))
+            .collect(),
+    );
 }
 
 #[cfg(test)]
