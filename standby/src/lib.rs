@@ -1076,6 +1076,7 @@ mod tests {
             event::{Event, EventType},
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
         },
+        guild::Permissions,
         id::{marker::GuildMarker, Id},
         oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
@@ -1149,6 +1150,7 @@ mod tests {
 
     fn button() -> MessageComponentInteraction {
         MessageComponentInteraction {
+            app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
             channel_id: Id::new(2),
             data: MessageComponentInteractionData {

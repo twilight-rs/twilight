@@ -101,6 +101,7 @@ mod tests {
 
         cache.update(&InteractionCreate(Interaction::ApplicationCommand(
             Box::new(ApplicationCommand {
+                app_permissions: Some(Permissions::SEND_MESSAGES | Permissions::VIEW_CHANNEL),
                 application_id: Id::new(1),
                 channel_id: Id::new(2),
                 data: CommandData {

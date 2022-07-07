@@ -15,7 +15,7 @@ pub use self::{
 
 use crate::{
     channel::Message,
-    guild::PartialMember,
+    guild::{PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
@@ -52,6 +52,20 @@ pub enum Interaction {
 }
 
 impl Interaction {
+    /// App's permissions in the channel the interaction was sent from.
+    ///
+    /// None if the interaction happens in a direct message channel.
+    pub const fn app_permissions(&self) -> Option<Permissions> {
+        match self {
+            Self::Ping(_) => None,
+            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
+                command.app_permissions
+            }
+            Self::MessageComponent(component) => component.app_permissions,
+            Self::ModalSubmit(modal) => modal.app_permissions,
+        }
+    }
+
     /// Id of the associated application.
     pub const fn application_id(&self) -> Id<ApplicationMarker> {
         match self {
@@ -137,6 +151,7 @@ const fn author_id(user: Option<&User>, member: Option<&PartialMember>) -> Optio
 #[derive(Debug, Deserialize)]
 #[serde(field_identifier, rename_all = "snake_case")]
 enum InteractionField {
+    AppPermissions,
     ApplicationId,
     ChannelId,
     Data,
@@ -162,6 +177,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
     #[allow(clippy::too_many_lines)]
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
+        let mut app_permissions: Option<Permissions> = None;
         let mut application_id: Option<Id<ApplicationMarker>> = None;
         let mut channel_id: Option<Id<ChannelMarker>> = None;
         let mut data: Option<Value> = None;
@@ -200,6 +216,13 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             };
 
             match key {
+                InteractionField::AppPermissions => {
+                    if app_permissions.is_some() {
+                        return Err(DeError::duplicate_field("app_permissions"));
+                    }
+
+                    app_permissions = map.next_value()?;
+                }
                 InteractionField::ApplicationId => {
                     if application_id.is_some() {
                         return Err(DeError::duplicate_field("application_id"));
@@ -328,6 +351,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 tracing::trace!(%channel_id, "handling application command");
 
                 let command = Box::new(ApplicationCommand {
+                    app_permissions,
                     application_id,
                     channel_id,
                     data,
@@ -359,6 +383,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 tracing::trace!(%channel_id, "handling application command autocomplete");
 
                 let command = Box::new(ApplicationCommand {
+                    app_permissions,
                     application_id,
                     channel_id,
                     data,
@@ -391,6 +416,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let user = user.unwrap_or_default();
 
                 Self::Value::MessageComponent(Box::new(MessageComponentInteraction {
+                    app_permissions,
                     application_id,
                     channel_id,
                     data,
@@ -419,6 +445,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                 let user = user.unwrap_or_default();
 
                 Self::Value::ModalSubmit(Box::new(ModalSubmitInteraction {
+                    app_permissions,
                     application_id,
                     channel_id,
                     data,
@@ -485,6 +512,7 @@ mod tests {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
+            app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(100),
             channel_id: Id::new(200),
             data: CommandData {
@@ -581,8 +609,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Interaction",
-                    len: 10,
+                    len: 11,
                 },
+                Token::Str("app_permissions"),
+                Token::Some,
+                Token::Str("2048"),
                 Token::Str("application_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),

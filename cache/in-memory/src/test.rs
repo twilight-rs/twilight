@@ -177,6 +177,14 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
     cache.update(&reaction);
 
+    reaction.emoji = ReactionType::Custom {
+        animated: true,
+        id: Id::new(6),
+        name: Some("custom".to_owned()),
+    };
+
+    cache.update(&reaction);
+
     cache
 }
 
