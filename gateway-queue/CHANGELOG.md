@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- fix sharding hyperlink ([#1741](https://github.com/twilight-rs/twilight/issues/1741))
+
+### Refactor
+
+- standardize clippy lints ([#1779](https://github.com/twilight-rs/twilight/issues/1779))
+
 Changelog for `twilight-gateway-queue`.
 
 ## [0.11.0] - 2022-05-15

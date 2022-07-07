@@ -1,5 +1,16 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- use anyhow on public errorable examples ([#1738](https://github.com/twilight-rs/twilight/issues/1738))
+
+### Refactor
+
+- remove `test_` prexif from tests ([#1767](https://github.com/twilight-rs/twilight/issues/1767))
+- standardize clippy lints ([#1784](https://github.com/twilight-rs/twilight/issues/1784))
+
 Changelog for `twilight-mention`.
 
 ## [0.11.0] - 2022-05-15

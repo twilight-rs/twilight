@@ -1,5 +1,13 @@
 # Changelog
 
+## [unreleased]
+
+### Refactor
+
+- remove `test_` prexif from tests ([#1767](https://github.com/twilight-rs/twilight/issues/1767))
+- standardize clippy lints ([#1788](https://github.com/twilight-rs/twilight/issues/1788))
+- add `#[non_exhaustive]` to c-style enums ([#1795](https://github.com/twilight-rs/twilight/issues/1795))
+
 Changelog for `twilight-validate`.
 
 ## [0.11.0] - 2022-05-15

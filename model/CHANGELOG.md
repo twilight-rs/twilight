@@ -1,5 +1,35 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- button component serialization length ([#1799](https://github.com/twilight-rs/twilight/issues/1799))
+- add missing received events per intent ([#1818](https://github.com/twilight-rs/twilight/issues/1818))
+
+### Documentation
+
+- auto archives not boost locked ([#1747](https://github.com/twilight-rs/twilight/issues/1747))
+- add attachment documentation ([#1739](https://github.com/twilight-rs/twilight/issues/1739))
+- fix command type typo ([#1800](https://github.com/twilight-rs/twilight/issues/1800))
+
+### Features
+
+- add command data guild_id field ([#1755](https://github.com/twilight-rs/twilight/issues/1755))
+- add `From` implementation for `Component` variants ([#1753](https://github.com/twilight-rs/twilight/issues/1753))
+- add `MessageType::AutoModerationAction`  ([#1710](https://github.com/twilight-rs/twilight/issues/1710))
+- remove renames in identify properties ([#1797](https://github.com/twilight-rs/twilight/issues/1797))
+- set track_caller on panicable functions ([#1802](https://github.com/twilight-rs/twilight/issues/1802))
+- add `app_permissions` field on interactions ([#1805](https://github.com/twilight-rs/twilight/issues/1805))
+
+### Refactor
+
+- `#[must_use]` on builders, not methods ([#1761](https://github.com/twilight-rs/twilight/issues/1761))
+- remove `test_` prexif from tests ([#1767](https://github.com/twilight-rs/twilight/issues/1767))
+- rework optional member deserialization ([#1743](https://github.com/twilight-rs/twilight/issues/1743))
+- clippy 1.62 ([#1806](https://github.com/twilight-rs/twilight/issues/1806))
+- add `#[non_exhaustive]` to c-style enums ([#1795](https://github.com/twilight-rs/twilight/issues/1795))
+
 Changelog for `twilight-model`.
 
 ## [0.11.0] - 2022-05-15

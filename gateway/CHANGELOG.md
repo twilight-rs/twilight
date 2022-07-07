@@ -1,5 +1,25 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- add missing received events per intent ([#1818](https://github.com/twilight-rs/twilight/issues/1818))
+
+### Documentation
+
+- use anyhow on public errorable examples ([#1738](https://github.com/twilight-rs/twilight/issues/1738))
+
+### Features
+
+- set track_caller on panicable functions ([#1802](https://github.com/twilight-rs/twilight/issues/1802))
+
+### Refactor
+
+- allow `ptr_arg` lint on conditional ([#1745](https://github.com/twilight-rs/twilight/issues/1745))
+- `#[must_use]` on builders, not methods ([#1761](https://github.com/twilight-rs/twilight/issues/1761))
+- remove `test_` prexif from tests ([#1767](https://github.com/twilight-rs/twilight/issues/1767))
+
 Changelog for `twilight-gateway`.
 
 ## [0.11.0] - 2022-05-15

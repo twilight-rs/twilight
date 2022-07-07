@@ -1,5 +1,33 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- backport #1744 string image serializers ([#1754](https://github.com/twilight-rs/twilight/issues/1754))
+
+### Documentation
+
+- auto archives not boost locked ([#1747](https://github.com/twilight-rs/twilight/issues/1747))
+
+### Features
+
+- implement clone on request ([#1758](https://github.com/twilight-rs/twilight/issues/1758))
+
+### Refactor
+
+- light refactoring in `request` ([#1750](https://github.com/twilight-rs/twilight/issues/1750))
+- rename `NullableField` to `Nullable` ([#1756](https://github.com/twilight-rs/twilight/issues/1756))
+- simplify client::try_request ([#1742](https://github.com/twilight-rs/twilight/issues/1742))
+- `#[must_use]` on builders, not methods ([#1761](https://github.com/twilight-rs/twilight/issues/1761))
+- remove `test_` prexif from tests ([#1767](https://github.com/twilight-rs/twilight/issues/1767))
+- standardize clippy lints ([#1780](https://github.com/twilight-rs/twilight/issues/1780))
+- add `#[non_exhaustive]` to c-style enums ([#1795](https://github.com/twilight-rs/twilight/issues/1795))
+
+### Deps
+
+- upgrade `hyper-trust-dns` ([#1790](https://github.com/twilight-rs/twilight/issues/1790))
+
 Changelog for `twilight-http`.
 
 ## [0.11.0] - 2022-05-15

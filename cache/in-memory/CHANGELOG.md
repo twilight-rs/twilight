@@ -1,5 +1,24 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- compare reaction emojis by resource instead of object ([#1812](https://github.com/twilight-rs/twilight/issues/1812))
+
+### Features
+
+- account for `communication_disabled_until` field ([#1669](https://github.com/twilight-rs/twilight/issues/1669))
+- add command data guild_id field ([#1755](https://github.com/twilight-rs/twilight/issues/1755))
+- add `app_permissions` field on interactions ([#1805](https://github.com/twilight-rs/twilight/issues/1805))
+
+### Refactor
+
+- `Reference::new` ignore `clippy::missing_const_for_fn` ([#1759](https://github.com/twilight-rs/twilight/issues/1759))
+- remove `test_` prexif from tests ([#1767](https://github.com/twilight-rs/twilight/issues/1767))
+- standardize clippy lints ([#1777](https://github.com/twilight-rs/twilight/issues/1777))
+- cleanup test imports ([#1778](https://github.com/twilight-rs/twilight/issues/1778))
+
 Changelog for `twilight-cache-inmemory`.
 
 ## [0.11.0] - 2022-05-15
