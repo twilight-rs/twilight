@@ -1277,44 +1277,44 @@ mod tests {
             .option(
                 SubCommandGroupBuilder::new("user", "Get or edit permissions for a user")
                     .subcommands([
-                    SubCommandBuilder::new("get", "Get permissions for a user")
-                        .option(UserBuilder::new("user", "The user to get").required(true))
-                        .option(ChannelBuilder::new(
-                            "channel",
-                            "The channel permissions to get. If omitted, the guild permissions \
-                             will be returned",
-                        )),
-                    SubCommandBuilder::new("edit", "Edit permissions for a user")
-                        .option(UserBuilder::new("user", "The user to edit").required(true))
-                        .option(ChannelBuilder::new(
-                            "channel",
-                            "The channel permissions to edit. If omitted, the guild permissions \
-                             will be edited",
-                        )),
-                ]),
+                        SubCommandBuilder::new("get", "Get permissions for a user")
+                            .option(UserBuilder::new("user", "The user to get").required(true))
+                            .option(ChannelBuilder::new(
+                                "channel",
+                                "The channel permissions to get. If omitted, the guild \
+                                 permissions will be returned",
+                            )),
+                        SubCommandBuilder::new("edit", "Edit permissions for a user")
+                            .option(UserBuilder::new("user", "The user to edit").required(true))
+                            .option(ChannelBuilder::new(
+                                "channel",
+                                "The channel permissions to edit. If omitted, the guild \
+                                 permissions will be edited",
+                            )),
+                    ]),
             )
             .option(
                 SubCommandGroupBuilder::new("role", "Get or edit permissions for a role")
                     .subcommands([
-                    SubCommandBuilder::new("get", "Get permissions for a role")
-                        .option(RoleBuilder::new("role", "The role to get").required(true))
-                        .option(ChannelBuilder::new(
-                            "channel",
-                            "The channel permissions to get. If omitted, the guild permissions \
-                             will be returned",
-                        )),
-                    SubCommandBuilder::new("edit", "Edit permissions for a role")
-                        .option(RoleBuilder::new("role", "The role to edit").required(true))
-                        .option(ChannelBuilder::new(
-                            "channel",
-                            "The channel permissions to edit. If omitted, the guild permissions \
-                             will be edited",
-                        ))
-                        .option(
-                            NumberBuilder::new("position", "The position of the new role")
-                                .autocomplete(true),
-                        ),
-                ]),
+                        SubCommandBuilder::new("get", "Get permissions for a role")
+                            .option(RoleBuilder::new("role", "The role to get").required(true))
+                            .option(ChannelBuilder::new(
+                                "channel",
+                                "The channel permissions to get. If omitted, the guild \
+                                 permissions will be returned",
+                            )),
+                        SubCommandBuilder::new("edit", "Edit permissions for a role")
+                            .option(RoleBuilder::new("role", "The role to edit").required(true))
+                            .option(ChannelBuilder::new(
+                                "channel",
+                                "The channel permissions to edit. If omitted, the guild \
+                                 permissions will be edited",
+                            ))
+                            .option(
+                                NumberBuilder::new("position", "The position of the new role")
+                                    .autocomplete(true),
+                            ),
+                    ]),
             )
             .build();
 
