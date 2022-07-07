@@ -483,11 +483,13 @@ const fn process_permission_overwrites(
         idx += 1;
     }
 
-    let role_view_denied = roles_deny.contains(Permissions::VIEW_CHANNEL)
-        && !roles_allow.contains(Permissions::VIEW_CHANNEL);
+    let user_view_allowed = member_allow.contains(Permissions::VIEW_CHANNEL);
 
-    let user_view_denied = member_deny.contains(Permissions::VIEW_CHANNEL)
-        && !member_allow.contains(Permissions::VIEW_CHANNEL);
+    let user_view_denied = member_deny.contains(Permissions::VIEW_CHANNEL) && !user_view_allowed;
+
+    let role_view_denied = roles_deny.contains(Permissions::VIEW_CHANNEL)
+        && !roles_allow.contains(Permissions::VIEW_CHANNEL)
+        && !user_view_allowed;
 
     if user_view_denied || role_view_denied {
         return Permissions::empty();
@@ -496,11 +498,14 @@ const fn process_permission_overwrites(
     // If the member or any of their roles denies the Send Messages
     // permission, then the rest of the messaging-related permissions can be
     // removed.
-    let role_send_denied = roles_deny.contains(Permissions::SEND_MESSAGES)
-        && !roles_allow.contains(Permissions::SEND_MESSAGES);
+    let user_send_allowed = member_allow.contains(Permissions::SEND_MESSAGES);
 
     let user_send_denied = member_deny.contains(Permissions::SEND_MESSAGES)
-        && !member_allow.contains(Permissions::SEND_MESSAGES);
+        && !user_send_allowed;
+
+    let role_send_denied = roles_deny.contains(Permissions::SEND_MESSAGES)
+        && !roles_allow.contains(Permissions::SEND_MESSAGES)
+        && !user_send_allowed;
 
     if user_send_denied || role_send_denied {
         member_allow = bitops::remove(member_allow, PERMISSIONS_MESSAGING);
@@ -585,6 +590,29 @@ mod tests {
                 .in_channel(ChannelType::GuildText, overwrites);
 
             assert_eq!(calculated, Permissions::empty());
+        }
+
+        // Member overwrites take precedence over role overwrites.
+        {
+            let overwrites = &[
+                PermissionOverwrite {
+                    allow: Permissions::VIEW_CHANNEL,
+                    deny: Permissions::empty(),
+                    id: Id::new(2),
+                    kind: PermissionOverwriteType::Member,
+                },
+                PermissionOverwrite {
+                    allow: Permissions::empty(),
+                    deny: Permissions::VIEW_CHANNEL,
+                    id: Id::new(3),
+                    kind: PermissionOverwriteType::Role,
+                },
+            ];
+
+            let calculated = PermissionCalculator::new(guild_id, user_id, everyone_role, roles)
+                .in_channel(ChannelType::GuildText, overwrites);
+
+            assert_eq!(calculated, Permissions::VIEW_CHANNEL | Permissions::SEND_MESSAGES | Permissions::MENTION_EVERYONE);
         }
     }
 
