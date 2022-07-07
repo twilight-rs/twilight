@@ -97,21 +97,9 @@ impl<'de> Deserialize<'de> for CommandPermission {
         let _span_enter = span.enter();
 
         let id = match data.kind {
-            CommandPermissionDataType::Role => {
-                let id = data.id.cast();
-
-                CommandPermissionType::Role(id)
-            }
-            CommandPermissionDataType::User => {
-                let id = data.id.cast();
-
-                CommandPermissionType::User(id)
-            }
-            CommandPermissionDataType::Channel => {
-                let id = data.id.cast();
-
-                CommandPermissionType::Channel(id)
-            }
+            CommandPermissionDataType::Role => CommandPermissionType::Role(data.id.cast()),
+            CommandPermissionDataType::User => CommandPermissionType::User(data.id.cast()),
+            CommandPermissionDataType::Channel => CommandPermissionType::Channel(data.id.cast()),
         };
 
         tracing::trace!(id = %data.id, kind = ?data.kind);
