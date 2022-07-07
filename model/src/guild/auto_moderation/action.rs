@@ -15,8 +15,6 @@ pub struct AutoModerationAction {
 
 /// Additional metadata needed during execution for a specific
 /// [`AutoModerationActionType`].
-///
-/// [`AutoModerationActionType`]: super::AutoModerationActionType
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AutoModerationActionMetadata {
     /// Channel to which user content should be logged.
@@ -30,14 +28,12 @@ pub struct AutoModerationActionMetadata {
 }
 
 /// Type of [`AutoModerationAction`].
-///
-/// [`AutoModerationAction`]: super::AutoModerationAction
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
 pub enum AutoModerationActionType {
     /// Blocks the content of a message according to the rule.
     BlockMessage,
-    /// Blocks the content of a message according to the rule.
+    /// Logs user content to a specified channel.
     SendAlertMessage,
     /// Timeout user for a specified duration.
     ///
