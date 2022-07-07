@@ -13,7 +13,7 @@ publish = false
 readme = "README.md"
 rust-version = "1.60"
 repository = "https://github.com/twilight-rs/twilight.git"
-version = "0.11.0"
+version = "0.11.1"
 
 [dependencies]
 dashmap = { default-features = false, version = "5.3" }
@@ -24,7 +24,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-model = { default-features = false, path = "../model" }
+twilight-model = { default-features = false, path = "../model", version = "0.11.1" }
 
 # Optional dependencies.
 percent-encoding = { default-features = false, optional = true, version = "2" }
@@ -34,8 +34,8 @@ anyhow = { default-features = false, features = ["std"], version = "1" }
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway" }
-twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http" }
+twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../gateway", version = "0.11.1" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../http", version = "0.11.1" }
 
 [features]
 default = ["http-support", "rustls-native-roots"]

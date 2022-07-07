@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.11.1] - 2022-07-07
+
+### Refactor
+
+- remove `test_` prexif from tests ([#1767](https://github.com/twilight-rs/twilight/issues/1767))
+
 Changelog for `twilight-embed-builder`.
 
 ## [0.11.0] - 2022-05-15

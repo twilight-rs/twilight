@@ -7,7 +7,7 @@ pub use self::data::{
 use crate::{
     application::interaction::InteractionType,
     channel::Message,
-    guild::PartialMember,
+    guild::{PartialMember, Permissions},
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
@@ -22,6 +22,11 @@ use serde::Serialize;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename(serialize = "Interaction"))]
 pub struct ModalSubmitInteraction {
+    /// App's permissions in the channel the interaction was sent from.
+    ///
+    /// None if the interaction happens in a direct message channel.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app_permissions: Option<Permissions>,
     /// ID of the associated application.
     pub application_id: Id<ApplicationMarker>,
     /// ID of the channel the interaction was invoked in.
@@ -101,7 +106,7 @@ mod tests {
             component::ComponentType,
             interaction::{tests::user, InteractionType},
         },
-        guild::PartialMember,
+        guild::{PartialMember, Permissions},
         id::{
             marker::{
                 ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker,
@@ -142,6 +147,7 @@ mod tests {
         let joined_at = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
         let in_guild = ModalSubmitInteraction {
+            app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::<ApplicationMarker>::new(1),
             channel_id: Id::<ChannelMarker>::new(1),
             data: ModalInteractionData {
