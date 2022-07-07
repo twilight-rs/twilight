@@ -309,7 +309,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
                         return Err(DeError::duplicate_field("max_length"));
                     }
 
-                    max_length = Some(map.next_value()?);
+                    max_length = map.next_value()?;
                 }
                 OptionField::MaxValue => {
                     if max_value.is_some() {
@@ -323,7 +323,7 @@ impl<'de> Visitor<'de> for OptionVisitor {
                         return Err(DeError::duplicate_field("min_length"));
                     }
 
-                    min_length = Some(map.next_value()?);
+                    min_length = map.next_value()?;
                 }
                 OptionField::MinValue => {
                     if min_value.is_some() {
@@ -1064,14 +1064,14 @@ mod tests {
                 Token::StructEnd,
                 Token::Struct {
                     name: "CommandOptionEnvelope",
-                    len: 4,
+                    len: 6,
                 },
                 Token::Str("choices"),
                 Token::Some,
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "CommandOptionChoice",
-                    len: 5,
+                    len: 3,
                 },
                 Token::Str("name"),
                 Token::Str("choicea"),
