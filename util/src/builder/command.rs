@@ -163,6 +163,8 @@ impl AttachmentBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::Attachment,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -231,6 +233,8 @@ impl BooleanBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::Boolean,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -299,6 +303,8 @@ impl ChannelBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::Channel,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -375,6 +381,8 @@ impl IntegerBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::Integer,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -462,7 +470,7 @@ impl IntegerBuilder {
         self
     }
 
-    /// Set the maximum value permitted.
+    /// Set the maximum allowed value.
     ///
     /// Defaults to no limit.
     pub const fn max_value(mut self, value: i64) -> Self {
@@ -471,7 +479,7 @@ impl IntegerBuilder {
         self
     }
 
-    /// Set the minimum value permitted.
+    /// Set the minimum allowed value.
     ///
     /// Defaults to no limit.
     pub const fn min_value(mut self, value: i64) -> Self {
@@ -522,6 +530,8 @@ impl MentionableBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::Mentionable,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -590,6 +600,8 @@ impl NumberBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::Number,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -677,7 +689,7 @@ impl NumberBuilder {
         self
     }
 
-    /// Set the maximum value permitted.
+    /// Set the maximum allowed value.
     ///
     /// Defaults to no limit.
     pub const fn max_value(mut self, value: f64) -> Self {
@@ -686,7 +698,7 @@ impl NumberBuilder {
         self
     }
 
-    /// Set the minimum value permitted.
+    /// Set the minimum allowed value.
     ///
     /// Defaults to no limit.
     pub const fn min_value(mut self, value: f64) -> Self {
@@ -737,6 +749,8 @@ impl RoleBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::Role,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -805,6 +819,8 @@ impl StringBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::String,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -892,6 +908,24 @@ impl StringBuilder {
         self
     }
 
+    /// Set the maximum allowed length.
+    ///
+    /// Defaults to no limit.
+    pub const fn max_length(mut self, value: u16) -> Self {
+        self.0.max_length = Some(value);
+
+        self
+    }
+
+    /// Set the minimum allowed length.
+    ///
+    /// Defaults to no limit.
+    pub const fn min_length(mut self, value: u16) -> Self {
+        self.0.min_length = Some(value);
+
+        self
+    }
+
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
@@ -934,6 +968,8 @@ impl SubCommandBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::SubCommand,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -1010,6 +1046,8 @@ impl SubCommandGroupBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::SubCommandGroup,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -1078,6 +1116,8 @@ impl UserBuilder {
             description,
             description_localizations: None,
             kind: CommandOptionType::User,
+            max_length: None,
+            min_length: None,
             max_value: None,
             min_value: None,
             name,
@@ -1250,6 +1290,8 @@ mod tests {
                     description: "Get or edit permissions for a user".to_owned(),
                     description_localizations: None,
                     kind: CommandOptionType::SubCommandGroup,
+                    max_length: None,
+                    min_length: None,
                     max_value: None,
                     min_value: None,
                     name: "user".to_owned(),
@@ -1262,6 +1304,8 @@ mod tests {
                             description: "Get permissions for a user".to_owned(),
                             description_localizations: None,
                             kind: CommandOptionType::SubCommand,
+                            max_length: None,
+                            min_length: None,
                             max_value: None,
                             min_value: None,
                             name: "get".to_owned(),
@@ -1274,6 +1318,8 @@ mod tests {
                                     description: "The user to get".to_owned(),
                                     description_localizations: None,
                                     kind: CommandOptionType::User,
+                                    max_length: None,
+                                    min_length: None,
                                     max_value: None,
                                     min_value: None,
                                     name: "user".to_owned(),
@@ -1291,6 +1337,8 @@ mod tests {
                                             .to_owned(),
                                     description_localizations: None,
                                     kind: CommandOptionType::Channel,
+                                    max_length: None,
+                                    min_length: None,
                                     max_value: None,
                                     min_value: None,
                                     name: "channel".to_owned(),
@@ -1308,6 +1356,8 @@ mod tests {
                             description: "Edit permissions for a user".to_owned(),
                             description_localizations: None,
                             kind: CommandOptionType::SubCommand,
+                            max_length: None,
+                            min_length: None,
                             max_value: None,
                             min_value: None,
                             name: "edit".to_owned(),
@@ -1320,6 +1370,8 @@ mod tests {
                                     description: "The user to edit".to_owned(),
                                     description_localizations: None,
                                     kind: CommandOptionType::User,
+                                    max_length: None,
+                                    min_length: None,
                                     max_value: None,
                                     min_value: None,
                                     name: "user".to_owned(),
@@ -1337,6 +1389,8 @@ mod tests {
                                             .to_owned(),
                                     description_localizations: None,
                                     kind: CommandOptionType::Channel,
+                                    max_length: None,
+                                    min_length: None,
                                     max_value: None,
                                     min_value: None,
                                     name: "channel".to_owned(),
@@ -1357,6 +1411,8 @@ mod tests {
                     description: "Get or edit permissions for a role".to_owned(),
                     description_localizations: None,
                     kind: CommandOptionType::SubCommandGroup,
+                    max_length: None,
+                    min_length: None,
                     max_value: None,
                     min_value: None,
                     name: "role".to_owned(),
@@ -1369,6 +1425,8 @@ mod tests {
                             description: "Get permissions for a role".to_owned(),
                             description_localizations: None,
                             kind: CommandOptionType::SubCommand,
+                            max_length: None,
+                            min_length: None,
                             max_value: None,
                             min_value: None,
                             name: "get".to_owned(),
@@ -1381,6 +1439,8 @@ mod tests {
                                     description: "The role to get".to_owned(),
                                     description_localizations: None,
                                     kind: CommandOptionType::Role,
+                                    max_length: None,
+                                    min_length: None,
                                     max_value: None,
                                     min_value: None,
                                     name: "role".to_owned(),
@@ -1398,6 +1458,8 @@ mod tests {
                                             .to_owned(),
                                     description_localizations: None,
                                     kind: CommandOptionType::Channel,
+                                    max_length: None,
+                                    min_length: None,
                                     max_value: None,
                                     min_value: None,
                                     name: "channel".to_owned(),
@@ -1415,6 +1477,8 @@ mod tests {
                             description: "Edit permissions for a role".to_owned(),
                             description_localizations: None,
                             kind: CommandOptionType::SubCommand,
+                            max_length: None,
+                            min_length: None,
                             max_value: None,
                             min_value: None,
                             name: "edit".to_owned(),
@@ -1427,6 +1491,8 @@ mod tests {
                                     description: "The role to edit".to_owned(),
                                     description_localizations: None,
                                     kind: CommandOptionType::Role,
+                                    max_length: None,
+                                    min_length: None,
                                     max_value: None,
                                     min_value: None,
                                     name: "role".to_owned(),
@@ -1444,6 +1510,8 @@ mod tests {
                                             .to_owned(),
                                     description_localizations: None,
                                     kind: CommandOptionType::Channel,
+                                    max_length: None,
+                                    min_length: None,
                                     max_value: None,
                                     min_value: None,
                                     name: "channel".to_owned(),

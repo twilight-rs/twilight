@@ -61,7 +61,25 @@ pub struct CommandOption {
     /// Type of option.
     #[serde(rename = "type")]
     pub kind: CommandOptionType,
-    /// Maximum value permitted.
+    /// Maximum allowed length.
+    ///
+    /// Must be at least `1` and at most `6000`.
+    ///
+    /// Applicable for [`CommandOption`]s of type [`String`].
+    ///
+    /// [`String`]: CommandOptionType::String
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_length: Option<u16>,
+    /// Minimum allowed length.
+    ///
+    /// Must be at most `6000`.
+    ///
+    /// Applicable for [`CommandOption`]s of type [`String`].
+    ///
+    /// [`String`]: CommandOptionType::String
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_length: Option<u16>,
+    /// Maximum allowed value.
     ///
     /// Applicable for [`CommandOption`]s of type [`Integer`] and [`Number`].
     ///
@@ -69,7 +87,7 @@ pub struct CommandOption {
     /// [`Number`]: CommandOptionType::Number
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_value: Option<CommandOptionValue>,
-    /// Minimum value permitted.
+    /// Minimum allowed value.
     ///
     /// Applicable for [`CommandOption`]s of type [`Integer`] and [`Number`].
     ///
