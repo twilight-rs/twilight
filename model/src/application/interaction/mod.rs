@@ -140,26 +140,6 @@ impl Interaction {
     }
 }
 
-/// Additional [`Interaction`] data, such as the invoking user.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum InteractionData {
-    /// Data received for the [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
-    /// interaction types.
-    ///
-    /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
-    /// [`ApplicationCommandAutocomplete`]: InteractionType::ApplicationCommandAutocomplete
-    ApplicationCommand(Box<CommandData>),
-    /// Data received for the [`MessageComponent`] interaction type.
-    ///
-    /// [`MessageComponent`]: InteractionType::MessageComponent
-    MessageComponent(MessageComponentInteractionData),
-    /// Data received for the [`ModalSubmit`] interaction type.
-    ///
-    /// [`ModalSubmit`]: InteractionType::ModalSubmit
-    ModalSubmit(ModalInteractionData),
-}
-
 impl<'de> Deserialize<'de> for Interaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_map(InteractionVisitor)
@@ -399,6 +379,26 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             user,
         })
     }
+}
+
+/// Additional [`Interaction`] data, such as the invoking user.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum InteractionData {
+    /// Data received for the [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
+    /// interaction types.
+    ///
+    /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
+    /// [`ApplicationCommandAutocomplete`]: InteractionType::ApplicationCommandAutocomplete
+    ApplicationCommand(Box<CommandData>),
+    /// Data received for the [`MessageComponent`] interaction type.
+    ///
+    /// [`MessageComponent`]: InteractionType::MessageComponent
+    MessageComponent(MessageComponentInteractionData),
+    /// Data received for the [`ModalSubmit`] interaction type.
+    ///
+    /// [`ModalSubmit`]: InteractionType::ModalSubmit
+    ModalSubmit(ModalInteractionData),
 }
 
 #[cfg(test)]
