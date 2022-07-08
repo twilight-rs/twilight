@@ -17,5 +17,5 @@ pub struct SpeakingInfo {
     /// Recieved in [`Ready`].
     ///
     /// [`Ready`]: crate::voice::payload::incoming::Ready
-    pub ssrc: u64,
+    pub ssrc: u32,
 }

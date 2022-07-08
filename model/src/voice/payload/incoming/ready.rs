@@ -19,5 +19,5 @@ pub struct ReadyInfo {
     /// User's unique voice identifier.
     ///
     /// Needed to map users and emited audio.
-    pub ssrc: u64,
+    pub ssrc: u32,
 }
