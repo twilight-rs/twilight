@@ -852,7 +852,7 @@ impl UpdateCache for Event {
             Event::IntegrationCreate(v) => c.update(v.deref()),
             Event::IntegrationDelete(v) => c.update(v.deref()),
             Event::IntegrationUpdate(v) => c.update(v.deref()),
-            Event::InteractionCreate(v) => c.update(v),
+            Event::InteractionCreate(v) => c.update(v.deref()),
             Event::MemberAdd(v) => c.update(v.deref()),
             Event::MemberRemove(v) => c.update(v),
             Event::MemberUpdate(v) => c.update(v.deref()),
