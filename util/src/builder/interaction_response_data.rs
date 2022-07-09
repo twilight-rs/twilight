@@ -9,9 +9,9 @@ use twilight_model::{
 /// # Example
 /// ```
 /// use twilight_util::builder::InteractionResponseDataBuilder;
-/// use twilight_model::{
-///     channel::message::MessageFlags,
-///     application::component::{ActionRow, button::ButtonStyle, Component, Button}
+/// use twilight_model::channel::message::{
+///     component::{ActionRow, Button, ButtonStyle, Component},
+///     MessageFlags,
 /// };
 ///
 /// let component = Component::ActionRow(ActionRow {

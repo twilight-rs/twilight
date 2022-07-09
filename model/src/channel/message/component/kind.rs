@@ -41,7 +41,7 @@ impl ComponentType {
     /// Check the [`ActionRow`] variant's name:
     ///
     /// ```
-    /// use twilight_model::application::component::ComponentType;
+    /// use twilight_model::channel::message::component::ComponentType;
     ///
     /// assert_eq!("ActionRow", ComponentType::ActionRow.name());
     /// ```
