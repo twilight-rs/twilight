@@ -1,8 +1,8 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-/// Modal component to prompt users for a text input.
+/// Pop-up [`Component`] that render on modals.
 ///
-/// Refer to [Discord Docs/Input Text] for additional information.
+/// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct TextInput {
     /// User defined identifier for the input text.
@@ -28,8 +28,6 @@ pub struct TextInput {
 }
 
 /// Style of an [`TextInput`].
-///
-/// Refer to [the discord docs] for additional information.
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]

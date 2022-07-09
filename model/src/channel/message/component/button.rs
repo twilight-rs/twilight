@@ -1,11 +1,9 @@
 use crate::channel::ReactionType;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-/// Clickable interactive components that render on messages.
+/// Clickable [`Component`] that render on messages.
 ///
-/// See [Discord Docs/Message Components].
-///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#button-object-button-structure
+/// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Button {
     /// User defined identifier for the button.
@@ -32,10 +30,6 @@ pub struct Button {
 }
 
 /// Style of a [`Button`].
-///
-/// Refer to [the Discord Docs/Button Object] for additional information.
-///
-/// [the Discord Docs/Button Object]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
 // Keep in sync with `twilight-validate::component`!
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]

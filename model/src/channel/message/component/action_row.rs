@@ -1,13 +1,9 @@
 use super::Component;
 
-/// A non-interactive component that acts as a container for other components.
-///
-/// Refer to [Discord Docs/Message Components] for additional information.
-///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#action-rows
+/// Non-interactive [`Component`] container of other (non action row) [`Component`]s.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ActionRow {
-    /// List of components in the action row.
+    /// List of non [`ActionRow`] components in the action row.
     pub components: Vec<Component>,
 }
 

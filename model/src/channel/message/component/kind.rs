@@ -1,11 +1,9 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/// Type of Component.
+/// Type of [`Component`].
 ///
-/// See [Discord Docs/Message Components].
-///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#component-types
+/// [`Component`]: super::Component
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
 #[non_exhaustive]
 #[repr(u8)]
@@ -14,17 +12,14 @@ pub enum ComponentType {
     ///
     /// [`ActionRow`]: super::ActionRow
     ActionRow = 1,
-
     /// Component is an [`Button`].
     ///
     /// [`Button`]: super::Button
     Button = 2,
-
     /// Component is an [`SelectMenu`].
     ///
     /// [`SelectMenu`]: super::SelectMenu
     SelectMenu = 3,
-
     /// Component is an [`TextInput`].
     ///
     /// [`TextInput`]: super::TextInput

@@ -1,11 +1,8 @@
-//! Types for Message [`Component`] support.
-//!
-//! Message components are a Discord API framework for adding interactive
-//! elements to created [`Message`]s.
+//! Interactive message elements for use with [`Interaction`]s.
 //!
 //! Refer to [Discord Docs/Message Components] for additional information.
 //!
-//! [`Message`]: crate::channel::Message
+//! [`Interaction`]: crate::application::interaction::Interaction
 //! [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components
 
 mod action_row;
@@ -31,11 +28,9 @@ use serde::{
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
 
-/// Interactive element of a message that an application uses.
+/// Interactive message element.
 ///
-/// Refer to [Discord Docs/Message Components] for additional information.
-///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#what-are-components
+/// Must be either a top level [`ActionRow`] or nested inside one.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Component {
     ActionRow(ActionRow),

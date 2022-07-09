@@ -1,3 +1,4 @@
+//! Rich message content.
 mod author;
 mod field;
 mod footer;
