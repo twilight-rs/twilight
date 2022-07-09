@@ -2,12 +2,12 @@
 
 use serde::Serialize;
 use twilight_model::{
-    application::{component::Component, interaction::InteractionType},
+    application::interaction::InteractionType,
     channel::{
         embed::Embed,
         message::{
-            sticker::MessageSticker, Message, MessageActivity, MessageApplication, MessageFlags,
-            MessageInteraction, MessageReaction, MessageReference, MessageType,
+            sticker::MessageSticker, Component, Message, MessageActivity, MessageApplication,
+            MessageFlags, MessageInteraction, MessageReaction, MessageReference, MessageType,
         },
         Attachment, ChannelMention,
     },

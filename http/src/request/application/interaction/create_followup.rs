@@ -10,11 +10,9 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    application::component::Component,
     channel::{
         embed::Embed,
-        message::{AllowedMentions, MessageFlags},
-        Message,
+        message::{AllowedMentions, Component, Message, MessageFlags},
     },
     http::attachment::Attachment,
     id::{marker::ApplicationMarker, Id},

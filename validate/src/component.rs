@@ -4,9 +4,9 @@ use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
-use twilight_model::application::component::{
-    button::ButtonStyle, select_menu::SelectMenuOption, ActionRow, Button, Component,
-    ComponentType, SelectMenu, TextInput,
+use twilight_model::channel::message::component::{
+    ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuOption,
+    TextInput,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -1076,12 +1076,11 @@ mod tests {
     use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
-    use twilight_model::{
-        application::component::{
-            button::ButtonStyle, select_menu::SelectMenuOption, ActionRow, Button, Component,
-            SelectMenu,
+    use twilight_model::channel::{
+        message::component::{
+            ActionRow, Button, ButtonStyle, Component, SelectMenu, SelectMenuOption,
         },
-        channel::ReactionType,
+        ReactionType,
     };
 
     assert_fields!(ComponentValidationErrorType::ActionRowComponentCount: count);

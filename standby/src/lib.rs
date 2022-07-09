@@ -1063,15 +1063,12 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
-        application::{
-            component::ComponentType,
-            interaction::{
-                message_component::MessageComponentInteractionData, Interaction, InteractionData,
-                InteractionType,
-            },
+        application::interaction::{
+            message_component::MessageComponentInteractionData, Interaction, InteractionData,
+            InteractionType,
         },
         channel::{
-            message::{Message, MessageType},
+            message::{component::ComponentType, Message, MessageType},
             Reaction, ReactionType,
         },
         gateway::{

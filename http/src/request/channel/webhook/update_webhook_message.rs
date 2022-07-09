@@ -12,8 +12,10 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    application::component::Component,
-    channel::{embed::Embed, message::AllowedMentions},
+    channel::{
+        embed::Embed,
+        message::{AllowedMentions, Component},
+    },
     http::attachment::Attachment,
     id::{
         marker::{AttachmentMarker, ChannelMarker, MessageMarker, WebhookMarker},

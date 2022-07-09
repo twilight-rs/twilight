@@ -12,8 +12,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use twilight_model::{
-    application::component::Component,
-    channel::embed::Embed,
+    channel::{embed::Embed, message::Component},
     id::{marker::StickerMarker, Id},
 };
 

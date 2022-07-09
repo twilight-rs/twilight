@@ -1,8 +1,8 @@
 use twilight_model::{
-    application::{command::CommandOptionChoice, component::Component},
+    application::command::CommandOptionChoice,
     channel::{
         embed::Embed,
-        message::{AllowedMentions, MessageFlags},
+        message::{AllowedMentions, Component, MessageFlags},
     },
     http::{attachment::Attachment, interaction::InteractionResponseData},
 };
@@ -181,7 +181,7 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
-        application::component::{button::ButtonStyle, Button},
+        channel::message::component::{Button, ButtonStyle},
         util::Timestamp,
     };
 

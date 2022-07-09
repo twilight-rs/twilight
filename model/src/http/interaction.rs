@@ -1,10 +1,10 @@
 //! Models used when responding to interactions over HTTP.
 
 use crate::{
-    application::{command::CommandOptionChoice, component::Component},
+    application::command::CommandOptionChoice,
     channel::{
         embed::Embed,
-        message::{AllowedMentions, MessageFlags},
+        message::{AllowedMentions, Component, MessageFlags},
     },
     http::attachment::Attachment,
 };

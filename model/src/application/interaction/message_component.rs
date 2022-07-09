@@ -2,7 +2,7 @@
 //!
 //! [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
 
-use crate::application::component::ComponentType;
+use crate::channel::message::component::ComponentType;
 use serde::{Deserialize, Serialize};
 
 /// Data received when an [`MessageComponent`] interaction is executed.
@@ -33,7 +33,7 @@ pub struct MessageComponentInteractionData {
 #[cfg(test)]
 mod tests {
     use super::MessageComponentInteractionData;
-    use crate::application::component::ComponentType;
+    use crate::channel::message::component::ComponentType;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};

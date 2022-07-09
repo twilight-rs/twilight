@@ -1,4 +1,4 @@
-use crate::application::component::Component;
+use super::Component;
 
 /// A non-interactive component that acts as a container for other components.
 ///
