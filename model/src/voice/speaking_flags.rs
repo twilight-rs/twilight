@@ -3,9 +3,9 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 bitflags! {
     pub struct SpeakingFlags: u8 {
-        /// Normal voice audio transmition.
+        /// Normal voice audio transmission.
         const MICROPHONE = 1 << 0;
-        /// Context audio for video transmition, no speaking indicator.
+        /// Context audio for video transmission, no speaking indicator.
         const SOUNDSHARE = 1 << 1;
         /// Priority speaker, lowering audio of other speakers.
         const PRIORITY = 1 << 2;

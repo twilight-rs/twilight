@@ -14,7 +14,7 @@ pub struct SpeakingInfo {
     pub speaking: SpeakingFlags,
     /// Unique voice identifier
     ///
-    /// Recieved in [`Ready`].
+    /// Received in [`Ready`].
     ///
     /// [`Ready`]: crate::voice::payload::incoming::Ready
     pub ssrc: u32,

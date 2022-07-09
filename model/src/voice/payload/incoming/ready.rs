@@ -18,6 +18,6 @@ pub struct ReadyInfo {
     pub port: u16,
     /// User's unique voice identifier.
     ///
-    /// Needed to map users and emited audio.
+    /// Needed to map users and emitted audio.
     pub ssrc: u32,
 }
