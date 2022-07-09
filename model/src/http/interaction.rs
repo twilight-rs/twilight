@@ -2,10 +2,7 @@
 
 use crate::{
     application::command::CommandOptionChoice,
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, Component, MessageFlags},
-    },
+    channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
 };
 use serde::{Deserialize, Serialize};

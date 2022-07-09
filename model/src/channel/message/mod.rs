@@ -1,5 +1,6 @@
 pub mod allowed_mentions;
 pub mod component;
+pub mod embed;
 pub mod sticker;
 
 mod activity;
@@ -15,13 +16,13 @@ mod reference;
 pub use self::{
     activity::MessageActivity, activity_type::MessageActivityType,
     allowed_mentions::AllowedMentions, application::MessageApplication, component::Component,
-    flags::MessageFlags, interaction::MessageInteraction, kind::MessageType, mention::Mention,
-    reaction::MessageReaction, reference::MessageReference, sticker::Sticker,
+    embed::Embed, flags::MessageFlags, interaction::MessageInteraction, kind::MessageType,
+    mention::Mention, reaction::MessageReaction, reference::MessageReference, sticker::Sticker,
 };
 
 use self::sticker::MessageSticker;
 use crate::{
-    channel::{embed::Embed, Attachment, Channel, ChannelMention},
+    channel::{Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{
         marker::{

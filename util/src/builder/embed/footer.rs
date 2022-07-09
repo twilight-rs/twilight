@@ -1,7 +1,7 @@
 //! Create embed footers.
 
-use super::image_source::ImageSource;
-use twilight_model::channel::embed::EmbedFooter;
+use super::ImageSource;
+use twilight_model::channel::message::embed::EmbedFooter;
 
 /// Create an embed footer with a builder.
 ///
@@ -68,10 +68,10 @@ impl From<EmbedFooterBuilder> for EmbedFooter {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{EmbedFooterBuilder, ImageSource};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
-    use twilight_model::channel::embed::EmbedFooter;
+    use twilight_model::channel::message::embed::EmbedFooter;
 
     assert_impl_all!(EmbedFooterBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(EmbedFooter: From<EmbedFooterBuilder>);

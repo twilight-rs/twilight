@@ -1,4 +1,3 @@
-pub mod embed;
 pub mod message;
 pub mod permission_overwrite;
 pub mod stage_instance;

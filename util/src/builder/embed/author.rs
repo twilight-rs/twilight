@@ -1,7 +1,7 @@
 //! Create embed authors.
 
-use super::image_source::ImageSource;
-use twilight_model::channel::embed::EmbedAuthor;
+use super::ImageSource;
+use twilight_model::channel::message::embed::EmbedAuthor;
 
 /// Create an embed author with a builder.
 ///
@@ -56,10 +56,10 @@ impl From<EmbedAuthorBuilder> for EmbedAuthor {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{EmbedAuthorBuilder, ImageSource};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
-    use twilight_model::channel::embed::EmbedAuthor;
+    use twilight_model::channel::message::embed::EmbedAuthor;
 
     assert_impl_all!(EmbedAuthorBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);

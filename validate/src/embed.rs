@@ -4,7 +4,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::channel::embed::Embed;
+use twilight_model::channel::message::Embed;
 
 /// The maximum embed author name length in codepoints.
 pub const AUTHOR_NAME_LENGTH: usize = 256;
@@ -357,7 +357,7 @@ mod tests {
     use super::{Embed, EmbedValidationError, EmbedValidationErrorType};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
-    use twilight_model::channel::embed::{EmbedAuthor, EmbedField, EmbedFooter};
+    use twilight_model::channel::message::embed::{EmbedAuthor, EmbedField, EmbedFooter};
 
     assert_impl_all!(EmbedValidationErrorType: Debug, Send, Sync);
     assert_impl_all!(EmbedValidationError: Debug, Send, Sync);

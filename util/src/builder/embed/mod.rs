@@ -12,7 +12,9 @@ pub use self::{
 };
 
 use twilight_model::{
-    channel::embed::{Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedThumbnail},
+    channel::message::embed::{
+        Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedThumbnail,
+    },
     util::Timestamp,
 };
 use twilight_validate::embed::{embed as validate_embed, EmbedValidationError};
@@ -371,7 +373,7 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
-        channel::embed::{Embed, EmbedField, EmbedFooter},
+        channel::message::embed::{Embed, EmbedField, EmbedFooter},
         util::Timestamp,
     };
 

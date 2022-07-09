@@ -1,6 +1,6 @@
 //! Create embed fields.
 
-use twilight_model::channel::embed::EmbedField;
+use twilight_model::channel::message::embed::EmbedField;
 
 /// Create an embed field with a builder.
 ///
@@ -71,10 +71,10 @@ impl From<EmbedFieldBuilder> for EmbedField {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::EmbedFieldBuilder;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
-    use twilight_model::channel::embed::EmbedField;
+    use twilight_model::channel::message::embed::EmbedField;
 
     assert_impl_all!(EmbedFieldBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(EmbedField: From<EmbedFieldBuilder>);
