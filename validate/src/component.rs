@@ -14,7 +14,6 @@ use twilight_model::channel::message::component::{
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Action Rows][1].
 ///
-/// [`ActionRow`]: twilight_model::application::component::ActionRow
 /// [1]: https://discord.com/developers/docs/interactions/message-components#action-rows
 pub const ACTION_ROW_COMPONENT_COUNT: usize = 5;
 
@@ -34,7 +33,6 @@ pub const COMPONENT_COUNT: usize = 5;
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Components][1].
 ///
-/// [`Button::custom_id`]: twilight_model::application::component::button::Button::custom_id
 /// [1]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
 pub const COMPONENT_CUSTOM_ID_LENGTH: usize = 100;
 
@@ -45,7 +43,6 @@ pub const COMPONENT_CUSTOM_ID_LENGTH: usize = 100;
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Components][1].
 ///
-/// [`Button::label`]: twilight_model::application::component::button::Button::label
 /// [1]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
 pub const COMPONENT_BUTTON_LABEL_LENGTH: usize = 80;
 
@@ -55,8 +52,6 @@ pub const COMPONENT_BUTTON_LABEL_LENGTH: usize = 80;
 /// This is defined in Dicsord's documentation, per
 /// [Discord Docs/Select Menu][1].
 ///
-/// [`SelectMenuOption`]: twilight_model::application::component::select_menu::SelectMenuOption
-/// [`SelectMenu`]: twilight_model::application::component::select_menu::SelectMenu
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_MAXIMUM_VALUES_LIMIT: usize = 25;
 
@@ -66,8 +61,6 @@ pub const SELECT_MAXIMUM_VALUES_LIMIT: usize = 25;
 /// This is defined in Dicsord's documentation, per
 /// [Discord Docs/Select Menu][1].
 ///
-/// [`SelectMenuOption`]: twilight_model::application::component::select_menu::SelectMenuOption
-/// [`SelectMenu`]: twilight_model::application::component::select_menu::SelectMenu
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_MAXIMUM_VALUES_REQUIREMENT: usize = 1;
 
@@ -77,8 +70,6 @@ pub const SELECT_MAXIMUM_VALUES_REQUIREMENT: usize = 1;
 /// This is defined in Dicsord's documentation, per
 /// [Discord Docs/Select Menu][1].
 ///
-/// [`SelectMenuOption`]: twilight_model::application::component::select_menu::SelectMenuOption
-/// [`SelectMenu`]: twilight_model::application::component::select_menu::SelectMenu
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_MINIMUM_VALUES_LIMIT: usize = 25;
 
@@ -87,8 +78,6 @@ pub const SELECT_MINIMUM_VALUES_LIMIT: usize = 25;
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu][1].
 ///
-/// [`SelectMenuOption`]: twilight_model::application::component::select_menu::SelectMenuOption
-/// [`SelectMenu`]: twilight_model::application::component::select_menu::SelectMenu
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_OPTION_COUNT: usize = 25;
 
@@ -105,7 +94,6 @@ pub const SELECT_OPTION_DESCRIPTION_LENGTH: usize = 100;
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu Option][1].
 ///
-/// [`SelectMenuOption::label`]: twilight_model::application::component::select_menu::SelectMenuOption::label
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
 pub const SELECT_OPTION_LABEL_LENGTH: usize = 100;
 
@@ -114,7 +102,6 @@ pub const SELECT_OPTION_LABEL_LENGTH: usize = 100;
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu Option][1].
 ///
-/// [`SelectMenuOption::value`]: twilight_model::application::component::select_menu::SelectMenuOption::value
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
 pub const SELECT_OPTION_VALUE_LENGTH: usize = 100;
 
@@ -123,7 +110,6 @@ pub const SELECT_OPTION_VALUE_LENGTH: usize = 100;
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu][1].
 ///
-/// [`SelectMenu::placeholder`]: twilight_model::application::component::select_menu::SelectMenu::placeholder
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_PLACEHOLDER_LENGTH: usize = 150;
 
@@ -131,7 +117,6 @@ pub const SELECT_PLACEHOLDER_LENGTH: usize = 150;
 ///
 /// This is based on [Discord Docs/Text Inputs].
 ///
-/// [`TextInput::label`]: twilight_model::application::component::text_input::TextInput::label
 /// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
 pub const TEXT_INPUT_LABEL_MAX: usize = 45;
 
@@ -139,7 +124,6 @@ pub const TEXT_INPUT_LABEL_MAX: usize = 45;
 ///
 /// This is based on [Discord Docs/Text Inputs].
 ///
-/// [`TextInput::label`]: twilight_model::application::component::text_input::TextInput::label
 /// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
 pub const TEXT_INPUT_LABEL_MIN: usize = 1;
 
@@ -147,7 +131,6 @@ pub const TEXT_INPUT_LABEL_MIN: usize = 1;
 ///
 /// This is based on [Discord Docs/Text Inputs].
 ///
-/// [`TextInput::value`]: twilight_model::application::component::text_input::TextInput::value
 /// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
 pub const TEXT_INPUT_LENGTH_MAX: usize = 4000;
 
@@ -155,7 +138,6 @@ pub const TEXT_INPUT_LENGTH_MAX: usize = 4000;
 ///
 /// This is based on [Discord Docs/Text Inputs].
 ///
-/// [`TextInput::value`]: twilight_model::application::component::text_input::TextInput::value
 /// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
 pub const TEXT_INPUT_LENGTH_MIN: usize = 1;
 
@@ -163,7 +145,6 @@ pub const TEXT_INPUT_LENGTH_MIN: usize = 1;
 ///
 /// This is based on [Discord Docs/Text Inputs].
 ///
-/// [`TextInput::placeholder`]: twilight_model::application::component::text_input::TextInput::placeholder
 /// [Discord Docs/Text Inputs]: https://discord.com/developers/docs/interactions/message-components#text-inputs
 pub const TEXT_INPUT_PLACEHOLDER_MAX: usize = 100;
 
@@ -364,8 +345,6 @@ impl Error for ComponentValidationError {}
 pub enum ComponentValidationErrorType {
     /// Number of components a provided [`ActionRow`] is larger than
     /// [the maximum][`ACTION_ROW_COMPONENT_COUNT`].
-    ///
-    /// [`ActionRow`]: twilight_model::application::component::ActionRow
     ActionRowComponentCount {
         /// Number of components within the action row.
         count: usize,
@@ -451,38 +430,28 @@ pub enum ComponentValidationErrorType {
         chars: usize,
     },
     /// [`TextInput::label`] is invalid.
-    ///
-    /// [`TextInput::label`]: twilight_model::application::component::text_input::TextInput::label
     TextInputLabelLength {
         /// Provided length.
         len: usize,
     },
     /// [`TextInput::max_length`] is invalid.
-    ///
-    /// [`TextInput::max_length`]: twilight_model::application::component::text_input::TextInput::max_length
     TextInputMaxLength {
         /// Provided length.
         len: usize,
     },
     /// [`TextInput::min_length`] is too long.
-    ///
-    /// [`TextInput::min_length`]: twilight_model::application::component::text_input::TextInput::min_length
     TextInputMinLength {
         /// Provided length.
         len: usize,
     },
     /// Placeholder of a [`TextInput`] component is larger than
     /// [`TEXT_INPUT_PLACEHOLDER_MAX`].
-    ///
-    /// [`TextInput`]: twilight_model::application::component::text_input::TextInput
     TextInputPlaceholderLength {
         /// Provided number of codepoints.
         chars: usize,
     },
     /// Value of a [`TextInput`] component is larger than
     /// [`TEXT_INPUT_LENGTH_MAX`].
-    ///
-    /// [`TextInput`]: twilight_model::application::component::text_input::TextInput
     TextInputValueLength {
         /// Provided number of codepoints.
         chars: usize,
