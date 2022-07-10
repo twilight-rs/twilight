@@ -633,10 +633,7 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{
-    ///     application::interaction::Interaction,
-    ///     id::Id,
-    /// };
+    /// use twilight_model::{id::Id, interaction::Interaction};
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -677,8 +674,8 @@ impl Standby {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
-    ///     application::interaction::{Interaction, InteractionData},
     ///     id::Id,
+    ///     interaction::{Interaction, InteractionData},
     /// };
     /// use twilight_standby::Standby;
     ///
