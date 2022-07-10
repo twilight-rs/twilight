@@ -3,7 +3,7 @@
 //! # Examples
 //!
 //! ```
-//! use twilight_model::application::command::CommandType;
+//! use twilight_model::http::command::CommandType;
 //! use twilight_util::builder::command::{BooleanBuilder, CommandBuilder, StringBuilder};
 //!
 //! CommandBuilder::new(
