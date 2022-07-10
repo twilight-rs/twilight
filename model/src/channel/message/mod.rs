@@ -584,7 +584,7 @@ mod tests {
                 Token::Str("reactions"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "MessageReaction",
+                    name: "Reaction",
                     len: 3,
                 },
                 Token::Str("count"),

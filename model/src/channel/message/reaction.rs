@@ -31,7 +31,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "MessageReaction",
+                    name: "Reaction",
                     len: 3,
                 },
                 Token::Str("count"),
