@@ -32,7 +32,7 @@ pub use self::{
 use crate::{
     channel::thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, MessageMarker, UserMarker},
+        marker::{ApplicationMarker, ChannelMarker, GenericMarker, GuildMarker, UserMarker},
         Id,
     },
     user::User,
@@ -110,7 +110,7 @@ pub struct Channel {
     /// For forum channels ([GuildForum](ChannelType::GuildForum)), this is
     /// the ID of the last created thread in the forum.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<Id<MessageMarker>>,
+    pub last_message_id: Option<Id<GenericMarker>>,
     /// ID of the last message pinned in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
