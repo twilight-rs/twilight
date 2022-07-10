@@ -18,6 +18,8 @@ bitflags! {
         const PRIORITY_SPEAKER = 1 << 8;
         const STREAM = 1 << 9;
         const VIEW_CHANNEL = 1 << 10;
+        /// Allows for sending messages and creating forum threads, but not
+        /// sending messages in forum threads.
         const SEND_MESSAGES = 1 << 11;
         const SEND_TTS_MESSAGES = 1 << 12;
         const MANAGE_MESSAGES = 1 << 13;

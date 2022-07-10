@@ -8,6 +8,7 @@ pub mod webhook;
 mod attachment;
 mod channel_mention;
 mod channel_type;
+mod flags;
 mod followed_channel;
 mod reaction;
 mod reaction_type;
@@ -18,6 +19,7 @@ pub use self::{
     attachment::Attachment,
     channel_mention::ChannelMention,
     channel_type::ChannelType,
+    flags::ChannelFlags,
     followed_channel::FollowedChannel,
     message::Message,
     reaction::Reaction,
@@ -84,6 +86,8 @@ pub struct Channel {
     /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flags: Option<ChannelFlags>,
     /// ID of the guild the channel is in.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -100,7 +104,11 @@ pub struct Channel {
     /// This can be used to determine what fields *might* be available.
     #[serde(rename = "type")]
     pub kind: ChannelType,
-    /// ID of the last message sent in the channel.
+    /// For text channels, this is the ID of the last message sent in the
+    /// channel.
+    ///
+    /// For forum channels ([GuildForum](ChannelType::GuildForum)), this is
+    /// the ID of the last created thread in the forum.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<Id<MessageMarker>>,
     /// ID of the last message pinned in the channel.
