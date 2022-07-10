@@ -227,6 +227,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         application_id: None,
         bitrate: None,
         default_auto_archive_duration: None,
+        flags: None,
         guild_id: Some(guild_id),
         icon: None,
         id: channel_id,
