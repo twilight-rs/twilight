@@ -18,8 +18,8 @@ impl<'de> Deserialize<'de> for ChannelFlags {
 
 impl Serialize for ChannelFlags {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         serializer.serialize_u64(self.bits())
     }
