@@ -1,4 +1,4 @@
-use crate::channel::ReactionType;
+use crate::channel::message::ReactionType;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Clickable [`Component`] that render on messages.

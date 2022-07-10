@@ -1045,10 +1045,8 @@ mod tests {
     use super::*;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
-    use twilight_model::channel::{
-        message::component::{
-            ActionRow, Button, ButtonStyle, Component, SelectMenu, SelectMenuOption,
-        },
+    use twilight_model::channel::message::{
+        component::{ActionRow, Button, ButtonStyle, Component, SelectMenu, SelectMenuOption},
         ReactionType,
     };
 

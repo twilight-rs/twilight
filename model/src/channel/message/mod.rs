@@ -11,13 +11,15 @@ mod interaction;
 mod kind;
 mod mention;
 mod reaction;
+mod reaction_type;
 mod reference;
 
 pub use self::{
     activity::MessageActivity, activity_type::MessageActivityType,
     allowed_mentions::AllowedMentions, application::MessageApplication, component::Component,
     embed::Embed, flags::MessageFlags, interaction::MessageInteraction, kind::MessageType,
-    mention::Mention, reaction::MessageReaction, reference::MessageReference, sticker::Sticker,
+    mention::Mention, reaction::Reaction, reaction_type::ReactionType, reference::MessageReference,
+    sticker::Sticker,
 };
 
 use self::sticker::MessageSticker;
@@ -120,7 +122,7 @@ pub struct Message {
     pub mentions: Vec<Mention>,
     pub pinned: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub reactions: Vec<MessageReaction>,
+    pub reactions: Vec<Reaction>,
     /// Reference data sent with crossposted messages and replies.
     #[serde(rename = "message_reference", skip_serializing_if = "Option::is_none")]
     pub reference: Option<MessageReference>,
@@ -146,10 +148,10 @@ mod tests {
     use super::{
         sticker::{MessageSticker, StickerFormatType},
         ChannelMention, Message, MessageActivity, MessageActivityType, MessageApplication,
-        MessageFlags, MessageReaction, MessageReference, MessageType,
+        MessageFlags, MessageReference, MessageType, Reaction, ReactionType,
     };
     use crate::{
-        channel::{ChannelType, ReactionType},
+        channel::ChannelType,
         guild::PartialMember,
         id::Id,
         test::image_hash,
@@ -413,7 +415,7 @@ mod tests {
             mention_roles: Vec::new(),
             mentions: Vec::new(),
             pinned: false,
-            reactions: vec![MessageReaction {
+            reactions: vec![Reaction {
                 count: 7,
                 emoji: ReactionType::Unicode {
                     name: "a".to_owned(),

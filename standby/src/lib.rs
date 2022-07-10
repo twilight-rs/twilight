@@ -581,7 +581,7 @@ impl Standby {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
-    ///     channel::ReactionType,
+    ///     channel::message::ReactionType,
     ///     gateway::payload::incoming::ReactionAdd,
     ///     id::Id,
     /// };
@@ -1067,13 +1067,11 @@ mod tests {
             message_component::MessageComponentInteractionData, Interaction, InteractionData,
             InteractionType,
         },
-        channel::{
-            message::{component::ComponentType, Message, MessageType},
-            Reaction, ReactionType,
-        },
+        channel::message::{component::ComponentType, Message, MessageType, ReactionType},
         gateway::{
             event::{Event, EventType},
             payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
+            GatewayReaction,
         },
         guild::Permissions,
         id::{marker::GuildMarker, Id},
@@ -1134,8 +1132,8 @@ mod tests {
         }
     }
 
-    fn reaction() -> Reaction {
-        Reaction {
+    fn reaction() -> GatewayReaction {
+        GatewayReaction {
             channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "🍎".to_owned(),

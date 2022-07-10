@@ -1,6 +1,6 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use twilight_model::{
-    channel::{message::MessageReaction, ReactionType},
+    channel::message::{Reaction, ReactionType},
     gateway::payload::incoming::{
         ReactionAdd, ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji,
     },
@@ -40,7 +40,7 @@ impl UpdateCache for ReactionAdd {
                 .map(|user| user.id == self.0.user_id)
                 .unwrap_or_default();
 
-            message.reactions.push(MessageReaction {
+            message.reactions.push(Reaction {
                 count: 1,
                 emoji: self.0.emoji.clone(),
                 me,
@@ -140,12 +140,15 @@ fn reactions_eq(a: &ReactionType, b: &ReactionType) -> bool {
 mod tests {
     use crate::{event::reaction::reactions_eq, test, CachedMessage};
     use twilight_model::{
-        channel::{message::MessageReaction, Reaction, ReactionType},
-        gateway::payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
+        channel::message::{Reaction, ReactionType},
+        gateway::{
+            payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
+            GatewayReaction,
+        },
         id::Id,
     };
 
-    fn find_custom_react(msg: &CachedMessage) -> Option<&MessageReaction> {
+    fn find_custom_react(msg: &CachedMessage) -> Option<&Reaction> {
         msg.reactions.iter().find(|&r| {
             reactions_eq(
                 &r.emoji,
@@ -186,7 +189,7 @@ mod tests {
     #[test]
     fn reaction_remove() {
         let cache = test::cache_with_message_and_reactions();
-        cache.update(&ReactionRemove(Reaction {
+        cache.update(&ReactionRemove(GatewayReaction {
             channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "😀".to_owned(),
@@ -196,7 +199,7 @@ mod tests {
             message_id: Id::new(4),
             user_id: Id::new(5),
         }));
-        cache.update(&ReactionRemove(Reaction {
+        cache.update(&ReactionRemove(GatewayReaction {
             channel_id: Id::new(2),
             emoji: ReactionType::Custom {
                 animated: false,

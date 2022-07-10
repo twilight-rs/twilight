@@ -1,21 +1,25 @@
-use crate::channel::ReactionType;
+use super::ReactionType;
 use serde::{Deserialize, Serialize};
 
+/// User added emoji below a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct MessageReaction {
+pub struct Reaction {
+    /// Times this emoji has been used to react.
     pub count: u64,
+    /// Emoji information.
     pub emoji: ReactionType,
+    /// Whether the current user reacted using this emoji.
     pub me: bool,
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{MessageReaction, ReactionType};
+    use super::{Reaction, ReactionType};
     use serde_test::Token;
 
     #[test]
     fn message_reaction_unicode() {
-        let value = MessageReaction {
+        let value = Reaction {
             count: 7,
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),

@@ -19,7 +19,7 @@ pub use self::{
     text_input::{TextInput, TextInputStyle},
 };
 
-use crate::channel::ReactionType;
+use super::ReactionType;
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::SerializeStruct,
@@ -580,7 +580,7 @@ mod tests {
         ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuOption,
         TextInput, TextInputStyle,
     };
-    use crate::channel::ReactionType;
+    use crate::channel::message::ReactionType;
     use serde_test::Token;
     use static_assertions::assert_impl_all;
 

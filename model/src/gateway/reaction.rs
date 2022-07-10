@@ -1,5 +1,5 @@
 use crate::{
-    channel::ReactionType,
+    channel::message::ReactionType,
     guild::member::{Member, MemberIntermediary},
     id::{
         marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
@@ -163,8 +163,9 @@ impl<'de> Deserialize<'de> for Reaction {
 
 #[cfg(test)]
 mod tests {
-    use super::super::{Reaction, ReactionType};
+    use super::Reaction;
     use crate::{
+        channel::message::ReactionType,
         guild::Member,
         id::Id,
         test::image_hash,

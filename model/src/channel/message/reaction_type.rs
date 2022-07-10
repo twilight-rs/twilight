@@ -4,19 +4,27 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum ReactionType {
+    /// Custom [`Emoji`].
+    ///
+    /// [`Emoji`]: crate::guild::Emoji
     Custom {
+        /// Whether this emoji is animated.
         #[serde(default)]
         animated: bool,
+        /// Unique emoji identifier.
         // Even though it says that the id can be nil in the docs,
         // it is a bit misleading as that should only happen when
         // the reaction is a unicode emoji and then it is caught by
         // the other variant.
         id: Id<EmojiMarker>,
+        /// Custom emoji name.
         // Name is nil if the emoji data is no longer available, for
         // example if the emoji have been deleted off the guild.
         name: Option<String>,
     },
+    /// Standard unicode emoji.
     Unicode {
+        /// Unicode identifier.
         name: String,
     },
 }
