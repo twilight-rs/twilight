@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    application::command::{Command, CommandOption},
+    http::command::{Command, CommandOption},
     id::{
         marker::{ApplicationMarker, CommandMarker},
         Id,

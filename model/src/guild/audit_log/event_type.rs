@@ -207,7 +207,7 @@ pub enum AuditLogEventType {
     ThreadDelete = 112,
     /// A [GuildCommandPermissions] was updated.
     ///
-    /// [GuildCommandPermissions]: crate::application::command::permissions::GuildCommandPermissions
+    /// [GuildCommandPermissions]: crate::guild::command_permissions::GuildCommandPermissions
     ApplicationCommandPermissionUpdate = 121,
 }
 

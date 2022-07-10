@@ -1,6 +1,6 @@
 use twilight_model::{
-    application::command::CommandOptionChoice,
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
+    http::command::CommandOptionChoice,
     http::{attachment::Attachment, interaction::InteractionResponseData},
 };
 

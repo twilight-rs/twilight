@@ -28,13 +28,13 @@
 
 use std::collections::HashMap;
 use twilight_model::{
-    application::command::{
+    channel::ChannelType,
+    guild::Permissions,
+    http::command::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, Command,
         CommandOption, CommandOptionChoice, CommandOptionValue, CommandType, Number,
         NumberCommandOptionData, OptionsCommandOptionData,
     },
-    channel::ChannelType,
-    guild::Permissions,
     id::{marker::GuildMarker, Id},
 };
 use twilight_validate::command::{command as validate_command, CommandValidationError};

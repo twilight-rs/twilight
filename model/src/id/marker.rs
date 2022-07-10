@@ -52,7 +52,7 @@ pub struct ChannelMarker;
 ///
 /// Types such as [`Command`] use this ID marker.
 ///
-/// [`Command`]: crate::application::command::Command
+/// [`Command`]: crate::http::command::Command
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct CommandMarker;
@@ -61,7 +61,7 @@ pub struct CommandMarker;
 ///
 /// Types such as [`Command`] use this ID marker.
 ///
-/// [`Command`]: crate::application::command::Command
+/// [`Command`]: crate::http::command::Command
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct CommandVersionMarker;
@@ -82,7 +82,7 @@ pub struct EmojiMarker;
 /// ID marker.
 ///
 /// [`AuditLogChange::Id`]: crate::guild::audit_log::AuditLogChange::Id
-/// [`CommandOptionValue`]: crate::application::interaction::application_command::CommandOptionValue
+/// [`CommandOptionValue`]: crate::interaction::application_command::CommandOptionValue
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct GenericMarker;
@@ -112,7 +112,7 @@ pub struct IntegrationMarker;
 /// Types such as [`Interaction`] or [`MessageInteraction`] use this ID
 /// marker.
 ///
-/// [`Interaction`]: crate::application::interaction::Interaction
+/// [`Interaction`]: crate::interaction::Interaction
 /// [`MessageInteraction`]: crate::channel::message::MessageInteraction
 #[derive(Debug)]
 #[non_exhaustive]

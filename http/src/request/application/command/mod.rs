@@ -29,8 +29,8 @@ pub use self::{
 use serde::Serialize;
 use std::collections::HashMap;
 use twilight_model::{
-    application::command::{CommandOption, CommandType},
     guild::Permissions,
+    http::command::{CommandOption, CommandType},
     id::{marker::ApplicationMarker, Id},
 };
 
@@ -63,8 +63,8 @@ mod tests {
     use super::CommandBorrowed;
     use std::collections::HashMap;
     use twilight_model::{
-        application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
         guild::Permissions,
+        http::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
         id::Id,
     };
 

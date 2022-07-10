@@ -2,7 +2,7 @@
 //!
 //! Refer to [Discord Docs/Message Components] for additional information.
 //!
-//! [`Interaction`]: crate::application::interaction::Interaction
+//! [`Interaction`]: crate::interaction::Interaction
 //! [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components
 
 mod action_row;

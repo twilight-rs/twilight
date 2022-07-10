@@ -6,7 +6,7 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    application::command::Command,
+    http::command::Command,
     id::{marker::ApplicationMarker, Id},
 };
 

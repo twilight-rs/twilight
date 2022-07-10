@@ -1,4 +1,4 @@
-use crate::application::command::permissions::GuildCommandPermissions;
+use crate::guild::command_permissions::GuildCommandPermissions;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
 

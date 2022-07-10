@@ -411,8 +411,8 @@ mod tests {
         Interaction, InteractionData, InteractionType,
     };
     use crate::{
-        application::command::{CommandOptionType, CommandType},
         guild::{PartialMember, Permissions},
+        http::command::{CommandOptionType, CommandType},
         id::Id,
         test::image_hash,
         user::User,

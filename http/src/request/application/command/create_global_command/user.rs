@@ -8,8 +8,8 @@ use crate::{
 };
 use std::collections::HashMap;
 use twilight_model::{
-    application::command::{Command, CommandType},
     guild::Permissions,
+    http::command::{Command, CommandType},
     id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::command::{name as validate_name, CommandValidationError};

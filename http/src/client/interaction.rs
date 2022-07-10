@@ -14,8 +14,8 @@ use crate::{
     Client,
 };
 use twilight_model::{
-    application::command::{permissions::CommandPermissions, Command},
-    http::interaction::InteractionResponse,
+    guild::command_permissions::CommandPermissions,
+    http::{command::Command, interaction::InteractionResponse},
     id::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker, InteractionMarker, MessageMarker},
         Id,

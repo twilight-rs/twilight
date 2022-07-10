@@ -2,7 +2,6 @@
 
 use serde::Serialize;
 use twilight_model::{
-    application::interaction::InteractionType,
     channel::{
         message::{
             sticker::MessageSticker, Component, Embed, Message, MessageActivity,
@@ -19,6 +18,7 @@ use twilight_model::{
         },
         Id,
     },
+    interaction::InteractionType,
     util::Timestamp,
 };
 

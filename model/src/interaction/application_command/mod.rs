@@ -1,6 +1,6 @@
 //! [`ApplicationCommand`] interaction.
 //!
-//! [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
+//! [`ApplicationCommand`]: super::InteractionType::ApplicationCommand
 
 mod option;
 mod resolved;
@@ -11,7 +11,7 @@ pub use self::{
 };
 
 use crate::{
-    application::command::CommandType,
+    http::command::CommandType,
     id::{
         marker::{CommandMarker, GenericMarker, GuildMarker},
         Id,
@@ -24,8 +24,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// See [Discord Docs/Application Command Data Structure].
 ///
-/// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
-/// [`ApplicationCommandAutocomplete`]: crate::application::interaction::InteractionType::ApplicationCommandAutocomplete
+/// [`ApplicationCommand`]: super::InteractionType::ApplicationCommand
+/// [`ApplicationCommandAutocomplete`]: super::InteractionType::ApplicationCommandAutocomplete
 /// [Discord Docs/Application Command Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-application-command-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandData {

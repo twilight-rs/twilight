@@ -17,12 +17,12 @@
     clippy::used_underscore_binding
 )]
 
-pub mod application;
 pub mod channel;
 pub mod gateway;
 pub mod guild;
 pub mod http;
 pub mod id;
+pub mod interaction;
 pub mod invite;
 pub mod oauth;
 pub mod scheduled_event;

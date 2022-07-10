@@ -6,7 +6,7 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
-    application::command::permissions::GuildCommandPermissions,
+    guild::command_permissions::GuildCommandPermissions,
     id::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker},
         Id,

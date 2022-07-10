@@ -1,8 +1,6 @@
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use std::borrow::Cow;
-use twilight_model::{
-    application::interaction::InteractionData, gateway::payload::incoming::InteractionCreate,
-};
+use twilight_model::{gateway::payload::incoming::InteractionCreate, interaction::InteractionData};
 
 impl UpdateCache for InteractionCreate {
     fn update(&self, cache: &InMemoryCache) {
@@ -64,15 +62,6 @@ mod tests {
     use crate::InMemoryCache;
     use std::collections::HashMap;
     use twilight_model::{
-        application::{
-            command::CommandType,
-            interaction::{
-                application_command::{
-                    CommandData, CommandInteractionDataResolved, InteractionMember,
-                },
-                Interaction, InteractionData, InteractionType,
-            },
-        },
         channel::{
             message::{
                 sticker::{MessageSticker, StickerFormatType},
@@ -82,7 +71,12 @@ mod tests {
         },
         gateway::payload::incoming::InteractionCreate,
         guild::{PartialMember, Permissions, Role},
+        http::command::CommandType,
         id::Id,
+        interaction::{
+            application_command::{CommandData, CommandInteractionDataResolved, InteractionMember},
+            Interaction, InteractionData, InteractionType,
+        },
         user::User,
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };

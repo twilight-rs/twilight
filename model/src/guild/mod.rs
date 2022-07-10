@@ -1,4 +1,5 @@
 pub mod audit_log;
+pub mod command_permissions;
 pub mod member;
 
 mod ban;

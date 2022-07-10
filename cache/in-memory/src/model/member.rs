@@ -1,11 +1,11 @@
 use serde::Serialize;
 use twilight_model::{
-    application::interaction::application_command::InteractionMember,
     guild::{Member, PartialMember},
     id::{
         marker::{GuildMarker, RoleMarker, UserMarker},
         Id,
     },
+    interaction::application_command::InteractionMember,
     util::{ImageHash, Timestamp},
 };
 

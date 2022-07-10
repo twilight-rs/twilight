@@ -43,7 +43,7 @@ pub struct CommandInteractionDataResolved {
 
 /// Partial channel resolved from an [`Interaction`].
 ///
-/// [`Interaction`]: crate::application::interaction::Interaction
+/// [`Interaction`]: crate::interaction::Interaction
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionChannel {
     /// ID of the channel.
@@ -67,7 +67,7 @@ pub struct InteractionChannel {
 
 /// Partial member resolved from an [`Interaction`].
 ///
-/// [`Interaction`]: crate::application::interaction::Interaction
+/// [`Interaction`]: crate::interaction::Interaction
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct InteractionMember {
     /// Member's guild avatar.

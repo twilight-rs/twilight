@@ -4,7 +4,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::application::command::{Command, CommandOption, CommandType};
+use twilight_model::http::command::{Command, CommandOption, CommandType};
 
 /// Maximum number of choices an option can have.
 pub const CHOICES_LIMIT: usize = 25;
@@ -510,7 +510,7 @@ mod tests {
 
     use super::*;
     use std::collections::HashMap;
-    use twilight_model::{application::command::CommandType, id::Id};
+    use twilight_model::{http::command::CommandType, id::Id};
 
     // This tests [`description`] and [`name`] by proxy.
     #[test]

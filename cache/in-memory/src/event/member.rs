@@ -5,13 +5,13 @@ use crate::{
 };
 use std::borrow::Cow;
 use twilight_model::{
-    application::interaction::application_command::InteractionMember,
     gateway::payload::incoming::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
     guild::{Member, PartialMember},
     id::{
         marker::{GuildMarker, UserMarker},
         Id,
     },
+    interaction::application_command::InteractionMember,
 };
 
 impl InMemoryCache {

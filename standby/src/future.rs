@@ -15,11 +15,11 @@ use tokio::sync::{
     oneshot::{error::RecvError, Receiver},
 };
 use twilight_model::{
-    application::interaction::Interaction,
     gateway::{
         event::Event,
         payload::incoming::{MessageCreate, ReactionAdd},
     },
+    interaction::Interaction,
 };
 
 /// Future canceled due to Standby being dropped.

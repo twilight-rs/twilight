@@ -20,7 +20,7 @@ pub struct PartialMember {
     ///
     /// Sent in an [`Interaction`].
     ///
-    /// [`Interaction`]: crate::application::interaction::Interaction
+    /// [`Interaction`]: crate::interaction::Interaction
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,

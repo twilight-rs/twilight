@@ -1,7 +1,7 @@
 use crate::{
-    application::interaction::InteractionType,
     guild::PartialMember,
     id::{marker::InteractionMarker, Id},
+    interaction::InteractionType,
     user::User,
 };
 use serde::{Deserialize, Serialize};
@@ -18,7 +18,7 @@ pub struct MessageInteraction {
     pub member: Option<PartialMember>,
     /// Name of the [`Command`].
     ///
-    /// [`Command`]: crate::application::command::Command
+    /// [`Command`]: crate::http::command::Command
     pub name: String,
     /// User who invoked the interaction.
     pub user: User,

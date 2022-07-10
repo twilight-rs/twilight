@@ -1,5 +1,5 @@
 use crate::{
-    application::command::{CommandOptionType, Number},
+    http::command::{CommandOptionType, Number},
     id::{
         marker::{AttachmentMarker, ChannelMarker, GenericMarker, RoleMarker, UserMarker},
         Id,
@@ -340,7 +340,7 @@ pub enum CommandOptionValue {
     /// The actual [`CommandOptionType`] is available through the second tuple value.
     ///
     /// [Discord Docs/Autocomplete]: https://discord.com/developers/docs/interactions/application-commands#autocomplete
-    /// [`CommandOptionType`]: crate::application::command::CommandOptionType
+    /// [`CommandOptionType`]: crate::http::command::CommandOptionType
     Focused(String, CommandOptionType),
     /// Integer option.
     Integer(i64),
@@ -382,13 +382,9 @@ impl CommandOptionValue {
 #[cfg(test)]
 mod tests {
     use crate::{
-        application::{
-            command::{CommandOptionType, CommandType, Number},
-            interaction::application_command::{
-                CommandData, CommandDataOption, CommandOptionValue,
-            },
-        },
+        http::command::{CommandOptionType, CommandType, Number},
         id::Id,
+        interaction::application_command::{CommandData, CommandDataOption, CommandOptionValue},
     };
     use serde_test::Token;
 

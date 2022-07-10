@@ -9,10 +9,10 @@ use hyper::{
 use once_cell::sync::Lazy;
 use std::future::Future;
 use twilight_model::{
-    application::interaction::{
+    http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
+    interaction::{
         application_command::CommandData, Interaction, InteractionData, InteractionType,
     },
-    http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
 
 /// Public key given from Discord.

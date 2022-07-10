@@ -39,7 +39,6 @@ use tokio::sync::{
     oneshot::{self, Receiver, Sender as OneshotSender},
 };
 use twilight_model::{
-    application::interaction::{Interaction, InteractionType},
     gateway::{
         event::Event,
         payload::incoming::{MessageCreate, ReactionAdd},
@@ -48,6 +47,7 @@ use twilight_model::{
         marker::{ChannelMarker, GuildMarker, MessageMarker},
         Id,
     },
+    interaction::{Interaction, InteractionType},
 };
 
 /// Map keyed by an ID - such as a channel ID or message ID - storing a list of
@@ -1063,10 +1063,6 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
-        application::interaction::{
-            message_component::MessageComponentInteractionData, Interaction, InteractionData,
-            InteractionType,
-        },
         channel::message::{component::ComponentType, Message, MessageType, ReactionType},
         gateway::{
             event::{Event, EventType},
@@ -1075,6 +1071,10 @@ mod tests {
         },
         guild::Permissions,
         id::{marker::GuildMarker, Id},
+        interaction::{
+            message_component::MessageComponentInteractionData, Interaction, InteractionData,
+            InteractionType,
+        },
         oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
         util::Timestamp,

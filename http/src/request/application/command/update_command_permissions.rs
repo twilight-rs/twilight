@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    application::command::permissions::CommandPermissions,
+    guild::command_permissions::CommandPermissions,
     id::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker},
         Id,

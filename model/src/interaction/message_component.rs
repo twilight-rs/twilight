@@ -1,6 +1,6 @@
 //! [`MessageComponent`] interaction.
 //!
-//! [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
+//! [`MessageComponent`]: super::InteractionType::MessageComponent
 
 use crate::channel::message::component::ComponentType;
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// See [Discord Docs/Message Component Data Structure].
 ///
-/// [`MessageComponent`]: crate::application::interaction::InteractionType::MessageComponent
+/// [`MessageComponent`]: super::InteractionType::MessageComponent
 /// [Discord Docs/Message Component Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-message-component-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageComponentInteractionData {

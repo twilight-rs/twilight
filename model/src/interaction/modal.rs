@@ -1,7 +1,7 @@
 //! [`ModalSubmit`] interaction.
 //!
 //!
-//! [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
+//! [`ModalSubmit`]: super::InteractionType::ModalSubmit
 
 use crate::channel::message::component::ComponentType;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
@@ -10,7 +10,7 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 ///
 /// See [Discord Docs/Modal Submit Data Structure].
 ///
-/// [`ModalSubmit`]: crate::application::interaction::InteractionType::ModalSubmit
+/// [`ModalSubmit`]: super::InteractionType::ModalSubmit
 /// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ModalInteractionData {
@@ -28,7 +28,7 @@ pub struct ModalInteractionData {
 ///
 /// See [Discord Docs/Modal Submit Data Structure].
 ///
-/// [`ActionRow`]: crate::application::interaction::modal::ModalInteractionDataActionRow
+/// [`ActionRow`]: crate::channel::message::component::ActionRow
 /// [Discord Docs/Modal Submit Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct ModalInteractionDataActionRow {
