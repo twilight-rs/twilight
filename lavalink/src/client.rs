@@ -283,7 +283,6 @@ impl Lavalink {
             address,
             authorization: authorization.into(),
             resume: self.resume.clone(),
-            shard_count: self.shard_count,
             user_id: self.user_id,
         };
 
