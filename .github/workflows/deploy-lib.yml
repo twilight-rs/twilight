@@ -41,9 +41,7 @@ jobs:
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
-          # Use `haswell` instead of `native` due to some GitHub Actions runners not
-          # supporting some `avx512` instructions.
-          RUSTFLAGS: -C target-cpu=haswell
+          RUSTFLAGS: -C target-cpu=native
         run: cargo doc --no-deps --all-features --workspace --exclude book
 
       - name: Prepare docs
