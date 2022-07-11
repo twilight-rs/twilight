@@ -41,9 +41,10 @@ jobs:
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
-        run: |
-          cargo doc --no-deps --features=permission-calculator --workspace --exclude book
-          cargo doc -p twilight-util --no-deps --all-features
+          # Use `haswell` instead of `native` due to some GitHub Actions runners not
+          # supporting some `avx512` instructions.
+          RUSTFLAGS: -C target-cpu=haswell
+        run: cargo doc --no-deps --all-features --workspace --exclude book
 
       - name: Prepare docs
         run: |
