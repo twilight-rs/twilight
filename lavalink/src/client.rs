@@ -1,7 +1,7 @@
 //! Client to manage nodes and players.
 
 use crate::{
-    model::{SlimVoiceServerUpdate, VoiceUpdate},
+    model::VoiceUpdate,
     node::{IncomingEvents, Node, NodeConfig, NodeError, Resume},
     player::{Player, PlayerManager},
 };
@@ -13,7 +13,7 @@ use std::{
     sync::Arc,
 };
 use twilight_model::{
-    gateway::event::Event,
+    gateway::{event::Event, payload::incoming::VoiceServerUpdate},
     id::{
         marker::{GuildMarker, UserMarker},
         Id,
@@ -102,7 +102,7 @@ pub struct Lavalink {
     resume: Option<Resume>,
     shard_count: u64,
     user_id: Id<UserMarker>,
-    server_updates: DashMap<Id<GuildMarker>, SlimVoiceServerUpdate>,
+    server_updates: DashMap<Id<GuildMarker>, VoiceServerUpdate>,
     sessions: DashMap<Id<GuildMarker>, Box<str>>,
 }
 
@@ -182,13 +182,8 @@ impl Lavalink {
                 return Ok(());
             }
             Event::VoiceServerUpdate(e) => {
-                if let Some(guild_id) = e.guild_id {
-                    self.server_updates.insert(guild_id, e.clone().into());
-                    guild_id
-                } else {
-                    tracing::trace!("event has no guild ID: {e:?}");
-                    return Ok(());
-                }
+                self.server_updates.insert(e.guild_id, e.clone());
+                e.guild_id
             }
             Event::VoiceStateUpdate(e) => {
                 if e.0.user_id != self.user_id {
