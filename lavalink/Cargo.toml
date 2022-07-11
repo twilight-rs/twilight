@@ -43,3 +43,7 @@ http-support = ["dep:percent-encoding"]
 native = ["tokio-tungstenite/native-tls"]
 rustls-native-roots = ["tokio-tungstenite/rustls-tls-native-roots"]
 rustls-webpki-roots = ["tokio-tungstenite/rustls-tls-webpki-roots"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
