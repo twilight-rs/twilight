@@ -94,3 +94,12 @@ impl ShardMessageSender {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ShardMessageSender;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ShardMessageSender: Clone, Debug, Send, Sync);
+}

@@ -26,11 +26,13 @@ use tokio_tungstenite::Connector;
     feature = "native",
     not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
 ))]
-pub type TlsConnector = NativeTlsConnector;
+pub(crate) type TlsConnector = NativeTlsConnector;
 
+/// todo
 #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
-pub type TlsConnector = Arc<ClientConfig>;
+pub(crate) type TlsConnector = Arc<ClientConfig>;
 
+/// todo
 #[derive(Debug)]
 pub struct TlsError {
     /// Type of error.
@@ -61,19 +63,11 @@ impl TlsError {
 }
 
 impl Display for TlsError {
-    // If TlsErrorType is an empty type f is not used.
-    #[cfg_attr(feature = "rustls-webpki-roots", allow(unused))]
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
-            #[cfg(all(
-                feature = "native",
-                not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
-            ))]
-            TlsErrorType::NativeTls => {
-                f.write_str("construction of the native-tls connector failed")
+            TlsErrorType::Loading => {
+                f.write_str("failed to load the tls connector or its certificates")
             }
-            #[cfg(feature = "rustls-native-roots")]
-            TlsErrorType::NativeCerts => f.write_str("could not load native certificates"),
         }
     }
 }
@@ -90,17 +84,11 @@ impl Error for TlsError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum TlsErrorType {
-    /// Construction of the nativetls connector failed.
-    #[cfg(all(
-        feature = "native",
-        not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
-    ))]
-    NativeTls,
-    /// Could not load native certificates.
-    #[cfg(feature = "rustls-native-roots")]
-    NativeCerts,
+    /// Loading the TLS connector or its certificates failed.
+    Loading,
 }
 
+/// todo
 #[derive(Clone)]
 #[cfg_attr(
     all(
@@ -110,24 +98,42 @@ pub enum TlsErrorType {
     derive(Debug)
 )]
 pub struct TlsContainer {
-    tls: TlsConnector,
+    /// todo
+    tls: Option<TlsConnector>,
 }
 
 #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
 impl Debug for TlsContainer {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.debug_struct("TlsContainer").finish()
+        let mut debugger = f.debug_struct("TlsContainer");
+
+        #[cfg(all(
+            feature = "native",
+            not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots")),
+        ))]
+        debugger.field("tls", &self.tls);
+
+        debugger.finish()
     }
 }
 
 impl TlsContainer {
+    #[cfg(not(any(
+        feature = "native",
+        feature = "rustls-native-roots",
+        feature = "rustls-webpki-roots"
+    )))]
+    pub fn new() -> Result<Self, TlsError> {
+        Ok(Self { tls: None })
+    }
+
     #[cfg(all(
         feature = "native",
         not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
     ))]
     pub fn new() -> Result<Self, TlsError> {
         let native_connector = TlsConnector::new().map_err(|err| TlsError {
-            kind: TlsErrorType::NativeTls,
+            kind: TlsErrorType::Loading,
             source: Some(Box::new(err)),
         })?;
 
@@ -136,6 +142,9 @@ impl TlsContainer {
         })
     }
 
+    /// todo
+    ///
+    /// # Errors
     #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
     pub fn new() -> Result<Self, TlsError> {
         let mut roots = rustls_tls::RootCertStore::empty();
@@ -143,7 +152,7 @@ impl TlsContainer {
         #[cfg(feature = "rustls-native-roots")]
         {
             let certs = rustls_native_certs::load_native_certs().map_err(|err| TlsError {
-                kind: TlsErrorType::NativeCerts,
+                kind: TlsErrorType::Loading,
                 source: Some(Box::new(err)),
             })?;
 
@@ -151,7 +160,7 @@ impl TlsContainer {
                 roots
                     .add(&rustls_tls::Certificate(cert.0))
                     .map_err(|err| TlsError {
-                        kind: TlsErrorType::NativeCerts,
+                        kind: TlsErrorType::Loading,
                         source: Some(Box::new(err)),
                     })?;
             }
@@ -174,19 +183,27 @@ impl TlsContainer {
             .with_no_client_auth();
 
         Ok(TlsContainer {
-            tls: Arc::new(config),
+            tls: Some(Arc::new(config)),
         })
     }
 
-    pub fn connector(&self) -> Connector {
+    /// todo
+    pub(crate) fn connector(&self) -> Option<Connector> {
+        #[cfg(not(any(
+            feature = "native",
+            feature = "rustls-native-roots",
+            feature = "rustls-webpki-roots"
+        )))]
+        return None;
+
         #[cfg(all(
             feature = "native",
             not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
         ))]
-        return Connector::NativeTls(self.tls.clone());
+        return self.tls.as_ref().map(Arc::clone).map(Connector::NativeTls);
 
         #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
-        return Connector::Rustls(Arc::clone(&self.tls));
+        return self.tls.as_ref().map(Arc::clone).map(Connector::Rustls);
     }
 }
 

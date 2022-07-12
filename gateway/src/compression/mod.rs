@@ -1,14 +1,26 @@
+//! todo
+
+#![allow(unused)] // todo
+
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 mod inflater;
 
-use super::config::ShardId;
+use crate::config::ShardId;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-use inflater::Inflater;
+use self::inflater::Inflater;
+
+/// Query argument with zlib-stream enabled.
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+pub const COMPRESSION_FEATURES: &str = "&compress=zlib-stream";
+
+/// No query arguments due to compression being disabled.
+#[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
+pub const COMPRESSION_FEATURES: &str = "";
 
 /// Sending a command failed.
 #[derive(Debug)]
@@ -41,7 +53,7 @@ impl CompressionError {
 
 impl Display for CompressionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
+        match self.kind {
             CompressionErrorType::Decompressing => f.write_str("a frame could not be decompressed"),
         }
     }
@@ -176,36 +188,5 @@ impl Compression {
         {
             mem::replace(&mut self.inner, Vec::new())
         }
-    }
-}
-
-/// Add a toggle to a gateway connection URL depending on whether compression is
-/// enabled.
-///
-/// If compression is enabled then the `compress` query parameter is appended
-/// with a value of `zlib-stream`.
-#[cfg_attr(
-    not(any(feature = "zlib-stock", feature = "zlib-simd")),
-    allow(clippy::ptr_arg, unused_variables)
-)]
-pub fn add_url_feature(buf: &mut String) {
-    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-    buf.push_str("&compress=zlib-stream");
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn add_url_features() {
-        let mut buf = String::new();
-        super::add_url_feature(&mut buf);
-
-        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-        {
-            assert_eq!("&compress=zlib-stream", buf);
-        }
-
-        #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
-        assert!(buf.is_empty());
     }
 }

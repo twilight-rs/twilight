@@ -46,72 +46,36 @@
 //! [processed]: Shard::process
 //! [websocket message]: crate::message::Message
 //! [websocket connection]: Shard::connection
+//! [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
 
 use crate::{
     channel::{MessageChannel, ShardMessageSender},
-    command::Command,
-    compression::{self, Compression},
+    command::{self, Command},
+    compression::Compression,
     config::{Config, ShardId},
+    connection::{self, Connection},
     error::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
-        SendErrorType, ShardInitializeError, ShardInitializeErrorType,
+        SendErrorType, ShardInitializeError,
     },
-    future::{NextMessageFuture, NextMessageFutureReturn, TickHeartbeatFuture},
+    future::{NextMessageFuture, NextMessageFutureOutput},
     json,
     latency::Latency,
     message::{CloseFrame, Message},
     ratelimiter::CommandRatelimiter,
     session::Session,
-    Connection, GATEWAY_URL,
 };
-use crate::{command, API_VERSION};
-use futures_util::{future::FutureExt, stream::Next, SinkExt, StreamExt};
-use serde::Deserialize;
-use std::{
-    env::consts::OS,
-    future::Future,
-    pin::Pin,
-    str,
-    task::{Context, Poll},
-    time::Duration,
-};
-use tokio::sync::mpsc::UnboundedReceiver;
-use tokio_tungstenite::tungstenite::{
-    protocol::WebSocketConfig, Error as TungsteniteError, Message as TungsteniteMessage,
-};
+use futures_util::{SinkExt, StreamExt};
+use serde::{de::DeserializeOwned, Deserialize};
+use std::{env::consts::OS, str, time::Duration};
+use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
-    event::{DispatchEvent, Event, GatewayEvent, GatewayEventDeserializer},
+    event::{gateway::Hello, Event, GatewayEventDeserializer},
     payload::outgoing::{
         identify::{IdentifyInfo, IdentifyProperties},
         Heartbeat, Identify,
     },
-    Intents, OpCode,
-};
-use url::Url;
-
-/// List of opcodes internally handled by the shard via [`Shard::process`].
-///
-/// Used to determine what opcodes' payloads should be deserialized.
-const PROCESSED_GATEWAY_OPCODES: &[u8] = &[
-    OpCode::Heartbeat as u8,
-    OpCode::Reconnect as u8,
-    OpCode::InvalidSession as u8,
-    OpCode::Hello as u8,
-    OpCode::HeartbeatAck as u8,
-];
-
-/// Configuration used for Websocket connections.
-///
-/// `max_frame_size` and `max_message_queue` limits are disabled because
-/// Discord is not a malicious actor.
-///
-/// `accept_unmasked_frames` and `max_send_queue` are set to their
-/// defaults.
-const WEBSOCKET_CONFIG: WebSocketConfig = WebSocketConfig {
-    accept_unmasked_frames: false,
-    max_frame_size: None,
-    max_message_size: None,
-    max_send_queue: None,
+    CloseCode, Intents, OpCode,
 };
 
 /// Disconnect a shard, optionally invalidating the session.
@@ -137,50 +101,97 @@ impl Disconnect {
 }
 
 /// Current status of a shard.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ConnectionStatus {
     /// Shard is connected.
     ///
     /// Note that this does not mean the shard has an active gateway session.
     Connected,
     /// Shard is disconnected but may reconnect in the future.
-    Disconnected,
+    Disconnected {
+        /// Close code, if available.
+        ///
+        /// May not be available if the shard was closed via an event, such as
+        /// [`GatewayEvent::InvalidateSession`].
+        ///
+        ///
+        /// [`GatewayEvent::InvalidateSession`]: twilight_model::gateway::event::GatewayEvent::InvalidateSession
+        close_code: Option<u16>,
+        /// Number of reconnection attempts that have been made.
+        reconnect_attempts: u8,
+    },
     /// Shard has fatally closed, such as due to an invalid token.
-    FatallyClosed,
+    FatallyClosed {
+        /// Close code of the close message.
+        ///
+        /// The close code may be able to parse into [`CloseCode`] if it's a
+        /// known close code. Unknown close codes are considered fatal.
+        close_code: u16,
+    },
 }
 
 impl ConnectionStatus {
+    /// Determine the connection status from the close code.
+    ///
+    /// Defers to [`CloseCode::can_reconnect`] to determine whether the
+    /// connection can be reconnected, defaulting to [`Self::FatallyClosed`] if
+    /// the close code is unknown.
+    fn from_close_frame(maybe_frame: Option<&CloseFrame<'static>>) -> Self {
+        let raw_code = if let Some(frame) = maybe_frame {
+            frame.code()
+        } else {
+            return Self::Disconnected {
+                close_code: None,
+                reconnect_attempts: 0,
+            };
+        };
+
+        let can_reconnect = CloseCode::try_from(raw_code)
+            .map(CloseCode::can_reconnect)
+            .unwrap_or(false);
+
+        if can_reconnect {
+            Self::Disconnected {
+                close_code: Some(raw_code),
+                reconnect_attempts: 0,
+            }
+        } else {
+            Self::FatallyClosed {
+                close_code: raw_code,
+            }
+        }
+    }
+
     /// Whether the shard is connected.
-    pub fn is_connected(self) -> bool {
-        self == Self::Connected
+    pub const fn is_connected(self) -> bool {
+        matches!(self, Self::Connected)
     }
 
     /// Whether the shard has disconnected but may reconnect in the future.
-    pub fn is_disconnected(self) -> bool {
-        self == Self::Disconnected
+    pub const fn is_disconnected(self) -> bool {
+        matches!(self, Self::Disconnected { .. })
     }
 
     /// Whether the shard has fatally closed, such as due to an invalid token.
-    pub fn is_fatally_closed(self) -> bool {
-        self == Self::FatallyClosed
+    pub const fn is_fatally_closed(self) -> bool {
+        matches!(self, Self::FatallyClosed { .. })
     }
 }
 
+/// Gateway event with only minimal required data.
 #[derive(Deserialize)]
-struct GatewayMessage<T> {
+struct MinimalEvent<T> {
+    /// Attached data of the gateway event.
     #[serde(rename = "d")]
     data: T,
 }
 
-// todo put hello definition in model crate, since it's not already?
-
-#[derive(Debug, Deserialize)]
-struct Hello {
-    heartbeat_interval: u64,
-}
-
+/// Minimal [`Ready`] for light deserialization.
+///
+/// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
 #[derive(Deserialize)]
-struct Ready {
+struct MinimalReady {
+    /// ID of the new identified session.
     session_id: String,
 }
 
@@ -256,18 +267,23 @@ struct Ready {
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 #[derive(Debug)]
 pub struct Shard {
+    /// Abstraction to decompress Websocket messages, if compression is enabled.
     compression: Compression,
     /// User provided configuration.
     ///
     /// Configurations are provided or created in shard initializing via
     /// [`Shard::new`] or [`Shard::with_config`].
     config: Config,
+    /// Websocket connection, which may be connected to Discord's gateway.
     connection: Connection,
     /// Interval of how often the gateway would like the shard to
     /// [send heartbeats][`Self::heartbeat`].
     ///
     /// The interval is received in the [`GatewayEvent::Hello`] event when
-    /// first opening a new [connection][`Self::connection`].
+    /// first opening a new [connection].
+    ///
+    /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
+    /// [connection]: Self::connection
     heartbeat_interval: Option<Duration>,
     /// ID of the shard.
     id: ShardId,
@@ -282,11 +298,14 @@ pub struct Shard {
     /// identify, done via [`identify`] in response to receiving a
     /// [`GatewayEvent::Hello`].
     ///
+    /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
     /// [`identify`]: Self::identify
     session: Option<Session>,
     /// Current connection status of the Websocket connection, not necessarily
     /// correlating to an [active session][`Self::session`].
     status: ConnectionStatus,
+    /// Messages from the user to be relayed and sent over the Websocket
+    /// connection.
     user_channel: MessageChannel,
 }
 
@@ -333,6 +352,8 @@ impl Shard {
     /// Returns a [`ShardInitializeErrorType::Establishing`] error type if the
     /// connection with the Discord gateway could not be established, such as
     /// due to network or TLS errors.
+    ///
+    /// [`ShardInitializeErrorType::Establishing`]: crate::error::ShardInitializeErrorType::Establishing
     pub async fn with_config(id: ShardId, config: Config) -> Result<Self, ShardInitializeError> {
         let session = config.session().cloned();
 
@@ -344,7 +365,7 @@ impl Shard {
             tracing::debug!(%id, "passed queue");
         }
 
-        let connection = connect(id, config.gateway_url()).await?;
+        let connection = connection::connect(id, config.gateway_url(), config.tls()).await?;
 
         Ok(Self {
             compression: Compression::new(id),
@@ -377,8 +398,8 @@ impl Shard {
     /// [closed] by the user.
     ///
     /// [closed]: Self::close
-    pub const fn status(&self) -> ConnectionStatus {
-        self.status
+    pub const fn status(&self) -> &ConnectionStatus {
+        &self.status
     }
 
     /// Shard latency statistics, including average latency and recent heartbeat
@@ -416,7 +437,7 @@ impl Shard {
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         let mut bytes = loop {
             match self.next_message().await? {
-                Message::Binary(binary) => break binary,
+                Message::Binary(bytes) => break bytes,
                 Message::Text(text) => break text.into_bytes(),
                 _ => continue,
             }
@@ -442,11 +463,18 @@ impl Shard {
     pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
         self.compression.clear();
 
-        if self.status.is_disconnected() {
-            self.connection = connect(self.id(), self.config.gateway_url())
-                .await
-                .map_err(ReceiveMessageError::from_reconnect)?;
-            self.status = ConnectionStatus::Connected;
+        match self.status {
+            ConnectionStatus::Connected => {}
+            ConnectionStatus::Disconnected { .. } => {
+                self.connection =
+                    connection::connect(self.id(), self.config.gateway_url(), self.config.tls())
+                        .await
+                        .map_err(ReceiveMessageError::from_reconnect)?;
+                self.status = ConnectionStatus::Connected;
+            }
+            ConnectionStatus::FatallyClosed { close_code } => {
+                return Err(ReceiveMessageError::from_fatally_closed(close_code));
+            }
         }
 
         let message = loop {
@@ -457,35 +485,26 @@ impl Shard {
                 self.latency.sent(),
             );
 
-            // todo cleanup the match, it's not very clean
             let tungstenite_message = match future.await {
-                NextMessageFutureReturn::GatewayMessage(Some(Ok(message))) => message,
-                NextMessageFutureReturn::GatewayMessage(Some(Err(_source))) => {
+                NextMessageFutureOutput::Message(Some(message)) => message,
+                NextMessageFutureOutput::Message(None) => {
                     self.disconnect(Disconnect::Resume);
 
                     TungsteniteMessage::Close(None)
                 }
-                NextMessageFutureReturn::GatewayMessage(None) => {
-                    self.disconnect(Disconnect::Resume);
-
-                    TungsteniteMessage::Close(None)
-                }
-                NextMessageFutureReturn::SendHeartbeat => {
+                NextMessageFutureOutput::SendHeartbeat => {
                     self.heartbeat(None)
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
 
                     continue;
                 }
-                NextMessageFutureReturn::UserChannelMessage(Some(message)) => {
+                NextMessageFutureOutput::UserChannelMessage(message) => {
                     self.send(message)
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
 
                     continue;
-                }
-                NextMessageFutureReturn::UserChannelMessage(None) => {
-                    unreachable!("a copy of the channel tx is owned by the shard")
                 }
             };
 
@@ -495,9 +514,13 @@ impl Shard {
         };
 
         match message {
+            Message::Close(maybe_frame) => {
+                self.status = ConnectionStatus::from_close_frame(maybe_frame.as_ref());
+
+                return Ok(Message::Close(maybe_frame));
+            }
             Message::Binary(ref bytes) => self.compression.extend(bytes),
             Message::Text(ref text) => self.compression.extend(text.as_bytes()),
-            other => return Ok(other),
         }
 
         if let Err(source) = self.process().await {
@@ -514,6 +537,8 @@ impl Shard {
     }
 
     /// Send a command over the gateway.
+    ///
+    /// Serializes the command and then calls [`send`].
     ///
     /// # Examples
     ///
@@ -553,6 +578,8 @@ impl Shard {
     ///
     /// Returns a [`SendErrorType::Serializing`] error type if the provided
     /// command failed to serialize.
+    ///
+    /// [`send`]: Self::send
     pub async fn command(&mut self, command: &impl Command) -> Result<(), SendError> {
         let message = command::prepare(command)?;
 
@@ -560,6 +587,9 @@ impl Shard {
     }
 
     /// Send a raw websocket message.
+    ///
+    /// First calls in to the shard's [ratelimiter] if one [was enabled] in the
+    /// shard's configuration.
     ///
     /// # Examples
     ///
@@ -588,6 +618,9 @@ impl Shard {
     /// Returns a [`SendErrorType::Sending`] error type if the message could
     /// not be sent over the websocket. This indicates the shard is either
     /// currently restarting or closed and will restart.
+    ///
+    /// [ratelimiter]: CommandRatelimiter
+    /// [was enabled]: crate::config::ConfigBuilder::ratelimit_messages
     pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
         if let Some(ref ratelimiter) = self.ratelimiter {
             ratelimiter.acquire_one().await;
@@ -649,7 +682,10 @@ impl Shard {
     /// session.
     fn disconnect(&mut self, disconnect: Disconnect) {
         tracing::debug!(id = %self.id(), "disconnected");
-        self.status = ConnectionStatus::Disconnected;
+        self.status = ConnectionStatus::Disconnected {
+            close_code: None,
+            reconnect_attempts: 0,
+        };
 
         if disconnect == Disconnect::InvalidateSession {
             tracing::debug!(id = %self.id(), "session invalidated");
@@ -696,6 +732,28 @@ impl Shard {
         self.command(&identify).await
     }
 
+    /// Process the buffer of the current websocket message to update the shard's
+    /// state.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ProcessErrorType::Compression`] error type if the buffer
+    /// could not be read. This may be because the message was invalid or not
+    /// all frames have been received.
+    ///
+    /// Returns a [`ProcessErrorType::Deserializing`] error type if the gateway
+    /// event isn't a recognized structure, which may be the case for new or
+    /// undocumented events.
+    ///
+    /// Returns a [`ProcessErrorType::ParsingPayload`] error type if the buffer
+    /// isn't a valid [`GatewayEvent`]. This may happen if the opcode isn't
+    /// present.
+    ///
+    /// Returns a [`ProcessErrorType::SendingMessage`] error type if a Websocket
+    /// message couldn't be sent over the connection, which may be the case if
+    /// the connection isn't connected.
+    ///
+    /// [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
     async fn process(&mut self) -> Result<(), ProcessError> {
         let buffer = match self.compression.message_mut() {
             Ok(Some(buffer)) => buffer,
@@ -704,9 +762,9 @@ impl Shard {
         };
 
         // Instead of returning the event type, we return whether the event type
-        // is the one we handle in order to get around having both an immutable
-        // and mutable lifetime to the buffer.
-        let (opcode, maybe_sequence, is_ready) = {
+        // is a Ready event, which is the only one we handle. This gets around
+        // having both an immutable and mutable lifetime to the buffer.
+        let (raw_opcode, maybe_sequence, is_ready) = {
             let json = String::from_utf8_lossy(buffer);
             let deserializer = GatewayEventDeserializer::from_json(&json).ok_or(ProcessError {
                 kind: ProcessErrorType::ParsingPayload,
@@ -724,121 +782,76 @@ impl Shard {
             if let Some(session) = self.session.as_mut() {
                 let last_sequence = session.set_sequence(sequence);
 
+                // If a sequence has been skipped then we may have missed a
+                // message and should cause a reconnect so we can attempt to get
+                // that message again.
                 if sequence > last_sequence + 1 {
                     self.disconnect(Disconnect::Resume);
 
-                    // todo document why early return
                     return Ok(());
                 }
             }
         }
 
-        // We can do a few little optimization tricks here. For the
-        // "heartbeat ack" and "reconnect" opcodes we can construct
-        // the gateway events without needing to go through a serde
-        // context.
-        //
-        // Additionally, the processor cares about the "resumed"
-        // dispatch event type, which has no payload and can be constructed.
-        //
-        // This might not be shaving off entire milliseconds for these few
-        // events each time, but it certainly adds up.
-        let is_gateway_event = PROCESSED_GATEWAY_OPCODES.contains(&opcode);
+        match OpCode::try_from(raw_opcode) {
+            Ok(OpCode::Event) if is_ready => {
+                let event = Self::parse_event::<MinimalReady>(buffer)?;
+                let sequence = maybe_sequence.unwrap();
 
-        if !is_gateway_event && !is_ready {
-            return Ok(());
-        }
-
-        let event =
-            json::parse_gateway_event(opcode, maybe_sequence, is_ready.then(|| "READY"), buffer)
-                .map_err(ProcessError::from_json)?;
-
-        match event {
-            GatewayEvent::Dispatch(sequence, dispatch) => {
-                debug_assert_eq!(sequence, 1, "ready should be the first sequence");
-
-                if let DispatchEvent::Ready(ready) = *dispatch {
-                    self.status = ConnectionStatus::Connected;
-                    self.session = Some(Session::new(sequence, ready.session_id));
-                } else {
-                    unreachable!("only ready dispatches are handled")
-                }
+                self.status = ConnectionStatus::Connected;
+                self.session = Some(Session::new(sequence, event.data.session_id));
             }
-            GatewayEvent::Heartbeat(sequence) => {
-                if let Err(source) = self.heartbeat(Some(sequence)).await {
+            Ok(OpCode::Heartbeat) => {
+                let event = Self::parse_event(buffer)?;
+
+                if let Err(source) = self.heartbeat(Some(event.data)).await {
                     self.disconnect(Disconnect::Resume);
 
                     return Err(ProcessError::from_send(source));
                 }
             }
-            GatewayEvent::HeartbeatAck => {
+            Ok(OpCode::HeartbeatAck) => {
                 self.latency.track_received();
             }
-            GatewayEvent::Hello(heartbeat_interval) => {
-                let heartbeat_duration = Duration::from_millis(heartbeat_interval);
+            Ok(OpCode::Hello) => {
+                let event = Self::parse_event::<Hello>(buffer)?;
+                let interval = event.data.heartbeat_interval;
+                let heartbeat_duration = Duration::from_millis(interval);
                 self.heartbeat_interval = Some(heartbeat_duration);
 
                 if self.config().ratelimit_messages() {
-                    self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval));
+                    self.ratelimiter = Some(CommandRatelimiter::new(interval));
                 }
 
                 self.identify().await.map_err(ProcessError::from_send)?;
             }
-            GatewayEvent::InvalidateSession(can_resume) => {
-                self.disconnect(Disconnect::from_resumable(can_resume));
+            Ok(OpCode::InvalidSession) => {
+                let event = Self::parse_event(buffer)?;
+                self.disconnect(Disconnect::from_resumable(event.data));
             }
-            GatewayEvent::Reconnect => {
+            Ok(OpCode::Reconnect) => {
                 self.disconnect(Disconnect::Resume);
             }
+            _ => {}
         }
 
         Ok(())
     }
-}
 
-/// Configure a URL with the requested Gateway version and encoding.
-fn configure_url(url: &mut String) {
-    // Discord's documentation states:
-    //
-    // "Generally, it is a good idea to explicitly pass the gateway version
-    // and encoding".
-    //
-    // <https://discord.com/developers/docs/topics/gateway#connecting-gateway-url-query-string-params>
-    url.push_str("?v=");
-    url.push_str(&API_VERSION.to_string());
-
-    url.push_str("&encoding=json");
-
-    compression::add_url_feature(url);
-}
-
-/// Connect to the gateway for a given URL, defaulting if not present.
-///
-/// If a URL isn't provided then [`GATEWAY_URL`] is used. The Shard ID is used
-/// only for tracing logs.
-///
-/// # Errors
-///
-/// Returns a [`ShardInitializeErrorType::Establishing`] error type if the
-/// connection with the Discord gateway could not be established, such as
-/// due to network or TLS errors.
-async fn connect(id: ShardId, maybe_url: Option<&str>) -> Result<Connection, ShardInitializeError> {
-    let mut raw_url = maybe_url.unwrap_or(GATEWAY_URL).to_owned();
-    configure_url(&mut raw_url);
-
-    let url = Url::parse(&raw_url).expect("gateway url is valid");
-
-    tracing::debug!(%id, ?url, "shaking hands with remote");
-    let (stream, _) =
-        tokio_tungstenite::connect_async_tls_with_config(url, Some(WEBSOCKET_CONFIG), None)
-            .await
-            .map_err(|source| ShardInitializeError {
-                kind: ShardInitializeErrorType::Establishing,
-                source: Some(Box::new(source)),
-            })?;
-    tracing::debug!(%id, "shook hands with remote");
-
-    Ok(stream)
+    /// Parse a JSON buffer into an event with minimal data for [processing].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ProcessErrorType::Deserializing`] error type if the gateway
+    /// event isn't a recognized structure, which may be the case for new or
+    /// undocumented events.
+    ///
+    /// [processing]: Self::process
+    fn parse_event<T: DeserializeOwned>(
+        buffer: &mut [u8],
+    ) -> Result<MinimalEvent<T>, ProcessError> {
+        json::from_slice::<MinimalEvent<T>>(buffer).map_err(ProcessError::from_json)
+    }
 }
 
 /// Default identify properties to use when the user hasn't customized it in
@@ -851,29 +864,9 @@ fn default_identify_properties() -> IdentifyProperties {
 
 #[cfg(test)]
 mod tests {
-    use super::{SendError, SendErrorType, Shard, ShardInitializeError, ShardInitializeErrorType};
-    use crate::API_VERSION;
-    use static_assertions::{assert_fields, assert_impl_all};
-    use std::{error::Error, fmt::Debug};
+    use super::Shard;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
 
-    assert_impl_all!(SendErrorType: Debug, Send, Sync);
-    assert_impl_all!(SendError: Error, Send, Sync);
-    assert_impl_all!(ShardInitializeErrorType: Debug, Send, Sync);
-    assert_impl_all!(ShardInitializeError: Error, Send, Sync);
     assert_impl_all!(Shard: Debug, Send, Sync);
-
-    /// Test that [`super::configure_url`] formats URLs as expected.
-    ///
-    /// There's a little byte trickery to avoid an allocation in it, so we just
-    /// want to make sure it formats right.
-    #[test]
-    fn test_configure_url() {
-        let mut buf = String::new();
-        super::configure_url(&mut buf);
-
-        assert_eq!(
-            format!("?v={}&encoding=json&compress=zlib-stream", API_VERSION),
-            buf
-        );
-    }
 }

@@ -1,3 +1,6 @@
+//! Home of [`EventTypeFlags`], and optimization technique for skipping gateway
+//! event deserialization.
+
 use bitflags::bitflags;
 use twilight_model::gateway::event::EventType;
 

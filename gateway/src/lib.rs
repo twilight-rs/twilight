@@ -13,30 +13,28 @@
 )]
 #![doc = include_str!("../README.md")]
 #![allow(
-    clippy::let_unit_value,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned,
-    clippy::used_underscore_binding,
-    unused,
-    clippy::missing_docs_in_private_items // todo
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
 )]
 
 pub mod config;
 pub mod error;
 pub mod latency;
 pub mod message;
+pub mod stream;
 
 mod channel;
 mod command;
 mod compression;
+mod connection;
 mod event;
 mod future;
 mod json;
 mod ratelimiter;
 mod session;
 mod shard;
-pub mod stream;
 mod tls;
 
 pub use self::{
@@ -54,19 +52,5 @@ pub use twilight_gateway_queue as queue;
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
 
-use tokio::net::TcpStream;
-use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
-
 /// Discord Gateway API version used by this crate.
 pub const API_VERSION: u8 = 10;
-
-/// URL of the Discord gateway.
-const GATEWAY_URL: &str = "wss://gateway.discord.gg";
-
-/// [`tokio_tungstenite`] library Websocket connection.
-///
-/// Connections are used by [`Shard`]s when [initially connecting] and when
-/// reconnecting.
-///
-/// [initially connecting]: Shard::with_config
-type Connection = WebSocketStream<MaybeTlsStream<TcpStream>>;

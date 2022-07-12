@@ -31,10 +31,48 @@ pub enum OpCode {
     HeartbeatAck = 11,
 }
 
+impl TryFrom<u8> for OpCode {
+    type Error = u8;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        Ok(match value {
+            0 => Self::Event,
+            1 => Self::Heartbeat,
+            2 => Self::Identify,
+            3 => Self::PresenceUpdate,
+            4 => Self::VoiceStateUpdate,
+            5 => Self::VoiceServerPing,
+            6 => Self::Resume,
+            7 => Self::Reconnect,
+            8 => Self::RequestGuildMembers,
+            9 => Self::InvalidSession,
+            10 => Self::Hello,
+            11 => Self::HeartbeatAck,
+            other => return Err(other),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::OpCode;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(
+        OpCode: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+        TryFrom<u8>
+    );
 
     #[test]
     fn variants() {

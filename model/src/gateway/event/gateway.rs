@@ -49,9 +49,9 @@ enum Field {
     T,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Hello {
-    heartbeat_interval: u64,
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct Hello {
+    pub heartbeat_interval: u64,
 }
 
 /// A deserializer that deserializes into a `GatewayEvent` by cloning some bits

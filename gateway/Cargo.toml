@@ -27,7 +27,6 @@ tracing = { default-features = false, features = ["std", "attributes"], version 
 twilight-gateway-queue = { default-features = false, path = "../gateway-queue" }
 twilight-http = { default-features = false, path = "../http" }
 twilight-model = { default-features = false, path = "../model" }
-url = { default-features = false, version = "2" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
@@ -35,14 +34,14 @@ url = { default-features = false, version = "2" }
 # it does not seem to update the total_in of the function to have an offset
 # https://github.com/alexcrichton/flate2-rs/issues/217
 flate2 = { default-features = false, optional = true, version = "1.0.24" }
-metrics = { default-features = false, optional = true, version = "0.18" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.6" }
+metrics = { default-features = false, optional = true, version = "0.19" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = "0.6" }
 
 # TLS libraries
 # They are needed to track what is used in tokio-tungstenite
 native-tls = { default-features = false, optional = true, version = "0.2.8" }
-rustls-tls = { default-features = false, optional = true, package = "rustls", version = "0.20" }
 rustls-native-certs = { default-features = false, optional = true, version = "0.6" }
+rustls-tls = { default-features = false, optional = true, package = "rustls", version = "0.20" }
 webpki-roots = { default-features = false, optional = true, version = "0.22" }
 
 [dev-dependencies]

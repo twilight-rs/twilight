@@ -1,10 +1,17 @@
+//! todo
+
 use crate::config::ShardId;
 use flate2::{Decompress, DecompressError, FlushDecompress};
 use std::{mem, time::Instant};
 
+/// todo
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
+
+/// todo
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
 
+/// todo
+#[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug)]
 pub struct Inflater {
     decompress: Decompress,
@@ -114,7 +121,7 @@ impl Inflater {
         #[cfg(feature = "metrics")]
         self.inflater_metrics();
 
-        tracing::trace!("capacity: {}", self.buffer.capacity());
+        tracing::trace!(capacity = self.buffer.capacity(), "capacity");
 
         Ok(Some(&mut self.buffer))
     }

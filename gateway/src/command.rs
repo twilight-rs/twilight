@@ -17,6 +17,7 @@ mod private {
     //! disallowing consumers from implementing it.
     //!
     //! [`Command`]: super::Command
+
     use serde::Serialize;
     use twilight_model::gateway::payload::outgoing::{
         identify::Identify, resume::Resume, Heartbeat, RequestGuildMembers, UpdatePresence,
@@ -60,12 +61,12 @@ impl Command for UpdateVoiceState {}
 /// Returns a [`SendErrorType::Serializing`] error type if the provided value
 /// failed to serialize into JSON.
 pub fn prepare(command: &impl Command) -> Result<Message, SendError> {
-    let bytes = json::to_vec(command).map_err(|source| SendError {
-        source: Some(Box::new(source)),
-        kind: SendErrorType::Serializing,
-    })?;
-
-    Ok(Message::Binary(bytes))
+    json::to_vec(command)
+        .map(Message::Binary)
+        .map_err(|source| SendError {
+            source: Some(Box::new(source)),
+            kind: SendErrorType::Serializing,
+        })
 }
 
 #[cfg(test)]

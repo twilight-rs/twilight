@@ -1,12 +1,11 @@
 //! Errors returned by shard operations.
 
+use crate::{compression::CompressionError, json::GatewayEventParsingError};
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
-use twilight_model::gateway::Intents;
-
-use crate::{compression::CompressionError, json::GatewayEventParsingError};
+use twilight_model::gateway::CloseCode;
 
 /// Received gateway message couldn't be processed.
 #[derive(Debug)]
@@ -45,7 +44,7 @@ impl ProcessError {
 
 impl Display for ProcessError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
+        match self.kind {
             ProcessErrorType::Compression => {
                 f.write_str("compression failed because the payload may be invalid")
             }
@@ -97,6 +96,14 @@ pub struct ReceiveMessageError {
 }
 
 impl ReceiveMessageError {
+    /// Shortcut to create a new error from a fatal close code.
+    pub(crate) fn from_fatally_closed(close_code: u16) -> Self {
+        Self {
+            kind: ReceiveMessageErrorType::FatallyClosed { close_code },
+            source: None,
+        }
+    }
+
     /// Shortcut to create a new error from a gateway event parsing error.
     pub(crate) fn from_json(source: GatewayEventParsingError) -> Self {
         Self {
@@ -118,6 +125,18 @@ impl ReceiveMessageError {
         Self {
             kind: ReceiveMessageErrorType::SendingMessage,
             source: Some(Box::new(source)),
+        }
+    }
+
+    /// Whether the error is fatal.
+    ///
+    /// If the error is fatal then further attempts to use the shard will return
+    /// more fatal errors.
+    pub fn is_fatal(&self) -> bool {
+        if let ReceiveMessageErrorType::FatallyClosed { close_code } = self.kind() {
+            !CloseCode::try_from(*close_code).map_or(false, CloseCode::can_reconnect)
+        } else {
+            false
         }
     }
 
@@ -147,7 +166,7 @@ impl ReceiveMessageError {
 
 impl Display for ReceiveMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
+        match self.kind {
             ReceiveMessageErrorType::Client => f.write_str("websocket client error"),
             ReceiveMessageErrorType::Decompressing => {
                 f.write_str("failed to decompress the message because it may be invalid")
@@ -155,25 +174,21 @@ impl Display for ReceiveMessageError {
             ReceiveMessageErrorType::Deserializing => {
                 f.write_str("message is an unrecognized payload")
             }
+            ReceiveMessageErrorType::FatallyClosed { close_code } => {
+                f.write_str("shard fatally closed: ")?;
+
+                if let Ok(code) = CloseCode::try_from(close_code) {
+                    Display::fmt(&code, f)
+                } else {
+                    Display::fmt(&close_code, f)
+                }
+            }
             ReceiveMessageErrorType::Process => {
                 f.write_str("failed to internally process the received message")
             }
             ReceiveMessageErrorType::Reconnect => f.write_str("failed to reconnect to the gateway"),
             ReceiveMessageErrorType::SendingMessage => {
                 f.write_str("failed to send a message over the websocket")
-            }
-            ReceiveMessageErrorType::AuthorizationInvalid => {
-                f.write_str("authorization for the shard is invalid")
-            }
-            ReceiveMessageErrorType::IntentsDisallowed { intents } => {
-                f.write_str("at least one of the intents (")?;
-                Debug::fmt(intents, f)?;
-                f.write_str(") for the shard are disallowed, possibly because the application may not have access to all of them")
-            }
-            ReceiveMessageErrorType::IntentsInvalid { intents } => {
-                f.write_str("at least one of the intents (")?;
-                Debug::fmt(intents, f)?;
-                f.write_str(") for the shard are invalid")
             }
         }
     }
@@ -200,6 +215,15 @@ pub enum ReceiveMessageErrorType {
     /// The message payload is likely an unrecognized type that is not yet
     /// supported.
     Deserializing,
+    /// Shard has been closed due to a fatal configuration error.
+    FatallyClosed {
+        /// Close code of the close message.
+        ///
+        /// The close code may be able to parse into [`CloseCode`] if it's a
+        /// known close code. Unknown close codes are considered fatal.
+        close_code: u16,
+    },
+    ///
     /// Processing the message failed.
     ///
     /// The associated error downcasts to [`ProcessError`].
@@ -211,23 +235,6 @@ pub enum ReceiveMessageErrorType {
     /// This may happen when the shard sends heartbeats or attempts to identify
     /// a new gateway session.
     SendingMessage,
-    /// Provided authorization token is invalid.
-    AuthorizationInvalid,
-    /// Current user isn't allowed to use at least one of the configured
-    /// intents.
-    ///
-    /// The intents are provided.
-    IntentsDisallowed {
-        /// Configured intents for the shard.
-        intents: Intents,
-    },
-    /// Configured intents aren't supported by Discord's gateway.
-    ///
-    /// The intents are provided.
-    IntentsInvalid {
-        /// Configured intents for the shard.
-        intents: Intents,
-    },
 }
 
 /// Sending a command failed.
@@ -261,7 +268,7 @@ impl SendError {
 
 impl Display for SendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
+        match self.kind {
             SendErrorType::Sending => f.write_str("sending the message over the websocket failed"),
             SendErrorType::Serializing => f.write_str("serializing the value as json failed"),
         }
@@ -327,6 +334,11 @@ impl Display for ShardInitializeError {
             ShardInitializeErrorType::Establishing => {
                 f.write_str("establishing the connection failed")
             }
+            ShardInitializeErrorType::UrlInvalid { url } => {
+                f.write_str("user provided url is invalid: ")?;
+
+                f.write_str(url)
+            }
         }
     }
 }
@@ -345,4 +357,33 @@ impl Error for ShardInitializeError {
 pub enum ShardInitializeErrorType {
     /// Establishing a connection to the gateway failed.
     Establishing,
+    /// Gateway URL provided via [`ConfigBuilder::gateway_url`] is invalid.
+    ///
+    /// [`ConfigBuilder::gateway_url`]: crate::config::ConfigBuilder::gateway_url
+    UrlInvalid {
+        /// Fully built URL with a specified API version, compression, and other
+        /// features.
+        url: String,
+    },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
+        SendErrorType, ShardInitializeError, ShardInitializeErrorType,
+    };
+    use static_assertions::{assert_fields, assert_impl_all};
+    use std::{error::Error, fmt::Debug};
+
+    assert_fields!(ReceiveMessageErrorType::FatallyClosed: close_code);
+    assert_fields!(ShardInitializeErrorType::UrlInvalid: url);
+    assert_impl_all!(ProcessErrorType: Debug, Send, Sync);
+    assert_impl_all!(ProcessError: Error, Send, Sync);
+    assert_impl_all!(ReceiveMessageErrorType: Debug, Send, Sync);
+    assert_impl_all!(ReceiveMessageError: Error, Send, Sync);
+    assert_impl_all!(SendErrorType: Debug, Send, Sync);
+    assert_impl_all!(SendError: Error, Send, Sync);
+    assert_impl_all!(ShardInitializeErrorType: Debug, Send, Sync);
+    assert_impl_all!(ShardInitializeError: Error, Send, Sync);
 }

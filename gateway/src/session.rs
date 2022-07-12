@@ -9,7 +9,11 @@ use std::mem;
 /// TODO explain all about sessions
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Session {
+    /// ID of the gateway session.
     id: String,
+    /// Sequence of the most recently received gateway event.
+    ///
+    /// The first sequence of a session is always 1.
     sequence: u64,
 }
 
@@ -77,6 +81,8 @@ mod tests {
         Session: Clone,
         Debug,
         Deserialize<'static>,
+        Eq,
+        PartialEq,
         Send,
         Serialize,
         Sync

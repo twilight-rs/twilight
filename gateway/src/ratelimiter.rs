@@ -1,3 +1,7 @@
+//! Ratelimiter on the user's ability to [send messages].
+//!
+//! [send messages]: crate::Shard::send
+
 use leaky_bucket_lite::LeakyBucket;
 use std::time::{Duration, Instant};
 
@@ -47,7 +51,7 @@ impl CommandRatelimiter {
 
     /// Acquire a token from the bucket, waiting until one is available.
     pub(crate) async fn acquire_one(&self) {
-        self.bucket.acquire_one().await
+        self.bucket.acquire_one().await;
     }
 }
 
@@ -71,6 +75,11 @@ fn available_commands_per_interval(heartbeat_interval: u64) -> u8 {
     /// <https://discord.com/developers/docs/topics/gateway#rate-limiting>
     const COMMANDS_PER_RESET: u8 = 120;
 
+    // Guard against the interval being 0, in which case we can default.
+    if heartbeat_interval == 0 {
+        return ALLOT_ON_FAIL;
+    }
+
     let mut heartbeats = RESET_DURATION_MILLISECONDS / heartbeat_interval;
     let remainder = RESET_DURATION_MILLISECONDS % heartbeat_interval;
 
@@ -80,7 +89,7 @@ fn available_commands_per_interval(heartbeat_interval: u64) -> u8 {
     // command for heartbeating variably every number of resets, but it's best
     // to be cautious and keep it simple.
     if remainder > 0 {
-        heartbeats += 1;
+        heartbeats = heartbeats.saturating_add(1);
     }
 
     // Convert the heartbeats to a u8. The number of heartbeats **should** never
@@ -102,6 +111,12 @@ fn available_commands_per_interval(heartbeat_interval: u64) -> u8 {
 
 #[cfg(test)]
 mod tests {
+    use super::CommandRatelimiter;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
+
     #[test]
     fn test_available_commands_per_interval() {
         assert_eq!(118, super::available_commands_per_interval(60_000));

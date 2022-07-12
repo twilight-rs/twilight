@@ -144,10 +144,9 @@ impl Message {
 #[cfg(test)]
 mod tests {
     use super::{CloseFrame, Message};
-    use static_assertions::{assert_fields, assert_impl_all};
+    use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_fields!(CloseFrame<'_>: code, reason);
     assert_impl_all!(
         CloseFrame<'_>:
         Clone,

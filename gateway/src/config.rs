@@ -1,7 +1,7 @@
 //! Customizable configuration for shards.
 
 use super::session::Session;
-use crate::EventTypeFlags;
+use crate::{tls::TlsContainer, EventTypeFlags};
 use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::Arc,
@@ -11,6 +11,16 @@ use twilight_model::gateway::{
     payload::outgoing::{identify::IdentifyProperties, update_presence::UpdatePresencePayload},
     Intents,
 };
+
+/// Maximum value of an acceptable [large threshold].
+///
+/// [large threshold]: ConfigBuilder::large_threshold
+pub const LARGE_THRESHOLD_MAXIMUM: u64 = 250;
+
+/// Minimum value of an acceptable [large threshold].
+///
+/// [large threshold]: ConfigBuilder::large_threshold
+pub const LARGE_THRESHOLD_MINIMUM: u64 = 50;
 
 /// Identifier of a [shard], including the shard's ID and the total number of
 /// shards in use by the bot.
@@ -108,16 +118,33 @@ impl Display for ShardId {
 /// Use [`Config::builder`] to start configuring a shard.
 #[derive(Clone, Debug)]
 pub struct Config {
+    /// Event type flags.
     event_types: EventTypeFlags,
+    /// URL used to connect to the gateway.
     gateway_url: Option<Box<str>>,
+    /// Identification properties the shard will use.
     identify_properties: Option<IdentifyProperties>,
+    /// Intents that the shard requests when identifying with the gateway.
     intents: Intents,
+    /// When the gateway will stop sending a guild's member list in
+    /// Guild Create events.
     large_threshold: u64,
+    /// Presence to set when identifying with the gateway.
     presence: Option<UpdatePresencePayload>,
-    queue: Arc<dyn Queue>,
-    token: Box<str>,
-    session: Option<Session>,
+    /// Whether [outgoing message] ratelimiting is enabled.
+    ///
+    /// [outgoing message]: crate::Shard::send
     ratelimit_messages: bool,
+    /// Queue in use by the shard.
+    queue: Arc<dyn Queue>,
+    /// Session information to resume a shard on initialization.
+    session: Option<Session>,
+    /// TLS connector for Websocket connections.
+    // We need this to be public so [`stream`] can re-use TLS on multiple shards
+    // if unconfigured.
+    tls: TlsContainer,
+    /// Token used to authenticate when identifying with the gateway.
+    token: Box<str>,
 }
 
 impl Config {
@@ -186,6 +213,11 @@ impl Config {
         self.session.as_ref()
     }
 
+    /// Immutable reference to the TLS connector in use by the shard.
+    pub(crate) const fn tls(&self) -> &TlsContainer {
+        &self.tls
+    }
+
     /// Immutable reference to the token used to authenticate when identifying
     /// with the gateway.
     pub const fn token(&self) -> &str {
@@ -221,6 +253,7 @@ impl ConfigBuilder {
                 queue: Arc::new(LocalQueue::new()),
                 ratelimit_messages: true,
                 session: None,
+                tls: TlsContainer::new().expect("failed to build tls"),
                 token: token.into_boxed_str(),
             },
         }
@@ -301,8 +334,9 @@ impl ConfigBuilder {
     /// Panics if the provided value is below 50 or above 250.
     pub const fn large_threshold(mut self, large_threshold: u64) -> Self {
         assert!(
-            large_threshold >= 50 && large_threshold <= 250,
-            "large threshold must be between 50 and 250, inclusively"
+            large_threshold >= LARGE_THRESHOLD_MINIMUM
+                && large_threshold <= LARGE_THRESHOLD_MAXIMUM,
+            "large threshold isn't in the accepted range"
         );
 
         self.inner.large_threshold = large_threshold;
@@ -431,7 +465,7 @@ mod tests {
     }
 
     #[test]
-    fn test_shard_id_new_checked() {
+    const fn test_shard_id_new_checked() {
         assert!(ShardId::new_checked(0, 1).is_some());
         assert!(ShardId::new_checked(1, 1).is_none());
         assert!(ShardId::new_checked(2, 1).is_none());
@@ -440,6 +474,7 @@ mod tests {
 
     #[test]
     fn test_shard_id_display() {
+        assert_eq!("shard 0/1", ShardId::ONE.to_string());
         assert_eq!("shard 2/4", ShardId::new(2, 4).to_string());
         assert_eq!("shard 13/102", ShardId::new(13, 102).to_string());
     }

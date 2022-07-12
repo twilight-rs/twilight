@@ -24,7 +24,7 @@ pub struct StartRecommendedError {
 
 impl Display for StartRecommendedError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
+        match self.kind {
             StartRecommendedErrorType::Deserializing => {
                 f.write_str("payload isn't a recognized type")
             }
@@ -62,14 +62,14 @@ pub enum StartRecommendedErrorType {
 ///
 /// # Panics
 ///
-/// Panics if TODO
+/// Panics if the lower end of the range is equal to the higher end of the
+/// range or the total isn't greater than the lower or higher end of the range.
 pub fn start_range(
     from: u64,
     to: u64,
     total: u64,
     config: Config,
 ) -> impl Stream<Item = Result<Shard, ShardInitializeError>> {
-    // todo document panics
     assert!(from < to, "range start must be less than the end");
     assert!(from < total, "range start must be less than the total");
     assert!(to < total, "range end must be less than the total");
