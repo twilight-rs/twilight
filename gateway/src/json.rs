@@ -15,7 +15,13 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::gateway::event::{GatewayEvent, GatewayEventDeserializer};
+use twilight_model::gateway::event::GatewayEvent;
+
+#[cfg(feature = "simd-json")]
+use twilight_model::gateway::event::GatewayEventDeserializerOwned as EventDeserializer;
+
+#[cfg(not(feature = "simd-json"))]
+use twilight_model::gateway::event::GatewayEventDeserializer as EventDeserializer;
 
 /// Parsing of a gateway event failed, likely due to a type being unrecognized.
 #[derive(Debug)]
@@ -90,15 +96,27 @@ pub fn from_slice<T: DeserializeOwned>(json: &mut [u8]) -> Result<T, GatewayEven
 /// Returns a [`GatewayEventParsingErrorType::PayloadInvalid`] error type if the
 /// payload wasn't a valid `GatewayEvent` data structure.
 pub fn parse(json: &mut [u8]) -> Result<GatewayEvent, GatewayEventParsingError> {
+    #[cfg(not(feature = "simd-json"))]
     let text = String::from_utf8_lossy(json);
+
+    #[cfg(not(feature = "simd-json"))]
     let gateway_deserializer =
-        GatewayEventDeserializer::from_json(&text).ok_or(GatewayEventParsingError {
+        EventDeserializer::from_json(&text).ok_or(GatewayEventParsingError {
             kind: GatewayEventParsingErrorType::PayloadInvalid,
             source: None,
         })?;
 
     #[cfg(not(feature = "simd-json"))]
     let mut json_deserializer = serde_json::Deserializer::from_slice(json);
+
+    #[cfg(feature = "simd-json")]
+    let gateway_deserializer = EventDeserializer::from_json(&String::from_utf8_lossy(json)).ok_or(
+        GatewayEventParsingError {
+            kind: GatewayEventParsingErrorType::PayloadInvalid,
+            source: None,
+        },
+    )?;
+
     #[cfg(feature = "simd-json")]
     let mut json_deserializer =
         simd_json::Deserializer::from_slice(json).map_err(|_| GatewayEventParsingError {
