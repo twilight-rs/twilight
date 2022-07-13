@@ -58,7 +58,7 @@ use crate::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
         SendErrorType, ShardInitializeError,
     },
-    future::{NextMessageFuture, NextMessageFutureOutput},
+    future::{NextMessageFuture, NextMessageFutureOutput, ReconnectDelayFuture},
     json,
     latency::Latency,
     message::{CloseFrame, Message},
@@ -465,11 +465,24 @@ impl Shard {
 
         match self.status {
             ConnectionStatus::Connected => {}
-            ConnectionStatus::Disconnected { .. } => {
+            ConnectionStatus::Disconnected {
+                close_code,
+                reconnect_attempts,
+                ..
+            } => {
+                ReconnectDelayFuture::new(reconnect_attempts).await;
+
                 self.connection =
                     connection::connect(self.id(), self.config.gateway_url(), self.config.tls())
                         .await
-                        .map_err(ReceiveMessageError::from_reconnect)?;
+                        .map_err(|source| {
+                            self.status = ConnectionStatus::Disconnected {
+                                close_code,
+                                reconnect_attempts: reconnect_attempts + 1,
+                            };
+
+                            ReceiveMessageError::from_reconnect(source)
+                        })?;
                 self.status = ConnectionStatus::Connected;
             }
             ConnectionStatus::FatallyClosed { close_code } => {

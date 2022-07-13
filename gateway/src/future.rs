@@ -105,6 +105,47 @@ impl Future for NextMessageFuture<'_> {
     }
 }
 
+/// Future that will resolve when the delay for a reconnect passes.
+///
+/// The duration of the future is defined by the number of attempts at
+/// reconnecting that have already been made. The math behind it is
+/// `2 ^ attempts`, maxing out at [`MAX_WAIT_SECONDS`].
+///
+/// [`MAX_WAIT_SECONDS`]: Self::MAX_WAIT_SECONDS
+pub struct ReconnectDelayFuture {
+    /// Inner future resolving when the duration passes.
+    inner: Pin<Box<Sleep>>,
+}
+
+impl ReconnectDelayFuture {
+    /// The maximum wait before resolving, in seconds.
+    const MAX_WAIT_SECONDS: u8 = 128;
+
+    /// Initialize a new unpolled future that will resolve when a reconnect
+    /// should be made.
+    pub fn new(reconnect_attempts: u8) -> Self {
+        let mut wait = 2_u8.saturating_pow(u32::from(reconnect_attempts));
+
+        if wait > Self::MAX_WAIT_SECONDS {
+            wait = Self::MAX_WAIT_SECONDS;
+        }
+
+        let duration = Duration::from_secs(u64::from(wait));
+
+        Self {
+            inner: Box::pin(time::sleep(duration)),
+        }
+    }
+}
+
+impl Future for ReconnectDelayFuture {
+    type Output = ();
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        self.as_mut().inner.poll_unpin(cx)
+    }
+}
+
 /// Future that will resolve when the shard must send its next heartbeat.
 ///
 /// The duration of the future is defined by taking the heartbeat interval defined
