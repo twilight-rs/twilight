@@ -210,7 +210,6 @@ impl EventTypeFlags {
             | EventTypeFlags::ROLE_CREATE.bits()
             | EventTypeFlags::ROLE_DELETE.bits()
             | EventTypeFlags::ROLE_UPDATE.bits()
-            | EventTypeFlags::ROLE_UPDATE.bits()
             | EventTypeFlags::STAGE_INSTANCE_CREATE.bits()
             | EventTypeFlags::STAGE_INSTANCE_UPDATE.bits()
             | EventTypeFlags::STAGE_INSTANCE_DELETE.bits()

@@ -10,7 +10,13 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 #[non_exhaustive]
 #[repr(u8)]
 pub enum InteractionType {
+    /// Interaction involves a ping (webhook-based interactions).
+    ///
+    /// See [Discord Docs/Receiving an Interaction].
+    ///
+    /// [Discord Docs/Receiving an Interaction]: https://discord.com/developers/docs/interactions/receiving-and-responding#receiving-an-interaction
     Ping = 1,
+    /// Interaction involves an application command.
     ApplicationCommand = 2,
     /// Interaction involves a message [`Component`].
     ///

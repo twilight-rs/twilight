@@ -78,7 +78,7 @@ pub enum Event {
     /// A guild integration was deleted.
     IntegrationUpdate(Box<IntegrationUpdate>),
     /// An interaction was invoked by a user.
-    InteractionCreate(InteractionCreate),
+    InteractionCreate(Box<InteractionCreate>),
     /// A invite was made.
     InviteCreate(Box<InviteCreate>),
     /// A invite was deleted.
@@ -378,6 +378,7 @@ mod tests {
     const_assert!(mem::size_of::<IntegrationCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<InviteCreate>() > EVENT_THRESHOLD);
+    const_assert!(mem::size_of::<InteractionCreate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MemberAdd>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MemberUpdate>() > EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MessageCreate>() > EVENT_THRESHOLD);
@@ -403,7 +404,6 @@ mod tests {
     const_assert!(mem::size_of::<GuildScheduledEventUserAdd>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<GuildScheduledEventUserRemove>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<IntegrationDelete>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<InteractionCreate>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<InviteDelete>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MemberChunk>() <= EVENT_THRESHOLD);
     const_assert!(mem::size_of::<MemberRemove>() <= EVENT_THRESHOLD);
