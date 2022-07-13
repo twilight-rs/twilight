@@ -90,7 +90,7 @@ mod tests {
 
     /// Test that sessions deserialize and serialize the same way.
     #[test]
-    fn test_serde() {
+    fn serde() {
         const SEQUENCE: u64 = 56_132;
         const SESSION_ID: &str = "thisisanid";
 
@@ -114,7 +114,7 @@ mod tests {
 
     /// Test that session getters return the provided values.
     #[test]
-    fn test_session() {
+    fn session() {
         const SESSIONS: [(u64, &str); 2] = [(1, "a"), (2, "b")];
 
         for (sequence, session_id) in SESSIONS {
@@ -127,7 +127,7 @@ mod tests {
     /// Test that setting the sequence actually updates the sequence and returns
     /// the previous sequence.
     #[test]
-    fn test_set_sequence() {
+    fn set_sequence() {
         const SEQUENCE_INITIAL: u64 = 1;
         const SEQUENCE_NEXT: u64 = SEQUENCE_INITIAL + 1;
         const SEQUENCE_SKIPPED: u64 = SEQUENCE_NEXT + 3;

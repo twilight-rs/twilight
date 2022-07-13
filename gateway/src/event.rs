@@ -209,7 +209,17 @@ impl EventTypeFlags {
             | EventTypeFlags::GUILD_UPDATE.bits()
             | EventTypeFlags::ROLE_CREATE.bits()
             | EventTypeFlags::ROLE_DELETE.bits()
-            | EventTypeFlags::ROLE_UPDATE.bits(),
+            | EventTypeFlags::ROLE_UPDATE.bits()
+            | EventTypeFlags::ROLE_UPDATE.bits()
+            | EventTypeFlags::STAGE_INSTANCE_CREATE.bits()
+            | EventTypeFlags::STAGE_INSTANCE_UPDATE.bits()
+            | EventTypeFlags::STAGE_INSTANCE_DELETE.bits()
+            | EventTypeFlags::THREAD_CREATE.bits()
+            | EventTypeFlags::THREAD_UPDATE.bits()
+            | EventTypeFlags::THREAD_DELETE.bits()
+            | EventTypeFlags::THREAD_LIST_SYNC.bits()
+            | EventTypeFlags::THREAD_MEMBER_UPDATE.bits()
+            | EventTypeFlags::THREAD_MEMBERS_UPDATE.bits(),
     );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
@@ -229,8 +239,12 @@ impl EventTypeFlags {
     /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
     ///
     /// [`Intents::GUILD_INTEGRATIONS`]: crate::Intents::GUILD_INTEGRATIONS
-    pub const GUILD_INTEGRATIONS: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::GUILD_INTEGRATIONS_UPDATE.bits());
+    pub const GUILD_INTEGRATIONS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
+        EventTypeFlags::GUILD_INTEGRATIONS_UPDATE.bits()
+            | EventTypeFlags::INTEGRATION_CREATE.bits()
+            | EventTypeFlags::INTEGRATION_UPDATE.bits()
+            | EventTypeFlags::INTEGRATION_DELETE.bits(),
+    );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_INVITES`].
     ///
@@ -245,7 +259,8 @@ impl EventTypeFlags {
     pub const GUILD_MEMBERS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
         EventTypeFlags::MEMBER_ADD.bits()
             | EventTypeFlags::MEMBER_REMOVE.bits()
-            | EventTypeFlags::MEMBER_UPDATE.bits(),
+            | EventTypeFlags::MEMBER_UPDATE.bits()
+            | EventTypeFlags::THREAD_MEMBERS_UPDATE.bits(),
     );
 
     /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGES`].

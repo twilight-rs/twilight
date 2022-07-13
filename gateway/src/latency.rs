@@ -184,7 +184,7 @@ mod tests {
         Sync
     );
 
-    const fn latency() -> Latency {
+    const fn default_latency() -> Latency {
         Latency {
             heartbeats: 17,
             received: None,
@@ -195,8 +195,8 @@ mod tests {
     }
 
     #[test]
-    fn test_latency() {
-        let latency = latency();
+    fn latency() {
+        let latency = default_latency();
         assert_eq!(latency.average(), Some(Duration::from_millis(30)));
         assert_eq!(latency.heartbeats(), 17);
         assert!(latency.received().is_none());
@@ -204,8 +204,8 @@ mod tests {
     }
 
     #[test]
-    fn test_recent_latency_iter() {
-        let latency = latency();
+    fn recent_latency_iter() {
+        let latency = default_latency();
         let mut iter = latency.recent();
         assert_eq!(iter.len(), Latency::RECENT_LEN);
         assert_eq!(

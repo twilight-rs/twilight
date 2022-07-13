@@ -18,7 +18,7 @@ async fn shard() -> Shard {
 
 #[ignore]
 #[tokio::test]
-async fn test_shard_command_ratelimit() {
+async fn shard_command_ratelimit() {
     let mut shard = shard().await;
 
     assert!(matches!(

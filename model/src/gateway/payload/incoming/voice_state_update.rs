@@ -19,7 +19,7 @@ mod tests {
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_voice_state_update() {
+    fn voice_state_update() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
 
         let value = VoiceStateUpdate(VoiceState {

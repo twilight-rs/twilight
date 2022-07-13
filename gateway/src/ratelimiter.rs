@@ -118,7 +118,7 @@ mod tests {
     assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
 
     #[test]
-    fn test_available_commands_per_interval() {
+    fn available_commands_per_interval() {
         assert_eq!(118, super::available_commands_per_interval(60_000));
         assert_eq!(116, super::available_commands_per_interval(42_500));
         assert_eq!(116, super::available_commands_per_interval(30_000));

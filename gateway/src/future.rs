@@ -159,7 +159,6 @@ impl Future for ReconnectDelayFuture {
 ///
 /// [gateway session]: crate::Session
 /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
-#[must_use]
 pub struct TickHeartbeatFuture {
     /// Inner future that will resolve after some time, defined by the type-level
     /// documentation.

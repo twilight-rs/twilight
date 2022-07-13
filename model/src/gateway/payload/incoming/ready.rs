@@ -26,7 +26,7 @@ mod tests {
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_ready() {
+    fn ready() {
         let guilds = vec![
             UnavailableGuild {
                 id: Id::new(1),

@@ -121,7 +121,7 @@ pub struct Config {
     /// Event type flags.
     event_types: EventTypeFlags,
     /// URL used to connect to the gateway.
-    gateway_url: Option<Box<str>>,
+    gateway_url: Option<String>,
     /// Identification properties the shard will use.
     identify_properties: Option<IdentifyProperties>,
     /// Intents that the shard requests when identifying with the gateway.
@@ -281,9 +281,10 @@ impl ConfigBuilder {
         self
     }
 
-    /// Set the URL used for connecting to Discord's gateway.
-    pub fn gateway_url(mut self, gateway_url: Option<String>) -> Self {
-        self.inner.gateway_url = gateway_url.map(String::into_boxed_str);
+    /// Set the proxy URL for connecting to the gateway.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn gateway_url(mut self, gateway_url: String) -> Self {
+        self.inner.gateway_url = Some(gateway_url);
 
         self
     }
@@ -332,6 +333,7 @@ impl ConfigBuilder {
     /// # Panics
     ///
     /// Panics if the provided value is below 50 or above 250.
+    #[track_caller]
     pub const fn large_threshold(mut self, large_threshold: u64) -> Self {
         assert!(
             large_threshold >= LARGE_THRESHOLD_MINIMUM
@@ -439,7 +441,7 @@ mod tests {
     assert_impl_all!(Config: Clone, Debug, Send, Sync);
 
     #[test]
-    const fn test_shard_id() {
+    const fn shard_id() {
         let id = ShardId::new(2, 4);
 
         assert!(id.current() == 2);
@@ -448,24 +450,24 @@ mod tests {
 
     #[should_panic]
     #[test]
-    const fn test_shard_id_current_equal_invalid() {
+    const fn shard_id_current_equal_invalid() {
         ShardId::new(4, 4);
     }
 
     #[should_panic]
     #[test]
-    const fn test_shard_id_current_greater_invalid() {
+    const fn shard_id_current_greater_invalid() {
         ShardId::new(10, 4);
     }
 
     #[should_panic]
     #[test]
-    const fn test_shard_id_total_zero_invalid() {
+    const fn shard_id_total_zero_invalid() {
         ShardId::new(0, 0);
     }
 
     #[test]
-    const fn test_shard_id_new_checked() {
+    const fn shard_id_new_checked() {
         assert!(ShardId::new_checked(0, 1).is_some());
         assert!(ShardId::new_checked(1, 1).is_none());
         assert!(ShardId::new_checked(2, 1).is_none());
@@ -473,7 +475,7 @@ mod tests {
     }
 
     #[test]
-    fn test_shard_id_display() {
+    fn shard_id_display() {
         assert_eq!("shard 0/1", ShardId::ONE.to_string());
         assert_eq!("shard 2/4", ShardId::new(2, 4).to_string());
         assert_eq!("shard 13/102", ShardId::new(13, 102).to_string());

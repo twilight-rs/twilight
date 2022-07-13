@@ -118,7 +118,7 @@ mod tests {
 
     /// Test that [`ConnectionUrl`] formats the default URL as expected.
     #[test]
-    fn test_default_url() {
+    fn default_url() {
         let url = ConnectionUrl::new(None).to_string();
         assert_eq!(
             url,
@@ -131,7 +131,7 @@ mod tests {
 
     /// Test that [`ConnectionUrl`] formats a provided URL as expected.
     #[test]
-    fn test_user_provided_url() {
+    fn user_provided_url() {
         /// URL provided by the user in the shard's configuration.
         const USER_URL: &str = "ws://localhost:1312";
 
