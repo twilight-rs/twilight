@@ -67,7 +67,7 @@ impl Display for ConnectionUrl<'_> {
         // and encoding".
         //
         // <https://discord.com/developers/docs/topics/gateway#connecting-gateway-url-query-string-params>
-        f.write_str("?v=")?;
+        f.write_str("/?v=")?;
         Display::fmt(&API_VERSION, f)?;
 
         f.write_str("&encoding=json")?;
