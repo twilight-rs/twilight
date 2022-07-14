@@ -142,6 +142,7 @@ mod tests {
             id: AUTO_MODERATION_RULE_ID,
             name: "rule".into(),
             trigger_metadata: AutoModerationTriggerMetadata {
+                allow_list: None,
                 keyword_filter: Some(Vec::from(["shoot".into(), "darn".into()])),
                 presets: None,
             },

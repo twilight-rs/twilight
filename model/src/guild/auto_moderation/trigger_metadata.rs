@@ -8,6 +8,9 @@ use serde::{Deserialize, Serialize};
 /// [`AutoModerationRule::trigger_type`]: super::AutoModerationRule::trigger_type
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AutoModerationTriggerMetadata {
+    /// Substrings that will be exempt from triggering the preset type.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allow_list: Option<Vec<String>>,
     /// Substrings which will be searched for in content.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keyword_filter: Option<Vec<String>>,
@@ -46,6 +49,7 @@ mod tests {
     #[test]
     fn trigger_metadata() {
         let value = AutoModerationTriggerMetadata {
+            allow_list: Some(Vec::from(["heck".into()])),
             keyword_filter: Some(Vec::from(["shoot".into(), "darn".into()])),
             presets: Some(Vec::from([
                 AutoModerationKeywordPresetType::Profanity,
@@ -59,8 +63,13 @@ mod tests {
             &[
                 Token::Struct {
                     name: "AutoModerationTriggerMetadata",
-                    len: 2,
+                    len: 3,
                 },
+                Token::Str("allow_list"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Str("heck"),
+                Token::SeqEnd,
                 Token::Str("keyword_filter"),
                 Token::Some,
                 Token::Seq { len: Some(2) },
