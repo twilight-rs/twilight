@@ -82,7 +82,7 @@ Starting a `Shard` and printing the contents of new messages as they come in:
 
 ```rust,no_run
 use std::{env, error::Error};
-use twilight_gateway::{config::ShardId, Intents, Shard};
+use twilight_gateway::{Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {

@@ -48,7 +48,7 @@ in from a channel:
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
-use twilight_gateway::{config::ShardId, Event, Intents, Shard};
+use twilight_gateway::{Event, Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 
 #[tokio::main]

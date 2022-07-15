@@ -69,7 +69,7 @@ including a handler to wait for reactions:
 ```rust,no_run
 use futures_util::StreamExt;
 use std::{env, sync::Arc};
-use twilight_gateway::{config::ShardId, Event, Intents, Shard};
+use twilight_gateway::{Event, Intents, Shard, ShardId};
 use twilight_model::{
     channel::Message,
     gateway::payload::incoming::ReactionAdd,

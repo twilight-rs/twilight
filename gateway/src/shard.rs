@@ -49,10 +49,9 @@
 //! [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
 
 use crate::{
-    channel::{MessageChannel, ShardMessageSender},
+    channel::{MessageChannel, MessageSender},
     command::{self, Command},
     compression::Compression,
-    config::{Config, ShardId},
     connection::{self, Connection},
     error::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
@@ -64,6 +63,7 @@ use crate::{
     message::{CloseFrame, Message},
     ratelimiter::CommandRatelimiter,
     session::Session,
+    Config, ShardId,
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
@@ -120,12 +120,19 @@ pub enum ConnectionStatus {
         /// Number of reconnection attempts that have been made.
         reconnect_attempts: u8,
     },
-    /// Shard has fatally closed, such as due to an invalid token.
+    /// Shard has fatally closed.
+    ///
+    /// Possible reasons may be due to [failed authentication],
+    /// [invalid intents], or other reasons. Refer to the documtation for
+    /// [`CloseCode`] for possible reasons.
+    ///
+    /// [failed authentication]: CloseCode::AuthenticationFailed
+    /// [invalid intents]: CloseCode::InvalidIntents
     FatallyClosed {
         /// Close code of the close message.
         ///
         /// The close code may be able to parse into [`CloseCode`] if it's a
-        /// known close code. Unknown close codes are considered fatal.
+        /// known close code. Unknown close codes aren't considered fatal.
         close_code: u16,
     },
 }
@@ -148,7 +155,7 @@ impl ConnectionStatus {
 
         let can_reconnect = CloseCode::try_from(raw_code)
             .map(CloseCode::can_reconnect)
-            .unwrap_or(false);
+            .unwrap_or(true);
 
         if can_reconnect {
             Self::Disconnected {
@@ -219,11 +226,12 @@ struct MinimalReady {
 /// use futures::stream::StreamExt;
 /// use std::env;
 /// use twilight_gateway::{
-///     config::{Config, ShardId},
+///     Config,
 ///     EventTypeFlags,
 ///     Event,
 ///     Intents,
 ///     Shard,
+///     ShardId,
 /// };
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -318,7 +326,7 @@ impl Shard {
     /// current connection status:
     ///
     /// ```no_run
-    /// use twilight_gateway::{config::ShardId, Intents, Shard};
+    /// use twilight_gateway::{Intents, Shard, ShardId};
     /// use std::{env, time::Duration};
     /// use tokio::time as tokio_time;
     ///
@@ -414,7 +422,7 @@ impl Shard {
     /// This won't be present if ratelimiting was disabled via
     /// [`ConfigBuilder::ratelimit_messages`].
     ///
-    /// [`ConfigBuilder::ratelimit_messages`]: crate::config::ConfigBuilder::ratelimit_messages
+    /// [`ConfigBuilder::ratelimit_messages`]: crate::ConfigBuilder::ratelimit_messages
     pub const fn ratelimiter(&self) -> Option<&CommandRatelimiter> {
         self.ratelimiter.as_ref()
     }
@@ -561,7 +569,7 @@ impl Shard {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
-    /// use twilight_gateway::{config::ShardId, Intents, Shard};
+    /// use twilight_gateway::{Intents, Shard, ShardId};
     /// use twilight_model::{
     ///     gateway::payload::outgoing::RequestGuildMembers,
     ///     id::Id,
@@ -612,10 +620,10 @@ impl Shard {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::{borrow::Cow, env};
     /// use twilight_gateway::{
-    ///     config::ShardId,
     ///     message::{CloseFrame, Message},
     ///     Intents,
     ///     Shard,
+    ///     ShardId,
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
@@ -633,7 +641,7 @@ impl Shard {
     /// currently restarting or closed and will restart.
     ///
     /// [ratelimiter]: CommandRatelimiter
-    /// [was enabled]: crate::config::ConfigBuilder::ratelimit_messages
+    /// [was enabled]: crate::ConfigBuilder::ratelimit_messages
     pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
         if let Some(ref ratelimiter) = self.ratelimiter {
             ratelimiter.acquire_one().await;
@@ -656,7 +664,7 @@ impl Shard {
     ///
     /// This is primarily useful for sending to other tasks and threads where
     /// the shard won't be available.
-    pub fn sender(&mut self) -> ShardMessageSender {
+    pub fn sender(&mut self) -> MessageSender {
         self.user_channel.sender()
     }
 
@@ -679,7 +687,7 @@ impl Shard {
     /// not be sent over the websocket. This indicates the shard is either
     /// currently restarting or closed and will restart.
     ///
-    /// [`ConfigBuilder::session`]: crate::config::ConfigBuilder::session
+    /// [`ConfigBuilder::session`]: crate::ConfigBuilder::session
     pub async fn close(
         &mut self,
         maybe_close_frame: Option<CloseFrame<'static>>,
@@ -877,9 +885,60 @@ fn default_identify_properties() -> IdentifyProperties {
 
 #[cfg(test)]
 mod tests {
-    use super::Shard;
-    use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use super::{ConnectionStatus, Disconnect, Shard};
+    use crate::message::CloseFrame;
+    use static_assertions::{assert_fields, assert_impl_all, const_assert};
+    use std::{borrow::Cow, fmt::Debug};
+    use twilight_model::gateway::CloseCode;
 
+    assert_fields!(
+        ConnectionStatus::Disconnected: close_code,
+        reconnect_attempts
+    );
+    assert_fields!(ConnectionStatus::FatallyClosed: close_code);
+    assert_impl_all!(ConnectionStatus: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Shard: Debug, Send, Sync);
+    const_assert!(matches!(
+        Disconnect::from_resumable(true),
+        Disconnect::Resume
+    ));
+    const_assert!(matches!(
+        Disconnect::from_resumable(false),
+        Disconnect::InvalidateSession
+    ));
+
+    #[test]
+    fn connection_status_from_close_frame() {
+        let empty = ConnectionStatus::from_close_frame(None);
+        assert_eq!(
+            empty,
+            ConnectionStatus::Disconnected {
+                close_code: None,
+                reconnect_attempts: 0
+            }
+        );
+
+        let non_fatal_code = CloseCode::SessionTimedOut as u16;
+        let non_fatal_frame = CloseFrame::new(non_fatal_code, Cow::from(""));
+        let non_fatal_status = ConnectionStatus::from_close_frame(Some(&non_fatal_frame));
+
+        assert_eq!(
+            non_fatal_status,
+            ConnectionStatus::Disconnected {
+                close_code: Some(non_fatal_code),
+                reconnect_attempts: 0
+            }
+        );
+
+        let fatal_code = CloseCode::AuthenticationFailed as u16;
+        let fatal_frame = CloseFrame::new(fatal_code, Cow::from(""));
+        let fatal_status = ConnectionStatus::from_close_frame(Some(&fatal_frame));
+
+        assert_eq!(
+            fatal_status,
+            ConnectionStatus::FatallyClosed {
+                close_code: fatal_code
+            }
+        );
+    }
 }

@@ -48,7 +48,7 @@ use std::{
     net::SocketAddr,
     str::FromStr,
 };
-use twilight_gateway::{config::ShardId, Intents, Shard};
+use twilight_gateway::{Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::Lavalink;
 

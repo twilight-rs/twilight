@@ -12,9 +12,15 @@ use tokio_tungstenite::tungstenite::{
     Message as TungsteniteMessage,
 };
 
-/// Information about a close message, if any.
+/// Information about a [close message].
 ///
-/// A close frame can be constructed via its `From` implementations.
+/// A close frame can be constructed via [`CloseFrame::new`]. A default close
+/// frame for causing a [full session disconnect] and for
+/// [causing a session resume] are provided.
+///
+/// [causing a session resume]: CloseFrame::RESUME
+/// [close message]: Message::Close
+/// [full session disconnect]: CloseFrame::NORMAL
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub struct CloseFrame<'a> {
@@ -49,6 +55,23 @@ impl<'a> CloseFrame<'a> {
         reason: Cow::Borrowed("resuming connection"),
     };
 
+    /// Construct a close frame from a code and a reason why.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::borrow::Cow;
+    /// use twilight_gateway::message::CloseFrame;
+    ///
+    /// let frame = CloseFrame::new(1000, Cow::from("reason here"));
+    ///
+    /// assert_eq!(1000, frame.code());
+    /// assert_eq!("reason here", frame.reason());
+    /// ```
+    pub const fn new(code: u16, reason: Cow<'a, str>) -> Self {
+        Self { code, reason }
+    }
+
     /// Convert a `tungstenite` close frame into a `twilight` close frame.
     pub(crate) fn from_tungstenite(tungstenite: TungsteniteCloseFrame<'a>) -> Self {
         Self {
@@ -73,27 +96,6 @@ impl<'a> CloseFrame<'a> {
     /// Reason for the close.
     pub fn reason(&self) -> &str {
         self.reason.as_ref()
-    }
-}
-
-/// Construct a close frame from a code and a reason why.
-///
-/// # Examples
-///
-/// ```
-/// use twilight_gateway::message::CloseFrame;
-///
-/// let frame = CloseFrame::from((1000, "reason here"));
-///
-/// assert_eq!(1000, frame.code());
-/// assert_eq!("reason here", frame.reason());
-/// ```
-impl<'a, T: Into<Cow<'a, str>>> From<(u16, T)> for CloseFrame<'a> {
-    fn from((code, reason): (u16, T)) -> Self {
-        Self {
-            code,
-            reason: reason.into(),
-        }
     }
 }
 
@@ -152,8 +154,6 @@ mod tests {
         Clone,
         Debug,
         Eq,
-        From<(u16, &'static str)>,
-        From<(u16, String)>,
         PartialEq,
     );
     assert_impl_all!(Message: Clone, Debug, Eq, PartialEq);

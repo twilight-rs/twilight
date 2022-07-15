@@ -22,7 +22,7 @@ impl Session {
     ///
     /// Can be provided to [`ConfigBuilder::session`].
     ///
-    /// [`ConfigBuilder::session`]: super::config::ConfigBuilder::session
+    /// [`ConfigBuilder::session`]: crate::ConfigBuilder::session
     pub const fn new(sequence: u64, session_id: String) -> Self {
         Self {
             sequence,
@@ -42,7 +42,7 @@ impl Session {
     ///
     /// [`Identify`]: twilight_model::gateway::payload::outgoing::Identify
     /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
-    /// [ID of the shard]: super::config::ShardId
+    /// [ID of the shard]: crate::ShardId
     pub fn id(&self) -> &str {
         &self.id
     }
@@ -58,7 +58,7 @@ impl Session {
     /// As a shard is connected to the gateway and receives events this sequence
     /// will be updated in real time when obtaining the [session of a shard].
     ///
-    /// [session of a shard]: super::Shard::session
+    /// [session of a shard]: crate::Shard::session
     pub const fn sequence(&self) -> u64 {
         self.sequence
     }

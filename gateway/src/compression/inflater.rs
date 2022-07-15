@@ -1,6 +1,6 @@
 //! todo
 
-use crate::config::ShardId;
+use crate::ShardId;
 use flate2::{Decompress, DecompressError, FlushDecompress};
 use std::{mem, time::Instant};
 
@@ -151,7 +151,6 @@ impl Inflater {
 
     /// Log metrics about the inflater.
     #[cfg(feature = "metrics")]
-    #[allow(clippy::cast_precision_loss)]
     fn inflater_metrics(&self) {
         metrics::gauge!(
             format!("Inflater-Capacity-{}", self.shard_id.current()),
@@ -195,7 +194,7 @@ impl Inflater {
 #[cfg(test)]
 mod tests {
     use super::Inflater;
-    use crate::config::ShardId;
+    use crate::ShardId;
     use std::error::Error;
 
     const MESSAGE: &[u8] = &[

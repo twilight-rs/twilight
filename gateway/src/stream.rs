@@ -1,10 +1,6 @@
 //! Streaming utilities for initializing clusters of shards.
 
-use crate::{
-    config::{Config, ShardId},
-    error::ShardInitializeError,
-    Shard,
-};
+use crate::{error::ShardInitializeError, Config, Shard, ShardId};
 use futures_util::stream::{FuturesUnordered, Stream};
 use std::{
     error::Error,
@@ -88,7 +84,6 @@ pub fn start_range(
         }
     }
 
-    #[allow(clippy::from_iter_instead_of_collect)]
     FuturesUnordered::from_iter(futures)
 }
 
@@ -101,7 +96,7 @@ pub fn start_range(
 /// ```no_run
 /// use futures::StreamExt;
 /// use std::{collections::HashMap, env, future};
-/// use twilight_gateway::{config::Config, Intents};
+/// use twilight_gateway::{Config, Intents};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -130,7 +125,6 @@ pub fn start_range(
 pub async fn start_recommended(
     config: Config,
 ) -> Result<impl Stream<Item = Result<Shard, ShardInitializeError>>, StartRecommendedError> {
-    // todo drop twilight_http dependency
     let info = Client::new(config.token().to_owned())
         .gateway()
         .authed()

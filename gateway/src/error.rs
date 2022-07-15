@@ -334,11 +334,6 @@ impl Display for ShardInitializeError {
             ShardInitializeErrorType::Establishing => {
                 f.write_str("establishing the connection failed")
             }
-            ShardInitializeErrorType::UrlInvalid { url } => {
-                f.write_str("user provided url is invalid: ")?;
-
-                f.write_str(url)
-            }
         }
     }
 }
@@ -357,14 +352,6 @@ impl Error for ShardInitializeError {
 pub enum ShardInitializeErrorType {
     /// Establishing a connection to the gateway failed.
     Establishing,
-    /// Gateway URL provided via [`ConfigBuilder::gateway_url`] is invalid.
-    ///
-    /// [`ConfigBuilder::gateway_url`]: crate::config::ConfigBuilder::gateway_url
-    UrlInvalid {
-        /// Fully built URL with a specified API version, compression, and other
-        /// features.
-        url: String,
-    },
 }
 
 #[cfg(test)]
@@ -377,7 +364,6 @@ mod tests {
     use std::{error::Error, fmt::Debug};
 
     assert_fields!(ReceiveMessageErrorType::FatallyClosed: close_code);
-    assert_fields!(ShardInitializeErrorType::UrlInvalid: url);
     assert_impl_all!(ProcessErrorType: Debug, Send, Sync);
     assert_impl_all!(ProcessError: Error, Send, Sync);
     assert_impl_all!(ReceiveMessageErrorType: Debug, Send, Sync);
@@ -386,4 +372,105 @@ mod tests {
     assert_impl_all!(SendError: Error, Send, Sync);
     assert_impl_all!(ShardInitializeErrorType: Debug, Send, Sync);
     assert_impl_all!(ShardInitializeError: Error, Send, Sync);
+
+    #[test]
+    fn process_error_display() {
+        const MESSAGES: [(ProcessErrorType, &str); 4] = [
+            (
+                ProcessErrorType::Compression,
+                "compression failed because the payload may be invalid",
+            ),
+            (
+                ProcessErrorType::Deserializing,
+                "payload isn't a recognized gateway event",
+            ),
+            (
+                ProcessErrorType::ParsingPayload,
+                "payload could not be parsed as json",
+            ),
+            (
+                ProcessErrorType::SendingMessage,
+                "failed to send a message over the websocket",
+            ),
+        ];
+
+        for (kind, message) in MESSAGES {
+            let error = ProcessError { kind, source: None };
+
+            assert_eq!(error.to_string(), *message);
+        }
+    }
+
+    #[test]
+    fn receive_message_error_display() {
+        const MESSAGES: [(ReceiveMessageErrorType, &str); 8] = [
+            (ReceiveMessageErrorType::Client, "websocket client error"),
+            (
+                ReceiveMessageErrorType::Decompressing,
+                "failed to decompress the message because it may be invalid",
+            ),
+            (
+                ReceiveMessageErrorType::Deserializing,
+                "message is an unrecognized payload",
+            ),
+            (
+                ReceiveMessageErrorType::FatallyClosed { close_code: 1001 },
+                "shard fatally closed: 1001",
+            ),
+            (
+                ReceiveMessageErrorType::FatallyClosed { close_code: 4013 },
+                "shard fatally closed: Invalid Intents",
+            ),
+            (
+                ReceiveMessageErrorType::Process,
+                "failed to internally process the received message",
+            ),
+            (
+                ReceiveMessageErrorType::Reconnect,
+                "failed to reconnect to the gateway",
+            ),
+            (
+                ReceiveMessageErrorType::SendingMessage,
+                "failed to send a message over the websocket",
+            ),
+        ];
+
+        for (kind, message) in MESSAGES {
+            let error = ReceiveMessageError { kind, source: None };
+
+            assert_eq!(error.to_string(), *message);
+        }
+    }
+
+    #[test]
+    fn send_error_display() {
+        assert_eq!(
+            SendError {
+                kind: SendErrorType::Sending,
+                source: None,
+            }
+            .to_string(),
+            "sending the message over the websocket failed"
+        );
+        assert_eq!(
+            SendError {
+                kind: SendErrorType::Serializing,
+                source: None,
+            }
+            .to_string(),
+            "serializing the value as json failed"
+        );
+    }
+
+    #[test]
+    fn shard_initialize_error_display() {
+        assert_eq!(
+            ShardInitializeError {
+                kind: ShardInitializeErrorType::Establishing,
+                source: None,
+            }
+            .to_string(),
+            "establishing the connection failed"
+        );
+    }
 }

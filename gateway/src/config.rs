@@ -1,7 +1,6 @@
-//! Customizable configuration for shards.
+//! User configuration for shards.
 
-use super::session::Session;
-use crate::{tls::TlsContainer, EventTypeFlags};
+use crate::{tls::TlsContainer, EventTypeFlags, Session};
 use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     sync::Arc,
@@ -12,21 +11,11 @@ use twilight_model::gateway::{
     Intents,
 };
 
-/// Maximum value of an acceptable [large threshold].
-///
-/// [large threshold]: ConfigBuilder::large_threshold
-pub const LARGE_THRESHOLD_MAXIMUM: u64 = 250;
-
-/// Minimum value of an acceptable [large threshold].
-///
-/// [large threshold]: ConfigBuilder::large_threshold
-pub const LARGE_THRESHOLD_MINIMUM: u64 = 50;
-
 /// Identifier of a [shard], including the shard's ID and the total number of
 /// shards in use by the bot.
 ///
-/// [shard]: super::Shard
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+/// [shard]: crate::Shard
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct ShardId {
     /// Current ID of the shard, 0-indexed.
     current: u64,
@@ -53,7 +42,7 @@ impl ShardId {
     /// Create a new shard with a current index of 13 out of 24 shards:
     ///
     /// ```
-    /// use twilight_gateway::config::ShardId;
+    /// use twilight_gateway::ShardId;
     ///
     /// let id = ShardId::new(13, 24);
     /// ```
@@ -301,7 +290,7 @@ impl ConfigBuilder {
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env::{self, consts::OS};
-    /// use twilight_gateway::{config::Config, Intents, Shard};
+    /// use twilight_gateway::{Config, Intents, Shard};
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
@@ -335,9 +324,18 @@ impl ConfigBuilder {
     /// Panics if the provided value is below 50 or above 250.
     #[track_caller]
     pub const fn large_threshold(mut self, large_threshold: u64) -> Self {
+        /// Maximum value of an acceptable [large threshold].
+        ///
+        /// [large threshold]: ConfigBuilder::large_threshold
+        const MAXIMUM: u64 = 250;
+
+        /// Minimum value of an acceptable [large threshold].
+        ///
+        /// [large threshold]: ConfigBuilder::large_threshold
+        const MINIMUM: u64 = 50;
+
         assert!(
-            large_threshold >= LARGE_THRESHOLD_MINIMUM
-                && large_threshold <= LARGE_THRESHOLD_MAXIMUM,
+            large_threshold >= MINIMUM && large_threshold <= MAXIMUM,
             "large threshold isn't in the accepted range"
         );
 
@@ -358,7 +356,7 @@ impl ConfigBuilder {
     ///
     /// ```no_run
     /// use std::env;
-    /// use twilight_gateway::{config::{Config, ShardId}, Intents, Shard};
+    /// use twilight_gateway::{Config, Intents, Shard, ShardId};
     /// use twilight_model::gateway::{
     ///     payload::outgoing::update_presence::UpdatePresencePayload,
     ///     presence::{ActivityType, MinimalActivity, Status},
@@ -434,11 +432,44 @@ impl ConfigBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{Config, ShardId};
-    use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use super::{Config, ConfigBuilder, ShardId};
+    use static_assertions::{assert_impl_all, const_assert_eq};
+    use std::{fmt::Debug, hash::Hash};
+    use twilight_model::gateway::Intents;
 
+    const_assert_eq!(ShardId::ONE.current(), 0);
+    const_assert_eq!(ShardId::ONE.total(), 1);
     assert_impl_all!(Config: Clone, Debug, Send, Sync);
+    assert_impl_all!(ConfigBuilder: Debug, Send, Sync);
+    assert_impl_all!(ShardId: Clone, Copy, Debug, Eq, Hash, PartialEq, Send, Sync);
+
+    fn builder() -> ConfigBuilder {
+        ConfigBuilder::new("test".to_owned(), Intents::empty())
+    }
+
+    #[tokio::test]
+    async fn large_threshold() {
+        const INPUTS: &[u64] = &[50, 100, 150, 200, 250];
+
+        for input in INPUTS {
+            assert_eq!(
+                builder().large_threshold(*input).build().large_threshold(),
+                *input,
+            );
+        }
+    }
+
+    #[should_panic]
+    #[tokio::test]
+    async fn large_threshold_minimum() {
+        drop(builder().large_threshold(49));
+    }
+
+    #[should_panic]
+    #[tokio::test]
+    async fn large_threshold_maximum() {
+        drop(builder().large_threshold(251));
+    }
 
     #[test]
     const fn shard_id() {
@@ -479,5 +510,26 @@ mod tests {
         assert_eq!("shard 0/1", ShardId::ONE.to_string());
         assert_eq!("shard 2/4", ShardId::new(2, 4).to_string());
         assert_eq!("shard 13/102", ShardId::new(13, 102).to_string());
+    }
+
+    #[tokio::test]
+    async fn config_prefixes_bot_to_token() {
+        const WITHOUT: &str = "test";
+        const WITH: &str = "Bot test";
+
+        assert_eq!(
+            ConfigBuilder::new(WITHOUT.to_owned(), Intents::empty())
+                .build()
+                .token
+                .as_ref(),
+            WITH
+        );
+        assert_eq!(
+            ConfigBuilder::new(WITH.to_owned(), Intents::empty())
+                .build()
+                .token
+                .as_ref(),
+            WITH
+        );
     }
 }

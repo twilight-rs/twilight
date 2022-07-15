@@ -1,6 +1,6 @@
 //! Sealed Command trait to denote what can be provided to [`Shard::command`].
 //!
-//! [`Shard::command`]: super::Shard::command
+//! [`Shard::command`]: crate::Shard::command
 
 use crate::{
     error::{SendError, SendErrorType},
@@ -43,8 +43,8 @@ mod private {
 /// To send an arbitrary command to the Discord Gateway API then [`Shard::send`]
 /// may be used.
 ///
-/// [`Shard::command`]: super::Shard::command
-/// [`Shard::send`]: super::Shard::send
+/// [`Shard::command`]: crate::Shard::command
+/// [`Shard::send`]: crate::Shard::send
 pub trait Command: private::Sealed {}
 
 impl Command for Heartbeat {}
@@ -72,7 +72,9 @@ pub fn prepare(command: &impl Command) -> Result<Message, SendError> {
 #[cfg(test)]
 mod tests {
     use super::Command;
+    use crate::message::Message;
     use static_assertions::assert_impl_all;
+    use std::error::Error;
     use twilight_model::gateway::payload::outgoing::{
         identify::Identify, resume::Resume, Heartbeat, RequestGuildMembers, UpdatePresence,
         UpdateVoiceState,
@@ -84,4 +86,15 @@ mod tests {
     assert_impl_all!(Resume: Command);
     assert_impl_all!(UpdatePresence: Command);
     assert_impl_all!(UpdateVoiceState: Command);
+
+    #[test]
+    fn prepare() -> Result<(), Box<dyn Error>> {
+        let heartbeat = Heartbeat::new(30_000);
+        let bytes = serde_json::to_vec(&heartbeat)?;
+        let message = super::prepare(&heartbeat)?;
+
+        assert_eq!(message, Message::Binary(bytes));
+
+        Ok(())
+    }
 }

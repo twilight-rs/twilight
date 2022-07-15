@@ -2,10 +2,9 @@
 
 use crate::{
     compression::COMPRESSION_FEATURES,
-    config::ShardId,
     error::{ShardInitializeError, ShardInitializeErrorType},
     tls::TlsContainer,
-    API_VERSION,
+    ShardId, API_VERSION,
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use tokio::net::TcpStream;
@@ -17,10 +16,13 @@ const GATEWAY_URL: &str = "wss://gateway.discord.gg";
 /// Configuration used for Websocket connections.
 ///
 /// `max_frame_size` and `max_message_queue` limits are disabled because
-/// Discord is not a malicious actor.
+/// Discord is not a malicious actor and having a limit has caused problems on
+/// large [`GuildCreate`] payloads.
 ///
 /// `accept_unmasked_frames` and `max_send_queue` are set to their
 /// defaults.
+///
+/// [`GuildCreate`]: twilight_model::gateway::payload::incoming::GuildCreate
 const WEBSOCKET_CONFIG: WebSocketConfig = WebSocketConfig {
     accept_unmasked_frames: false,
     max_frame_size: None,
@@ -42,7 +44,7 @@ pub type Connection = WebSocketStream<MaybeTlsStream<TcpStream>>;
 struct ConnectionUrl<'a> {
     /// Gateway URL configured by the URL via [`ConfigBuilder::gateway_url`].
     ///
-    /// [`ConfigBuilder::gateway_url`]: crate::config::ConfigBuilder::gateway_url
+    /// [`ConfigBuilder::gateway_url`]: crate::ConfigBuilder::gateway_url
     configured_url: Option<&'a str>,
 }
 
@@ -85,9 +87,6 @@ impl Display for ConnectionUrl<'_> {
 /// Returns a [`ShardInitializeErrorType::Establishing`] error type if the
 /// connection with the Discord gateway could not be established, such as
 /// due to network or TLS errors.
-///
-/// Returns a [`ShardInitializeErrorType::UrlInvalid`] error type if the user's
-/// gateway URL is invalid.
 pub async fn connect(
     id: ShardId,
     maybe_gateway_url: Option<&str>,
@@ -123,7 +122,7 @@ mod tests {
         assert_eq!(
             url,
             format!(
-                "{}?v={}&encoding=json{}",
+                "{}/?v={}&encoding=json{}",
                 GATEWAY_URL, API_VERSION, COMPRESSION_FEATURES
             ),
         );
@@ -139,7 +138,7 @@ mod tests {
         assert_eq!(
             valid_url.to_string(),
             format!(
-                "{}?v={}&encoding=json{}",
+                "{}/?v={}&encoding=json{}",
                 USER_URL, API_VERSION, COMPRESSION_FEATURES
             ),
         );

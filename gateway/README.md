@@ -6,12 +6,11 @@
 This is responsible for receiving stateful events in real-time from Discord
 and sending *some* stateful information.
 
-It includes two primary types: the Shard and Cluster.
-
-The Shard handles a single websocket connection and can manage up to 2500
-guilds. If you manage a small bot in under about 2000 guilds, then this is
-what you use. See the [Discord Docs/Sharding][docs:discord:sharding] for
-more information on sharding.
+The primary type is the `Shard`, a stateful interface to maintain a Websocket
+connection to Discord's gateway. Much of its functionality can be configured, and
+it's used to receive deserialized gateway event payloads or raw Websocket
+messages, useful for load balancing and microservices. Using the `stream`
+module, shards can be easily managed in groups.
 
 The Cluster is an interface which manages the health of the shards it
 manages and proxies all of their events under one unified stream. This is
@@ -24,89 +23,18 @@ repository][github examples link].
 
 ## Features
 
-### Deserialization
-
-`twilight-gateway` supports [`serde_json`] and [`simd-json`] for
-deserializing and serializing events.
-
-#### `simd-json`
-
-The `simd-json` feature enables [`simd-json`] support to use simd features
-of modern cpus to deserialize responses faster. It is not enabled by
-default.
-
-To use this feature you need to also add these lines to
-`<project root>/.cargo/config`:
-
-```toml
-[build]
-rustflags = ["-C", "target-cpu=native"]
-```
-you can also use this environment variable `RUSTFLAGS="-C target-cpu=native"`.
-
-```toml
-[dependencies]
-twilight-gateway = { default-features = false, features = ["rustls-native-roots", "simd-json"], version = "0.2" }
-```
-
-### TLS
-
-**Note**: not enabling any TLS feature is support for use behind a proxy;
-Discord's API is HTTPS only.
-
-`twilight-gateway` has features to enable [`tokio-tungstenite`] and
-[`twilight-http`]'s TLS features. These features are mutually exclusive.
-`rustls-native-roots` is enabled by default.
-
-#### `native`
-
-The `native` feature enables [`tokio-tungstenite`]'s `native-tls`
-feature as well as [`twilight-http`]'s `native` feature which is mostly
-equivalent to using [`native-tls`].
-
-To enable `native`, do something like this in your `Cargo.toml`:
-
-```toml
-[dependencies]
-twilight-gateway = { default-features = false, features = ["native"], version = "0.2" }
-```
-
-#### `rustls-native-roots`
-
-The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s `rustls-tls-native-roots` feature and
-[`twilight-http`]'s `rustls-native-roots` feature, which use [`rustls`] as the TLS backend and [`rustls-native-certs`]
-for root certificates.
-
-This is enabled by default.
-
-#### `rustls-webpki-roots`
-
-The `rustls-webpki-roots` feature enables [`tokio-tungstenite`]'s `rustls-tls-webpki-roots` feature and
-[`twilight-http`]'s `rustls-webpki-roots` feature, which use [`rustls`] as the TLS backend and [`webpki-roots`]
-for root certificates.
-
-This should be preferred over `rustls-native-roots` in Docker containers based on `scratch`.
-
-### zlib
-
-zlib compression is enabled with one of the two `zlib` features described below.
-
-There are 2 zlib features `zlib-stock` and `zlib-simd`, if both are enabled it
-will use `zlib-simd`.
-
-`zlib-stock` is enabled by default.
-
-Enabling `zlib-simd` will make the library use [`zlib-ng`] which is a modern
-fork of zlib that is faster and more efficient, but it needs `cmake` to compile.
-
-### Metrics
-
-The `metrics` feature provides metrics information via the `metrics` crate.
-Some of the metrics logged are counters about received event counts and
-their types and gauges about the capacity and efficiency of the inflater of
-each shard.
-
-This is disabled by default.
+* `metrics`: shard analytics for received events and uptime
+* `simd-json`: use [`simd-json`] instead of [`serde_json`] for deserializing
+  events
+* TLS (mutually exclusive)
+  * `native`: platform's native TLS implementation via [`native-tls`]
+    equivalents
+  * `rustls-native-roots` (*default*): [`rustls`] using native root certificates
+  * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
+    certificates, useful for `scratch` containers
+* Zlib (mutually exclusive)
+  * `zlib-stock` (*default*): [`flate2`]'s stock zlib implementation
+  * `zlib-ng`: use [`zlib-ng`] for zlib, may have better performance
 
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls

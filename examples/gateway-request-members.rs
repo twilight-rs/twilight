@@ -1,5 +1,5 @@
 use std::env;
-use twilight_gateway::{config::ShardId, Event, Intents, Shard};
+use twilight_gateway::{Event, Intents, Shard, ShardId};
 use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
 
 #[tokio::main]

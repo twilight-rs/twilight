@@ -5,7 +5,7 @@
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 mod inflater;
 
-use crate::config::ShardId;
+use crate::ShardId;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},

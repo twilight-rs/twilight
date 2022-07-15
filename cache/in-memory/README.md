@@ -35,7 +35,7 @@ Update a cache with events that come in through the gateway:
 ```rust,no_run
 use std::{env, error::Error};
 use twilight_cache_inmemory::InMemoryCache;
-use twilight_gateway::{config::ShardId, Intents, Shard};
+use twilight_gateway::{Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

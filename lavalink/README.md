@@ -64,7 +64,7 @@ use std::{
     net::SocketAddr,
     str::FromStr,
 };
-use twilight_gateway::{config::ShardId, Event, Intents, Shard};
+use twilight_gateway::{Event, Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
 

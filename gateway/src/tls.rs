@@ -22,17 +22,18 @@ use rustls_tls::OwnedTrustAnchor;
 
 use tokio_tungstenite::Connector;
 
+/// Native TLS connector for use with [`TlsContainer`].
 #[cfg(all(
     feature = "native",
     not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
 ))]
 pub(crate) type TlsConnector = NativeTlsConnector;
 
-/// todo
+/// Rustls client configuration for use with [`TlsContainer`].
 #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
 pub(crate) type TlsConnector = Arc<ClientConfig>;
 
-/// todo
+/// Creating a TLS connector failed, possibly due to loading certificates.
 #[derive(Debug)]
 pub struct TlsError {
     /// Type of error.
@@ -88,21 +89,13 @@ pub enum TlsErrorType {
     Loading,
 }
 
-/// todo
+/// Wrapper over a native or Rustls TLS connector.
 #[derive(Clone)]
-#[cfg_attr(
-    all(
-        feature = "native",
-        not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots")),
-    ),
-    derive(Debug)
-)]
 pub struct TlsContainer {
-    /// todo
+    /// TLS connector, which won't be present if no TLS feature is enabled.
     tls: Option<TlsConnector>,
 }
 
-#[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
 impl Debug for TlsContainer {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let mut debugger = f.debug_struct("TlsContainer");
@@ -118,6 +111,12 @@ impl Debug for TlsContainer {
 }
 
 impl TlsContainer {
+    /// Create a new TLS connector.
+    ///
+    /// # Errors
+    ///
+    /// Never returns an error, and only returns a Result to reach parity when
+    /// TLS features are enabled.
     #[cfg(not(any(
         feature = "native",
         feature = "rustls-native-roots",
@@ -127,6 +126,12 @@ impl TlsContainer {
         Ok(Self { tls: None })
     }
 
+    /// Create a new TLS connector.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`TlsErrorType::Loading`] error type if the TLS connector
+    /// couldn't be initialized.
     #[cfg(all(
         feature = "native",
         not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
@@ -142,9 +147,12 @@ impl TlsContainer {
         })
     }
 
-    /// todo
+    /// Create a new TLS connector.
     ///
     /// # Errors
+    ///
+    /// Returns a [`TlsErrorType::Loading`] error type if the TLS connector
+    /// couldn't be initialized.
     #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
     pub fn new() -> Result<Self, TlsError> {
         let mut roots = rustls_tls::RootCertStore::empty();
@@ -187,7 +195,7 @@ impl TlsContainer {
         })
     }
 
-    /// todo
+    /// Clone of a reference to the connector.
     pub(crate) fn connector(&self) -> Option<Connector> {
         #[cfg(not(any(
             feature = "native",
@@ -200,17 +208,24 @@ impl TlsContainer {
             feature = "native",
             not(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))
         ))]
-        return self.tls.as_ref().map(Arc::clone).map(Connector::NativeTls);
+        return self
+            .tls
+            .as_ref()
+            .map(|tls| Connector::NativeTls(Arc::clone(tls)));
 
         #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
-        return self.tls.as_ref().map(Arc::clone).map(Connector::Rustls);
+        return self
+            .tls
+            .as_ref()
+            .map(|tls| Connector::Rustls(Arc::clone(tls)));
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::TlsContainer;
+    use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    use super::TlsContainer;
-    static_assertions::assert_impl_all!(TlsContainer: Debug, Clone, Send, Sync);
+    assert_impl_all!(TlsContainer: Debug, Clone, Send, Sync);
 }

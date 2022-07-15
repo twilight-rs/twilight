@@ -19,28 +19,30 @@
     clippy::used_underscore_binding
 )]
 
-pub mod config;
 pub mod error;
-pub mod latency;
 pub mod message;
 pub mod stream;
 
 mod channel;
 mod command;
 mod compression;
+mod config;
 mod connection;
 mod event;
 mod future;
 mod json;
+mod latency;
 mod ratelimiter;
 mod session;
 mod shard;
 mod tls;
 
 pub use self::{
-    channel::ShardMessageSender,
+    channel::MessageSender,
     command::Command,
+    config::{Config, ConfigBuilder, ShardId},
     event::EventTypeFlags,
+    latency::Latency,
     ratelimiter::CommandRatelimiter,
     session::Session,
     shard::{ConnectionStatus, Shard},

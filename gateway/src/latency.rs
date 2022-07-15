@@ -1,7 +1,6 @@
 //! Statistics about the latency of a shard, useful for debugging.
 
 use std::{
-    iter::FusedIterator,
     slice::Iter,
     time::{Duration, Instant},
 };
@@ -10,8 +9,8 @@ use std::{
 ///
 /// May be obtained via [`Shard::latency`].
 ///
-/// [`Shard`]: super::Shard
-/// [`Shard::latency`]: super::Shard::latency
+/// [`Shard`]: crate::Shard
+/// [`Shard::latency`]: crate::Shard::latency
 #[derive(Clone, Debug)]
 pub struct Latency {
     /// Total number of heartbeat acknowledgements that have been received
@@ -21,7 +20,7 @@ pub struct Latency {
     received: Option<Instant>,
     /// Most recent latencies between sending a heartbeat and receiving an
     /// acknowledgement.
-    recent: [u64; Self::RECENT_LEN],
+    recent: [Duration; Self::RECENT_LEN],
     /// When the last heartbeat was sent.
     sent: Option<Instant>,
     /// Combined latencies of all heartbeats, used in conjunction with
@@ -40,7 +39,7 @@ impl Latency {
         Self {
             heartbeats: 0,
             received: None,
-            recent: [0; Self::RECENT_LEN],
+            recent: [Duration::ZERO; Self::RECENT_LEN],
             sent: None,
             total_time: 0,
         }
@@ -67,8 +66,8 @@ impl Latency {
     /// The 5 most recent latency times.
     ///
     /// Index 0 is the oldest, 4 is the most recent.
-    pub fn recent(&self) -> RecentLatencyIter<'_> {
-        RecentLatencyIter::new(&self.recent)
+    pub fn recent(&self) -> Iter<'_, Duration> {
+        self.recent.iter()
     }
 
     /// When the last heartbeat acknowledgement was received.
@@ -91,19 +90,23 @@ impl Latency {
         self.received = Some(Instant::now());
         self.heartbeats += 1;
 
-        if let Some(duration) = self.sent.map(|instant| instant.elapsed()) {
-            let millis = if let Ok(millis) = duration.as_millis().try_into() {
-                millis
-            } else {
-                tracing::error!(duration = ?duration, "milliseconds is more than u64");
+        let duration = if let Some(sent) = self.sent {
+            sent.elapsed()
+        } else {
+            return;
+        };
 
-                return;
-            };
+        let millis: u64 = if let Ok(millis) = duration.as_millis().try_into() {
+            millis
+        } else {
+            tracing::error!(duration = ?duration, "milliseconds is more than u64");
 
-            self.total_time += millis;
-            self.recent.rotate_right(1);
-            self.recent[0] = millis;
-        }
+            return;
+        };
+
+        self.total_time += millis;
+        self.recent.rotate_right(1);
+        self.recent[0] = duration;
     }
 
     /// Track that a heartbeat acknowledgement was received.
@@ -117,78 +120,25 @@ impl Latency {
     }
 }
 
-/// Iterator over the most recent latencies.
-#[derive(Debug)]
-pub struct RecentLatencyIter<'a> {
-    /// Inner protected iterator over the raw latency numbers.
-    inner: Iter<'a, u64>,
-}
-
-impl<'a> RecentLatencyIter<'a> {
-    /// Create a new iterator over the recent latencies.
-    fn new(recent: &'a [u64; Latency::RECENT_LEN]) -> Self {
-        Self {
-            inner: recent.iter(),
-        }
-    }
-}
-
-impl DoubleEndedIterator for RecentLatencyIter<'_> {
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.inner.next_back().copied().map(Duration::from_millis)
-    }
-
-    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-        self.inner.nth_back(n).copied().map(Duration::from_millis)
-    }
-}
-
-impl ExactSizeIterator for RecentLatencyIter<'_> {
-    fn len(&self) -> usize {
-        self.inner.len()
-    }
-}
-
-impl FusedIterator for RecentLatencyIter<'_> {}
-
-impl Iterator for RecentLatencyIter<'_> {
-    type Item = Duration;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().copied().map(Duration::from_millis)
-    }
-
-    fn nth(&mut self, n: usize) -> Option<Self::Item> {
-        self.inner.nth(n).copied().map(Duration::from_millis)
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.inner.size_hint()
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{Latency, RecentLatencyIter};
+    use super::Latency;
     use static_assertions::assert_impl_all;
-    use std::{fmt::Debug, iter::FusedIterator, time::Duration};
+    use std::{fmt::Debug, time::Duration};
 
     assert_impl_all!(Latency: Clone, Debug, Send, Sync);
-    assert_impl_all!(
-        RecentLatencyIter<'_>: Debug,
-        DoubleEndedIterator,
-        ExactSizeIterator,
-        FusedIterator,
-        Iterator,
-        Send,
-        Sync
-    );
 
     const fn default_latency() -> Latency {
         Latency {
             heartbeats: 17,
             received: None,
-            recent: [20, 25, 30, 35, 40],
+            recent: [
+                Duration::from_millis(20),
+                Duration::from_millis(25),
+                Duration::from_millis(30),
+                Duration::from_millis(35),
+                Duration::from_millis(40),
+            ],
             sent: None,
             total_time: 510,
         }
@@ -212,12 +162,29 @@ mod tests {
             iter.size_hint(),
             (Latency::RECENT_LEN, Some(Latency::RECENT_LEN))
         );
-        assert_eq!(iter.next(), Some(Duration::from_millis(20)));
-        assert_eq!(iter.next_back(), Some(Duration::from_millis(40)));
-        assert_eq!(iter.next(), Some(Duration::from_millis(25)));
-        assert_eq!(iter.next(), Some(Duration::from_millis(30)));
-        assert_eq!(iter.next_back(), Some(Duration::from_millis(35)));
+        assert_eq!(iter.next(), Some(&Duration::from_millis(20)));
+        assert_eq!(iter.next_back(), Some(&Duration::from_millis(40)));
+        assert_eq!(iter.next(), Some(&Duration::from_millis(25)));
+        assert_eq!(iter.next(), Some(&Duration::from_millis(30)));
+        assert_eq!(iter.next_back(), Some(&Duration::from_millis(35)));
         assert!(iter.next().is_none());
         assert!(iter.next_back().is_none());
+    }
+
+    #[test]
+    fn latency_track() {
+        let mut latency = Latency::new();
+        assert!(latency.received().is_none());
+        assert!(latency.sent().is_none());
+
+        latency.track_sent();
+        assert_eq!(latency.heartbeats(), 0);
+        assert!(latency.received().is_none());
+        assert!(latency.sent().is_some());
+
+        latency.track_received();
+        assert_eq!(latency.heartbeats(), 1);
+        assert!(latency.received().is_some());
+        assert!(latency.sent().is_some());
     }
 }

@@ -14,7 +14,7 @@ Process new messages that come over a shard into the cache:
 use futures::StreamExt;
 use std::env;
 use twilight_cache_inmemory::InMemoryCache;
-use twilight_gateway::{config::ShardId, Intents, Shard};
+use twilight_gateway::{Intents, Shard, ShardId};
 
 let token = env::var("DISCORD_TOKEN")?;
 

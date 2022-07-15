@@ -121,7 +121,7 @@ bot's token. You must also depend on `futures`, `tokio`,
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
-use twilight_gateway::{config::ShardId, Event, Shard};
+use twilight_gateway::{Event, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_model::gateway::Intents;
 

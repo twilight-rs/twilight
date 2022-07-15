@@ -1,6 +1,6 @@
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
 use std::{env, time::Duration};
-use twilight_gateway::{config::ShardId, Intents, Shard};
+use twilight_gateway::{Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

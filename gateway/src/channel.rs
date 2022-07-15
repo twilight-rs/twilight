@@ -35,8 +35,8 @@ impl MessageChannel {
     }
 
     /// Clone of the sending half for users.
-    pub fn sender(&self) -> ShardMessageSender {
-        ShardMessageSender {
+    pub fn sender(&self) -> MessageSender {
+        MessageSender {
             tx: self.tx.clone(),
         }
     }
@@ -47,12 +47,12 @@ impl MessageChannel {
 ///
 /// [`Shard`]: crate::Shard
 #[derive(Clone, Debug)]
-pub struct ShardMessageSender {
+pub struct MessageSender {
     /// Sending half of the channel for the user to send messages to a shard.
     tx: UnboundedSender<Message>,
 }
 
-impl ShardMessageSender {
+impl MessageSender {
     /// Whether the channel is closed.
     ///
     /// The channel will only be closed if the associated shard has been
@@ -97,9 +97,50 @@ impl ShardMessageSender {
 
 #[cfg(test)]
 mod tests {
-    use super::ShardMessageSender;
-    use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use crate::message::Message;
 
-    assert_impl_all!(ShardMessageSender: Clone, Debug, Send, Sync);
+    use super::{MessageChannel, MessageSender};
+    use static_assertions::assert_impl_all;
+    use std::{error::Error, fmt::Debug};
+    use twilight_model::{
+        gateway::payload::outgoing::{Heartbeat, RequestGuildMembers},
+        id::Id,
+    };
+
+    assert_impl_all!(MessageChannel: Debug, Send, Sync);
+    assert_impl_all!(MessageSender: Clone, Debug, Send, Sync);
+
+    #[test]
+    fn channel_sending() -> Result<(), Box<dyn Error>> {
+        let mut channel = MessageChannel::new();
+        let sender = channel.sender();
+        assert!(channel.rx_mut().try_recv().is_err());
+
+        let request = RequestGuildMembers::builder(Id::new(1)).query("", None);
+        let heartbeat = Heartbeat::new(30_000);
+        let heartbeat_bytes = serde_json::to_vec(&heartbeat)?;
+        assert!(sender.command(&request).is_ok());
+        assert!(sender
+            .send(Message::Binary(heartbeat_bytes.clone()))
+            .is_ok());
+
+        match channel.rx_mut().try_recv()? {
+            Message::Binary(bytes) => assert_eq!(request, serde_json::from_slice(&bytes)?),
+            other => panic!("message isn't binary: {:?}", other),
+        }
+
+        match channel.rx_mut().try_recv()? {
+            Message::Binary(bytes) => assert_eq!(heartbeat, serde_json::from_slice(&bytes)?),
+            other => panic!("message isn't binary: {:?}", other),
+        }
+
+        assert!(!sender.is_closed());
+        drop(channel);
+        assert!(sender.is_closed());
+
+        assert!(sender.command(&heartbeat).is_err());
+        assert!(sender.send(Message::Binary(heartbeat_bytes)).is_err());
+
+        Ok(())
+    }
 }

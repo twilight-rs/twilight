@@ -5,7 +5,7 @@ use bitflags::bitflags;
 use twilight_model::gateway::event::EventType;
 
 bitflags! {
-    /// Bitflags representing all of the possible types of events.
+    /// Important optimization for narrowing requested event types.
     ///
     /// Specifying event types is an important optimization technique on top of
     /// [intents], which can dramatically decrease processor usage in many
@@ -19,7 +19,7 @@ bitflags! {
     /// only events used in this group of events is, say, [`ChannelCreate`] and
     /// [`GuildRoleCreate`], then the [`CHANNEL_CREATE`] and
     /// [`GUILD_ROLE_CREATE`] event type flags can be specified in combination
-    /// with that intent. This reduces the events deserialized and received to
+    /// with that intent. This reduces the events received and deserialized to
     /// only those events.
     ///
     /// [`CHANNEL_CREATE`]: Self::CHANNEL_CREATE
@@ -419,9 +419,10 @@ impl Default for EventTypeFlags {
 
 #[cfg(test)]
 mod tests {
-    use super::{EventType, EventTypeFlags};
+    use super::EventTypeFlags;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};
+    use twilight_model::gateway::event::EventType;
 
     assert_impl_all!(
         EventTypeFlags: Copy,
