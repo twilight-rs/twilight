@@ -887,7 +887,11 @@ impl UpdateCache for Event {
             Event::UserUpdate(v) => c.update(v),
             Event::VoiceStateUpdate(v) => c.update(v.deref()),
             // Ignored events.
-            Event::BanAdd(_)
+            Event::AutoModerationActionExecution(_)
+            | Event::AutoModerationRuleCreate(_)
+            | Event::AutoModerationRuleDelete(_)
+            | Event::AutoModerationRuleUpdate(_)
+            | Event::BanAdd(_)
             | Event::BanRemove(_)
             | Event::CommandPermissionsUpdate(_)
             | Event::GatewayHeartbeat(_)
