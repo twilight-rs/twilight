@@ -16,7 +16,6 @@ use crate::{
     util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Representation of a scheduled event.
 ///
@@ -90,44 +89,111 @@ pub struct EntityMetadata {
 }
 
 /// Type of event.
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum EntityType {
     /// Event takes place in a stage instance.
-    StageInstance = 1,
+    StageInstance,
     /// Event takes place in a voice channel.
-    Voice = 2,
+    Voice,
     /// Event takes place outside of Discord.
-    External = 3,
+    External,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
+}
+
+impl From<u8> for EntityType {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => EntityType::StageInstance,
+            2 => EntityType::Voice,
+            3 => EntityType::External,
+            unknown => EntityType::Unknown(unknown),
+        }
+    }
+}
+
+impl From<EntityType> for u8 {
+    fn from(value: EntityType) -> Self {
+        match value {
+            EntityType::StageInstance => 1,
+            EntityType::Voice => 2,
+            EntityType::External => 3,
+            EntityType::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 /// Privacy level of an event.
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum PrivacyLevel {
     /// Event is only accessible to guild members.
-    GuildOnly = 2,
+    GuildOnly,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
+}
+
+impl From<u8> for PrivacyLevel {
+    fn from(value: u8) -> Self {
+        match value {
+            2 => PrivacyLevel::GuildOnly,
+            unknown => PrivacyLevel::Unknown(unknown),
+        }
+    }
+}
+
+impl From<PrivacyLevel> for u8 {
+    fn from(value: PrivacyLevel) -> Self {
+        match value {
+            PrivacyLevel::GuildOnly => 2,
+            PrivacyLevel::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 /// Status of an event.
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum Status {
     /// Event is scheduled.
     ///
     /// With this status, the event can either be made active or cancelled.
-    Scheduled = 1,
+    Scheduled,
     /// Event is active.
     ///
     /// With this status, the event can only be made complete.
-    Active = 2,
+    Active,
     /// Event is complete.
-    Completed = 3,
+    Completed,
     /// Event is cancelled.
-    Cancelled = 4,
+    Cancelled,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
+}
+
+impl From<u8> for Status {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Status::Scheduled,
+            2 => Status::Active,
+            3 => Status::Completed,
+            4 => Status::Cancelled,
+            unknown => Status::Unknown(unknown),
+        }
+    }
+}
+
+impl From<Status> for u8 {
+    fn from(value: Status) -> Self {
+        match value {
+            Status::Scheduled => 1,
+            Status::Active => 2,
+            Status::Completed => 3,
+            Status::Cancelled => 4,
+            Status::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 #[cfg(test)]

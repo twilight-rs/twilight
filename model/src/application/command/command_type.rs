@@ -1,22 +1,23 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
 // Keep in sync with `twilight-validate::command`!
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum CommandType {
     /// Slash command.
     ///
     /// Text-based command that appears when a user types `/`.
-    ChatInput = 1,
+    ChatInput,
     /// UI-based command.
     ///
     /// Appears when a user right clicks or taps on a user.
-    User = 2,
+    User,
     /// UI-based command.
     ///
     /// Appears when a user right clicks or taps on a message.
-    Message = 3,
+    Message,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
 }
 
 impl CommandType {
@@ -25,6 +26,29 @@ impl CommandType {
             Self::ChatInput => "ChatInput",
             Self::User => "User",
             Self::Message => "Message",
+            Self::Unknown(_) => "Unknown",
+        }
+    }
+}
+
+impl From<u8> for CommandType {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::ChatInput,
+            2 => Self::User,
+            3 => Self::Message,
+            unknown => Self::Unknown(unknown),
+        }
+    }
+}
+
+impl From<CommandType> for u8 {
+    fn from(value: CommandType) -> Self {
+        match value {
+            CommandType::ChatInput => 1,
+            CommandType::User => 2,
+            CommandType::Message => 3,
+            CommandType::Unknown(unknown) => unknown,
         }
     }
 }
@@ -55,6 +79,7 @@ mod tests {
         serde_test::assert_tokens(&CommandType::ChatInput, &[Token::U8(1)]);
         serde_test::assert_tokens(&CommandType::User, &[Token::U8(2)]);
         serde_test::assert_tokens(&CommandType::Message, &[Token::U8(3)]);
+        serde_test::assert_tokens(&CommandType::Unknown(99), &[Token::U8(99)]);
     }
 
     #[test]
@@ -62,5 +87,6 @@ mod tests {
         assert_eq!("ChatInput", CommandType::ChatInput.kind());
         assert_eq!("User", CommandType::User.kind());
         assert_eq!("Message", CommandType::Message.kind());
+        assert_eq!("Unknown", CommandType::Unknown(99).kind());
     }
 }

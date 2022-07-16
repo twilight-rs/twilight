@@ -37,25 +37,6 @@ use crate::{
     util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Result as FmtResult};
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum ConversionError {
-    MessageType(u8),
-}
-
-impl Display for ConversionError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self {
-            ConversionError::MessageType(num) => {
-                f.write_str("Could not convert ")?;
-                Display::fmt(num, f)?;
-
-                f.write_str(" into a valid MessageType!")
-            }
-        }
-    }
-}
 
 /// Channel to send messages in, call with other users, organize groups, and
 /// more.
