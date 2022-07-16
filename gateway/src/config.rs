@@ -136,7 +136,7 @@ pub struct Config {
 }
 
 impl Config {
-    /// Create a new default configuration for a shard.
+    /// Create a new default shard configuration.
     ///
     /// Shortcut for calling [`builder`][`Self::builder`] and immediately
     /// finalizing the builder.
