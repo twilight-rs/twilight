@@ -27,7 +27,7 @@ impl<'a> AttachmentManager<'a> {
             push_digits(file.id, &mut name);
             name.extend(b"]");
 
-            form = form.file_part(name.as_ref(), file.filename.as_bytes(), file.file.as_ref())
+            form = form.file_part(name.as_ref(), file.filename.as_bytes(), file.file.as_ref());
         }
 
         form
@@ -131,7 +131,7 @@ fn push_digits(mut id: u64, buf: &mut Vec<u8>) {
     // we have been using to get the characters in the correct order.
     inner_buf[..i].reverse();
 
-    buf.extend_from_slice(&inner_buf[..i])
+    buf.extend_from_slice(&inner_buf[..i]);
 }
 
 #[cfg(test)]
@@ -139,7 +139,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_push_digits() {
+    fn push_digits_limits() {
         let min_d = b"0";
         let max_d = b"18446744073709551615";
 
@@ -154,7 +154,7 @@ mod tests {
     }
 
     #[test]
-    fn test_num_digits() {
+    fn num_digits_count() {
         assert_eq!(1, num_digits(0));
         assert_eq!(1, num_digits(1));
         assert_eq!(2, num_digits(10));

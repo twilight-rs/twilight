@@ -9,11 +9,11 @@ use hyper::{
 use once_cell::sync::Lazy;
 use std::future::Future;
 use twilight_model::{
-    application::interaction::Interaction,
+    application::interaction::{
+        application_command::CommandData, Interaction, InteractionData, InteractionType,
+    },
     http::interaction::{InteractionResponse, InteractionResponseData, InteractionResponseType},
 };
-
-type GenericError = Box<dyn std::error::Error + Send + Sync>;
 
 /// Public key given from Discord.
 static PUB_KEY: Lazy<PublicKey> = Lazy::new(|| {
@@ -27,10 +27,10 @@ static PUB_KEY: Lazy<PublicKey> = Lazy::new(|| {
 /// a InteractionResponse or a error.
 async fn interaction_handler<F>(
     req: Request<Body>,
-    f: impl Fn(Interaction) -> F,
-) -> Result<Response<Body>, GenericError>
+    f: impl Fn(Box<CommandData>) -> F,
+) -> anyhow::Result<Response<Body>>
 where
-    F: Future<Output = Result<InteractionResponse, GenericError>>,
+    F: Future<Output = anyhow::Result<InteractionResponse>>,
 {
     // Check that the method used is a POST, all other methods are not allowed.
     if req.method() != Method::POST {
@@ -91,9 +91,9 @@ where
     // Deserialize the body into a interaction.
     let interaction = serde_json::from_slice::<Interaction>(&whole_body)?;
 
-    match interaction {
+    match interaction.kind {
         // Return a Pong if a Ping is received.
-        Interaction::Ping(_) => {
+        InteractionType::Ping => {
             let response = InteractionResponse {
                 kind: InteractionResponseType::Pong,
                 data: None,
@@ -107,9 +107,14 @@ where
                 .body(json.into())?)
         }
         // Respond to a slash command.
-        Interaction::ApplicationCommand(_) => {
+        InteractionType::ApplicationCommand => {
             // Run the handler to gain a response.
-            let response = f(interaction).await?;
+            let data = match interaction.data {
+                Some(InteractionData::ApplicationCommand(data)) => Some(data),
+                _ => None,
+            }
+            .expect("`InteractionType::ApplicationCommand` has data");
+            let response = f(data).await?;
 
             // Serialize the response and return it back to Discord.
             let json = serde_json::to_vec(&response)?;
@@ -128,30 +133,27 @@ where
 
 /// Interaction handler that matches on the name of the interaction that
 /// have been dispatched from Discord.
-async fn handler(i: Interaction) -> Result<InteractionResponse, GenericError> {
-    match &i {
-        Interaction::ApplicationCommand(cmd) => match cmd.data.name.as_ref() {
-            "vroom" => vroom(i).await,
-            "debug" => debug(i).await,
-            _ => debug(i).await,
-        },
-        _ => Err("invalid interaction data".into()),
+async fn handler(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
+    match data.name.as_ref() {
+        "vroom" => vroom(data).await,
+        "debug" => debug(data).await,
+        _ => debug(data).await,
     }
 }
 
 /// Example of a handler that returns the formatted version of the interaction.
-async fn debug(i: Interaction) -> Result<InteractionResponse, GenericError> {
+async fn debug(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {
-            content: Some(format!("```rust\n{i:?}\n```")),
+            content: Some(format!("```rust\n{data:?}\n```")),
             ..Default::default()
         }),
     })
 }
 
 /// Example of interaction that responds with a message saying "Vroom vroom".
-async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
+async fn vroom(_: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {
@@ -162,7 +164,7 @@ async fn vroom(_: Interaction) -> Result<InteractionResponse, GenericError> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), GenericError> {
+async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
@@ -171,7 +173,7 @@ async fn main() -> Result<(), GenericError> {
 
     // Make the interaction handler into a service function.
     let interaction_service = make_service_fn(|_| async {
-        Ok::<_, GenericError>(service_fn(|req| interaction_handler(req, handler)))
+        Ok::<_, anyhow::Error>(service_fn(|req| interaction_handler(req, handler)))
     });
 
     // Construct the server and serve the interaction service.

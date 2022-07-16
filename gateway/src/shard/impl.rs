@@ -226,9 +226,6 @@ impl Display for ShardStartError {
 
                 f.write_str("` is invalid")
             }
-            ShardStartErrorType::RetrievingGatewayUrl => {
-                f.write_str("retrieving the gateway URL via HTTP failed")
-            }
         }
     }
 }
@@ -258,8 +255,6 @@ pub enum ShardStartErrorType {
         /// URL that couldn't be parsed.
         url: String,
     },
-    /// Retrieving the gateway URL via the Twilight HTTP client failed.
-    RetrievingGatewayUrl,
 }
 
 /// Information about a shard, including its latency, current session sequence,
@@ -375,8 +370,7 @@ pub struct ResumeSession {
 ///
 /// let (shard, mut events) = Shard::builder(token, Intents::GUILD_MESSAGES)
 ///     .event_types(event_types)
-///     .build()
-///     .await?;
+///     .build();
 ///
 /// // Start the shard.
 /// shard.start().await?;
@@ -427,7 +421,7 @@ impl Shard {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
     /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
-    /// let (shard, _) = Shard::new(token, intents).await?;
+    /// let (shard, _) = Shard::new(token, intents);
     /// shard.start().await?;
     ///
     /// tokio_time::sleep(Duration::from_secs(1)).await;
@@ -437,14 +431,9 @@ impl Shard {
     /// # Ok(()) }
     /// ```
     ///
-    /// # Errors
-    ///
-    /// Returns a [`ShardStartErrorType::RetrievingGatewayUrl`] error type if
-    /// the gateway URL couldn't be retrieved from the HTTP API.
-    ///
     /// [`start`]: Self::start
-    pub async fn new(token: String, intents: Intents) -> Result<(Self, Events), ShardStartError> {
-        Self::builder(token, intents).build().await
+    pub fn new(token: String, intents: Intents) -> (Self, Events) {
+        Self::builder(token, intents).build()
     }
 
     pub(crate) fn new_with_config(config: Config) -> (Self, Events) {
@@ -589,7 +578,7 @@ impl Shard {
     /// let intents = Intents::GUILDS;
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let (shard, _events) = Shard::new(token, intents).await?;
+    /// let (shard, _events) = Shard::new(token, intents);
     /// shard.start().await?;
     ///
     /// let minimal_activity = MinimalActivity {
@@ -643,7 +632,7 @@ impl Shard {
     /// use twilight_gateway::{shard::{raw_message::Message, Shard}, Intents};
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let (shard, _) = Shard::new(token, Intents::GUILDS).await?;
+    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
     /// shard.start().await?;
     ///
     /// shard.send(Message::Ping(Vec::new())).await?;
@@ -664,7 +653,7 @@ impl Shard {
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let (shard, _) = Shard::new(token, Intents::GUILDS).await?;
+    /// let (shard, _) = Shard::new(token, Intents::GUILDS);
     /// shard.start().await?;
     ///
     /// let close = CloseFrame::from((1000, ""));

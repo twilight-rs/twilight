@@ -37,18 +37,6 @@ impl EmbedAuthorBuilder {
         self
     }
 
-    /// The author's name.
-    ///
-    /// Refer to [`AUTHOR_NAME_LENGTH`] for the maximum number of UTF-16 code
-    /// points that can be in an author name.
-    ///
-    /// [`AUTHOR_NAME_LENGTH`]: twilight_validate::embed::AUTHOR_NAME_LENGTH
-    pub fn name(mut self, name: impl Into<String>) -> Self {
-        self.0.name = name.into();
-
-        self
-    }
-
     /// The author's url.
     pub fn url(mut self, url: impl Into<String>) -> Self {
         self.0.url = Some(url.into());
@@ -77,7 +65,7 @@ mod tests {
     assert_impl_all!(EmbedAuthor: From<EmbedAuthorBuilder>);
 
     #[test]
-    fn test_builder() {
+    fn builder() {
         let expected = EmbedAuthor {
             icon_url: Some("https://example.com/1.png".to_owned()),
             name: "an author".to_owned(),

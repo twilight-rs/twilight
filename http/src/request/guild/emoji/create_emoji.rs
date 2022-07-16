@@ -17,7 +17,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 
 #[derive(Serialize)]
 struct CreateEmojiFields<'a> {
-    image: &'a [u8],
+    image: &'a str,
     name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     roles: Option<&'a [Id<RoleMarker>]>,
@@ -43,7 +43,7 @@ impl<'a> CreateEmoji<'a> {
         http: &'a Client,
         guild_id: Id<GuildMarker>,
         name: &'a str,
-        image: &'a [u8],
+        image: &'a str,
     ) -> Self {
         Self {
             fields: CreateEmojiFields {
@@ -106,5 +106,47 @@ impl TryIntoRequest for CreateEmoji<'_> {
         }
 
         Ok(request.build())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_create_emoji() -> Result<(), Box<dyn Error>> {
+        const GUILD_ID: Id<GuildMarker> = Id::new(1);
+        const ROLE_ID: Id<RoleMarker> = Id::new(2);
+
+        let client = Client::new("token".into());
+
+        {
+            let expected = r#"{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI","name":"square"}"#;
+            let actual = CreateEmoji::new(
+                &client,
+                GUILD_ID,
+                "square",
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI",
+            )
+            .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI","name":"square","roles":["2"]}"#;
+            let actual = CreateEmoji::new(
+                &client,
+                GUILD_ID,
+                "square",
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI",
+            )
+            .roles(&[ROLE_ID])
+            .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+        Ok(())
     }
 }

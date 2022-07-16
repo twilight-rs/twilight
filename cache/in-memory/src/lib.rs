@@ -1,84 +1,23 @@
-//! # twilight-cache-inmemory
-//!
-//! [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
-//!
-//! `twilight-cache-inmemory` is an in-process-memory cache for the
-//! [`twilight-rs`] ecosystem. It's responsible for processing events and
-//! caching things like guilds, channels, users, and voice states.
-//!
-//! ## Statistics
-//!
-//! Statistics can be an important debugging tool for determining how large a
-//! cache is or determining whether a cache has an expected amount of resources
-//! within it. An interface for retrieving statistics about the amount of a
-//! resource within the cache as a whole or on a guild-level can be retrieved
-//! via [`InMemoryCache::stats`].
-//!
-//! ## Features
-//!
-//! By default no feature is enabled.
-//!
-//! ### `permission-calculator`
-//!
-//! The `permission-calculator` feature flag will bring in support for the
-//! `PermissionCalculator`; an API for calculating permissions through it is
-//! exposed via `InMemoryCache::permissions`. Support for calculating the
-//! permissions of a member on a root guild-level and in a guild channel is
-//! included.
-//!
-//! Refer to the `permission` module for more documentation.
-//!
-//! ## Examples
-//!
-//! Update a cache with events that come in through the gateway:
-//!
-//! ```rust,no_run
-//! use std::env;
-//! use futures::stream::StreamExt;
-//! use twilight_cache_inmemory::InMemoryCache;
-//! use twilight_gateway::{Intents, Shard};
-//!
-//! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! let token = env::var("DISCORD_TOKEN")?;
-//! let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES).await?;
-//! shard.start().await?;
-//!
-//! // Create a cache, caching up to 10 messages per channel:
-//! let cache = InMemoryCache::builder().message_cache_size(10).build();
-//!
-//! while let Some(event) = events.next().await {
-//!     // Update the cache with the event.
-//!     cache.update(&event);
-//! }
-//! # Ok(()) }
-//! ```
-//!
-//! ## License
-//!
-//! All first-party crates are licensed under [ISC][LICENSE.md]
-//!
-//! [LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [`twilight-rs`]: https://github.com/twilight-rs/twilight
-//! [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
-//! [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
-//! [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
-//! [discord link]: https://discord.gg/7jj8n7D
-//! [docs:discord:sharding]: https://discord.com/developers/docs/topics/gateway#sharding
-//! [github badge]: https://img.shields.io/badge/github-twilight-6f42c1.svg?style=for-the-badge&logo=github
-//! [github link]: https://github.com/twilight-rs/twilight
-//! [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
-//! [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
-//! [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
-
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
+    clippy::all,
     clippy::missing_const_for_fn,
+    clippy::pedantic,
+    future_incompatible,
     missing_docs,
+    nonstandard_style,
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
     unsafe_code,
     unused
 )]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
+)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
 
 pub mod iter;
 pub mod model;
@@ -103,12 +42,17 @@ pub use self::{
 #[cfg(feature = "permission-calculator")]
 pub use self::permission::InMemoryCachePermissions;
 
-use self::{iter::InMemoryCacheIter, model::*};
+use self::{
+    iter::InMemoryCacheIter,
+    model::{
+        CachedEmoji, CachedGuild, CachedMember, CachedMessage, CachedPresence, CachedSticker,
+        CachedVoiceState,
+    },
+};
 use dashmap::{
     mapref::{entry::Entry, one::Ref},
     DashMap, DashSet,
 };
-use iter::ChannelMessages;
 use std::{
     collections::{BTreeSet, HashSet, VecDeque},
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -168,7 +112,8 @@ pub struct Reference<'a, K, V> {
 }
 
 impl<'a, K: Eq + Hash, V> Reference<'a, K, V> {
-    /// Create a new reference from a DashMap reference.
+    /// Create a new reference from a `DashMap` reference.
+    #[allow(clippy::missing_const_for_fn)]
     fn new(inner: Ref<'a, K, V>) -> Self {
         Self { inner }
     }
@@ -367,6 +312,7 @@ impl InMemoryCache {
     ///     println!("{}: {}", guild.id(), guild.name());
     /// }
     /// ```
+    #[allow(clippy::iter_not_returning_iterator)]
     pub const fn iter(&self) -> InMemoryCacheIter<'_> {
         InMemoryCacheIter::new(self)
     }
@@ -451,18 +397,13 @@ impl InMemoryCache {
     ///
     /// This requires the [`DIRECT_MESSAGES`] or [`GUILD_MESSAGES`] intents.
     ///
-    /// Returns `None` if the channel is not cached.
-    ///
-    /// # Examples
-    ///
-    /// Refer to [`ChannelMessages`].
-    ///
     /// [`DIRECT_MESSAGES`]: ::twilight_model::gateway::Intents::DIRECT_MESSAGES
     /// [`GUILD_MESSAGES`]: ::twilight_model::gateway::Intents::GUILD_MESSAGES
-    pub fn channel_messages(&self, channel_id: Id<ChannelMarker>) -> Option<ChannelMessages<'_>> {
-        let channel = self.channel_messages.get(&channel_id)?;
-
-        Some(ChannelMessages::new(channel))
+    pub fn channel_messages(
+        &self,
+        channel_id: Id<ChannelMarker>,
+    ) -> Option<Reference<'_, Id<ChannelMarker>, VecDeque<Id<MessageMarker>>>> {
+        self.channel_messages.get(&channel_id).map(Reference::new)
     }
 
     /// Gets an emoji by ID.
@@ -789,7 +730,7 @@ impl InMemoryCache {
     fn new_with_config(config: Config) -> Self {
         Self {
             config,
-            ..Default::default()
+            ..InMemoryCache::default()
         }
     }
 
@@ -895,82 +836,82 @@ impl<'a> Iterator for VoiceChannelStates<'a> {
 }
 
 impl UpdateCache for Event {
-    #[allow(clippy::cognitive_complexity)]
+    // clippy: using `.deref()` is cleaner
+    #[allow(clippy::cognitive_complexity, clippy::explicit_deref_methods)]
     fn update(&self, c: &InMemoryCache) {
-        use Event::*;
-
         match self {
-            BanAdd(_) => {}
-            BanRemove(_) => {}
-            ChannelCreate(v) => c.update(v.deref()),
-            ChannelDelete(v) => c.update(v.deref()),
-            ChannelPinsUpdate(v) => c.update(v),
-            ChannelUpdate(v) => c.update(v.deref()),
-            CommandPermissionsUpdate(_) => {}
-            GatewayHeartbeat(_) => {}
-            GatewayHeartbeatAck => {}
-            GatewayHello(_) => {}
-            GatewayInvalidateSession(_v) => {}
-            GatewayReconnect => {}
-            GiftCodeUpdate => {}
-            GuildCreate(v) => c.update(v.deref()),
-            GuildDelete(v) => c.update(v),
-            GuildEmojisUpdate(v) => c.update(v),
-            GuildStickersUpdate(v) => c.update(v),
-            GuildIntegrationsUpdate(_) => {}
-            GuildScheduledEventCreate(_) => {}
-            GuildScheduledEventDelete(_) => {}
-            GuildScheduledEventUpdate(_) => {}
-            GuildScheduledEventUserAdd(_) => {}
-            GuildScheduledEventUserRemove(_) => {}
-            GuildUpdate(v) => c.update(v.deref()),
-            IntegrationCreate(v) => c.update(v.deref()),
-            IntegrationDelete(v) => c.update(v.deref()),
-            IntegrationUpdate(v) => c.update(v.deref()),
-            InteractionCreate(v) => c.update(v),
-            InviteCreate(_) => {}
-            InviteDelete(_) => {}
-            MemberAdd(v) => c.update(v.deref()),
-            MemberRemove(v) => c.update(v),
-            MemberUpdate(v) => c.update(v.deref()),
-            MemberChunk(v) => c.update(v),
-            MessageCreate(v) => c.update(v.deref()),
-            MessageDelete(v) => c.update(v),
-            MessageDeleteBulk(v) => c.update(v),
-            MessageUpdate(v) => c.update(v.deref()),
-            PresenceUpdate(v) => c.update(v.deref()),
-            PresencesReplace => {}
-            ReactionAdd(v) => c.update(v.deref()),
-            ReactionRemove(v) => c.update(v.deref()),
-            ReactionRemoveAll(v) => c.update(v),
-            ReactionRemoveEmoji(v) => c.update(v),
-            Ready(v) => c.update(v.deref()),
-            Resumed => {}
-            RoleCreate(v) => c.update(v),
-            RoleDelete(v) => c.update(v),
-            RoleUpdate(v) => c.update(v),
-            ShardConnected(_) => {}
-            ShardConnecting(_) => {}
-            ShardDisconnected(_) => {}
-            ShardIdentifying(_) => {}
-            ShardReconnecting(_) => {}
-            ShardPayload(_) => {}
-            ShardResuming(_) => {}
-            StageInstanceCreate(v) => c.update(v),
-            StageInstanceDelete(v) => c.update(v),
-            StageInstanceUpdate(v) => c.update(v),
-            ThreadCreate(v) => c.update(v.deref()),
-            ThreadUpdate(v) => c.update(v.deref()),
-            ThreadDelete(v) => c.update(v),
-            ThreadListSync(v) => c.update(v),
-            ThreadMemberUpdate(_) => {}
-            ThreadMembersUpdate(_) => {}
-            TypingStart(_) => {}
-            UnavailableGuild(v) => c.update(v),
-            UserUpdate(v) => c.update(v),
-            VoiceServerUpdate(_) => {}
-            VoiceStateUpdate(v) => c.update(v.deref()),
-            WebhooksUpdate(_) => {}
+            Event::ChannelCreate(v) => c.update(v.deref()),
+            Event::ChannelDelete(v) => c.update(v.deref()),
+            Event::ChannelPinsUpdate(v) => c.update(v),
+            Event::ChannelUpdate(v) => c.update(v.deref()),
+            Event::GuildCreate(v) => c.update(v.deref()),
+            Event::GuildDelete(v) => c.update(v),
+            Event::GuildEmojisUpdate(v) => c.update(v),
+            Event::GuildStickersUpdate(v) => c.update(v),
+            Event::GuildUpdate(v) => c.update(v.deref()),
+            Event::IntegrationCreate(v) => c.update(v.deref()),
+            Event::IntegrationDelete(v) => c.update(v.deref()),
+            Event::IntegrationUpdate(v) => c.update(v.deref()),
+            Event::InteractionCreate(v) => c.update(v.deref()),
+            Event::MemberAdd(v) => c.update(v.deref()),
+            Event::MemberRemove(v) => c.update(v),
+            Event::MemberUpdate(v) => c.update(v.deref()),
+            Event::MemberChunk(v) => c.update(v),
+            Event::MessageCreate(v) => c.update(v.deref()),
+            Event::MessageDelete(v) => c.update(v),
+            Event::MessageDeleteBulk(v) => c.update(v),
+            Event::MessageUpdate(v) => c.update(v.deref()),
+            Event::PresenceUpdate(v) => c.update(v.deref()),
+            Event::ReactionAdd(v) => c.update(v.deref()),
+            Event::ReactionRemove(v) => c.update(v.deref()),
+            Event::ReactionRemoveAll(v) => c.update(v),
+            Event::ReactionRemoveEmoji(v) => c.update(v),
+            Event::Ready(v) => c.update(v.deref()),
+            Event::RoleCreate(v) => c.update(v),
+            Event::RoleDelete(v) => c.update(v),
+            Event::RoleUpdate(v) => c.update(v),
+            Event::StageInstanceCreate(v) => c.update(v),
+            Event::StageInstanceDelete(v) => c.update(v),
+            Event::StageInstanceUpdate(v) => c.update(v),
+            Event::ThreadCreate(v) => c.update(v.deref()),
+            Event::ThreadUpdate(v) => c.update(v.deref()),
+            Event::ThreadDelete(v) => c.update(v),
+            Event::ThreadListSync(v) => c.update(v),
+            Event::UnavailableGuild(v) => c.update(v),
+            Event::UserUpdate(v) => c.update(v),
+            Event::VoiceStateUpdate(v) => c.update(v.deref()),
+            // Ignored events.
+            Event::BanAdd(_)
+            | Event::BanRemove(_)
+            | Event::CommandPermissionsUpdate(_)
+            | Event::GatewayHeartbeat(_)
+            | Event::GatewayHeartbeatAck
+            | Event::GatewayHello(_)
+            | Event::GatewayInvalidateSession(_)
+            | Event::GatewayReconnect
+            | Event::GiftCodeUpdate
+            | Event::GuildIntegrationsUpdate(_)
+            | Event::GuildScheduledEventCreate(_)
+            | Event::GuildScheduledEventDelete(_)
+            | Event::GuildScheduledEventUpdate(_)
+            | Event::GuildScheduledEventUserAdd(_)
+            | Event::GuildScheduledEventUserRemove(_)
+            | Event::InviteCreate(_)
+            | Event::InviteDelete(_)
+            | Event::PresencesReplace
+            | Event::Resumed
+            | Event::ShardConnected(_)
+            | Event::ShardConnecting(_)
+            | Event::ShardDisconnected(_)
+            | Event::ShardIdentifying(_)
+            | Event::ShardPayload(_)
+            | Event::ShardReconnecting(_)
+            | Event::ShardResuming(_)
+            | Event::ThreadMembersUpdate(_)
+            | Event::ThreadMemberUpdate(_)
+            | Event::TypingStart(_)
+            | Event::VoiceServerUpdate(_)
+            | Event::WebhooksUpdate(_) => {}
         }
     }
 }
@@ -986,7 +927,7 @@ mod tests {
     };
 
     #[test]
-    fn test_syntax_update() {
+    fn syntax_update() {
         let cache = InMemoryCache::new();
         cache.update(&RoleDelete {
             guild_id: Id::new(1),
@@ -995,7 +936,7 @@ mod tests {
     }
 
     #[test]
-    fn test_clear() {
+    fn clear() {
         let cache = InMemoryCache::new();
         cache.cache_emoji(Id::new(1), test::emoji(Id::new(3), None));
         cache.cache_member(Id::new(2), test::member(Id::new(4), Id::new(2)));
@@ -1005,7 +946,7 @@ mod tests {
     }
 
     #[test]
-    fn test_highest_role() {
+    fn highest_role() {
         let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
         let cache = InMemoryCache::new();
         let guild_id = Id::new(1);

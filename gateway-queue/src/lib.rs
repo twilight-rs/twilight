@@ -1,55 +1,42 @@
-//! # twilight-gateway-queue
-//!
-//! Ratelimiting functionality for queueing new gateway sessions.
-//!
-//! The gateway ratelimits how often clients can initialize new sessions.
-//! Instances of a queue are given to shards so that they can request to
-//! initialize a session.
-//!
-//! Queue implementations must point to the same broker so that all shards
-//! across all clusters, processes, and other forms of multi-serviced
-//! applications, can work together and use the same ratelimiting source. That
-//! is, if you for example have two clusters in two different processes, then
-//! the two processes must use some unified form of ratelimiting: this can
-//! either mean using IPC to communicate ratelimiting or a broker.
-//!
-//! ## Provided queues
-//!
-//! Most users only need the [`LocalQueue`]: it's a single-process queue for
-//! smaller bots. Larger bots need the [`LargeBotQueue`], which supports
-//! single-process [Sharding for Very Large Bots] through the use of bucket
-//! releasing.
-//!
-//! By default, the gateway's `Cluster` and `Shard`s use the [`LocalQueue`]. You
-//! can override this in the `ClusterBuilder::queue` and `ShardBuilder::queue`
-//! configuration methods.
-//!
-//! ## Advanced use cases
-//!
-//! Large bots, and smaller bots out of design, may need to implement their own
-//! queue. The most common reason to need this is if you have clusters in
-//! multiple processes. You'll need a broker to manage ratelimiting across them
-//! all so a [`Queue`] trait is provided that shards can use to make requests to
-//! create sessions.
-//!
-//! ## Features
-//!
-//! ### Twilight-HTTP
-//!
-//! The `twilight-http` feature brings in support for [`LargeBotQueue`].
-//!
-//! This is enabled by default.
-//! [Sharding for Very Large Bots]: https://discord.com/developers/docs/topics/gateway#sharding-for-very-large-bots
-
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![deny(unsafe_code)]
+#![deny(
+    clippy::all,
+    clippy::missing_const_for_fn,
+    clippy::pedantic,
+    future_incompatible,
+    missing_docs,
+    nonstandard_style,
+    rust_2018_idioms,
+    rustdoc::broken_intra_doc_links,
+    unsafe_code,
+    unused
+)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate,
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
+)]
+#![doc = include_str!("../README.md")]
 
-#[cfg(feature = "twilight-http")]
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 mod day_limiter;
-#[cfg(feature = "twilight-http")]
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 mod large_bot_queue;
 
-#[cfg(feature = "twilight-http")]
+#[cfg(any(
+    feature = "native",
+    feature = "rustls-native-roots",
+    feature = "rustls-webpki-roots"
+))]
 pub use large_bot_queue::LargeBotQueue;
 
 use std::{

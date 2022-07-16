@@ -35,7 +35,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&DefaultMessageNotificationLevel::All, &[Token::U8(0)]);
         serde_test::assert_tokens(&DefaultMessageNotificationLevel::Mentions, &[Token::U8(1)]);
         serde_test::assert_tokens(

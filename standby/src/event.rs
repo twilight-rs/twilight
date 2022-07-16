@@ -41,7 +41,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::IntegrationCreate(e) => e.0.guild_id,
         Event::IntegrationDelete(e) => Some(e.guild_id),
         Event::IntegrationUpdate(e) => e.0.guild_id,
-        Event::InteractionCreate(e) => e.0.guild_id(),
+        Event::InteractionCreate(e) => e.0.guild_id,
         Event::InviteCreate(e) => Some(e.guild_id),
         Event::InviteDelete(e) => Some(e.guild_id),
         Event::MemberAdd(e) => Some(e.0.guild_id),
@@ -71,8 +71,8 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::VoiceStateUpdate(e) => e.0.guild_id,
         Event::WebhooksUpdate(e) => Some(e.guild_id),
         Event::ChannelPinsUpdate(_)
-        | Event::GatewayHeartbeatAck
         | Event::GatewayHeartbeat(_)
+        | Event::GatewayHeartbeatAck
         | Event::GatewayHello(_)
         | Event::GatewayInvalidateSession(_)
         | Event::GatewayReconnect
@@ -90,7 +90,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         | Event::ShardPayload(_)
         | Event::ShardReconnecting(_)
         | Event::ShardResuming(_)
-        | Event::ThreadMemberUpdate(_) => None,
-        Event::UserUpdate(_) => None,
+        | Event::ThreadMemberUpdate(_)
+        | Event::UserUpdate(_) => None,
     }
 }

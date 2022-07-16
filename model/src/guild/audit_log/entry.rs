@@ -67,7 +67,7 @@ mod tests {
 
     /// Test the deserialization and serialization of an audit log entry.
     #[test]
-    fn test_serde() {
+    fn serde() {
         let value = AuditLogEntry {
             action_type: AuditLogEventType::GuildUpdate,
             changes: Vec::from([AuditLogChange::IconHash {

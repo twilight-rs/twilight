@@ -1,2 +1,6 @@
 target/
 Cargo.lock
+
+# rendered book and its generated tests
+book/render
+book/tests/libtest.rmeta

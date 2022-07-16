@@ -72,17 +72,15 @@ impl UpdateCache for GuildEmojisUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
+    use crate::{test, InMemoryCache};
     use twilight_model::{
+        gateway::payload::incoming::GuildEmojisUpdate,
         id::{marker::EmojiMarker, Id},
         user::User,
     };
 
     #[test]
-    fn test_cache_emoji() {
-        let cache = InMemoryCache::new();
-
+    fn cache_emoji() {
         // The user to do some of the inserts
         fn user_mod(id: Id<EmojiMarker>) -> Option<User> {
             if id.get() % 2 == 0 {
@@ -92,6 +90,8 @@ mod tests {
                 None
             }
         }
+
+        let cache = InMemoryCache::new();
 
         // Single inserts
         {
@@ -106,7 +106,7 @@ mod tests {
                 cache.cache_emoji(Id::new(1), emoji);
             }
 
-            for id in guild_1_emoji_ids.iter().cloned() {
+            for id in guild_1_emoji_ids.iter().copied() {
                 let global_emoji = cache.emoji(id);
                 assert!(global_emoji.is_some());
             }
@@ -131,7 +131,7 @@ mod tests {
                 .collect::<Vec<_>>();
             cache.cache_emojis(Id::new(2), guild_2_emojis);
 
-            for id in guild_2_emoji_ids.iter().cloned() {
+            for id in guild_2_emoji_ids.iter().copied() {
                 let global_emoji = cache.emoji(id);
                 assert!(global_emoji.is_some());
             }
@@ -146,7 +146,7 @@ mod tests {
     }
 
     #[test]
-    fn test_emoji_removal() {
+    fn emoji_removal() {
         let cache = InMemoryCache::new();
 
         let guild_id = Id::new(1);

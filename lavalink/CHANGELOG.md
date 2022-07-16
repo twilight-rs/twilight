@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.11.2] - 2022-07-16
+
+### Features
+
+- add `Deref` for `VoiceStateUpdate` ([#1835](https://github.com/twilight-rs/twilight/issues/1835))
+
+## [0.11.1] - 2022-07-07
+
+### Bug Fixes
+
+- correctly specify ws headers ([#1773](https://github.com/twilight-rs/twilight/issues/1773))
+
+### Refactor
+
+- standardize clippy lints ([#1783](https://github.com/twilight-rs/twilight/issues/1783))
+- replace an unwrap with expect ([#1787](https://github.com/twilight-rs/twilight/issues/1787))
+
 Changelog for `twilight-lavalink`.
 
 ## [0.11.0] - 2022-05-15

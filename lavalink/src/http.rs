@@ -247,6 +247,10 @@ pub struct RotatingNanoIpDetails {
 ///
 /// The response will include a body which can be deserialized into a
 /// [`LoadedTracks`].
+///
+/// # Errors
+///
+/// See the documentation for [`http::Error`].
 pub fn load_track(
     address: SocketAddr,
     identifier: impl AsRef<str>,
@@ -268,6 +272,10 @@ pub fn load_track(
 ///
 /// The response will include a body which can be deserialized into a
 /// [`RoutePlanner`].
+///
+/// # Errors
+///
+/// See the documentation for [`http::Error`].
 pub fn get_route_planner(
     address: SocketAddr,
     authorization: impl AsRef<str>,
@@ -283,6 +291,10 @@ pub fn get_route_planner(
 /// Unmark an IP address as being failed, meaning that it can be used again.
 ///
 /// The response will not include a body on success.
+///
+/// # Errors
+///
+/// See the documentation for [`http::Error`].
 pub fn unmark_failed_address(
     node_address: impl Into<SocketAddr>,
     authorization: impl AsRef<str>,
@@ -297,7 +309,7 @@ pub fn unmark_failed_address(
         serde_json::to_vec(&serde_json::json!({
             "address": route_address.into(),
         }))
-        .unwrap(),
+        .expect("valid json"),
     )
 }
 

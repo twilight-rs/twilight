@@ -191,23 +191,23 @@ impl Lavalink {
                 }
             }
             Event::VoiceStateUpdate(e) => {
-                if e.0.user_id != self.user_id {
+                if e.user_id != self.user_id {
                     tracing::trace!("got voice state update from another user");
 
                     return Ok(());
                 }
 
-                if let Some(guild_id) = e.0.guild_id {
+                if let Some(guild_id) = e.guild_id {
                     // Update player if it exists and update the connected channel ID.
                     if let Some(player) = self.players.get(&guild_id) {
-                        player.set_channel_id(e.0.channel_id);
+                        player.set_channel_id(e.channel_id);
                     }
 
-                    if e.0.channel_id.is_none() {
+                    if e.channel_id.is_none() {
                         self.sessions.remove(&guild_id);
                     } else {
                         self.sessions
-                            .insert(guild_id, e.0.session_id.clone().into_boxed_str());
+                            .insert(guild_id, e.session_id.clone().into_boxed_str());
                     }
                     guild_id
                 } else {
@@ -270,6 +270,10 @@ impl Lavalink {
     ///
     /// If a node already exists with the provided address, then it will be
     /// replaced.
+    ///
+    /// # Errors
+    ///
+    /// See the errors section of [`Node::connect`].
     pub async fn add(
         &self,
         address: SocketAddr,

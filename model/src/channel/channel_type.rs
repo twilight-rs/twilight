@@ -146,7 +146,7 @@ mod tests {
     const_assert!(ChannelType::GuildPrivateThread.is_thread());
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&ChannelType::GuildText, &[Token::U8(0)]);
         serde_test::assert_tokens(&ChannelType::Private, &[Token::U8(1)]);
         serde_test::assert_tokens(&ChannelType::GuildVoice, &[Token::U8(2)]);
@@ -162,7 +162,7 @@ mod tests {
     }
 
     #[test]
-    fn test_names() {
+    fn names() {
         assert_eq!("Group", ChannelType::Group.name());
         assert_eq!("GuildCategory", ChannelType::GuildCategory.name());
         assert_eq!("GuildDirectory", ChannelType::GuildDirectory.name());

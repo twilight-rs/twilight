@@ -36,6 +36,7 @@ pub struct Button {
 /// Refer to [the Discord Docs/Button Object] for additional information.
 ///
 /// [the Discord Docs/Button Object]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
+// Keep in sync with `twilight-validate::component`!
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
 #[serde(from = "u8", into = "u8")]
 pub enum ButtonStyle {
@@ -114,14 +115,13 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sync
     );
 
     #[test]
-    fn test_button_style() {
+    fn button_style() {
         serde_test::assert_tokens(&ButtonStyle::Primary, &[Token::U8(1)]);
         serde_test::assert_tokens(&ButtonStyle::Secondary, &[Token::U8(2)]);
         serde_test::assert_tokens(&ButtonStyle::Success, &[Token::U8(3)]);

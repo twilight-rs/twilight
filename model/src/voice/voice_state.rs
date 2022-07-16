@@ -1,5 +1,5 @@
 use crate::{
-    guild::member::{Member, OptionalMemberDeserializer},
+    guild::member::{Member, MemberIntermediary},
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
@@ -76,7 +76,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mut channel_id = None;
         let mut deaf = None;
         let mut guild_id = None;
-        let mut member = None;
+        let mut member: Option<MemberIntermediary> = None;
         let mut mute = None;
         let mut self_deaf = None;
         let mut self_mute = None;
@@ -139,9 +139,7 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer = OptionalMemberDeserializer::new(Id::new(1));
-
-                    member = map.next_value_seed(deserializer)?;
+                    member = map.next_value()?;
                 }
                 Field::Mute => {
                     if mute.is_some() {
@@ -239,11 +237,13 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
             %user_id,
         );
 
-        if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
+        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
             tracing::trace!(%guild_id, ?member, "setting member guild id");
 
-            member.guild_id = guild_id;
-        }
+            Some(member.into_member(guild_id))
+        } else {
+            None
+        };
 
         Ok(VoiceState {
             channel_id,
@@ -298,7 +298,7 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
-    fn test_voice_state() {
+    fn voice_state() {
         let value = VoiceState {
             channel_id: Some(Id::new(1)),
             deaf: false,
@@ -359,7 +359,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_voice_state_complete() -> Result<(), TimestampParseError> {
+    fn voice_state_complete() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2015-04-26T06:26:56.936000+00:00")?;
         let premium_since = Timestamp::from_str("2021-03-16T14:29:19.046000+00:00")?;
         let request_to_speak_timestamp = Timestamp::from_str("2021-04-21T22:16:50.000000+00:00")?;

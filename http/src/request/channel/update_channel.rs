@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, NullableField, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -26,7 +26,7 @@ struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     nsfw: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    parent_id: Option<NullableField<Id<ChannelMarker>>>,
+    parent_id: Option<Nullable<Id<ChannelMarker>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     permission_overwrites: Option<&'a [PermissionOverwrite]>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -90,6 +90,8 @@ impl<'a> UpdateChannel<'a> {
     /// The minimum length is 1 UTF-16 character and the maximum is 100 UTF-16
     /// characters.
     ///
+    /// # Errors
+    ///
     /// Returns an error of type [`NameInvalid`] if the name is invalid.
     ///
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
@@ -111,7 +113,7 @@ impl<'a> UpdateChannel<'a> {
     /// If this is specified, and the parent ID is a `ChannelType::CategoryChannel`, move this
     /// channel to a child of the category channel.
     pub const fn parent_id(mut self, parent_id: Option<Id<ChannelMarker>>) -> Self {
-        self.fields.parent_id = Some(NullableField(parent_id));
+        self.fields.parent_id = Some(Nullable(parent_id));
 
         self
     }

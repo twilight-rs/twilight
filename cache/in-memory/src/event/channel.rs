@@ -84,12 +84,14 @@ impl UpdateCache for ChannelUpdate {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::test;
-    use twilight_model::gateway::event::Event;
+    use crate::{test, InMemoryCache};
+    use twilight_model::gateway::{
+        event::Event,
+        payload::incoming::{ChannelDelete, ChannelUpdate},
+    };
 
     #[test]
-    fn test_channel_delete_guild() {
+    fn channel_delete_guild() {
         let cache = InMemoryCache::new();
         let (guild_id, channel_id, channel) = test::guild_channel_text();
 
@@ -107,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn test_channel_update_guild() {
+    fn channel_update_guild() {
         let cache = InMemoryCache::new();
         let (guild_id, channel_id, channel) = test::guild_channel_text();
 

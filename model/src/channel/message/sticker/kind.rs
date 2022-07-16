@@ -42,14 +42,14 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&StickerType::Standard, &[Token::U8(1)]);
         serde_test::assert_tokens(&StickerType::Guild, &[Token::U8(2)]);
         serde_test::assert_tokens(&StickerType::Unknown(99), &[Token::U8(99)]);
     }
 
     #[test]
-    fn test_conversions() {
+    fn conversions() {
         assert_eq!(StickerType::from(1), StickerType::Standard);
         assert_eq!(StickerType::from(2), StickerType::Guild);
         assert_eq!(StickerType::from(99), StickerType::Unknown(99));

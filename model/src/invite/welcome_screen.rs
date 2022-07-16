@@ -31,7 +31,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_welcome_screen() {
+    fn welcome_screen() {
         let value = WelcomeScreen {
             description: Some("welcome description".to_owned()),
             welcome_channels: vec![

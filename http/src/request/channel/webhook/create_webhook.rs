@@ -18,7 +18,7 @@ use twilight_validate::request::{
 #[derive(Serialize)]
 struct CreateWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    avatar: Option<&'a [u8]>,
+    avatar: Option<&'a str>,
     name: &'a str,
 }
 
@@ -72,7 +72,7 @@ impl<'a> CreateWebhook<'a> {
     /// and `{data}` is the base64-encoded image. See [Discord Docs/Image Data].
     ///
     /// [Discord Docs/Image Data]: https://discord.com/developers/docs/reference#image-data
-    pub const fn avatar(mut self, avatar: &'a [u8]) -> Self {
+    pub const fn avatar(mut self, avatar: &'a str) -> Self {
         self.fields.avatar = Some(avatar);
 
         self
@@ -116,5 +116,39 @@ impl TryIntoRequest for CreateWebhook<'_> {
         }
 
         Ok(request.build())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error;
+
+    #[test]
+    fn test_create_webhook() -> Result<(), Box<dyn Error>> {
+        const CHANNEL_ID: Id<ChannelMarker> = Id::new(1);
+
+        let client = Client::new("token".into());
+
+        {
+            let expected = r#"{"name":"Spidey Bot"}"#;
+            let actual =
+                CreateWebhook::new(&client, CHANNEL_ID, "Spidey Bot")?.try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        {
+            let expected = r#"{"avatar":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI","name":"Spidey Bot"}"#;
+            let actual = CreateWebhook::new(&client, CHANNEL_ID, "Spidey Bot")?
+            .avatar(
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI",
+            )
+                .try_into_request()?;
+
+            assert_eq!(Some(expected.as_bytes()), actual.body());
+        }
+
+        Ok(())
     }
 }

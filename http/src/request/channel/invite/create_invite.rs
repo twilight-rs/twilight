@@ -114,6 +114,12 @@ impl<'a> CreateInvite<'a> {
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`InviteMaxAge`] if the age is invalid.
+    ///
+    /// [`InviteMaxAge`]: twilight_validate::request::ValidationErrorType::InviteMaxAge
     pub const fn max_age(mut self, max_age: u32) -> Result<Self, ValidationError> {
         if let Err(source) = validate_invite_max_age(max_age) {
             return Err(source);
@@ -150,6 +156,12 @@ impl<'a> CreateInvite<'a> {
     /// println!("invite code: {}", invite.code);
     /// # Ok(()) }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`InviteMaxUses`] if the uses is invalid.
+    ///
+    /// [`InviteMaxUses`]: twilight_validate::request::ValidationErrorType::InviteMaxUses
     pub const fn max_uses(mut self, max_uses: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_invite_max_uses(max_uses) {
             return Err(source);
@@ -258,7 +270,7 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_max_age() -> Result<(), Box<dyn Error>> {
+    fn max_age() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let mut builder = CreateInvite::new(&client, Id::new(1)).max_age(0)?;
         assert_eq!(Some(0), builder.fields.max_age);
@@ -270,7 +282,7 @@ mod tests {
     }
 
     #[test]
-    fn test_max_uses() -> Result<(), Box<dyn Error>> {
+    fn max_uses() -> Result<(), Box<dyn Error>> {
         let client = Client::new("foo".to_owned());
         let mut builder = CreateInvite::new(&client, Id::new(1)).max_uses(0)?;
         assert_eq!(Some(0), builder.fields.max_uses);

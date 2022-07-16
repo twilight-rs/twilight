@@ -55,10 +55,14 @@ pub struct Channel {
     /// ID of the application that created the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
-    /// Bitrate setting of audio channels.
+    /// Bitrate (in bits) setting of audio channels.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
-    /// Default duration before the channel's threads archive.
+    pub bitrate: Option<u32>,
+    /// Default duration without messages before the channel's threads
+    /// automatically archive.
+    ///
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
     /// ID of the guild the channel is in.
@@ -93,11 +97,8 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member_count: Option<u8>,
     /// Number of messages in the channel.
-    ///
-    /// At most a value of 50 is provided although the real number may be
-    /// higher.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub message_count: Option<u8>,
+    pub message_count: Option<u32>,
     /// Name of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -122,10 +123,10 @@ pub struct Channel {
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     /// Sorting position of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub position: Option<i64>,
+    pub position: Option<i16>,
     /// Amount of seconds a user has to wait before sending another message.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rate_limit_per_user: Option<u64>,
+    pub rate_limit_per_user: Option<u16>,
     /// Recipients of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recipients: Option<Vec<User>>,
@@ -141,8 +142,10 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub topic: Option<String>,
     /// Number of users that may be in the channel.
+    ///
+    /// Zero refers to no limit.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_limit: Option<u64>,
+    pub user_limit: Option<u8>,
     /// Camera video quality mode of the channel.
     ///
     /// Defaults to [`VideoQualityMode::Auto`] for applicable channels.
@@ -163,7 +166,7 @@ mod tests {
     // The deserializer for GuildChannel should skip over fields names that
     // it couldn't deserialize.
     #[test]
-    fn test_guild_channel_unknown_field_deserialization() {
+    fn guild_channel_unknown_field_deserialization() {
         let input = serde_json::json!({
             "type": 0,
             "topic": "a",
@@ -225,7 +228,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_category_channel_deserialization() {
+    fn guild_category_channel_deserialization() {
         let value = Channel {
             application_id: None,
             bitrate: None,
@@ -272,7 +275,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_news_channel_deserialization() {
+    fn guild_news_channel_deserialization() {
         let value = Channel {
             application_id: None,
             bitrate: None,
@@ -323,7 +326,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_news_thread_deserialization() {
+    fn guild_news_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
 
@@ -347,7 +350,7 @@ mod tests {
                 user_id: Some(Id::new(5)),
             }),
             member_count: Some(50_u8),
-            message_count: Some(50_u8),
+            message_count: Some(50),
             name: Some("newsthread".into()),
             newly_created: Some(true),
             nsfw: None,
@@ -355,7 +358,7 @@ mod tests {
             parent_id: Some(Id::new(2)),
             permission_overwrites: None,
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {
@@ -405,7 +408,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_public_thread_deserialization() {
+    fn guild_public_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
 
         let value = Channel {
@@ -428,7 +431,7 @@ mod tests {
                 user_id: Some(Id::new(5)),
             }),
             member_count: Some(50_u8),
-            message_count: Some(50_u8),
+            message_count: Some(50),
             name: Some("publicthread".into()),
             newly_created: Some(true),
             nsfw: None,
@@ -436,7 +439,7 @@ mod tests {
             parent_id: Some(Id::new(2)),
             permission_overwrites: None,
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {
@@ -486,7 +489,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_private_thread_deserialization() {
+    fn guild_private_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
 
@@ -510,7 +513,7 @@ mod tests {
                 user_id: Some(Id::new(5)),
             }),
             member_count: Some(50_u8),
-            message_count: Some(50_u8),
+            message_count: Some(50),
             name: Some("privatethread".into()),
             newly_created: Some(true),
             nsfw: None,
@@ -523,7 +526,7 @@ mod tests {
                 kind: PermissionOverwriteType::Member,
             }])),
             position: None,
-            rate_limit_per_user: Some(1000_u64),
+            rate_limit_per_user: Some(1000),
             recipients: None,
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {

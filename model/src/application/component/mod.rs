@@ -75,6 +75,30 @@ impl Component {
     }
 }
 
+impl From<ActionRow> for Component {
+    fn from(action_row: ActionRow) -> Self {
+        Self::ActionRow(action_row)
+    }
+}
+
+impl From<Button> for Component {
+    fn from(button: Button) -> Self {
+        Self::Button(button)
+    }
+}
+
+impl From<SelectMenu> for Component {
+    fn from(select_menu: SelectMenu) -> Self {
+        Self::SelectMenu(select_menu)
+    }
+}
+
+impl From<TextInput> for Component {
+    fn from(text_input: TextInput) -> Self {
+        Self::TextInput(text_input)
+    }
+}
+
 impl<'de> Deserialize<'de> for Component {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_any(ComponentVisitor)
@@ -422,7 +446,7 @@ impl Serialize for Component {
             // - label
             // - url
             Component::Button(button) => {
-                1 + usize::from(button.custom_id.is_some())
+                2 + usize::from(button.custom_id.is_some())
                     + usize::from(button.disabled)
                     + usize::from(button.emoji.is_some())
                     + usize::from(button.label.is_some())
@@ -576,10 +600,18 @@ mod tests {
         button::ButtonStyle, select_menu::SelectMenuOption, text_input::TextInputStyle,
     };
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+
+    assert_impl_all!(
+        Component: From<ActionRow>,
+        From<Button>,
+        From<SelectMenu>,
+        From<TextInput>
+    );
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_component_full() {
+    fn component_full() {
         let component = Component::ActionRow(ActionRow {
             components: Vec::from([
                 Component::Button(Button {
@@ -620,7 +652,7 @@ mod tests {
                 Token::Seq { len: Some(2) },
                 Token::Struct {
                     name: "Component",
-                    len: 4,
+                    len: 5,
                 },
                 Token::Str("type"),
                 Token::U8(ComponentType::Button.into()),
@@ -680,7 +712,7 @@ mod tests {
     }
 
     #[test]
-    fn test_action_row() {
+    fn action_row() {
         let value = Component::ActionRow(ActionRow {
             components: Vec::from([Component::Button(Button {
                 custom_id: Some("button-1".to_owned()),
@@ -705,7 +737,7 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Struct {
                     name: "Component",
-                    len: 3,
+                    len: 4,
                 },
                 Token::String("type"),
                 Token::U8(2),
@@ -725,7 +757,7 @@ mod tests {
     }
 
     #[test]
-    fn test_button() {
+    fn button() {
         // Free Palestine.
         //
         // Palestinian Flag.
@@ -747,7 +779,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Component",
-                    len: 5,
+                    len: 6,
                 },
                 Token::String("type"),
                 Token::U8(ComponentType::Button.into()),
@@ -777,7 +809,7 @@ mod tests {
     }
 
     #[test]
-    fn test_text_input() {
+    fn text_input() {
         let value = Component::TextInput(TextInput {
             custom_id: "test".to_owned(),
             label: "The label".to_owned(),

@@ -46,7 +46,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&PremiumTier::None, &[Token::U8(0)]);
         serde_test::assert_tokens(&PremiumTier::Tier1, &[Token::U8(1)]);
         serde_test::assert_tokens(&PremiumTier::Tier2, &[Token::U8(2)]);

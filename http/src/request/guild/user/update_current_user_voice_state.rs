@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{NullableField, Request, TryIntoRequest},
+    request::{Nullable, Request, TryIntoRequest},
     response::{marker::EmptyBody, ResponseFuture},
     routing::Route,
 };
@@ -17,7 +17,7 @@ struct UpdateCurrentUserVoiceStateFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     suppress: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    request_to_speak_timestamp: Option<NullableField<&'a str>>,
+    request_to_speak_timestamp: Option<Nullable<&'a str>>,
 }
 
 /// Update the current user's voice state.
@@ -55,10 +55,10 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     /// future time.
     pub const fn request_to_speak_timestamp(mut self, request_to_speak_timestamp: &'a str) -> Self {
         if request_to_speak_timestamp.is_empty() {
-            self.fields.request_to_speak_timestamp = Some(NullableField(None));
+            self.fields.request_to_speak_timestamp = Some(Nullable(None));
         } else {
             self.fields.request_to_speak_timestamp =
-                Some(NullableField(Some(request_to_speak_timestamp)));
+                Some(Nullable(Some(request_to_speak_timestamp)));
         }
 
         self

@@ -96,7 +96,7 @@ mod tests {
     );
 
     #[test]
-    fn test_minimal() {
+    fn minimal() {
         let value = Sticker {
             available: false,
             description: Some("foo2".to_owned()),
@@ -139,7 +139,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_full() {
+    fn full() {
         let value = Sticker {
             available: true,
             description: Some("sticker".into()),

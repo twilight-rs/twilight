@@ -14,7 +14,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_message_reaction_unicode() {
+    fn message_reaction_unicode() {
         let value = MessageReaction {
             count: 7,
             emoji: ReactionType::Unicode {

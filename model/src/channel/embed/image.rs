@@ -17,7 +17,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_embed_image() {
+    fn embed_image() {
         let value = EmbedImage {
             height: Some(1440),
             proxy_url: Some("https://cdn.example.com/1-hash.png".to_owned()),

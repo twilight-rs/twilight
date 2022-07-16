@@ -1,7 +1,7 @@
 [workspace]
 members = [
+    "book/tests",
     "cache/in-memory",
-    "embed-builder",
     "examples",
     "gateway",
     "gateway-queue",

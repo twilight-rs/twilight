@@ -44,7 +44,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&StickerFormatType::Png, &[Token::U8(1)]);
         serde_test::assert_tokens(&StickerFormatType::Apng, &[Token::U8(2)]);
         serde_test::assert_tokens(&StickerFormatType::Lottie, &[Token::U8(3)]);
@@ -52,7 +52,7 @@ mod tests {
     }
 
     #[test]
-    fn test_conversions() {
+    fn conversions() {
         assert_eq!(StickerFormatType::from(1), StickerFormatType::Png);
         assert_eq!(StickerFormatType::from(2), StickerFormatType::Apng);
         assert_eq!(StickerFormatType::from(3), StickerFormatType::Lottie);

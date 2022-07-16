@@ -38,6 +38,7 @@ struct CommandPermissionsData {
 }
 
 #[derive(Clone, Debug, Deserialize_repr, Eq, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 enum CommandPermissionsDataType {
     Role = 1,
@@ -107,7 +108,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_command_permissions() {
+    fn command_permissions() {
         let value = CommandPermissions {
             id: CommandPermissionsType::Role(Id::new(100)),
             permission: true,

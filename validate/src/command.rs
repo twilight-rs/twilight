@@ -514,7 +514,7 @@ mod tests {
 
     // This tests [`description`] and [`name`] by proxy.
     #[test]
-    fn test_command() {
+    fn command_length() {
         let valid_command = Command {
             application_id: Some(Id::new(1)),
             default_member_permissions: None,
@@ -545,7 +545,7 @@ mod tests {
     }
 
     #[test]
-    fn test_name_characters() {
+    fn name_allowed_characters() {
         assert!(name_characters("hello-command").is_ok()); // Latin language
         assert!(name_characters("Hello").is_err()); // Latin language with uppercase
         assert!(name_characters("hello!").is_err()); // Latin language with non-alphanumeric
@@ -559,7 +559,7 @@ mod tests {
     }
 
     #[test]
-    fn test_guild_permissions() {
+    fn guild_permissions_count() {
         assert!(guild_permissions(0).is_ok());
         assert!(guild_permissions(1).is_ok());
         assert!(guild_permissions(10).is_ok());

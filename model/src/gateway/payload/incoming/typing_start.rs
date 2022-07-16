@@ -1,5 +1,5 @@
 use crate::{
-    guild::member::{Member, OptionalMemberDeserializer},
+    guild::member::{Member, MemberIntermediary},
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,
@@ -43,8 +43,8 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
 
     fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Self::Value, V::Error> {
         let mut channel_id = None;
-        let mut guild_id = None::<Option<_>>;
-        let mut member = None::<Member>;
+        let mut guild_id = None;
+        let mut member: Option<MemberIntermediary> = None;
         let mut timestamp = None;
         let mut user_id = None;
 
@@ -92,9 +92,7 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    let deserializer = OptionalMemberDeserializer::new(Id::new(1));
-
-                    member = map.next_value_seed(deserializer)?;
+                    member = map.next_value()?;
                 }
                 Field::Timestamp => {
                     if timestamp.is_some() {
@@ -125,11 +123,13 @@ impl<'de> Visitor<'de> for TypingStartVisitor {
             %user_id,
         );
 
-        if let (Some(guild_id), Some(member)) = (guild_id, member.as_mut()) {
+        let member = if let (Some(guild_id), Some(member)) = (guild_id, member) {
             tracing::trace!(%guild_id, ?member, "setting member guild id");
 
-            member.guild_id = guild_id;
-        }
+            Some(member.into_member(guild_id))
+        } else {
+            None
+        };
 
         Ok(TypingStart {
             channel_id,
@@ -164,7 +164,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_typing_start_with_member() -> Result<(), TimestampParseError> {
+    fn typing_start_with_member() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
         let value = TypingStart {
@@ -280,7 +280,7 @@ mod tests {
     }
 
     #[test]
-    fn test_typing_start_without_member() {
+    fn typing_start_without_member() {
         let value = TypingStart {
             channel_id: Id::new(2),
             guild_id: None,

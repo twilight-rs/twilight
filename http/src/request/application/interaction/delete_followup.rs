@@ -91,7 +91,7 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_request() -> Result<(), Box<dyn Error>> {
+    fn request() -> Result<(), Box<dyn Error>> {
         let client = Client::new("token".to_owned());
 
         let builder = DeleteFollowup::new(&client, Id::new(1), "token", Id::new(2));

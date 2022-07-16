@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+// Keep in sync with `twilight-validate::command`!
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
 pub enum CommandType {
@@ -9,7 +10,7 @@ pub enum CommandType {
     ChatInput,
     /// UI-based command.
     ///
-    /// Appears when a user right clicks or taps om a user.
+    /// Appears when a user right clicks or taps on a user.
     User,
     /// UI-based command.
     ///
@@ -74,7 +75,7 @@ mod tests {
     );
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&CommandType::ChatInput, &[Token::U8(1)]);
         serde_test::assert_tokens(&CommandType::User, &[Token::U8(2)]);
         serde_test::assert_tokens(&CommandType::Message, &[Token::U8(3)]);
@@ -82,7 +83,7 @@ mod tests {
     }
 
     #[test]
-    fn test_kinds() {
+    fn kinds() {
         assert_eq!("ChatInput", CommandType::ChatInput.kind());
         assert_eq!("User", CommandType::User.kind());
         assert_eq!("Message", CommandType::Message.kind());

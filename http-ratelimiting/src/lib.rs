@@ -1,25 +1,10 @@
-//! # twilight-http-ratelimiting
-//!
-//! Ratelimiting functionality for HTTP requests.
-//!
-//! Discord ratelimits requests to the HTTP API both globally and per-route.
-//! For more information on the specifics, please take a look at
-//! [Discord's documentation].
-//!
-//! This crate provides a common [`Ratelimiter`] trait that all ratelimiter
-//! implementations need to implement.
-//!
-//! It also ships a default implementation, [`InMemoryRatelimiter`], that manages
-//! the bucket states in memory.
-//!
-//! [Discord's documentation]: https://discord.com/developers/docs/topics/rate-limits
-
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
-    clippy::pedantic,
     clippy::missing_docs_in_private_items,
+    clippy::pedantic,
     future_incompatible,
+    missing_docs,
     nonstandard_style,
     rust_2018_idioms,
     rustdoc::broken_intra_doc_links,
@@ -28,9 +13,11 @@
 )]
 #![allow(
     clippy::module_name_repetitions,
-    clippy::semicolon_if_nothing_returned,
-    clippy::unnecessary_wraps
+    clippy::must_use_candidate,
+    clippy::unnecessary_wraps,
+    clippy::used_underscore_binding
 )]
+#![doc = include_str!("../README.md")]
 
 pub mod headers;
 pub mod in_memory;

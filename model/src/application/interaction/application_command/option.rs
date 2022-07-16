@@ -19,9 +19,9 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandDataOption {
-    /// [`true`] if this autocomplete option is currently highlighted.
-    pub focused: bool,
+    /// Name of the option.
     pub name: String,
+    /// Value of the option.
     pub value: CommandOptionValue,
 }
 
@@ -34,12 +34,14 @@ impl Serialize for CommandDataOption {
                 if o.is_empty()
         );
 
-        let len = 2 + usize::from(!subcommand_is_empty) + usize::from(self.focused);
+        let focused = matches!(&self.value, CommandOptionValue::Focused(_, _));
+
+        let len = 2 + usize::from(!subcommand_is_empty) + usize::from(focused);
 
         let mut state = serializer.serialize_struct("CommandDataOption", len)?;
 
-        if self.focused {
-            state.serialize_field("focused", &self.focused)?;
+        if focused {
+            state.serialize_field("focused", &focused)?;
         }
 
         state.serialize_field("name", &self.name)?;
@@ -50,6 +52,7 @@ impl Serialize for CommandDataOption {
             CommandOptionValue::Attachment(a) => state.serialize_field("value", a)?,
             CommandOptionValue::Boolean(b) => state.serialize_field("value", b)?,
             CommandOptionValue::Channel(c) => state.serialize_field("value", c)?,
+            CommandOptionValue::Focused(f, _) => state.serialize_field("value", f)?,
             CommandOptionValue::Integer(i) => state.serialize_field("value", i)?,
             CommandOptionValue::Mentionable(m) => state.serialize_field("value", m)?,
             CommandOptionValue::Number(n) => state.serialize_field("value", n)?,
@@ -174,129 +177,143 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     }
                 }
 
+                let focused = focused.unwrap_or_default();
                 let name = name_opt.ok_or_else(|| DeError::missing_field("name"))?;
                 let kind = kind_opt.ok_or_else(|| DeError::missing_field("type"))?;
 
-                let value = match kind {
-                    CommandOptionType::Attachment => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+                let value = if focused {
+                    let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                        if let ValueEnvelope::Id(id) = val {
-                            CommandOptionValue::Attachment(id.cast())
-                        } else {
-                            return Err(DeError::invalid_type(
-                                val.as_unexpected(),
-                                &"attachment id",
-                            ));
+                    match val {
+                        ValueEnvelope::Integer(i) => {
+                            CommandOptionValue::Focused(i.to_string(), kind)
                         }
-                    }
-                    CommandOptionType::Boolean => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
-
-                        if let ValueEnvelope::Boolean(b) = val {
-                            CommandOptionValue::Boolean(b)
-                        } else {
-                            return Err(DeError::invalid_type(val.as_unexpected(), &"boolean"));
+                        ValueEnvelope::Number(f) => {
+                            CommandOptionValue::Focused(f.to_string(), kind)
                         }
+                        ValueEnvelope::String(s) => CommandOptionValue::Focused(s, kind),
+                        _ => return Err(DeError::invalid_type(val.as_unexpected(), &"focused")),
                     }
-                    CommandOptionType::Channel => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+                } else {
+                    match kind {
+                        CommandOptionType::Attachment => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                        if let ValueEnvelope::Id(id) = val {
-                            CommandOptionValue::Channel(id.cast())
-                        } else {
-                            return Err(DeError::invalid_type(val.as_unexpected(), &"channel id"));
-                        }
-                    }
-                    CommandOptionType::Integer => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
-
-                        if let ValueEnvelope::Integer(i) = val {
-                            CommandOptionValue::Integer(i)
-                        } else {
-                            return Err(DeError::invalid_type(val.as_unexpected(), &"integer"));
-                        }
-                    }
-                    CommandOptionType::Mentionable => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
-
-                        if let ValueEnvelope::Id(id) = val {
-                            CommandOptionValue::Mentionable(id)
-                        } else {
-                            return Err(DeError::invalid_type(
-                                val.as_unexpected(),
-                                &"mentionable id",
-                            ));
-                        }
-                    }
-                    CommandOptionType::Number => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
-
-                        match val {
-                            ValueEnvelope::Integer(i) => {
-                                // As json allows sending floating
-                                // points without the tailing decimals
-                                // it may be interpreted as a integer
-                                // but it is safe to cast as there can
-                                // not occur any loss.
-                                #[allow(clippy::cast_precision_loss)]
-                                CommandOptionValue::Number(Number(i as f64))
-                            }
-                            ValueEnvelope::Number(f) => CommandOptionValue::Number(Number(f)),
-                            other => {
+                            if let ValueEnvelope::Id(id) = val {
+                                CommandOptionValue::Attachment(id.cast())
+                            } else {
                                 return Err(DeError::invalid_type(
-                                    other.as_unexpected(),
-                                    &"number",
+                                    val.as_unexpected(),
+                                    &"attachment id",
                                 ));
                             }
                         }
-                    }
-                    CommandOptionType::Role => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+                        CommandOptionType::Boolean => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                        if let ValueEnvelope::Id(id) = val {
-                            CommandOptionValue::Role(id.cast())
-                        } else {
-                            return Err(DeError::invalid_type(val.as_unexpected(), &"role id"));
-                        }
-                    }
-
-                    CommandOptionType::String => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
-
-                        match val {
-                            ValueEnvelope::String(s) => CommandOptionValue::String(s),
-                            ValueEnvelope::Id(id) => {
-                                CommandOptionValue::String(id.get().to_string())
+                            if let ValueEnvelope::Boolean(b) = val {
+                                CommandOptionValue::Boolean(b)
+                            } else {
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"boolean"));
                             }
-                            other => {
+                        }
+                        CommandOptionType::Channel => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                            if let ValueEnvelope::Id(id) = val {
+                                CommandOptionValue::Channel(id.cast())
+                            } else {
                                 return Err(DeError::invalid_type(
-                                    other.as_unexpected(),
-                                    &"string",
+                                    val.as_unexpected(),
+                                    &"channel id",
                                 ));
                             }
                         }
-                    }
-                    CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
-                    CommandOptionType::SubCommandGroup => {
-                        CommandOptionValue::SubCommandGroup(options)
-                    }
-                    CommandOptionType::User => {
-                        let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+                        CommandOptionType::Integer => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                        if let ValueEnvelope::Id(id) = val {
-                            CommandOptionValue::User(id.cast())
-                        } else {
-                            return Err(DeError::invalid_type(val.as_unexpected(), &"user id"));
+                            if let ValueEnvelope::Integer(i) = val {
+                                CommandOptionValue::Integer(i)
+                            } else {
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"integer"));
+                            }
+                        }
+                        CommandOptionType::Mentionable => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                            if let ValueEnvelope::Id(id) = val {
+                                CommandOptionValue::Mentionable(id)
+                            } else {
+                                return Err(DeError::invalid_type(
+                                    val.as_unexpected(),
+                                    &"mentionable id",
+                                ));
+                            }
+                        }
+                        CommandOptionType::Number => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                            match val {
+                                ValueEnvelope::Integer(i) => {
+                                    // As json allows sending floating
+                                    // points without the tailing decimals
+                                    // it may be interpreted as a integer
+                                    // but it is safe to cast as there can
+                                    // not occur any loss.
+                                    #[allow(clippy::cast_precision_loss)]
+                                    CommandOptionValue::Number(Number(i as f64))
+                                }
+                                ValueEnvelope::Number(f) => CommandOptionValue::Number(Number(f)),
+                                other => {
+                                    return Err(DeError::invalid_type(
+                                        other.as_unexpected(),
+                                        &"number",
+                                    ));
+                                }
+                            }
+                        }
+                        CommandOptionType::Role => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                            if let ValueEnvelope::Id(id) = val {
+                                CommandOptionValue::Role(id.cast())
+                            } else {
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"role id"));
+                            }
+                        }
+                        CommandOptionType::String => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                            match val {
+                                ValueEnvelope::String(s) => CommandOptionValue::String(s),
+                                ValueEnvelope::Id(id) => {
+                                    CommandOptionValue::String(id.get().to_string())
+                                }
+                                other => {
+                                    return Err(DeError::invalid_type(
+                                        other.as_unexpected(),
+                                        &"string",
+                                    ));
+                                }
+                            }
+                        }
+                        CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
+                        CommandOptionType::SubCommandGroup => {
+                            CommandOptionValue::SubCommandGroup(options)
+                        }
+                        CommandOptionType::User => {
+                            let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
+
+                            if let ValueEnvelope::Id(id) = val {
+                                CommandOptionValue::User(id.cast())
+                            } else {
+                                return Err(DeError::invalid_type(val.as_unexpected(), &"user id"));
+                            }
                         }
                     }
                 };
 
-                Ok(CommandDataOption {
-                    name,
-                    value,
-                    focused: focused.unwrap_or_default(),
-                })
+                Ok(CommandDataOption { name, value })
             }
         }
 
@@ -304,19 +321,42 @@ impl<'de> Deserialize<'de> for CommandDataOption {
     }
 }
 
-/// Value of a [`CommandDataOption`].
+/// Combined value and value type for a [`CommandDataOption`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
+    /// Attachment option.
     Attachment(Id<AttachmentMarker>),
+    /// Boolean option.
     Boolean(bool),
+    /// Channel option.
     Channel(Id<ChannelMarker>),
+    /// Focused option.
+    ///
+    /// Since Discord does not validate focused fields, they are sent as strings.
+    /// This means that you will not necessarily get a valid number from number options.
+    ///
+    /// See [Discord Docs/Autocomplete].
+    ///
+    /// The actual [`CommandOptionType`] is available through the second tuple value.
+    ///
+    /// [Discord Docs/Autocomplete]: https://discord.com/developers/docs/interactions/application-commands#autocomplete
+    /// [`CommandOptionType`]: crate::application::command::CommandOptionType
+    Focused(String, CommandOptionType),
+    /// Integer option.
     Integer(i64),
+    /// Mentionable option.
     Mentionable(Id<GenericMarker>),
+    /// Number option.
     Number(Number),
+    /// Role option.
     Role(Id<RoleMarker>),
+    /// String option.
     String(String),
+    /// Subcommand option.
     SubCommand(Vec<CommandDataOption>),
+    /// Subcommand group option.
     SubCommandGroup(Vec<CommandDataOption>),
+    /// User option.
     User(Id<UserMarker>),
 }
 
@@ -326,6 +366,7 @@ impl CommandOptionValue {
             CommandOptionValue::Attachment(_) => CommandOptionType::Attachment,
             CommandOptionValue::Boolean(_) => CommandOptionType::Boolean,
             CommandOptionValue::Channel(_) => CommandOptionType::Channel,
+            CommandOptionValue::Focused(_, t) => *t,
             CommandOptionValue::Integer(_) => CommandOptionType::Integer,
             CommandOptionValue::Mentionable(_) => CommandOptionType::Mentionable,
             CommandOptionValue::Number(_) => CommandOptionType::Number,
@@ -354,6 +395,7 @@ mod tests {
     #[test]
     fn no_options() {
         let value = CommandData {
+            guild_id: Some(Id::new(2)),
             id: Id::new(1),
             name: "permissions".to_owned(),
             kind: CommandType::ChatInput,
@@ -366,8 +408,111 @@ mod tests {
             &[
                 Token::Struct {
                     name: "CommandData",
+                    len: 4,
+                },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("name"),
+                Token::Str("permissions"),
+                Token::Str("type"),
+                Token::U8(CommandType::ChatInput as u8),
+                Token::StructEnd,
+            ],
+        )
+    }
+
+    #[test]
+    fn with_option() {
+        let value = CommandData {
+            guild_id: Some(Id::new(2)),
+            id: Id::new(1),
+            name: "permissions".to_owned(),
+            kind: CommandType::ChatInput,
+            options: Vec::from([CommandDataOption {
+                name: "cat".to_owned(),
+                value: CommandOptionValue::Integer(42),
+            }]),
+            resolved: None,
+            target_id: None,
+        };
+
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandData",
+                    len: 5,
+                },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("name"),
+                Token::Str("permissions"),
+                Token::Str("type"),
+                Token::U8(CommandType::ChatInput as u8),
+                Token::Str("options"),
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "CommandDataOption",
                     len: 3,
                 },
+                Token::Str("name"),
+                Token::Str("cat"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::Integer as u8),
+                Token::Str("value"),
+                Token::I64(42),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::StructEnd,
+            ],
+        )
+    }
+
+    #[test]
+    fn with_normal_option_and_autocomplete() {
+        let value = CommandData {
+            guild_id: Some(Id::new(2)),
+            id: Id::new(1),
+            name: "permissions".to_owned(),
+            kind: CommandType::ChatInput,
+            options: Vec::from([
+                CommandDataOption {
+                    name: "cat".to_owned(),
+                    value: CommandOptionValue::Integer(42),
+                },
+                CommandDataOption {
+                    name: "dog".to_owned(),
+                    value: CommandOptionValue::Focused(
+                        "Shiba".to_owned(),
+                        CommandOptionType::String,
+                    ),
+                },
+            ]),
+            resolved: None,
+            target_id: None,
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandData",
+                    len: 5,
+                },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
@@ -375,6 +520,34 @@ mod tests {
                 Token::Str("permissions"),
                 Token::Str("type"),
                 Token::U8(CommandType::ChatInput.into()),
+                Token::Str("options"),
+                Token::Seq { len: Some(2) },
+                Token::Struct {
+                    name: "CommandDataOption",
+                    len: 3,
+                },
+                Token::Str("name"),
+                Token::Str("cat"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::Integer.into()),
+                Token::Str("value"),
+                Token::I64(42),
+                Token::StructEnd,
+                Token::Struct {
+                    name: "CommandDataOption",
+                    len: 4,
+                },
+                Token::Str("focused"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("name"),
+                Token::Str("dog"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::String.into()),
+                Token::Str("value"),
+                Token::String("Shiba"),
+                Token::StructEnd,
+                Token::SeqEnd,
                 Token::StructEnd,
             ],
         )
@@ -383,11 +556,11 @@ mod tests {
     #[test]
     fn subcommand_without_option() {
         let value = CommandData {
+            guild_id: None,
             id: Id::new(1),
             name: "photo".to_owned(),
             kind: CommandType::ChatInput,
             options: Vec::from([CommandDataOption {
-                focused: false,
                 name: "cat".to_owned(),
                 value: CommandOptionValue::SubCommand(Vec::new()),
             }]),
@@ -429,7 +602,6 @@ mod tests {
     #[test]
     fn numbers() {
         let value = CommandDataOption {
-            focused: false,
             name: "opt".to_string(),
             value: CommandOptionValue::Number(Number(5.0)),
         };
@@ -447,6 +619,37 @@ mod tests {
                 Token::U8(CommandOptionType::Number as u8),
                 Token::Str("value"),
                 Token::I64(5),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn autocomplete() {
+        let value = CommandDataOption {
+            name: "opt".to_string(),
+            value: CommandOptionValue::Focused(
+                "not a number".to_owned(),
+                CommandOptionType::Number,
+            ),
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandDataOption",
+                    len: 4,
+                },
+                Token::Str("focused"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("name"),
+                Token::Str("opt"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::Number as u8),
+                Token::Str("value"),
+                Token::String("not a number"),
                 Token::StructEnd,
             ],
         );

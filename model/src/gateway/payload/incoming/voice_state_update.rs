@@ -1,8 +1,23 @@
 use crate::voice::VoiceState;
 use serde::{Deserialize, Serialize};
+use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceStateUpdate(pub VoiceState);
+
+impl Deref for VoiceStateUpdate {
+    type Target = VoiceState;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for VoiceStateUpdate {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -117,7 +117,7 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_request() {
+    fn request() {
         let client = Client::new("token".to_owned());
         let builder = DeleteWebhookMessage::new(&client, Id::new(1), "token", Id::new(2));
         let actual = builder

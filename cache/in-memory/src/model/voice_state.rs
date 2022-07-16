@@ -11,6 +11,7 @@ use twilight_model::{
 /// Represents a cached [`VoiceState`].
 ///
 /// [`VoiceState`]: twilight_model::voice::VoiceState
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedVoiceState {
     channel_id: Id<ChannelMarker>,
@@ -203,7 +204,7 @@ mod tests {
     const USER_ID: Id<UserMarker> = Id::new(3);
 
     #[test]
-    fn test_eq() {
+    fn eq() {
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
         let cached = CachedVoiceState::from_model(CHANNEL_ID, GUILD_ID, voice_state.clone());
 
@@ -211,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn test_getters() {
+    fn getters() {
         let voice_state = test::voice_state(GUILD_ID, Some(CHANNEL_ID), USER_ID);
         let cached = CachedVoiceState::from_model(CHANNEL_ID, GUILD_ID, voice_state.clone());
 

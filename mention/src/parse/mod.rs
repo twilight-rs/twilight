@@ -43,7 +43,7 @@
 //! Parse a timestamp:
 //!
 //! ```
-//! fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use twilight_mention::{
 //!     timestamp::{TimestampStyle, Timestamp},
 //!     parse::ParseMention,

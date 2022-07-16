@@ -16,7 +16,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_vanity_url() {
+    fn vanity_url() {
         let url = VanityUrl {
             code: "a".to_owned(),
         };

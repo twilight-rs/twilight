@@ -107,6 +107,7 @@ impl<T> Id<T> {
     /// Panics if the value is 0.
     ///
     /// [`new_checked`]: Self::new_checked
+    #[track_caller]
     pub const fn new(n: u64) -> Self {
         if let Some(id) = Self::new_checked(n) {
             id
@@ -447,7 +448,7 @@ mod tests {
     /// Test that various methods of initializing IDs are correct, such as via
     /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
     #[test]
-    fn test_initializers() -> Result<(), Box<dyn Error>> {
+    fn initializers() -> Result<(), Box<dyn Error>> {
         // `Id::new_checked`
         assert!(Id::<GenericMarker>::new_checked(0).is_none());
         assert_eq!(Some(1), Id::<GenericMarker>::new_checked(1).map(Id::get));
@@ -478,7 +479,7 @@ mod tests {
 
     /// Test that conversion methods are correct.
     #[test]
-    fn test_conversions() {
+    fn conversions() {
         // `Into`
         assert_eq!(1, u64::from(Id::<GenericMarker>::new(1)));
         assert_eq!(
@@ -496,14 +497,14 @@ mod tests {
 
     /// Test that casting IDs maintains the original value.
     #[test]
-    fn test_cast() {
+    fn cast() {
         let id = Id::<GenericMarker>::new(123);
         assert_eq!(123_u64, id.cast::<RoleMarker>());
     }
 
     /// Test that debugging IDs formats the generic and value as a newtype.
     #[test]
-    fn test_debug() {
+    fn debug() {
         let id = Id::<RoleMarker>::new(114_941_315_417_899_012);
 
         assert_eq!("Id<RoleMarker>(114941315417899012)", format!("{id:?}"));
@@ -511,7 +512,7 @@ mod tests {
 
     /// Test that display formatting an ID formats the value.
     #[test]
-    fn test_display() {
+    fn display() {
         let id = Id::<GenericMarker>::new(114_941_315_417_899_012);
 
         assert_eq!("114941315417899012", id.to_string());
@@ -519,7 +520,7 @@ mod tests {
 
     /// Test that hashing an ID is equivalent to hashing only its inner value.
     #[test]
-    fn test_hash() {
+    fn hash() {
         let id = Id::<GenericMarker>::new(123);
 
         let mut id_hasher = DefaultHasher::new();
@@ -533,7 +534,7 @@ mod tests {
 
     /// Test that IDs are ordered exactly like their inner values.
     #[test]
-    fn test_ordering() {
+    fn ordering() {
         let lesser = Id::<GenericMarker>::new(911_638_235_594_244_096);
         let center = Id::<GenericMarker>::new(911_638_263_322_800_208);
         let greater = Id::<GenericMarker>::new(911_638_287_939_166_208);
@@ -545,7 +546,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_serde() {
+    fn serde() {
         serde_test::assert_tokens(
             &Id::<ApplicationMarker>::new(114_941_315_417_899_012),
             &[

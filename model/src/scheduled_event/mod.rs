@@ -204,7 +204,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_scheduled_event() -> Result<(), Box<dyn Error>> {
+    fn scheduled_event() -> Result<(), Box<dyn Error>> {
         let scheduled_start_time = Timestamp::parse("2022-01-01T00:00:00.000000+00:00")?;
 
         let value = GuildScheduledEvent {

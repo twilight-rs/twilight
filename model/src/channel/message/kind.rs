@@ -28,6 +28,8 @@ pub enum MessageType {
     ThreadStarterMessage,
     GuildInviteReminder,
     ContextMenuCommand,
+    /// Message is an auto-moderation action.
+    AutoModerationAction,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -58,6 +60,7 @@ impl From<u8> for MessageType {
             21 => MessageType::ThreadStarterMessage,
             22 => MessageType::GuildInviteReminder,
             23 => MessageType::ContextMenuCommand,
+            24 => MessageType::AutoModerationAction,
             unknown => MessageType::Unknown(unknown),
         }
     }
@@ -89,6 +92,7 @@ impl From<MessageType> for u8 {
             MessageType::ThreadStarterMessage => 21,
             MessageType::GuildInviteReminder => 22,
             MessageType::ContextMenuCommand => 23,
+            MessageType::AutoModerationAction => 24,
             MessageType::Unknown(unknown) => unknown,
         }
     }
@@ -100,7 +104,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&MessageType::Regular, &[Token::U8(0)]);
         serde_test::assert_tokens(&MessageType::RecipientAdd, &[Token::U8(1)]);
         serde_test::assert_tokens(&MessageType::RecipientRemove, &[Token::U8(2)]);
@@ -130,11 +134,12 @@ mod tests {
         serde_test::assert_tokens(&MessageType::ThreadStarterMessage, &[Token::U8(21)]);
         serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
         serde_test::assert_tokens(&MessageType::ContextMenuCommand, &[Token::U8(23)]);
+        serde_test::assert_tokens(&MessageType::AutoModerationAction, &[Token::U8(24)]);
         serde_test::assert_tokens(&MessageType::Unknown(99), &[Token::U8(99)]);
     }
 
     #[test]
-    fn test_conversions() {
+    fn conversions() {
         assert_eq!(MessageType::from(0), MessageType::Regular);
         assert_eq!(MessageType::from(1), MessageType::RecipientAdd);
         assert_eq!(MessageType::from(2), MessageType::RecipientRemove);
@@ -170,6 +175,7 @@ mod tests {
         assert_eq!(MessageType::from(21), MessageType::ThreadStarterMessage);
         assert_eq!(MessageType::from(22), MessageType::GuildInviteReminder);
         assert_eq!(MessageType::from(23), MessageType::ContextMenuCommand);
+        assert_eq!(MessageType::from(24), MessageType::AutoModerationAction);
         assert_eq!(MessageType::from(250), MessageType::Unknown(250));
     }
 }

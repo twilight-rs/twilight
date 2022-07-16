@@ -7,9 +7,16 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-type
 #[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum InteractionType {
+    /// Interaction involves a ping (webhook-based interactions).
+    ///
+    /// See [Discord Docs/Receiving an Interaction].
+    ///
+    /// [Discord Docs/Receiving an Interaction]: https://discord.com/developers/docs/interactions/receiving-and-responding#receiving-an-interaction
     Ping = 1,
+    /// Interaction involves an application command.
     ApplicationCommand = 2,
     /// Interaction involves a message [`Component`].
     ///
@@ -87,7 +94,7 @@ mod tests {
     const_assert_eq!(5, InteractionType::ModalSubmit as u8);
 
     #[test]
-    fn test_kind() {
+    fn kind() {
         assert_eq!("Ping", InteractionType::Ping.kind());
         assert_eq!(
             "ApplicationCommand",
@@ -102,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from() -> Result<(), UnknownInteractionTypeError> {
+    fn try_from() -> Result<(), UnknownInteractionTypeError> {
         assert_eq!(InteractionType::Ping, InteractionType::try_from(1)?);
         assert_eq!(
             InteractionType::ApplicationCommand,

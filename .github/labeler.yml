@@ -5,15 +5,15 @@ labels:
     matcher:
       files: "*"
 
+  - label: "c-book"
+    sync: true
+    matcher:
+      files: "book/**/*"
+
   - label: "c-cache"
     sync: true
     matcher:
       files: "cache/**/*"
-
-  - label: "c-embed-builder"
-    sync: true
-    matcher:
-      files: "embed-builder/**/*"
 
   - label: "c-gateway"
     sync: true

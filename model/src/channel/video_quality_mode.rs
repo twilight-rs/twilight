@@ -47,14 +47,14 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&VideoQualityMode::Auto, &[Token::U8(1)]);
         serde_test::assert_tokens(&VideoQualityMode::Full, &[Token::U8(2)]);
         serde_test::assert_tokens(&VideoQualityMode::Unknown(99), &[Token::U8(99)]);
     }
 
     #[test]
-    fn test_names() {
+    fn names() {
         assert_eq!("Auto", VideoQualityMode::Auto.name());
         assert_eq!("Full", VideoQualityMode::Full.name());
         assert_eq!("Unknown", VideoQualityMode::Unknown(99).name());

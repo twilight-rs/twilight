@@ -170,7 +170,7 @@ mod tests {
     }
 
     #[test]
-    fn test_current_user() {
+    fn current_user() {
         let value = CurrentUser {
             accent_color: Some(16_711_680),
             avatar: Some(image_hash::AVATAR),
@@ -199,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn test_current_user_complete() {
+    fn current_user_complete() {
         let value = CurrentUser {
             accent_color: None,
             avatar: Some(image_hash::AVATAR),

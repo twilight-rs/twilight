@@ -79,7 +79,7 @@ mod tests {
     );
 
     #[test]
-    fn test_webhook() {
+    fn webhook() {
         let value = Webhook {
             application_id: Some(Id::new(4)),
             avatar: Some(image_hash::AVATAR),
@@ -134,7 +134,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_webhook_complete() {
+    fn webhook_complete() {
         let value = Webhook {
             application_id: Some(Id::new(4)),
             avatar: Some(image_hash::AVATAR),

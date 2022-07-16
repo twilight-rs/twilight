@@ -5,7 +5,7 @@ description = "Utilities for working with mentions in the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-mention"
 edition = "2021"
 homepage = "https://twilight.rs/chapter_1_crates/section_8_first_party/section_2_mention.html"
-include = ["src/**/*.rs", "Cargo.toml", "README.md"]
+include = ["src/**/*.rs", "README.md"]
 keywords = ["twilight"]
 license = "ISC"
 name = "twilight-mention"
@@ -13,10 +13,10 @@ publish = false
 repository = "https://github.com/twilight-rs/twilight.git"
 readme = "README.md"
 rust-version = "1.60"
-version = "0.11.0"
+version = "0.11.1"
 
 [dependencies]
-twilight-model = { default-features = false, path = "../model" }
+twilight-model = { default-features = false, path = "../model", version = "0.11.3" }
 
 [dev-dependencies]
 criterion = { default-features = false, version = "0.3" }

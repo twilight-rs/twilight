@@ -153,7 +153,7 @@ impl Compression {
 /// with a value of `zlib-stream`.
 #[cfg_attr(
     not(any(feature = "zlib-stock", feature = "zlib-simd")),
-    allow(unused_variables)
+    allow(clippy::ptr_arg, unused_variables)
 )]
 pub fn add_url_feature(buf: &mut String) {
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
@@ -163,7 +163,7 @@ pub fn add_url_feature(buf: &mut String) {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_add_url_features() {
+    fn add_url_features() {
         let mut buf = String::new();
         super::add_url_feature(&mut buf);
 

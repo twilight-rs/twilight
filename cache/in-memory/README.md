@@ -1,5 +1,3 @@
-<!-- cargo-sync-readme start -->
-
 # twilight-cache-inmemory
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
@@ -35,21 +33,26 @@ Refer to the `permission` module for more documentation.
 Update a cache with events that come in through the gateway:
 
 ```rust,no_run
-use std::env;
+use std::{env, error::Error};
 use futures::stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::{Intents, Shard};
 
-let token = env::var("DISCORD_TOKEN")?;
-let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES).await?;
-shard.start().await?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let token = env::var("DISCORD_TOKEN")?;
+    let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
+    shard.start().await?;
 
-// Create a cache, caching up to 10 messages per channel:
-let cache = InMemoryCache::builder().message_cache_size(10).build();
+    // Create a cache, caching up to 10 messages per channel:
+    let cache = InMemoryCache::builder().message_cache_size(10).build();
 
-while let Some(event) = events.next().await {
-    // Update the cache with the event.
-    cache.update(&event);
+    while let Some(event) = events.next().await {
+        // Update the cache with the event.
+        cache.update(&event);
+    }
+
+    Ok(())
 }
 ```
 
@@ -69,5 +72,3 @@ All first-party crates are licensed under [ISC][LICENSE.md]
 [license badge]: https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge&logo=pastebin
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
-
-<!-- cargo-sync-readme end -->

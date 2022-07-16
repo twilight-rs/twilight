@@ -1,9 +1,8 @@
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Gateway opcodes.
-#[derive(
-    Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize_repr,
-)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum OpCode {
     /// An event was received.
@@ -38,7 +37,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&OpCode::Event, &[Token::U8(0)]);
         serde_test::assert_tokens(&OpCode::Heartbeat, &[Token::U8(1)]);
         serde_test::assert_tokens(&OpCode::Identify, &[Token::U8(2)]);

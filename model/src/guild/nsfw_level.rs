@@ -40,7 +40,7 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn test_variants() {
+    fn variants() {
         serde_test::assert_tokens(&NSFWLevel::Default, &[Token::U8(0)]);
         serde_test::assert_tokens(&NSFWLevel::Explicit, &[Token::U8(1)]);
         serde_test::assert_tokens(&NSFWLevel::Safe, &[Token::U8(2)]);

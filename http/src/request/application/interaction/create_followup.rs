@@ -3,7 +3,7 @@ use crate::{
     error::Error as HttpError,
     request::{
         attachment::{AttachmentManager, PartialAttachment},
-        NullableField, Request, TryIntoRequest,
+        Nullable, Request, TryIntoRequest,
     },
     response::ResponseFuture,
     routing::Route,
@@ -27,7 +27,7 @@ use twilight_validate::message::{
 #[derive(Serialize)]
 struct CreateFollowupFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
-    allowed_mentions: Option<NullableField<&'a AllowedMentions>>,
+    allowed_mentions: Option<Nullable<&'a AllowedMentions>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     attachments: Option<Vec<PartialAttachment<'a>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -110,7 +110,7 @@ impl<'a> CreateFollowup<'a> {
     /// Unless otherwise called, the request will use the client's default
     /// allowed mentions. Set to `None` to ignore this default.
     pub const fn allowed_mentions(mut self, allowed_mentions: Option<&'a AllowedMentions>) -> Self {
-        self.fields.allowed_mentions = Some(NullableField(allowed_mentions));
+        self.fields.allowed_mentions = Some(Nullable(allowed_mentions));
 
         self
     }
@@ -272,7 +272,7 @@ impl TryIntoRequest for CreateFollowup<'_> {
         // Set the default allowed mentions if required.
         if self.fields.allowed_mentions.is_none() {
             if let Some(allowed_mentions) = self.http.default_allowed_mentions() {
-                self.fields.allowed_mentions = Some(NullableField(Some(allowed_mentions)));
+                self.fields.allowed_mentions = Some(Nullable(Some(allowed_mentions)));
             }
         }
 
@@ -291,7 +291,7 @@ impl TryIntoRequest for CreateFollowup<'_> {
 
             request = request.form(form);
         } else if let Some(payload_json) = self.fields.payload_json {
-            request = request.body(payload_json.to_vec())
+            request = request.body(payload_json.to_vec());
         } else {
             request = request.json(&self.fields)?;
         }
@@ -308,7 +308,7 @@ mod tests {
     use twilight_model::id::Id;
 
     #[test]
-    fn test_create_followup_message() -> Result<(), Box<dyn Error>> {
+    fn create_followup_message() -> Result<(), Box<dyn Error>> {
         let application_id = Id::new(1);
         let token = "foo".to_owned();
 

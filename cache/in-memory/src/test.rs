@@ -27,6 +27,7 @@ pub fn cache() -> InMemoryCache {
     InMemoryCache::new()
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn cache_with_message_and_reactions() -> InMemoryCache {
     let joined_at = Timestamp::from_secs(1_632_072_645).expect("non zero");
     let cache = InMemoryCache::new();
@@ -176,12 +177,20 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
     cache.update(&reaction);
 
+    reaction.emoji = ReactionType::Custom {
+        animated: true,
+        id: Id::new(6),
+        name: Some("custom".to_owned()),
+    };
+
+    cache.update(&reaction);
+
     cache
 }
 
 pub fn current_user(id: u64) -> CurrentUser {
     CurrentUser {
-        accent_color: Some(16711680),
+        accent_color: Some(0xFF_00_00),
         avatar: None,
         banner: None,
         bot: true,

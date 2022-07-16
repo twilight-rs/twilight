@@ -15,7 +15,7 @@ use twilight_model::gateway::{
 async fn shard() -> (Shard, Events) {
     let token = env::var("DISCORD_TOKEN").unwrap();
 
-    Shard::new(token, Intents::empty()).await.unwrap()
+    Shard::new(token, Intents::empty())
 }
 
 #[ignore]

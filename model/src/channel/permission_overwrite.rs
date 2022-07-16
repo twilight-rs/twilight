@@ -15,6 +15,7 @@ pub struct PermissionOverwrite {
 }
 
 /// Type of a permission overwrite target.
+// Keep in sync with `twilight_util::permission_calculator::PermissionCalculator`!
 #[derive(Clone, Copy, Debug, Serialize, Eq, Hash, PartialEq, Deserialize)]
 #[serde(from = "u8", into = "u8")]
 #[serde(rename_all = "snake_case")]
@@ -80,7 +81,7 @@ mod tests {
     );
 
     #[test]
-    fn test_overwrite() {
+    fn overwrite() {
         let value = PermissionOverwrite {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
@@ -110,7 +111,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blank_overwrite() {
+    fn blank_overwrite() {
         // Test integer deser used in guild templates.
         let raw = r#"{
   "allow": "1",
@@ -152,7 +153,7 @@ mod tests {
     }
 
     #[test]
-    fn test_overwrite_type_name() {
+    fn overwrite_type_name() {
         serde_test::assert_tokens(&PermissionOverwriteType::Member, &[Token::U8(1)]);
         serde_test::assert_tokens(&PermissionOverwriteType::Role, &[Token::U8(0)]);
         serde_test::assert_tokens(&PermissionOverwriteType::Unknown(99), &[Token::U8(99)]);

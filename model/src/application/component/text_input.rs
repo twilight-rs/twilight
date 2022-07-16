@@ -30,7 +30,8 @@ pub struct TextInput {
 /// Style of an [`TextInput`].
 ///
 /// Refer to [the discord docs] for additional information.
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, PartialOrd, Serialize_repr)]
+#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
+#[non_exhaustive]
 #[repr(u8)]
 pub enum TextInputStyle {
     /// Intended for short single-line text.
@@ -66,7 +67,6 @@ mod tests {
         Eq,
         Hash,
         PartialEq,
-        PartialOrd,
         Send,
         Serialize,
         Sync
@@ -75,7 +75,7 @@ mod tests {
     const_assert_eq!(2, TextInputStyle::Paragraph as u8);
 
     #[test]
-    fn test_text_input_style() {
+    fn text_input_style() {
         serde_test::assert_tokens(&TextInputStyle::Short, &[Token::U8(1)]);
         serde_test::assert_tokens(&TextInputStyle::Paragraph, &[Token::U8(2)]);
     }

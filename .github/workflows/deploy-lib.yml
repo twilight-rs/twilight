@@ -7,7 +7,6 @@ on:
     paths:
       - ".github/**"
       - "cache/**"
-      - "embed-builder/**"
       - "gateway/**"
       - "gateway-queue/**"
       - "http/**"
@@ -42,7 +41,7 @@ jobs:
         env:
           RUSTDOCFLAGS: --cfg docsrs
         run: |
-          cargo doc --no-deps --features=permission-calculator
+          cargo doc --no-deps --features=permission-calculator --workspace --exclude book
           cargo doc -p twilight-util --no-deps --all-features
 
       - name: Prepare docs

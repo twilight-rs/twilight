@@ -160,7 +160,7 @@ mod tests {
     use crate::{Event, EventTypeFlags};
 
     #[test]
-    fn test_bytes_send() {
+    fn bytes_send() {
         let (emitter, mut rx) = Emitter::new(EventTypeFlags::SHARD_PAYLOAD);
         emitter.bytes(&[1]);
 
@@ -169,7 +169,7 @@ mod tests {
     }
 
     #[test]
-    fn test_event_sends_to_rx() {
+    fn event_sends_to_rx() {
         let (emitter, mut rx) = Emitter::new(EventTypeFlags::default());
         emitter.event(Event::GatewayReconnect);
 

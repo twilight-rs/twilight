@@ -1,8 +1,8 @@
+use super::{
+    DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, GuildFeature, MfaLevel,
+    NSFWLevel, Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
+};
 use crate::{
-    guild::{
-        DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, MfaLevel, NSFWLevel,
-        Permissions, PremiumTier, Role, SystemChannelFlags, VerificationLevel,
-    },
     id::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
@@ -23,7 +23,7 @@ pub struct PartialGuild {
     pub discovery_splash: Option<ImageHash>,
     pub emojis: Vec<Emoji>,
     pub explicit_content_filter: ExplicitContentFilter,
-    pub features: Vec<String>,
+    pub features: Vec<GuildFeature>,
     pub icon: Option<ImageHash>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_members: Option<u64>,
@@ -60,7 +60,7 @@ pub struct PartialGuild {
 
 #[cfg(test)]
 mod tests {
-    use crate::test::image_hash;
+    use crate::{guild::GuildFeature, test::image_hash};
 
     use super::{
         DefaultMessageNotificationLevel, ExplicitContentFilter, MfaLevel, NSFWLevel, PartialGuild,
@@ -71,7 +71,7 @@ mod tests {
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn test_partial_guild() {
+    fn partial_guild() {
         let value = PartialGuild {
             id: Id::new(1),
             afk_channel_id: Some(Id::new(2)),
@@ -83,7 +83,7 @@ mod tests {
             discovery_splash: Some(image_hash::SPLASH),
             emojis: Vec::new(),
             explicit_content_filter: ExplicitContentFilter::MembersWithoutRole,
-            features: vec!["a feature".to_owned()],
+            features: Vec::from([GuildFeature::AnimatedBanner]),
             icon: Some(image_hash::ICON),
             max_members: Some(25_000),
             max_presences: Some(10_000),
@@ -147,7 +147,7 @@ mod tests {
                 Token::U8(1),
                 Token::Str("features"),
                 Token::Seq { len: Some(1) },
-                Token::Str("a feature"),
+                Token::Str("ANIMATED_BANNER"),
                 Token::SeqEnd,
                 Token::Str("icon"),
                 Token::Some,
