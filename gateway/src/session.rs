@@ -3,10 +3,32 @@
 use serde::{Deserialize, Serialize};
 use std::mem;
 
-/// Gateway session information, often used to re-create a shard and resume its
-/// session.
+/// Gateway session information for a shard's active connection.
 ///
-/// TODO explain all about sessions
+/// A session is a stateful identifier on Discord's end for running a [shard].
+/// It is used for maintaining an authenticated Websocket connection based on
+/// an [identifier]. While a session is only connected to one shard, one shard
+/// can have more than one session: if a shard shuts down its connection and
+/// starts a new session, then the previous session will be kept alive for a
+/// short time.
+///
+/// # Reusing sessions
+///
+/// Sessions are able to be reused across connections to Discord. If an
+/// application's process needs to be restarted, then this session information
+/// - which can be (de)serialized via serde - can be stored, the application
+/// restarted, and then used again via [`ConfigBuilder::session`].
+///
+/// If the delay between disconnecting from the gateway and reconnecting isn't
+/// too long and Discord hasn't invalidated the session, then the session will
+/// be re-used by Discord. As a result, any events that were "missed" while
+/// restarting and reconnecting will be played back, meaning the application
+/// won't have missed any events. If the delay has been too long, then a new
+/// session will be initialized, resulting in those events being missed.
+///
+/// [`ConfigBuilder::session`]: crate::ConfigBuilder::session
+/// [identifier]: Self::id
+/// [shard]: crate::Shard
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Session {
     /// ID of the gateway session.

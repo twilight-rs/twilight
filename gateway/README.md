@@ -12,10 +12,6 @@ it's used to receive deserialized gateway event payloads or raw Websocket
 messages, useful for load balancing and microservices. Using the `stream`
 module, shards can be easily managed in groups.
 
-The Cluster is an interface which manages the health of the shards it
-manages and proxies all of their events under one unified stream. This is
-useful to use if you have a large bot in over 1000 or 2000 guilds.
-
 ## Examples
 
 There are a few usage examples located in the [root of the `twilight`

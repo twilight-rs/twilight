@@ -125,15 +125,16 @@ pub fn start_range(
 pub async fn start_recommended(
     config: Config,
 ) -> Result<impl Stream<Item = Result<Shard, ShardInitializeError>>, StartRecommendedError> {
-    let info = Client::new(config.token().to_owned())
-        .gateway()
-        .authed()
+    let client = Client::new(config.token().to_owned());
+    let request = client.gateway().authed();
+    let response = request
         .exec()
         .await
         .map_err(|source| StartRecommendedError {
             kind: StartRecommendedErrorType::Request,
             source: Some(Box::new(source)),
-        })?
+        })?;
+    let info = response
         .model()
         .await
         .map_err(|source| StartRecommendedError {
