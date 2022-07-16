@@ -11,8 +11,8 @@ use twilight_model::gateway::{
     Intents,
 };
 
-/// Identifier of a [shard], including the shard's ID and the total number of
-/// shards in use by the bot.
+/// Identifier of a [shard], including its ID and the total number of shards in
+/// use by the bot.
 ///
 /// [shard]: crate::Shard
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -52,7 +52,7 @@ impl ShardId {
     /// Panics if the current shard is greater than or equal to the total number
     /// of shards, or if the total number of shards is zero.
     pub const fn new(current: u64, total: u64) -> Self {
-        assert!(total > 0, "total must be greater than zero");
+        assert!(total > 0, "total must be non-zero");
         assert!(
             current < total,
             "current shard (0-indexed) must be less than total (1-indexed)",
@@ -91,10 +91,9 @@ impl ShardId {
 
 /// Display the shard ID.
 ///
-/// Formats as `shard {current}/{total}`.
+/// Formats as `{current}/{total}`.
 impl Display for ShardId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str("shard ")?;
         Display::fmt(&self.current, f)?;
         f.write_str("/")?;
 
@@ -104,7 +103,7 @@ impl Display for ShardId {
 
 /// Configuration used by the shard to identify with the gateway and operate.
 ///
-/// Use [`Config::builder`] to start configuring a shard.
+/// Use [`Config::builder`] to configure a shard's configuration.
 #[derive(Clone, Debug)]
 pub struct Config {
     /// Event type flags.
@@ -141,11 +140,19 @@ impl Config {
     ///
     /// Shortcut for calling [`builder`][`Self::builder`] and immediately
     /// finalizing the builder.
+    ///
+    /// # Panics
+    ///
+    /// Panics if loading TLS certificates fails.
     pub fn new(token: String, intents: Intents) -> Self {
         Self::builder(token, intents).build()
     }
 
-    /// Create a builder to customize the configuration for a shard.
+    /// Create a builder to customize a shard's configuration.
+    ///
+    /// # Panics
+    ///
+    /// Panics if loading TLS certificates fails.
     pub fn builder(token: String, intents: Intents) -> ConfigBuilder {
         ConfigBuilder::new(token, intents)
     }
@@ -226,6 +233,10 @@ impl ConfigBuilder {
     /// Create a new builder to configure and construct a shard.
     ///
     /// Refer to each method to learn their default values.
+    ///
+    /// # Panics
+    ///
+    /// Panics if loading TLS certificates fails.
     pub fn new(mut token: String, intents: Intents) -> Self {
         if !token.starts_with("Bot ") {
             token.insert_str(0, "Bot ");
@@ -242,7 +253,7 @@ impl ConfigBuilder {
                 queue: Arc::new(LocalQueue::new()),
                 ratelimit_messages: true,
                 session: None,
-                tls: TlsContainer::new().expect("failed to build tls"),
+                tls: TlsContainer::new().unwrap(),
                 token: token.into_boxed_str(),
             },
         }
@@ -324,14 +335,10 @@ impl ConfigBuilder {
     /// Panics if the provided value is below 50 or above 250.
     #[track_caller]
     pub const fn large_threshold(mut self, large_threshold: u64) -> Self {
-        /// Maximum value of an acceptable [large threshold].
-        ///
-        /// [large threshold]: ConfigBuilder::large_threshold
+        /// Maximum acceptable large threshold.
         const MAXIMUM: u64 = 250;
 
-        /// Minimum value of an acceptable [large threshold].
-        ///
-        /// [large threshold]: ConfigBuilder::large_threshold
+        /// Minimum acceptable large threshold.
         const MINIMUM: u64 = 50;
 
         assert!(
@@ -507,9 +514,9 @@ mod tests {
 
     #[test]
     fn shard_id_display() {
-        assert_eq!("shard 0/1", ShardId::ONE.to_string());
-        assert_eq!("shard 2/4", ShardId::new(2, 4).to_string());
-        assert_eq!("shard 13/102", ShardId::new(13, 102).to_string());
+        assert_eq!("0/1", ShardId::ONE.to_string());
+        assert_eq!("2/4", ShardId::new(2, 4).to_string());
+        assert_eq!("13/102", ShardId::new(13, 102).to_string());
     }
 
     #[tokio::test]

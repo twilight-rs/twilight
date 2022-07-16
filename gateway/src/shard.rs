@@ -362,25 +362,31 @@ impl Shard {
     /// due to network or TLS errors.
     ///
     /// [`ShardInitializeErrorType::Establishing`]: crate::error::ShardInitializeErrorType::Establishing
-    pub async fn with_config(id: ShardId, config: Config) -> Result<Self, ShardInitializeError> {
+    pub async fn with_config(
+        shard_id: ShardId,
+        config: Config,
+    ) -> Result<Self, ShardInitializeError> {
         let session = config.session().cloned();
 
         // Determine whether we need to go through the queue; if the user has
         // configured an existing gateway session then we can skip it
         if session.is_none() {
-            tracing::debug!(%id, "queued for identify");
-            config.queue().request([id.current(), id.total()]).await;
-            tracing::debug!(%id, "passed queue");
+            tracing::debug!(%shard_id, "queued for identify");
+            config
+                .queue()
+                .request([shard_id.current(), shard_id.total()])
+                .await;
+            tracing::debug!(%shard_id, "passed queue");
         }
 
-        let connection = connection::connect(id, config.gateway_url(), config.tls()).await?;
+        let connection = connection::connect(shard_id, config.gateway_url(), config.tls()).await?;
 
         Ok(Self {
-            compression: Compression::new(id),
+            compression: Compression::new(shard_id),
             config,
             connection,
             heartbeat_interval: None,
-            id,
+            id: shard_id,
             latency: Latency::new(),
             ratelimiter: None,
             session,
@@ -689,14 +695,14 @@ impl Shard {
     /// Disconnect the shard's Websocket connection, optionally invalidating the
     /// session.
     fn disconnect(&mut self, disconnect: Disconnect) {
-        tracing::debug!(id = %self.id(), "disconnected");
+        tracing::debug!(shard_id = %self.id(), "disconnected");
         self.status = ConnectionStatus::Disconnected {
             close_code: None,
             reconnect_attempts: 0,
         };
 
         if disconnect == Disconnect::InvalidateSession {
-            tracing::debug!(id = %self.id(), "session invalidated");
+            tracing::debug!(shard_id = %self.id(), "session invalidated");
             self.session = None;
         }
     }

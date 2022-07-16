@@ -88,13 +88,13 @@ impl Display for ConnectionUrl<'_> {
 /// connection with the Discord gateway could not be established, such as
 /// due to network or TLS errors.
 pub async fn connect(
-    id: ShardId,
+    shard_id: ShardId,
     maybe_gateway_url: Option<&str>,
     tls: &TlsContainer,
 ) -> Result<Connection, ShardInitializeError> {
     let url = ConnectionUrl::new(maybe_gateway_url).to_string();
 
-    tracing::debug!(%id, ?url, "shaking hands with remote");
+    tracing::debug!(%shard_id, ?url, "shaking hands with remote");
     let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(
         &url,
         Some(WEBSOCKET_CONFIG),
@@ -105,7 +105,7 @@ pub async fn connect(
         kind: ShardInitializeErrorType::Establishing,
         source: Some(Box::new(source)),
     })?;
-    tracing::debug!(%id, "shook hands with remote");
+    tracing::debug!(%shard_id, "shook hands with remote");
 
     Ok(stream)
 }
@@ -137,10 +137,7 @@ mod tests {
         let valid_url = ConnectionUrl::new(Some(USER_URL));
         assert_eq!(
             valid_url.to_string(),
-            format!(
-                "{}/?v={}&encoding=json{}",
-                USER_URL, API_VERSION, COMPRESSION_FEATURES
-            ),
+            format!("{USER_URL}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}"),
         );
     }
 }

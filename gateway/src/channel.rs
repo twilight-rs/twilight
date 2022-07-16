@@ -1,5 +1,5 @@
-//! Channel for users to [messages] across threads when calling [`Shard::send`]
-//! is not possible.
+//! Channel for users to send [messages] across threads when calling
+//! [`Shard::send`] isn't possible.
 //!
 //! [messages]: crate::message::Message
 //! [`Shard::send`]: crate::Shard::send
