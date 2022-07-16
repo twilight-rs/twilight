@@ -234,8 +234,6 @@ pub struct NodeConfig {
     ///
     /// Set this to `None` to disable resume capability.
     pub resume: Option<Resume>,
-    /// The number of shards in use by the bot.
-    pub shard_count: u64,
     /// The user ID of the bot.
     pub user_id: Id<UserMarker>,
 }
@@ -275,23 +273,15 @@ impl NodeConfig {
     /// [`Lavalink`]: crate::client::Lavalink
     pub fn new(
         user_id: Id<UserMarker>,
-        shard_count: u64,
         address: impl Into<SocketAddr>,
         authorization: impl Into<String>,
         resume: impl Into<Option<Resume>>,
     ) -> Self {
-        Self::_new(
-            user_id,
-            shard_count,
-            address.into(),
-            authorization.into(),
-            resume.into(),
-        )
+        Self::_new(user_id, address.into(), authorization.into(), resume.into())
     }
 
     const fn _new(
         user_id: Id<UserMarker>,
-        shard_count: u64,
         address: SocketAddr,
         authorization: String,
         resume: Option<Resume>,
@@ -300,7 +290,6 @@ impl NodeConfig {
             address,
             authorization,
             resume,
-            shard_count,
             user_id,
         }
     }
@@ -623,9 +612,8 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
             source: Some(Box::new(source)),
         })?;
     let headers = request.headers_mut();
-    headers.insert("User-Id", state.user_id.get().into());
     headers.insert("Authorization", state.authorization.parse().unwrap());
-    headers.insert("Num-Shards", state.shard_count.into());
+    headers.insert("User-Id", state.user_id.get().into());
 
     if state.resume.is_some() {
         headers.insert("Resume-Key", state.address.to_string().parse().unwrap());
@@ -718,13 +706,7 @@ mod tests {
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
 
-    assert_fields!(
-        NodeConfig: address,
-        authorization,
-        resume,
-        shard_count,
-        user_id
-    );
+    assert_fields!(NodeConfig: address, authorization, resume, user_id);
     assert_impl_all!(NodeConfig: Clone, Debug, Send, Sync);
     assert_fields!(NodeErrorType::SerializingMessage: message);
     assert_fields!(NodeErrorType::Unauthorized: address, authorization);
