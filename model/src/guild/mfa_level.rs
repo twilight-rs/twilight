@@ -1,11 +1,32 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum MfaLevel {
-    None = 0,
-    Elevated = 1,
+    None,
+    Elevated,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
+}
+
+impl From<u8> for MfaLevel {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => MfaLevel::None,
+            1 => MfaLevel::Elevated,
+            unknown => MfaLevel::Unknown(unknown),
+        }
+    }
+}
+
+impl From<MfaLevel> for u8 {
+    fn from(value: MfaLevel) -> Self {
+        match value {
+            MfaLevel::None => 0,
+            MfaLevel::Elevated => 1,
+            MfaLevel::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -17,5 +38,6 @@ mod tests {
     fn variants() {
         serde_test::assert_tokens(&MfaLevel::None, &[Token::U8(0)]);
         serde_test::assert_tokens(&MfaLevel::Elevated, &[Token::U8(1)]);
+        serde_test::assert_tokens(&MfaLevel::Unknown(99), &[Token::U8(99)]);
     }
 }

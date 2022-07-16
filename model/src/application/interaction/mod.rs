@@ -1,18 +1,21 @@
 //! Used when receiving interactions through gateway or webhooks.
+//!
+//! See [Discord Docs/Receiving and Responding].
+//!
+//! [Discord Docs/Receiving and Responding]: https://discord.com/developers/docs/interactions/receiving-and-responding
 
 pub mod application_command;
 pub mod message_component;
 pub mod modal;
 
 mod interaction_type;
-mod ping;
 
-use self::modal::ModalSubmitInteraction;
-pub use self::{
-    application_command::ApplicationCommand, interaction_type::InteractionType,
-    message_component::MessageComponentInteraction, ping::Ping,
+pub use self::interaction_type::InteractionType;
+
+use self::{
+    application_command::CommandData, message_component::MessageComponentInteractionData,
+    modal::ModalInteractionData,
 };
-
 use crate::{
     channel::Message,
     guild::{PartialMember, Permissions},
@@ -23,108 +26,117 @@ use crate::{
     user::User,
 };
 use serde::{
-    de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
-    Deserialize, Serialize,
+    de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
+    Deserialize, Deserializer, Serialize,
 };
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
 
 /// Payload received when a user executes an interaction.
 ///
-/// Each variant corresponds to `InteractionType` in the Discord Docs. See
-/// [Discord Docs/Interaction Object].
+/// See [Discord Docs/Interaction Object].
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-#[serde(untagged)]
-#[non_exhaustive]
-pub enum Interaction {
-    /// Ping variant.
-    Ping(Box<Ping>),
-    /// Application command variant.
-    ApplicationCommand(Box<ApplicationCommand>),
-    /// Application command autocomplete variant.
-    ApplicationCommandAutocomplete(Box<ApplicationCommand>),
-    /// Message component variant.
-    MessageComponent(Box<MessageComponentInteraction>),
-    /// Modal submit variant.
-    ModalSubmit(Box<ModalSubmitInteraction>),
+pub struct Interaction {
+    /// App's permissions in the channel the interaction was sent from.
+    ///
+    /// Present when the interaction is invoked in a guild.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app_permissions: Option<Permissions>,
+    /// ID of the associated application.
+    pub application_id: Id<ApplicationMarker>,
+    /// ID of the channel the interaction was invoked in.
+    ///
+    /// Present on all interactions types, except [`Ping`].
+    ///
+    /// [`Ping`]: InteractionType::Ping
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel_id: Option<Id<ChannelMarker>>,
+    /// Data from the interaction.
+    ///
+    /// This field present on [`ApplicationCommand`], [`MessageComponent`],
+    /// [`ApplicationCommandAutocomplete`] and [`ModalSubmit`] interactions.
+    /// The inner enum variant matches the interaction type.
+    ///
+    /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
+    /// [`MessageComponent`]: InteractionType::MessageComponent
+    /// [`ApplicationCommandAutocomplete`]: InteractionType::ApplicationCommandAutocomplete
+    /// [`ModalSubmit`]: InteractionType::ModalSubmit
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<InteractionData>,
+    /// ID of the guild the interaction was invoked in.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_id: Option<Id<GuildMarker>>,
+    /// Guild’s preferred locale.
+    ///
+    /// Present when the interaction is invoked in a guild.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_locale: Option<String>,
+    /// ID of the interaction.
+    pub id: Id<InteractionMarker>,
+    /// Type of interaction.
+    #[serde(rename = "type")]
+    pub kind: InteractionType,
+    /// Selected language of the user who invoked the interaction.
+    ///
+    /// Present on all interactions types, except [`Ping`].
+    ///
+    /// [`Ping`]: InteractionType::Ping
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub locale: Option<String>,
+    /// Member that invoked the interaction.
+    ///
+    /// Present when the interaction is invoked in a guild.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub member: Option<PartialMember>,
+    /// Message attached to the interaction.
+    ///
+    /// Present on [`MessageComponent`] interactions.
+    ///
+    /// [`MessageComponent`]: InteractionType::MessageComponent
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<Message>,
+    /// Token for responding to the interaction.
+    pub token: String,
+    /// User that invoked the interaction.
+    ///
+    /// Present when the interaction is invoked in a direct message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user: Option<User>,
 }
 
 impl Interaction {
-    /// App's permissions in the channel the interaction was sent from.
+    /// ID of the user that invoked the interaction.
     ///
-    /// None if the interaction happens in a direct message channel.
-    pub const fn app_permissions(&self) -> Option<Permissions> {
-        match self {
-            Self::Ping(_) => None,
-            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
-                command.app_permissions
+    /// This will first check for the [`member`]'s
+    /// [`user`][`PartialMember::user`]'s ID and then, if not present, check the
+    /// [`user`]'s ID.
+    ///
+    /// [`member`]: Self::member
+    /// [`user`]: Self::user
+    pub const fn author_id(&self) -> Option<Id<UserMarker>> {
+        if let Some(member) = &self.member {
+            if let Some(user) = &member.user {
+                return Some(user.id);
             }
-            Self::MessageComponent(component) => component.app_permissions,
-            Self::ModalSubmit(modal) => modal.app_permissions,
         }
+
+        if let Some(user) = &self.user {
+            return Some(user.id);
+        }
+
+        None
     }
 
-    /// Id of the associated application.
-    pub const fn application_id(&self) -> Id<ApplicationMarker> {
-        match self {
-            Self::Ping(ping) => ping.application_id,
-            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
-                command.application_id
-            }
-            Self::MessageComponent(component) => component.application_id,
-            Self::ModalSubmit(modal) => modal.application_id,
-        }
+    /// Whether the interaction was invoked in a DM.
+    pub const fn is_dm(&self) -> bool {
+        self.user.is_some()
     }
 
-    /// ID of the guild the interaction was invoked in.
-    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
-        match self {
-            Self::Ping(_) => None,
-            Self::ApplicationCommand(inner) | Self::ApplicationCommandAutocomplete(inner) => {
-                inner.guild_id
-            }
-            Self::MessageComponent(inner) => inner.guild_id,
-            Self::ModalSubmit(inner) => inner.guild_id,
-        }
-    }
-
-    /// Return the ID of the inner interaction.
-    pub const fn id(&self) -> Id<InteractionMarker> {
-        match self {
-            Self::Ping(ping) => ping.id,
-            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
-                command.id
-            }
-            Self::MessageComponent(component) => component.id,
-            Self::ModalSubmit(modal) => modal.id,
-        }
-    }
-
-    /// Type of interaction.
-    pub const fn kind(&self) -> InteractionType {
-        match self {
-            Interaction::Ping(_) => InteractionType::Ping,
-            Interaction::ApplicationCommand(_) => InteractionType::ApplicationCommand,
-            Interaction::ApplicationCommandAutocomplete(_) => {
-                InteractionType::ApplicationCommandAutocomplete
-            }
-            Interaction::MessageComponent(_) => InteractionType::MessageComponent,
-            Interaction::ModalSubmit(_) => InteractionType::ModalSubmit,
-        }
-    }
-
-    /// Token of the interaction.
-    pub fn token(&self) -> &str {
-        match self {
-            Self::Ping(ping) => &ping.token,
-            Self::ApplicationCommand(command) | Self::ApplicationCommandAutocomplete(command) => {
-                &command.token
-            }
-            Self::MessageComponent(component) => &component.token,
-            Self::ModalSubmit(modal) => &modal.token,
-        }
+    /// Whether the interaction was invoked in a guild.
+    pub const fn is_guild(&self) -> bool {
+        self.member.is_some()
     }
 }
 
@@ -132,20 +144,6 @@ impl<'de> Deserialize<'de> for Interaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         deserializer.deserialize_map(InteractionVisitor)
     }
-}
-
-const fn author_id(user: Option<&User>, member: Option<&PartialMember>) -> Option<Id<UserMarker>> {
-    if let Some(member) = member {
-        if let Some(user) = &member.user {
-            return Some(user.id);
-        }
-    }
-
-    if let Some(user) = user {
-        return Some(user.id);
-    }
-
-    None
 }
 
 #[derive(Debug, Deserialize)]
@@ -164,6 +162,7 @@ enum InteractionField {
     Token,
     Type,
     User,
+    Version,
 }
 
 struct InteractionVisitor;
@@ -181,15 +180,15 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut application_id: Option<Id<ApplicationMarker>> = None;
         let mut channel_id: Option<Id<ChannelMarker>> = None;
         let mut data: Option<Value> = None;
-        let mut guild_id: Option<Option<Id<GuildMarker>>> = None;
-        let mut guild_locale: Option<Option<String>> = None;
+        let mut guild_id: Option<Id<GuildMarker>> = None;
+        let mut guild_locale: Option<String> = None;
         let mut id: Option<Id<InteractionMarker>> = None;
-        let mut member: Option<Option<PartialMember>> = None;
-        let mut message: Option<Message> = None;
-        let mut token: Option<String> = None;
         let mut kind: Option<InteractionType> = None;
         let mut locale: Option<String> = None;
-        let mut user: Option<Option<User>> = None;
+        let mut member: Option<PartialMember> = None;
+        let mut message: Option<Message> = None;
+        let mut token: Option<String> = None;
+        let mut user: Option<User> = None;
 
         let span = tracing::trace_span!("deserializing interaction");
         let _span_enter = span.enter();
@@ -235,28 +234,28 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                         return Err(DeError::duplicate_field("channel_id"));
                     }
 
-                    channel_id = Some(map.next_value()?);
+                    channel_id = map.next_value()?;
                 }
                 InteractionField::Data => {
                     if data.is_some() {
                         return Err(DeError::duplicate_field("data"));
                     }
 
-                    data = Some(map.next_value()?);
+                    data = map.next_value()?;
                 }
                 InteractionField::GuildId => {
                     if guild_id.is_some() {
                         return Err(DeError::duplicate_field("guild_id"));
                     }
 
-                    guild_id = Some(map.next_value()?);
+                    guild_id = map.next_value()?;
                 }
                 InteractionField::GuildLocale => {
                     if guild_locale.is_some() {
                         return Err(DeError::duplicate_field("guild_locale"));
                     }
 
-                    guild_locale = Some(map.next_value()?);
+                    guild_locale = map.next_value()?;
                 }
                 InteractionField::Id => {
                     if id.is_some() {
@@ -270,21 +269,21 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                         return Err(DeError::duplicate_field("locale"));
                     }
 
-                    locale = Some(map.next_value()?);
+                    locale = map.next_value()?;
                 }
                 InteractionField::Member => {
                     if member.is_some() {
                         return Err(DeError::duplicate_field("member"));
                     }
 
-                    member = Some(map.next_value()?);
+                    member = map.next_value()?;
                 }
                 InteractionField::Message => {
                     if message.is_some() {
                         return Err(DeError::duplicate_field("message"));
                     }
 
-                    message = Some(map.next_value()?);
+                    message = map.next_value()?;
                 }
                 InteractionField::Token => {
                     if token.is_some() {
@@ -305,7 +304,11 @@ impl<'de> Visitor<'de> for InteractionVisitor {
                         return Err(DeError::duplicate_field("user"));
                     }
 
-                    user = Some(map.next_value()?);
+                    user = map.next_value()?;
+                }
+                InteractionField::Version => {
+                    // Ignoring the version field.
+                    map.next_value::<IgnoredAny>()?;
                 }
             }
         }
@@ -324,161 +327,93 @@ impl<'de> Visitor<'de> for InteractionVisitor {
             "common fields of all variants exist"
         );
 
-        Ok(match kind {
-            InteractionType::Ping => {
-                tracing::trace!("handling ping");
-
-                Self::Value::Ping(Box::new(Ping {
-                    application_id,
-                    id,
-                    kind,
-                    token,
-                }))
-            }
+        let data = match kind {
+            InteractionType::Ping => None,
             InteractionType::ApplicationCommand => {
-                let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
                     .map_err(DeserializerError::into_error)?;
 
-                let guild_id = guild_id.unwrap_or_default();
-                let guild_locale = guild_locale.unwrap_or_default();
-                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
-                let member = member.unwrap_or_default();
-                let user = user.unwrap_or_default();
-
-                tracing::trace!(%channel_id, "handling application command");
-
-                let command = Box::new(ApplicationCommand {
-                    app_permissions,
-                    application_id,
-                    channel_id,
-                    data,
-                    guild_id,
-                    guild_locale,
-                    id,
-                    kind,
-                    locale,
-                    member,
-                    token,
-                    user,
-                });
-
-                Self::Value::ApplicationCommand(command)
-            }
-            InteractionType::ApplicationCommandAutocomplete => {
-                let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
-                let data = data
-                    .ok_or_else(|| DeError::missing_field("data"))?
-                    .deserialize_into()
-                    .map_err(DeserializerError::into_error)?;
-
-                let guild_id = guild_id.unwrap_or_default();
-                let guild_locale = guild_locale.unwrap_or_default();
-                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
-                let member = member.unwrap_or_default();
-                let user = user.unwrap_or_default();
-
-                tracing::trace!(%channel_id, "handling application command autocomplete");
-
-                let command = Box::new(ApplicationCommand {
-                    app_permissions,
-                    application_id,
-                    channel_id,
-                    data,
-                    guild_id,
-                    guild_locale,
-                    id,
-                    kind,
-                    locale,
-                    member,
-                    token,
-                    user,
-                });
-
-                Self::Value::ApplicationCommandAutocomplete(command)
+                Some(InteractionData::ApplicationCommand(data))
             }
             InteractionType::MessageComponent => {
-                let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
-                    .map_err(|_| {
-                        DeError::custom("expected MessageComponentInteractionData struct")
-                    })?;
-                let message = message.ok_or_else(|| DeError::missing_field("message"))?;
+                    .map_err(DeserializerError::into_error)?;
 
-                let guild_id = guild_id.unwrap_or_default();
-                let guild_locale = guild_locale.unwrap_or_default();
-                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
-                let member = member.unwrap_or_default();
-                let user = user.unwrap_or_default();
+                Some(InteractionData::MessageComponent(data))
+            }
+            InteractionType::ApplicationCommandAutocomplete => {
+                let data = data
+                    .ok_or_else(|| DeError::missing_field("data"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
 
-                Self::Value::MessageComponent(Box::new(MessageComponentInteraction {
-                    app_permissions,
-                    application_id,
-                    channel_id,
-                    data,
-                    guild_id,
-                    guild_locale,
-                    id,
-                    kind,
-                    locale,
-                    member,
-                    message,
-                    token,
-                    user,
-                }))
+                Some(InteractionData::ApplicationCommand(data))
             }
             InteractionType::ModalSubmit => {
-                let channel_id = channel_id.ok_or_else(|| DeError::missing_field("channel_id"))?;
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
-                    .map_err(|_| DeError::custom("expected ModalInteractionData struct"))?;
+                    .map_err(DeserializerError::into_error)?;
 
-                let guild_id = guild_id.unwrap_or_default();
-                let guild_locale = guild_locale.unwrap_or_default();
-                let locale = locale.ok_or_else(|| DeError::missing_field("locale"))?;
-                let member = member.unwrap_or_default();
-                let user = user.unwrap_or_default();
-
-                Self::Value::ModalSubmit(Box::new(ModalSubmitInteraction {
-                    app_permissions,
-                    application_id,
-                    channel_id,
-                    data,
-                    guild_id,
-                    guild_locale,
-                    id,
-                    kind,
-                    locale,
-                    member,
-                    message,
-                    token,
-                    user,
-                }))
+                Some(InteractionData::ModalSubmit(data))
             }
+        };
+
+        Ok(Self::Value {
+            app_permissions,
+            application_id,
+            channel_id,
+            data,
+            guild_id,
+            guild_locale,
+            id,
+            kind,
+            locale,
+            member,
+            message,
+            token,
+            user,
         })
     }
 }
 
+/// Additional [`Interaction`] data, such as the invoking user.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum InteractionData {
+    /// Data received for the [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
+    /// interaction types.
+    ///
+    /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
+    /// [`ApplicationCommandAutocomplete`]: InteractionType::ApplicationCommandAutocomplete
+    ApplicationCommand(Box<CommandData>),
+    /// Data received for the [`MessageComponent`] interaction type.
+    ///
+    /// [`MessageComponent`]: InteractionType::MessageComponent
+    MessageComponent(MessageComponentInteractionData),
+    /// Data received for the [`ModalSubmit`] interaction type.
+    ///
+    /// [`ModalSubmit`]: InteractionType::ModalSubmit
+    ModalSubmit(ModalInteractionData),
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{
-        application::{
-            command::{CommandOptionType, CommandType},
-            interaction::{
-                application_command::{
-                    ApplicationCommand, CommandData, CommandDataOption,
-                    CommandInteractionDataResolved, CommandOptionValue, InteractionMember,
-                },
-                Interaction, InteractionType,
-            },
+    use super::{
+        application_command::{
+            CommandData, CommandDataOption, CommandInteractionDataResolved, CommandOptionValue,
+            InteractionMember,
         },
+        Interaction, InteractionData, InteractionType,
+    };
+    use crate::{
+        application::command::{CommandOptionType, CommandType},
         guild::{PartialMember, Permissions},
-        id::{marker::UserMarker, Id},
+        id::Id,
         test::image_hash,
         user::User,
         util::datetime::{Timestamp, TimestampParseError},
@@ -486,36 +421,16 @@ mod tests {
     use serde_test::Token;
     use std::{collections::HashMap, str::FromStr};
 
-    pub(super) fn user(id: Id<UserMarker>) -> User {
-        User {
-            accent_color: None,
-            avatar: None,
-            banner: None,
-            bot: false,
-            discriminator: 4444,
-            email: None,
-            flags: None,
-            id,
-            locale: None,
-            mfa_enabled: None,
-            name: "twilight".to_owned(),
-            premium_type: None,
-            public_flags: None,
-            system: None,
-            verified: None,
-        }
-    }
-
     #[test]
     #[allow(clippy::too_many_lines)]
     fn test_interaction_full() -> Result<(), TimestampParseError> {
         let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
 
-        let value = Interaction::ApplicationCommand(Box::new(ApplicationCommand {
+        let value = Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(100),
-            channel_id: Id::new(200),
-            data: CommandData {
+            channel_id: Some(Id::new(200)),
+            data: Some(InteractionData::ApplicationCommand(Box::new(CommandData {
                 guild_id: None,
                 id: Id::new(300),
                 name: "command name".into(),
@@ -566,12 +481,12 @@ mod tests {
                     .collect(),
                 }),
                 target_id: None,
-            },
+            }))),
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
             id: Id::new(500),
             kind: InteractionType::ApplicationCommand,
-            locale: "en-GB".to_owned(),
+            locale: Some("en-GB".to_owned()),
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,
@@ -600,9 +515,10 @@ mod tests {
                     verified: None,
                 }),
             }),
+            message: None,
             token: "interaction token".into(),
             user: None,
-        }));
+        };
 
         serde_test::assert_tokens(
             &value,
@@ -618,9 +534,11 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("channel_id"),
+                Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("200"),
                 Token::Str("data"),
+                Token::Some,
                 Token::Struct {
                     name: "CommandData",
                     len: 5,
@@ -718,6 +636,7 @@ mod tests {
                 Token::Str("type"),
                 Token::U8(InteractionType::ApplicationCommand as u8),
                 Token::Str("locale"),
+                Token::Some,
                 Token::Str("en-GB"),
                 Token::Str("member"),
                 Token::Some,

@@ -852,7 +852,7 @@ impl UpdateCache for Event {
             Event::IntegrationCreate(v) => c.update(v.deref()),
             Event::IntegrationDelete(v) => c.update(v.deref()),
             Event::IntegrationUpdate(v) => c.update(v.deref()),
-            Event::InteractionCreate(v) => c.update(v),
+            Event::InteractionCreate(v) => c.update(v.deref()),
             Event::MemberAdd(v) => c.update(v.deref()),
             Event::MemberRemove(v) => c.update(v),
             Event::MemberUpdate(v) => c.update(v.deref()),
@@ -881,7 +881,11 @@ impl UpdateCache for Event {
             Event::UserUpdate(v) => c.update(v),
             Event::VoiceStateUpdate(v) => c.update(v.deref()),
             // Ignored events.
-            Event::BanAdd(_)
+            Event::AutoModerationActionExecution(_)
+            | Event::AutoModerationRuleCreate(_)
+            | Event::AutoModerationRuleDelete(_)
+            | Event::AutoModerationRuleUpdate(_)
+            | Event::BanAdd(_)
             | Event::BanRemove(_)
             | Event::CommandPermissionsUpdate(_)
             | Event::GatewayHeartbeat(_)

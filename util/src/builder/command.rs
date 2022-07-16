@@ -876,6 +876,8 @@ impl StringBuilder {
             choices: Vec::new(),
             description: description.into(),
             description_localizations: None,
+            max_length: None,
+            min_length: None,
             name: name.into(),
             name_localizations: None,
             required: false,
@@ -957,6 +959,24 @@ impl StringBuilder {
                 .map(|(a, b)| (a.into(), b.into()))
                 .collect(),
         );
+
+        self
+    }
+
+    /// Set the maximum allowed length.
+    ///
+    /// Defaults to no limit.
+    pub const fn max_length(mut self, value: u16) -> Self {
+        self.0.max_length = Some(value);
+
+        self
+    }
+
+    /// Set the minimum allowed length.
+    ///
+    /// Defaults to no limit.
+    pub const fn min_length(mut self, value: u16) -> Self {
+        self.0.min_length = Some(value);
 
         self
     }

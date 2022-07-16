@@ -1,15 +1,43 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum ActivityType {
-    Playing = 0,
-    Streaming = 1,
-    Listening = 2,
-    Watching = 3,
-    Custom = 4,
-    Competing = 5,
+    Playing,
+    Streaming,
+    Listening,
+    Watching,
+    Custom,
+    Competing,
+    Unknown(u8),
+}
+
+impl From<u8> for ActivityType {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => ActivityType::Playing,
+            1 => ActivityType::Streaming,
+            2 => ActivityType::Listening,
+            3 => ActivityType::Watching,
+            4 => ActivityType::Custom,
+            5 => ActivityType::Competing,
+            unknown => ActivityType::Unknown(unknown),
+        }
+    }
+}
+
+impl From<ActivityType> for u8 {
+    fn from(value: ActivityType) -> Self {
+        match value {
+            ActivityType::Playing => 0,
+            ActivityType::Streaming => 1,
+            ActivityType::Listening => 2,
+            ActivityType::Watching => 3,
+            ActivityType::Custom => 4,
+            ActivityType::Competing => 5,
+            ActivityType::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 impl Default for ActivityType {
@@ -36,5 +64,6 @@ mod tests {
         serde_test::assert_tokens(&ActivityType::Watching, &[Token::U8(3)]);
         serde_test::assert_tokens(&ActivityType::Custom, &[Token::U8(4)]);
         serde_test::assert_tokens(&ActivityType::Competing, &[Token::U8(5)]);
+        serde_test::assert_tokens(&ActivityType::Unknown(99), &[Token::U8(99)]);
     }
 }

@@ -19,7 +19,9 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommandDataOption {
+    /// Name of the option.
     pub name: String,
+    /// Value of the option.
     pub value: CommandOptionValue,
 }
 
@@ -319,13 +321,16 @@ impl<'de> Deserialize<'de> for CommandDataOption {
     }
 }
 
-/// Value of a [`CommandDataOption`].
+/// Combined value and value type for a [`CommandDataOption`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommandOptionValue {
+    /// Attachment option.
     Attachment(Id<AttachmentMarker>),
+    /// Boolean option.
     Boolean(bool),
+    /// Channel option.
     Channel(Id<ChannelMarker>),
-    /// Value of a focused field.
+    /// Focused option.
     ///
     /// Since Discord does not validate focused fields, they are sent as strings.
     /// This means that you will not necessarily get a valid number from number options.
@@ -337,13 +342,21 @@ pub enum CommandOptionValue {
     /// [Discord Docs/Autocomplete]: https://discord.com/developers/docs/interactions/application-commands#autocomplete
     /// [`CommandOptionType`]: crate::application::command::CommandOptionType
     Focused(String, CommandOptionType),
+    /// Integer option.
     Integer(i64),
+    /// Mentionable option.
     Mentionable(Id<GenericMarker>),
+    /// Number option.
     Number(Number),
+    /// Role option.
     Role(Id<RoleMarker>),
+    /// String option.
     String(String),
+    /// Subcommand option.
     SubCommand(Vec<CommandDataOption>),
+    /// Subcommand group option.
     SubCommandGroup(Vec<CommandDataOption>),
+    /// User option.
     User(Id<UserMarker>),
 }
 
@@ -407,7 +420,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("permissions"),
                 Token::Str("type"),
-                Token::U8(CommandType::ChatInput as u8),
+                Token::U8(CommandType::ChatInput.into()),
                 Token::StructEnd,
             ],
         )
@@ -445,7 +458,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("permissions"),
                 Token::Str("type"),
-                Token::U8(CommandType::ChatInput as u8),
+                Token::U8(CommandType::ChatInput.into()),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -506,7 +519,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("permissions"),
                 Token::Str("type"),
-                Token::U8(CommandType::ChatInput as u8),
+                Token::U8(CommandType::ChatInput.into()),
                 Token::Str("options"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {
@@ -568,7 +581,7 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("photo"),
                 Token::Str("type"),
-                Token::U8(CommandType::ChatInput as u8),
+                Token::U8(CommandType::ChatInput.into()),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {

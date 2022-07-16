@@ -40,6 +40,7 @@ pub enum Component {
     Button(Button),
     SelectMenu(SelectMenu),
     TextInput(TextInput),
+    Unknown(u8),
 }
 
 impl Component {
@@ -69,6 +70,7 @@ impl Component {
             Self::Button(_) => ComponentType::Button,
             Self::SelectMenu(_) => ComponentType::SelectMenu,
             Self::TextInput(_) => ComponentType::TextInput,
+            Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
         }
     }
 }
@@ -421,6 +423,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     value: value.unwrap_or_default(),
                 })
             }
+            ComponentType::Unknown(unknown) => Self::Value::Unknown(unknown),
         })
     }
 }
@@ -484,6 +487,9 @@ impl Serialize for Component {
                     + usize::from(text_input.required.is_some())
                     + usize::from(text_input.value.is_some())
             }
+            // We are dropping fields here but nothing we can do about that for
+            // the time being.
+            Component::Unknown(_) => 1,
         };
 
         let mut state = serializer.serialize_struct("Component", len)?;
@@ -572,6 +578,12 @@ impl Serialize for Component {
                     state.serialize_field("value", &text_input.value)?;
                 }
             }
+            // We are not serializing all fields so this will fail to
+            // deserialize. But it is all that can be done to avoid losing
+            // incoming messages at this time.
+            Component::Unknown(unknown) => {
+                state.serialize_field("type", &ComponentType::Unknown(*unknown))?;
+            }
         }
 
         state.end()
@@ -635,7 +647,7 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("type"),
-                Token::U8(ComponentType::ActionRow as u8),
+                Token::U8(ComponentType::ActionRow.into()),
                 Token::Str("components"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {
@@ -643,7 +655,7 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("type"),
-                Token::U8(ComponentType::Button as u8),
+                Token::U8(ComponentType::Button.into()),
                 Token::Str("custom_id"),
                 Token::Some,
                 Token::Str("test custom id"),
@@ -653,14 +665,14 @@ mod tests {
                 Token::Some,
                 Token::Str("test label"),
                 Token::Str("style"),
-                Token::U8(ButtonStyle::Primary as u8),
+                Token::U8(ButtonStyle::Primary.into()),
                 Token::StructEnd,
                 Token::Struct {
                     name: "Component",
                     len: 6,
                 },
                 Token::Str("type"),
-                Token::U8(ComponentType::SelectMenu as u8),
+                Token::U8(ComponentType::SelectMenu.into()),
                 Token::Str("custom_id"),
                 Token::Some,
                 Token::Str("test custom id 2"),
@@ -720,7 +732,7 @@ mod tests {
                     len: 2,
                 },
                 Token::String("type"),
-                Token::U8(ComponentType::ActionRow as u8),
+                Token::U8(ComponentType::ActionRow.into()),
                 Token::String("components"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -770,7 +782,7 @@ mod tests {
                     len: 6,
                 },
                 Token::String("type"),
-                Token::U8(ComponentType::Button as u8),
+                Token::U8(ComponentType::Button.into()),
                 Token::String("custom_id"),
                 Token::Some,
                 Token::String("test"),
@@ -787,7 +799,7 @@ mod tests {
                 Token::Some,
                 Token::String("Test"),
                 Token::String("style"),
-                Token::U8(ButtonStyle::Link as u8),
+                Token::U8(ButtonStyle::Link.into()),
                 Token::String("url"),
                 Token::Some,
                 Token::String("https://twilight.rs"),
@@ -817,7 +829,7 @@ mod tests {
                     len: 9,
                 },
                 Token::String("type"),
-                Token::U8(ComponentType::TextInput as u8),
+                Token::U8(ComponentType::TextInput.into()),
                 Token::String("custom_id"),
                 Token::Some,
                 Token::String("test"),

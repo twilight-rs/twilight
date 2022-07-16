@@ -61,6 +61,8 @@ pub enum ActivityButton {
     Link(ActivityButtonLink),
     /// Activity button is textual.
     Text(ActivityButtonText),
+    /// Variant value is unknown to the library.
+    Unknown,
 }
 
 impl ActivityButton {
@@ -75,10 +77,11 @@ impl ActivityButton {
     }
 
     /// Retrieve an immutable reference to the label.
-    pub fn label(&self) -> &str {
+    pub fn label(&self) -> Option<&str> {
         match self {
-            Self::Link(link) => &link.label,
-            Self::Text(text) => &text.label,
+            Self::Link(link) => Some(&link.label),
+            Self::Text(text) => Some(&text.label),
+            Self::Unknown => None,
         }
     }
 
@@ -195,6 +198,9 @@ impl Serialize for ActivityButton {
                 state.end()
             }
             Self::Text(text) => serializer.serialize_str(&text.label),
+            Self::Unknown => Err(serde::ser::Error::custom(
+                "Can't serialize an unknown activity button type",
+            )),
         }
     }
 }

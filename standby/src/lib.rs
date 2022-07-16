@@ -39,7 +39,7 @@ use tokio::sync::{
     oneshot::{self, Receiver, Sender as OneshotSender},
 };
 use twilight_model::{
-    application::interaction::{Interaction, MessageComponentInteraction},
+    application::interaction::{Interaction, InteractionType},
     gateway::{
         event::Event,
         payload::incoming::{MessageCreate, ReactionAdd},
@@ -104,7 +104,7 @@ impl<T: Debug> Debug for Bystander<T> {
 pub struct Standby {
     /// List of component bystanders where the ID of the message is known
     /// beforehand.
-    components: DashMap<Id<MessageMarker>, Vec<Bystander<MessageComponentInteraction>>>,
+    components: DashMap<Id<MessageMarker>, Vec<Bystander<Interaction>>>,
     /// Bystanders for any event that may not be in any particular guild.
     ///
     /// The key is generated via [`event_counter`].
@@ -158,12 +158,14 @@ impl Standby {
 
         match event {
             Event::InteractionCreate(e) => {
-                if let Interaction::MessageComponent(comp) = &e.0 {
-                    completions.add_with(&Self::process_specific_event(
-                        &self.components,
-                        comp.message.id,
-                        &**comp,
-                    ));
+                if e.kind == InteractionType::MessageComponent {
+                    if let Some(message) = &e.message {
+                        completions.add_with(&Self::process_specific_event(
+                            &self.components,
+                            message.id,
+                            e,
+                        ));
+                    }
                 }
             }
             Event::MessageCreate(e) => {
@@ -632,7 +634,7 @@ impl Standby {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
     /// use twilight_model::{
-    ///     application::interaction::message_component::MessageComponentInteraction,
+    ///     application::interaction::Interaction,
     ///     id::Id,
     /// };
     /// use twilight_standby::Standby;
@@ -640,16 +642,14 @@ impl Standby {
     /// let standby = Standby::new();
     /// let message_id = Id::new(123);
     ///
-    /// let component = standby.wait_for_component(message_id, |event: &MessageComponentInteraction| {
+    /// let component = standby.wait_for_component(message_id, |event: &Interaction| {
     ///     event.author_id() == Some(Id::new(456))
     /// }).await?;
     /// # Ok(()) }
     /// ```
     ///
     /// [`wait_for_component_stream`]: Self::wait_for_component_stream
-    pub fn wait_for_component<
-        F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
-    >(
+    pub fn wait_for_component<F: Fn(&Interaction) -> bool + Send + Sync + 'static>(
         &self,
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
@@ -677,7 +677,7 @@ impl Standby {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
-    ///     application::interaction::message_component::MessageComponentInteraction,
+    ///     application::interaction::{Interaction, InteractionData},
     ///     id::Id,
     /// };
     /// use twilight_standby::Standby;
@@ -685,8 +685,12 @@ impl Standby {
     /// let standby = Standby::new();
     /// let message_id = Id::new(123);
     ///
-    /// let mut components = standby.wait_for_component_stream(message_id, |event: &MessageComponentInteraction| {
-    ///     event.data.custom_id == "Click".to_string()
+    /// let mut components = standby.wait_for_component_stream(message_id, |event: &Interaction| {
+    ///     if let Some(InteractionData::MessageComponent(data)) = &event.data {
+    ///         data.custom_id == "Click".to_string()
+    ///     } else {
+    ///         false
+    ///     }
     /// });
     ///
     /// while let Some(component) = components.next().await {
@@ -696,9 +700,7 @@ impl Standby {
     /// ```
     ///
     /// [`wait_for_component`]: Self::wait_for_component
-    pub fn wait_for_component_stream<
-        F: Fn(&MessageComponentInteraction) -> bool + Send + Sync + 'static,
-    >(
+    pub fn wait_for_component_stream<F: Fn(&Interaction) -> bool + Send + Sync + 'static>(
         &self,
         message_id: Id<MessageMarker>,
         check: impl Into<Box<F>>,
@@ -1064,8 +1066,8 @@ mod tests {
         application::{
             component::ComponentType,
             interaction::{
-                message_component::MessageComponentInteractionData, Interaction, InteractionType,
-                MessageComponentInteraction,
+                message_component::MessageComponentInteractionData, Interaction, InteractionData,
+                InteractionType,
             },
         },
         channel::{
@@ -1148,23 +1150,25 @@ mod tests {
         }
     }
 
-    fn button() -> MessageComponentInteraction {
-        MessageComponentInteraction {
+    fn button() -> Interaction {
+        Interaction {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
-            channel_id: Id::new(2),
-            data: MessageComponentInteractionData {
-                custom_id: String::from("Click"),
-                component_type: ComponentType::Button,
-                values: vec![],
-            },
+            channel_id: Some(Id::new(2)),
+            data: Some(InteractionData::MessageComponent(
+                MessageComponentInteractionData {
+                    custom_id: String::from("Click"),
+                    component_type: ComponentType::Button,
+                    values: Vec::new(),
+                },
+            )),
             guild_id: Some(Id::new(3)),
             guild_locale: None,
             id: Id::new(4),
             kind: InteractionType::MessageComponent,
-            locale: "en-GB".to_owned(),
+            locale: Some("en-GB".to_owned()),
             member: None,
-            message: message(),
+            message: Some(message()),
             token: String::from("token"),
             user: Some(User {
                 accent_color: None,
@@ -1451,15 +1455,12 @@ mod tests {
     /// the matching of a later event.
     #[tokio::test]
     async fn test_wait_for_component() {
-        let event = Event::InteractionCreate(InteractionCreate(Interaction::MessageComponent(
-            Box::new(button()),
-        )));
+        let event = Event::InteractionCreate(Box::new(InteractionCreate(button())));
 
         let standby = Standby::new();
-        let wait = standby
-            .wait_for_component(Id::new(3), |button: &MessageComponentInteraction| {
-                button.author_id() == Some(Id::new(2))
-            });
+        let wait = standby.wait_for_component(Id::new(3), |button: &Interaction| {
+            button.author_id() == Some(Id::new(2))
+        });
 
         standby.process(&event);
 
@@ -1473,22 +1474,21 @@ mod tests {
     #[tokio::test]
     async fn test_wait_for_component_stream() {
         let standby = Standby::new();
-        let mut stream =
-            standby.wait_for_component_stream(Id::new(3), |_: &MessageComponentInteraction| true);
-        standby.process(&Event::InteractionCreate(InteractionCreate(
-            Interaction::MessageComponent(Box::new(button())),
-        )));
-        standby.process(&Event::InteractionCreate(InteractionCreate(
-            Interaction::MessageComponent(Box::new(button())),
-        )));
+        let mut stream = standby.wait_for_component_stream(Id::new(3), |_: &Interaction| true);
+        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+            button(),
+        ))));
+        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+            button(),
+        ))));
 
         assert!(stream.next().await.is_some());
         assert!(stream.next().await.is_some());
         drop(stream);
         assert_eq!(1, standby.components.len());
-        standby.process(&Event::InteractionCreate(InteractionCreate(
-            Interaction::MessageComponent(Box::new(button())),
-        )));
+        standby.process(&Event::InteractionCreate(Box::new(InteractionCreate(
+            button(),
+        ))));
         assert!(standby.components.is_empty());
     }
 

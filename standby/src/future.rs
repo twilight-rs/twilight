@@ -15,7 +15,7 @@ use tokio::sync::{
     oneshot::{error::RecvError, Receiver},
 };
 use twilight_model::{
-    application::interaction::MessageComponentInteraction,
+    application::interaction::Interaction,
     gateway::{
         event::Event,
         payload::incoming::{MessageCreate, ReactionAdd},
@@ -201,11 +201,11 @@ impl Stream for WaitForReactionStream {
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForComponentFuture {
     /// Receiver half of the oneshot channel.
-    pub(crate) rx: Receiver<MessageComponentInteraction>,
+    pub(crate) rx: Receiver<Interaction>,
 }
 
 impl Future for WaitForComponentFuture {
-    type Output = Result<MessageComponentInteraction, Canceled>;
+    type Output = Result<Interaction, Canceled>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         self.rx.poll_unpin(cx).map_err(Canceled)
@@ -219,11 +219,11 @@ impl Future for WaitForComponentFuture {
 #[must_use]
 pub struct WaitForComponentStream {
     /// Receiver half of the MPSC channel.
-    pub(crate) rx: MpscReceiver<MessageComponentInteraction>,
+    pub(crate) rx: MpscReceiver<Interaction>,
 }
 
 impl Stream for WaitForComponentStream {
-    type Item = MessageComponentInteraction;
+    type Item = Interaction;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         self.rx.poll_recv(cx)
