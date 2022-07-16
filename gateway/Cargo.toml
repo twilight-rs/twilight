@@ -25,7 +25,7 @@ tokio-tungstenite = { default-features = false, features = ["connect"], version 
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../gateway-queue", version = "0.11.1" }
 twilight-http = { default-features = false, path = "../http", version = "0.11.1" }
-twilight-model = { default-features = false, path = "../model", version = "0.11.1" }
+twilight-model = { default-features = false, path = "../model", version = "0.11.2" }
 url = { default-features = false, version = "2" }
 leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
 
@@ -36,7 +36,7 @@ leaky-bucket-lite = { default-features = false, features = ["tokio"], version = 
 # https://github.com/alexcrichton/flate2-rs/issues/217
 flate2 = { default-features = false, optional = true, version = "1.0.24" }
 metrics = { default-features = false, optional = true, version = ">=0.18, <0.20" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.6" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.7" }
 
 # TLS libraries
 # They are needed to track what is used in tokio-tungstenite
