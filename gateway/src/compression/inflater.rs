@@ -40,15 +40,15 @@ pub struct Inflater {
     ///
     /// [`extend`]: Self::extend
     compressed: Vec<u8>,
-    /// Internal buffer used to store intermidiate decompressed values in.
+    /// Internal buffer used to store intermediate decompressed values in.
     ///
     /// Due to decompression sometimes needing to be invoked multiple times this
-    /// buffer is used to keep the intermidiate values which are then copied to
+    /// buffer is used to keep the intermediate values which are then copied to
     /// [`buffer`].
     internal_buffer: Vec<u8>,
     /// Buffer which gets handed to the user when it contains a full message.
     buffer: Vec<u8>,
-    /// When the last resize happend, used to compute if it is time for another
+    /// When the last resize occurred, used to compute if it is time for another
     /// resize.
     last_resize: Instant,
     /// ID of the shard the inflater is owned by.
@@ -120,7 +120,7 @@ impl Inflater {
             offset = (self.decompress.total_in() - before)
                 .try_into()
                 .unwrap_or_default();
-            // Move the intermidiate data into the user facing buffer.
+            // Move the intermediate data into the user facing buffer.
             self.buffer.extend_from_slice(&self.internal_buffer[..]);
 
             let not_at_capacity = self.internal_buffer.len() < self.internal_buffer.capacity();
