@@ -374,7 +374,7 @@ impl Shard {
             tracing::debug!(%shard_id, "queued for identify");
             config
                 .queue()
-                .request([shard_id.current(), shard_id.total()])
+                .request([shard_id.number(), shard_id.total()])
                 .await;
             tracing::debug!(%shard_id, "passed queue");
         }
@@ -738,7 +738,7 @@ impl Shard {
             large_threshold: self.config.large_threshold(),
             intents: self.config.intents(),
             properties,
-            shard: Some([self.id().current(), self.id().total()]),
+            shard: Some([self.id().number(), self.id().total()]),
             presence: self.config.presence().cloned(),
             token: self.config.token().to_owned(),
         });

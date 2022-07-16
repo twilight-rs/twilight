@@ -17,8 +17,8 @@ use twilight_model::gateway::{
 /// [shard]: crate::Shard
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct ShardId {
-    /// Current ID of the shard, 0-indexed.
-    current: u64,
+    /// Number of the shard, 0-indexed.
+    number: u64,
     /// Total number of shards used by the bot, 1-indexed.
     total: u64,
 }
@@ -32,14 +32,14 @@ impl ShardId {
 
     /// Create a new identifier for a shard.
     ///
-    /// The current shard is 0-indexed while the total number of shards is
-    /// 1-indexed. This means that a current shard of 7 with a total of 8 is
-    /// valid, while a current shard value of 8 out of 8 total shards is
-    /// invalid.
+    /// The shard number is 0-indexed while the total number of shards is
+    /// 1-indexed. This means that a shard number of 7 with a total of 8 is
+    /// valid, while a shard number of 8 out of 8 total shards is invalid.
     ///
     /// # Examples
     ///
-    /// Create a new shard with a current index of 13 out of 24 shards:
+    /// Create a new shard with a shard number of 13 out of a total of 24
+    /// shards:
     ///
     /// ```
     /// use twilight_gateway::ShardId;
@@ -49,38 +49,37 @@ impl ShardId {
     ///
     /// # Panics
     ///
-    /// Panics if the current shard is greater than or equal to the total number
-    /// of shards, or if the total number of shards is zero.
-    pub const fn new(current: u64, total: u64) -> Self {
+    /// Panics if the number of the shard is greater than or equal to the total
+    /// number of shards, or if the total number of shards is zero.
+    pub const fn new(number: u64, total: u64) -> Self {
         assert!(total > 0, "total must be non-zero");
         assert!(
-            current < total,
-            "current shard (0-indexed) must be less than total (1-indexed)",
+            number < total,
+            "shard number (0-indexed) must be less than total (1-indexed)",
         );
 
-        Self { current, total }
+        Self { number, total }
     }
 
     /// Create a new identifier for a shard if the shard indexes are valid.
     ///
-    /// The current shard is 0-indexed while the total number of shards is
-    /// 1-indexed. This means that a current shard of 7 with a total of 8 is
-    /// valid, while a current shard value of 8 out of 8 total shards is
-    /// invalid.
-    pub const fn new_checked(current: u64, total: u64) -> Option<Self> {
+    /// The shard number is 0-indexed while the total number of shards is
+    /// 1-indexed. This means that a shard number of 7 with a total of 8 is
+    /// valid, while a shard number of 8 out of 8 total shards is invalid.
+    pub const fn new_checked(number: u64, total: u64) -> Option<Self> {
         let is_total_nonzero = total > 0;
-        let is_current_valid = current < total;
+        let is_number_valid = number < total;
 
-        if is_total_nonzero && is_current_valid {
-            Some(Self { current, total })
+        if is_total_nonzero && is_number_valid {
+            Some(Self { number, total })
         } else {
             None
         }
     }
 
-    /// ID of the shard, 0-indexed.
-    pub const fn current(self) -> u64 {
-        self.current
+    /// Identifying number of the shard, 0-indexed.
+    pub const fn number(self) -> u64 {
+        self.number
     }
 
     /// Total number of shards, 1-indexed.
@@ -91,10 +90,10 @@ impl ShardId {
 
 /// Display the shard ID.
 ///
-/// Formats as `{current}/{total}`.
+/// Formats as `{number}/{total}`.
 impl Display for ShardId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Display::fmt(&self.current, f)?;
+        Display::fmt(&self.number, f)?;
         f.write_str("/")?;
 
         Display::fmt(&self.total, f)
@@ -444,7 +443,7 @@ mod tests {
     use std::{fmt::Debug, hash::Hash};
     use twilight_model::gateway::Intents;
 
-    const_assert_eq!(ShardId::ONE.current(), 0);
+    const_assert_eq!(ShardId::ONE.number(), 0);
     const_assert_eq!(ShardId::ONE.total(), 1);
     assert_impl_all!(Config: Clone, Debug, Send, Sync);
     assert_impl_all!(ConfigBuilder: Debug, Send, Sync);
@@ -482,19 +481,19 @@ mod tests {
     const fn shard_id() {
         let id = ShardId::new(2, 4);
 
-        assert!(id.current() == 2);
+        assert!(id.number() == 2);
         assert!(id.total() == 4);
     }
 
     #[should_panic]
     #[test]
-    const fn shard_id_current_equal_invalid() {
+    const fn shard_id_number_equal_invalid() {
         ShardId::new(4, 4);
     }
 
     #[should_panic]
     #[test]
-    const fn shard_id_current_greater_invalid() {
+    const fn shard_id_number_greater_invalid() {
         ShardId::new(10, 4);
     }
 

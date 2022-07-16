@@ -106,7 +106,7 @@ pub fn start_range(
 /// let shards = twilight_gateway::stream::start_recommended(config)
 ///     .await?
 ///     .filter_map(|shard_result| async move {
-///         shard_result.ok().map(|shard| (shard.id().current(), shard))
+///         shard_result.ok().map(|shard| (shard.id().number(), shard))
 ///     })
 ///     .collect::<HashMap<_, _>>()
 ///     .await;
