@@ -32,7 +32,7 @@ twilight-validate = { default-features = false, path = "../validate", version = 
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
-simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.6" }
+simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.7" }
 
 [features]
 default = ["decompression", "rustls-native-roots"]
