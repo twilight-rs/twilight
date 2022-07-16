@@ -1,4 +1,8 @@
-//! todo
+//! Module containing structures to handle the raw messages from Discord.
+//!
+//! This module contains the [`Compression`] structure, which is used to handle
+//! raw messages from Discord. If neither the `zlib-stock` nor `zlib-simd`
+//! features are enabled then it will be used as a buffer for messages.
 
 #![allow(unused)] // todo
 

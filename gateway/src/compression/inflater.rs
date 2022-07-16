@@ -1,23 +1,55 @@
-//! todo
+//! Efficiently decompress Discord gateway messages.
+//!
+//! This module contains the [`Inflater`], which decompresses messages sent over
+//! the gateway. It does this by reusing buffers so only a few allocations happen
+//! in the hot path.
+//!
+//! # Resizing buffers
+//!
+//! Buffers are resized after some heurestics:
+//!
+//! - if the data does not fit the buffer size is doubled; or
+//! - at most once per minute the buffer will be resized down to the size of the
+//!   most recent received message. This is especially useful since Discord
+//!   generally sends the largest messages on startup.
 
 use crate::ShardId;
 use flate2::{Decompress, DecompressError, FlushDecompress};
 use std::{mem, time::Instant};
 
-/// todo
+/// The "magic number" deciding if a message is done or if another
+/// message needs to be read.
+///
+/// The suffix is documented in the [Discord docs].
+///
+/// [Discord docs]: https://discord.com/developers/docs/topics/gateway#transport-compression-transport-compression-example
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 
-/// todo
+/// Initial buffer size of 32 KB, this size is used for both the internal buffer
+/// and the buffer containing messages to be read.
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
 
-/// todo
+/// Efficient decompressing of gateway messages sent by Discord.
 #[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug)]
 pub struct Inflater {
+    /// Zlib decompressor, which can have a considerable heap size given the
+    /// main way this saves memory is by having a directonary to look up data.
     decompress: Decompress,
+    /// Buffer for storing compressed data. Data is stored here via [`extend`].
+    ///
+    /// [`extend`]: Self::extend
     compressed: Vec<u8>,
+    /// Internal buffer used to store intermidiate decompressed values in.
+    ///
+    /// Due to decompression sometimes needing to be invoked multiple times this
+    /// buffer is used to keep the intermidiate values which are then copied to
+    /// [`buffer`].
     internal_buffer: Vec<u8>,
+    /// Buffer which gets handed to the user when it contains a full message.
     buffer: Vec<u8>,
+    /// When the last resize happend, used to compute if it is time for another
+    /// resize.
     last_resize: Instant,
     /// ID of the shard the inflater is owned by.
     ///
@@ -67,25 +99,34 @@ impl Inflater {
             return Ok(None);
         }
 
+        // Amount of bytes the decompressor has handled up to now.
         let before = self.decompress.total_in();
+
+        // Offset of the `compressed` field, use to call `decompress_vec` multiple
+        // times.
         let mut offset = 0;
 
         loop {
             self.internal_buffer.clear();
 
+            // Use Sync to ensure data is flushed to the internal buffer.
             self.decompress.decompress_vec(
                 &self.compressed[offset..],
                 &mut self.internal_buffer,
                 FlushDecompress::Sync,
             )?;
 
+            // Compute offset of the next loop.
             offset = (self.decompress.total_in() - before)
                 .try_into()
                 .unwrap_or_default();
+            // Move the intermidiate data into the user facing buffer.
             self.buffer.extend_from_slice(&self.internal_buffer[..]);
 
             let not_at_capacity = self.internal_buffer.len() < self.internal_buffer.capacity();
 
+            // Break if the offset is outside of the buffer, otherwise it could
+            // panic.
             if not_at_capacity || offset > self.compressed.len() {
                 break;
             }
@@ -128,8 +169,8 @@ impl Inflater {
 
     /// Clear the buffer and shrink it if the capacity is too large.
     ///
-    /// If the capacity is 4 times larger than the buffer length then the
-    /// capacity will be shrunk to the length.
+    /// If more than a minute has passed since last shrink another will be
+    /// initiated.
     #[tracing::instrument(level = "trace")]
     pub fn clear(&mut self) {
         self.shrink();
