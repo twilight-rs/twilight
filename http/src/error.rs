@@ -1,5 +1,6 @@
-use crate::{api_error::ApiError, json::JsonError, response::StatusCode};
+use crate::{json::JsonError, response::StatusCode};
 use hyper::{Body, Response};
+use serde::{Deserialize, Serialize};
 use std::{
     error::Error as StdError,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
@@ -110,7 +111,10 @@ pub enum ErrorType {
     RequestTimedOut,
     Response {
         body: Vec<u8>,
-        error: ApiError,
+        /// Deserialized context from [`body`].
+        ///
+        /// [`body`]: Self::Response::body
+        context: ApiError,
         status: StatusCode,
     },
     /// API service is unavailable. Consider re-sending the request at a
@@ -125,4 +129,65 @@ pub enum ErrorType {
     /// This can occur if a bot token is invalidated or an access token expires
     /// or is revoked. Recreate the client to configure a new token.
     Unauthorized,
+}
+
+/// API returned error context.
+#[derive(Debug, Deserialize, Serialize)]
+#[non_exhaustive]
+#[serde(untagged)]
+pub enum ApiError {
+    /// [JSON error code].
+    ///
+    /// [JSON error code]: https://discord.com/developers/docs/topics/opcodes-and-status-codes#json-json-error-codes
+    Code(u64),
+    /// Request was ratelimited.
+    Ratelimit {
+        /// Whether the ratelimit is global.
+        global: bool,
+        /// Number of seconds to wait before retrying.
+        ///
+        /// Up to three decimals may be set to match millisecond precision.
+        retry_after: f64,
+    },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ApiError;
+    use serde::{Deserialize, Serialize};
+    use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::fmt::Debug;
+
+    assert_impl_all!(ApiError: Debug, Deserialize<'static>, Send, Serialize, Sync);
+
+    #[test]
+    fn api_error_ratelimited() {
+        let expected = ApiError::Ratelimit {
+            global: true,
+            retry_after: 6.457,
+        };
+
+        serde_test::assert_ser_tokens(
+            &expected,
+            &[
+                Token::Struct {
+                    name: "ApiError",
+                    len: 2,
+                },
+                Token::Str("global"),
+                Token::Bool(true),
+                Token::Str("retry_after"),
+                Token::F64(6.457),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn api_error_code() {
+        let expected = ApiError::Code(0);
+
+        serde_test::assert_ser_tokens(&expected, &[Token::U64(0)]);
+    }
 }
