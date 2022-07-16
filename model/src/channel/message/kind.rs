@@ -28,7 +28,7 @@ pub enum MessageType {
     ThreadStarterMessage,
     GuildInviteReminder,
     ContextMenuCommand,
-    /// Message is an auto-moderation action.
+    /// Message is an auto moderation action.
     AutoModerationAction,
     /// Variant value is unknown to the library.
     Unknown(u8),

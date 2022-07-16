@@ -746,6 +746,8 @@ impl StringBuilder {
             choices: Vec::new(),
             description,
             description_localizations: None,
+            max_length: None,
+            min_length: None,
             name,
             name_localizations: None,
             required: false,
@@ -817,6 +819,24 @@ impl StringBuilder {
     #[allow(clippy::missing_const_for_fn)]
     pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
         self.0.description_localizations = Some(localizations);
+
+        self
+    }
+
+    /// Set the maximum allowed length.
+    ///
+    /// Defaults to no limit.
+    pub const fn max_length(mut self, value: u16) -> Self {
+        self.0.max_length = Some(value);
+
+        self
+    }
+
+    /// Set the minimum allowed length.
+    ///
+    /// Defaults to no limit.
+    pub const fn min_length(mut self, value: u16) -> Self {
+        self.0.min_length = Some(value);
 
         self
     }

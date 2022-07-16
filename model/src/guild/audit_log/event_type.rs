@@ -208,6 +208,20 @@ pub enum AuditLogEventType {
     ///
     /// [GuildCommandPermissions]: crate::application::command::permissions::GuildCommandPermissions
     ApplicationCommandPermissionUpdate,
+    /// [`AutoModerationRule`] has been created.
+    ///
+    /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+    AutoModerationRuleCreate,
+    /// [`AutoModerationRule`] has been updated.
+    ///
+    /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+    AutoModerationRuleUpdate,
+    /// [`AutoModerationRule`] has been deleted.
+    ///
+    /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+    AutoModerationRuleDelete,
+    /// Message has been blocked by AutoMod according to a rule.
+    AutoModerationBlockMessage,
     /// Variant value is unknown to the library.
     Unknown(u16),
 }
@@ -263,6 +277,10 @@ impl From<u16> for AuditLogEventType {
             111 => AuditLogEventType::ThreadUpdate,
             112 => AuditLogEventType::ThreadDelete,
             121 => AuditLogEventType::ApplicationCommandPermissionUpdate,
+            140 => AuditLogEventType::AutoModerationRuleCreate,
+            141 => AuditLogEventType::AutoModerationRuleUpdate,
+            142 => AuditLogEventType::AutoModerationRuleDelete,
+            143 => AuditLogEventType::AutoModerationBlockMessage,
             unknown => AuditLogEventType::Unknown(unknown),
         }
     }
@@ -319,6 +337,10 @@ impl From<AuditLogEventType> for u16 {
             AuditLogEventType::ThreadUpdate => 111,
             AuditLogEventType::ThreadDelete => 112,
             AuditLogEventType::ApplicationCommandPermissionUpdate => 121,
+            AuditLogEventType::AutoModerationRuleCreate => 140,
+            AuditLogEventType::AutoModerationRuleUpdate => 141,
+            AuditLogEventType::AutoModerationRuleDelete => 142,
+            AuditLogEventType::AutoModerationBlockMessage => 143,
             AuditLogEventType::Unknown(unknown) => unknown,
         }
     }
@@ -396,6 +418,10 @@ mod tests {
             121,
             u16::from(AuditLogEventType::ApplicationCommandPermissionUpdate)
         );
+        assert_eq!(140, u16::from(AuditLogEventType::AutoModerationRuleCreate));
+        assert_eq!(141, u16::from(AuditLogEventType::AutoModerationRuleUpdate));
+        assert_eq!(142, u16::from(AuditLogEventType::AutoModerationRuleDelete));
+        assert_eq!(143, u16::from(AuditLogEventType::AutoModerationBlockMessage));
         assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
     }
 }

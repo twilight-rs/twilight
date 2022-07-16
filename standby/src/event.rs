@@ -21,6 +21,10 @@ use twilight_model::{
 /// [`PrivateChannel`]: twilight_model::channel::PrivateChannel
 pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
     match event {
+        Event::AutoModerationActionExecution(e) => Some(e.guild_id),
+        Event::AutoModerationRuleCreate(e) => Some(e.0.guild_id),
+        Event::AutoModerationRuleDelete(e) => Some(e.0.guild_id),
+        Event::AutoModerationRuleUpdate(e) => Some(e.0.guild_id),
         Event::BanAdd(e) => Some(e.guild_id),
         Event::BanRemove(e) => Some(e.guild_id),
         Event::ChannelCreate(e) => e.0.guild_id,
