@@ -478,20 +478,7 @@ impl Shard {
                 reconnect_attempts,
                 ..
             } => {
-                ReconnectDelayFuture::new(reconnect_attempts).await;
-
-                self.connection =
-                    connection::connect(self.id(), self.config.gateway_url(), self.config.tls())
-                        .await
-                        .map_err(|source| {
-                            self.status = ConnectionStatus::Disconnected {
-                                close_code,
-                                reconnect_attempts: reconnect_attempts + 1,
-                            };
-
-                            ReceiveMessageError::from_reconnect(source)
-                        })?;
-                self.status = ConnectionStatus::Connected;
+                self.reconnect(close_code, reconnect_attempts).await?;
             }
             ConnectionStatus::FatallyClosed { close_code } => {
                 return Err(ReceiveMessageError::from_fatally_closed(close_code));
@@ -855,6 +842,37 @@ impl Shard {
             }
             _ => {}
         }
+
+        Ok(())
+    }
+
+    /// Reconnect to the gateway with a new Websocket connection.
+    ///
+    /// Clears the [compression] buffer and sets the [status] to
+    /// [`ConnectionStatus::Connected`].
+    ///
+    /// [compression]: Self::compression
+    /// [status]: Self::status
+    async fn reconnect(
+        &mut self,
+        close_code: Option<u16>,
+        reconnect_attempts: u8,
+    ) -> Result<(), ReceiveMessageError> {
+        ReconnectDelayFuture::new(reconnect_attempts).await;
+
+        self.connection =
+            connection::connect(self.id(), self.config.gateway_url(), self.config.tls())
+                .await
+                .map_err(|source| {
+                    self.status = ConnectionStatus::Disconnected {
+                        close_code,
+                        reconnect_attempts: reconnect_attempts + 1,
+                    };
+
+                    ReceiveMessageError::from_reconnect(source)
+                })?;
+        self.compression.reset();
+        self.status = ConnectionStatus::Connected;
 
         Ok(())
     }
