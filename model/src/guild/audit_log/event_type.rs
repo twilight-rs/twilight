@@ -421,7 +421,10 @@ mod tests {
         assert_eq!(140, u16::from(AuditLogEventType::AutoModerationRuleCreate));
         assert_eq!(141, u16::from(AuditLogEventType::AutoModerationRuleUpdate));
         assert_eq!(142, u16::from(AuditLogEventType::AutoModerationRuleDelete));
-        assert_eq!(143, u16::from(AuditLogEventType::AutoModerationBlockMessage));
+        assert_eq!(
+            143,
+            u16::from(AuditLogEventType::AutoModerationBlockMessage)
+        );
         assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
     }
 }

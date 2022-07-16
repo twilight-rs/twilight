@@ -14,10 +14,10 @@ pub struct EmbedAuthorBuilder(EmbedAuthor);
 
 impl EmbedAuthorBuilder {
     /// Create a new embed author builder.
-    pub const fn new(name: String) -> Self {
+    pub fn new(name: impl Into<String>) -> Self {
         Self(EmbedAuthor {
             icon_url: None,
-            name,
+            name: name.into(),
             proxy_icon_url: None,
             url: None,
         })
@@ -74,7 +74,7 @@ mod tests {
         };
 
         let source = ImageSource::url("https://example.com/1.png").unwrap();
-        let actual = EmbedAuthorBuilder::new("an author".to_owned())
+        let actual = EmbedAuthorBuilder::new("an author")
             .icon_url(source)
             .url("https://example.com")
             .build();

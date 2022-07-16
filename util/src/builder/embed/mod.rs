@@ -104,7 +104,7 @@ impl EmbedBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_util::builder::embed::{EmbedAuthorBuilder, EmbedBuilder};
     ///
-    /// let author = EmbedAuthorBuilder::new("Twilight".into())
+    /// let author = EmbedAuthorBuilder::new("Twilight")
     ///     .url("https://github.com/twilight-rs/twilight")
     ///     .build();
     ///

@@ -7,26 +7,44 @@
 //! use twilight_util::builder::command::{BooleanBuilder, CommandBuilder, StringBuilder};
 //!
 //! CommandBuilder::new(
-//!     "blep".into(),
-//!     "Send a random adorable animal photo".into(),
+//!     "blep",
+//!     "Send a random adorable animal photo",
 //!     CommandType::ChatInput,
 //! )
 //! .option(
-//!     StringBuilder::new("animal".into(), "The type of animal".into())
+//!     StringBuilder::new("animal", "The type of animal")
 //!         .required(true)
 //!         .choices([
-//!             ("Dog".into(), "animal_dog".into()),
-//!             ("Cat".into(), "animal_cat".into()),
-//!             ("Penguin".into(), "animal_penguin".into()),
+//!             ("Dog", "animal_dog"),
+//!             ("Cat", "animal_cat"),
+//!             ("Penguin", "animal_penguin"),
 //!         ]),
 //! )
 //! .option(BooleanBuilder::new(
-//!     "only_smol".into(),
-//!     "Whether to show only baby animals".into(),
+//!     "only_smol",
+//!     "Whether to show only baby animals",
 //! ));
 //! ```
+//!
+//! ```
+//! use twilight_model::application::command::CommandType;
+//! use twilight_util::builder::command::{CommandBuilder, NumberBuilder};
+//!
+//! CommandBuilder::new(
+//!     "birthday",
+//!     "Wish a friend a happy birthday",
+//!     CommandType::ChatInput,
+//! )
+//! .name_localizations([("zh-CN", "生日"), ("el", "γενέθλια")])
+//! .description_localizations([("zh-Cn", "祝你朋友生日快乐")])
+//! .option(
+//!     NumberBuilder::new("age", "Your friend's age")
+//!         .name_localizations([("zh-CN", "岁数")])
+//!         .description_localizations([("zh-CN", "你朋友的岁数")]),
+//! );
+//! ```
+//!
 
-use std::collections::HashMap;
 use twilight_model::{
     application::command::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, Command,
@@ -48,17 +66,17 @@ pub struct CommandBuilder(Command);
 impl CommandBuilder {
     /// Create a new default [`Command`] builder.
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String, kind: CommandType) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>, kind: CommandType) -> Self {
         Self(Command {
             application_id: None,
             default_member_permissions: None,
             dm_permission: None,
-            description,
+            description: description.into(),
             description_localizations: None,
             guild_id: None,
             id: None,
             kind,
-            name,
+            name: name.into(),
             name_localizations: None,
             options: Vec::new(),
             version: Id::new(1),
@@ -117,9 +135,16 @@ impl CommandBuilder {
     /// Set the localization dictionary for the command description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -127,9 +152,16 @@ impl CommandBuilder {
     /// Set the localization dictionary for the command name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -156,11 +188,11 @@ pub struct AttachmentBuilder(BaseCommandOptionData);
 impl AttachmentBuilder {
     /// Create a new default [`AttachmentBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
-            description,
+            description: description.into(),
             description_localizations: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -176,9 +208,16 @@ impl AttachmentBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -186,9 +225,16 @@ impl AttachmentBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -217,11 +263,11 @@ pub struct BooleanBuilder(BaseCommandOptionData);
 impl BooleanBuilder {
     /// Create a new default [`BooleanBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
-            description,
+            description: description.into(),
             description_localizations: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -237,9 +283,16 @@ impl BooleanBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -247,9 +300,16 @@ impl BooleanBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -278,12 +338,12 @@ pub struct ChannelBuilder(ChannelCommandOptionData);
 impl ChannelBuilder {
     /// Create a new default [`ChannelBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(ChannelCommandOptionData {
             channel_types: Vec::new(),
-            description,
+            description: description.into(),
             description_localizations: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -308,9 +368,16 @@ impl ChannelBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -318,9 +385,16 @@ impl ChannelBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -348,15 +422,15 @@ pub struct IntegerBuilder(NumberCommandOptionData);
 impl IntegerBuilder {
     /// Create a new default [`IntegerBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(NumberCommandOptionData {
             autocomplete: false,
             choices: Vec::new(),
-            description,
+            description: description.into(),
             description_localizations: None,
             max_value: None,
             min_value: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -384,10 +458,10 @@ impl IntegerBuilder {
     /// localization.
     ///
     /// [`choices`]: Self::choices
-    pub fn choice_localizations(
+    pub fn choice_localizations<K: Into<String>, V: Into<String>>(
         mut self,
         choice_name: &str,
-        name_localizations: HashMap<String, String>,
+        name_localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
         let choice = self.0.choices.iter_mut().find(
             |choice| matches!(choice, CommandOptionChoice::Int { name, .. } if name == choice_name),
@@ -408,11 +482,11 @@ impl IntegerBuilder {
     /// Defaults to no choices.
     ///
     /// [`choice_localizations`]: Self::choice_localizations
-    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, i64)>) -> Self {
+    pub fn choices<K: Into<String>>(mut self, choices: impl IntoIterator<Item = (K, i64)>) -> Self {
         self.0.choices = choices
             .into_iter()
             .map(|(name, value, ..)| CommandOptionChoice::Int {
-                name,
+                name: name.into(),
                 name_localizations: None,
                 value,
             })
@@ -424,9 +498,16 @@ impl IntegerBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -452,9 +533,16 @@ impl IntegerBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -483,11 +571,11 @@ pub struct MentionableBuilder(BaseCommandOptionData);
 impl MentionableBuilder {
     /// Create a new default [`MentionableBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
-            description,
+            description: description.into(),
             description_localizations: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -503,9 +591,16 @@ impl MentionableBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -513,9 +608,16 @@ impl MentionableBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -544,15 +646,15 @@ pub struct NumberBuilder(NumberCommandOptionData);
 impl NumberBuilder {
     /// Create a new default [`NumberBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(NumberCommandOptionData {
             autocomplete: false,
             choices: Vec::new(),
-            description,
+            description: description.into(),
             description_localizations: None,
             max_value: None,
             min_value: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -580,10 +682,10 @@ impl NumberBuilder {
     /// localization.
     ///
     /// [`choices`]: Self::choices
-    pub fn choice_localizations(
+    pub fn choice_localizations<K: Into<String>, V: Into<String>>(
         mut self,
         choice_name: &str,
-        name_localizations: HashMap<String, String>,
+        name_localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
         let choice = self.0.choices.iter_mut().find(
             |choice| matches!(choice, CommandOptionChoice::Number { name, .. } if name == choice_name),
@@ -604,13 +706,13 @@ impl NumberBuilder {
     /// Defaults to no choices.
     ///
     /// [`choice_localizations`]: Self::choice_localizations
-    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, Number)>) -> Self {
+    pub fn choices<K: Into<String>>(mut self, choices: impl IntoIterator<Item = (K, f64)>) -> Self {
         self.0.choices = choices
             .into_iter()
             .map(|(name, value, ..)| CommandOptionChoice::Number {
-                name,
+                name: name.into(),
                 name_localizations: None,
-                value,
+                value: Number(value),
             })
             .collect();
 
@@ -620,9 +722,16 @@ impl NumberBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -648,9 +757,16 @@ impl NumberBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -679,11 +795,11 @@ pub struct RoleBuilder(BaseCommandOptionData);
 impl RoleBuilder {
     /// Create a new default [`RoleBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
-            description,
+            description: description.into(),
             description_localizations: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -699,9 +815,16 @@ impl RoleBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -709,9 +832,16 @@ impl RoleBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -740,15 +870,15 @@ pub struct StringBuilder(ChoiceCommandOptionData);
 impl StringBuilder {
     /// Create a new default [`StringBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(ChoiceCommandOptionData {
             autocomplete: false,
             choices: Vec::new(),
-            description,
+            description: description.into(),
             description_localizations: None,
             max_length: None,
             min_length: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -776,10 +906,10 @@ impl StringBuilder {
     /// localization.
     ///
     /// [`choices`]: Self::choices
-    pub fn choice_localizations(
+    pub fn choice_localizations<K: Into<String>, V: Into<String>>(
         mut self,
         choice_name: &str,
-        name_localizations: HashMap<String, String>,
+        name_localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
         let choice = self.0.choices.iter_mut().find(
             |choice| matches!(choice, CommandOptionChoice::String { name, .. } if name == choice_name),
@@ -800,13 +930,16 @@ impl StringBuilder {
     /// Defaults to no choices.
     ///
     /// [`choice_localizations`]: Self::choice_localizations
-    pub fn choices(mut self, choices: impl IntoIterator<Item = (String, String)>) -> Self {
+    pub fn choices<K: Into<String>, V: Into<String>>(
+        mut self,
+        choices: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
         self.0.choices = choices
             .into_iter()
             .map(|(name, value, ..)| CommandOptionChoice::String {
-                name,
+                name: name.into(),
                 name_localizations: None,
-                value,
+                value: value.into(),
             })
             .collect();
 
@@ -816,9 +949,16 @@ impl StringBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -844,9 +984,16 @@ impl StringBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -875,11 +1022,11 @@ pub struct SubCommandBuilder(OptionsCommandOptionData);
 impl SubCommandBuilder {
     /// Create a new default [`SubCommandBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(OptionsCommandOptionData {
-            description,
+            description: description.into(),
             description_localizations: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             options: Vec::new(),
         })
@@ -895,9 +1042,16 @@ impl SubCommandBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -905,9 +1059,16 @@ impl SubCommandBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -940,11 +1101,11 @@ pub struct SubCommandGroupBuilder(OptionsCommandOptionData);
 impl SubCommandGroupBuilder {
     /// Create a new default [`SubCommandGroupBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(OptionsCommandOptionData {
-            description,
+            description: description.into(),
             description_localizations: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             options: Vec::new(),
         })
@@ -960,9 +1121,16 @@ impl SubCommandGroupBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -970,9 +1138,16 @@ impl SubCommandGroupBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -1001,11 +1176,11 @@ pub struct UserBuilder(BaseCommandOptionData);
 impl UserBuilder {
     /// Create a new default [`UserBuilder`].
     #[must_use = "builders have no effect if unused"]
-    pub const fn new(name: String, description: String) -> Self {
+    pub fn new(name: impl Into<String>, description: impl Into<String>) -> Self {
         Self(BaseCommandOptionData {
-            description,
+            description: description.into(),
             description_localizations: None,
-            name,
+            name: name.into(),
             name_localizations: None,
             required: false,
         })
@@ -1021,9 +1196,16 @@ impl UserBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn description_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.description_localizations = Some(localizations);
+    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.description_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -1031,9 +1213,16 @@ impl UserBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn name_localizations(mut self, localizations: HashMap<String, String>) -> Self {
-        self.0.name_localizations = Some(localizations);
+    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+        mut self,
+        localizations: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
+        self.0.name_localizations = Some(
+            localizations
+                .into_iter()
+                .map(|(a, b)| (a.into(), b.into()))
+                .collect(),
+        );
 
         self
     }
@@ -1054,9 +1243,9 @@ impl From<UserBuilder> for CommandOption {
     }
 }
 
-fn set_choice_localizations(
+fn set_choice_localizations<K: Into<String>, V: Into<String>>(
     choice: &mut CommandOptionChoice,
-    localizations: HashMap<String, String>,
+    localizations: impl IntoIterator<Item = (K, V)>,
 ) {
     let name_localizations = match choice {
         CommandOptionChoice::String {
@@ -1070,7 +1259,12 @@ fn set_choice_localizations(
         } => name_localizations,
     };
 
-    *name_localizations = Some(localizations);
+    *name_localizations = Some(
+        localizations
+            .into_iter()
+            .map(|(k, v)| (k.into(), v.into()))
+            .collect(),
+    );
 }
 
 #[cfg(test)]
@@ -1094,73 +1288,55 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn construct_command_with_builder() {
-        let command = CommandBuilder::new(
-            "permissions".into(),
-            "Get or edit permissions for a user or a role".into(),
-            CommandType::ChatInput,
-        )
-        .option(
-            SubCommandGroupBuilder::new("user".into(), "Get or edit permissions for a user".into())
-                .subcommands([
-                    SubCommandBuilder::new("get".into(), "Get permissions for a user".into())
-                        .option(
-                            UserBuilder::new("user".into(), "The user to get".into())
-                                .required(true),
-                        )
-                        .option(ChannelBuilder::new(
-                            "channel".into(),
-                            "The channel permissions to get. If omitted, the guild permissions \
-                             will be returned"
-                                .into(),
-                        )),
-                    SubCommandBuilder::new("edit".into(), "Edit permissions for a user".into())
-                        .option(
-                            UserBuilder::new("user".into(), "The user to edit".into())
-                                .required(true),
-                        )
-                        .option(ChannelBuilder::new(
-                            "channel".into(),
-                            "The channel permissions to edit. If omitted, the guild permissions \
-                             will be edited"
-                                .into(),
-                        )),
-                ]),
-        )
-        .option(
-            SubCommandGroupBuilder::new("role".into(), "Get or edit permissions for a role".into())
-                .subcommands([
-                    SubCommandBuilder::new("get".into(), "Get permissions for a role".into())
-                        .option(
-                            RoleBuilder::new("role".into(), "The role to get".into())
-                                .required(true),
-                        )
-                        .option(ChannelBuilder::new(
-                            "channel".into(),
-                            "The channel permissions to get. If omitted, the guild permissions \
-                             will be returned"
-                                .into(),
-                        )),
-                    SubCommandBuilder::new("edit".into(), "Edit permissions for a role".into())
-                        .option(
-                            RoleBuilder::new("role".into(), "The role to edit".into())
-                                .required(true),
-                        )
-                        .option(ChannelBuilder::new(
-                            "channel".into(),
-                            "The channel permissions to edit. If omitted, the guild permissions \
-                             will be edited"
-                                .into(),
-                        ))
-                        .option(
-                            NumberBuilder::new(
-                                "position".into(),
-                                "The position of the new role".into(),
-                            )
-                            .autocomplete(true),
-                        ),
-                ]),
-        )
-        .build();
+        let command =
+            CommandBuilder::new(
+                "permissions",
+                "Get or edit permissions for a user or a role",
+                CommandType::ChatInput,
+            )
+            .option(
+                SubCommandGroupBuilder::new("user", "Get or edit permissions for a user")
+                    .subcommands([
+                        SubCommandBuilder::new("get", "Get permissions for a user")
+                            .option(UserBuilder::new("user", "The user to get").required(true))
+                            .option(ChannelBuilder::new(
+                                "channel",
+                                "The channel permissions to get. If omitted, the guild \
+                                 permissions will be returned",
+                            )),
+                        SubCommandBuilder::new("edit", "Edit permissions for a user")
+                            .option(UserBuilder::new("user", "The user to edit").required(true))
+                            .option(ChannelBuilder::new(
+                                "channel",
+                                "The channel permissions to edit. If omitted, the guild \
+                                 permissions will be edited",
+                            )),
+                    ]),
+            )
+            .option(
+                SubCommandGroupBuilder::new("role", "Get or edit permissions for a role")
+                    .subcommands([
+                        SubCommandBuilder::new("get", "Get permissions for a role")
+                            .option(RoleBuilder::new("role", "The role to get").required(true))
+                            .option(ChannelBuilder::new(
+                                "channel",
+                                "The channel permissions to get. If omitted, the guild \
+                                 permissions will be returned",
+                            )),
+                        SubCommandBuilder::new("edit", "Edit permissions for a role")
+                            .option(RoleBuilder::new("role", "The role to edit").required(true))
+                            .option(ChannelBuilder::new(
+                                "channel",
+                                "The channel permissions to edit. If omitted, the guild \
+                                 permissions will be edited",
+                            ))
+                            .option(
+                                NumberBuilder::new("position", "The position of the new role")
+                                    .autocomplete(true),
+                            ),
+                    ]),
+            )
+            .build();
 
         let command_manual = Command {
             application_id: None,
@@ -1314,7 +1490,7 @@ mod tests {
 
     #[test]
     fn validate() {
-        let result = CommandBuilder::new("".into(), "".into(), CommandType::ChatInput).validate();
+        let result = CommandBuilder::new("", "", CommandType::ChatInput).validate();
 
         assert!(result.is_err());
     }
