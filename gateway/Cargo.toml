@@ -26,7 +26,7 @@ tokio-tungstenite = { default-features = false, features = ["connect"], version 
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../gateway-queue", version = "0.11.1" }
 twilight-http = { default-features = false, path = "../http", version = "0.11.1" }
-twilight-model = { default-features = false, path = "../model", version = "0.11.1" }
+twilight-model = { default-features = false, path = "../model", version = "0.11.3" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently

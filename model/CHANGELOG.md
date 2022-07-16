@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.11.3] - 2022-07-16
+
+### Bug Fixes
+
+- signed thread member update count ([#1838](https://github.com/twilight-rs/twilight/issues/1838))
+
+### Features
+
+- add `Deref` for `VoiceStateUpdate` ([#1835](https://github.com/twilight-rs/twilight/issues/1835))
+
+## [0.11.2] - 2022-07-09
+
+### Bug Fixes
+
+- fix thread max message count ([#1822](https://github.com/twilight-rs/twilight/issues/1822))
+
 ## [0.11.1] - 2022-07-07
 
 ### Bug Fixes

@@ -22,8 +22,10 @@ pub struct ThreadMembersUpdate {
     pub added_members: Vec<ThreadMember>,
     pub guild_id: Id<GuildMarker>,
     pub id: Id<ChannelMarker>,
-    /// Max value of 50.
-    pub member_count: u8,
+    /// Number of members in the thread.
+    ///
+    /// This is an approximation and may not be accurate.
+    pub member_count: i32,
     #[serde(default)]
     pub removed_member_ids: Vec<Id<UserMarker>>,
 }
@@ -41,8 +43,7 @@ struct ThreadMembersUpdateIntermediary {
     pub added_members: Vec<ThreadMemberIntermediary>,
     pub guild_id: Id<GuildMarker>,
     pub id: Id<ChannelMarker>,
-    /// Max value of 50.
-    pub member_count: u8,
+    pub member_count: i32,
     #[serde(default)]
     pub removed_member_ids: Vec<Id<UserMarker>>,
 }
@@ -339,7 +340,7 @@ mod tests {
                 Token::NewtypeStruct { name: "ChannelId" },
                 Token::Str("4"),
                 Token::Str("member_count"),
-                Token::U8(8),
+                Token::I32(8),
                 Token::Str("removed_member_ids"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
