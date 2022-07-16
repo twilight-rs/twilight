@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- add `Deref` for `VoiceStateUpdate` ([#1835](https://github.com/twilight-rs/twilight/issues/1835))
+
 ## [0.11.1] - 2022-07-07
 
 ### Bug Fixes

@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- signed thread member update count ([#1838](https://github.com/twilight-rs/twilight/issues/1838))
+
+### Features
+
+- add `Deref` for `VoiceStateUpdate` ([#1835](https://github.com/twilight-rs/twilight/issues/1835))
+
 ## [0.11.2] - 2022-07-09
 
 ### Bug Fixes
