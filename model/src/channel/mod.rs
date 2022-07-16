@@ -116,11 +116,8 @@ pub struct Channel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member_count: Option<u8>,
     /// Number of messages in the channel.
-    ///
-    /// At most a value of 50 is provided although the real number may be
-    /// higher.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub message_count: Option<u8>,
+    pub message_count: Option<u32>,
     /// Name of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -372,7 +369,7 @@ mod tests {
                 user_id: Some(Id::new(5)),
             }),
             member_count: Some(50_u8),
-            message_count: Some(50_u8),
+            message_count: Some(50),
             name: Some("newsthread".into()),
             newly_created: Some(true),
             nsfw: None,
@@ -453,7 +450,7 @@ mod tests {
                 user_id: Some(Id::new(5)),
             }),
             member_count: Some(50_u8),
-            message_count: Some(50_u8),
+            message_count: Some(50),
             name: Some("publicthread".into()),
             newly_created: Some(true),
             nsfw: None,
@@ -535,7 +532,7 @@ mod tests {
                 user_id: Some(Id::new(5)),
             }),
             member_count: Some(50_u8),
-            message_count: Some(50_u8),
+            message_count: Some(50),
             name: Some("privatethread".into()),
             newly_created: Some(true),
             nsfw: None,
