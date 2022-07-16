@@ -151,6 +151,7 @@ impl Inflater {
 
     /// Log metrics about the inflater.
     #[cfg(feature = "metrics")]
+    #[allow(clippy::cast_precision_loss)]
     fn inflater_metrics(&self) {
         metrics::gauge!(
             format!("Inflater-Capacity-{}", self.shard_id.current()),
