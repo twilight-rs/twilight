@@ -19,7 +19,7 @@ jobs:
     name: Minimum supported Rust version
     runs-on: ubuntu-latest
     env:
-      minrust: '1.60'
+      minrust: "1.60"
 
     steps:
       - name: Checkout sources
@@ -66,9 +66,7 @@ jobs:
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
-        run: |
-          cargo doc --no-deps --features=permission-calculator --workspace --exclude twilight-book
-          cargo doc -p twilight-util --no-deps --all-features
+        run: cargo doc --no-deps --all-features --workspace --exclude book
 
   # Lints
   clippy:
@@ -164,7 +162,7 @@ jobs:
         uses: taiki-e/install-action@nextest
 
       - name: Run tests with nextest
-        run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --workspace --exclude twilight-book
+        run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --workspace --exclude book
 
       - name: Run doctests
         run: cargo test --doc
