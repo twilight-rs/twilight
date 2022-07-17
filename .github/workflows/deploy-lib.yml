@@ -31,9 +31,8 @@ jobs:
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
-        run: |
-          cargo doc --no-deps --features=permission-calculator --workspace --exclude book
-          cargo doc -p twilight-util --no-deps --all-features
+          RUSTFLAGS: -C target-cpu=native
+        run: cargo doc --no-deps --all-features --workspace --exclude book
 
       - name: Prepare docs
         run: |

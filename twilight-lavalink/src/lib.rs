@@ -16,6 +16,7 @@
     clippy::unnecessary_wraps,
     clippy::used_underscore_binding
 )]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![doc = include_str!("../README.md")]
 
 pub mod client;
