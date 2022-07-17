@@ -117,7 +117,7 @@ pub fn parse(json: &mut [u8]) -> Result<GatewayEvent, GatewayEventParsingError> 
             source: None,
         })?;
 
-        let mut json_deserializer =
+        let json_deserializer =
             simd_json::Deserializer::from_slice(json).map_err(|_| GatewayEventParsingError {
                 kind: GatewayEventParsingErrorType::PayloadInvalid,
                 source: None,
