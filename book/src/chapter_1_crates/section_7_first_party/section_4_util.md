@@ -28,22 +28,22 @@ use twilight_model::application::command::CommandType;
 use twilight_util::builder::command::{BooleanBuilder, CommandBuilder, StringBuilder};
 
 CommandBuilder::new(
-    "blep".into(),
-    "Send a random adorable animal photo".into(),
+    "blep",
+    "Send a random adorable animal photo",
     CommandType::ChatInput,
 )
 .option(
-    StringBuilder::new("animal".into(), "The type of animal".into())
+    StringBuilder::new("animal", "The type of animal")
         .required(true)
         .choices([
-            ("Dog".into(), "animal_dog".into()),
-            ("Cat".into(), "animal_cat".into()),
-            ("Penguin".into(), "animal_penguin".into()),
+            ("Dog", "animal_dog"),
+            ("Cat", "animal_cat"),
+            ("Penguin", "animal_penguin"),
         ]),
 )
 .option(BooleanBuilder::new(
-    "only_smol".into(),
-    "Whether to show only baby animals".into(),
+    "only_smol",
+    "Whether to show only baby animals",
 ));
 # }
 ```

@@ -66,9 +66,7 @@ jobs:
       - name: Build docs
         env:
           RUSTDOCFLAGS: --cfg docsrs
-        run: |
-          cargo doc --no-deps --features=permission-calculator --workspace --exclude book
-          cargo doc -p twilight-util --no-deps --all-features
+        run: cargo doc --no-deps --all-features --workspace --exclude book
 
   # Lints
   clippy:
