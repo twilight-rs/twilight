@@ -1,5 +1,17 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- [**breaking**] make image data strings ([#1744](https://github.com/twilight-rs/twilight/issues/1744))
+- skip null icons in `CreateGuildFromTemplate` ([#1749](https://github.com/twilight-rs/twilight/issues/1749))
+- [**breaking**] webhook names can't be null ([#1748](https://github.com/twilight-rs/twilight/issues/1748))
+
+### Features
+
+- initial pass at dealing with unknown enum variants ([#1550](https://github.com/twilight-rs/twilight/issues/1550))
+
 ## [0.11.1] - 2022-07-07
 
 ### Bug Fixes

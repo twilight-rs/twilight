@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Refactor
+
+- [**breaking**] remove obsolete `Num-Shards` header ([#1836](https://github.com/twilight-rs/twilight/issues/1836))
+
 ## [0.11.2] - 2022-07-16
 
 ### Features

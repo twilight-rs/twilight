@@ -1,5 +1,17 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- initial pass at dealing with unknown enum variants ([#1550](https://github.com/twilight-rs/twilight/issues/1550))
+- `CommandOption` max and min length ([#1826](https://github.com/twilight-rs/twilight/issues/1826))
+- [**breaking**] builders use `Into<String>` and `IntoIterator` everywhere ([#1774](https://github.com/twilight-rs/twilight/issues/1774))
+
+### Refactor
+
+- [**breaking**] remove `EmbedAuthorBuilder::name` ([#1807](https://github.com/twilight-rs/twilight/issues/1807))
+
 ## [0.11.1] - 2022-07-07
 
 ### Refactor

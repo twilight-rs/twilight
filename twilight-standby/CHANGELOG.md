@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- auto moderation models ([#1796](https://github.com/twilight-rs/twilight/issues/1796))
+
+### Refactor
+
+- [**breaking**] make interaction a struct ([#1813](https://github.com/twilight-rs/twilight/issues/1813))
+
 ## [0.11.1] - 2022-07-07
 
 ### Features

@@ -1,5 +1,16 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- auto moderation models ([#1796](https://github.com/twilight-rs/twilight/issues/1796))
+
+### Refactor
+
+- [**breaking**] use hardcoded gateway url ([#1763](https://github.com/twilight-rs/twilight/issues/1763))
+- [**breaking**] don't validate tokens in shard builder ([#1776](https://github.com/twilight-rs/twilight/issues/1776))
+
 ## [0.11.1] - 2022-07-07
 
 ### Bug Fixes

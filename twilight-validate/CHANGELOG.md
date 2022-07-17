@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- initial pass at dealing with unknown enum variants ([#1550](https://github.com/twilight-rs/twilight/issues/1550))
+
 ## [0.11.1] - 2022-07-07
 
 ### Refactor

@@ -1,5 +1,24 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- [**breaking**] multiple options and autocomplete ([#1614](https://github.com/twilight-rs/twilight/issues/1614))
+
+### Features
+
+- [**breaking**] add `GuildFeature` ([#1803](https://github.com/twilight-rs/twilight/issues/1803))
+- initial pass at dealing with unknown enum variants ([#1550](https://github.com/twilight-rs/twilight/issues/1550))
+- `CommandOption` max and min length ([#1826](https://github.com/twilight-rs/twilight/issues/1826))
+- auto moderation models ([#1796](https://github.com/twilight-rs/twilight/issues/1796))
+- [**breaking**] builders use `Into<String>` and `IntoIterator` everywhere ([#1774](https://github.com/twilight-rs/twilight/issues/1774))
+
+### Refactor
+
+- [**breaking**] reduce channel integer sizes ([#1775](https://github.com/twilight-rs/twilight/issues/1775))
+- [**breaking**] make interaction a struct ([#1813](https://github.com/twilight-rs/twilight/issues/1813))
+
 ## [0.11.3] - 2022-07-16
 
 ### Bug Fixes
