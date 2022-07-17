@@ -1,11 +1,14 @@
 #!/bin/sh
 
-# collect crate names and paths
-list="$(cargo metadata --no-deps --format-version 1 | jq -r '.workspace_members[]' | grep "^twilight")"
+metadata=$(cargo metadata --no-deps --format-version 1)
+root=$(echo "$metadata" | jq -r '.workspace_root')
 
-echo "$list" | while read -r crate ; do
-    path="$(echo "$crate" | awk '{ print $3 }' | sed 's/^.*path\+file:\/\/\(.*\)).*$/\1/' | xargs realpath --relative-to `pwd`)"
-    tag="$(echo "$crate" | awk '{ print $1 "-" $2 }')"
+echo "$metadata" \
+    | jq -r '.workspace_members[]' \
+    | grep "^twilight" \
+    | while read -r name version _ ;
+do
+    tag="$name-$version"
 
-    git-cliff --include-path "$path/**/*.rs" --unreleased --prepend "$path/CHANGELOG.md" "$tag"..HEAD
+    git-cliff --include-path "$root/$name/**/*.rs" --unreleased --prepend "$root/$name/CHANGELOG.md" "$tag"..HEAD
 done
