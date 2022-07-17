@@ -107,5 +107,6 @@ mod tests {
         serde_test::assert_tokens(&MessageActivityType::Spectate, &[Token::U8(2)]);
         serde_test::assert_tokens(&MessageActivityType::Listen, &[Token::U8(3)]);
         serde_test::assert_tokens(&MessageActivityType::JoinRequest, &[Token::U8(5)]);
+        serde_test::assert_tokens(&MessageActivityType::Unknown(99), &[Token::U8(99)]);
     }
 }
