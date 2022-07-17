@@ -6,16 +6,7 @@ on:
       - main
     paths:
       - ".github/**"
-      - "cache/**"
-      - "gateway/**"
-      - "gateway-queue/**"
-      - "http/**"
-      - "lavalink/**"
-      - "mention/**"
-      - "model/**"
-      - "standby/**"
-      - "twilight/**"
-      - "util/**"
+      - "twilight*/**"
       - "Cargo.toml"
 
 jobs:
