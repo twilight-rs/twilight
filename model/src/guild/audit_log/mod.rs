@@ -21,6 +21,7 @@ pub use self::{
     optional_entry_info::AuditLogOptionalEntryInfo,
 };
 
+use super::auto_moderation::AutoModerationRule;
 use crate::{
     channel::{Channel, Webhook},
     scheduled_event::GuildScheduledEvent,
@@ -35,6 +36,8 @@ use serde::{Deserialize, Serialize};
 /// [1]: https://discord.com/developers/docs/resources/audit-log#audit-log-object
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AuditLog {
+    /// List of referenced auto moderation rules.
+    pub auto_moderation_rules: Vec<AutoModerationRule>,
     /// Paginated entries in a guild's audit log.
     #[serde(rename = "audit_log_entries")]
     pub entries: Vec<AuditLogEntry>,
@@ -88,6 +91,7 @@ mod tests {
     #[test]
     fn serde() {
         let value = AuditLog {
+            auto_moderation_rules: Vec::new(),
             entries: Vec::new(),
             guild_scheduled_events: Vec::new(),
             integrations: Vec::new(),
@@ -101,8 +105,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "AuditLog",
-                    len: 6,
+                    len: 7,
                 },
+                Token::Str("auto_moderation_rules"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::Str("audit_log_entries"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

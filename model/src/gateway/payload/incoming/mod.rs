@@ -14,6 +14,10 @@
 pub mod invite_create;
 pub mod reaction_remove_emoji;
 
+mod auto_moderation_action_execution;
+mod auto_moderation_rule_create;
+mod auto_moderation_rule_delete;
+mod auto_moderation_rule_update;
 mod ban_add;
 mod ban_remove;
 mod channel_create;
@@ -70,10 +74,14 @@ mod voice_state_update;
 mod webhooks_update;
 
 pub use self::{
-    ban_add::BanAdd, ban_remove::BanRemove, channel_create::ChannelCreate,
-    channel_delete::ChannelDelete, channel_pins_update::ChannelPinsUpdate,
-    channel_update::ChannelUpdate, command_permissions_update::CommandPermissionsUpdate,
-    guild_create::GuildCreate, guild_delete::GuildDelete, guild_emojis_update::GuildEmojisUpdate,
+    auto_moderation_action_execution::AutoModerationActionExecution,
+    auto_moderation_rule_create::AutoModerationRuleCreate,
+    auto_moderation_rule_delete::AutoModerationRuleDelete,
+    auto_moderation_rule_update::AutoModerationRuleUpdate, ban_add::BanAdd, ban_remove::BanRemove,
+    channel_create::ChannelCreate, channel_delete::ChannelDelete,
+    channel_pins_update::ChannelPinsUpdate, channel_update::ChannelUpdate,
+    command_permissions_update::CommandPermissionsUpdate, guild_create::GuildCreate,
+    guild_delete::GuildDelete, guild_emojis_update::GuildEmojisUpdate,
     guild_integrations_update::GuildIntegrationsUpdate,
     guild_scheduled_event_create::GuildScheduledEventCreate,
     guild_scheduled_event_delete::GuildScheduledEventDelete,

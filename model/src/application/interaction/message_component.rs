@@ -74,7 +74,7 @@ mod tests {
                 Token::String("custom_id"),
                 Token::String("test"),
                 Token::String("component_type"),
-                Token::U8(ComponentType::Button as u8),
+                Token::U8(ComponentType::Button.into()),
                 Token::String("values"),
                 Token::Seq { len: Some(2) },
                 Token::String("1"),

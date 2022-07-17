@@ -1,4 +1,5 @@
 pub mod audit_log;
+pub mod auto_moderation;
 pub mod member;
 
 mod ban;

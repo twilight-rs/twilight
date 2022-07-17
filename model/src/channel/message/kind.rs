@@ -1,44 +1,42 @@
-use crate::channel::ConversionError;
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum MessageType {
-    Regular = 0,
-    RecipientAdd = 1,
-    RecipientRemove = 2,
-    Call = 3,
-    ChannelNameChange = 4,
-    ChannelIconChange = 5,
-    ChannelMessagePinned = 6,
-    GuildMemberJoin = 7,
-    UserPremiumSub = 8,
-    UserPremiumSubTier1 = 9,
-    UserPremiumSubTier2 = 10,
-    UserPremiumSubTier3 = 11,
-    ChannelFollowAdd = 12,
-    GuildDiscoveryDisqualified = 14,
-    GuildDiscoveryRequalified = 15,
-    GuildDiscoveryGracePeriodInitialWarning = 16,
-    GuildDiscoveryGracePeriodFinalWarning = 17,
-    ThreadCreated = 18,
+    Regular,
+    RecipientAdd,
+    RecipientRemove,
+    Call,
+    ChannelNameChange,
+    ChannelIconChange,
+    ChannelMessagePinned,
+    GuildMemberJoin,
+    UserPremiumSub,
+    UserPremiumSubTier1,
+    UserPremiumSubTier2,
+    UserPremiumSubTier3,
+    ChannelFollowAdd,
+    GuildDiscoveryDisqualified,
+    GuildDiscoveryRequalified,
+    GuildDiscoveryGracePeriodInitialWarning,
+    GuildDiscoveryGracePeriodFinalWarning,
+    ThreadCreated,
     /// Message is an inline reply.
-    Reply = 19,
+    Reply,
     /// Message is a chat input command.
-    ChatInputCommand = 20,
-    ThreadStarterMessage = 21,
-    GuildInviteReminder = 22,
-    ContextMenuCommand = 23,
-    /// Message is an auto-moderation action.
-    AutoModerationAction = 24,
+    ChatInputCommand,
+    ThreadStarterMessage,
+    GuildInviteReminder,
+    ContextMenuCommand,
+    /// Message is an auto moderation action.
+    AutoModerationAction,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
 }
 
-impl TryFrom<u8> for MessageType {
-    type Error = ConversionError;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        let message_type = match value {
+impl From<u8> for MessageType {
+    fn from(value: u8) -> Self {
+        match value {
             0 => MessageType::Regular,
             1 => MessageType::RecipientAdd,
             2 => MessageType::RecipientRemove,
@@ -63,16 +61,46 @@ impl TryFrom<u8> for MessageType {
             22 => MessageType::GuildInviteReminder,
             23 => MessageType::ContextMenuCommand,
             24 => MessageType::AutoModerationAction,
-            _ => return Err(ConversionError::MessageType(value)),
-        };
+            unknown => MessageType::Unknown(unknown),
+        }
+    }
+}
 
-        Ok(message_type)
+impl From<MessageType> for u8 {
+    fn from(value: MessageType) -> Self {
+        match value {
+            MessageType::Regular => 0,
+            MessageType::RecipientAdd => 1,
+            MessageType::RecipientRemove => 2,
+            MessageType::Call => 3,
+            MessageType::ChannelNameChange => 4,
+            MessageType::ChannelIconChange => 5,
+            MessageType::ChannelMessagePinned => 6,
+            MessageType::GuildMemberJoin => 7,
+            MessageType::UserPremiumSub => 8,
+            MessageType::UserPremiumSubTier1 => 9,
+            MessageType::UserPremiumSubTier2 => 10,
+            MessageType::UserPremiumSubTier3 => 11,
+            MessageType::ChannelFollowAdd => 12,
+            MessageType::GuildDiscoveryDisqualified => 14,
+            MessageType::GuildDiscoveryRequalified => 15,
+            MessageType::GuildDiscoveryGracePeriodInitialWarning => 16,
+            MessageType::GuildDiscoveryGracePeriodFinalWarning => 17,
+            MessageType::ThreadCreated => 18,
+            MessageType::Reply => 19,
+            MessageType::ChatInputCommand => 20,
+            MessageType::ThreadStarterMessage => 21,
+            MessageType::GuildInviteReminder => 22,
+            MessageType::ContextMenuCommand => 23,
+            MessageType::AutoModerationAction => 24,
+            MessageType::Unknown(unknown) => unknown,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ConversionError, MessageType};
+    use super::MessageType;
     use serde_test::Token;
 
     #[test]
@@ -107,97 +135,47 @@ mod tests {
         serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
         serde_test::assert_tokens(&MessageType::ContextMenuCommand, &[Token::U8(23)]);
         serde_test::assert_tokens(&MessageType::AutoModerationAction, &[Token::U8(24)]);
+        serde_test::assert_tokens(&MessageType::Unknown(99), &[Token::U8(99)]);
     }
 
     #[test]
     fn conversions() {
-        assert_eq!(MessageType::try_from(0).unwrap(), MessageType::Regular);
-        assert_eq!(MessageType::try_from(1).unwrap(), MessageType::RecipientAdd);
+        assert_eq!(MessageType::from(0), MessageType::Regular);
+        assert_eq!(MessageType::from(1), MessageType::RecipientAdd);
+        assert_eq!(MessageType::from(2), MessageType::RecipientRemove);
+        assert_eq!(MessageType::from(3), MessageType::Call);
+        assert_eq!(MessageType::from(4), MessageType::ChannelNameChange);
+        assert_eq!(MessageType::from(5), MessageType::ChannelIconChange);
+        assert_eq!(MessageType::from(6), MessageType::ChannelMessagePinned);
+        assert_eq!(MessageType::from(7), MessageType::GuildMemberJoin);
+        assert_eq!(MessageType::from(8), MessageType::UserPremiumSub);
+        assert_eq!(MessageType::from(9), MessageType::UserPremiumSubTier1);
+        assert_eq!(MessageType::from(10), MessageType::UserPremiumSubTier2);
+        assert_eq!(MessageType::from(11), MessageType::UserPremiumSubTier3);
+        assert_eq!(MessageType::from(12), MessageType::ChannelFollowAdd);
         assert_eq!(
-            MessageType::try_from(2).unwrap(),
-            MessageType::RecipientRemove
-        );
-        assert_eq!(MessageType::try_from(3).unwrap(), MessageType::Call);
-        assert_eq!(
-            MessageType::try_from(4).unwrap(),
-            MessageType::ChannelNameChange
-        );
-        assert_eq!(
-            MessageType::try_from(5).unwrap(),
-            MessageType::ChannelIconChange
-        );
-        assert_eq!(
-            MessageType::try_from(6).unwrap(),
-            MessageType::ChannelMessagePinned
-        );
-        assert_eq!(
-            MessageType::try_from(7).unwrap(),
-            MessageType::GuildMemberJoin
-        );
-        assert_eq!(
-            MessageType::try_from(8).unwrap(),
-            MessageType::UserPremiumSub
-        );
-        assert_eq!(
-            MessageType::try_from(9).unwrap(),
-            MessageType::UserPremiumSubTier1
-        );
-        assert_eq!(
-            MessageType::try_from(10).unwrap(),
-            MessageType::UserPremiumSubTier2
-        );
-        assert_eq!(
-            MessageType::try_from(11).unwrap(),
-            MessageType::UserPremiumSubTier3
-        );
-        assert_eq!(
-            MessageType::try_from(12).unwrap(),
-            MessageType::ChannelFollowAdd
-        );
-        assert_eq!(
-            MessageType::try_from(14).unwrap(),
+            MessageType::from(14),
             MessageType::GuildDiscoveryDisqualified
         );
         assert_eq!(
-            MessageType::try_from(15).unwrap(),
+            MessageType::from(15),
             MessageType::GuildDiscoveryRequalified
         );
         assert_eq!(
-            MessageType::try_from(16).unwrap(),
+            MessageType::from(16),
             MessageType::GuildDiscoveryGracePeriodInitialWarning
         );
         assert_eq!(
-            MessageType::try_from(17).unwrap(),
+            MessageType::from(17),
             MessageType::GuildDiscoveryGracePeriodFinalWarning
         );
-        assert_eq!(
-            MessageType::try_from(18).unwrap(),
-            MessageType::ThreadCreated
-        );
-        assert_eq!(MessageType::try_from(19).unwrap(), MessageType::Reply);
-        assert_eq!(
-            MessageType::try_from(20).unwrap(),
-            MessageType::ChatInputCommand
-        );
-        assert_eq!(
-            MessageType::try_from(21).unwrap(),
-            MessageType::ThreadStarterMessage
-        );
-        assert_eq!(
-            MessageType::try_from(22).unwrap(),
-            MessageType::GuildInviteReminder
-        );
-        assert_eq!(
-            MessageType::try_from(23).unwrap(),
-            MessageType::ContextMenuCommand
-        );
-        assert_eq!(
-            MessageType::try_from(24).unwrap(),
-            MessageType::AutoModerationAction
-        );
-        assert_eq!(
-            MessageType::try_from(250).unwrap_err(),
-            ConversionError::MessageType(250)
-        );
+        assert_eq!(MessageType::from(18), MessageType::ThreadCreated);
+        assert_eq!(MessageType::from(19), MessageType::Reply);
+        assert_eq!(MessageType::from(20), MessageType::ChatInputCommand);
+        assert_eq!(MessageType::from(21), MessageType::ThreadStarterMessage);
+        assert_eq!(MessageType::from(22), MessageType::GuildInviteReminder);
+        assert_eq!(MessageType::from(23), MessageType::ContextMenuCommand);
+        assert_eq!(MessageType::from(24), MessageType::AutoModerationAction);
+        assert_eq!(MessageType::from(250), MessageType::Unknown(250));
     }
 }

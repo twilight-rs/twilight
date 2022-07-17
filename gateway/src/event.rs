@@ -28,6 +28,20 @@ bitflags! {
     /// [`ChannelPinsUpdate`]: twilight_model::gateway::payload::incoming::ChannelPinsUpdate
     /// [`GuildRoleCreate`]: twilight_model::gateway::payload::incoming::GuildRoleCreate
     pub struct EventTypeFlags: u128 {
+        /// Message has been blocked by AutoMod according to a rule.
+        const AUTO_MODERATION_ACTION_EXECUTION = 1 << 71;
+        /// [`AutoModerationRule`] has been created.
+        ///
+        /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+        const AUTO_MODERATION_RULE_CREATE = 1 << 72;
+        /// [`AutoModerationRule`] has been deleted.
+        ///
+        /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+        const AUTO_MODERATION_RULE_DELETE = 1 << 73;
+        /// [`AutoModerationRule`] has been updated.
+        ///
+        /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+        const AUTO_MODERATION_RULE_UPDATE = 1 << 74;
         /// User has been banned from a guild.
         const BAN_ADD = 1;
         /// User has been unbanned from a guild.
@@ -170,6 +184,21 @@ bitflags! {
 }
 
 impl EventTypeFlags {
+    /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_CONFIGURATION`].
+    ///
+    /// [`Intents::AUTO_MODERATION_CONFIGURATION`]: crate::Intents::AUTO_MODERATION_CONFIGURATION
+    pub const AUTO_MODERATION_CONFIGURATION: EventTypeFlags = EventTypeFlags::from_bits_truncate(
+        EventTypeFlags::AUTO_MODERATION_RULE_CREATE.bits()
+            | EventTypeFlags::AUTO_MODERATION_RULE_DELETE.bits()
+            | EventTypeFlags::AUTO_MODERATION_RULE_UPDATE.bits(),
+    );
+
+    /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_EXECUTION`].
+    ///
+    /// [`Intents::AUTO_MODERATION_EXECUTION`]: crate::Intents::AUTO_MODERATION_EXECUTION
+    pub const AUTO_MODERATION_EXECUTION: EventTypeFlags =
+        EventTypeFlags::from_bits_truncate(EventTypeFlags::AUTO_MODERATION_ACTION_EXECUTION.bits());
+
     /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
     ///
     /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES
@@ -321,6 +350,12 @@ impl EventTypeFlags {
 impl From<EventType> for EventTypeFlags {
     fn from(event_type: EventType) -> Self {
         match event_type {
+            EventType::AutoModerationActionExecution => {
+                EventTypeFlags::AUTO_MODERATION_ACTION_EXECUTION
+            }
+            EventType::AutoModerationRuleCreate => EventTypeFlags::AUTO_MODERATION_RULE_CREATE,
+            EventType::AutoModerationRuleDelete => EventTypeFlags::AUTO_MODERATION_RULE_DELETE,
+            EventType::AutoModerationRuleUpdate => EventTypeFlags::AUTO_MODERATION_RULE_UPDATE,
             EventType::BanAdd => EventTypeFlags::BAN_ADD,
             EventType::BanRemove => EventTypeFlags::BAN_REMOVE,
             EventType::ChannelCreate => EventTypeFlags::CHANNEL_CREATE,

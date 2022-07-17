@@ -38,6 +38,15 @@ pub struct AttachmentMarker;
 #[non_exhaustive]
 pub struct AuditLogEntryMarker;
 
+/// Marker for auto moderation rule IDs.
+///
+/// Types such as [`AutoModerationRule`] use this ID marker.
+///
+/// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct AutoModerationRuleMarker;
+
 /// Marker for channel IDs.
 ///
 /// Types such as [`Channel`] or [`Reaction`] use this ID marker.

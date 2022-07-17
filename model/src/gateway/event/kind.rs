@@ -4,6 +4,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EventType {
+    AutoModerationActionExecution,
+    AutoModerationRuleCreate,
+    AutoModerationRuleDelete,
+    AutoModerationRuleUpdate,
     #[serde(rename = "GUILD_BAN_ADD")]
     BanAdd,
     #[serde(rename = "GUILD_BAN_REMOVE")]
@@ -39,12 +43,12 @@ pub enum EventType {
     InviteDelete,
     #[serde(rename = "GUILD_MEMBER_ADD")]
     MemberAdd,
+    #[serde(rename = "GUILD_MEMBERS_CHUNK")]
+    MemberChunk,
     #[serde(rename = "GUILD_MEMBER_REMOVE")]
     MemberRemove,
     #[serde(rename = "GUILD_MEMBER_UPDATE")]
     MemberUpdate,
-    #[serde(rename = "GUILD_MEMBERS_CHUNK")]
-    MemberChunk,
     MessageCreate,
     MessageDelete,
     MessageDeleteBulk,
@@ -87,6 +91,10 @@ pub enum EventType {
 impl EventType {
     pub const fn name(self) -> Option<&'static str> {
         match self {
+            Self::AutoModerationActionExecution => Some("AUTO_MODERATION_ACTION_EXECUTION"),
+            Self::AutoModerationRuleCreate => Some("AUTO_MODERATION_RULE_CREATE"),
+            Self::AutoModerationRuleDelete => Some("AUTO_MODERATION_RULE_DELETE"),
+            Self::AutoModerationRuleUpdate => Some("AUTO_MODERATION_RULE_UPDATE"),
             Self::BanAdd => Some("GUILD_BAN_ADD"),
             Self::BanRemove => Some("GUILD_BAN_REMOVE"),
             Self::ChannelCreate => Some("CHANNEL_CREATE"),
@@ -113,15 +121,15 @@ impl EventType {
             Self::InviteCreate => Some("INVITE_CREATE"),
             Self::InviteDelete => Some("INVITE_DELETE"),
             Self::MemberAdd => Some("GUILD_MEMBER_ADD"),
+            Self::MemberChunk => Some("GUILD_MEMBERS_CHUNK"),
             Self::MemberRemove => Some("GUILD_MEMBER_REMOVE"),
             Self::MemberUpdate => Some("GUILD_MEMBER_UPDATE"),
-            Self::MemberChunk => Some("GUILD_MEMBERS_CHUNK"),
             Self::MessageCreate => Some("MESSAGE_CREATE"),
             Self::MessageDelete => Some("MESSAGE_DELETE"),
             Self::MessageDeleteBulk => Some("MESSAGE_DELETE_BULK"),
             Self::MessageUpdate => Some("MESSAGE_UPDATE"),
-            Self::PresenceUpdate => Some("PRESENCE_UPDATE"),
             Self::PresencesReplace => Some("PRESENCES_REPLACE"),
+            Self::PresenceUpdate => Some("PRESENCE_UPDATE"),
             Self::ReactionAdd => Some("MESSAGE_REACTION_ADD"),
             Self::ReactionRemove => Some("MESSAGE_REACTION_REMOVE"),
             Self::ReactionRemoveAll => Some("MESSAGE_REACTION_REMOVE_ALL"),
@@ -137,8 +145,8 @@ impl EventType {
             Self::ThreadCreate => Some("THREAD_CREATE"),
             Self::ThreadDelete => Some("THREAD_DELETE"),
             Self::ThreadListSync => Some("THREAD_LIST_SYNC"),
-            Self::ThreadMemberUpdate => Some("THREAD_MEMBER_UPDATE"),
             Self::ThreadMembersUpdate => Some("THREAD_MEMBERS_UPDATE"),
+            Self::ThreadMemberUpdate => Some("THREAD_MEMBER_UPDATE"),
             Self::ThreadUpdate => Some("THREAD_UPDATE"),
             Self::TypingStart => Some("TYPING_START"),
             Self::UnavailableGuild => Some("UNAVAILABLE_GUILD"),
@@ -160,6 +168,10 @@ impl<'a> TryFrom<&'a str> for EventType {
 
     fn try_from(event_type: &'a str) -> Result<Self, Self::Error> {
         match event_type {
+            "AUTO_MODERATION_ACTION_EXECUTION" => Ok(Self::AutoModerationActionExecution),
+            "AUTO_MODERATION_RULE_CREATE" => Ok(Self::AutoModerationRuleCreate),
+            "AUTO_MODERATION_RULE_DELETE" => Ok(Self::AutoModerationRuleDelete),
+            "AUTO_MODERATION_RULE_UPDATE" => Ok(Self::AutoModerationRuleUpdate),
             "GUILD_BAN_ADD" => Ok(Self::BanAdd),
             "GUILD_BAN_REMOVE" => Ok(Self::BanRemove),
             "CHANNEL_CREATE" => Ok(Self::ChannelCreate),
@@ -238,8 +250,25 @@ mod tests {
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn variants() {
+        assert_variant(
+            EventType::AutoModerationActionExecution,
+            "AUTO_MODERATION_ACTION_EXECUTION",
+        );
+        assert_variant(
+            EventType::AutoModerationRuleCreate,
+            "AUTO_MODERATION_RULE_CREATE",
+        );
+        assert_variant(
+            EventType::AutoModerationRuleDelete,
+            "AUTO_MODERATION_RULE_DELETE",
+        );
+        assert_variant(
+            EventType::AutoModerationRuleUpdate,
+            "AUTO_MODERATION_RULE_UPDATE",
+        );
         assert_variant(EventType::BanAdd, "GUILD_BAN_ADD");
         assert_variant(EventType::BanRemove, "GUILD_BAN_REMOVE");
         assert_variant(EventType::ChannelCreate, "CHANNEL_CREATE");
@@ -294,9 +323,9 @@ mod tests {
         assert_variant(EventType::InviteCreate, "INVITE_CREATE");
         assert_variant(EventType::InviteDelete, "INVITE_DELETE");
         assert_variant(EventType::MemberAdd, "GUILD_MEMBER_ADD");
+        assert_variant(EventType::MemberChunk, "GUILD_MEMBERS_CHUNK");
         assert_variant(EventType::MemberRemove, "GUILD_MEMBER_REMOVE");
         assert_variant(EventType::MemberUpdate, "GUILD_MEMBER_UPDATE");
-        assert_variant(EventType::MemberChunk, "GUILD_MEMBERS_CHUNK");
         assert_variant(EventType::MessageCreate, "MESSAGE_CREATE");
         assert_variant(EventType::MessageDelete, "MESSAGE_DELETE");
         assert_variant(EventType::MessageDeleteBulk, "MESSAGE_DELETE_BULK");

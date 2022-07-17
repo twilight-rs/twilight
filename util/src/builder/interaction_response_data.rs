@@ -31,7 +31,7 @@ use twilight_model::{
 /// });
 ///
 /// let interaction_response_data = InteractionResponseDataBuilder::new()
-///     .content("Callback message".to_string())
+///     .content("Callback message")
 ///     .flags(MessageFlags::EPHEMERAL)
 ///     .components([component.clone()])
 ///     .build();
@@ -109,9 +109,8 @@ impl InteractionResponseDataBuilder {
     /// Set the message content of the callback.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn content(mut self, content: String) -> Self {
-        self.0.content = Some(content);
+    pub fn content(mut self, content: impl Into<String>) -> Self {
+        self.0.content = Some(content.into());
 
         self
     }
@@ -119,9 +118,8 @@ impl InteractionResponseDataBuilder {
     /// Set the custom ID of the callback.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn custom_id(mut self, custom_id: String) -> Self {
-        self.0.custom_id = Some(custom_id);
+    pub fn custom_id(mut self, custom_id: impl Into<String>) -> Self {
+        self.0.custom_id = Some(custom_id.into());
 
         self
     }
@@ -152,9 +150,8 @@ impl InteractionResponseDataBuilder {
     /// Set the title of the callback.
     ///
     /// Defaults to [`None`].
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn title(mut self, title: String) -> Self {
-        self.0.title = Some(title);
+    pub fn title(mut self, title: impl Into<String>) -> Self {
+        self.0.title = Some(title.into());
 
         self
     }
@@ -225,7 +222,7 @@ mod tests {
         let value = InteractionResponseDataBuilder::new()
             .allowed_mentions(allowed_mentions.clone())
             .components([component.clone()])
-            .content("a content".into())
+            .content("a content")
             .embeds([embed.clone()])
             .flags(MessageFlags::empty())
             .tts(false)
