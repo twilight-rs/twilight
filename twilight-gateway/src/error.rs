@@ -17,6 +17,24 @@ pub struct ProcessError {
 }
 
 impl ProcessError {
+    /// Immutable reference to the type of error that occurred.
+    #[must_use = "retrieving the type has no effect if left unused"]
+    pub const fn kind(&self) -> &ProcessErrorType {
+        &self.kind
+    }
+
+    /// Consume the error, returning the source error if there is any.
+    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
+    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
+        self.source
+    }
+
+    /// Consume the error, returning the owned error type and the source error.
+    #[must_use = "consuming the error into its parts has no effect if left unused"]
+    pub fn into_parts(self) -> (ProcessErrorType, Option<Box<dyn Error + Send + Sync>>) {
+        (self.kind, None)
+    }
+
     /// Shortcut to create a new error from a message compression error.
     pub(crate) fn from_compression(source: CompressionError) -> Self {
         Self {
@@ -96,38 +114,6 @@ pub struct ReceiveMessageError {
 }
 
 impl ReceiveMessageError {
-    /// Shortcut to create a new error from a fatal close code.
-    pub(crate) fn from_fatally_closed(close_code: u16) -> Self {
-        Self {
-            kind: ReceiveMessageErrorType::FatallyClosed { close_code },
-            source: None,
-        }
-    }
-
-    /// Shortcut to create a new error from a gateway event parsing error.
-    pub(crate) fn from_json(source: GatewayEventParsingError) -> Self {
-        Self {
-            kind: ReceiveMessageErrorType::Deserializing,
-            source: Some(Box::new(source)),
-        }
-    }
-
-    /// Shortcut to create a new error from a shard initialization error.
-    pub(crate) fn from_reconnect(source: ShardInitializeError) -> Self {
-        Self {
-            kind: ReceiveMessageErrorType::Reconnect,
-            source: Some(Box::new(source)),
-        }
-    }
-
-    /// Shortcut to create a new error from a message sending error.
-    pub(crate) fn from_send(source: SendError) -> Self {
-        Self {
-            kind: ReceiveMessageErrorType::SendingMessage,
-            source: Some(Box::new(source)),
-        }
-    }
-
     /// Whether the error is fatal.
     ///
     /// If the error is fatal then further attempts to use the shard will return
@@ -161,6 +147,38 @@ impl ReceiveMessageError {
         Option<Box<dyn Error + Send + Sync>>,
     ) {
         (self.kind, None)
+    }
+
+    /// Shortcut to create a new error from a fatal close code.
+    pub(crate) fn from_fatally_closed(close_code: u16) -> Self {
+        Self {
+            kind: ReceiveMessageErrorType::FatallyClosed { close_code },
+            source: None,
+        }
+    }
+
+    /// Shortcut to create a new error from a gateway event parsing error.
+    pub(crate) fn from_json(source: GatewayEventParsingError) -> Self {
+        Self {
+            kind: ReceiveMessageErrorType::Deserializing,
+            source: Some(Box::new(source)),
+        }
+    }
+
+    /// Shortcut to create a new error from a shard initialization error.
+    pub(crate) fn from_reconnect(source: ShardInitializeError) -> Self {
+        Self {
+            kind: ReceiveMessageErrorType::Reconnect,
+            source: Some(Box::new(source)),
+        }
+    }
+
+    /// Shortcut to create a new error from a message sending error.
+    pub(crate) fn from_send(source: SendError) -> Self {
+        Self {
+            kind: ReceiveMessageErrorType::SendingMessage,
+            source: Some(Box::new(source)),
+        }
     }
 }
 
