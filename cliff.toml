@@ -1,0 +1,40 @@
+# configuration file for git-cliff (0.1.0)
+
+[changelog]
+header = "# Changelog\n\n"
+body = """
+{% if version %}\
+    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+    ## [unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | upper_first }}
+    {% for commit in commits %}
+        - {% if commit.breaking %}[**breaking**] {% endif %}{{ commit.message }}\
+    {% endfor %}
+{% endfor %}\n
+"""
+# remove the leading and trailing whitespace from the template
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+commit_preprocessors = [
+    # replace issues with issue links
+    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/twilight-rs/twilight/issues/${2}))" },
+]
+commit_parsers = [
+    { message = "^build", group = "Build" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^perf", group = "Performance" },
+    { message = "^refactor", group = "Refactor" },
+    { message = "^test", group = "Testing" },
+    { message = "^ci", skip = true },
+]
+filter_commits = false
+date_order = true
+sort_commits = "oldest"

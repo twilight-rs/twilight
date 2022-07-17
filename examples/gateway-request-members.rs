@@ -12,8 +12,7 @@ async fn main() -> anyhow::Result<()> {
     let (shard, mut events) = Shard::new(
         env::var("DISCORD_TOKEN")?,
         Intents::GUILD_MEMBERS | Intents::GUILDS,
-    )
-    .await?;
+    );
     shard.start().await?;
     println!("Created shard");
 
