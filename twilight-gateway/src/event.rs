@@ -171,18 +171,16 @@ bitflags! {
         /// Webhook in a guild has been updated.
         const WEBHOOKS_UPDATE = 1 << 44;
 
-         /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_CONFIGURATION`].
+        /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_CONFIGURATION`].
         ///
         /// [`Intents::AUTO_MODERATION_CONFIGURATION`]: crate::Intents::AUTO_MODERATION_CONFIGURATION
         const AUTO_MODERATION_CONFIGURATION = Self::AUTO_MODERATION_RULE_CREATE.bits()
                 | Self::AUTO_MODERATION_RULE_DELETE.bits()
                 | Self::AUTO_MODERATION_RULE_UPDATE.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_EXECUTION`].
         ///
         /// [`Intents::AUTO_MODERATION_EXECUTION`]: crate::Intents::AUTO_MODERATION_EXECUTION
         const AUTO_MODERATION_EXECUTION = Self::AUTO_MODERATION_ACTION_EXECUTION.bits();
-
         /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
         ///
         /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES
