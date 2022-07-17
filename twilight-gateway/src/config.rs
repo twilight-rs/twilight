@@ -93,10 +93,12 @@ impl ShardId {
 /// Formats as `{number}/{total}`.
 impl Display for ShardId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str("[")?;
         Display::fmt(&self.number, f)?;
-        f.write_str("/")?;
+        f.write_str(", ")?;
+        Display::fmt(&self.total, f)?;
 
-        Display::fmt(&self.total, f)
+        f.write_str("]")
     }
 }
 
@@ -131,6 +133,9 @@ pub struct Config {
     // if unconfigured.
     tls: TlsContainer,
     /// Token used to authenticate when identifying with the gateway.
+    ///
+    /// The token is prefixed with "Bot ", which is required by Discord for
+    /// authentication.
     token: Box<str>,
 }
 
@@ -513,9 +518,9 @@ mod tests {
 
     #[test]
     fn shard_id_display() {
-        assert_eq!("0/1", ShardId::ONE.to_string());
-        assert_eq!("2/4", ShardId::new(2, 4).to_string());
-        assert_eq!("13/102", ShardId::new(13, 102).to_string());
+        assert_eq!("[0, 1]", ShardId::ONE.to_string());
+        assert_eq!("[2, 4]", ShardId::new(2, 4).to_string());
+        assert_eq!("[13, 102]", ShardId::new(13, 102).to_string());
     }
 
     #[tokio::test]

@@ -448,6 +448,19 @@ impl Shard {
     ///
     /// Returns a [`ReceiveMessageErrorType::Deserializing`] error type if the
     /// message payload failed to deserialize.
+    ///
+    /// Returns a [`ReceiveMessageErrorType::FatallyClosed`] error type if the
+    /// shard was closed due to a fatal error, such as invalid authorization.
+    ///
+    /// Returns a [`ReceiveMessageErrorType::Process`] error type if the shard
+    /// failed to internally process a received event.
+    ///
+    /// Returns a [`ReceiveMessageErrorType::Reconnect`] error type if the shard
+    /// failed to reconnect to the gateway. This isn't a fatal error and can be
+    /// retried.
+    ///
+    /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
+    /// shard failed to send a message to the gateway, such as a heartbeat.
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         let mut bytes = loop {
             match self.next_message().await? {
@@ -466,14 +479,18 @@ impl Shard {
     ///
     /// # Errors
     ///
+    /// Returns a [`ReceiveMessageErrorType::FatallyClosed`] error type if the
+    /// shard was closed due to a fatal error, such as invalid authorization.
+    ///
     /// Returns a [`ReceiveMessageErrorType::Process`] error type if the shard
     /// failed to internally process a received event.
     ///
+    /// Returns a [`ReceiveMessageErrorType::Reconnect`] error type if the shard
+    /// failed to reconnect to the gateway. This isn't a fatal error and can be
+    /// retried.
+    ///
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
-    ///
-    /// [`ReceiveMessageErrorType::Process`]: crate::error::ReceiveMessageErrorType::Process
-    /// [`ReceiveMessageErrorType::SendingMessage`]: crate::error::ReceiveMessageErrorType::SendingMessage
     pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
         self.compression.clear();
 

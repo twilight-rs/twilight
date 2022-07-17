@@ -345,6 +345,22 @@ impl EventTypeFlags {
     /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
     pub const GUILD_WEBHOOKS: EventTypeFlags =
         EventTypeFlags::from_bits_truncate(EventTypeFlags::WEBHOOKS_UPDATE.bits());
+
+    /// Create a flag from an opcode and event type flag, if the pair maps to one.
+    ///
+    /// If an opcode and/or event type doesn't map to a flag then None is
+    /// returned.
+    pub fn from_op_and_event_type(op: u8, maybe_event_type: Option<&str>) -> Option<Self> {
+        match (op, maybe_event_type) {
+            (1, _) => Some(EventTypeFlags::GATEWAY_HEARTBEAT),
+            (7, _) => Some(EventTypeFlags::GATEWAY_RECONNECT),
+            (9, _) => Some(EventTypeFlags::GATEWAY_INVALIDATE_SESSION),
+            (10, _) => Some(EventTypeFlags::GATEWAY_HELLO),
+            (11, _) => Some(EventTypeFlags::GATEWAY_HEARTBEAT_ACK),
+            (_, Some(event_type)) => EventType::try_from(event_type).ok().map(Self::from),
+            (_, None) => None,
+        }
+    }
 }
 
 impl From<EventType> for EventTypeFlags {
@@ -426,26 +442,6 @@ impl From<EventType> for EventTypeFlags {
     }
 }
 
-impl<'a> TryFrom<(u8, Option<&'a str>)> for EventTypeFlags {
-    type Error = (u8, Option<&'a str>);
-
-    fn try_from((op, event_type): (u8, Option<&'a str>)) -> Result<Self, Self::Error> {
-        match (op, event_type) {
-            (1, _) => Ok(EventTypeFlags::GATEWAY_HEARTBEAT),
-            (7, _) => Ok(EventTypeFlags::GATEWAY_RECONNECT),
-            (9, _) => Ok(EventTypeFlags::GATEWAY_INVALIDATE_SESSION),
-            (10, _) => Ok(EventTypeFlags::GATEWAY_HELLO),
-            (11, _) => Ok(EventTypeFlags::GATEWAY_HEARTBEAT_ACK),
-            (_, Some(event_type)) => {
-                let flag = EventType::try_from(event_type).map_err(|kind| (op, Some(kind)))?;
-
-                Ok(Self::from(flag))
-            }
-            (_, None) => Err((op, event_type)),
-        }
-    }
-}
-
 impl Default for EventTypeFlags {
     fn default() -> Self {
         Self::all()
@@ -469,6 +465,5 @@ mod tests {
         PartialEq,
         Send,
         Sync,
-        TryFrom<(u8, Option<&'static str>)>
     );
 }

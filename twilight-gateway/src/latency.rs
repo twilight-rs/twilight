@@ -27,7 +27,7 @@ pub struct Latency {
     /// [`heartbeats`] to determine the average latency.
     ///
     /// [`heartbeats`]: Self::heartbeats
-    total_time: u64,
+    total_duration: Duration,
 }
 
 impl Latency {
@@ -41,7 +41,7 @@ impl Latency {
             received: None,
             recent: [Duration::ZERO; Self::RECENT_LEN],
             sent: None,
-            total_time: 0,
+            total_duration: Duration::ZERO,
         }
     }
 
@@ -55,7 +55,7 @@ impl Latency {
     ///
     /// If this is None, the shard has not received a heartbeat yet.
     pub const fn average(&self) -> Option<Duration> {
-        Duration::from_millis(self.total_time).checked_div(self.heartbeats)
+        self.total_duration.checked_div(self.heartbeats)
     }
 
     /// The total number of heartbeats that have been sent during this session.
@@ -96,20 +96,12 @@ impl Latency {
             return;
         };
 
-        let millis: u64 = if let Ok(millis) = duration.as_millis().try_into() {
-            millis
-        } else {
-            tracing::error!(duration = ?duration, "milliseconds is more than u64");
-
-            return;
-        };
-
-        self.total_time += millis;
+        self.total_duration += duration;
         self.recent.rotate_right(1);
         self.recent[0] = duration;
     }
 
-    /// Track that a heartbeat acknowledgement was received.
+    /// Track that a heartbeat acknowledgement was sent.
     ///
     /// The current time will be stored to be used in [`track_received`].
     ///
@@ -140,7 +132,7 @@ mod tests {
                 Duration::from_millis(40),
             ],
             sent: None,
-            total_time: 510,
+            total_duration: Duration::from_millis(510),
         }
     }
 

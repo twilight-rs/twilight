@@ -167,10 +167,6 @@ impl ReceiveMessageError {
 impl Display for ReceiveMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
-            ReceiveMessageErrorType::Client => f.write_str("websocket client error"),
-            ReceiveMessageErrorType::Decompressing => {
-                f.write_str("failed to decompress the message because it may be invalid")
-            }
             ReceiveMessageErrorType::Deserializing => {
                 f.write_str("message is an unrecognized payload")
             }
@@ -206,10 +202,6 @@ impl Error for ReceiveMessageError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ReceiveMessageErrorType {
-    /// Websocket client received an error, such as as an I/O or TLS error.
-    Client,
-    /// Decompressing a frame from Discord failed.
-    Decompressing,
     /// Received gateway event failed to be deserialized.
     ///
     /// The message payload is likely an unrecognized type that is not yet
@@ -403,12 +395,7 @@ mod tests {
 
     #[test]
     fn receive_message_error_display() {
-        const MESSAGES: [(ReceiveMessageErrorType, &str); 8] = [
-            (ReceiveMessageErrorType::Client, "websocket client error"),
-            (
-                ReceiveMessageErrorType::Decompressing,
-                "failed to decompress the message because it may be invalid",
-            ),
+        const MESSAGES: [(ReceiveMessageErrorType, &str); 6] = [
             (
                 ReceiveMessageErrorType::Deserializing,
                 "message is an unrecognized payload",
