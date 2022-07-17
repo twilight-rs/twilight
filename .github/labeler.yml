@@ -13,57 +13,57 @@ labels:
   - label: "c-cache"
     sync: true
     matcher:
-      files: "cache/**/*"
+      files: "twilight-cache-inmemory/**/*"
 
   - label: "c-gateway"
     sync: true
     matcher:
-      files: "gateway/**/*"
+      files: "twilight-gateway/**/*"
 
   - label: "c-gateway-queue"
     sync: true
     matcher:
-      files: "gateway-queue/**/*"
+      files: "twilight-gateway-queue/**/*"
 
   - label: "c-http"
     sync: true
     matcher:
-      files: "http/**/*"
+      files: "twilight-http/**/*"
 
   - label: "c-http-ratelimiting"
     sync: true
     matcher:
-      files: "http-ratelimiting/**/*"
+      files: "twilight-http-ratelimiting/**/*"
 
   - label: "c-lavalink"
     sync: true
     matcher:
-      files: "lavalink/**/*"
+      files: "twilight-lavalink/**/*"
 
   - label: "c-mention"
     sync: true
     matcher:
-      files: "mention/**/*"
+      files: "twilight-mention/**/*"
 
   - label: "c-model"
     sync: true
     matcher:
-      files: "model/**/*"
+      files: "twilight-model/**/*"
 
   - label: "c-standby"
     sync: true
     matcher:
-      files: "standby/**/*"
+      files: "twilight-standby/**/*"
 
   - label: "c-util"
     sync: true
     matcher:
-      files: "util/**/*"
+      files: "twilight-util/**/*"
 
   - label: "c-validate"
     sync: true
     matcher:
-      files: "validate/**/*"
+      files: "twilight-validate/**/*"
 
   - label: "m-breaking change"
     matcher:
