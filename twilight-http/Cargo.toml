@@ -45,5 +45,5 @@ trust-dns = ["dep:hyper-trust-dns"]
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.11.1" }
+twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.12.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
