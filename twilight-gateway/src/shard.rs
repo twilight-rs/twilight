@@ -15,10 +15,9 @@
 //! Sending a message is simple and the flow of it looks like:
 //!
 //! 1. If the user sends a [command] via [`Shard::command`] the command is
-//! serialized into a raw websocket message and [`Shard::send`] is called;
-//! 2. The user calls [`Shard::send`] and the sending of the message goes
-//! through ratelimiting via [`CommandRatelimiter`] if ratelimiting
-//! [is enabled];
+//! serialized into a raw websocket message and then...
+//! 2. [`Shard::send`] is called and the sending of the message goes through
+//! ratelimiting via [`CommandRatelimiter`] if ratelimiting [is enabled];
 //! 3. The [websocket message] is sent over the [websocket connection].
 //!
 //! Receiving a message is a little bit more complicated, but follows as:
