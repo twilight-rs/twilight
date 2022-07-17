@@ -82,7 +82,7 @@ impl From<u8> for MessageType {
             22 => Self::GuildInviteReminder,
             23 => Self::ContextMenuCommand,
             24 => Self::AutoModerationAction,
-            value => Self::Unknown(value),
+            unknown => Self::Unknown(unknown),
         }
     }
 }

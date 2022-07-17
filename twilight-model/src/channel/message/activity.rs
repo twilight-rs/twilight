@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Activity associated with a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -13,17 +12,43 @@ pub struct MessageActivity {
 }
 
 /// Activity of this message.
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[repr(u8)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(from = "u8", into = "u8")]
 pub enum MessageActivityType {
     /// Join the the party.
-    Join = 1,
+    Join,
     /// Spectate on or with the party.
-    Spectate = 2,
+    Spectate,
     /// Listen to or with the party.
-    Listen = 3,
+    Listen,
     /// Request to join the party.
-    JoinRequest = 5,
+    JoinRequest,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
+}
+
+impl From<u8> for MessageActivityType {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Join,
+            2 => Self::Spectate,
+            3 => Self::Listen,
+            5 => Self::JoinRequest,
+            unknown => Self::Unknown(unknown),
+        }
+    }
+}
+
+impl From<MessageActivityType> for u8 {
+    fn from(value: MessageActivityType) -> Self {
+        match value {
+            MessageActivityType::Join => 1,
+            MessageActivityType::Spectate => 2,
+            MessageActivityType::Listen => 3,
+            MessageActivityType::JoinRequest => 5,
+            MessageActivityType::Unknown(unknown) => unknown,
+        }
+    }
 }
 
 #[cfg(test)]
