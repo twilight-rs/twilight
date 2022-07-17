@@ -25,6 +25,9 @@ use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 /// [`NextMessageFuture`]!
 pub enum NextMessageFutureOutput {
     /// Message has been received from the Websocket connection.
+    ///
+    /// If no message is present then the stream has ended and a new connection
+    /// will need to be made.
     Message(Option<TungsteniteMessage>),
     /// Heartbeat must now be sent to Discord.
     SendHeartbeat,
@@ -124,11 +127,9 @@ impl ReconnectDelayFuture {
     /// Initialize a new unpolled future that will resolve when a reconnect
     /// should be made.
     pub fn new(reconnect_attempts: u8) -> Self {
-        let mut wait = 2_u8.saturating_pow(u32::from(reconnect_attempts));
-
-        if wait > Self::MAX_WAIT_SECONDS {
-            wait = Self::MAX_WAIT_SECONDS;
-        }
+        let wait = 2_u8
+            .saturating_pow(u32::from(reconnect_attempts))
+            .min(Self::MAX_WAIT_SECONDS);
 
         let duration = Duration::from_secs(u64::from(wait));
 

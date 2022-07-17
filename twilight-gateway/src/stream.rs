@@ -56,6 +56,8 @@ pub enum StartRecommendedErrorType {
 /// Lower end of the range must be less than the higher end. The higher end of
 /// the range is exclusive.
 ///
+/// Shards will all share the same TLS connector to reduce memory usage.
+///
 /// # Panics
 ///
 /// Panics if the lower end of the range is equal to the higher end of the
@@ -65,12 +67,13 @@ pub fn start_range(
     to: u64,
     total: u64,
     config: Config,
-) -> impl Stream<Item = Result<Shard, ShardInitializeError>> {
+) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static {
     assert!(from < to, "range start must be less than the end");
     assert!(from < total, "range start must be less than the total");
     assert!(to < total, "range end must be less than the total");
 
-    let mut futures = Vec::new();
+    let capacity = (to - from).try_into().unwrap_or(usize::MAX);
+    let mut futures = Vec::with_capacity(capacity);
 
     for index in from..to {
         let id = ShardId::new(index, total);
@@ -88,6 +91,8 @@ pub fn start_range(
 }
 
 /// Start all of the shards recommended for Discord in a single cluster.
+///
+/// Shards will all share the same TLS connector to reduce memory usage.
 ///
 /// # Examples
 ///
@@ -124,7 +129,10 @@ pub fn start_range(
 /// failed to complete.
 pub async fn start_recommended(
     config: Config,
-) -> Result<impl Stream<Item = Result<Shard, ShardInitializeError>>, StartRecommendedError> {
+) -> Result<
+    impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static,
+    StartRecommendedError,
+> {
     let client = Client::new(config.token().to_owned());
     let request = client.gateway().authed();
     let response = request

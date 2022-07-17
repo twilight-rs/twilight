@@ -208,11 +208,6 @@ impl Config {
         self.ratelimit_messages
     }
 
-    /// Session information to resume a shard on initialization.
-    pub const fn session(&self) -> Option<&Session> {
-        self.session.as_ref()
-    }
-
     /// Immutable reference to the TLS connector in use by the shard.
     pub(crate) const fn tls(&self) -> &TlsContainer {
         &self.tls
@@ -222,6 +217,11 @@ impl Config {
     /// with the gateway.
     pub const fn token(&self) -> &str {
         &self.token
+    }
+
+    /// Session information to resume a shard on initialization.
+    pub(crate) fn take_session(&mut self) -> Option<Session> {
+        self.session.take()
     }
 }
 

@@ -364,9 +364,9 @@ impl Shard {
     /// [`ShardInitializeErrorType::Establishing`]: crate::error::ShardInitializeErrorType::Establishing
     pub async fn with_config(
         shard_id: ShardId,
-        config: Config,
+        mut config: Config,
     ) -> Result<Self, ShardInitializeError> {
-        let session = config.session().cloned();
+        let session = config.take_session();
 
         // Determine whether we need to go through the queue; if the user has
         // configured an existing gateway session then we can skip it
@@ -827,7 +827,10 @@ impl Shard {
         match OpCode::try_from(raw_opcode) {
             Ok(OpCode::Event) if is_ready => {
                 let event = Self::parse_event::<MinimalReady>(buffer)?;
-                let sequence = maybe_sequence.unwrap();
+                let sequence = maybe_sequence.ok_or(ProcessError {
+                    kind: ProcessErrorType::ParsingPayload,
+                    source: None,
+                })?;
 
                 self.status = ConnectionStatus::Connected;
                 self.session = Some(Session::new(sequence, event.data.session_id));
