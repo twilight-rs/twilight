@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.12.0] - 2022-07-17
 
 ### Refactor
 
