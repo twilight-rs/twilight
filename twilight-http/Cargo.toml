@@ -27,7 +27,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.12.0" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.12.0" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.12.1" }
 twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.12.0" }
 
 # Optional dependencies.
