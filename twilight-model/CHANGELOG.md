@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.12.1] - 2022-07-18
+
+### Bug Fixes
+
+- bump user_limit from u8 to u32 ([#1840](https://github.com/twilight-rs/twilight/issues/1840))
+
 ## [0.12.0] - 2022-07-17
 
 ### Bug Fixes
