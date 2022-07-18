@@ -145,7 +145,7 @@ pub struct Channel {
     ///
     /// Zero refers to no limit.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_limit: Option<u8>,
+    pub user_limit: Option<u32>,
     /// Camera video quality mode of the channel.
     ///
     /// Defaults to [`VideoQualityMode::Auto`] for applicable channels.
