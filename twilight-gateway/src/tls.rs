@@ -146,7 +146,7 @@ mod r#impl {
                 roots
                     .add(&rustls_tls::Certificate(cert.0))
                     .map_err(|err| TlsError {
-                        kind: TlsErrorType::Loading,
+                        kind: super::TlsErrorType::Loading,
                         source: Some(Box::new(err)),
                     })?;
             }
