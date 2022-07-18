@@ -248,7 +248,7 @@ impl ConfigBuilder {
 
         Self {
             inner: Config {
-                event_types: EventTypeFlags::default(),
+                event_types: EventTypeFlags::all(),
                 gateway_url: None,
                 identify_properties: None,
                 intents,

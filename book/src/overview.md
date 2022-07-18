@@ -70,13 +70,17 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .resource_types(ResourceType::MESSAGE)
         .build();
 
-    // Startup an event loop to process each event in the event stream as they
+    // Startup the event loop to process each event in the event stream as they
     // come in.
     loop {
         let event = match shard.next_event().await {
             Ok(event) => event,
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
 
                 continue;
             }

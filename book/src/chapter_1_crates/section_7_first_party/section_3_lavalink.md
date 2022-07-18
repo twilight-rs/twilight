@@ -74,6 +74,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
 
+                if source.is_fatal() {
+                    break;
+                }
+
                 continue;
             }
         };

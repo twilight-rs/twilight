@@ -38,10 +38,7 @@ impl<'a> CloseFrame<'a> {
     /// use [`RESUME`].
     ///
     /// [`RESUME`]: Self::RESUME
-    pub const NORMAL: Self = Self {
-        code: 1000,
-        reason: Cow::Borrowed("closing connection"),
-    };
+    pub const NORMAL: Self = Self::new(1000, "closing connection");
 
     /// Close code indicating the shard will be reconnecting soon.
     ///
@@ -50,10 +47,7 @@ impl<'a> CloseFrame<'a> {
     /// use [`NORMAL`].
     ///
     /// [`NORMAL`]: Self::NORMAL
-    pub const RESUME: Self = Self {
-        code: 4000,
-        reason: Cow::Borrowed("resuming connection"),
-    };
+    pub const RESUME: Self = Self::new(4000, "resuming connection");
 
     /// Construct a close frame from a code and a reason why.
     ///
@@ -68,8 +62,11 @@ impl<'a> CloseFrame<'a> {
     /// assert_eq!(1000, frame.code());
     /// assert_eq!("reason here", frame.reason());
     /// ```
-    pub const fn new(code: u16, reason: Cow<'a, str>) -> Self {
-        Self { code, reason }
+    pub const fn new(code: u16, reason: &'a str) -> Self {
+        Self {
+            code,
+            reason: Cow::Borrowed(reason),
+        }
     }
 
     /// Convert a `tungstenite` close frame into a `twilight` close frame.

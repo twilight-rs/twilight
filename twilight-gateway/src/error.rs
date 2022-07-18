@@ -120,7 +120,7 @@ impl ReceiveMessageError {
     /// more fatal errors.
     pub fn is_fatal(&self) -> bool {
         if let ReceiveMessageErrorType::FatallyClosed { close_code } = self.kind() {
-            !CloseCode::try_from(*close_code).map_or(false, CloseCode::can_reconnect)
+            CloseCode::try_from(*close_code).map_or(false, |code| !code.can_reconnect())
         } else {
             false
         }
@@ -372,6 +372,7 @@ mod tests {
     };
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
+    use twilight_model::gateway::CloseCode;
 
     assert_fields!(ReceiveMessageErrorType::FatallyClosed: close_code);
     assert_impl_all!(ProcessErrorType: Debug, Send, Sync);
@@ -445,6 +446,23 @@ mod tests {
 
             assert_eq!(error.to_string(), *message);
         }
+    }
+
+    #[test]
+    fn receive_message_error_is_fatal() {
+        let non_fatal = ReceiveMessageError {
+            kind: ReceiveMessageErrorType::FatallyClosed { close_code: 1001 },
+            source: None,
+        };
+        assert!(!non_fatal.is_fatal());
+
+        let fatal = ReceiveMessageError {
+            kind: ReceiveMessageErrorType::FatallyClosed {
+                close_code: CloseCode::AuthenticationFailed as u16,
+            },
+            source: None,
+        };
+        assert!(fatal.is_fatal());
     }
 
     #[test]

@@ -17,6 +17,7 @@ twilight-mention = { path = "../../twilight-mention" }
 twilight-standby = { path = "../../twilight-standby" }
 twilight-util = { features = ["full"], path = "../../twilight-util" }
 tokio = { default-features = false, features = ["full"], version = "1.0" }
+tracing = "0.1.35"
 tracing-subscriber = "0.3"
 
 [build-dependencies]

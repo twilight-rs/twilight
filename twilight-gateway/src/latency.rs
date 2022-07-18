@@ -1,9 +1,6 @@
 //! Statistics about the latency of a shard, useful for debugging.
 
-use std::{
-    slice::Iter,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 /// Information about the latency of a [`Shard`]'s websocket connection.
 ///
@@ -63,11 +60,12 @@ impl Latency {
         self.heartbeats
     }
 
-    /// The 5 most recent latency times.
+    /// The most recent latency times.
     ///
-    /// Index 0 is the oldest, 4 is the most recent.
-    pub fn recent(&self) -> Iter<'_, Duration> {
-        self.recent.iter()
+    /// The lowest index is the oldest while the highest index is the most
+    /// recent.
+    pub const fn recent(&self) -> &[Duration] {
+        self.recent.as_slice()
     }
 
     /// When the last heartbeat acknowledgement was received.
@@ -148,12 +146,9 @@ mod tests {
     #[test]
     fn recent_latency_iter() {
         let latency = default_latency();
-        let mut iter = latency.recent();
-        assert_eq!(iter.len(), Latency::RECENT_LEN);
-        assert_eq!(
-            iter.size_hint(),
-            (Latency::RECENT_LEN, Some(Latency::RECENT_LEN))
-        );
+        let recent = latency.recent();
+        assert_eq!(recent.len(), Latency::RECENT_LEN);
+        let mut iter = recent.iter();
         assert_eq!(iter.next(), Some(&Duration::from_millis(20)));
         assert_eq!(iter.next_back(), Some(&Duration::from_millis(40)));
         assert_eq!(iter.next(), Some(&Duration::from_millis(25)));

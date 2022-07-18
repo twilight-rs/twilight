@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "book/tests",
+    # "book/tests",
     "examples",
     "twilight",
     "twilight-cache-inmemory",

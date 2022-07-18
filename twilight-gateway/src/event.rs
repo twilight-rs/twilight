@@ -426,12 +426,6 @@ impl From<EventType> for EventTypeFlags {
     }
 }
 
-impl Default for EventTypeFlags {
-    fn default() -> Self {
-        Self::all()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::EventTypeFlags;

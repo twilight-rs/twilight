@@ -90,7 +90,11 @@ async fn main() -> anyhow::Result<()> {
         let event = match shard.next_event().await {
             Ok(event) => event,
             Err(source) => {
-                println!("error receiving event: {:?}", source);
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
 
                 continue;
             }

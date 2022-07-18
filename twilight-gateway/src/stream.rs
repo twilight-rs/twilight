@@ -72,7 +72,7 @@ pub fn start_range(
     assert!(from < total, "range start must be less than the total");
     assert!(to < total, "range end must be less than the total");
 
-    let capacity = (to - from).try_into().unwrap_or(usize::MAX);
+    let capacity = (to - from).try_into().unwrap_or_default();
     let mut futures = Vec::with_capacity(capacity);
 
     for index in from..to {

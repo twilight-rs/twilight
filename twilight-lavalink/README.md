@@ -70,6 +70,9 @@ use twilight_lavalink::{http::LoadedTracks, model::Play, Lavalink};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
+
     let token = env::var("DISCORD_TOKEN")?;
     let lavalink_host = SocketAddr::from_str(&env::var("LAVALINK_HOST")?)?;
     let lavalink_auth = env::var("LAVALINK_AUTHORIZATION")?;
@@ -88,7 +91,11 @@ async fn main() -> anyhow::Result<()> {
         let event = match shard.next_event().await {
             Ok(event) => event,
             Err(source) => {
-                println!("error receiving event: {:?}", source);
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
 
                 continue;
             }

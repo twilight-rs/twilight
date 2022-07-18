@@ -127,15 +127,15 @@ use twilight_model::gateway::Intents;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
+
     let token = env::var("DISCORD_TOKEN")?;
 
     // Use intents to only receive guild message events.
-
-    // A cluster is a manager for multiple shards that by default
-    // creates as many shards as Discord recommends.
     let mut shard = Shard::new(
         ShardId::ONE,
-        token.to_owned(),
+        token.clone(),
         Intents::GUILD_MESSAGES,
     ).await?;
 
@@ -153,7 +153,11 @@ async fn main() -> anyhow::Result<()> {
         let event = match shard.next_event().await {
             Ok(event) => event,
             Err(source) => {
-                println!("error receiving event: {:?}", source);
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
 
                 continue;
             }

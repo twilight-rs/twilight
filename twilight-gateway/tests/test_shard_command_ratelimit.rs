@@ -2,7 +2,7 @@ use std::{
     env,
     time::{Duration, Instant},
 };
-use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_gateway::{message::CloseFrame, Event, Intents, Shard, ShardId};
 use twilight_model::gateway::{
     payload::outgoing::UpdatePresence,
     presence::{Activity, ActivityType, Status},
@@ -58,5 +58,5 @@ async fn shard_command_ratelimit() {
     // check that the ~500ms ratelimit has passed
     shard.command(&payload).await.unwrap();
     assert!(now.elapsed() > Duration::from_millis(500));
-    shard.close(None).await.unwrap();
+    shard.close(CloseFrame::NORMAL).await.unwrap();
 }

@@ -22,6 +22,10 @@ async fn main() -> anyhow::Result<()> {
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
 
+                if source.is_fatal() {
+                    break;
+                }
+
                 continue;
             }
         };
@@ -104,4 +108,6 @@ async fn main() -> anyhow::Result<()> {
             _ => {}
         }
     }
+
+    Ok(())
 }

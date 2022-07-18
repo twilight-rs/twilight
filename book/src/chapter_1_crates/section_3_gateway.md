@@ -92,19 +92,23 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let token = env::var("DISCORD_TOKEN")?;
     let intents = Intents::GUILD_MESSAGES;
     let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
-    println!("Created shard");
+    tracing::info!("created shard");
 
     loop {
         let event = match shard.next_event().await {
             Ok(event) => event,
             Err(source) => {
-                println!("error receiving event: {:?}", source);
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
 
                 continue;
             }
         };
 
-        println!("Event: {:?}", event);
+        tracing::debug!(?event, "event");
     }
 }
 ```

@@ -98,9 +98,9 @@ fn available_commands_per_interval(heartbeat_interval: u64) -> u8 {
         value
     } else {
         tracing::warn!(
+            default=ALLOT_ON_FAIL,
             %heartbeats,
-            "heartbeats > u8 max; defaulting to allotting {}",
-            ALLOT_ON_FAIL,
+            "heartbeats > u8 max; defaulting",
         );
 
         ALLOT_ON_FAIL

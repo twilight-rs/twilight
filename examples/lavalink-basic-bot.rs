@@ -53,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
         lavalink.add(lavalink_host, lavalink_auth).await?;
 
         let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-        let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
+        let shard = Shard::new(ShardId::ONE, token, intents).await?;
         let sender = shard.sender();
 
         (
@@ -73,6 +73,10 @@ async fn main() -> anyhow::Result<()> {
             Ok(event) => event,
             Err(source) => {
                 tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
 
                 continue;
             }
@@ -98,6 +102,8 @@ async fn main() -> anyhow::Result<()> {
             }
         }
     }
+
+    Ok(())
 }
 
 async fn join(msg: Message, state: State) -> anyhow::Result<()> {

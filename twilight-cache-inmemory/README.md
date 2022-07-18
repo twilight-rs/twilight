@@ -39,6 +39,9 @@ use twilight_gateway::{Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
+
     let token = env::var("DISCORD_TOKEN")?;
     let mut shard = Shard::new(
         ShardId::ONE,
@@ -53,7 +56,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let event = match shard.next_event().await {
             Ok(event) => event,
             Err(source) => {
-                println!("error receiving event: {:?}", source);
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
 
                 continue;
             }

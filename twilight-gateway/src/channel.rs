@@ -74,10 +74,7 @@ impl MessageSender {
     pub fn command(&self, command: &impl Command) -> Result<(), SendError> {
         let message = command::prepare(command)?;
 
-        self.send(message).map_err(|_| SendError {
-            kind: SendErrorType::Sending,
-            source: None,
-        })
+        self.send(message)
     }
 
     /// Send a raw Websocket message over the shard.

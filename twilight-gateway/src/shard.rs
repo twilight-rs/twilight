@@ -56,7 +56,7 @@ use crate::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
         SendErrorType, ShardInitializeError,
     },
-    future::{NextMessageFuture, NextMessageFutureOutput, ReconnectDelayFuture},
+    future::{self, NextMessageFuture, NextMessageFutureOutput},
     json,
     latency::Latency,
     message::{CloseFrame, Message},
@@ -212,10 +212,11 @@ struct MinimalReady {
 /// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
 /// on shards to have a better understanding of what they are.
 ///
-/// # Using a shard in multiple tasks
+/// # Sending shard commands in different tasks
 ///
-/// To use a shard instance in multiple tasks, consider wrapping it in an
-/// [`std::sync::Arc`] or [`std::rc::Rc`].
+/// Because a shard itself can't be used in multiple tasks it's not possible to
+/// directly send [gateway commands] over a shard. To solve this
+/// [`Shard::sender`] can be used to receive an MPSC channel to send commands.
 ///
 /// # Examples
 ///
@@ -253,6 +254,10 @@ struct MinimalReady {
 ///         Err(source) => {
 ///             tracing::warn!(?source, "error receiving event");
 ///
+///             if source.is_fatal() {
+///                 break;
+///             }
+///
 ///             continue;
 ///         }
 ///     };
@@ -272,6 +277,7 @@ struct MinimalReady {
 ///
 /// [`queue`]: crate::queue
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
+/// [gateway commands]: Shard::command
 #[derive(Debug)]
 pub struct Shard {
     /// Abstraction to decompress Websocket messages, if compression is enabled.
@@ -673,7 +679,7 @@ impl Shard {
     ///
     /// This is primarily useful for sending to other tasks and threads where
     /// the shard won't be available.
-    pub fn sender(&mut self) -> MessageSender {
+    pub fn sender(&self) -> MessageSender {
         self.user_channel.sender()
     }
 
@@ -699,9 +705,9 @@ impl Shard {
     /// [`ConfigBuilder::session`]: crate::ConfigBuilder::session
     pub async fn close(
         &mut self,
-        maybe_close_frame: Option<CloseFrame<'static>>,
+        close_frame: CloseFrame<'static>,
     ) -> Result<Option<Session>, SendError> {
-        let message = Message::Close(maybe_close_frame);
+        let message = Message::Close(Some(close_frame));
 
         self.send(message).await?;
 
@@ -883,7 +889,7 @@ impl Shard {
         close_code: Option<u16>,
         reconnect_attempts: u8,
     ) -> Result<(), ReceiveMessageError> {
-        ReconnectDelayFuture::new(reconnect_attempts).await;
+        future::reconnect_delay(reconnect_attempts).await;
 
         self.connection =
             connection::connect(self.id(), self.config.gateway_url(), self.config.tls())
@@ -931,7 +937,7 @@ mod tests {
     use super::{ConnectionStatus, Disconnect, Shard};
     use crate::message::CloseFrame;
     use static_assertions::{assert_fields, assert_impl_all, const_assert};
-    use std::{borrow::Cow, fmt::Debug};
+    use std::fmt::Debug;
     use twilight_model::gateway::CloseCode;
 
     assert_fields!(
@@ -962,7 +968,7 @@ mod tests {
         );
 
         let non_fatal_code = CloseCode::SessionTimedOut as u16;
-        let non_fatal_frame = CloseFrame::new(non_fatal_code, Cow::from(""));
+        let non_fatal_frame = CloseFrame::new(non_fatal_code, "");
         let non_fatal_status = ConnectionStatus::from_close_frame(Some(&non_fatal_frame));
 
         assert_eq!(
@@ -974,7 +980,7 @@ mod tests {
         );
 
         let fatal_code = CloseCode::AuthenticationFailed as u16;
-        let fatal_frame = CloseFrame::new(fatal_code, Cow::from(""));
+        let fatal_frame = CloseFrame::new(fatal_code, "");
         let fatal_status = ConnectionStatus::from_close_frame(Some(&fatal_frame));
 
         assert_eq!(
