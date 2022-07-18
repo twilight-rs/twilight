@@ -113,7 +113,7 @@ mod r#impl {
 mod r#impl {
     //! Rustls
 
-    use super::{TlsContainer, TlsError, TlsErrorType};
+    use super::{TlsContainer, TlsError};
     use crate::{
         connection::Connection,
         error::{ShardInitializeError, ShardInitializeErrorType},
@@ -129,7 +129,7 @@ mod r#impl {
     ///
     /// # Errors
     ///
-    /// Returns a [`TlsErrorType::Loading`] error type if the TLS connector
+    /// Returns a `TlsErrorType::Loading` error type if the TLS connector
     /// couldn't be initialized.
     #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
     pub fn new() -> Result<TlsContainer, TlsError> {
@@ -138,7 +138,7 @@ mod r#impl {
         #[cfg(feature = "rustls-native-roots")]
         {
             let certs = rustls_native_certs::load_native_certs().map_err(|err| TlsError {
-                kind: TlsErrorType::Loading,
+                kind: super::TlsErrorType::Loading,
                 source: Some(Box::new(err)),
             })?;
 
