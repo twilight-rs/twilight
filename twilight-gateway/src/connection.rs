@@ -1,10 +1,8 @@
 //! Utilities for creating Websocket connections.
 
 use crate::{
-    compression::COMPRESSION_FEATURES,
-    error::{ShardInitializeError, ShardInitializeErrorType},
-    tls::TlsContainer,
-    ShardId, API_VERSION,
+    compression::COMPRESSION_FEATURES, error::ShardInitializeError, tls::TlsContainer, ShardId,
+    API_VERSION,
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use tokio::net::TcpStream;
@@ -95,16 +93,7 @@ pub async fn connect(
     let url = ConnectionUrl::new(maybe_gateway_url).to_string();
 
     tracing::debug!(%shard_id, ?url, "shaking hands with remote");
-    let (stream, _) = tokio_tungstenite::connect_async_tls_with_config(
-        &url,
-        Some(WEBSOCKET_CONFIG),
-        tls.connector(),
-    )
-    .await
-    .map_err(|source| ShardInitializeError {
-        kind: ShardInitializeErrorType::Establishing,
-        source: Some(Box::new(source)),
-    })?;
+    let stream = tls.connect(&url, Some(WEBSOCKET_CONFIG)).await?;
     tracing::debug!(%shard_id, "shook hands with remote");
 
     Ok(stream)

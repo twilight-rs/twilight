@@ -190,7 +190,7 @@ impl Compression {
 
         #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
         {
-            mem::replace(&mut self.inner, Vec::new())
+            std::mem::replace(&mut self.inner, Vec::new())
         }
     }
 }
