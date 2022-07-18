@@ -23,7 +23,7 @@ use crate::{
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
             },
             thread::{
-                AddThreadMember, CreateThread, CreateThreadFromMessage,
+                AddThreadMember, CreateForumThread, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
                 GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
                 LeaveThread, RemoveThreadMember, UpdateThread,
@@ -1675,6 +1675,11 @@ impl Client {
         user_id: Id<UserMarker>,
     ) -> AddThreadMember<'_> {
         AddThreadMember::new(self, channel_id, user_id)
+    }
+
+    /// Start a thread in a forum channel.
+    pub fn create_forum_thread(&self, channel_id: Id<ChannelMarker>) -> CreateForumThread<'_> {
+        CreateForumThread::new(self, channel_id)
     }
 
     /// Start a thread that is not connected to a message.
