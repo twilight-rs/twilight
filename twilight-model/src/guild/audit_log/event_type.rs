@@ -92,15 +92,15 @@ pub enum AuditLogEventType {
     RoleDelete,
     /// [Invite] was created.
     ///
-    /// [Invite]: crate::invite::Invite
+    /// [Invite]: crate::guild::invite::Invite
     InviteCreate,
     /// [Invite] was updated.
     ///
-    /// [Invite]: crate::invite::Invite
+    /// [Invite]: crate::guild::invite::Invite
     InviteUpdate,
     /// [Invite] was deleted.
     ///
-    /// [Invite]: crate::invite::Invite
+    /// [Invite]: crate::guild::invite::Invite
     InviteDelete,
     /// [Webhook] was created.
     ///
@@ -120,7 +120,7 @@ pub enum AuditLogEventType {
     EmojiCreate,
     /// [Emoji] was updated.
     ///
-    /// [Emoji]: scrate::guild::Emoji
+    /// [Emoji]: crate::guild::Emoji
     EmojiUpdate,
     /// [Emoji] was deleted.
     ///
@@ -182,15 +182,15 @@ pub enum AuditLogEventType {
     StickerDelete,
     /// [`GuildScheduledEvent`] was created.
     ///
-    /// [`GuildScheduledEvent`]: crate::guild::GuildScheduledEvent
+    /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
     GuildScheduledEventCreate,
     /// [`GuildScheduledEvent`] was updated.
     ///
-    /// [`GuildScheduledEvent`]: crate::guild::GuildScheduledEvent
+    /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
     GuildScheduledEventUpdate,
     /// [`GuildScheduledEvent`] was deleted.
     ///
-    /// [`GuildScheduledEvent`]: crate::guild::GuildScheduledEvent
+    /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
     GuildScheduledEventDelete,
     /// Thread [channel] was created.
     ///
