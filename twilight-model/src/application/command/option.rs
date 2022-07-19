@@ -5,20 +5,27 @@ use std::{cmp::Eq, collections::HashMap};
 
 /// Option for a [`Command`].
 ///
-/// Can be nested under other [`CommandOption`]s of type [`SubCommand`] and
-/// [`SubCommandGroup`].
+/// Fields not applicable to the command option's [`CommandOptionType`] should
+/// be set to [`None`].
 ///
+/// Fields' default values may be used by setting them to [`None`].
+///
+/// Choices, descriptions and names may be localized in any [available locale],
+/// see [Discord Docs/Localization].
+///
+/// [available locale]: https://discord.com/developers/docs/reference#locales
 /// [`Command`]: super::Command
-/// [`SubCommand`]: CommandOptionType::SubCommand
-/// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
+/// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CommandOption {
     /// Whether the command supports autocomplete.
     ///
-    /// May not be set to `true` if `choices` are set.
-    ///
     /// Applicable for [`CommandOption`]s of type [`Integer`], [`Number`], and
     /// [`String`].
+    ///
+    /// Defaults to `false`.
+    ///
+    /// **Note**: may not be set to `true` if `choices` are set.
     ///
     /// [`Integer`]: CommandOptionType::Integer
     /// [`Number`]: CommandOptionType::Number
@@ -27,22 +34,23 @@ pub struct CommandOption {
     pub autocomplete: Option<bool>,
     /// List of possible channel types users can select from.
     ///
-    /// The user is free to choose any channel type if no types are configured.
-    ///
     /// Applicable for [`CommandOption`] of type [`Channel`].
+    ///
+    /// Defaults to any channel type.
     ///
     /// [`Channel`]: CommandOptionType::Channel
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_types: Option<Vec<ChannelType>>,
     /// List of predetermined choices users can select from.
     ///
-    /// The user must input a value manually if no predetermined choices are
-    /// configured.
-    ///
-    /// All choices must be the same type.
-    ///
     /// Applicable for [`CommandOption`]s of type [`Integer`], [`Number`], and
     /// [`String`].
+    ///
+    /// Defaults to no choices; users may input a value of their choice.
+    ///
+    /// Must be at most 25 options.
+    ///
+    /// **Note**: all choices must be of the same type.
     ///
     /// [`Integer`]: CommandOptionType::Integer
     /// [`Number`]: CommandOptionType::Number
@@ -51,21 +59,25 @@ pub struct CommandOption {
     pub choices: Option<Vec<CommandOptionChoice>>,
     /// Description of the option. Must be 100 characters or less.
     pub description: String,
-    /// Localization dictionary for the `description` field.
+    /// Localization dictionary for the [`description`] field.
     ///
-    /// See [Discord Docs/Localization].
+    /// Defaults to no localizations.
     ///
-    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// Keys must be valid locales and values must be 100 characters or less.
+    ///
+    /// [`description`]: Self::description
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_localizations: Option<HashMap<String, String>>,
     /// Type of option.
     #[serde(rename = "type")]
     pub kind: CommandOptionType,
-    /// Maximum allowed length.
-    ///
-    /// Must be at least `1` and at most `6000`.
+    /// Maximum allowed value length.
     ///
     /// Applicable for [`CommandOption`]s of type [`String`].
+    ///
+    /// Defaults to `6000`.
+    ///
+    /// Must be at least `1` and at most `6000`.
     ///
     /// [`String`]: CommandOptionType::String
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -74,15 +86,19 @@ pub struct CommandOption {
     ///
     /// Applicable for [`CommandOption`]s of type [`Integer`] and [`Number`].
     ///
+    /// Defaults to no maximum.
+    ///
     /// [`Integer`]: CommandOptionType::Integer
     /// [`Number`]: CommandOptionType::Number
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_value: Option<CommandOptionValue>,
-    /// Minimum allowed length.
-    ///
-    /// Must be at most `6000`.
+    /// Minimum allowed value length.
     ///
     /// Applicable for [`CommandOption`]s of type [`String`].
+    ///
+    /// Defaults to `0`.
+    ///
+    /// Must be at most `6000`.
     ///
     /// [`String`]: CommandOptionType::String
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -91,37 +107,46 @@ pub struct CommandOption {
     ///
     /// Applicable for [`CommandOption`]s of type [`Integer`] and [`Number`].
     ///
+    /// Defaults to no minimum.
+    ///
     /// [`Integer`]: CommandOptionType::Integer
     /// [`Number`]: CommandOptionType::Number
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_value: Option<CommandOptionValue>,
     /// Name of the option. Must be 32 characters or less.
     pub name: String,
-    /// Localization dictionary for the `name` field.
+    /// Localization dictionary for the [`name`] field.
     ///
-    /// Keys should be valid locales. See [Discord Docs/Locales],
-    /// [Discord Docs/Localization].
+    /// Defaults to no localizations.
     ///
-    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
-    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// Keys must be valid locales and values must be 32 characters or less.
+    ///
+    /// [`name`]: Self::name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
     /// Nested [`CommandOption`]s.
     ///
     /// Applicable for [`CommandOption`]s of type [`SubCommand`] and
-    /// [`SubCommandGroup`]. Note that [`SubCommandGroup`] may only contain
-    /// [`SubCommand`]s.
+    /// [`SubCommandGroup`].
     ///
+    /// Defaults to no options.
+    ///
+    /// **Note**: at least one option is required and [`SubCommandGroup`] may
+    /// only contain [`SubCommand`]s.
+    ///
+    /// See [Discord Docs/Subcommands and Subcommand Groups].
+    ///
+    /// [Discord Docs/Subcommands and Subcommand Groups]: https://discord.com/developers/docs/interactions/application-commands#subcommands-and-subcommand-groups
     /// [`SubCommand`]: CommandOptionType::SubCommand
     /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Vec<CommandOption>>,
-    /// Whether the option is required to be completed by a user.
-    ///
-    /// Defaults to `false`.
+    /// Whether the option is required.
     ///
     /// Applicable for all [`CommandOption`]s, except those of type
     /// [`SubCommand`] and [`SubCommandGroup`].
+    ///
+    /// Defaults to `false`.
     ///
     /// [`SubCommand`]: CommandOptionType::SubCommand
     /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
@@ -149,16 +174,18 @@ pub enum CommandOptionChoice {
 pub struct CommandOptionChoiceData<T> {
     /// Name of the choice. Must be 100 characters or less.
     pub name: String,
-    /// Localization dictionary for the `name` field.
+    /// Localization dictionary for the [`name`] field.
     ///
-    /// Keys should be valid locales. See [Discord Docs/Locales],
-    /// [Discord Docs/Localization].
+    /// Defaults to no localizations.
     ///
-    /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
-    /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
+    /// Keys must be valid locales and values must be 100 characters or less.
+    ///
+    /// See [`CommandOption`]'s documentation for more info.
+    ///
+    /// [`name`]: Self::name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
-    /// Value of the choice. Must be 100 characters or less if it is a String.
+    /// Value of the choice. Must be 100 characters or less if it is a string.
     pub value: T,
 }
 
