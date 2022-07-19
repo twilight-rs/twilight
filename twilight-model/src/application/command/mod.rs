@@ -1,8 +1,11 @@
 //! Used for building commands to send to Discord.
 //!
-//! It is highly recommended to use the `CommandBuilder` in twilight-util to
-//! create [`Command`]s instead of building them manually, [`CommandOption`] is
-//! especially verbose.
+//! It is highly recommended to use the associated [`CommandBuilder`] in the
+//! [`twilight-util`] to create [`Command`]s; [`CommandOption`] is especially
+//! verbose.
+//!
+//! [`CommandBuilder`]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/index.html
+//! [`twilight-util`]: https://docs.rs/twilight-util
 
 pub mod permissions;
 
@@ -33,10 +36,6 @@ use std::collections::HashMap;
 /// Command names must be lower case, matching the Regex `^[\w-]{1,32}$`. See
 /// [Discord Docs/Application Command Object].
 ///
-/// This struct has an [associated builder] in the [`twilight-util`] crate.
-///
-/// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
-/// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-structure
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Command {
