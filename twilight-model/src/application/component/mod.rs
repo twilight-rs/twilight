@@ -48,9 +48,8 @@ impl Component {
     ///
     /// ```
     /// use twilight_model::application::component::{
-    ///     button::{ButtonStyle, Button},
-    ///     ComponentType,
-    ///     Component,
+    ///     button::{Button, ButtonStyle},
+    ///     Component, ComponentType,
     /// };
     ///
     /// let component = Component::Button(Button {

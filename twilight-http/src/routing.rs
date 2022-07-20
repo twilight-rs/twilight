@@ -1236,9 +1236,7 @@ impl<'a> Route<'a> {
     /// use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
     ///
     /// let ratelimiter = InMemoryRatelimiter::new();
-    /// let route = Route::CreateMessage {
-    ///     channel_id: 123,
-    ///  };
+    /// let route = Route::CreateMessage { channel_id: 123 };
     ///
     /// // Take a ticket from the ratelimiter.
     /// let rx = ratelimiter.ticket(route.to_path()).await?;
@@ -1530,9 +1528,7 @@ impl<'a> Route<'a> {
 /// ```
 /// use twilight_http::routing::Route;
 ///
-/// let route = Route::GetPins {
-///     channel_id: 123,
-/// };
+/// let route = Route::GetPins { channel_id: 123 };
 /// assert_eq!("channels/123/pins", route.to_string());
 /// ```
 ///
@@ -1547,10 +1543,7 @@ impl<'a> Route<'a> {
 ///     with_counts: true,
 /// };
 ///
-/// assert_eq!(
-///     "invites/twilight-rs?with-counts=true",
-///     route.to_string(),
-/// );
+/// assert_eq!("invites/twilight-rs?with-counts=true", route.to_string());
 /// ```
 ///
 /// [`GetInvite`]: Self::GetInvite

@@ -36,12 +36,7 @@ struct GetAuditLogFields {
 /// let client = Client::new("token".to_owned());
 ///
 /// let guild_id = Id::new(101);
-/// let audit_log = client
-///     .audit_log(guild_id)
-///     .exec()
-///     .await?
-///     .model()
-///     .await?;
+/// let audit_log = client.audit_log(guild_id).exec().await?.model().await?;
 ///
 /// for entry in audit_log.entries {
 ///     println!("ID: {}", entry.id);

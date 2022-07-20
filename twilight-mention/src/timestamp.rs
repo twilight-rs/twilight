@@ -134,16 +134,13 @@ impl Timestamp {
     /// Style representing the display modifier.
     ///
     /// ```
-    /// use twilight_mention::timestamp::{TimestampStyle, Timestamp};
+    /// use twilight_mention::timestamp::{Timestamp, TimestampStyle};
     ///
     /// // When leaving a style unspecified a default is not provided.
     /// assert!(Timestamp::new(1624044388, None).style().is_none());
     ///
     /// // The same style is returned when a style is specified.
-    /// let timestamp = Timestamp::new(
-    ///     1_624_044_388,
-    ///     Some(TimestampStyle::ShortDateTime),
-    /// );
+    /// let timestamp = Timestamp::new(1_624_044_388, Some(TimestampStyle::ShortDateTime));
     /// assert_eq!(Some(TimestampStyle::ShortDateTime), timestamp.style());
     /// ```
     #[must_use = "retrieving the style does nothing on its own"]

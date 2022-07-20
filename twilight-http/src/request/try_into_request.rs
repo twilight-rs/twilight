@@ -279,7 +279,8 @@ use crate::error::Error;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let channel_id = Id::new(1);
-/// let builder = client.create_message(channel_id)
+/// let builder = client
+///     .create_message(channel_id)
 ///     .content("This is a test message!")?
 ///     .tts(false);
 ///

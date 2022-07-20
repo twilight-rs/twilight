@@ -28,18 +28,15 @@
 //! Let's see that in code:
 //!
 //! ```
-//! use twilight_util::permission_calculator::PermissionCalculator;
 //! use twilight_model::{
 //!     channel::{
-//!         permission_overwrite::{
-//!             PermissionOverwriteType,
-//!             PermissionOverwrite,
-//!         },
-//!         ChannelType
+//!         permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
+//!         ChannelType,
 //!     },
 //!     guild::Permissions,
 //!     id::Id,
 //! };
+//! use twilight_util::permission_calculator::PermissionCalculator;
 //!
 //! let guild_id = Id::new(1);
 //! let user_id = Id::new(3);
@@ -74,16 +71,8 @@
 //!     },
 //! ];
 //!
-//! let calculator = PermissionCalculator::new(
-//!     guild_id,
-//!     user_id,
-//!     everyone_role,
-//!     member_roles,
-//! );
-//! let calculated_permissions = calculator.in_channel(
-//!     ChannelType::GuildText,
-//!     channel_overwrites,
-//! );
+//! let calculator = PermissionCalculator::new(guild_id, user_id, everyone_role, member_roles);
+//! let calculated_permissions = calculator.in_channel(ChannelType::GuildText, channel_overwrites);
 //!
 //! // Now that we've got the member's permissions in the channel, we can
 //! // check that they have the server-wide View Channel permission and
