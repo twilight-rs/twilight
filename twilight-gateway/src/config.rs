@@ -90,7 +90,7 @@ impl ShardId {
 
 /// Display the shard ID.
 ///
-/// Formats as `{number}/{total}`.
+/// Formats as `[{number}, {total}]`.
 impl Display for ShardId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("[")?;
@@ -161,12 +161,12 @@ impl Config {
         ConfigBuilder::new(token, intents)
     }
 
-    /// Copy of the event type flags.
+    /// Event type flags.
     pub const fn event_types(&self) -> EventTypeFlags {
         self.event_types
     }
 
-    /// Return an immutable reference to the url used to connect to the gateway.
+    /// Immutable reference to the URL used to connect to the gateway.
     pub fn gateway_url(&self) -> Option<&str> {
         self.gateway_url.as_deref()
     }
@@ -192,7 +192,7 @@ impl Config {
         &self.queue
     }
 
-    /// Return an immutable reference to the presence to set when identifying
+    /// Immutable reference to the presence to set when identifying
     /// with the gateway.
     ///
     /// This will be the bot's presence. For example, setting the online status

@@ -59,6 +59,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // messages in a guild and direct messages.
     let intents = Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES;
 
+    // Create a single shard.
     let mut shard = Shard::new(ShardId::ONE, token.clone(), intents).await?;
 
     // The http client is separate from the gateway, so startup a new

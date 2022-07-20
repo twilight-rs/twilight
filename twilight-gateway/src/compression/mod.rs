@@ -153,7 +153,7 @@ impl Compression {
     /// # Errors
     ///
     /// If compression is enabled then this returns a
-    /// `ReceivingEventErrorType::Decompressing` error type if decompressing the
+    /// `CompressionError::Decompressing` error type if decompressing the
     /// message failed.
     #[cfg_attr(
         not(any(feature = "zlib-stock", feature = "zlib-simd")),

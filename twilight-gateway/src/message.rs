@@ -69,6 +69,16 @@ impl<'a> CloseFrame<'a> {
         }
     }
 
+    /// Close code of the frame.
+    pub const fn code(&self) -> u16 {
+        self.code
+    }
+
+    /// Reason for the close.
+    pub fn reason(&self) -> &str {
+        self.reason.as_ref()
+    }
+
     /// Convert a `tungstenite` close frame into a `twilight` close frame.
     pub(crate) fn from_tungstenite(tungstenite: TungsteniteCloseFrame<'a>) -> Self {
         Self {
@@ -83,16 +93,6 @@ impl<'a> CloseFrame<'a> {
             code: CloseCode::from(self.code),
             reason: self.reason,
         }
-    }
-
-    /// Close code of the frame.
-    pub const fn code(&self) -> u16 {
-        self.code
-    }
-
-    /// Reason for the close.
-    pub fn reason(&self) -> &str {
-        self.reason.as_ref()
     }
 }
 
