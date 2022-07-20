@@ -22,15 +22,15 @@ pub enum MessageType {
     /// System message denoting a message has been pinned.
     ChannelMessagePinned,
     /// System message denoting a member has joined a guild.
-    GuildMemberJoin,
+    UserJoin,
     /// System message denoting a user nitro boosted a guild.
-    UserPremiumSub,
+    GuildBoost,
     /// System message denoting a user nitro boosted a guild to level 1.
-    UserPremiumSubTier1,
+    GuildBoostTier1,
     /// System message denoting a user nitro boosted a guild to level 2.
-    UserPremiumSubTier2,
+    GuildBoostTier2,
     /// System message denoting a user nitro boosted a guild to level 3.
-    UserPremiumSubTier3,
+    GuildBoostTier3,
     /// System message denoting a channel has been followed.
     ChannelFollowAdd,
     /// System message denoting a guild has been disqualified for Server Discovery.
@@ -65,11 +65,11 @@ impl From<u8> for MessageType {
             4 => Self::ChannelNameChange,
             5 => Self::ChannelIconChange,
             6 => Self::ChannelMessagePinned,
-            7 => Self::GuildMemberJoin,
-            8 => Self::UserPremiumSub,
-            9 => Self::UserPremiumSubTier1,
-            10 => Self::UserPremiumSubTier2,
-            11 => Self::UserPremiumSubTier3,
+            7 => Self::UserJoin,
+            8 => Self::GuildBoost,
+            9 => Self::GuildBoostTier1,
+            10 => Self::GuildBoostTier2,
+            11 => Self::GuildBoostTier3,
             12 => Self::ChannelFollowAdd,
             14 => Self::GuildDiscoveryDisqualified,
             15 => Self::GuildDiscoveryRequalified,
@@ -97,11 +97,11 @@ impl From<MessageType> for u8 {
             MessageType::ChannelNameChange => 4,
             MessageType::ChannelIconChange => 5,
             MessageType::ChannelMessagePinned => 6,
-            MessageType::GuildMemberJoin => 7,
-            MessageType::UserPremiumSub => 8,
-            MessageType::UserPremiumSubTier1 => 9,
-            MessageType::UserPremiumSubTier2 => 10,
-            MessageType::UserPremiumSubTier3 => 11,
+            MessageType::UserJoin => 7,
+            MessageType::GuildBoost => 8,
+            MessageType::GuildBoostTier1 => 9,
+            MessageType::GuildBoostTier2 => 10,
+            MessageType::GuildBoostTier3 => 11,
             MessageType::ChannelFollowAdd => 12,
             MessageType::GuildDiscoveryDisqualified => 14,
             MessageType::GuildDiscoveryRequalified => 15,
@@ -133,11 +133,11 @@ mod tests {
         serde_test::assert_tokens(&MessageType::ChannelNameChange, &[Token::U8(4)]);
         serde_test::assert_tokens(&MessageType::ChannelIconChange, &[Token::U8(5)]);
         serde_test::assert_tokens(&MessageType::ChannelMessagePinned, &[Token::U8(6)]);
-        serde_test::assert_tokens(&MessageType::GuildMemberJoin, &[Token::U8(7)]);
-        serde_test::assert_tokens(&MessageType::UserPremiumSub, &[Token::U8(8)]);
-        serde_test::assert_tokens(&MessageType::UserPremiumSubTier1, &[Token::U8(9)]);
-        serde_test::assert_tokens(&MessageType::UserPremiumSubTier2, &[Token::U8(10)]);
-        serde_test::assert_tokens(&MessageType::UserPremiumSubTier3, &[Token::U8(11)]);
+        serde_test::assert_tokens(&MessageType::UserJoin, &[Token::U8(7)]);
+        serde_test::assert_tokens(&MessageType::GuildBoost, &[Token::U8(8)]);
+        serde_test::assert_tokens(&MessageType::GuildBoostTier1, &[Token::U8(9)]);
+        serde_test::assert_tokens(&MessageType::GuildBoostTier2, &[Token::U8(10)]);
+        serde_test::assert_tokens(&MessageType::GuildBoostTier3, &[Token::U8(11)]);
         serde_test::assert_tokens(&MessageType::ChannelFollowAdd, &[Token::U8(12)]);
         serde_test::assert_tokens(&MessageType::GuildDiscoveryDisqualified, &[Token::U8(14)]);
         serde_test::assert_tokens(&MessageType::GuildDiscoveryRequalified, &[Token::U8(15)]);
@@ -168,11 +168,11 @@ mod tests {
         assert_eq!(MessageType::from(4), MessageType::ChannelNameChange);
         assert_eq!(MessageType::from(5), MessageType::ChannelIconChange);
         assert_eq!(MessageType::from(6), MessageType::ChannelMessagePinned);
-        assert_eq!(MessageType::from(7), MessageType::GuildMemberJoin);
-        assert_eq!(MessageType::from(8), MessageType::UserPremiumSub);
-        assert_eq!(MessageType::from(9), MessageType::UserPremiumSubTier1);
-        assert_eq!(MessageType::from(10), MessageType::UserPremiumSubTier2);
-        assert_eq!(MessageType::from(11), MessageType::UserPremiumSubTier3);
+        assert_eq!(MessageType::from(7), MessageType::UserJoin);
+        assert_eq!(MessageType::from(8), MessageType::GuildBoost);
+        assert_eq!(MessageType::from(9), MessageType::GuildBoostTier1);
+        assert_eq!(MessageType::from(10), MessageType::GuildBoostTier2);
+        assert_eq!(MessageType::from(11), MessageType::GuildBoostTier3);
         assert_eq!(MessageType::from(12), MessageType::ChannelFollowAdd);
         assert_eq!(
             MessageType::from(14),
