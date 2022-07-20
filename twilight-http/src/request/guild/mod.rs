@@ -1,3 +1,4 @@
+pub mod auto_moderation;
 pub mod ban;
 pub mod create_guild;
 pub mod emoji;

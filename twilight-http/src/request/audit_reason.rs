@@ -24,6 +24,9 @@ mod private {
             UpdateChannelPermission,
         },
         guild::{
+            auto_moderation::{
+                CreateAutoModerationRule, DeleteAutoModerationRule, UpdateAutoModerationRule,
+            },
             ban::{CreateBan, DeleteBan},
             emoji::{CreateEmoji, DeleteEmoji, UpdateEmoji},
             integration::DeleteGuildIntegration,
@@ -44,6 +47,7 @@ mod private {
     pub trait Sealed {}
 
     impl Sealed for AddRoleToMember<'_> {}
+    impl Sealed for CreateAutoModerationRule<'_> {}
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
     impl Sealed for CreateGuildChannel<'_> {}
@@ -57,6 +61,7 @@ mod private {
     impl Sealed for CreatePin<'_> {}
     impl Sealed for CreateRole<'_> {}
     impl Sealed for CreateWebhook<'_> {}
+    impl Sealed for DeleteAutoModerationRule<'_> {}
     impl Sealed for DeleteBan<'_> {}
     impl Sealed for DeleteChannel<'_> {}
     impl Sealed for DeleteChannelPermissionConfigured<'_> {}
@@ -71,6 +76,7 @@ mod private {
     impl Sealed for DeleteWebhookMessage<'_> {}
     impl Sealed for RemoveMember<'_> {}
     impl Sealed for RemoveRoleFromMember<'_> {}
+    impl Sealed for UpdateAutoModerationRule<'_> {}
     impl Sealed for UpdateChannel<'_> {}
     impl Sealed for UpdateChannelPermission<'_> {}
     impl Sealed for UpdateCurrentMember<'_> {}

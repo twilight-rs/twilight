@@ -47,6 +47,10 @@ mod private {
             UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            auto_moderation::{
+                CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
+                GetGuildAutoModerationRules, UpdateAutoModerationRule,
+            },
             ban::{CreateBan, DeleteBan, GetBan, GetBans},
             emoji::{CreateEmoji, DeleteEmoji, GetEmoji, GetEmojis, UpdateEmoji},
             integration::{DeleteGuildIntegration, GetGuildIntegrations},
@@ -90,6 +94,7 @@ mod private {
     impl Sealed for AddGuildMember<'_> {}
     impl Sealed for AddRoleToMember<'_> {}
     impl Sealed for AddThreadMember<'_> {}
+    impl Sealed for CreateAutoModerationRule<'_> {}
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
     impl Sealed for CreateFollowup<'_> {}
@@ -126,6 +131,7 @@ mod private {
     impl Sealed for CrosspostMessage<'_> {}
     impl Sealed for DeleteAllReaction<'_> {}
     impl Sealed for DeleteAllReactions<'_> {}
+    impl Sealed for DeleteAutoModerationRule<'_> {}
     impl Sealed for DeleteBan<'_> {}
     impl Sealed for DeleteChannel<'_> {}
     impl Sealed for DeleteChannelPermission<'_> {}
@@ -154,6 +160,7 @@ mod private {
     impl Sealed for FollowNewsChannel<'_> {}
     impl Sealed for GetActiveThreads<'_> {}
     impl Sealed for GetAuditLog<'_> {}
+    impl Sealed for GetAutoModerationRule<'_> {}
     impl Sealed for GetBan<'_> {}
     impl Sealed for GetBans<'_> {}
     impl Sealed for GetChannel<'_> {}
@@ -174,6 +181,7 @@ mod private {
     impl Sealed for GetGlobalCommand<'_> {}
     impl Sealed for GetGlobalCommands<'_> {}
     impl Sealed for GetGuild<'_> {}
+    impl Sealed for GetGuildAutoModerationRules<'_> {}
     impl Sealed for GetGuildChannels<'_> {}
     impl Sealed for GetGuildCommand<'_> {}
     impl Sealed for GetGuildCommandPermissions<'_> {}
@@ -225,6 +233,7 @@ mod private {
     impl Sealed for SetGlobalCommands<'_> {}
     impl Sealed for SetGuildCommands<'_> {}
     impl Sealed for SyncTemplate<'_> {}
+    impl Sealed for UpdateAutoModerationRule<'_> {}
     impl Sealed for UpdateChannel<'_> {}
     impl Sealed for UpdateChannelPermission<'_> {}
     impl Sealed for UpdateCommandPermissions<'_> {}
