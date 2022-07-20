@@ -80,6 +80,13 @@ impl<'a> UpdateAutoModerationRule<'a> {
         self
     }
 
+    /// Set the rule's event type.
+    pub const fn event_type(mut self, event_type: AutoModerationEventType) -> Self {
+        self.fields.event_type = Some(event_type);
+
+        self
+    }
+
     /// Set the channels where the rule does not apply.
     pub const fn exempt_channels(mut self, exempt_channels: &'a [Id<ChannelMarker>]) -> Self {
         self.fields.exempt_channels = Some(exempt_channels);
@@ -90,6 +97,13 @@ impl<'a> UpdateAutoModerationRule<'a> {
     /// Set the roles to which the rule does not apply.
     pub const fn exempt_roles(mut self, exempt_roles: &'a [Id<RoleMarker>]) -> Self {
         self.fields.exempt_roles = Some(exempt_roles);
+
+        self
+    }
+
+    /// Set the rule's name.
+    pub const fn name(mut self, name: &'a str) -> Self {
+        self.fields.name = Some(name);
 
         self
     }
