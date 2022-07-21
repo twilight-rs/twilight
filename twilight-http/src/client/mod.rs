@@ -1454,9 +1454,7 @@ impl Client {
         CreateTypingTrigger::new(self, channel_id)
     }
 
-    /// Create a group DM.
-    ///
-    /// This endpoint is limited to 10 active group DMs.
+    /// Create a DM channel with a user.
     pub const fn create_private_channel(
         &self,
         recipient_id: Id<UserMarker>,
