@@ -15,7 +15,6 @@
 //! use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 //!
 //! let resource_types = ResourceType::CHANNEL
-//!     | ResourceType::GUILD
 //!     | ResourceType::MEMBER
 //!     | ResourceType::ROLE;
 //!
@@ -350,7 +349,6 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// The following [`ResourceType`]s must be enabled:
     ///
     /// - [`ResourceType::CHANNEL`]
-    /// - [`ResourceType::GUILD`]
     /// - [`ResourceType::MEMBER`]
     /// - [`ResourceType::ROLE`]
     ///
@@ -386,7 +384,6 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// [`Permissions::all`]: twilight_model::guild::Permissions::all
     /// [`ResourceType::CHANNEL`]: crate::ResourceType::CHANNEL
-    /// [`ResourceType::GUILD`]: crate::ResourceType::GUILD
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
@@ -446,7 +443,6 @@ impl<'a> InMemoryCachePermissions<'a> {
     ///
     /// The following [`ResourceType`]s must be enabled:
     ///
-    /// - [`ResourceType::GUILD`]
     /// - [`ResourceType::MEMBER`]
     /// - [`ResourceType::ROLE`]
     ///
@@ -478,7 +474,6 @@ impl<'a> InMemoryCachePermissions<'a> {
     /// member's roles is not in the cache.
     ///
     /// [`Permissions::all`]: twilight_model::guild::Permissions::all
-    /// [`ResourceType::GUILD`]: crate::ResourceType::GUILD
     /// [`ResourceType::MEMBER`]: crate::ResourceType::MEMBER
     /// [`ResourceType::ROLE`]: crate::ResourceType::ROLE
     /// [`ResourceType`]: crate::ResourceType
