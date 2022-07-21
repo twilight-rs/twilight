@@ -1,0 +1,211 @@
+# Checks performed on our common library crates.
+name: Library
+
+on:
+  push:
+    branches:
+      - main
+      - next
+  pull_request:
+
+env:
+  # Use `haswell` instead of `native` due to some GitHub Actions runners not
+  # supporting some `avx512` instructions.
+  RUSTFLAGS: -C target-cpu=haswell -D warnings
+
+jobs:
+  # Run MSRV first to save Actions time if the code doesn't compile at all.
+  MSRV:
+    name: Minimum supported Rust version
+    runs-on: ubuntu-latest
+    env:
+      minrust: "1.60"
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install toolchain (${{ env.minrust }})
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.minrust }}
+          profile: minimal
+          override: true
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Output processor info
+        run: cat /proc/cpuinfo
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - run: cargo check --all-features --all-targets
+
+  # Check documentation
+  build-docs:
+    name: Build docs
+    needs: [MSRV]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          override: true
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Build docs
+        env:
+          RUSTDOCFLAGS: --cfg docsrs
+        run: cargo doc --no-deps --all-features --workspace --exclude book
+
+  # Lints
+  clippy:
+    name: Clippy
+    needs: [MSRV]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Run clippy
+        run: cargo clippy --all-features --all-targets
+
+  codespell:
+    name: Spelling
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Run Codespell
+        uses: codespell-project/actions-codespell@master
+
+  rustfmt:
+    name: Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+
+  min-vers:
+    name: Minimal crate versions
+    needs: [MSRV]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install nightly toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Install cargo-minimal-versions
+        uses: taiki-e/install-action@cargo-minimal-versions
+
+      - name: Check minimal versions
+        run: cargo minimal-versions check
+
+  # Tests
+  test:
+    name: Test
+    needs: [MSRV]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Run tests with nextest
+        run: cargo nextest --config-file ${{ github.workspace }}/nextest.toml run --profile ci --workspace --exclude book
+
+      - name: Run doctests
+        run: cargo test --doc
+
+  feature-combinations:
+    name: Feature combinations
+    needs: [MSRV]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Add problem matchers
+        run: echo "::add-matcher::.github/rust.json"
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Check feature combinations
+        run: cargo hack check --feature-powerset
+
+  test-book:
+    name: Test book examples with skeptic
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v1
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Test
+        working-directory: book
+        run: cargo test --manifest-path tests/Cargo.toml

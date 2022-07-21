@@ -1,4 +1,4 @@
-use std::{env, error::Error};
+use std::env;
 use twilight_http::Client;
 use twilight_model::{
     channel::message::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder},
@@ -6,7 +6,7 @@ use twilight_model::{
 };
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
@@ -29,8 +29,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     client
         .create_message(channel_id)
         .content(&format!(
-            "<@{}> you are not allowed to ping @everyone!",
-            user_id
+            "<@{user_id}> you are not allowed to ping @everyone!"
         ))?
         .allowed_mentions(Some(&allowed_mentions))
         .exec()

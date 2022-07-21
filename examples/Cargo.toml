@@ -6,6 +6,7 @@ authors = ["Twilight Contributors"]
 edition = "2021"
 
 [dev-dependencies]
+anyhow = { default-features = false, features = ["std"], version = "1" }
 ed25519-dalek = "1"
 futures-util = { default-features = false, version = "0.3" }
 hex = "0.4"
@@ -18,11 +19,11 @@ serde_json = { version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
-twilight-gateway = { path = "../gateway" }
-twilight-http = { path = "../http" }
-twilight-lavalink = { path = "../lavalink" }
-twilight-model = { path = "../model" }
-twilight-standby = { path = "../standby" }
+twilight-gateway = { path = "../twilight-gateway" }
+twilight-http = { path = "../twilight-http" }
+twilight-lavalink = { path = "../twilight-lavalink" }
+twilight-model = { path = "../twilight-model" }
+twilight-standby = { path = "../twilight-standby" }
 
 [[example]]
 name = "gateway-cluster"

@@ -3,7 +3,7 @@ use hyper::{
     client::{Client as HyperClient, HttpConnector},
     Body, Request,
 };
-use std::{env, error::Error, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
+use std::{env, future::Future, net::SocketAddr, str::FromStr, sync::Arc};
 use twilight_gateway::{Event, Intents, Shard};
 use twilight_http::Client as HttpClient;
 use twilight_lavalink::{
@@ -28,18 +28,16 @@ struct StateRef {
     standby: Standby,
 }
 
-fn spawn(
-    fut: impl Future<Output = Result<(), Box<dyn Error + Send + Sync + 'static>>> + Send + 'static,
-) {
+fn spawn(fut: impl Future<Output = anyhow::Result<()>> + Send + 'static) {
     tokio::spawn(async move {
         if let Err(why) = fut.await {
-            tracing::debug!("handler error: {:?}", why);
+            tracing::debug!("handler error: {why:?}");
         }
     });
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
@@ -97,7 +95,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     Ok(())
 }
 
-async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn join(msg: Message, state: State) -> anyhow::Result<()> {
     state
         .http
         .create_message(msg.channel_id)
@@ -128,14 +126,14 @@ async fn join(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Joined <#{}>!", channel_id))?
+        .content(&format!("Joined <#{channel_id}>!"))?
         .exec()
         .await?;
 
     Ok(())
 }
 
-async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn leave(msg: Message, state: State) -> anyhow::Result<()> {
     tracing::debug!(
         "leave command in channel {} by {}",
         msg.channel_id,
@@ -160,7 +158,7 @@ async fn leave(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
     Ok(())
 }
 
-async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn play(msg: Message, state: State) -> anyhow::Result<()> {
     tracing::debug!(
         "play command in channel {} by {}",
         msg.channel_id,
@@ -220,7 +218,7 @@ async fn play(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     Ok(())
 }
 
-async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn pause(msg: Message, state: State) -> anyhow::Result<()> {
     tracing::debug!(
         "pause command in channel {} by {}",
         msg.channel_id,
@@ -237,14 +235,14 @@ async fn pause(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + 
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("{} the track", action))?
+        .content(&format!("{action} the track"))?
         .exec()
         .await?;
 
     Ok(())
 }
 
-async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn seek(msg: Message, state: State) -> anyhow::Result<()> {
     tracing::debug!(
         "seek command in channel {} by {}",
         msg.channel_id,
@@ -273,14 +271,14 @@ async fn seek(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Seeked to {}s", position))?
+        .content(&format!("Seeked to {position}s"))?
         .exec()
         .await?;
 
     Ok(())
 }
 
-async fn stop(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn stop(msg: Message, state: State) -> anyhow::Result<()> {
     tracing::debug!(
         "stop command in channel {} by {}",
         msg.channel_id,
@@ -301,7 +299,7 @@ async fn stop(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + S
     Ok(())
 }
 
-async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+async fn volume(msg: Message, state: State) -> anyhow::Result<()> {
     tracing::debug!(
         "volume command in channel {} by {}",
         msg.channel_id,
@@ -341,7 +339,7 @@ async fn volume(msg: Message, state: State) -> Result<(), Box<dyn Error + Send +
     state
         .http
         .create_message(msg.channel_id)
-        .content(&format!("Set the volume to {}", volume))?
+        .content(&format!("Set the volume to {volume}"))?
         .exec()
         .await?;
 
