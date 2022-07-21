@@ -1656,8 +1656,8 @@ impl Display for Route<'_> {
 
                 Display::fmt(user_id, f)
             }
-            Route::CreateAutoModerationRule { guild_id }
-            | Route::GetGuildAutoModerationRules { guild_id } => {
+            Route::CreateAutoModerationRule { guild_id, .. }
+            | Route::GetGuildAutoModerationRules { guild_id, .. } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
 

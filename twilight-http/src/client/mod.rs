@@ -303,6 +303,18 @@ impl Client {
         GetAutoModerationRule::new(self, guild_id, auto_moderation_rule_id)
     }
 
+    /// Get the auto moderation rules in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn auto_moderation_rules(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildAutoModerationRules<'_> {
+        GetGuildAutoModerationRules::new(self, guild_id)
+    }
+
     /// Create an auto moderation rule within a guild.
     ///
     /// Requires the [`MANAGE_GUILD`] permission.
@@ -362,18 +374,6 @@ impl Client {
         auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
     ) -> UpdateAutoModerationRule<'_> {
         UpdateAutoModerationRule::new(self, guild_id, auto_moderation_rule_id)
-    }
-
-    /// Get an auto moderation rule in a guild.
-    ///
-    /// Requires the [`MANAGE_GUILD`] permission.
-    ///
-    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
-    pub const fn guild_auto_moderation_rules(
-        &self,
-        guild_id: Id<GuildMarker>,
-    ) -> GetGuildAutoModerationRules<'_> {
-        GetGuildAutoModerationRules::new(self, guild_id)
     }
 
     /// Get the audit log for a guild.
