@@ -67,15 +67,19 @@ impl UpdateCache for Ready {
             cache.cache_current_user(self.user.clone());
         }
 
-        for guild in &self.guilds {
-            cache.unavailable_guild(guild.id);
+        if cache.wants(ResourceType::GUILD) {
+            for guild in &self.guilds {
+                cache.unavailable_guild(guild.id);
+            }
         }
     }
 }
 
 impl UpdateCache for UnavailableGuild {
     fn update(&self, cache: &InMemoryCache) {
-        cache.unavailable_guild(self.id);
+        if cache.wants(ResourceType::GUILD) {
+            cache.unavailable_guild(self.id);
+        }
     }
 }
 
