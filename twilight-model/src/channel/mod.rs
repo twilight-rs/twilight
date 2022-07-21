@@ -88,8 +88,8 @@ pub struct Channel {
     /// For text channels, this is the ID of the last message sent in the
     /// channel.
     ///
-    /// For forum channels ([GuildForum](ChannelType::GuildForum)), this is
-    /// the ID of the last created thread in the forum.
+    /// For forum channels, this is the ID of the last created thread in the
+    /// forum.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message_id: Option<Id<GenericMarker>>,
     /// ID of the last message pinned in the channel.
