@@ -15,6 +15,8 @@ use twilight_model::{
 
 /// Get a followup message of an interaction, by its token and the message ID.
 ///
+/// This endpoint is not bound to the application's global rate limit.
+///
 /// # Examples
 ///
 /// ```no_run

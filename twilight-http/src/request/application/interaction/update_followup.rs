@@ -49,6 +49,8 @@ struct UpdateFollowupFields<'a> {
 /// message still contains at least one of [`attachments`], [`content`], or
 /// [`embeds`].
 ///
+/// This endpoint is not bound to the application's global rate limit.
+///
 /// # Examples
 ///
 /// Update a followup message by setting the content to `test <@3>` -
