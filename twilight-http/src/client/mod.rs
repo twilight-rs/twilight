@@ -56,7 +56,8 @@ use crate::{
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
             GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
-            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+            UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidget,
         },
         scheduled_event::{
             CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
@@ -94,6 +95,7 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
+    guild::MfaLevel,
     http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
@@ -875,6 +877,15 @@ impl Client {
     /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn guild_invites(&self, guild_id: Id<GuildMarker>) -> GetGuildInvites<'_> {
         GetGuildInvites::new(self, guild_id)
+    }
+
+    /// Update a guild's MFA level.
+    pub const fn update_guild_mfa(
+        &self,
+        guild_id: Id<GuildMarker>,
+        level: MfaLevel,
+    ) -> UpdateGuildMfa<'_> {
+        UpdateGuildMfa::new(self, guild_id, level)
     }
 
     /// Get the members of a guild, by id.
