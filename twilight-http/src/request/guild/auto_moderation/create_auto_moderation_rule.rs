@@ -184,10 +184,13 @@ impl<'a> CreateAutoModerationRule<'a> {
 
     /// Create the request with the trigger type [`Keyword`], then execute it.
     ///
-    /// See [Discord Docs/Keyword Matching Strategies].
+    /// Rules of this type require the `keyword_filter` field specified, and
+    /// this method ensures this. See [Discord Docs/Keyword Matching Strategies]
+    /// and [Discord Docs/Trigger Metadata].
     ///
     /// [`Keyword`]: AutoModerationTriggerType::Keyword
     /// [Discord Docs/Keyword Matching Strategies]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-matching-strategies
+    /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     pub fn with_trigger_keyword(
         mut self,
         keyword_filter: &'a [&'a str],
@@ -224,7 +227,11 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// Create the request with the trigger type [`KeywordPreset`], then execute
     /// it.
     ///
+    /// Rules of this type require the `presets` field specified, and
+    /// this method ensures this. See [Discord Docs/Trigger Metadata].
+    ///
     /// [`KeywordPreset`]: AutoModerationTriggerType::KeywordPreset
+    /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     pub fn with_trigger_keyword_preset(
         mut self,
         presets: &'a [AutoModerationKeywordPresetType],
