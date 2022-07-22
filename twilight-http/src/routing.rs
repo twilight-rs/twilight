@@ -2901,6 +2901,7 @@ mod tests {
     const TEMPLATE_CODE: &str = "templatecode";
     const USER_ID: u64 = 11;
     const SCHEDULED_EVENT_ID: u64 = 12;
+    const AUTO_MODERATION_RULE_ID: u64 = 13;
 
     const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
@@ -4524,6 +4525,60 @@ mod tests {
         assert_eq!(
             route.to_string(),
             format!("guilds/{GUILD_ID}/members/search?query=foo%2Fbar&limit=99")
+        );
+    }
+
+    #[test]
+    fn create_auto_moderation_rule() {
+        let route = Route::CreateAutoModerationRule { guild_id: GUILD_ID };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules")
+        );
+    }
+
+    #[test]
+    fn delete_auto_moderation_rule() {
+        let route = Route::DeleteAutoModerationRule {
+            guild_id: GUILD_ID,
+            auto_moderation_rule_id: AUTO_MODERATION_RULE_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules/{AUTO_MODERATION_RULE_ID}")
+        );
+    }
+
+    #[test]
+    fn get_auto_moderation_rule() {
+        let route = Route::GetAutoModerationRule {
+            guild_id: GUILD_ID,
+            auto_moderation_rule_id: AUTO_MODERATION_RULE_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules/{AUTO_MODERATION_RULE_ID}")
+        );
+    }
+
+    #[test]
+    fn get_guild_auto_moderation_rules() {
+        let route = Route::GetGuildAutoModerationRules { guild_id: GUILD_ID };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules")
+        );
+    }
+
+    #[test]
+    fn update_auto_moderation_rule() {
+        let route = Route::UpdateAutoModerationRule {
+            guild_id: GUILD_ID,
+            auto_moderation_rule_id: AUTO_MODERATION_RULE_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules/{AUTO_MODERATION_RULE_ID}")
         );
     }
 }
