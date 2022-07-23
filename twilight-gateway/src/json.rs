@@ -136,7 +136,7 @@ pub fn parse(json: &mut [u8]) -> Result<GatewayEvent, GatewayEventParsingError> 
                 source: None,
             })?;
 
-        let json_deserializer = serde_json::Deserializer::from_slice(json);
+        let json_deserializer = serde_json::Deserializer::from_str(text);
 
         (gateway_deserializer, json_deserializer)
     };

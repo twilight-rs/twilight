@@ -801,8 +801,11 @@ impl Shard {
         // is a Ready event, which is the only one we handle. This gets around
         // having both an immutable and mutable lifetime to the buffer.
         let (raw_opcode, maybe_sequence, is_ready) = {
-            let json = String::from_utf8_lossy(buffer);
-            let deserializer = GatewayEventDeserializer::from_json(&json).ok_or(ProcessError {
+            let json = str::from_utf8(buffer).map_err(|source| ProcessError {
+                kind: ProcessErrorType::ParsingPayload,
+                source: Some(Box::new(source)),
+            })?;
+            let deserializer = GatewayEventDeserializer::from_json(json).ok_or(ProcessError {
                 kind: ProcessErrorType::ParsingPayload,
                 source: None,
             })?;
