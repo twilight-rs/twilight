@@ -62,11 +62,11 @@ pub enum StartRecommendedErrorType {
 ///
 /// Panics if the lower end of the range is equal to the higher end of the
 /// range or the total isn't greater than the lower or higher end of the range.
-pub fn start_range(
+pub fn start_range<F: Fn(ShardId) -> Config>(
     from: u64,
     to: u64,
     total: u64,
-    config: Config,
+    per_shard_config: F,
 ) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static {
     assert!(from < to, "range start must be less than the end");
     assert!(from < total, "range start must be less than the total");
@@ -77,12 +77,10 @@ pub fn start_range(
 
     for index in from..to {
         let id = ShardId::new(index, total);
+        let config = per_shard_config(id);
+        futures.push(Shard::with_config(id, config));
 
         if index < to - 1 {
-            futures.push(Shard::with_config(id, config.clone()));
-        } else {
-            futures.push(Shard::with_config(id, config));
-
             break;
         }
     }
@@ -101,14 +99,17 @@ pub fn start_range(
 /// ```no_run
 /// use futures::StreamExt;
 /// use std::{collections::HashMap, env, future};
-/// use twilight_gateway::{Config, Intents};
+/// use twilight_gateway::{stream, Config, Intents};
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
-/// let config = Config::new(token, Intents::GUILDS);
 ///
-/// let shards = twilight_gateway::stream::start_recommended(config)
+/// // callback to create a config for each shard, useful for when not all shards
+/// // have the same configuration, such as for per-shard presences
+/// let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
+///
+/// let shards = stream::start_recommended(token.clone(), config_callback)
 ///     .await?
 ///     .filter_map(|shard_result| async move {
 ///         shard_result.ok().map(|shard| (shard.id().number(), shard))
@@ -127,13 +128,11 @@ pub fn start_range(
 ///
 /// Returns a [`StartRecommendedErrorType::Request`] error type if the request
 /// failed to complete.
-pub async fn start_recommended(
-    config: Config,
-) -> Result<
-    impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static,
-    StartRecommendedError,
-> {
-    let client = Client::new(config.token().to_owned());
+pub async fn start_recommended<F: Fn(ShardId) -> Config>(
+    token: String,
+    per_shard_config: F,
+) -> Result<impl Stream<Item = Result<Shard, ShardInitializeError>> + Send, StartRecommendedError> {
+    let client = Client::new(token);
     let request = client.gateway().authed();
     let response = request
         .exec()
@@ -150,5 +149,10 @@ pub async fn start_recommended(
             source: Some(Box::new(source)),
         })?;
 
-    Ok(start_range(0, info.shards - 1, info.shards, config))
+    Ok(start_range(
+        0,
+        info.shards - 1,
+        info.shards,
+        per_shard_config,
+    ))
 }

@@ -57,7 +57,7 @@ impl<'a> CloseFrame<'a> {
     /// use std::borrow::Cow;
     /// use twilight_gateway::message::CloseFrame;
     ///
-    /// let frame = CloseFrame::new(1000, Cow::from("reason here"));
+    /// let frame = CloseFrame::new(1000, "reason here");
     ///
     /// assert_eq!(1000, frame.code());
     /// assert_eq!("reason here", frame.reason());
