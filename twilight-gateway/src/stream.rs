@@ -1,4 +1,4 @@
-//! Streaming utilities for initializing clusters of shards.
+//! Streaming utilities for initializing groups of shards.
 
 use crate::{error::ShardInitializeError, Config, Shard, ShardId};
 use futures_util::stream::{FuturesUnordered, Stream};
@@ -88,7 +88,7 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
     FuturesUnordered::from_iter(futures)
 }
 
-/// Start all of the shards recommended for Discord in a single cluster.
+/// Start all of the shards recommended for Discord in a single group.
 ///
 /// Shards will all share the same TLS connector to reduce memory usage.
 ///
