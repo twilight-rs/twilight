@@ -256,7 +256,8 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// let client = Client::new("token".to_owned());
     ///
-    /// let message = client.execute_webhook(Id::new(1), "token here")
+    /// let message = client
+    ///     .execute_webhook(Id::new(1), "token here")
     ///     .content("some content")?
     ///     .embeds(&[EmbedBuilder::new().title("title").validate()?.build()])?
     ///     .wait()
@@ -279,7 +280,8 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// let client = Client::new("token".to_owned());
     ///
-    /// let message = client.execute_webhook(Id::new(1), "token here")
+    /// let message = client
+    ///     .execute_webhook(Id::new(1), "token here")
     ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()

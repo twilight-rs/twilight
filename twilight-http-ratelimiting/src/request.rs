@@ -280,8 +280,8 @@ impl FromStr for Path {
     /// # Examples
     ///
     /// ```
-    /// use twilight_http_ratelimiting::Path;
     /// use std::str::FromStr;
+    /// use twilight_http_ratelimiting::Path;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// assert_eq!(Path::VoiceRegions, Path::from_str("/voice/regions")?);

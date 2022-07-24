@@ -43,7 +43,8 @@ struct CreateRoleFields<'a> {
 /// let client = Client::new("my token".to_owned());
 /// let guild_id = Id::new(234);
 ///
-/// client.create_role(guild_id)
+/// client
+///     .create_role(guild_id)
 ///     .color(0xd90083)
 ///     .name("Bright Pink")
 ///     .exec()

@@ -30,7 +30,10 @@ use twilight_validate::embed::{embed as validate_embed, EmbedValidationError};
 /// let embed = EmbedBuilder::new()
 ///     .description("Here's a list of reasons why Twilight is the best pony:")
 ///     .field(EmbedFieldBuilder::new("Wings", "She has wings.").inline())
-///     .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.").inline())
+///     .field(
+///         EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.")
+///             .inline(),
+///     )
 ///     .validate()?
 ///     .build();
 /// # Ok(()) }
@@ -223,7 +226,8 @@ impl EmbedBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_util::builder::embed::{EmbedBuilder, EmbedFooterBuilder, ImageSource};
     ///
-    /// let source = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png")?;
+    /// let source =
+    ///     ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png")?;
     /// let embed = EmbedBuilder::new()
     ///     .footer(EmbedFooterBuilder::new("twilight"))
     ///     .image(source)

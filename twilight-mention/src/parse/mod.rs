@@ -45,14 +45,11 @@
 //! ```
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use twilight_mention::{
-//!     timestamp::{TimestampStyle, Timestamp},
 //!     parse::ParseMention,
+//!     timestamp::{Timestamp, TimestampStyle},
 //! };
 //!
-//! let expected_timestamp = Timestamp::new(
-//!     1_600_000_000,
-//!     Some(TimestampStyle::RelativeTime),
-//! );
+//! let expected_timestamp = Timestamp::new(1_600_000_000, Some(TimestampStyle::RelativeTime));
 //! assert_eq!(expected_timestamp, Timestamp::parse("<t:1600000000:R>")?);
 //! # Ok(()) }
 //! ```
@@ -107,7 +104,10 @@ use twilight_model::id::{
 /// );
 ///
 /// let timestamp = Timestamp::new(123, None);
-/// assert_eq!(MentionType::Timestamp(timestamp), MentionType::parse("<t:123>")?);
+/// assert_eq!(
+///     MentionType::Timestamp(timestamp),
+///     MentionType::parse("<t:123>")?
+/// );
 /// # Ok(()) }
 /// ```
 ///

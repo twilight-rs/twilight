@@ -59,10 +59,7 @@ struct UpdateFollowupFields<'a> {
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::{
-///     channel::message::AllowedMentions,
-///     id::Id,
-/// };
+/// use twilight_model::{channel::message::AllowedMentions, id::Id};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let application_id = Id::new(1);
@@ -236,8 +233,10 @@ impl<'a> UpdateFollowup<'a> {
     /// let message_id = Id::new(2);
     ///
     /// let embed = EmbedBuilder::new()
-    ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
-    ///     libraries for the Discord API.")
+    ///     .description(
+    ///         "Powerful, flexible, and scalable ecosystem of Rust \
+    ///     libraries for the Discord API.",
+    ///     )
     ///     .title("Twilight")
     ///     .url("https://twilight.rs")
     ///     .validate()?

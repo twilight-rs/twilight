@@ -17,9 +17,9 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 /// Any type of event that a shard emits.
 ///
-/// This brings together all of the types of [`DispatchEvent`]s and
-/// [`GatewayEvent`]s.
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// This brings together all of the types of [`DispatchEvent`] and
+/// [`GatewayEvent`].
+#[derive(Clone, Debug, PartialEq)]
 pub enum Event {
     /// Message was blocked by AutoMod according to a rule.
     AutoModerationActionExecution(AutoModerationActionExecution),
