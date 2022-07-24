@@ -1,5 +1,6 @@
+pub mod create_forum_thread;
+
 mod add_thread_member;
-mod create_forum_thread;
 mod create_thread;
 mod create_thread_from_message;
 mod get_joined_private_archived_threads;
@@ -14,7 +15,7 @@ mod update_thread;
 
 pub use self::{
     add_thread_member::AddThreadMember,
-    create_forum_thread::{CreateForumThread, ForumThreadMessageParams},
+    create_forum_thread::CreateForumThread,
     create_thread::CreateThread,
     create_thread_from_message::CreateThreadFromMessage,
     get_joined_private_archived_threads::GetJoinedPrivateArchivedThreads,
