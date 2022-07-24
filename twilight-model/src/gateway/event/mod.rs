@@ -21,7 +21,7 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 ///
 /// This brings together all of the types of [`DispatchEvent`]s,
 /// [`GatewayEvent`]s, and [`ShardEvent`]s.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Event {
     /// Message was blocked by AutoMod according to a rule.
     AutoModerationActionExecution(AutoModerationActionExecution),
