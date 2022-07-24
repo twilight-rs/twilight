@@ -21,7 +21,7 @@ single-process [Sharding for Large Bots] through the use of bucket
 releasing.
 
 By default, the gateway's `stream` module and `Shard`s use the [`LocalQueue`].
-This can be overriden via the `ShardBuilder::queue` configuration method.
+This can be overridden via the `ShardBuilder::queue` configuration method.
 
 ## Advanced use cases
 
