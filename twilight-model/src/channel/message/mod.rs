@@ -101,6 +101,7 @@ pub struct Message {
     ///
     /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     pub embeds: Vec<Embed>,
+    /// Flags of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]

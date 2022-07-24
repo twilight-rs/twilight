@@ -6,6 +6,7 @@ use serde::{
 
 bitflags! {
     pub struct ChannelFlags: u64 {
+        /// The channel is pinned in a forum.
         const PINNED = 1 << 1;
     }
 }
