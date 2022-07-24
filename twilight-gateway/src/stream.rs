@@ -338,6 +338,46 @@ struct NextItemOutput<'a, Item> {
     shard: &'a mut Shard,
 }
 
+/// Start a cluster with provided configuration for each shard.
+///
+/// Shards will all share the same TLS connector to reduce memory usage.
+///
+/// # Panics
+///
+/// Panics if the lower end of the range is equal to the higher end of the
+/// range or the total isn't greater than the lower or higher end of the range.
+///
+/// Panics if the concurrency doesn't fit into a usize.
+///
+/// Panics if loading TLS certificates fails.
+#[track_caller]
+pub fn start_cluster<F: Fn(ShardId) -> Config>(
+    bucket_id: u64,
+    concurrency: u64,
+    total: u64,
+    per_shard_config: F,
+) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static {
+    assert!(bucket_id < total, "bucket id must be less than the total");
+    assert!(
+        concurrency < total,
+        "concurrency must be less than the total"
+    );
+
+    let concurrency = concurrency.try_into().unwrap();
+    let tls = TlsContainer::new().unwrap();
+
+    (bucket_id..total)
+        .step_by(concurrency)
+        .map(|index| {
+            let id = ShardId::new(index, total);
+            let mut config = per_shard_config(id);
+            config.set_tls(tls.clone());
+
+            Shard::with_config(id, config)
+        })
+        .collect::<FuturesUnordered<_>>()
+}
+
 /// Start a range of shards with provided configuration for each shard.
 ///
 /// Lower end of the range must be less than the higher end. The higher end of
@@ -351,6 +391,7 @@ struct NextItemOutput<'a, Item> {
 /// range or the total isn't greater than the lower or higher end of the range.
 ///
 /// Panics if loading TLS certificates fails.
+#[track_caller]
 pub fn start_range<F: Fn(ShardId) -> Config>(
     from: u64,
     to: u64,
@@ -361,22 +402,17 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
     assert!(from < total, "range start must be less than the total");
     assert!(to < total, "range end must be less than the total");
 
-    let capacity = (to - from).try_into().unwrap_or_default();
-    let mut futures = Vec::with_capacity(capacity);
     let tls = TlsContainer::new().unwrap();
 
-    for index in from..to {
-        let id = ShardId::new(index, total);
-        let mut config = per_shard_config(id);
-        config.set_tls(tls.clone());
-        futures.push(Shard::with_config(id, config));
+    (from..to)
+        .map(|index| {
+            let id = ShardId::new(index, total);
+            let mut config = per_shard_config(id);
+            config.set_tls(tls.clone());
 
-        if index < to - 1 {
-            break;
-        }
-    }
-
-    FuturesUnordered::from_iter(futures)
+            Shard::with_config(id, config)
+        })
+        .collect::<FuturesUnordered<_>>()
 }
 
 /// Start all of the shards recommended for Discord in a single group.
@@ -419,6 +455,7 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 ///
 /// Returns a [`StartRecommendedErrorType::Request`] error type if the request
 /// failed to complete.
+#[track_caller]
 pub async fn start_recommended<F: Fn(ShardId) -> Config>(
     token: String,
     per_shard_config: F,
