@@ -92,6 +92,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         // Spawn a new task to handle the event
         tokio::spawn(handle_event(event, Arc::clone(&http)));
     }
+
+    Ok(())
 }
 
 async fn handle_event(

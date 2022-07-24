@@ -84,6 +84,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
 
         lavalink.process(&event).await?;
     }
+
+    Ok(())
 }
 ```
 

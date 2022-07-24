@@ -110,6 +110,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
         tracing::debug!(?event, "event");
     }
+
+    Ok(())
 }
 ```
 
