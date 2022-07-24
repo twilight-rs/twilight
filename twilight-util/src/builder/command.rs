@@ -43,7 +43,6 @@
 //!         .description_localizations([("zh-CN", "你朋友的岁数")]),
 //! );
 //! ```
-//!
 
 use twilight_model::{
     application::command::{

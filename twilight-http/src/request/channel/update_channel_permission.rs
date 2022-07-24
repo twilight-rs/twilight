@@ -40,9 +40,7 @@ struct UpdateChannelPermissionFields {
 /// #
 /// use twilight_model::{
 ///     guild::Permissions,
-///     http::permission_overwrite::{
-///         PermissionOverwrite, PermissionOverwriteType,
-///     },
+///     http::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
 ///     id::Id,
 /// };
 ///
@@ -54,7 +52,8 @@ struct UpdateChannelPermissionFields {
 ///     kind: PermissionOverwriteType::Role,
 /// };
 ///
-/// client.update_channel_permission(channel_id, &permission_overwrite)
+/// client
+///     .update_channel_permission(channel_id, &permission_overwrite)
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }

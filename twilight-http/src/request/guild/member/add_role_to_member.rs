@@ -29,7 +29,8 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 /// let role_id = Id::new(2);
 /// let user_id = Id::new(3);
 ///
-/// client.add_guild_member_role(guild_id, user_id, role_id)
+/// client
+///     .add_guild_member_role(guild_id, user_id, role_id)
 ///     .reason("test")?
 ///     .exec()
 ///     .await?;

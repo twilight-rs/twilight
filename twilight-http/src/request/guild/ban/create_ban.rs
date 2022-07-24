@@ -38,7 +38,8 @@ struct CreateBanFields<'a> {
 ///
 /// let guild_id = Id::new(100);
 /// let user_id = Id::new(200);
-/// client.create_ban(guild_id, user_id)
+/// client
+///     .create_ban(guild_id, user_id)
 ///     .delete_message_days(1)?
 ///     .reason("memes")?
 ///     .exec()
