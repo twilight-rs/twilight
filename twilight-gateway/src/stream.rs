@@ -1,6 +1,6 @@
 //! Streaming utilities for initializing groups of shards.
 
-use crate::{error::ShardInitializeError, Config, Shard, ShardId};
+use crate::{error::ShardInitializeError, tls::TlsContainer, Config, Shard, ShardId};
 use futures_util::stream::{FuturesUnordered, Stream};
 use std::{
     error::Error,
@@ -62,6 +62,8 @@ pub enum StartRecommendedErrorType {
 ///
 /// Panics if the lower end of the range is equal to the higher end of the
 /// range or the total isn't greater than the lower or higher end of the range.
+///
+/// Panics if loading TLS certificates fails.
 pub fn start_range<F: Fn(ShardId) -> Config>(
     from: u64,
     to: u64,
@@ -74,10 +76,12 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 
     let capacity = (to - from).try_into().unwrap_or_default();
     let mut futures = Vec::with_capacity(capacity);
+    let tls = TlsContainer::new().unwrap();
 
     for index in from..to {
         let id = ShardId::new(index, total);
-        let config = per_shard_config(id);
+        let mut config = per_shard_config(id);
+        config.set_tls(tls.clone());
         futures.push(Shard::with_config(id, config));
 
         if index < to - 1 {
