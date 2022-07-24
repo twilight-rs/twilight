@@ -85,6 +85,8 @@ impl Display for ConnectionUrl<'_> {
 /// Returns a [`ShardInitializeErrorType::Establishing`] error type if the
 /// connection with the Discord gateway could not be established, such as
 /// due to network or TLS errors.
+///
+/// [`ShardInitializeErrorType::Establishing`]: crate::error::ShardInitializeErrorType::Establishing
 pub async fn connect(
     shard_id: ShardId,
     maybe_gateway_url: Option<&str>,

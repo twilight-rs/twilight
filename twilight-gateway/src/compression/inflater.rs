@@ -45,6 +45,8 @@ pub struct Inflater {
     /// Due to decompression sometimes needing to be invoked multiple times this
     /// buffer is used to keep the intermediate values which are then copied to
     /// [`buffer`].
+    ///
+    /// [`buffer`]: Self::buffer
     internal_buffer: Vec<u8>,
     /// Buffer which gets handed to the user when it contains a full message.
     buffer: Vec<u8>,
