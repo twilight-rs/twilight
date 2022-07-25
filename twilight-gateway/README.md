@@ -12,11 +12,6 @@ it's used to receive deserialized gateway event payloads or raw Websocket
 messages, useful for load balancing and microservices. Using the `stream`
 module, shards can be easily managed in groups.
 
-## Examples
-
-There are a few usage examples located in the [root of the `twilight`
-repository][github examples link].
-
 ## Features
 
 * `metrics`: shard analytics for received events and uptime
@@ -31,6 +26,55 @@ repository][github examples link].
 * Zlib (mutually exclusive)
   * `zlib-stock` (*default*): [`flate2`]'s stock zlib implementation
   * `zlib-ng`: use [`zlib-ng`] for zlib, may have better performance
+
+## Examples
+
+Start a shard and loop over guild and voice state events:
+
+```rust,no_run
+use std::env;
+use twilight_gateway::{Intents, Shard, ShardId};
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
+
+    let token = env::var("DISCORD_TOKEN")?;
+    let intents = Intents::GUILDS | Intents::GUILD_VOICE_STATES;
+
+    // Start the first and only shard in use by a bot. Larger bots may need to
+    // use the `twilight_gateway::stream` module to start multiple shards.
+    let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
+
+    tracing::info!("started shard");
+
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
+
+                // If the error is fatal, as may be the case for invalid
+                // authentication or intents, then break out of the loop to
+                // avoid constantly attempting to reconnect.
+                if source.is_fatal() {
+                    break;
+                }
+
+                continue;
+            },
+        };
+
+        tracing::debug!(?event, "received event");
+    }
+
+    Ok(())
+}
+```
+
+There are a few additional examples located in the
+[repository examples][github examples link].
 
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls
