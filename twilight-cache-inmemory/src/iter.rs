@@ -90,7 +90,8 @@ impl<K: Eq + Hash, V> Deref for IterReference<'_, K, V> {
 /// let cache = InMemoryCache::new();
 ///
 /// // later in the application...
-/// let count = cache.iter()
+/// let count = cache
+///     .iter()
 ///     .users()
 ///     .filter(|user| user.name.starts_with("twi"))
 ///     .count();
@@ -225,7 +226,8 @@ impl<'a> InMemoryCacheIter<'a> {
 /// let cache = InMemoryCache::new();
 ///
 /// // later in the application...
-/// let count = cache.iter()
+/// let count = cache
+///     .iter()
 ///     .members()
 ///     .filter(|member| member.pending())
 ///     .count();

@@ -712,10 +712,7 @@ impl AuditLogChange {
     /// Check the key of a [`Uses`] change:
     ///
     /// ```
-    /// use twilight_model::guild::audit_log::{
-    ///     AuditLogChangeKey,
-    ///     AuditLogChange,
-    /// };
+    /// use twilight_model::guild::audit_log::{AuditLogChange, AuditLogChangeKey};
     ///
     /// let change = AuditLogChange::UserLimit {
     ///     new: Some(6),
