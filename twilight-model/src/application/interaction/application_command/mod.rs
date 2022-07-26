@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 /// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
 /// [`ApplicationCommandAutocomplete`]: crate::application::interaction::InteractionType::ApplicationCommandAutocomplete
 /// [Discord Docs/Application Command Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-application-command-data-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CommandData {
     /// ID of the guild the command is registered to.
     #[serde(skip_serializing_if = "Option::is_none")]

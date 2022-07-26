@@ -11,23 +11,21 @@ use twilight_model::{
 ///
 /// # Example
 /// ```
-/// use twilight_util::builder::InteractionResponseDataBuilder;
 /// use twilight_model::{
+///     application::component::{button::ButtonStyle, ActionRow, Button, Component},
 ///     channel::message::MessageFlags,
-///     application::component::{ActionRow, button::ButtonStyle, Component, Button}
 /// };
+/// use twilight_util::builder::InteractionResponseDataBuilder;
 ///
 /// let component = Component::ActionRow(ActionRow {
-///     components: Vec::from([
-///         Component::Button(Button {
-///             style: ButtonStyle::Primary,
-///             emoji: None,
-///             label: Some("Button label".to_string()),
-///             custom_id: Some("button_id".to_string()),
-///             url: None,
-///             disabled: false,
-///         })
-///     ])
+///     components: Vec::from([Component::Button(Button {
+///         style: ButtonStyle::Primary,
+///         emoji: None,
+///         label: Some("Button label".to_string()),
+///         custom_id: Some("button_id".to_string()),
+///         url: None,
+///         disabled: false,
+///     })]),
 /// });
 ///
 /// let interaction_response_data = InteractionResponseDataBuilder::new()

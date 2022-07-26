@@ -545,8 +545,6 @@ pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), Valid
 /// The time must not be farther than 28 days in the future.
 ///
 /// # Errors
-///
-///
 #[allow(clippy::cast_possible_wrap)] // casting of unix timestamp should never wrap
 pub fn communication_disabled_until(timestamp: Timestamp) -> Result<(), ValidationError> {
     let now = SystemTime::now()
@@ -1136,7 +1134,7 @@ mod tests {
     }
 
     #[test]
-    fn get_auild_log_limit_count() {
+    fn get_guild_log_limit_count() {
         assert!(get_guild_audit_log_limit(1).is_ok());
         assert!(get_guild_audit_log_limit(100).is_ok());
 
