@@ -202,6 +202,8 @@ pub enum Path {
     GuildsIdMembersMeNick(u64),
     /// Operating on one of the user's guilds' members by searching.
     GuildsIdMembersSearch(u64),
+    /// Operating on one of the user's guilds' MFA level.
+    GuildsIdMfa(u64),
     /// Operating on one of the user's guilds' by previewing it.
     GuildsIdPreview(u64),
     /// Operating on one of the user's guilds' by pruning members.
