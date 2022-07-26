@@ -6,6 +6,9 @@ use std::{
 };
 use twilight_model::channel::ChannelType;
 
+/// Minimum bitrate of a voice channel.
+pub const CHANNEL_BITRATE_MIN: u32 = 8000;
+
 /// Maximum length of a channel's name.
 pub const CHANNEL_NAME_LENGTH_MAX: usize = 100;
 
@@ -54,6 +57,10 @@ impl ChannelValidationError {
 impl Display for ChannelValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            ChannelValidationErrorType::BitrateInvalid => {
+                f.write_str("bitrate is less than ")?;
+                Display::fmt(&CHANNEL_BITRATE_MIN, f)
+            }
             ChannelValidationErrorType::NameInvalid => {
                 f.write_str("the length of the name is invalid")
             }
@@ -61,7 +68,7 @@ impl Display for ChannelValidationError {
                 f.write_str("the rate limit per user is invalid")
             }
             ChannelValidationErrorType::TopicInvalid => f.write_str("the topic is invalid"),
-            &ChannelValidationErrorType::TypeInvalid { kind } => {
+            ChannelValidationErrorType::TypeInvalid { kind } => {
                 Display::fmt(kind.name(), f)?;
 
                 f.write_str(" is not a thread")
@@ -76,6 +83,8 @@ impl Error for ChannelValidationError {}
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ChannelValidationErrorType {
+    /// The bitrate is less than 8000.
+    BitrateInvalid,
     /// The length of the name is either fewer than 1 UTF-16 characters or
     /// more than 100 UTF-16 characters.
     NameInvalid,
@@ -91,6 +100,25 @@ pub enum ChannelValidationErrorType {
         /// Provided type.
         kind: ChannelType,
     },
+}
+
+/// Ensure a channel's bitrate is collect.
+///
+/// Must be at least 8000.
+///
+/// # Errors
+///
+/// Returns an error of type [`BitrateInvalid`] if the bitrate is invalid.
+///
+/// [`BitrateInvalid`]: ChannelValidationErrorType::BitrateInvalid
+pub const fn bitrate(value: u32) -> Result<(), ChannelValidationError> {
+    if value >= CHANNEL_BITRATE_MIN {
+        Ok(())
+    } else {
+        Err(ChannelValidationError {
+            kind: ChannelValidationErrorType::BitrateInvalid,
+        })
+    }
 }
 
 /// Ensure a channel is a thread.
@@ -185,6 +213,13 @@ pub fn topic(value: impl AsRef<str>) -> Result<(), ChannelValidationError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn channel_bitrate() {
+        assert!(bitrate(8000).is_ok());
+
+        assert!(bitrate(7000).is_err());
+    }
 
     #[test]
     fn thread_is_thread() {
