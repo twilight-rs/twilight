@@ -9,6 +9,8 @@ use twilight_model::id::{marker::ApplicationMarker, Id};
 
 /// Delete a followup message to an interaction, by its token and message ID.
 ///
+/// This endpoint is not bound to the application's global rate limit.
+///
 /// # Examples
 ///
 /// ```no_run
