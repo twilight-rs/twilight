@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- format doc examples ([#1847](https://github.com/twilight-rs/twilight/issues/1847))
+
+### Refactor
+
+- command field changes ([#1852](https://github.com/twilight-rs/twilight/issues/1852))
+
 ## [0.12.1] - 2022-07-18
 
 ### Bug Fixes

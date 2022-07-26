@@ -1,5 +1,18 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- fix create_private_channel description ([#1849](https://github.com/twilight-rs/twilight/issues/1849))
+- format doc examples ([#1847](https://github.com/twilight-rs/twilight/issues/1847))
+
+### Features
+
+- add `UpdateGuildMfa` ([#1850](https://github.com/twilight-rs/twilight/issues/1850))
+- add `ExecuteWebhook::thread_name` ([#1851](https://github.com/twilight-rs/twilight/issues/1851))
+- create/update channel updates ([#1854](https://github.com/twilight-rs/twilight/issues/1854))
+
 ## [0.12.0] - 2022-07-17
 
 ### Bug Fixes

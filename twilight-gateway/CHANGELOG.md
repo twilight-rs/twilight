@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Refactor
+
+- move bitflag constants into macro ([#1828](https://github.com/twilight-rs/twilight/issues/1828))
+
 ## [0.12.0] - 2022-07-17
 
 ### Features

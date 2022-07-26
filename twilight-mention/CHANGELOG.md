@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- format doc examples ([#1847](https://github.com/twilight-rs/twilight/issues/1847))
+
 ## [0.11.1] - 2022-07-07
 
 ### Documentation

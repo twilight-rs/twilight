@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- format doc examples ([#1847](https://github.com/twilight-rs/twilight/issues/1847))
+
+### Features
+
+- add `UpdateGuildMfa` ([#1850](https://github.com/twilight-rs/twilight/issues/1850))
+
 ## [0.12.0] - 2022-07-17
 
 ### Refactor
