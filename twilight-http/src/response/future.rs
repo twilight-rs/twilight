@@ -299,7 +299,11 @@ impl<T> ResponseFuture<T> {
     ///
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use std::{collections::HashSet, env, sync::{Arc, Mutex}};
+    /// use std::{
+    ///     collections::HashSet,
+    ///     env,
+    ///     sync::{Arc, Mutex},
+    /// };
     /// use twilight_http::{error::ErrorType, Client};
     /// use twilight_model::id::{ChannelId, MessageId};
     ///
@@ -320,9 +324,7 @@ impl<T> ResponseFuture<T> {
     /// req.set_pre_flight(Box::new(move || {
     ///     // imagine you have some logic here to external state that checks
     ///     // whether the request should still be performed
-    ///     let channels_ignored = channels_ignored_clone
-    ///         .lock()
-    ///         .expect("channels poisoned");
+    ///     let channels_ignored = channels_ignored_clone.lock().expect("channels poisoned");
     ///
     ///     !channels_ignored.contains(&channel_id)
     /// }));

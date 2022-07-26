@@ -16,9 +16,7 @@ struct CreatePrivateChannelFields {
     recipient_id: Id<UserMarker>,
 }
 
-/// Create a group DM.
-///
-/// This endpoint is limited to 10 active group DMs.
+/// Create a DM channel with a user.
 #[must_use = "requests must be configured and executed"]
 pub struct CreatePrivateChannel<'a> {
     fields: CreatePrivateChannelFields,

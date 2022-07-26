@@ -43,7 +43,7 @@ struct CreateGuildStickerFields<'a> {
 ///         &"sticker name",
 ///         &"sticker description",
 ///         &"sticker,tags",
-///         &[23,23,23,23]
+///         &[23, 23, 23, 23],
 ///     )?
 ///     .exec()
 ///     .await?
