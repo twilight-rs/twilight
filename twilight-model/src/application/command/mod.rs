@@ -43,12 +43,12 @@ pub struct Command {
     ///
     /// Setting this [`Permissions::empty()`] will prohibit anyone from running
     /// the command, except for guild administrators.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub default_member_permissions: Option<Permissions>,
     /// Whether the command is available in DMs.
     ///
     /// This is only relevant for globally-scoped commands. By default, commands
     /// are visible in DMs.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dm_permission: Option<bool>,
     /// Description of the command.
     ///
