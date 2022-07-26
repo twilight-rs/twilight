@@ -36,7 +36,8 @@ struct GetCurrentUserGuildsFields {
 ///
 /// let after = Id::new(300);
 /// let before = Id::new(400);
-/// let guilds = client.current_user_guilds()
+/// let guilds = client
+///     .current_user_guilds()
 ///     .after(after)
 ///     .before(before)
 ///     .limit(25)?

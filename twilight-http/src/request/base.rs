@@ -18,11 +18,12 @@ use serde::Serialize;
 ///
 /// let body = br#"{
 ///     "content": "test"
-/// }"#.to_vec();
+/// }"#
+/// .to_vec();
 ///
-/// let request = Request::builder(&Route::CreateMessage {
-///     channel_id: 1,
-/// }).body(body).build();
+/// let request = Request::builder(&Route::CreateMessage { channel_id: 1 })
+///     .body(body)
+///     .build();
 /// ```
 #[derive(Debug)]
 #[must_use = "request has not been fully built"]
@@ -50,17 +51,16 @@ impl RequestBuilder {
     /// ```
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::str::FromStr;
-    /// use twilight_http::{request::{Method, RequestBuilder}, routing::Path};
+    /// use twilight_http::{
+    ///     request::{Method, RequestBuilder},
+    ///     routing::Path,
+    /// };
     ///
     /// let method = Method::Post;
     /// let path_and_query = "channels/123/pins".to_owned();
     /// let ratelimit_path = Path::from_str(&path_and_query)?;
     ///
-    /// let _request = RequestBuilder::raw(
-    ///     method,
-    ///     ratelimit_path,
-    ///     path_and_query,
-    /// ).build();
+    /// let _request = RequestBuilder::raw(method, ratelimit_path, path_and_query).build();
     /// # Ok(()) }
     /// ```
     pub const fn raw(method: Method, ratelimit_path: Path, path_and_query: String) -> Self {
@@ -153,11 +153,12 @@ impl Request {
     ///
     /// let body = br#"{
     ///     "content": "test"
-    /// }"#.to_vec();
+    /// }"#
+    /// .to_vec();
     ///
-    /// let request = Request::builder(&Route::CreateMessage {
-    ///     channel_id: 1,
-    /// }).body(body).build();
+    /// let request = Request::builder(&Route::CreateMessage { channel_id: 1 })
+    ///     .body(body)
+    ///     .build();
     /// ```
     pub fn builder(route: &Route<'_>) -> RequestBuilder {
         RequestBuilder::new(route)

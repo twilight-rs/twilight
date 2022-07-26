@@ -26,6 +26,7 @@ mod get_guild_welcome_screen;
 mod get_guild_widget;
 mod update_current_member;
 mod update_guild;
+mod update_guild_mfa;
 mod update_guild_welcome_screen;
 mod update_guild_widget;
 
@@ -39,5 +40,6 @@ pub use self::{
     get_guild_webhooks::GetGuildWebhooks, get_guild_welcome_screen::GetGuildWelcomeScreen,
     get_guild_widget::GetGuildWidget, update_current_member::UpdateCurrentMember,
     update_guild::UpdateGuild, update_guild_channel_positions::UpdateGuildChannelPositions,
-    update_guild_welcome_screen::UpdateGuildWelcomeScreen, update_guild_widget::UpdateGuildWidget,
+    update_guild_mfa::UpdateGuildMfa, update_guild_welcome_screen::UpdateGuildWelcomeScreen,
+    update_guild_widget::UpdateGuildWidget,
 };

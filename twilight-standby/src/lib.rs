@@ -208,7 +208,7 @@ impl Standby {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
     /// use twilight_model::{
-    ///     gateway::event::{EventType, Event},
+    ///     gateway::event::{Event, EventType},
     ///     id::Id,
     /// };
     /// use twilight_standby::Standby;
@@ -217,9 +217,9 @@ impl Standby {
     ///
     /// let guild_id = Id::new(123);
     ///
-    /// let reaction = standby.wait_for(guild_id, |event: &Event| {
-    ///     event.kind() == EventType::BanAdd
-    /// }).await?;
+    /// let reaction = standby
+    ///     .wait_for(guild_id, |event: &Event| event.kind() == EventType::BanAdd)
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -257,7 +257,7 @@ impl Standby {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
-    ///     gateway::event::{EventType, Event},
+    ///     gateway::event::{Event, EventType},
     ///     id::Id,
     /// };
     /// use twilight_standby::Standby;
@@ -266,19 +266,14 @@ impl Standby {
     ///
     /// let guild_id = Id::new(123);
     ///
-    /// let mut stream = standby.wait_for_stream(guild_id, |event: &Event| {
-    ///     event.kind() == EventType::BanAdd
-    /// });
+    /// let mut stream =
+    ///     standby.wait_for_stream(guild_id, |event: &Event| event.kind() == EventType::BanAdd);
     ///
     /// while let Some(event) = stream.next().await {
     ///     if let Event::BanAdd(ban) = event {
-    ///         println!(
-    ///             "user {} was banned in guild {}",
-    ///             ban.user.id,
-    ///             ban.guild_id,
-    ///         );
+    ///         println!("user {} was banned in guild {}", ban.user.id, ban.guild_id);
     ///     }
-    ///  }
+    /// }
     /// # Ok(()) }
     /// ```
     ///
@@ -315,18 +310,20 @@ impl Standby {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::gateway::event::{EventType, Event};
+    /// use twilight_model::gateway::event::{Event, EventType};
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
     ///
-    /// let ready = standby.wait_for_event(|event: &Event| {
-    ///     if let Event::Ready(ready) = event {
-    ///         ready.shard.map(|[id, _]| id == 5).unwrap_or(false)
-    ///     } else {
-    ///         false
-    ///     }
-    /// }).await?;
+    /// let ready = standby
+    ///     .wait_for_event(|event: &Event| {
+    ///         if let Event::Ready(ready) = event {
+    ///             ready.shard.map(|[id, _]| id == 5).unwrap_or(false)
+    ///         } else {
+    ///             false
+    ///         }
+    ///     })
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -371,7 +368,7 @@ impl Standby {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
-    /// use twilight_model::gateway::event::{EventType, Event};
+    /// use twilight_model::gateway::event::{Event, EventType};
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -429,10 +426,7 @@ impl Standby {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{
-    ///     gateway::payload::incoming::MessageCreate,
-    ///     id::Id,
-    /// };
+    /// use twilight_model::{gateway::payload::incoming::MessageCreate, id::Id};
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -440,9 +434,11 @@ impl Standby {
     /// let author_id = Id::new(456);
     /// let channel_id = Id::new(123);
     ///
-    /// let message = standby.wait_for_message(channel_id, move |event: &MessageCreate| {
-    ///     event.author.id == author_id && event.content == "test"
-    /// }).await?;
+    /// let message = standby
+    ///     .wait_for_message(channel_id, move |event: &MessageCreate| {
+    ///         event.author.id == author_id && event.content == "test"
+    ///     })
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -479,10 +475,7 @@ impl Standby {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
-    /// use twilight_model::{
-    ///     gateway::payload::incoming::MessageCreate,
-    ///     id::Id,
-    /// };
+    /// use twilight_model::{gateway::payload::incoming::MessageCreate, id::Id};
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -531,10 +524,7 @@ impl Standby {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{
-    ///     gateway::payload::incoming::ReactionAdd,
-    ///     id::Id,
-    /// };
+    /// use twilight_model::{gateway::payload::incoming::ReactionAdd, id::Id};
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
@@ -542,9 +532,11 @@ impl Standby {
     /// let message_id = Id::new(123);
     /// let user_id = Id::new(456);
     ///
-    /// let reaction = standby.wait_for_reaction(message_id, move |event: &ReactionAdd| {
-    ///     event.user_id == user_id
-    /// }).await?;
+    /// let reaction = standby
+    ///     .wait_for_reaction(message_id, move |event: &ReactionAdd| {
+    ///         event.user_id == user_id
+    ///     })
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -633,18 +625,17 @@ impl Standby {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::future;
-    /// use twilight_model::{
-    ///     application::interaction::Interaction,
-    ///     id::Id,
-    /// };
+    /// use twilight_model::{application::interaction::Interaction, id::Id};
     /// use twilight_standby::Standby;
     ///
     /// let standby = Standby::new();
     /// let message_id = Id::new(123);
     ///
-    /// let component = standby.wait_for_component(message_id, |event: &Interaction| {
-    ///     event.author_id() == Some(Id::new(456))
-    /// }).await?;
+    /// let component = standby
+    ///     .wait_for_component(message_id, |event: &Interaction| {
+    ///         event.author_id() == Some(Id::new(456))
+    ///     })
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///

@@ -183,8 +183,7 @@ impl RequestGuildMembersBuilder {
     /// ```
     /// use twilight_model::{
     ///     gateway::payload::outgoing::request_guild_members::{
-    ///         RequestGuildMemberId,
-    ///         RequestGuildMembers,
+    ///         RequestGuildMemberId, RequestGuildMembers,
     ///     },
     ///     id::Id,
     /// };
@@ -193,7 +192,10 @@ impl RequestGuildMembersBuilder {
     ///     .nonce("test")
     ///     .user_id(Id::new(2));
     ///
-    /// assert_eq!(Some(RequestGuildMemberId::One(Id::new(2))), request.d.user_ids);
+    /// assert_eq!(
+    ///     Some(RequestGuildMemberId::One(Id::new(2))),
+    ///     request.d.user_ids
+    /// );
     /// ```
     #[allow(clippy::missing_const_for_fn)]
     pub fn user_id(self, user_id: Id<UserMarker>) -> RequestGuildMembers {

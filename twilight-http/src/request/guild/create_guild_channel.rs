@@ -7,7 +7,10 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    channel::{permission_overwrite::PermissionOverwrite, Channel, ChannelType},
+    channel::{
+        permission_overwrite::PermissionOverwrite, thread::AutoArchiveDuration, Channel,
+        ChannelType, VideoQualityMode,
+    },
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
@@ -25,6 +28,8 @@ use twilight_validate::{
 struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     bitrate: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_auto_archive_duration: Option<AutoArchiveDuration>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: &'a str,
@@ -39,9 +44,13 @@ struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     rate_limit_per_user: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    rtc_region: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     user_limit: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    video_quality_mode: Option<VideoQualityMode>,
 }
 
 /// Create a new request to create a guild channel.
@@ -67,6 +76,7 @@ impl<'a> CreateGuildChannel<'a> {
         Ok(Self {
             fields: CreateGuildChannelFields {
                 bitrate: None,
+                default_auto_archive_duration: None,
                 kind: None,
                 name,
                 nsfw: None,
@@ -74,8 +84,10 @@ impl<'a> CreateGuildChannel<'a> {
                 permission_overwrites: None,
                 position: None,
                 rate_limit_per_user: None,
+                rtc_region: None,
                 topic: None,
                 user_limit: None,
+                video_quality_mode: None,
             },
             guild_id,
             http,
@@ -83,9 +95,25 @@ impl<'a> CreateGuildChannel<'a> {
         })
     }
 
-    /// Set the bitrate of the channel. Applicable to voice channels only.
+    /// For voice and stage channels, set the bitrate of the channel.
+    ///
+    /// Must be at least 8000.
     pub const fn bitrate(mut self, bitrate: u32) -> Self {
         self.fields.bitrate = Some(bitrate);
+
+        self
+    }
+
+    /// Set the default auto archive duration for newly created threads in the
+    /// channel.
+    ///
+    /// Automatic archive durations are not locked behind the guild's boost
+    /// level.
+    pub const fn default_auto_archive_duration(
+        mut self,
+        auto_archive_duration: AutoArchiveDuration,
+    ) -> Self {
+        self.fields.default_auto_archive_duration = Some(auto_archive_duration);
 
         self
     }
@@ -158,6 +186,13 @@ impl<'a> CreateGuildChannel<'a> {
         Ok(self)
     }
 
+    /// For voice and stage channels, set the channel's RTC region.
+    pub const fn rtc_region(mut self, rtc_region: &'a str) -> Self {
+        self.fields.rtc_region = Some(rtc_region);
+
+        self
+    }
+
     /// Set the topic.
     ///
     /// The maximum length is 1024 UTF-16 characters. See
@@ -186,6 +221,13 @@ impl<'a> CreateGuildChannel<'a> {
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
     pub const fn user_limit(mut self, user_limit: u16) -> Self {
         self.fields.user_limit = Some(user_limit);
+
+        self
+    }
+
+    /// For voice channels, set the channel's video quality mode.
+    pub const fn video_quality_mode(mut self, video_quality_mode: VideoQualityMode) -> Self {
+        self.fields.video_quality_mode = Some(video_quality_mode);
 
         self
     }
