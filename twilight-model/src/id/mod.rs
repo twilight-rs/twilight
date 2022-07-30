@@ -73,7 +73,7 @@ use std::{
 /// [user]: marker::UserMarker
 #[repr(transparent)]
 pub struct Id<T> {
-    phantom: PhantomData<T>,
+    phantom: PhantomData<fn(T) -> T>,
     value: NonZeroU64,
 }
 
@@ -444,6 +444,8 @@ mod tests {
         FromStr, Hash, Into<NonZeroU64>, Into<u64>, Ord, PartialEq, PartialEq<i64>, PartialEq<u64>, PartialOrd, Send, Serialize, Sync,
         TryFrom<i64>, TryFrom<u64>
     );
+    // assert invariant
+    assert_impl_all!(Id<*const ()>: Send, Sync);
 
     /// Test that various methods of initializing IDs are correct, such as via
     /// [`Id::new`] or [`Id`]'s [`TryFrom`] implementations.
