@@ -13,7 +13,7 @@ publish = true
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.60"
-version = "0.12.0"
+version = "0.12.1"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
@@ -25,8 +25,8 @@ tokio = { default-features = false, features = ["net", "rt", "sync", "time"], ve
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.12.0" }
-twilight-http = { default-features = false, path = "../twilight-http", version = "0.12.0" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.12.1" }
+twilight-http = { default-features = false, path = "../twilight-http", version = "0.12.1" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.12.2" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently

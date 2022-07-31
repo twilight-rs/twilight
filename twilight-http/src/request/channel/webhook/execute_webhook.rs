@@ -50,6 +50,8 @@ pub(crate) struct ExecuteWebhookFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    thread_name: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<&'a str>,
@@ -108,6 +110,7 @@ impl<'a> ExecuteWebhook<'a> {
                 embeds: None,
                 flags: None,
                 payload_json: None,
+                thread_name: None,
                 tts: None,
                 username: None,
                 allowed_mentions: None,
@@ -306,6 +309,13 @@ impl<'a> ExecuteWebhook<'a> {
     /// Execute in a thread belonging to the channel instead of the channel itself.
     pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
         self.thread_id.replace(thread_id);
+
+        self
+    }
+
+    /// Set the name of the created thread when used in a forum channel.
+    pub const fn thread_name(mut self, thread_name: &'a str) -> Self {
+        self.fields.thread_name = Some(thread_name);
 
         self
     }
