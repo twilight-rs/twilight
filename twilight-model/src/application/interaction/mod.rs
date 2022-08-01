@@ -383,6 +383,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
 /// Additional [`Interaction`] data, such as the invoking user.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[non_exhaustive]
 #[serde(untagged)]
 pub enum InteractionData {
     /// Data received for the [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
