@@ -467,7 +467,7 @@ const fn process_permission_overwrites(
                 }
             }
             // Unknown, impossible to try and calculate with this
-            PermissionOverwriteType::Unknown(_) => return Permissions::empty(),
+            PermissionOverwriteType::Unknown(_) => (),
             _ => unimplemented!(),
         }
 
