@@ -27,11 +27,7 @@ struct GetInviteFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let invite = client
-///     .invite("code")
-///     .with_counts()
-///     .exec()
-///     .await?;
+/// let invite = client.invite("code").with_counts().exec().await?;
 /// # Ok(()) }
 /// ```
 ///

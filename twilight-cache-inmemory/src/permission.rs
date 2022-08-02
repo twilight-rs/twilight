@@ -14,12 +14,12 @@
 //! ```
 //! use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 //!
-//! let resource_types = ResourceType::CHANNEL
-//!     | ResourceType::GUILD
-//!     | ResourceType::MEMBER
-//!     | ResourceType::ROLE;
+//! let resource_types =
+//!     ResourceType::CHANNEL | ResourceType::GUILD | ResourceType::MEMBER | ResourceType::ROLE;
 //!
-//! let cache = InMemoryCache::builder().resource_types(resource_types).build();
+//! let cache = InMemoryCache::builder()
+//!     .resource_types(resource_types)
+//!     .build();
 //! ```
 //!
 //! # Disabled Member Communication Caveats

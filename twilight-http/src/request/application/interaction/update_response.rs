@@ -49,6 +49,8 @@ struct UpdateResponseFields<'a> {
 /// message still contains at least one of [`attachments`], [`content`], or
 /// [`embeds`].
 ///
+/// This endpoint is not bound to the application's global rate limit.
+///
 /// # Examples
 ///
 /// Update the original response by setting the content to `test <@3>` -
@@ -59,10 +61,7 @@ struct UpdateResponseFields<'a> {
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::{
-///     channel::message::AllowedMentions,
-///     id::Id,
-/// };
+/// use twilight_model::{channel::message::AllowedMentions, id::Id};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let application_id = Id::new(1);
@@ -232,8 +231,10 @@ impl<'a> UpdateResponse<'a> {
     /// let application_id = Id::new(1);
     ///
     /// let embed = EmbedBuilder::new()
-    ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
-    ///     libraries for the Discord API.")
+    ///     .description(
+    ///         "Powerful, flexible, and scalable ecosystem of Rust \
+    ///     libraries for the Discord API.",
+    ///     )
     ///     .title("Twilight")
     ///     .url("https://twilight.rs")
     ///     .validate()?

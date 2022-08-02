@@ -56,7 +56,8 @@ use crate::{
             GetAuditLog, GetGuild, GetGuildChannels, GetGuildInvites, GetGuildPreview,
             GetGuildPruneCount, GetGuildVanityUrl, GetGuildVoiceRegions, GetGuildWebhooks,
             GetGuildWelcomeScreen, GetGuildWidget, UpdateCurrentMember, UpdateGuild,
-            UpdateGuildChannelPositions, UpdateGuildWelcomeScreen, UpdateGuildWidget,
+            UpdateGuildChannelPositions, UpdateGuildMfa, UpdateGuildWelcomeScreen,
+            UpdateGuildWidget,
         },
         scheduled_event::{
             CreateGuildScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
@@ -94,6 +95,7 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
+    guild::MfaLevel,
     http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
@@ -171,8 +173,8 @@ const TWILIGHT_USER_AGENT: &str = concat!(
 /// Use [`ClientBuilder`] to create a client called `client`, with a shorter
 /// timeout:
 /// ```no_run
-/// use twilight_http::Client;
 /// use std::time::Duration;
+/// use twilight_http::Client;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -297,11 +299,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
     /// let guild_id = Id::new(101);
-    /// let audit_log = client
-    /// // not done
-    ///     .audit_log(guild_id)
-    ///     .exec()
-    ///     .await?;
+    /// let audit_log = client.audit_log(guild_id).exec().await?;
     /// # Ok(()) }
     /// ```
     pub const fn audit_log(&self, guild_id: Id<GuildMarker>) -> GetAuditLog<'_> {
@@ -356,7 +354,8 @@ impl Client {
     /// #
     /// let guild_id = Id::new(100);
     /// let user_id = Id::new(200);
-    /// client.create_ban(guild_id, user_id)
+    /// client
+    ///     .create_ban(guild_id, user_id)
     ///     .delete_message_days(1)?
     ///     .reason("memes")?
     ///     .exec()
@@ -521,9 +520,7 @@ impl Client {
     /// #
     /// use twilight_model::{
     ///     guild::Permissions,
-    ///     http::permission_overwrite::{
-    ///         PermissionOverwrite, PermissionOverwriteType,
-    ///     },
+    ///     http::permission_overwrite::{PermissionOverwrite, PermissionOverwriteType},
     ///     id::{marker::RoleMarker, Id},
     /// };
     ///
@@ -536,7 +533,8 @@ impl Client {
     ///     kind: PermissionOverwriteType::Role,
     /// };
     ///
-    /// client.update_channel_permission(channel_id, &permission_overwrite)
+    /// client
+    ///     .update_channel_permission(channel_id, &permission_overwrite)
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
@@ -620,7 +618,8 @@ impl Client {
     /// #
     /// let after = Id::new(300);
     /// let before = Id::new(400);
-    /// let guilds = client.current_user_guilds()
+    /// let guilds = client
+    ///     .current_user_guilds()
     ///     .after(after)
     ///     .before(before)
     ///     .limit(25)?
@@ -877,6 +876,15 @@ impl Client {
         GetGuildInvites::new(self, guild_id)
     }
 
+    /// Update a guild's MFA level.
+    pub const fn update_guild_mfa(
+        &self,
+        guild_id: Id<GuildMarker>,
+        level: MfaLevel,
+    ) -> UpdateGuildMfa<'_> {
+        UpdateGuildMfa::new(self, guild_id, level)
+    }
+
     /// Get the members of a guild, by id.
     ///
     /// The upper limit to this request is 1000. If more than 1000 members are needed, the requests
@@ -927,7 +935,8 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     ///
     /// let guild_id = Id::new(100);
-    /// let members = client.search_guild_members(guild_id, "Wumpus")
+    /// let members = client
+    ///     .search_guild_members(guild_id, "Wumpus")
     ///     .limit(10)?
     ///     .exec()
     ///     .await?;
@@ -1003,7 +1012,8 @@ impl Client {
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let member = client.update_guild_member(Id::new(1), Id::new(2))
+    /// let member = client
+    ///     .update_guild_member(Id::new(1), Id::new(2))
     ///     .mute(true)
     ///     .nick(Some("pinkie pie"))?
     ///     .exec()
@@ -1011,7 +1021,10 @@ impl Client {
     ///     .model()
     ///     .await?;
     ///
-    /// println!("user {} now has the nickname '{:?}'", member.user.id, member.nick);
+    /// println!(
+    ///     "user {} now has the nickname '{:?}'",
+    ///     member.user.id, member.nick,
+    /// );
     /// # Ok(()) }
     /// ```
     ///
@@ -1056,7 +1069,8 @@ impl Client {
     /// let role_id = Id::new(2);
     /// let user_id = Id::new(3);
     ///
-    /// client.add_guild_member_role(guild_id, user_id, role_id)
+    /// client
+    ///     .add_guild_member_role(guild_id, user_id, role_id)
     ///     .reason("test")?
     ///     .exec()
     ///     .await?;
@@ -1159,11 +1173,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let invite = client
-    ///     .invite("code")
-    ///     .with_counts()
-    ///     .exec()
-    ///     .await?;
+    /// let invite = client.invite("code").with_counts().exec().await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1188,11 +1198,7 @@ impl Client {
     /// # let client = Client::new("my token".to_owned());
     /// #
     /// let channel_id = Id::new(123);
-    /// let invite = client
-    ///     .create_invite(channel_id)
-    ///     .max_uses(3)?
-    ///     .exec()
-    ///     .await?;
+    /// let invite = client.create_invite(channel_id).max_uses(3)?.exec().await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1295,7 +1301,8 @@ impl Client {
     /// use twilight_model::id::Id;
     ///
     /// let client = Client::new("my token".to_owned());
-    /// client.update_message(Id::new(1), Id::new(2))
+    /// client
+    ///     .update_message(Id::new(1), Id::new(2))
     ///     .content(Some("test update"))?
     ///     .exec()
     ///     .await?;
@@ -1311,7 +1318,8 @@ impl Client {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
-    /// client.update_message(Id::new(1), Id::new(2))
+    /// client
+    ///     .update_message(Id::new(1), Id::new(2))
     ///     .content(None)?
     ///     .exec()
     ///     .await?;
@@ -1480,7 +1488,8 @@ impl Client {
     /// # let client = Client::new("my token".to_owned());
     /// let guild_id = Id::new(234);
     ///
-    /// client.create_role(guild_id)
+    /// client
+    ///     .create_role(guild_id)
     ///     .color(0xd90083)
     ///     .name("Bright Pink")
     ///     .exec()
@@ -1652,7 +1661,8 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     /// let guild_id = Id::new(234);
     ///
-    /// let threads = client.active_threads(guild_id)
+    /// let threads = client
+    ///     .active_threads(guild_id)
     ///     .exec()
     ///     .await?
     ///     .model()
@@ -1988,7 +1998,8 @@ impl Client {
     /// use twilight_model::id::Id;
     ///
     /// let client = Client::new("token".to_owned());
-    /// client.update_webhook_message(Id::new(1), "token here", Id::new(2))
+    /// client
+    ///     .update_webhook_message(Id::new(1), "token here", Id::new(2))
     ///     .content(Some("new message content"))?
     ///     .exec()
     ///     .await?;
@@ -2088,7 +2099,7 @@ impl Client {
     ///     .stage_instance(
     ///         channel_id,
     ///         "Garfield Appreciation Hour",
-    ///         &garfield_start_time
+    ///         &garfield_start_time,
     ///     )?
     ///     .description("Discuss: How important is Garfield to You?")?
     ///     .exec()
@@ -2114,10 +2125,12 @@ impl Client {
     ///         "Garfield Con 2022",
     ///         "Baltimore Convention Center",
     ///         &garfield_con_start_time,
-    ///         &garfield_con_end_time
+    ///         &garfield_con_end_time,
     ///     )?
-    ///     .description("In a spiritual successor to BronyCon, Garfield fans \
-    /// from around the globe celebrate all things related to the loveable cat.")?
+    ///     .description(
+    ///         "In a spiritual successor to BronyCon, Garfield fans from \
+    /// around the globe celebrate all things related to the loveable cat.",
+    ///     )?
     ///     .exec()
     ///     .await?;
     /// # Ok(()) }
@@ -2311,7 +2324,7 @@ impl Client {
     ///         &"sticker name",
     ///         &"sticker description",
     ///         &"sticker,tags",
-    ///         &[23,23,23,23]
+    ///         &[23, 23, 23, 23],
     ///     )?
     ///     .exec()
     ///     .await?

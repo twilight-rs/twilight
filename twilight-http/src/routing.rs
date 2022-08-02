@@ -943,6 +943,11 @@ pub enum Route<'a> {
         /// The ID of the integration.
         integration_id: u64,
     },
+    /// Route information to update a guild's MFA level.
+    UpdateGuildMfa {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to update a scheduled event in a guild.
     UpdateGuildScheduledEvent {
         /// ID of the guild.
@@ -1169,6 +1174,7 @@ impl<'a> Route<'a> {
             | Self::UpdateGuild { .. }
             | Self::UpdateGuildChannels { .. }
             | Self::UpdateGuildCommand { .. }
+            | Self::UpdateGuildMfa { .. }
             | Self::UpdateGuildWidget { .. }
             | Self::UpdateGuildIntegration { .. }
             | Self::UpdateGuildScheduledEvent { .. }
@@ -1242,9 +1248,7 @@ impl<'a> Route<'a> {
     /// use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
     ///
     /// let ratelimiter = InMemoryRatelimiter::new();
-    /// let route = Route::CreateMessage {
-    ///     channel_id: 123,
-    ///  };
+    /// let route = Route::CreateMessage { channel_id: 123 };
     ///
     /// // Take a ticket from the ratelimiter.
     /// let rx = ratelimiter.ticket(route.to_path()).await?;
@@ -1525,6 +1529,7 @@ impl<'a> Route<'a> {
                 Path::ChannelsIdMessagesId(Method::Patch, channel_id)
             }
             Self::UpdateNickname { guild_id } => Path::GuildsIdMembersMeNick(guild_id),
+            Self::UpdateGuildMfa { guild_id } => Path::GuildsIdMfa(guild_id),
         }
     }
 }
@@ -1538,9 +1543,7 @@ impl<'a> Route<'a> {
 /// ```
 /// use twilight_http::routing::Route;
 ///
-/// let route = Route::GetPins {
-///     channel_id: 123,
-/// };
+/// let route = Route::GetPins { channel_id: 123 };
 /// assert_eq!("channels/123/pins", route.to_string());
 /// ```
 ///
@@ -1555,10 +1558,7 @@ impl<'a> Route<'a> {
 ///     with_counts: true,
 /// };
 ///
-/// assert_eq!(
-///     "invites/twilight-rs?with-counts=true",
-///     route.to_string(),
-/// );
+/// assert_eq!("invites/twilight-rs?with-counts=true", route.to_string());
 /// ```
 ///
 /// [`GetInvite`]: Self::GetInvite
@@ -2771,6 +2771,12 @@ impl Display for Route<'_> {
                 f.write_str("/voice-states/")?;
 
                 Display::fmt(user_id, f)
+            }
+            Route::UpdateGuildMfa { guild_id, .. } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/mfa")
             }
         }
     }
@@ -4460,5 +4466,11 @@ mod tests {
             route.to_string(),
             format!("guilds/{GUILD_ID}/members/search?query=foo%2Fbar&limit=99")
         );
+    }
+
+    #[test]
+    fn update_guild_mfa() {
+        let route = Route::UpdateGuildMfa { guild_id: GUILD_ID };
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/mfa"));
     }
 }

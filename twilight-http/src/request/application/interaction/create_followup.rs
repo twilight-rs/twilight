@@ -49,6 +49,8 @@ struct CreateFollowupFields<'a> {
 /// The message must include at least one of [`attachments`], [`content`], or
 /// [`embeds`].
 ///
+/// This endpoint is not bound to the application's global rate limit.
+///
 /// # Examples
 ///
 /// ```no_run
