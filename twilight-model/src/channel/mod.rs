@@ -67,6 +67,7 @@ pub struct Channel {
     /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
+    /// Flags of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<ChannelFlags>,
     /// ID of the guild the channel is in.
