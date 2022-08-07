@@ -1447,7 +1447,7 @@ impl<'a> Route<'a> {
             } => Path::WebhooksIdToken(webhook_id, token.to_string()),
             Self::DeleteWebhook { webhook_id, .. }
             | Self::GetWebhook { webhook_id, .. }
-            | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(webhook_id)),
+            | Self::UpdateWebhook { webhook_id, .. } => Path::WebhooksId(webhook_id),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(channel_id),
             Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(guild_id),
             Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(guild_id),
