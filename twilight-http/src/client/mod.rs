@@ -1686,8 +1686,12 @@ impl Client {
     }
 
     /// Start a thread in a forum channel.
-    pub fn create_forum_thread(&self, channel_id: Id<ChannelMarker>) -> CreateForumThread<'_> {
-        CreateForumThread::new(self, channel_id)
+    pub const fn create_forum_thread<'a>(
+        &'a self,
+        channel_id: Id<ChannelMarker>,
+        name: &'a str,
+    ) -> CreateForumThread<'_> {
+        CreateForumThread::new(self, channel_id, name)
     }
 
     /// Start a thread that is not connected to a message.
