@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- [**breaking**] make `Channel::position` `i32` ([#1865](https://github.com/twilight-rs/twilight/issues/1865))
+
 ## [0.12.2] - 2022-07-26
 
 ### Documentation
