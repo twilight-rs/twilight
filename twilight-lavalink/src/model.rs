@@ -536,7 +536,7 @@ pub mod incoming {
     }
 
     /// CPU information about a node and its host.
-    #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct StatsFrames {
