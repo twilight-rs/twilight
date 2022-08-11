@@ -40,12 +40,19 @@
 //! then the previous steps are taken and the resultant message is deserialized
 //! into a [`GatewayEvent`].
 //!
+//! # Reconnecting
+//!
+//! If a custom gateway URL is used when reconnecting, the shard will always
+//! prefer it over the [`resume_gateway_url`]. Proper reconnection is left to
+//! the proxy.
+//!
+//! [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
+//! [`resume_gateway_url`]: twilight_model::gateway::payload::incoming::Ready::resume_gateway_url
 //! [command]: crate::Command
 //! [is enabled]: Config::ratelimit_messages
 //! [processed]: Shard::process
-//! [websocket message]: crate::message::Message
 //! [websocket connection]: Shard::connection
-//! [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
+//! [websocket message]: crate::message::Message
 
 use crate::{
     channel::{MessageChannel, MessageSender},
@@ -122,7 +129,7 @@ pub enum ConnectionStatus {
     /// Shard has fatally closed.
     ///
     /// Possible reasons may be due to [failed authentication],
-    /// [invalid intents], or other reasons. Refer to the documtation for
+    /// [invalid intents], or other reasons. Refer to the documentation for
     /// [`CloseCode`] for possible reasons.
     ///
     /// [failed authentication]: CloseCode::AuthenticationFailed
@@ -197,6 +204,8 @@ struct MinimalEvent<T> {
 /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
 #[derive(Deserialize)]
 struct MinimalReady {
+    /// Used for resuming connections.
+    resume_gateway_url: String,
     /// ID of the new identified session.
     session_id: String,
 }
@@ -305,6 +314,8 @@ pub struct Shard {
     /// Command ratelimiter, if it was enabled via
     /// [`Config::ratelimit_messages`].
     ratelimiter: Option<CommandRatelimiter>,
+    /// Used for resuming connections.
+    resume_gateway_url: Option<String>,
     /// Active session of the shard.
     ///
     /// The shard may not have an active session if it hasn't completed a full
@@ -394,6 +405,7 @@ impl Shard {
             id: shard_id,
             latency: Latency::new(),
             ratelimiter: None,
+            resume_gateway_url: None,
             session,
             status: ConnectionStatus::Connected,
             user_channel: MessageChannel::new(),
@@ -840,6 +852,7 @@ impl Shard {
                     source: None,
                 })?;
 
+                self.resume_gateway_url = Some(event.data.resume_gateway_url);
                 self.status = ConnectionStatus::Connected;
                 self.session = Some(Session::new(sequence, event.data.session_id));
             }
@@ -894,17 +907,21 @@ impl Shard {
     ) -> Result<(), ReceiveMessageError> {
         future::reconnect_delay(reconnect_attempts).await;
 
-        self.connection =
-            connection::connect(self.id(), self.config.gateway_url(), self.config.tls())
-                .await
-                .map_err(|source| {
-                    self.status = ConnectionStatus::Disconnected {
-                        close_code,
-                        reconnect_attempts: reconnect_attempts + 1,
-                    };
+        let maybe_gateway_url = self
+            .config
+            .gateway_url()
+            .or(self.resume_gateway_url.as_deref());
 
-                    ReceiveMessageError::from_reconnect(source)
-                })?;
+        self.connection = connection::connect(self.id(), maybe_gateway_url, self.config.tls())
+            .await
+            .map_err(|source| {
+                self.status = ConnectionStatus::Disconnected {
+                    close_code,
+                    reconnect_attempts: reconnect_attempts + 1,
+                };
+
+                ReceiveMessageError::from_reconnect(source)
+            })?;
         self.compression.reset();
         self.status = ConnectionStatus::Connected;
 

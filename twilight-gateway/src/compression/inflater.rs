@@ -6,7 +6,7 @@
 //!
 //! # Resizing buffers
 //!
-//! Buffers are resized after some heurestics:
+//! Buffers are resized after some heuristics:
 //!
 //! - if the data does not fit the buffer size is doubled; or
 //! - at most once per minute the buffer will be resized down to the size of the
@@ -34,7 +34,7 @@ const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
 #[derive(Debug)]
 pub struct Inflater {
     /// Zlib decompressor, which can have a considerable heap size given the
-    /// main way this saves memory is by having a directonary to look up data.
+    /// main way this saves memory is by having a dictionary to look up data.
     decompress: Decompress,
     /// Buffer for storing compressed data. Data is stored here via [`extend`].
     ///
