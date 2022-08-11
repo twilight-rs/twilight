@@ -72,7 +72,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Ready",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("application"),
                 Token::Struct {
