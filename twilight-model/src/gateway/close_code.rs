@@ -89,7 +89,7 @@ impl Display for CloseCode {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct CloseCodeConversionError {
     code: u16,
 }

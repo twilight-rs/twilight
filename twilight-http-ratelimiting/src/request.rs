@@ -241,6 +241,8 @@ pub enum Path {
     /// Operating on an invite.
     InvitesCode,
     /// Operating on an interaction's callback.
+    ///
+    /// This path is not bound to the application's global rate limit.
     InteractionCallback(u64),
     /// Operating on stage instances.
     StageInstances,
@@ -267,8 +269,14 @@ pub enum Path {
     /// Operating on a webhook as a bot.
     WebhooksId(u64),
     /// Operating on a webhook as a webhook.
+    ///
+    /// When used with interactions, this path is not bound to the application's
+    /// global rate limit.
     WebhooksIdToken(u64, String),
     /// Operating on a message created by a webhook.
+    ///
+    /// When used with interactions, this path is not bound to the application's
+    /// global rate limit.
     WebhooksIdTokenMessagesId(u64, String),
 }
 
