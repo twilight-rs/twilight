@@ -35,7 +35,7 @@ serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 twilight-gateway = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-gateway", version = "0.12.1" }
-twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.12.1" }
+twilight-http = { default-features = false, features = ["rustls-native-roots"], path = "../twilight-http", version = "0.12.2" }
 
 [features]
 default = ["http-support", "rustls-native-roots"]
