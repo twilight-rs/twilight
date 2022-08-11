@@ -35,7 +35,7 @@ pub enum CloseCode {
     UnknownEncryptionMode = 4016,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct CloseCodeConversionError {
     code: u16,
 }
