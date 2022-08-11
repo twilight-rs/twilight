@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.12.2] - 2022-08-11
 
 ### Documentation
 
