@@ -39,6 +39,7 @@ struct CreateAutoModerationRuleFieldsActionMetadata {
 
 #[derive(Serialize)]
 struct CreateAutoModerationRuleFieldsTriggerMetadata<'a> {
+    allow_list: Option<&'a [&'a str]>,
     keyword_filter: Option<&'a [&'a str]>,
     presets: Option<&'a [AutoModerationKeywordPresetType]>,
 }
@@ -191,11 +192,12 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// [`Keyword`]: AutoModerationTriggerType::Keyword
     /// [Discord Docs/Keyword Matching Strategies]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-matching-strategies
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
-    pub fn with_trigger_keyword(
+    pub fn with_keyword(
         mut self,
         keyword_filter: &'a [&'a str],
     ) -> ResponseFuture<AutoModerationRule> {
         self.fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
+            allow_list: None,
             keyword_filter: Some(keyword_filter),
             presets: None,
         });
@@ -232,11 +234,13 @@ impl<'a> CreateAutoModerationRule<'a> {
     ///
     /// [`KeywordPreset`]: AutoModerationTriggerType::KeywordPreset
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
-    pub fn with_trigger_keyword_preset(
+    pub fn with_keyword_preset(
         mut self,
         presets: &'a [AutoModerationKeywordPresetType],
+        allow_list: &'a [&'a str],
     ) -> ResponseFuture<AutoModerationRule> {
         self.fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
+            allow_list: Some(allow_list),
             keyword_filter: None,
             presets: Some(presets),
         });
