@@ -375,7 +375,7 @@ pub mod outgoing {
     #[serde(rename_all = "camelCase")]
     pub struct VoiceUpdate {
         /// The inner event being forwarded to a node.
-        pub event: SlimVoiceServerUpdate,
+        pub event: VoiceServerUpdate,
         /// The guild ID of the player.
         pub guild_id: Id<GuildMarker>,
         /// The opcode of the event.
@@ -389,45 +389,19 @@ pub mod outgoing {
         pub fn new(
             guild_id: Id<GuildMarker>,
             session_id: impl Into<String>,
-            event: SlimVoiceServerUpdate,
+            event: VoiceServerUpdate,
         ) -> Self {
             Self::from((guild_id, session_id, event))
         }
     }
 
-    impl<T: Into<String>> From<(Id<GuildMarker>, T, SlimVoiceServerUpdate)> for VoiceUpdate {
-        fn from(
-            (guild_id, session_id, event): (Id<GuildMarker>, T, SlimVoiceServerUpdate),
-        ) -> Self {
+    impl<T: Into<String>> From<(Id<GuildMarker>, T, VoiceServerUpdate)> for VoiceUpdate {
+        fn from((guild_id, session_id, event): (Id<GuildMarker>, T, VoiceServerUpdate)) -> Self {
             Self {
                 event,
                 guild_id,
                 op: Opcode::VoiceUpdate,
                 session_id: session_id.into(),
-            }
-        }
-    }
-
-    /// A slimmed version of a twilight voice server update.
-    #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-    #[non_exhaustive]
-    #[serde(rename_all = "snake_case")]
-    pub struct SlimVoiceServerUpdate {
-        /// The endpoint of the Discord voice server.
-        pub endpoint: Option<String>,
-        /// The guild ID of the player.
-        pub guild_id: Option<Id<GuildMarker>>,
-        /// The authentication token used by the bot to connect to the Discord
-        /// voice server.
-        pub token: String,
-    }
-
-    impl From<VoiceServerUpdate> for SlimVoiceServerUpdate {
-        fn from(update: VoiceServerUpdate) -> Self {
-            Self {
-                endpoint: update.endpoint,
-                guild_id: update.guild_id,
-                token: update.token,
             }
         }
     }
@@ -562,7 +536,7 @@ pub mod incoming {
     }
 
     /// CPU information about a node and its host.
-    #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+    #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
     #[non_exhaustive]
     #[serde(rename_all = "camelCase")]
     pub struct StatsFrames {
@@ -667,8 +641,8 @@ pub use self::{
         TrackEnd, TrackEventType, TrackStart, WebsocketClosed,
     },
     outgoing::{
-        Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek, SlimVoiceServerUpdate,
-        Stop, VoiceUpdate, Volume,
+        Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek, Stop, VoiceUpdate,
+        Volume,
     },
 };
 
@@ -680,8 +654,8 @@ mod tests {
             StatsMemory, TrackEnd, TrackEventType, TrackStart, WebsocketClosed,
         },
         outgoing::{
-            Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek,
-            SlimVoiceServerUpdate, Stop, VoiceUpdate, Volume,
+            Destroy, Equalizer, EqualizerBand, OutgoingEvent, Pause, Play, Seek, Stop, VoiceUpdate,
+            Volume,
         },
         Opcode,
     };
@@ -689,7 +663,10 @@ mod tests {
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
-    use twilight_model::id::{marker::GuildMarker, Id};
+    use twilight_model::{
+        gateway::payload::incoming::VoiceServerUpdate,
+        id::{marker::GuildMarker, Id},
+    };
 
     assert_fields!(Destroy: guild_id, op);
     assert_impl_all!(
@@ -821,17 +798,6 @@ mod tests {
         Serialize,
         Sync,
     );
-    assert_fields!(SlimVoiceServerUpdate: endpoint, guild_id, token);
-    assert_impl_all!(
-        SlimVoiceServerUpdate: Clone,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        PartialEq,
-        Send,
-        Serialize,
-        Sync,
-    );
     assert_fields!(
         Stats: cpu,
         frames,
@@ -938,7 +904,7 @@ mod tests {
         Debug,
         Deserialize<'static>,
         Eq,
-        From<(Id<GuildMarker>, String, SlimVoiceServerUpdate)>,
+        From<(Id<GuildMarker>, String, VoiceServerUpdate)>,
         PartialEq,
         Send,
         Serialize,

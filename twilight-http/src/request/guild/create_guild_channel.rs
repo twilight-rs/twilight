@@ -18,8 +18,9 @@ use twilight_model::{
 };
 use twilight_validate::{
     channel::{
-        name as validate_name, rate_limit_per_user as validate_rate_limit_per_user,
-        topic as validate_topic, ChannelValidationError,
+        bitrate as validate_bitrate, name as validate_name,
+        rate_limit_per_user as validate_rate_limit_per_user, topic as validate_topic,
+        ChannelValidationError,
     },
     request::{audit_reason as validate_audit_reason, ValidationError},
 };
@@ -98,10 +99,20 @@ impl<'a> CreateGuildChannel<'a> {
     /// For voice and stage channels, set the bitrate of the channel.
     ///
     /// Must be at least 8000.
-    pub const fn bitrate(mut self, bitrate: u32) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`BitrateInvalid`] if the bitrate is invalid.
+    ///
+    /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
+    pub const fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
+        if let Err(source) = validate_bitrate(bitrate) {
+            return Err(source);
+        }
+
         self.fields.bitrate = Some(bitrate);
 
-        self
+        Ok(self)
     }
 
     /// Set the default auto archive duration for newly created threads in the

@@ -16,7 +16,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 /// See [Discord Docs/Interaction Object].
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct InteractionResponse {
     /// Type of the response.
     #[serde(rename = "type")]
@@ -38,7 +38,7 @@ pub struct InteractionResponse {
 }
 
 /// Data included in an interaction response.
-#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct InteractionResponseData {
     /// Allowed mentions of the response.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -132,7 +132,6 @@ mod tests {
         InteractionResponseData: Clone,
         Debug,
         Deserialize<'static>,
-        Eq,
         PartialEq,
         Send,
         Serialize,
