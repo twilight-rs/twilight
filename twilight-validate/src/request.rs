@@ -12,11 +12,15 @@ use twilight_model::util::Timestamp;
 /// The maximum audit log reason length in UTF-16 codepoints.
 pub const AUDIT_REASON_MAX: usize = 512;
 
-/// Maximum amount of days for messages to be deleted upon ban.
-pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u16 = 7;
-
 /// Maximum amount of time a member can be timed out for.
 pub const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
+
+/// Maximum amount for `mention_total_limit` when creating an auto moderation
+/// rule.
+pub const CREATE_AUTO_MODERATION_RULE_MENTION_TOTAL_LIMIT_MAX: u8 = 50;
+
+/// Maximum amount of days for messages to be deleted upon ban.
+pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u16 = 7;
 
 /// Maximum amount of messages to get.
 pub const GET_CHANNEL_MESSAGES_LIMIT_MAX: u16 = 100;
@@ -174,6 +178,19 @@ impl Display for ValidationError {
 
                 Display::fmt(&AUDIT_REASON_MAX, f)
             }
+            ValidationErrorType::CommunicationDisabledUntil { .. } => {
+                f.write_str("provided timestamp is too far in the future")
+            }
+            ValidationErrorType::CreateAutoModerationRuleMentionTotalLimit {
+                mention_total_limit,
+                ..
+            } => {
+                f.write_str("provided mention total limit was ")?;
+                Display::fmt(mention_total_limit, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&CREATE_AUTO_MODERATION_RULE_MENTION_TOTAL_LIMIT_MAX, f)
+            }
             ValidationErrorType::CreateGuildBanDeleteMessageDays {
                 days: delete_message_days,
             } => {
@@ -182,9 +199,6 @@ impl Display for ValidationError {
                 f.write_str(", but it must be at most ")?;
 
                 Display::fmt(&CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX, f)
-            }
-            ValidationErrorType::CommunicationDisabledUntil { .. } => {
-                f.write_str("provided timestamp is too far in the future")
             }
             ValidationErrorType::GetChannelMessages { limit } => {
                 f.write_str("provided get guild members limit is ")?;
@@ -378,15 +392,20 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
-    /// Provided create guild ban delete message days was invalid.
-    CreateGuildBanDeleteMessageDays {
-        /// Invalid days.
-        days: u16,
-    },
     /// Provided timestamp is too far in the future.
     CommunicationDisabledUntil {
         /// Invalid timestamp.
         timestamp: Timestamp,
+    },
+    /// Provided `mention_total_limit` was invalid.
+    CreateAutoModerationRuleMentionTotalLimit {
+        /// Invalid value.
+        mention_total_limit: u8,
+    },
+    /// Provided create guild ban delete message days was invalid.
+    CreateGuildBanDeleteMessageDays {
+        /// Invalid days.
+        days: u16,
     },
     /// Provided get channel messages limit was invalid.
     GetChannelMessages {
@@ -517,29 +536,6 @@ pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError
     }
 }
 
-/// Ensure that the delete message days amount for the Create Guild Ban request
-/// is correct.
-///
-/// The days must be at most [`CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX`]. This
-/// is based on [this documentation entry].
-///
-/// # Errors
-///
-/// Returns an error of type [`CreateGuildBanDeleteMessageDays`] if the days is
-/// invalid.
-///
-/// [`CreateGuildBanDeleteMessageDays`]: ValidationErrorType::CreateGuildBanDeleteMessageDays
-/// [this documentation entry]: https://discord.com/developers/docs/resources/guild#create-guild-ban
-pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), ValidationError> {
-    if days <= CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX {
-        Ok(())
-    } else {
-        Err(ValidationError {
-            kind: ValidationErrorType::CreateGuildBanDeleteMessageDays { days },
-        })
-    }
-}
-
 /// Validate that a timeout time is not too far in the future.
 ///
 /// The time must not be farther than 28 days in the future.
@@ -560,6 +556,56 @@ pub fn communication_disabled_until(timestamp: Timestamp) -> Result<(), Validati
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::CommunicationDisabledUntil { timestamp },
+        })
+    }
+}
+
+/// Ensure that `mention_total_limit` is correct.
+///
+/// The amount must be at most
+/// [`CREATE_AUTO_MODERATION_RULE_MENTION_TOTAL_LIMIT`]. This is based on
+/// [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`CreateAutoModerationRuleMentionTotalLimit`] if
+/// the days is invalid.
+///
+/// [`CreateAutoModerationRuleMentionTotalLimit`]: ValidationErrorType::CreateAutoModerationRuleMentionTotalLimit
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+pub const fn create_auto_moderation_rule_mention_total_limit(
+    mention_total_limit: u8,
+) -> Result<(), ValidationError> {
+    if mention_total_limit <= CREATE_AUTO_MODERATION_RULE_MENTION_TOTAL_LIMIT_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::CreateAutoModerationRuleMentionTotalLimit {
+                mention_total_limit,
+            },
+        })
+    }
+}
+
+/// Ensure that the delete message days amount for the Create Guild Ban request
+/// is correct.
+///
+/// The days must be at most [`CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX`]. This
+/// is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`CreateGuildBanDeleteMessageDays`] if the days is
+/// invalid.
+///
+/// [`CreateGuildBanDeleteMessageDays`]: ValidationErrorType::CreateGuildBanDeleteMessageDays
+/// [this documentation entry]: https://discord.com/developers/docs/resources/guild#create-guild-ban
+pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), ValidationError> {
+    if days <= CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::CreateGuildBanDeleteMessageDays { days },
         })
     }
 }
@@ -1090,15 +1136,6 @@ mod tests {
     }
 
     #[test]
-    fn create_guild_ban_delete_message_days_length() {
-        assert!(create_guild_ban_delete_message_days(0).is_ok());
-        assert!(create_guild_ban_delete_message_days(1).is_ok());
-        assert!(create_guild_ban_delete_message_days(7).is_ok());
-
-        assert!(create_guild_ban_delete_message_days(8).is_err());
-    }
-
-    #[test]
     fn communication_disabled_until_max() {
         #[allow(clippy::cast_possible_wrap)]
         let now = SystemTime::now()
@@ -1113,6 +1150,23 @@ mod tests {
         let err_timestamp =
             Timestamp::from_secs(now + COMMUNICATION_DISABLED_MAX_DURATION + 1000).unwrap();
         assert!(communication_disabled_until(err_timestamp).is_err());
+    }
+
+    #[test]
+    fn create_auto_moderation_rule_mention_total_limit_max() {
+        assert!(create_auto_moderation_rule_mention_total_limit(0).is_ok());
+        assert!(create_auto_moderation_rule_mention_total_limit(49).is_ok());
+
+        assert!(create_auto_moderation_rule_mention_total_limit(50).is_err());
+    }
+
+    #[test]
+    fn create_guild_ban_delete_message_days_length() {
+        assert!(create_guild_ban_delete_message_days(0).is_ok());
+        assert!(create_guild_ban_delete_message_days(1).is_ok());
+        assert!(create_guild_ban_delete_message_days(7).is_ok());
+
+        assert!(create_guild_ban_delete_message_days(8).is_err());
     }
 
     #[test]

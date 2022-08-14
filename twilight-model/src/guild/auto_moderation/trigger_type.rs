@@ -20,6 +20,8 @@ pub enum AutoModerationTriggerType {
     ///
     /// Maximum of 1 per guild.
     KeywordPreset,
+    /// Check if content contains more mentions than allowed.
+    MentionSpam,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -31,6 +33,7 @@ impl From<u8> for AutoModerationTriggerType {
             2 => Self::HarmfulLink,
             3 => Self::Spam,
             4 => Self::KeywordPreset,
+            5 => Self::MentionSpam,
             _ => Self::Unknown(value),
         }
     }
@@ -43,6 +46,7 @@ impl From<AutoModerationTriggerType> for u8 {
             AutoModerationTriggerType::HarmfulLink => 2,
             AutoModerationTriggerType::Spam => 3,
             AutoModerationTriggerType::KeywordPreset => 4,
+            AutoModerationTriggerType::MentionSpam => 5,
             AutoModerationTriggerType::Unknown(unknown) => unknown,
         }
     }
@@ -74,6 +78,7 @@ mod tests {
         assert_eq!(2, u8::from(AutoModerationTriggerType::HarmfulLink));
         assert_eq!(3, u8::from(AutoModerationTriggerType::Spam));
         assert_eq!(4, u8::from(AutoModerationTriggerType::KeywordPreset));
+        assert_eq!(5, u8::from(AutoModerationTriggerType::KeywordPreset));
         assert_eq!(250, u8::from(AutoModerationTriggerType::Unknown(250)));
     }
 }

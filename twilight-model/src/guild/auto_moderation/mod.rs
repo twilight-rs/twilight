@@ -144,6 +144,7 @@ mod tests {
             trigger_metadata: AutoModerationTriggerMetadata {
                 allow_list: None,
                 keyword_filter: Some(Vec::from(["shoot".into(), "darn".into()])),
+                mention_total_limit: None,
                 presets: None,
             },
             trigger_type: AutoModerationTriggerType::Keyword,

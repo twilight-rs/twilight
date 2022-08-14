@@ -14,6 +14,9 @@ pub struct AutoModerationTriggerMetadata {
     /// Substrings which will be searched for in content.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keyword_filter: Option<Vec<String>>,
+    /// Total number of mentions (role & user) allowed per message.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mention_total_limit: Option<u8>,
     /// Internally pre-defined wordsets which will be searched for in content.
     ///
     /// A keyword can be a phrase which contains multiple words. Wildcard
@@ -51,6 +54,7 @@ mod tests {
         let value = AutoModerationTriggerMetadata {
             allow_list: Some(Vec::from(["heck".into()])),
             keyword_filter: Some(Vec::from(["shoot".into(), "darn".into()])),
+            mention_total_limit: Some(10),
             presets: Some(Vec::from([
                 AutoModerationKeywordPresetType::Profanity,
                 AutoModerationKeywordPresetType::SexualContent,
@@ -76,6 +80,9 @@ mod tests {
                 Token::Str("shoot"),
                 Token::Str("darn"),
                 Token::SeqEnd,
+                Token::Str("mention_total_limit"),
+                Token::Some,
+                Token::U8(10),
                 Token::Str("presets"),
                 Token::Some,
                 Token::Seq { len: Some(3) },

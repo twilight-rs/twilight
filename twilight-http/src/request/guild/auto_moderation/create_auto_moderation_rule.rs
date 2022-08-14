@@ -44,6 +44,8 @@ struct CreateAutoModerationRuleFieldsTriggerMetadata<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     keyword_filter: Option<&'a [&'a str]>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    mention_total_limit: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     presets: Option<&'a [AutoModerationKeywordPresetType]>,
 }
 
@@ -202,6 +204,7 @@ impl<'a> CreateAutoModerationRule<'a> {
         self.fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
             allow_list: None,
             keyword_filter: Some(keyword_filter),
+            mention_total_limit: None,
             presets: None,
         });
 
@@ -246,10 +249,35 @@ impl<'a> CreateAutoModerationRule<'a> {
         self.fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
             allow_list: Some(allow_list),
             keyword_filter: None,
+            mention_total_limit: None,
             presets: Some(presets),
         });
 
         self.fields.trigger_type = Some(AutoModerationTriggerType::KeywordPreset);
+
+        self.exec()
+    }
+
+    /// Create the request with the trigger type [`MentionSpam`], then execute
+    /// it.
+    ///
+    /// Rules of this type require the `mention_total_limit` field specified,
+    /// and this method ensures this. See [Discord Docs/Trigger Metadata].
+    ///
+    /// [`MentionSpam`]: AutoModerationTriggerType::MentionSpam
+    /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+    pub fn with_mention_spam(
+        mut self,
+        mention_total_limit: u8,
+    ) -> ResponseFuture<AutoModerationRule> {
+        self.fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
+            allow_list: None,
+            keyword_filter: None,
+            mention_total_limit: Some(mention_total_limit),
+            presets: None,
+        });
+
+        self.fields.trigger_type = Some(AutoModerationTriggerType::MentionSpam);
 
         self.exec()
     }
