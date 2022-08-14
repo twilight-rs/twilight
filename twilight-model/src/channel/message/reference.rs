@@ -4,14 +4,25 @@ use crate::id::{
 };
 use serde::{Deserialize, Serialize};
 
+/// Message reference struct.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageReference {
+    /// Originating message's channel ID.
+    ///
+    /// Note: optional when creating a reply, but always present when receiving
+    /// an event or response containing this model.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_id: Option<Id<ChannelMarker>>,
+    /// Originating message's guild ID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
+    /// Originating message's ID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message_id: Option<Id<MessageMarker>>,
+    /// Whether to error if the referenced message doesn't exist instead of
+    /// sending a normal message.
+    ///
+    /// Defaults to true.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fail_if_not_exists: Option<bool>,
 }
