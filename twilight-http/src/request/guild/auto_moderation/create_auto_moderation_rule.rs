@@ -79,7 +79,7 @@ struct CreateAutoModerationRuleFields<'a> {
 ///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MessageSend)
 ///     .action_block_message()
 ///     .enabled(true)
-///     .with_trigger_keyword(&["darn"])
+///     .with_keyword(&["darn"])
 ///     .await?;
 /// # Ok(()) }
 /// ```
