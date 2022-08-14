@@ -5,7 +5,7 @@ use std::{
     time::Duration,
 };
 use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
-use twilight_model::channel::message::allowed_mentions::AllowedMentions;
+use twilight_model::channel::message::AllowedMentions;
 
 #[derive(Debug)]
 /// A builder for [`Client`].

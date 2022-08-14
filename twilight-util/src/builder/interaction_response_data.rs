@@ -173,7 +173,10 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
-        channel::message::component::{Button, ButtonStyle},
+        channel::message::{
+            component::{Button, ButtonStyle},
+            MentionType,
+        },
         util::Timestamp,
     };
 
@@ -187,7 +190,10 @@ mod tests {
 
     #[test]
     fn callback_data_builder() {
-        let allowed_mentions = AllowedMentions::builder().everyone().build();
+        let allowed_mentions = AllowedMentions {
+            parse: Vec::from([MentionType::Everyone]),
+            ..Default::default()
+        };
 
         let component = Component::Button(Button {
             style: ButtonStyle::Primary,

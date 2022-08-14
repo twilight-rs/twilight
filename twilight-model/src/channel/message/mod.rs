@@ -1,12 +1,12 @@
 //! Textual user communication method.
 #![deny(missing_docs)]
 
-pub mod allowed_mentions;
 pub mod component;
 pub mod embed;
 pub mod sticker;
 
 mod activity;
+mod allowed_mentions;
 mod application;
 mod flags;
 mod interaction;
@@ -17,7 +17,7 @@ mod reference;
 
 pub use self::{
     activity::{MessageActivity, MessageActivityType},
-    allowed_mentions::AllowedMentions,
+    allowed_mentions::{AllowedMentions, MentionType},
     application::MessageApplication,
     component::Component,
     embed::Embed,
