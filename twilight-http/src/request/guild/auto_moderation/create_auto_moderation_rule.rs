@@ -39,8 +39,11 @@ struct CreateAutoModerationRuleFieldsActionMetadata {
 
 #[derive(Serialize)]
 struct CreateAutoModerationRuleFieldsTriggerMetadata<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
     allow_list: Option<&'a [&'a str]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     keyword_filter: Option<&'a [&'a str]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     presets: Option<&'a [AutoModerationKeywordPresetType]>,
 }
 
@@ -229,8 +232,9 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// Create the request with the trigger type [`KeywordPreset`], then execute
     /// it.
     ///
-    /// Rules of this type require the `presets` field specified, and
-    /// this method ensures this. See [Discord Docs/Trigger Metadata].
+    /// Rules of this type require the `presets` and `allow_list` fields
+    /// specified, and this method ensures this. See [Discord Docs/Trigger
+    /// Metadata].
     ///
     /// [`KeywordPreset`]: AutoModerationTriggerType::KeywordPreset
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
