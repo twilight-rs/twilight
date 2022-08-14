@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- rust 1.63 lints
+
+### Refactor
+
+- [**breaking**] update `VoiceServerUpdate` ([#1837](https://github.com/twilight-rs/twilight/issues/1837))
+
 ## [0.12.1] - 2022-07-26
 
 ### Documentation
