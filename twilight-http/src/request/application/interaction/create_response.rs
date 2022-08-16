@@ -11,6 +11,8 @@ use twilight_model::{
 };
 
 /// Respond to an interaction, by its ID and token.
+///
+/// This endpoint is not bound to the application's global rate limit.
 #[must_use = "requests must be configured and executed"]
 pub struct CreateResponse<'a> {
     interaction_id: Id<InteractionMarker>,

@@ -29,7 +29,10 @@
 //! easily casted in order to fulfill this:
 //!
 //! ```
-//! use twilight_model::id::{marker::{GuildMarker, RoleMarker}, Id};
+//! use twilight_model::id::{
+//!     marker::{GuildMarker, RoleMarker},
+//!     Id,
+//! };
 //!
 //! // Often Rust's type inference will be able to infer the type of ID.
 //! let guild_id = Id::<GuildMarker>::new(123);
@@ -194,7 +197,10 @@ impl<T> Id<T> {
     /// Cast a role ID to a guild ID, useful for the `@everyone` role:
     ///
     /// ```
-    /// use twilight_model::id::{marker::{GuildMarker, RoleMarker}, Id};
+    /// use twilight_model::id::{
+    ///     marker::{GuildMarker, RoleMarker},
+    ///     Id,
+    /// };
     ///
     /// let role_id: Id<RoleMarker> = Id::new(1);
     ///

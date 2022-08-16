@@ -9,8 +9,8 @@ pub use self::{
     command_type::CommandType,
     option::{
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, CommandOption,
-        CommandOptionChoice, CommandOptionType, CommandOptionValue, Number,
-        NumberCommandOptionData, OptionsCommandOptionData,
+        CommandOptionChoice, CommandOptionType, CommandOptionValue, NumberCommandOptionData,
+        OptionsCommandOptionData,
     },
 };
 
@@ -35,7 +35,7 @@ use std::collections::HashMap;
 /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
 /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/command/struct.CommandBuilder.html
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Command {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
@@ -43,12 +43,12 @@ pub struct Command {
     ///
     /// Setting this [`Permissions::empty()`] will prohibit anyone from running
     /// the command, except for guild administrators.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub default_member_permissions: Option<Permissions>,
     /// Whether the command is available in DMs.
     ///
     /// This is only relevant for globally-scoped commands. By default, commands
     /// are visible in DMs.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub dm_permission: Option<bool>,
     /// Description of the command.
     ///

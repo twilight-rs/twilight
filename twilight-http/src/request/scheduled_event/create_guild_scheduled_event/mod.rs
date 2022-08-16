@@ -79,7 +79,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///     .stage_instance(
 ///         channel_id,
 ///         "Garfield Appreciation Hour",
-///         &garfield_start_time
+///         &garfield_start_time,
 ///     )?
 ///     .description("Discuss: How important is Garfield to You?")?
 ///     .exec()
@@ -105,10 +105,12 @@ struct CreateGuildScheduledEventFields<'a> {
 ///         "Garfield Con 2022",
 ///         "Baltimore Convention Center",
 ///         &garfield_con_start_time,
-///         &garfield_con_end_time
+///         &garfield_con_end_time,
 ///     )?
-///     .description("In a spiritual successor to BronyCon, Garfield fans from \
-/// around the globe celebrate all things related to the loveable cat.")?
+///     .description(
+///         "In a spiritual successor to BronyCon, Garfield fans from \
+/// around the globe celebrate all things related to the loveable cat.",
+///     )?
 ///     .exec()
 ///     .await?;
 /// # Ok(()) }

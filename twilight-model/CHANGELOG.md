@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.13.0] - 2022-08-14
+
+### Bug Fixes
+
+- rust 1.63 lints
+- [**breaking**] make `Channel::position` `i32` ([#1865](https://github.com/twilight-rs/twilight/issues/1865))
+
+### Documentation
+
+- fully document `channel::message` ([#1792](https://github.com/twilight-rs/twilight/issues/1792))
+
+### Refactor
+
+- [**breaking**] remove `Number` ([#1817](https://github.com/twilight-rs/twilight/issues/1817))
+- [**breaking**] update `VoiceServerUpdate` ([#1837](https://github.com/twilight-rs/twilight/issues/1837))
+
+## [0.12.3] - 2022-08-11
+
+### Bug Fixes
+
+- [**breaking**] make `Channel::position` `i32` ([#1865](https://github.com/twilight-rs/twilight/issues/1865))
+
+## [0.12.2] - 2022-07-26
+
+### Documentation
+
+- format doc examples ([#1847](https://github.com/twilight-rs/twilight/issues/1847))
+
+### Refactor
+
+- command field changes ([#1852](https://github.com/twilight-rs/twilight/issues/1852))
+
 ## [0.12.1] - 2022-07-18
 
 ### Bug Fixes

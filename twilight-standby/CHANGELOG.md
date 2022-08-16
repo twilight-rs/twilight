@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0] - 2022-08-14
+
+### Refactor
+
+- [**breaking**] update `VoiceServerUpdate` ([#1837](https://github.com/twilight-rs/twilight/issues/1837))
+
+## [0.12.1] - 2022-07-26
+
+### Documentation
+
+- format doc examples ([#1847](https://github.com/twilight-rs/twilight/issues/1847))
+
 ## [0.12.0] - 2022-07-17
 
 ### Features

@@ -10,5 +10,4 @@ title = "Twilight"
 edition = "2021"
 
 [output.html]
-theme = "rust"
 default-theme = "rust"

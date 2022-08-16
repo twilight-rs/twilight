@@ -17,7 +17,8 @@ use serde::{Deserialize, Serialize};
 ///     "best_friend": "Spike",
 ///     "cutie_mark": "sparkles",
 ///     "name": "Twilight Sparkle"
-/// }"#.to_vec();
+/// }"#
+/// .to_vec();
 /// let id = 1;
 ///
 /// let mut attachment = Attachment::from_bytes(filename, file_content, id);
