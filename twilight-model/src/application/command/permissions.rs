@@ -10,7 +10,7 @@ use crate::id::{
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-/// List of [`CommandPermission`] for a command in a guild.
+/// List of [`CommandPermission`]s for a command in a guild.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct GuildCommandPermissions {
     /// ID of the application the command belongs to.
