@@ -9,7 +9,6 @@ use std::{
     cmp::Eq,
     collections::HashMap,
     fmt::{Formatter, Result as FmtResult},
-    hash::{Hash, Hasher},
 };
 
 /// Option for a [`Command`].
@@ -22,7 +21,7 @@ use std::{
 /// [`Command`]: super::Command
 /// [`SubCommand`]: CommandOption::SubCommand
 /// [`SubCommandGroup`]: CommandOption::SubCommandGroup
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum CommandOption {
     SubCommand(OptionsCommandOptionData),
     SubCommandGroup(OptionsCommandOptionData),
@@ -527,7 +526,7 @@ pub struct BaseCommandOptionData {
 ///
 /// [`SubCommand`]: CommandOption::SubCommand
 /// [`SubCommandGroup`]: CommandOption::SubCommandGroup
-#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct OptionsCommandOptionData {
     /// Description of the option. It must be 100 characters or less.
     pub description: String,
@@ -561,7 +560,7 @@ pub struct OptionsCommandOptionData {
 /// Data supplied to a [`CommandOption`] of type [`String`].
 ///
 /// [`String`]: CommandOption::String
-#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct ChoiceCommandOptionData {
     /// Whether the command supports autocomplete.
     #[serde(default)]
@@ -648,7 +647,7 @@ pub struct ChannelCommandOptionData {
 ///
 /// [`Integer`]: CommandOption::Integer
 /// [`Number`]: CommandOption::Number
-#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct NumberCommandOptionData {
     /// Whether the command supports autocomplete.
     #[serde(default)]
@@ -697,7 +696,7 @@ pub struct NumberCommandOptionData {
 /// See [Discord Docs/Application Command Object].
 ///
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-choice-structure
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionChoice {
     String {
@@ -716,7 +715,7 @@ pub enum CommandOptionChoice {
         name: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         name_localizations: Option<HashMap<String, String>>,
-        value: Number,
+        value: f64,
     },
 }
 
@@ -725,11 +724,11 @@ pub enum CommandOptionChoice {
 /// See [Discord Docs/Application Command Object].
 ///
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-structure
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CommandOptionValue {
     Integer(i64),
-    Number(Number),
+    Number(f64),
 }
 
 /// Type of a [`CommandOption`].
@@ -768,53 +767,16 @@ impl CommandOptionType {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub struct Number(pub f64);
-
-impl Eq for Number {}
-
-impl Hash for Number {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.to_bits().hash(state);
-    }
-}
-
-impl PartialEq for Number {
-    fn eq(&self, other: &Number) -> bool {
-        self.0.to_bits() == other.0.to_bits()
-    }
-}
-
-impl From<Number> for f64 {
-    fn from(number: Number) -> f64 {
-        number.0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
         super::{Command, CommandType},
         BaseCommandOptionData, ChannelCommandOptionData, ChoiceCommandOptionData, CommandOption,
-        CommandOptionChoice, CommandOptionValue, Number, NumberCommandOptionData,
-        OptionsCommandOptionData,
+        CommandOptionChoice, CommandOptionValue, NumberCommandOptionData, OptionsCommandOptionData,
     };
     use crate::{channel::ChannelType, guild::Permissions, id::Id};
-    use serde::{Deserialize, Serialize};
     use serde_test::Token;
-    use static_assertions::assert_impl_all;
-    use std::{collections::HashMap, fmt::Debug, hash::Hash};
-
-    assert_impl_all!(
-        Number: Clone,
-        Copy,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        Hash,
-        PartialEq,
-        Serialize
-    );
+    use std::collections::HashMap;
 
     /// Test that when a subcommand or subcommand group's `options` field is
     /// missing during deserialization that the field is defaulted instead of
@@ -962,12 +924,12 @@ mod tests {
                             choices: Vec::from([CommandOptionChoice::Number {
                                 name: "choice3".into(),
                                 name_localizations: None,
-                                value: Number(2.0),
+                                value: 2.0,
                             }]),
                             description: "number desc".into(),
                             description_localizations: None,
-                            max_value: Some(CommandOptionValue::Number(Number(5.5))),
-                            min_value: Some(CommandOptionValue::Number(Number(10.0))),
+                            max_value: Some(CommandOptionValue::Number(5.5)),
+                            min_value: Some(CommandOptionValue::Number(10.0)),
                             name: "number".into(),
                             name_localizations: None,
                             required: false,
@@ -1202,7 +1164,6 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("choice3"),
                 Token::Str("value"),
-                Token::NewtypeStruct { name: "Number" },
                 Token::F64(2.0),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -1210,11 +1171,9 @@ mod tests {
                 Token::Str("number desc"),
                 Token::Str("max_value"),
                 Token::Some,
-                Token::NewtypeStruct { name: "Number" },
                 Token::F64(5.5),
                 Token::Str("min_value"),
                 Token::Some,
-                Token::NewtypeStruct { name: "Number" },
                 Token::F64(10.0),
                 Token::Str("name"),
                 Token::Str("number"),
@@ -1236,13 +1195,5 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-    }
-
-    #[test]
-    fn number() {
-        const NUMBER_1: Number = Number(12.34_f64);
-        const NUMBER_2: Number = Number(12.34_f64);
-
-        assert_eq!(NUMBER_1, NUMBER_2);
     }
 }

@@ -31,17 +31,14 @@ pub trait ParseMention: private::Sealed {
     ///
     /// ```
     /// use twilight_mention::ParseMention;
-    /// use twilight_model::id::{marker::{ChannelMarker, UserMarker}, Id};
+    /// use twilight_model::id::{
+    ///     marker::{ChannelMarker, UserMarker},
+    ///     Id,
+    /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// assert_eq!(
-    ///     Id::<ChannelMarker>::new(123),
-    ///     Id::parse("<#123>")?,
-    /// );
-    /// assert_eq!(
-    ///     Id::<UserMarker>::new(456),
-    ///     Id::parse("<@456>")?,
-    /// );
+    /// assert_eq!(Id::<ChannelMarker>::new(123), Id::parse("<#123>")?,);
+    /// assert_eq!(Id::<UserMarker>::new(456), Id::parse("<@456>")?,);
     /// assert!(Id::<ChannelMarker>::parse("not a mention").is_err());
     /// # Ok(()) }
     /// ```

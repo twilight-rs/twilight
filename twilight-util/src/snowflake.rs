@@ -26,9 +26,9 @@ pub trait Snowflake {
     /// See when a user was created using [`chrono`](https://docs.rs/chrono):
     ///
     /// ```
-    /// use chrono::{Utc, TimeZone};
-    /// use twilight_util::snowflake::Snowflake;
+    /// use chrono::{TimeZone, Utc};
     /// use twilight_model::id::{marker::UserMarker, Id};
+    /// use twilight_util::snowflake::Snowflake;
     ///
     /// let id = Id::<UserMarker>::new(105484726235607040);
     ///
@@ -41,9 +41,9 @@ pub trait Snowflake {
     /// See when a user was created using [`time`](https://docs.rs/time):
     ///
     /// ```
-    /// use time::{Duration, format_description::well_known::Rfc3339, OffsetDateTime};
-    /// use twilight_util::snowflake::Snowflake;
+    /// use time::{format_description::well_known::Rfc3339, Duration, OffsetDateTime};
     /// use twilight_model::id::{marker::UserMarker, Id};
+    /// use twilight_util::snowflake::Snowflake;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let id = Id::<UserMarker>::new(105484726235607040);

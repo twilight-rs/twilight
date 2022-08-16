@@ -291,11 +291,10 @@ impl<'a> CreateGuild<'a> {
     ///
     /// ```no_run
     /// use twilight_http::{
-    ///     Client,
     ///     request::guild::create_guild::{
-    ///         GuildChannelFieldsBuilder, CategoryFieldsBuilder, TextFieldsBuilder,
-    ///         VoiceFieldsBuilder,
+    ///         CategoryFieldsBuilder, GuildChannelFieldsBuilder, TextFieldsBuilder, VoiceFieldsBuilder,
     ///     },
+    ///     Client,
     /// };
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
@@ -315,7 +314,8 @@ impl<'a> CreateGuild<'a> {
     ///     .add_category_builder(category)
     ///     .build();
     ///
-    /// let guild = client.create_guild("guild name".to_owned())?
+    /// let guild = client
+    ///     .create_guild("guild name".to_owned())?
     ///     .channels(channels)?
     ///     .exec()
     ///     .await?;
@@ -420,12 +420,18 @@ impl<'a> CreateGuild<'a> {
     /// # Examples
     ///
     /// ```no_run
-    /// use twilight_http::{Client, request::guild::create_guild::RoleFieldsBuilder};
+    /// use twilight_http::{request::guild::create_guild::RoleFieldsBuilder, Client};
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     ///
-    /// let roles = vec![RoleFieldsBuilder::new("role 1".to_owned()).color(0x543923)?.build()];
-    /// client.create_guild("guild name".to_owned())?.roles(roles)?.exec().await?;
+    /// let roles = vec![RoleFieldsBuilder::new("role 1".to_owned())
+    ///     .color(0x543923)?
+    ///     .build()];
+    /// client
+    ///     .create_guild("guild name".to_owned())?
+    ///     .roles(roles)?
+    ///     .exec()
+    ///     .await?;
     /// # Ok(()) }
     /// ```
     ///

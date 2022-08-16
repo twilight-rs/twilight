@@ -547,7 +547,12 @@ impl Future for BytesFuture {
 /// use twilight_http::Client;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let emoji = client.emoji(guild_id, emoji_id).exec().await?.model().await?;
+/// let emoji = client
+///     .emoji(guild_id, emoji_id)
+///     .exec()
+///     .await?
+///     .model()
+///     .await?;
 ///
 /// println!("emoji name: {}", emoji.name);
 /// # Ok(()) }
@@ -610,7 +615,8 @@ impl<T: DeserializeOwned + Unpin> Future for ModelFuture<T> {
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 ///
-/// let member = client.guild_member(guild_id, user_id)
+/// let member = client
+///     .guild_member(guild_id, user_id)
 ///     .exec()
 ///     .await?
 ///     .model()
@@ -685,7 +691,8 @@ impl Future for MemberFuture {
 /// use twilight_http::Client;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let members = client.guild_members(guild_id)
+/// let members = client
+///     .guild_members(guild_id)
 ///     .limit(100)?
 ///     .exec()
 ///     .await?

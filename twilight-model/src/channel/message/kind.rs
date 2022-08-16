@@ -1,24 +1,45 @@
 use serde::{Deserialize, Serialize};
 
+/// Type of a [`Message`].
+///
+/// [`Message`]: super::Message
+#[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(from = "u8", into = "u8")]
 pub enum MessageType {
+    /// Regular message.
     Regular,
+    /// System message denoting a recipient has been added to a group.
     RecipientAdd,
+    /// System message denoting a recipient has been removed from a group.
     RecipientRemove,
+    /// System message denoting a call state, e.g. missed, started.
     Call,
+    /// System message denoting a channel's name has been changed.
     ChannelNameChange,
+    /// System message denoting a channel's icon has been changed.
     ChannelIconChange,
+    /// System message denoting a message has been pinned.
     ChannelMessagePinned,
-    GuildMemberJoin,
-    UserPremiumSub,
-    UserPremiumSubTier1,
-    UserPremiumSubTier2,
-    UserPremiumSubTier3,
+    /// System message denoting a member has joined a guild.
+    UserJoin,
+    /// System message denoting a user nitro boosted a guild.
+    GuildBoost,
+    /// System message denoting a user nitro boosted a guild to level 1.
+    GuildBoostTier1,
+    /// System message denoting a user nitro boosted a guild to level 2.
+    GuildBoostTier2,
+    /// System message denoting a user nitro boosted a guild to level 3.
+    GuildBoostTier3,
+    /// System message denoting a channel has been followed.
     ChannelFollowAdd,
+    /// System message denoting a guild has been disqualified for Server Discovery.
     GuildDiscoveryDisqualified,
+    /// System message denoting a guild has been redisqualified for Server Discovery.
     GuildDiscoveryRequalified,
+    /// System message denoting an initial warning for Server Discovery disqualification.
     GuildDiscoveryGracePeriodInitialWarning,
+    /// System message denoting a final warning for Server Discovery disqualification.
     GuildDiscoveryGracePeriodFinalWarning,
     ThreadCreated,
     /// Message is an inline reply.
@@ -37,31 +58,31 @@ pub enum MessageType {
 impl From<u8> for MessageType {
     fn from(value: u8) -> Self {
         match value {
-            0 => MessageType::Regular,
-            1 => MessageType::RecipientAdd,
-            2 => MessageType::RecipientRemove,
-            3 => MessageType::Call,
-            4 => MessageType::ChannelNameChange,
-            5 => MessageType::ChannelIconChange,
-            6 => MessageType::ChannelMessagePinned,
-            7 => MessageType::GuildMemberJoin,
-            8 => MessageType::UserPremiumSub,
-            9 => MessageType::UserPremiumSubTier1,
-            10 => MessageType::UserPremiumSubTier2,
-            11 => MessageType::UserPremiumSubTier3,
-            12 => MessageType::ChannelFollowAdd,
-            14 => MessageType::GuildDiscoveryDisqualified,
-            15 => MessageType::GuildDiscoveryRequalified,
-            16 => MessageType::GuildDiscoveryGracePeriodInitialWarning,
-            17 => MessageType::GuildDiscoveryGracePeriodFinalWarning,
-            18 => MessageType::ThreadCreated,
-            19 => MessageType::Reply,
-            20 => MessageType::ChatInputCommand,
-            21 => MessageType::ThreadStarterMessage,
-            22 => MessageType::GuildInviteReminder,
-            23 => MessageType::ContextMenuCommand,
-            24 => MessageType::AutoModerationAction,
-            unknown => MessageType::Unknown(unknown),
+            0 => Self::Regular,
+            1 => Self::RecipientAdd,
+            2 => Self::RecipientRemove,
+            3 => Self::Call,
+            4 => Self::ChannelNameChange,
+            5 => Self::ChannelIconChange,
+            6 => Self::ChannelMessagePinned,
+            7 => Self::UserJoin,
+            8 => Self::GuildBoost,
+            9 => Self::GuildBoostTier1,
+            10 => Self::GuildBoostTier2,
+            11 => Self::GuildBoostTier3,
+            12 => Self::ChannelFollowAdd,
+            14 => Self::GuildDiscoveryDisqualified,
+            15 => Self::GuildDiscoveryRequalified,
+            16 => Self::GuildDiscoveryGracePeriodInitialWarning,
+            17 => Self::GuildDiscoveryGracePeriodFinalWarning,
+            18 => Self::ThreadCreated,
+            19 => Self::Reply,
+            20 => Self::ChatInputCommand,
+            21 => Self::ThreadStarterMessage,
+            22 => Self::GuildInviteReminder,
+            23 => Self::ContextMenuCommand,
+            24 => Self::AutoModerationAction,
+            unknown => Self::Unknown(unknown),
         }
     }
 }
@@ -76,11 +97,11 @@ impl From<MessageType> for u8 {
             MessageType::ChannelNameChange => 4,
             MessageType::ChannelIconChange => 5,
             MessageType::ChannelMessagePinned => 6,
-            MessageType::GuildMemberJoin => 7,
-            MessageType::UserPremiumSub => 8,
-            MessageType::UserPremiumSubTier1 => 9,
-            MessageType::UserPremiumSubTier2 => 10,
-            MessageType::UserPremiumSubTier3 => 11,
+            MessageType::UserJoin => 7,
+            MessageType::GuildBoost => 8,
+            MessageType::GuildBoostTier1 => 9,
+            MessageType::GuildBoostTier2 => 10,
+            MessageType::GuildBoostTier3 => 11,
             MessageType::ChannelFollowAdd => 12,
             MessageType::GuildDiscoveryDisqualified => 14,
             MessageType::GuildDiscoveryRequalified => 15,
@@ -112,11 +133,11 @@ mod tests {
         serde_test::assert_tokens(&MessageType::ChannelNameChange, &[Token::U8(4)]);
         serde_test::assert_tokens(&MessageType::ChannelIconChange, &[Token::U8(5)]);
         serde_test::assert_tokens(&MessageType::ChannelMessagePinned, &[Token::U8(6)]);
-        serde_test::assert_tokens(&MessageType::GuildMemberJoin, &[Token::U8(7)]);
-        serde_test::assert_tokens(&MessageType::UserPremiumSub, &[Token::U8(8)]);
-        serde_test::assert_tokens(&MessageType::UserPremiumSubTier1, &[Token::U8(9)]);
-        serde_test::assert_tokens(&MessageType::UserPremiumSubTier2, &[Token::U8(10)]);
-        serde_test::assert_tokens(&MessageType::UserPremiumSubTier3, &[Token::U8(11)]);
+        serde_test::assert_tokens(&MessageType::UserJoin, &[Token::U8(7)]);
+        serde_test::assert_tokens(&MessageType::GuildBoost, &[Token::U8(8)]);
+        serde_test::assert_tokens(&MessageType::GuildBoostTier1, &[Token::U8(9)]);
+        serde_test::assert_tokens(&MessageType::GuildBoostTier2, &[Token::U8(10)]);
+        serde_test::assert_tokens(&MessageType::GuildBoostTier3, &[Token::U8(11)]);
         serde_test::assert_tokens(&MessageType::ChannelFollowAdd, &[Token::U8(12)]);
         serde_test::assert_tokens(&MessageType::GuildDiscoveryDisqualified, &[Token::U8(14)]);
         serde_test::assert_tokens(&MessageType::GuildDiscoveryRequalified, &[Token::U8(15)]);
@@ -147,11 +168,11 @@ mod tests {
         assert_eq!(MessageType::from(4), MessageType::ChannelNameChange);
         assert_eq!(MessageType::from(5), MessageType::ChannelIconChange);
         assert_eq!(MessageType::from(6), MessageType::ChannelMessagePinned);
-        assert_eq!(MessageType::from(7), MessageType::GuildMemberJoin);
-        assert_eq!(MessageType::from(8), MessageType::UserPremiumSub);
-        assert_eq!(MessageType::from(9), MessageType::UserPremiumSubTier1);
-        assert_eq!(MessageType::from(10), MessageType::UserPremiumSubTier2);
-        assert_eq!(MessageType::from(11), MessageType::UserPremiumSubTier3);
+        assert_eq!(MessageType::from(7), MessageType::UserJoin);
+        assert_eq!(MessageType::from(8), MessageType::GuildBoost);
+        assert_eq!(MessageType::from(9), MessageType::GuildBoostTier1);
+        assert_eq!(MessageType::from(10), MessageType::GuildBoostTier2);
+        assert_eq!(MessageType::from(11), MessageType::GuildBoostTier3);
         assert_eq!(MessageType::from(12), MessageType::ChannelFollowAdd);
         assert_eq!(
             MessageType::from(14),

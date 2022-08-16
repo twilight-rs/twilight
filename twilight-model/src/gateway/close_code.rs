@@ -39,7 +39,7 @@ pub enum CloseCode {
     DisallowedIntents = 4014,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct CloseCodeConversionError {
     code: u16,
 }
