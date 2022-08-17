@@ -2,48 +2,45 @@
 
 [![codecov badge][]][codecov link] [![discord badge][]][discord link] [![github badge][]][github link] [![license badge][]][license link] ![rust badge]
 
-This crate models types from the Discord API with a few convenience methods on
-top. Types are reproducible: payloads may be serialized and deserialized
-without any information loss.
+A collection of Discord API types.
 
-Resources can be compared as objects, but as Discord may update them at any
-time, it is recommended to compare them by ID. Resources' IDs are stable and
-globally unique.
+Refer to the official [Discord Docs] as the ultimate source of truth!
+
+Some types have associated builders, which can be found in the [`twilight-util`]
+crate.
+
+## Resources and their data
+
+Resources, such as channels, guilds and roles, are identified by stable and
+globally unique IDs. Resource's data may, however, be updated at any time, so
+do not assume that resource ID equality implies resource data equality.
+
+### Example
 
 ```rust,no_run
 use twilight_model::channel::Message;
 
-fn retrieve_message() -> Message {
+/// Fetch a message from the HTTP API.
+fn fetch_message() -> Message {
     unimplemented!()
 }
 
-let message_a = retrieve_message();
-let message_b = retrieve_message();
+let message_a = fetch_message();
+let message_b = fetch_message();
 
 if message_a.id == message_b.id {
     println!("received the same message");
     if message_a != message_b {
-        println!("message was updated between the calls to `retrieve_message`")
+        println!("message was updated between the calls to `fetch_message`");
     }
 }
 ```
 
-Related types are grouped together in modules, with `guild` and `channel` being
-the largest ones. Other crates may return, build on top of, or extend these
-types.
-
-Refer to the [Discord Docs] as the source of truth.
-
-Some models have associated builders, which can be found in the
-[`twilight-util`] crate.
-
 ## License
 
-[ISC][LICENSE.md]
+[ISC][license link]
 
-[LICENSE.md]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [`twilight-util`]: https://docs.rs/twilight-util
-[`twilight`]: https://docs.rs/twilight
 [codecov badge]: https://img.shields.io/codecov/c/gh/twilight-rs/twilight?logo=codecov&style=for-the-badge&token=E9ERLJL0L2
 [codecov link]: https://app.codecov.io/gh/twilight-rs/twilight/
 [discord badge]: https://img.shields.io/discord/745809834183753828?color=%237289DA&label=discord%20server&logo=discord&style=for-the-badge
