@@ -59,7 +59,7 @@ impl Display for RoleFieldsError {
 impl Error for RoleFieldsError {}
 
 /// Type of [`RoleFieldsError`] that occurred.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum RoleFieldsErrorType {
     /// Color was larger than a valid RGB hexadecimal value.
@@ -230,7 +230,7 @@ impl Display for TextFieldsError {
 impl Error for TextFieldsError {}
 
 /// Type of [`TextFieldsError`] that occurred.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum TextFieldsErrorType {
     /// The name is too short.
@@ -427,7 +427,7 @@ impl Display for VoiceFieldsError {
 impl Error for VoiceFieldsError {}
 
 /// Type of [`VoiceFieldsError`] that occurred.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum VoiceFieldsErrorType {
     /// The name is too short.
@@ -575,7 +575,7 @@ impl Display for CategoryFieldsError {
 impl Error for CategoryFieldsError {}
 
 /// Type of [`CategoryFieldsError`] that occurred.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum CategoryFieldsErrorType {
     /// The name is too short.

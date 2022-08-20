@@ -95,7 +95,7 @@ impl Error for HeaderParsingError {
 }
 
 /// Type of [`HeaderParsingError`] that occurred.
-#[derive(Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum HeaderParsingErrorType {
     /// Expected header is missing.

@@ -147,7 +147,7 @@ impl Display for ChannelError {
 impl Error for ChannelError {}
 
 /// Type of [`ChannelError`] that occurred.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum ChannelErrorType {
     /// Channel is not in a guild.
@@ -254,7 +254,7 @@ impl Display for RootError {
 impl Error for RootError {}
 
 /// Type of [`RootError`] that occurred.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum RootErrorType {
     /// The user's member information is not available in the guild.
@@ -281,6 +281,7 @@ pub enum RootErrorType {
 
 /// Error type that occurred while getting a member's assigned roles'
 /// permissions as well as the `@everyone` role's permissions.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum MemberRolesErrorType {
     /// Role is missing from the cache.
     RoleMissing { role_id: Id<RoleMarker> },
