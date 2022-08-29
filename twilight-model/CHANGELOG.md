@@ -1,5 +1,13 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- serialize options localizations as well ([#1871](https://github.com/twilight-rs/twilight/issues/1871))
+- deserialize `Event::GuildStickersUpdate` ([#1858](https://github.com/twilight-rs/twilight/issues/1858))
+- don't serialize `PartialMember.permissions` if `None` ([#1878](https://github.com/twilight-rs/twilight/issues/1878))
+
 ## [0.13.0] - 2022-08-14
 
 ### Bug Fixes
