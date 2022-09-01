@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.0] - 2022-08-14
+
+### Documentation
+
+- interaction endpoints not bound to global ratelimit ([#1853](https://github.com/twilight-rs/twilight/issues/1853))
+
+## [0.12.2] - 2022-08-11
+
+### Documentation
+
+- interaction endpoints not bound to global ratelimit ([#1853](https://github.com/twilight-rs/twilight/issues/1853))
+
 ## [0.12.1] - 2022-07-26
 
 ### Documentation

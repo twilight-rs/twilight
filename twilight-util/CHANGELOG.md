@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.0] - 2022-08-14
+
+### Refactor
+
+- [**breaking**] remove `Number` ([#1817](https://github.com/twilight-rs/twilight/issues/1817))
+
 ## [0.12.1] - 2022-07-26
 
 ### Bug Fixes
