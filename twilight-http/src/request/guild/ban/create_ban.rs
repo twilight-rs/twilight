@@ -12,12 +12,13 @@ use twilight_model::id::{
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
     create_guild_ban_delete_message_days as validate_create_guild_ban_delete_message_days,
+    create_guild_ban_delete_message_seconds as validate_create_guild_ban_delete_message_seconds,
     ValidationError,
 };
 
-struct CreateBanFields<'a> {
+struct CreateBanFields {
     delete_message_days: Option<u16>,
-    reason: Option<&'a str>,
+    delete_message_seconds: Option<u32>,
 }
 
 /// Bans a user from a guild, optionally with the number of days' worth of
@@ -48,9 +49,10 @@ struct CreateBanFields<'a> {
 /// ```
 #[must_use = "requests must be configured and executed"]
 pub struct CreateBan<'a> {
-    fields: CreateBanFields<'a>,
+    fields: CreateBanFields,
     guild_id: Id<GuildMarker>,
     http: &'a Client,
+    reason: Option<&'a str>,
     user_id: Id<UserMarker>,
 }
 
@@ -63,10 +65,10 @@ impl<'a> CreateBan<'a> {
         Self {
             fields: CreateBanFields {
                 delete_message_days: None,
-                reason: None,
-            },
+                delete_message_seconds: None, },
             guild_id,
             http,
+            reason: None,
             user_id,
         }
     }
@@ -81,12 +83,33 @@ impl<'a> CreateBan<'a> {
     /// number of days is greater than 7.
     ///
     /// [`CreateGuildBanDeleteMessageDays`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageDays
+    #[deprecated(since="0.13.0", note="please use `delete_message_seconds` instead")]
     pub const fn delete_message_days(mut self, days: u16) -> Result<Self, ValidationError> {
         if let Err(source) = validate_create_guild_ban_delete_message_days(days) {
             return Err(source);
         }
 
         self.fields.delete_message_days = Some(days);
+
+        Ok(self)
+    }
+
+    /// Set the number of seconds' worth of messages to delete.
+    ///
+    /// The number of seconds must be less than or equal to 604_800.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`CreateGuildBanDeleteMessageSeconds`] if the
+    /// number of seconds is greater than 604_800.
+    ///
+    /// [`CreateGuildBanDeleteMessageSeconds`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageSeconds
+    pub const fn delete_message_seconds(mut self, seconds: u32) -> Result<Self, ValidationError> {
+        if let Err(source) = validate_create_guild_ban_delete_message_seconds(seconds) {
+            return Err(source);
+        }
+
+        self.fields.delete_message_seconds = Some(seconds);
 
         Ok(self)
     }
@@ -108,7 +131,7 @@ impl<'a> AuditLogReason<'a> for CreateBan<'a> {
     fn reason(mut self, reason: &'a str) -> Result<Self, ValidationError> {
         validate_audit_reason(reason)?;
 
-        self.fields.reason.replace(reason);
+        self.reason.replace(reason);
 
         Ok(self)
     }
@@ -122,7 +145,7 @@ impl TryIntoRequest for CreateBan<'_> {
             user_id: self.user_id.get(),
         });
 
-        if let Some(reason) = self.fields.reason.as_ref() {
+        if let Some(reason) = self.reason.as_ref() {
             let header = request::audit_header(reason)?;
 
             request = request.headers(header);
