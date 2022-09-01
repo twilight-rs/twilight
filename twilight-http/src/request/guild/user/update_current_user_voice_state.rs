@@ -13,7 +13,8 @@ use twilight_model::id::{
 
 #[derive(Serialize)]
 struct UpdateCurrentUserVoiceStateFields<'a> {
-    channel_id: Id<ChannelMarker>,
+    #[serde(skip_serializing_if = "Option::is_none")]	
+    channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suppress: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,17 +33,28 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     pub(crate) const fn new(
         http: &'a Client,
         guild_id: Id<GuildMarker>,
-        channel_id: Id<ChannelMarker>,
     ) -> Self {
         Self {
             fields: UpdateCurrentUserVoiceStateFields {
-                channel_id,
+                channel_id: None,
                 suppress: None,
                 request_to_speak_timestamp: None,
             },
             guild_id,
             http,
         }
+    }
+
+    /// Specify the Id of the stage channel which the user is currently connected to.
+    /// 
+    /// # Caveats
+    /// 
+    /// - `channel_id` must currently point to a stage channel.
+    /// - User must already be connected to this stage channel.
+    pub const fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {
+        self.fields.channel_id = Some(channel_id);
+
+        self
     }
 
     /// Set the user's request to speak.
