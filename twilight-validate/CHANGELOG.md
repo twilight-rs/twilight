@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Refactor
+
+- mark c-style enums `#[non_exhaustive]` ([#1862](https://github.com/twilight-rs/twilight/issues/1862))
+
 ## [0.12.1] - 2022-07-26
 
 ### Documentation

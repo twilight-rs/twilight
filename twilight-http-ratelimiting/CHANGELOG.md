@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- `/channels/id/thread-members/id` parsing ([#1880](https://github.com/twilight-rs/twilight/issues/1880))
+
 ## [0.13.0] - 2022-08-14
 
 ### Documentation
