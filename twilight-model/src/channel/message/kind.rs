@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 /// [`Message`]: super::Message
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
 pub enum MessageType {
     /// Regular message.

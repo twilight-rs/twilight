@@ -17,8 +17,8 @@ pub struct PermissionOverwrite {
 /// Type of a permission overwrite target.
 // Keep in sync with `twilight_util::permission_calculator::PermissionCalculator`!
 #[derive(Clone, Copy, Debug, Serialize, Eq, Hash, PartialEq, Deserialize)]
-#[serde(from = "u8", into = "u8")]
-#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+#[serde(from = "u8", into = "u8", rename_all = "snake_case")]
 pub enum PermissionOverwriteType {
     /// Permission overwrite targets an individual member.
     Member,
