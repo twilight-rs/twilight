@@ -13,7 +13,7 @@ use twilight_model::id::{
 
 #[derive(Serialize)]
 struct UpdateCurrentUserVoiceStateFields<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]	
+    #[serde(skip_serializing_if = "Option::is_none")]
     channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     suppress: Option<bool>,
@@ -30,10 +30,7 @@ pub struct UpdateCurrentUserVoiceState<'a> {
 }
 
 impl<'a> UpdateCurrentUserVoiceState<'a> {
-    pub(crate) const fn new(
-        http: &'a Client,
-        guild_id: Id<GuildMarker>,
-    ) -> Self {
+    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
         Self {
             fields: UpdateCurrentUserVoiceStateFields {
                 channel_id: None,
@@ -46,9 +43,9 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
     }
 
     /// Specify the Id of the stage channel which the user is currently connected to.
-    /// 
+    ///
     /// # Caveats
-    /// 
+    ///
     /// - `channel_id` must currently point to a stage channel.
     /// - User must already be connected to this stage channel.
     pub const fn channel_id(mut self, channel_id: Id<ChannelMarker>) -> Self {

@@ -590,7 +590,7 @@ impl Client {
         &self,
         guild_id: Id<GuildMarker>,
     ) -> UpdateCurrentUserVoiceState<'_> {
-        UpdateCurrentUserVoiceState::new(self, guild_id, )
+        UpdateCurrentUserVoiceState::new(self, guild_id)
     }
 
     /// Get the current user's connections.
