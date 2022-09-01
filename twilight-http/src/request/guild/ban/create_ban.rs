@@ -9,6 +9,7 @@ use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
     Id,
 };
+#[allow(deprecated)]
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
     create_guild_ban_delete_message_days as validate_create_guild_ban_delete_message_days,
@@ -65,7 +66,8 @@ impl<'a> CreateBan<'a> {
         Self {
             fields: CreateBanFields {
                 delete_message_days: None,
-                delete_message_seconds: None, },
+                delete_message_seconds: None,
+            },
             guild_id,
             http,
             reason: None,
@@ -83,8 +85,9 @@ impl<'a> CreateBan<'a> {
     /// number of days is greater than 7.
     ///
     /// [`CreateGuildBanDeleteMessageDays`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageDays
-    #[deprecated(since="0.13.0", note="please use `delete_message_seconds` instead")]
+    #[deprecated(since = "0.13.0", note = "please use `delete_message_seconds` instead")]
     pub const fn delete_message_days(mut self, days: u16) -> Result<Self, ValidationError> {
+        #[allow(deprecated)]
         if let Err(source) = validate_create_guild_ban_delete_message_days(days) {
             return Err(source);
         }

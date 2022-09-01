@@ -13,7 +13,7 @@ use twilight_model::util::Timestamp;
 pub const AUDIT_REASON_MAX: usize = 512;
 
 /// Maximum amount of days for messages to be deleted upon ban.
-#[deprecated(since="0.13.0", note="Will be removed in a future release")]
+#[deprecated(since = "0.13.0", note = "Will be removed in a future release")]
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u16 = 7;
 
 /// Maximum amount of seconds for messages to be deleted upon ban.
@@ -178,6 +178,7 @@ impl Display for ValidationError {
 
                 Display::fmt(&AUDIT_REASON_MAX, f)
             }
+            #[allow(deprecated)]
             ValidationErrorType::CreateGuildBanDeleteMessageDays {
                 days: delete_message_days,
             } => {
@@ -392,7 +393,7 @@ pub enum ValidationErrorType {
         len: usize,
     },
     /// Provided create guild ban delete message days was invalid.
-    #[deprecated(since="0.13.0", note="Will be removed in a future release")]
+    #[deprecated(since = "0.13.0", note = "Will be removed in a future release")]
     CreateGuildBanDeleteMessageDays {
         /// Invalid days.
         days: u16,
@@ -549,8 +550,9 @@ pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError
 ///
 /// [`CreateGuildBanDeleteMessageDays`]: ValidationErrorType::CreateGuildBanDeleteMessageDays
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#create-guild-ban
-#[deprecated(since="0.13.0", note="Will be removed in a future release")]
+#[deprecated(since = "0.13.0", note = "Will be removed in a future release")]
 pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), ValidationError> {
+    #[allow(deprecated)]
     if days <= CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX {
         Ok(())
     } else {
@@ -582,7 +584,6 @@ pub const fn create_guild_ban_delete_message_seconds(seconds: u32) -> Result<(),
         })
     }
 }
-
 
 /// Validate that a timeout time is not too far in the future.
 ///
@@ -1133,6 +1134,7 @@ mod tests {
         assert!(audit_reason("a".repeat(513)).is_err());
     }
 
+    #[allow(deprecated)]
     #[test]
     fn create_guild_ban_delete_message_days_max() {
         assert!(create_guild_ban_delete_message_days(0).is_ok());
