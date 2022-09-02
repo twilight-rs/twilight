@@ -37,7 +37,8 @@ pub struct Button {
 ///
 /// [the Discord Docs/Button Object]: https://discord.com/developers/docs/interactions/message-components#button-object-button-styles
 // Keep in sync with `twilight-validate::component`!
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
 pub enum ButtonStyle {
     /// Button indicates a primary action.
