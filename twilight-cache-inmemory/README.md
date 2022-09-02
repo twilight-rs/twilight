@@ -34,20 +34,38 @@ Update a cache with events that come in through the gateway:
 
 ```rust,no_run
 use std::{env, error::Error};
-use futures::stream::StreamExt;
 use twilight_cache_inmemory::InMemoryCache;
-use twilight_gateway::{Intents, Shard};
+use twilight_gateway::{Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Initialize the tracing subscriber.
+    tracing_subscriber::fmt::init();
+
     let token = env::var("DISCORD_TOKEN")?;
-    let (shard, mut events) = Shard::new(token, Intents::GUILD_MESSAGES);
-    shard.start().await?;
+    let mut shard = Shard::new(
+        ShardId::ONE,
+        token,
+        Intents::GUILD_MESSAGES,
+    ).await?;
 
     // Create a cache, caching up to 10 messages per channel:
     let cache = InMemoryCache::builder().message_cache_size(10).build();
 
-    while let Some(event) = events.next().await {
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
+
+                continue;
+            }
+        };
+
         // Update the cache with the event.
         cache.update(&event);
     }

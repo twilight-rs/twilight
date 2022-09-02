@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_custom() {
+    fn custom() {
         let activity = Activity {
             application_id: None,
             assets: None,

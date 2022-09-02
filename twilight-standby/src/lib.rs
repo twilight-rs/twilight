@@ -1317,6 +1317,7 @@ mod tests {
                 id: Id::new(1),
             },
             guilds: Vec::new(),
+            resume_gateway_url: "wss://gateway.discord.gg".into(),
             session_id: String::new(),
             shard: Some([5, 7]),
             user: CurrentUser {
@@ -1336,7 +1337,6 @@ mod tests {
                 locale: None,
             },
             version: 6,
-            resume_gateway_url: "wss://gateway.discord.gg/".to_owned(),
         };
         let event = Event::Ready(Box::new(ready));
 

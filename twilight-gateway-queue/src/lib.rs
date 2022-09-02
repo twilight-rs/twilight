@@ -45,7 +45,7 @@ use tokio::{
 /// gateway.
 ///
 /// This will usually only need to be implemented when you have a multi-process
-/// cluster setup. Refer to the [module-level] documentation for more
+/// sharding setup. Refer to the [module-level] documentation for more
 /// information.
 ///
 /// [module-level]: crate
@@ -65,8 +65,8 @@ pub trait Queue: Debug + Send + Sync {
 /// the requests every 6 seconds. The queue is necessary because there's a
 /// ratelimit on how often shards can initiate sessions.
 ///
-/// You usually won't need to handle this yourself, because the `Cluster` will
-/// do that for you when managing multiple shards.
+/// Handling shard queues usually won't need to be manually handled due to the
+/// gateway having built-in queueing when managing multiple shards.
 ///
 /// # When not to use this
 ///

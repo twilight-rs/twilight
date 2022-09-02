@@ -1,35 +1,75 @@
+//! Efficiently decompress Discord gateway messages.
+//!
+//! This module contains the [`Inflater`], which decompresses messages sent over
+//! the gateway. It does this by reusing buffers so only a few allocations happen
+//! in the hot path.
+//!
+//! # Resizing buffers
+//!
+//! Buffers are resized after some heuristics:
+//!
+//! - if the data does not fit the buffer size is doubled; or
+//! - at most once per minute the buffer will be resized down to the size of the
+//!   most recent received message. This is especially useful since Discord
+//!   generally sends the largest messages on startup.
+
+use crate::ShardId;
 use flate2::{Decompress, DecompressError, FlushDecompress};
 use std::{mem, time::Instant};
 
+/// The "magic number" deciding if a message is done or if another
+/// message needs to be read.
+///
+/// The suffix is documented in the [Discord docs].
+///
+/// [Discord docs]: https://discord.com/developers/docs/topics/gateway#transport-compression-transport-compression-example
 const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
+
+/// Initial buffer size of 32 KB, this size is used for both the internal buffer
+/// and the buffer containing messages to be read.
 const INTERNAL_BUFFER_SIZE: usize = 32 * 1024;
 
+/// Efficient decompressing of gateway messages sent by Discord.
+#[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug)]
 pub struct Inflater {
+    /// Zlib decompressor, which can have a considerable heap size given the
+    /// main way this saves memory is by having a dictionary to look up data.
     decompress: Decompress,
+    /// Buffer for storing compressed data. Data is stored here via [`extend`].
+    ///
+    /// [`extend`]: Self::extend
     compressed: Vec<u8>,
+    /// Internal buffer used to store intermediate decompressed values in.
+    ///
+    /// Due to decompression sometimes needing to be invoked multiple times this
+    /// buffer is used to keep the intermediate values which are then copied to
+    /// [`buffer`].
+    ///
+    /// [`buffer`]: Self::buffer
     internal_buffer: Vec<u8>,
+    /// Buffer which gets handed to the user when it contains a full message.
     buffer: Vec<u8>,
+    /// When the last resize occurred, used to compute if it is time for another
+    /// resize.
     last_resize: Instant,
-    shard: [u64; 2],
+    /// ID of the shard the inflater is owned by.
+    ///
+    /// Used solely for debugging purposes.
+    shard_id: ShardId,
 }
 
 impl Inflater {
     /// Create a new inflater for a shard.
-    pub fn new(shard: [u64; 2]) -> Self {
+    pub fn new(shard_id: ShardId) -> Self {
         Self {
             buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
             compressed: Vec::new(),
             decompress: Decompress::new(true),
             internal_buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
             last_resize: Instant::now(),
-            shard,
+            shard_id,
         }
-    }
-
-    /// Return a mutable reference to the buffer.
-    pub fn buffer_mut(&mut self) -> &mut [u8] {
-        self.buffer.as_mut_slice()
     }
 
     /// Extend the internal compressed buffer with bytes.
@@ -56,25 +96,34 @@ impl Inflater {
             return Ok(None);
         }
 
+        // Amount of bytes the decompressor has handled up to now.
         let before = self.decompress.total_in();
+
+        // Offset of the `compressed` field, use to call `decompress_vec` multiple
+        // times.
         let mut offset = 0;
 
         loop {
             self.internal_buffer.clear();
 
+            // Use Sync to ensure data is flushed to the internal buffer.
             self.decompress.decompress_vec(
                 &self.compressed[offset..],
                 &mut self.internal_buffer,
                 FlushDecompress::Sync,
             )?;
 
+            // Compute offset of the next loop.
             offset = (self.decompress.total_in() - before)
                 .try_into()
                 .unwrap_or_default();
+            // Move the intermediate data into the user facing buffer.
             self.buffer.extend_from_slice(&self.internal_buffer[..]);
 
             let not_at_capacity = self.internal_buffer.len() < self.internal_buffer.capacity();
 
+            // Break if the offset is outside of the buffer, otherwise it could
+            // panic.
             if not_at_capacity || offset > self.compressed.len() {
                 break;
             }
@@ -83,8 +132,7 @@ impl Inflater {
         tracing::trace!(
             bytes_in = self.compressed.len(),
             bytes_out = self.buffer.len(),
-            shard_id = self.shard[0],
-            shard_total = self.shard[1],
+            shard_id = %self.shard_id,
             "payload lengths",
         );
 
@@ -101,8 +149,7 @@ impl Inflater {
             tracing::trace!(
                 saved_kib = saved_kib,
                 saved_percentage = %saved_percentage_readable,
-                shard_id = self.shard[0],
-                shard_total = self.shard[1],
+                shard_id = %self.shard_id,
                 total_in = self.decompress.total_in(),
                 total_out = self.decompress.total_out(),
                 "data saved",
@@ -112,15 +159,15 @@ impl Inflater {
         #[cfg(feature = "metrics")]
         self.inflater_metrics();
 
-        tracing::trace!("capacity: {}", self.buffer.capacity());
+        tracing::trace!(capacity = self.buffer.capacity(), "capacity");
 
         Ok(Some(&mut self.buffer))
     }
 
     /// Clear the buffer and shrink it if the capacity is too large.
     ///
-    /// If the capacity is 4 times larger than the buffer length then the
-    /// capacity will be shrunk to the length.
+    /// If more than a minute has passed since last shrink another will be
+    /// initiated.
     #[tracing::instrument(level = "trace")]
     pub fn clear(&mut self) {
         self.shrink();
@@ -132,7 +179,12 @@ impl Inflater {
 
     /// Reset the state of the inflater back to its default state.
     pub fn reset(&mut self) {
-        let _old_inflater = mem::replace(self, Self::new(self.shard));
+        *self = Self::new(self.shard_id);
+    }
+
+    /// Take the buffer, replacing it with a new one.
+    pub fn take(&mut self) -> Vec<u8> {
+        mem::take(&mut self.buffer)
     }
 
     /// Log metrics about the inflater.
@@ -140,15 +192,15 @@ impl Inflater {
     #[allow(clippy::cast_precision_loss)]
     fn inflater_metrics(&self) {
         metrics::gauge!(
-            format!("Inflater-Capacity-{}", self.shard[0]),
+            format!("Inflater-Capacity-{}", self.shard_id.number()),
             self.buffer.capacity() as f64
         );
         metrics::gauge!(
-            format!("Inflater-In-{}", self.shard[0]),
+            format!("Inflater-In-{}", self.shard_id.number()),
             self.decompress.total_in() as f64
         );
         metrics::gauge!(
-            format!("Inflater-Out-{}", self.shard[0]),
+            format!("Inflater-Out-{}", self.shard_id.number()),
             self.decompress.total_out() as f64
         );
     }
@@ -165,14 +217,12 @@ impl Inflater {
 
         tracing::trace!(
             capacity = self.compressed.capacity(),
-            shard_id = self.shard[0],
-            shard_total = self.shard[1],
+            shard_id = %self.shard_id,
             "compressed capacity",
         );
         tracing::trace!(
             capacity = self.buffer.capacity(),
-            shard_id = self.shard[0],
-            shard_total = self.shard[1],
+            shard_id = %self.shard_id,
             "buffer capacity",
         );
 
@@ -183,6 +233,7 @@ impl Inflater {
 #[cfg(test)]
 mod tests {
     use super::Inflater;
+    use crate::ShardId;
     use std::error::Error;
 
     const MESSAGE: &[u8] = &[
@@ -201,7 +252,7 @@ mod tests {
         112, 114, 100, 45, 109, 97, 105, 110, 45, 56, 53, 56, 100, 92, 34, 44, 123, 92, 34, 109,
         105, 99, 114, 111, 115, 92, 34, 58, 48, 46, 48, 125, 93, 34, 93, 125, 125,
     ];
-    const SHARD: [u64; 2] = [2, 5];
+    const SHARD: ShardId = ShardId::new(2, 5);
 
     #[test]
     fn inflater() -> Result<(), Box<dyn Error>> {
@@ -222,8 +273,6 @@ mod tests {
         assert!(inflater.compressed.is_empty());
         assert!(!inflater.buffer.is_empty());
         assert!(!inflater.internal_buffer.is_empty());
-
-        assert_eq!(OUTPUT, inflater.buffer_mut());
 
         // Check to make sure `buffer` and `internal_buffer` haven't been cleared.
         assert!(!inflater.internal_buffer.is_empty());

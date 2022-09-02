@@ -49,9 +49,9 @@ enum Field {
     T,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Hello {
-    heartbeat_interval: u64,
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct Hello {
+    pub heartbeat_interval: u64,
 }
 
 /// A deserializer that deserializes into a `GatewayEvent` by cloning some bits
@@ -167,7 +167,7 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 
     /// Return an immutable reference to the event type of the payload.
-    pub const fn event_type_ref(&self) -> Option<&str> {
+    pub const fn event_type_ref(&self) -> Option<&'a str> {
         self.event_type
     }
 
