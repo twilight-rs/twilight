@@ -589,9 +589,8 @@ impl Client {
     pub const fn update_current_user_voice_state(
         &self,
         guild_id: Id<GuildMarker>,
-        channel_id: Id<ChannelMarker>,
     ) -> UpdateCurrentUserVoiceState<'_> {
-        UpdateCurrentUserVoiceState::new(self, guild_id, channel_id)
+        UpdateCurrentUserVoiceState::new(self, guild_id)
     }
 
     /// Get the current user's connections.
