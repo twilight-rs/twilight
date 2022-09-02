@@ -386,8 +386,8 @@ pub fn start_cluster<F: Fn(ShardId) -> Config>(
 ///
 /// # Panics
 ///
-/// Panics if the start is more than the end, the start is less than the total,
-/// or the end is less than or equal to the total.
+/// Panics if the start is more than the end, the start is more than the total,
+/// or the end is greater than to the total.
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
@@ -479,8 +479,8 @@ pub async fn start_recommended<F: Fn(ShardId) -> Config>(
 ///
 /// # Panics
 ///
-/// Panics if the start is more than the end, the start is less than the total,
-/// or the end is less than or equal to the total.
+/// Panics if the start is more than the end, the start is more than the total,
+/// or the end is greater than to the total.
 fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
     // 0, or the provided start bound (inclusive).
     let start = match range.start_bound() {
