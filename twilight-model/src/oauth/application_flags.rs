@@ -42,7 +42,7 @@ bitflags! {
         const GATEWAY_MESSAGE_CONTENT_LIMITED = 1 << 19;
 
         /// Indicates whether an app has registered global [application commands].
-        /// 
+        ///
         /// [application commands]: https://discord.com/developers/docs/interactions/application-commands
         const APPLICATION_COMMAND_BADGE = 1 << 23;
     }
