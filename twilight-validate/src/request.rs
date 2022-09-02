@@ -12,7 +12,7 @@ use twilight_model::util::Timestamp;
 /// The maximum audit log reason length in UTF-16 codepoints.
 pub const AUDIT_REASON_MAX: usize = 512;
 
-/// Maximum amount of seconds for messages to be deleted upon ban.
+/// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
 
 /// Maximum amount of time a member can be timed out for.
