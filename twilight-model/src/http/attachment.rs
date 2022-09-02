@@ -1,5 +1,6 @@
 //! Models used when sending attachments to Discord.
 
+use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 
 /// Attachments used in messages.
@@ -32,7 +33,7 @@ pub struct Attachment {
     pub description: Option<String>,
     /// Content of the file.
     #[serde(skip)]
-    pub file: Vec<u8>,
+    pub file: Bytes,
     /// Name of the file.
     ///
     /// Examples may be "twilight_sparkle.png", "cat.jpg", or "logs.txt".
@@ -62,7 +63,7 @@ impl Attachment {
     ///
     /// let attachment = Attachment::from_bytes(filename, file_content, id);
     /// ```
-    pub const fn from_bytes(filename: String, file: Vec<u8>, id: u64) -> Self {
+    pub const fn from_bytes(filename: String, file: Bytes, id: u64) -> Self {
         Self {
             description: None,
             file,
