@@ -1,8 +1,10 @@
 //! Errors returned by gateway operations.
 
-pub use crate::compression::{CompressionError, CompressionErrorType};
+pub use crate::{
+    compression::{CompressionError, CompressionErrorType},
+    json::{GatewayEventParsingError, GatewayEventParsingErrorType},
+};
 
-use crate::json::GatewayEventParsingError;
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},

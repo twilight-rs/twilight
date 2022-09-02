@@ -15,13 +15,13 @@ use std::mem;
 /// # Reusing sessions
 ///
 /// Sessions are able to be reused across connections to Discord. If an
-/// application's process needs to be restarted, then this session information
-/// - which can be (de)serialized via serde - can be stored, the application
-/// restarted, and then used again via [`ConfigBuilder::session`].
+/// application's process needs to be restarted, then this session
+/// information—which can be (de)serialized via serde—can be stored, the
+/// application restarted, and then used again via [`ConfigBuilder::session`].
 ///
 /// If the delay between disconnecting from the gateway and reconnecting isn't
 /// too long and Discord hasn't invalidated the session, then the session will
-/// be re-used by Discord. As a result, any events that were "missed" while
+/// be reused by Discord. As a result, any events that were "missed" while
 /// restarting and reconnecting will be played back, meaning the application
 /// won't have missed any events. If the delay has been too long, then a new
 /// session will be initialized, resulting in those events being missed.

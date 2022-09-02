@@ -122,7 +122,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 There are a few additional examples located in the
-[repository examples][github examples link].
+[repository][github examples link].
 
 [`native-tls`]: https://crates.io/crates/native-tls
 [`rustls`]: https://crates.io/crates/rustls

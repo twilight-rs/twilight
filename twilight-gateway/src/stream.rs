@@ -2,11 +2,10 @@
 //!
 //! There are two groups of functionality to the stream module: initializers and
 //! selectors. The initializers are functions like [`start_recommended`], which
-//! initializes a group of shards based on the recommended number of shards
-//! Discord recommends is started for the application. Once these shards are
-//! initialized, the events or websocket messages of all of the shards can be
-//! collected into an efficient stream via [`ShardEventStream`] and
-//! [`ShardMessageStream`].
+//! initializes a group of shards based on Discord's recommendation. Once these
+//! shards are initialized, the events or websocket messages of all of the
+//! shards can be collected into an efficient stream via [`ShardEventStream`]
+//! and [`ShardMessageStream`].
 
 use crate::{
     error::{ReceiveMessageError, ShardInitializeError},

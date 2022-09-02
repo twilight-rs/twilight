@@ -24,7 +24,7 @@ pub const COMPRESSION_FEATURES: &str = "&compress=zlib-stream";
 #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
 pub const COMPRESSION_FEATURES: &str = "";
 
-/// Sending a command failed.
+/// An operation relating to compression failed.
 #[derive(Debug)]
 pub struct CompressionError {
     /// Type of error.
