@@ -9,7 +9,6 @@ use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
     Id,
 };
-#[allow(deprecated)]
 use twilight_validate::request::{
     audit_reason as validate_audit_reason,
     create_guild_ban_delete_message_seconds as validate_create_guild_ban_delete_message_seconds,
