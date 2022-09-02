@@ -6,11 +6,11 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
+    guild::scheduled_event::GuildScheduledEventUser,
     id::{
         marker::{GuildMarker, ScheduledEventMarker, UserMarker},
         Id,
     },
-    scheduled_event::GuildScheduledEventUser,
 };
 use twilight_validate::request::{
     scheduled_event_get_users as validate_scheduled_event_get_users, ValidationError,

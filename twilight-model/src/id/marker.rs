@@ -170,7 +170,7 @@ pub struct RoleMarker;
 ///
 /// Types such as [`GuildScheduledEvent`] use this ID marker.
 ///
-/// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+/// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ScheduledEventMarker;
@@ -179,7 +179,7 @@ pub struct ScheduledEventMarker;
 ///
 /// Types such as [`GuildScheduledEvent`] use this ID marker.
 ///
-/// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+/// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ScheduledEventEntityMarker;

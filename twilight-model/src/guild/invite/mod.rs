@@ -10,8 +10,7 @@ pub use self::{
     welcome_screen::{WelcomeScreen, WelcomeScreenChannel},
 };
 
-use super::user::User;
-use crate::util::Timestamp;
+use crate::{user::User, util::Timestamp};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

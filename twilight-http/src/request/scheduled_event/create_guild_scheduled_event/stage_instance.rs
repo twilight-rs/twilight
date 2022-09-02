@@ -5,8 +5,8 @@ use crate::{
     response::ResponseFuture,
 };
 use twilight_model::{
+    guild::scheduled_event::{EntityType, GuildScheduledEvent},
     id::{marker::ChannelMarker, Id},
-    scheduled_event::{EntityType, GuildScheduledEvent},
     util::Timestamp,
 };
 use twilight_validate::request::{

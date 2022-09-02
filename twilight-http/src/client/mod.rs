@@ -99,7 +99,7 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
-    guild::{auto_moderation::AutoModerationEventType, MfaLevel},
+    guild::{auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel},
     http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
@@ -109,7 +109,6 @@ use twilight_model::{
         },
         Id,
     },
-    scheduled_event::PrivacyLevel,
 };
 use twilight_validate::{
     channel::ChannelValidationError, request::ValidationError, sticker::StickerValidationError,
@@ -2185,7 +2184,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{id::Id, scheduled_event::PrivacyLevel, util::Timestamp};
+    /// use twilight_model::{id::Id, guild::scheduled_event::PrivacyLevel, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2210,7 +2209,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{id::Id, scheduled_event::PrivacyLevel, util::Timestamp};
+    /// use twilight_model::{id::Id, guild::scheduled_event::PrivacyLevel, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2291,9 +2290,9 @@ impl Client {
     /// `channel_id` field is cleared and the [`channel_id`] method has no
     /// effect. Additionally, you must set a location with [`location`].
     ///
-    /// [`EntityType::External`]: twilight_model::scheduled_event::EntityType::External
-    /// [`EntityType::StageInstance`]: twilight_model::scheduled_event::EntityType::StageInstance
-    /// [`EntityType::Voice`]: twilight_model::scheduled_event::EntityType::Voice
+    /// [`EntityType::External`]: twilight_model::guild::scheduled_event::EntityType::External
+    /// [`EntityType::StageInstance`]: twilight_model::guild::scheduled_event::EntityType::StageInstance
+    /// [`EntityType::Voice`]: twilight_model::guild::scheduled_event::EntityType::Voice
     /// [`channel_id`]: UpdateGuildScheduledEvent::channel_id
     /// [`location`]: UpdateGuildScheduledEvent::location
     pub const fn update_guild_scheduled_event(

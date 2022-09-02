@@ -63,7 +63,7 @@ impl UserOrId {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
-pub struct PresenceIntermediary {
+pub(crate) struct PresenceIntermediary {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,

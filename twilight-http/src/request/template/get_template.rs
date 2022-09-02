@@ -5,7 +5,7 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::template::Template;
+use twilight_model::guild::template::Template;
 
 /// Get a template by its code.
 #[must_use = "requests must be configured and executed"]
