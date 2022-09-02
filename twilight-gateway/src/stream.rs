@@ -20,7 +20,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     future::Future,
-    ops::{Deref, DerefMut},
+    ops::{Bound, Deref, DerefMut, Range, RangeBounds},
     pin::Pin,
     rc::Rc,
     task::{Context, Poll},
@@ -380,31 +380,26 @@ pub fn start_cluster<F: Fn(ShardId) -> Config>(
 
 /// Start a range of shards with provided configuration for each shard.
 ///
-/// Lower end of the range must be less than the higher end. The higher end of
-/// the range is exclusive.
+/// Lower end of the range must be less than the higher end.
 ///
 /// Shards will all share the same TLS connector to reduce memory usage.
 ///
 /// # Panics
 ///
-/// Panics if the lower end of the range is equal to the higher end of the
-/// range or the total isn't greater than the lower or higher end of the range.
+/// Panics if the start is more than the end, the start is less than the total,
+/// or the end is less than or equal to the total.
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
 pub fn start_range<F: Fn(ShardId) -> Config>(
-    from: u64,
-    to: u64,
+    range: impl RangeBounds<u64>,
     total: u64,
     per_shard_config: F,
 ) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static {
-    assert!(from < to, "range start must be less than the end");
-    assert!(from < total, "range start must be less than the total");
-    assert!(to < total, "range end must be less than the total");
-
+    let range = calculate_range(range, total);
     let tls = TlsContainer::new().unwrap();
 
-    (from..to)
+    range
         .map(|index| {
             let id = ShardId::new(index, total);
             let mut config = per_shard_config(id);
@@ -477,10 +472,33 @@ pub async fn start_recommended<F: Fn(ShardId) -> Config>(
             source: Some(Box::new(source)),
         })?;
 
-    Ok(start_range(
-        0,
-        info.shards - 1,
-        info.shards,
-        per_shard_config,
-    ))
+    Ok(start_range(.., info.shards, per_shard_config))
+}
+
+/// Transform any range into a sized range based on the total.
+///
+/// # Panics
+///
+/// Panics if the start is more than the end, the start is less than the total,
+/// or the end is less than or equal to the total.
+fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
+    // 0, or the provided start bound (inclusive).
+    let start = match range.start_bound() {
+        Bound::Excluded(from) => *from + 1,
+        Bound::Included(from) => *from,
+        Bound::Unbounded => 0,
+    };
+
+    // Total, or the provided end bound (exclusive).
+    let end = match range.end_bound() {
+        Bound::Excluded(to) => *to,
+        Bound::Included(to) => *to + 1,
+        Bound::Unbounded => total,
+    };
+
+    assert!(start < end, "range start must be less than the end");
+    assert!(start < total, "range start must be less than the total");
+    assert!(end <= total, "range end must be less than the total");
+
+    start..end
 }
