@@ -14,7 +14,7 @@ use crate::{
     Client,
 };
 use twilight_model::{
-    application::command::{permissions::CommandPermissions, Command},
+    application::command::{permissions::CommandPermission, Command},
     http::interaction::InteractionResponse,
     id::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker, InteractionMarker, MessageMarker},
@@ -339,7 +339,7 @@ impl<'a> InteractionClient<'a> {
         &'a self,
         guild_id: Id<GuildMarker>,
         command_id: Id<CommandMarker>,
-        permissions: &'a [CommandPermissions],
+        permissions: &'a [CommandPermission],
     ) -> Result<UpdateCommandPermissions<'a>, CommandValidationError> {
         UpdateCommandPermissions::new(
             self.client,
