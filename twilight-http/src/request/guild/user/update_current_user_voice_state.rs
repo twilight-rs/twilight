@@ -42,7 +42,7 @@ impl<'a> UpdateCurrentUserVoiceState<'a> {
         }
     }
 
-    /// Specify the Id of the stage channel which the user is currently connected to.
+    /// Specify the ID of the stage channel which the user is currently connected to.
     ///
     /// # Caveats
     ///
