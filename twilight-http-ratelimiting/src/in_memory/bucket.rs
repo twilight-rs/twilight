@@ -7,6 +7,7 @@ use super::GlobalLockPair;
 use crate::{headers::RatelimitHeaders, request::Path, ticket::TicketNotifier};
 use std::{
     collections::HashMap,
+    mem,
     sync::{
         atomic::{AtomicU64, Ordering},
         Arc, Mutex,
@@ -218,9 +219,7 @@ impl BucketQueueTask {
     #[tracing::instrument(name = "background queue task", skip(self), fields(path = ?self.path))]
     pub async fn run(self) {
         while let Some(queue_tx) = self.next().await {
-            if self.global.is_locked() {
-                self.global.0.lock().await;
-            }
+            let lock = self.global.0.lock().await;
 
             let ticket_headers = if let Some(ticket_headers) = queue_tx.available() {
                 ticket_headers
@@ -242,6 +241,8 @@ impl BucketQueueTask {
                     tracing::debug!("receiver timed out");
                 }
             }
+
+            mem::drop(lock);
         }
 
         tracing::debug!("bucket appears finished, removing");
