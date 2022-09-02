@@ -6,8 +6,8 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
+    guild::invite::Invite,
     id::{marker::GuildMarker, Id},
-    invite::Invite,
 };
 
 /// Get information about the invites of a guild.

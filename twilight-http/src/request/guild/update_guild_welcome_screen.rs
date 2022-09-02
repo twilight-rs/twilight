@@ -7,8 +7,8 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
+    guild::invite::{WelcomeScreen, WelcomeScreenChannel},
     id::{marker::GuildMarker, Id},
-    invite::{WelcomeScreen, WelcomeScreenChannel},
 };
 
 #[derive(Serialize)]

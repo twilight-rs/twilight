@@ -7,11 +7,11 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
+    guild::invite::{Invite, TargetType},
     id::{
         marker::{ApplicationMarker, ChannelMarker, UserMarker},
         Id,
     },
-    invite::{Invite, TargetType},
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason, invite_max_age as validate_invite_max_age,
