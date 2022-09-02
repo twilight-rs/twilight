@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.13.2] - 2022-09-01
+
+### Bug Fixes
+
+- autocomplete focused options are always strings ([#1873](https://github.com/twilight-rs/twilight/issues/1873))
+
+### Refactor
+
+- mark c-style enums `#[non_exhaustive]` ([#1862](https://github.com/twilight-rs/twilight/issues/1862))
+
 ## [0.13.1] - 2022-08-29
 
 ### Bug Fixes
