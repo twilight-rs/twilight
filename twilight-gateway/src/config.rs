@@ -404,7 +404,6 @@ impl ConfigBuilder {
     ///
     /// let shard = Shard::with_config(ShardId::ONE, config).await?;
     /// # Ok(()) }
-    ///
     /// ```
     #[allow(clippy::missing_const_for_fn)]
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {

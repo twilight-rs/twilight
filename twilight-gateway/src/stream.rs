@@ -84,7 +84,10 @@ pub enum StartRecommendedErrorType {
 /// ```no_run
 /// use futures::StreamExt;
 /// use std::{collections::HashMap, env, future};
-/// use twilight_gateway::{stream::{self, ShardEventStream}, Config, Intents};
+/// use twilight_gateway::{
+///     stream::{self, ShardEventStream},
+///     Config, Intents,
+/// };
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
@@ -115,7 +118,7 @@ pub enum StartRecommendedErrorType {
 ///             }
 ///
 ///             continue;
-///         },
+///         }
 ///         None => break,
 ///     };
 ///
@@ -184,7 +187,10 @@ impl<'a> Stream for ShardEventStream<'a> {
 /// ```no_run
 /// use futures::StreamExt;
 /// use std::{collections::HashMap, env, future};
-/// use twilight_gateway::{stream::{self, ShardMessageStream}, Config, Intents};
+/// use twilight_gateway::{
+///     stream::{self, ShardMessageStream},
+///     Config, Intents,
+/// };
 /// use twilight_http::Client;
 ///
 /// # #[tokio::main]
@@ -215,7 +221,7 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///             }
 ///
 ///             continue;
-///         },
+///         }
 ///         None => break,
 ///     };
 ///

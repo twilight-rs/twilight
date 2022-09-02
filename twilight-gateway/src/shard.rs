@@ -234,14 +234,7 @@ struct MinimalReady {
 /// ```no_run
 /// use futures::stream::StreamExt;
 /// use std::env;
-/// use twilight_gateway::{
-///     Config,
-///     EventTypeFlags,
-///     Event,
-///     Intents,
-///     Shard,
-///     ShardId,
-/// };
+/// use twilight_gateway::{Config, Event, EventTypeFlags, Intents, Shard, ShardId};
 ///
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Use the value of the "DISCORD_TOKEN" environment variable as the bot's
@@ -274,11 +267,11 @@ struct MinimalReady {
 ///     match event {
 ///         Event::MessageCreate(message) => {
 ///             println!("message received with content: {}", message.content);
-///         },
+///         }
 ///         Event::MessageDelete(message) => {
 ///             println!("message with ID {} deleted", message.id);
-///         },
-///         _ => {},
+///         }
+///         _ => {}
 ///     }
 /// }
 /// # Ok(()) }
@@ -342,9 +335,9 @@ impl Shard {
     /// current connection status:
     ///
     /// ```no_run
-    /// use twilight_gateway::{Intents, Shard, ShardId};
     /// use std::{env, time::Duration};
     /// use tokio::time as tokio_time;
+    /// use twilight_gateway::{Intents, Shard, ShardId};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -597,10 +590,7 @@ impl Shard {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_gateway::{Intents, Shard, ShardId};
-    /// use twilight_model::{
-    ///     gateway::payload::outgoing::RequestGuildMembers,
-    ///     id::Id,
-    /// };
+    /// use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
     ///
     /// let intents = Intents::GUILD_VOICE_STATES;
     /// let token = env::var("DISCORD_TOKEN")?;
@@ -609,9 +599,7 @@ impl Shard {
     ///
     /// // Query members whose names start with "tw" and limit the results to
     /// // 10 members.
-    /// let request =
-    ///     RequestGuildMembers::builder(Id::new(1))
-    ///         .query("tw", Some(10));
+    /// let request = RequestGuildMembers::builder(Id::new(1)).query("tw", Some(10));
     ///
     /// // Send the request over the shard.
     /// shard.command(&request).await?;
@@ -648,9 +636,7 @@ impl Shard {
     /// use std::{borrow::Cow, env};
     /// use twilight_gateway::{
     ///     message::{CloseFrame, Message},
-    ///     Intents,
-    ///     Shard,
-    ///     ShardId,
+    ///     Intents, Shard, ShardId,
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
