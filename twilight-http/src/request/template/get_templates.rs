@@ -6,8 +6,8 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
+    guild::template::Template,
     id::{marker::GuildMarker, Id},
-    template::Template,
 };
 
 /// Get a list of templates in a guild, by ID.

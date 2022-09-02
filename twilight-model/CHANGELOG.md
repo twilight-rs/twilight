@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.13.2] - 2022-09-01
+
+### Bug Fixes
+
+- autocomplete focused options are always strings ([#1873](https://github.com/twilight-rs/twilight/issues/1873))
+
+### Refactor
+
+- mark c-style enums `#[non_exhaustive]` ([#1862](https://github.com/twilight-rs/twilight/issues/1862))
+
+## [0.13.1] - 2022-08-29
+
+### Bug Fixes
+
+- serialize options localizations as well ([#1871](https://github.com/twilight-rs/twilight/issues/1871))
+- deserialize `Event::GuildStickersUpdate` ([#1858](https://github.com/twilight-rs/twilight/issues/1858))
+- don't serialize `PartialMember.permissions` if `None` ([#1878](https://github.com/twilight-rs/twilight/issues/1878))
+
+## [0.13.0] - 2022-08-14
+
+### Bug Fixes
+
+- rust 1.63 lints
+- [**breaking**] make `Channel::position` `i32` ([#1865](https://github.com/twilight-rs/twilight/issues/1865))
+
+### Documentation
+
+- fully document `channel::message` ([#1792](https://github.com/twilight-rs/twilight/issues/1792))
+
+### Refactor
+
+- [**breaking**] remove `Number` ([#1817](https://github.com/twilight-rs/twilight/issues/1817))
+- [**breaking**] update `VoiceServerUpdate` ([#1837](https://github.com/twilight-rs/twilight/issues/1837))
+
 ## [0.12.3] - 2022-08-11
 
 ### Bug Fixes

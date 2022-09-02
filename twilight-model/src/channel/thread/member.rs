@@ -27,7 +27,7 @@ pub struct ThreadMember {
 /// Version of [`ThreadMember`], but without a guild ID in the
 /// [`Self::member`] field.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
-pub struct ThreadMemberIntermediary {
+pub(crate) struct ThreadMemberIntermediary {
     // Values currently unknown and undocumented.
     pub flags: u64,
     #[serde(skip_serializing_if = "Option::is_none")]

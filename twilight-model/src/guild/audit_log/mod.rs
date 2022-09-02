@@ -24,7 +24,7 @@ pub use self::{
 use super::auto_moderation::AutoModerationRule;
 use crate::{
     channel::{Channel, Webhook},
-    scheduled_event::GuildScheduledEvent,
+    guild::scheduled_event::GuildScheduledEvent,
     user::User,
 };
 use serde::{Deserialize, Serialize};

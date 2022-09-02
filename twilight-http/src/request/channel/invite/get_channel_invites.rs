@@ -6,8 +6,8 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
+    guild::invite::Invite,
     id::{marker::ChannelMarker, Id},
-    invite::Invite,
 };
 
 /// Get the invites for a guild channel.

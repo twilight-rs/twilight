@@ -4,13 +4,21 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
+/// Partial [`Application`] sent with Rich Presence-related chat embeds.
+///
+/// [`Application`]: crate::oauth::Application
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageApplication {
+    /// Default rich presence invite cover image.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cover_image: Option<ImageHash>,
+    /// Description of the application.
     pub description: String,
+    /// Icon of the application.
     pub icon: Option<ImageHash>,
+    /// ID of the application.
     pub id: Id<ApplicationMarker>,
+    /// Name of the application.
     pub name: String,
 }
 

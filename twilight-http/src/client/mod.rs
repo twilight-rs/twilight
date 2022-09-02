@@ -2186,9 +2186,9 @@ impl Client {
     /// `channel_id` field is cleared and the [`channel_id`] method has no
     /// effect. Additionally, you must set a location with [`location`].
     ///
-    /// [`EntityType::External`]: twilight_model::scheduled_event::EntityType::External
-    /// [`EntityType::StageInstance`]: twilight_model::scheduled_event::EntityType::StageInstance
-    /// [`EntityType::Voice`]: twilight_model::scheduled_event::EntityType::Voice
+    /// [`EntityType::External`]: twilight_model::guild::scheduled_event::EntityType::External
+    /// [`EntityType::StageInstance`]: twilight_model::guild::scheduled_event::EntityType::StageInstance
+    /// [`EntityType::Voice`]: twilight_model::guild::scheduled_event::EntityType::Voice
     /// [`channel_id`]: UpdateGuildScheduledEvent::channel_id
     /// [`location`]: UpdateGuildScheduledEvent::location
     pub const fn update_guild_scheduled_event(

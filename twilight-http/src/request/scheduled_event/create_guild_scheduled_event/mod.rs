@@ -17,11 +17,11 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
+    guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
     },
-    scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
     util::Timestamp,
 };
 use twilight_validate::request::{

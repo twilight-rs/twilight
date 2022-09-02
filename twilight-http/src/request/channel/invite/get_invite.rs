@@ -5,7 +5,7 @@ use crate::{
     response::ResponseFuture,
     routing::Route,
 };
-use twilight_model::invite::Invite;
+use twilight_model::guild::invite::Invite;
 
 struct GetInviteFields {
     with_counts: bool,

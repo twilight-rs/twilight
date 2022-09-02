@@ -7,6 +7,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#component-types
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
 pub enum ComponentType {
     /// Component is an [`ActionRow`].
