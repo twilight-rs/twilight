@@ -9,8 +9,9 @@ and sending *some* stateful information.
 The primary type is the `Shard`, a stateful interface to maintain a Websocket
 connection to Discord's gateway. Much of its functionality can be configured, and
 it's used to receive deserialized gateway event payloads or raw Websocket
-messages, useful for load balancing and microservices. Using the `stream`
-module, shards can be easily managed in groups.
+messages, useful for load balancing and microservices.
+
+Using the `stream` module, shards can be easily managed in groups.
 
 ## Features
 
@@ -67,6 +68,53 @@ async fn main() -> anyhow::Result<()> {
         };
 
         tracing::debug!(?event, "received event");
+    }
+
+    Ok(())
+}
+```
+
+Create the recommended number of shards and stream over their events:
+
+```rust,no_run
+use futures::StreamExt;
+use std::{collections::HashMap, env, future};
+use twilight_gateway::{stream::{self, ShardEventStream}, Config, Intents};
+use twilight_http::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let token = env::var("DISCORD_TOKEN")?;
+    let client = Client::new(token.clone());
+    
+    // callback to create a config for each shard, useful for when not all shards
+    // have the same configuration, such as for per-shard presences
+    let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
+    
+    let mut shards = stream::start_recommended(&client, config_callback)
+        .await?
+        .filter_map(|shard_result| async move { shard_result.ok() })
+        .collect::<Vec<_>>()
+        .await;
+    
+    let mut stream = ShardEventStream::new(shards.iter_mut());
+    
+    loop {
+        let (shard, event) = match stream.next().await {
+            Some(Ok((shard, event))) => (shard, event),
+            Some(Err(source)) => {
+                tracing::warn!(?source, "error receiving event");
+    
+                if source.is_fatal() {
+                    break;
+                }
+    
+                continue;
+            },
+            None => break,
+        };
+    
+        println!("received event on shard {}: {event:?}", shard.id());
     }
 
     Ok(())
