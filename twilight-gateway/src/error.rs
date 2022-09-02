@@ -1,6 +1,8 @@
-//! Errors returned by shard operations.
+//! Errors returned by gateway operations.
 
-use crate::{compression::CompressionError, json::GatewayEventParsingError};
+pub use crate::compression::{CompressionError, CompressionErrorType};
+
+use crate::json::GatewayEventParsingError;
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},

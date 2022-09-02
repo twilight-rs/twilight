@@ -72,11 +72,6 @@ impl Inflater {
         }
     }
 
-    /// Return a mutable reference to the buffer.
-    pub fn buffer_mut(&mut self) -> &mut [u8] {
-        self.buffer.as_mut_slice()
-    }
-
     /// Extend the internal compressed buffer with bytes.
     pub fn extend(&mut self, slice: &[u8]) {
         self.compressed.extend_from_slice(slice);
@@ -278,8 +273,6 @@ mod tests {
         assert!(inflater.compressed.is_empty());
         assert!(!inflater.buffer.is_empty());
         assert!(!inflater.internal_buffer.is_empty());
-
-        assert_eq!(OUTPUT, inflater.buffer_mut());
 
         // Check to make sure `buffer` and `internal_buffer` haven't been cleared.
         assert!(!inflater.internal_buffer.is_empty());

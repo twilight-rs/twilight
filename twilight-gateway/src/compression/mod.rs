@@ -4,8 +4,6 @@
 //! raw messages from Discord. If neither the `zlib-stock` nor `zlib-simd`
 //! features are enabled then it will be used as a buffer for messages.
 
-#![allow(unused)] // todo
-
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 mod inflater;
 
@@ -106,23 +104,6 @@ impl Compression {
             #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
             inner: Vec::new(),
         }
-    }
-
-    /// Mutable reference to the internal buffer slice.
-    ///
-    /// When compression is enabled this will mutably reference the inflater's
-    /// buffer.
-    ///
-    /// When compression is disabled this will mutably reference the standard
-    /// buffer.
-    pub fn buffer_slice_mut(&mut self) -> &mut [u8] {
-        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-        {
-            self.inner.buffer_mut()
-        }
-
-        #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
-        self.inner.as_mut_slice()
     }
 
     /// Clear the inner buffer.
