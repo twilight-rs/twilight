@@ -85,16 +85,18 @@ pub enum StartRecommendedErrorType {
 /// use futures::StreamExt;
 /// use std::{collections::HashMap, env, future};
 /// use twilight_gateway::{stream::{self, ShardEventStream}, Config, Intents};
+/// use twilight_http::Client;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
+/// let client = Client::new(token.clone());
 ///
 /// // callback to create a config for each shard, useful for when not all shards
 /// // have the same configuration, such as for per-shard presences
 /// let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
 ///
-/// let mut shards = stream::start_recommended(token.clone(), config_callback)
+/// let mut shards = stream::start_recommended(&client, config_callback)
 ///     .await?
 ///     .filter_map(|shard_result| async move { shard_result.ok() })
 ///     .collect::<Vec<_>>()
@@ -183,16 +185,18 @@ impl<'a> Stream for ShardEventStream<'a> {
 /// use futures::StreamExt;
 /// use std::{collections::HashMap, env, future};
 /// use twilight_gateway::{stream::{self, ShardMessageStream}, Config, Intents};
+/// use twilight_http::Client;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
+/// let client = Client::new(token.clone());
 ///
 /// // callback to create a config for each shard, useful for when not all shards
 /// // have the same configuration, such as for per-shard presences
 /// let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
 ///
-/// let mut shards = stream::start_recommended(token.clone(), config_callback)
+/// let mut shards = stream::start_recommended(&client, config_callback)
 ///     .await?
 ///     .filter_map(|shard_result| async move { shard_result.ok() })
 ///     .collect::<Vec<_>>()
@@ -422,16 +426,18 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 /// use futures::StreamExt;
 /// use std::{collections::HashMap, env, future};
 /// use twilight_gateway::{stream, Config, Intents};
+/// use twilight_http::Client;
 ///
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let token = env::var("DISCORD_TOKEN")?;
+/// let client = Client::new(token.clone());
 ///
 /// // callback to create a config for each shard, useful for when not all shards
 /// // have the same configuration, such as for per-shard presences
 /// let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
 ///
-/// let shards = stream::start_recommended(token.clone(), config_callback)
+/// let shards = stream::start_recommended(&client, config_callback)
 ///     .await?
 ///     .filter_map(|shard_result| async move {
 ///         shard_result.ok().map(|shard| (shard.id().number(), shard))
@@ -456,10 +462,9 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 /// Panics if loading TLS certificates fails.
 #[track_caller]
 pub async fn start_recommended<F: Fn(ShardId) -> Config>(
-    token: String,
+    client: &Client,
     per_shard_config: F,
 ) -> Result<impl Stream<Item = Result<Shard, ShardInitializeError>> + Send, StartRecommendedError> {
-    let client = Client::new(token);
     let request = client.gateway().authed();
     let response = request
         .exec()
