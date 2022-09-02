@@ -450,6 +450,10 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 ///
 /// Returns a [`StartRecommendedErrorType::Request`] error type if the request
 /// failed to complete.
+///
+/// # Panics
+///
+/// Panics if loading TLS certificates fails.
 #[track_caller]
 pub async fn start_recommended<F: Fn(ShardId) -> Config>(
     token: String,
