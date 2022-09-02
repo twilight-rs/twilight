@@ -1,7 +1,6 @@
-use futures_util::StreamExt;
 use metrics_runtime::{exporters::LogExporter, observers::JsonBuilder, Receiver};
 use std::{env, time::Duration};
-use twilight_gateway::{Cluster, Intents};
+use twilight_gateway::{Intents, Shard, ShardId};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -22,17 +21,27 @@ async fn main() -> anyhow::Result<()> {
 
     let intents =
         Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
-    let (cluster, mut events) = Cluster::new(env::var("DISCORD_TOKEN")?, intents).await?;
-    println!("Created cluster");
-
-    cluster.up().await;
-    println!("Started cluster");
+    let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents).await?;
+    println!("Created shard");
 
     // Start exporter in a separate task
     tokio::task::spawn_blocking(move || exporter.run());
 
-    while let Some(event) = events.next().await {
-        println!("Event: {:?}", event.1.kind());
+    loop {
+        let event = match shard.next_event().await {
+            Ok(event) => event,
+            Err(source) => {
+                tracing::warn!(?source, "error receiving event");
+
+                if source.is_fatal() {
+                    break;
+                }
+
+                continue;
+            }
+        };
+
+        println!("event: {:?}", event.kind());
     }
 
     Ok(())

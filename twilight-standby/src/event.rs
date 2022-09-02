@@ -87,13 +87,6 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         | Event::PresencesReplace
         | Event::Ready(_)
         | Event::Resumed
-        | Event::ShardConnected(_)
-        | Event::ShardConnecting(_)
-        | Event::ShardDisconnected(_)
-        | Event::ShardIdentifying(_)
-        | Event::ShardPayload(_)
-        | Event::ShardReconnecting(_)
-        | Event::ShardResuming(_)
         | Event::ThreadMemberUpdate(_)
         | Event::UserUpdate(_) => None,
     }

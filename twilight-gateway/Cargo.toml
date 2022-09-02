@@ -18,6 +18,7 @@ version = "0.13.0"
 [dependencies]
 bitflags = { default-features = false, version = "1" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
+leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.5" }
@@ -26,8 +27,6 @@ tracing = { default-features = false, features = ["std", "attributes"], version 
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.13.0" }
 twilight-http = { default-features = false, path = "../twilight-http", version = "0.13.0" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.2" }
-url = { default-features = false, version = "2" }
-leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
 
 # Optional
 # The default backend for flate2; miniz-oxide, works differently
@@ -41,15 +40,17 @@ simd-json = { default-features = false, features = ["serde_impl", "swar-number-p
 # TLS libraries
 # They are needed to track what is used in tokio-tungstenite
 native-tls = { default-features = false, optional = true, version = "0.2.8" }
-rustls-tls = { default-features = false, optional = true, package = "rustls", version = "0.20" }
 rustls-native-certs = { default-features = false, optional = true, version = "0.6" }
+rustls-tls = { default-features = false, optional = true, package = "rustls", version = "0.20" }
 webpki-roots = { default-features = false, optional = true, version = "0.22" }
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
 futures = { default-features = false, version = "0.3" }
+serde_test = { default-features = false, version = "1.0.136" }
 static_assertions = { default-features = false, version = "1" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.12" }
+tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 
 [features]
 default = ["rustls-native-roots", "zlib-stock"]

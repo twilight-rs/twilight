@@ -1,8 +1,32 @@
+//! Home of [`EventTypeFlags`], and optimization technique for skipping gateway
+//! event deserialization.
+
 use bitflags::bitflags;
 use twilight_model::gateway::event::EventType;
 
 bitflags! {
-    /// Bitflags representing all of the possible types of events.
+    /// Important optimization for narrowing requested event types.
+    ///
+    /// Specifying event types is an important optimization technique on top of
+    /// [intents], which can dramatically decrease processor usage in many
+    /// circumstances. While specifying intents are required by Discord and
+    /// allow filtering groups of [events], event type flags are a
+    /// Twilight-specific technique to filter out individual events from being
+    /// deserialized at all, effectively discarding those events.
+    ///
+    /// For example, [`Intents::GUILDS`] includes a wide range of events from
+    /// [`GuildCreate`] to [`GuildRoleUpdate`] to [`ChannelPinsUpdate`]. If the
+    /// only events used in this group of events is, say, [`ChannelCreate`] and
+    /// [`GuildRoleCreate`], then the [`CHANNEL_CREATE`] and
+    /// [`GUILD_ROLE_CREATE`] event type flags can be specified in combination
+    /// with that intent. This reduces the events received and deserialized to
+    /// only those events.
+    ///
+    /// [`CHANNEL_CREATE`]: Self::CHANNEL_CREATE
+    /// [`GUILD_ROLE_CREATE`]: Self::GUILD_ROLE_CREATE
+    /// [`ChannelCreate`]: twilight_model::gateway::payload::incoming::ChannelCreate
+    /// [`ChannelPinsUpdate`]: twilight_model::gateway::payload::incoming::ChannelPinsUpdate
+    /// [`GuildRoleCreate`]: twilight_model::gateway::payload::incoming::GuildRoleCreate
     pub struct EventTypeFlags: u128 {
         /// Message has been blocked by AutoMod according to a rule.
         const AUTO_MODERATION_ACTION_EXECUTION = 1 << 71;
@@ -125,20 +149,6 @@ bitflags! {
         const ROLE_DELETE = 1 << 31;
         /// Role has been updated in a guild.
         const ROLE_UPDATE = 1 << 32;
-        /// Shard has finalized a session with the gateway.
-        const SHARD_CONNECTED = 1 << 33;
-        /// Shard has begun connecting to the gateway.
-        const SHARD_CONNECTING = 1 << 34;
-        /// Shard has disconnected from the gateway.
-        const SHARD_DISCONNECTED = 1 << 35;
-        /// Shard is identifying to create a session with the gateway.
-        const SHARD_IDENTIFYING = 1 << 36;
-        /// Incoming message has been received from the gateway.
-        const SHARD_PAYLOAD = 1 << 45;
-        /// Shard is reconnecting to the gateway.
-        const SHARD_RECONNECTING = 1 << 37;
-        /// Shard is resuming a session with the gateway.
-        const SHARD_RESUMING = 1 << 38;
         /// Stage instance was created in a stage channel.
         const STAGE_INSTANCE_CREATE = 1 << 57;
         /// Stage instance was deleted in a stage channel.
@@ -357,13 +367,6 @@ impl From<EventType> for EventTypeFlags {
             EventType::RoleCreate => Self::ROLE_CREATE,
             EventType::RoleDelete => Self::ROLE_DELETE,
             EventType::RoleUpdate => Self::ROLE_UPDATE,
-            EventType::ShardConnected => Self::SHARD_CONNECTED,
-            EventType::ShardConnecting => Self::SHARD_CONNECTING,
-            EventType::ShardDisconnected => Self::SHARD_DISCONNECTED,
-            EventType::ShardIdentifying => Self::SHARD_IDENTIFYING,
-            EventType::ShardReconnecting => Self::SHARD_RECONNECTING,
-            EventType::ShardPayload => Self::SHARD_PAYLOAD,
-            EventType::ShardResuming => Self::SHARD_RESUMING,
             EventType::StageInstanceCreate => Self::STAGE_INSTANCE_CREATE,
             EventType::StageInstanceDelete => Self::STAGE_INSTANCE_DELETE,
             EventType::StageInstanceUpdate => Self::STAGE_INSTANCE_UPDATE,
@@ -383,40 +386,12 @@ impl From<EventType> for EventTypeFlags {
     }
 }
 
-impl<'a> TryFrom<(u8, Option<&'a str>)> for EventTypeFlags {
-    type Error = (u8, Option<&'a str>);
-
-    fn try_from((op, event_type): (u8, Option<&'a str>)) -> Result<Self, Self::Error> {
-        match (op, event_type) {
-            (1, _) => Ok(Self::GATEWAY_HEARTBEAT),
-            (7, _) => Ok(Self::GATEWAY_RECONNECT),
-            (9, _) => Ok(Self::GATEWAY_INVALIDATE_SESSION),
-            (10, _) => Ok(Self::GATEWAY_HELLO),
-            (11, _) => Ok(Self::GATEWAY_HEARTBEAT_ACK),
-            (_, Some(event_type)) => {
-                let flag = EventType::try_from(event_type).map_err(|kind| (op, Some(kind)))?;
-
-                Ok(Self::from(flag))
-            }
-            (_, None) => Err((op, event_type)),
-        }
-    }
-}
-
-impl Default for EventTypeFlags {
-    fn default() -> Self {
-        let mut flags = Self::all();
-        flags.remove(Self::SHARD_PAYLOAD);
-
-        flags
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{EventType, EventTypeFlags};
+    use super::EventTypeFlags;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};
+    use twilight_model::gateway::event::EventType;
 
     assert_impl_all!(
         EventTypeFlags: Copy,
@@ -428,6 +403,5 @@ mod tests {
         PartialEq,
         Send,
         Sync,
-        TryFrom<(u8, Option<&'static str>)>
     );
 }
