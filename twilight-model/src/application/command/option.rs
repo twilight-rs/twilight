@@ -170,7 +170,7 @@ pub enum CommandOptionChoice {
 }
 
 /// Data of [`CommandOptionChoice`].
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct CommandOptionChoiceData<T> {
     /// Name of the choice. Must be 100 characters or less.
     pub name: String,
