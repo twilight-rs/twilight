@@ -54,9 +54,9 @@ tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log
 
 [features]
 default = ["rustls-native-roots", "twilight-http", "zlib-stock"]
-native = ["dep:native-tls", "twilight-http?/native", "tokio-tungstenite/native-tls"]
-rustls-native-roots = ["dep:rustls-tls", "dep:rustls-native-certs", "twilight-http?/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
-rustls-webpki-roots = ["dep:rustls-tls", "dep:webpki-roots", "twilight-http?/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
+native = ["dep:native-tls", "tokio-tungstenite/native-tls"]
+rustls-native-roots = ["dep:rustls-tls", "dep:rustls-native-certs", "tokio-tungstenite/rustls-tls-native-roots"]
+rustls-webpki-roots = ["dep:rustls-tls", "dep:webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
 zlib-simd = ["dep:flate2", "flate2?/zlib-ng"]
 zlib-stock = ["dep:flate2", "flate2?/zlib"]
 
