@@ -59,3 +59,7 @@ rustls-native-roots = ["dep:rustls-tls", "dep:rustls-native-certs", "twilight-ht
 rustls-webpki-roots = ["dep:rustls-tls", "dep:webpki-roots", "twilight-http?/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
 zlib-simd = ["dep:flate2", "flate2?/zlib-ng"]
 zlib-stock = ["dep:flate2", "flate2?/zlib"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
