@@ -24,6 +24,7 @@ Using the `stream` module, shards can be easily managed in groups.
   * `rustls-native-roots` (*default*): [`rustls`] using native root certificates
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
+* `twilight-http` (*default*): enable the `stream::start_recommended` function
 * Zlib (mutually exclusive)
   * `zlib-stock` (*default*): [`flate2`]'s stock zlib implementation
   * `zlib-ng`: use [`zlib-ng`] for zlib, may have better performance
