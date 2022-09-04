@@ -2,6 +2,8 @@
 #![deny(missing_docs)]
 
 pub mod allowed_mentions;
+pub mod component;
+pub mod embed;
 pub mod sticker;
 
 mod activity;
@@ -17,19 +19,20 @@ pub use self::{
     activity::{MessageActivity, MessageActivityType},
     allowed_mentions::AllowedMentions,
     application::MessageApplication,
+    component::Component,
+    embed::Embed,
     flags::MessageFlags,
     interaction::MessageInteraction,
     kind::MessageType,
     mention::Mention,
-    reaction::MessageReaction,
+    reaction::{Reaction, ReactionType},
     reference::MessageReference,
     sticker::Sticker,
 };
 
 use self::sticker::MessageSticker;
 use crate::{
-    application::component::Component,
-    channel::{embed::Embed, Attachment, Channel, ChannelMention},
+    channel::{Attachment, Channel, ChannelMention},
     guild::PartialMember,
     id::{
         marker::{
@@ -156,7 +159,7 @@ pub struct Message {
     pub pinned: bool,
     /// List of reactions to the message.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub reactions: Vec<MessageReaction>,
+    pub reactions: Vec<Reaction>,
     /// Crosspost, channel follow add, pin and reply source message data.
     #[serde(rename = "message_reference", skip_serializing_if = "Option::is_none")]
     pub reference: Option<MessageReference>,
@@ -182,19 +185,8 @@ pub struct Message {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        sticker::{MessageSticker, StickerFormatType},
-        ChannelMention, Message, MessageActivity, MessageActivityType, MessageApplication,
-        MessageFlags, MessageReaction, MessageReference, MessageType,
-    };
-    use crate::{
-        channel::{ChannelType, ReactionType},
-        guild::PartialMember,
-        id::Id,
-        test::image_hash,
-        user::User,
-        util::datetime::{Timestamp, TimestampParseError},
-    };
+    use super::{sticker::StickerFormatType, *};
+    use crate::{channel::ChannelType, test::image_hash, util::datetime::TimestampParseError};
     use serde_test::Token;
     use std::str::FromStr;
 
@@ -450,7 +442,7 @@ mod tests {
             mention_roles: Vec::new(),
             mentions: Vec::new(),
             pinned: false,
-            reactions: vec![MessageReaction {
+            reactions: vec![Reaction {
                 count: 7,
                 emoji: ReactionType::Unicode {
                     name: "a".to_owned(),
@@ -617,7 +609,7 @@ mod tests {
                 Token::Str("reactions"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "MessageReaction",
+                    name: "Reaction",
                     len: 3,
                 },
                 Token::Str("count"),

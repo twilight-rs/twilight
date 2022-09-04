@@ -573,7 +573,7 @@ impl Standby {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures_util::stream::StreamExt;
     /// use twilight_model::{
-    ///     channel::ReactionType,
+    ///     channel::message::ReactionType,
     ///     gateway::payload::incoming::ReactionAdd,
     ///     id::Id,
     /// };
@@ -1049,28 +1049,20 @@ impl ProcessStatus {
 mod tests {
     #![allow(clippy::non_ascii_literal)]
 
-    use super::Standby;
+    use super::*;
     use futures_util::StreamExt;
     use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use twilight_gateway::EventType;
     use twilight_model::{
-        application::{
-            component::ComponentType,
-            interaction::{
-                message_component::MessageComponentInteractionData, Interaction, InteractionData,
-                InteractionType,
-            },
+        application::interaction::{
+            message_component::MessageComponentInteractionData, InteractionData,
         },
-        channel::{
-            message::{Message, MessageType},
-            Reaction, ReactionType,
-        },
+        channel::message::{component::ComponentType, Message, MessageType, ReactionType},
         gateway::{
-            event::{Event, EventType},
-            payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
+            payload::incoming::{InteractionCreate, Ready, RoleDelete},
+            GatewayReaction,
         },
         guild::Permissions,
-        id::{marker::GuildMarker, Id},
         oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
         util::Timestamp,
@@ -1128,8 +1120,8 @@ mod tests {
         }
     }
 
-    fn reaction() -> Reaction {
-        Reaction {
+    fn reaction() -> GatewayReaction {
+        GatewayReaction {
             channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "🍎".to_owned(),

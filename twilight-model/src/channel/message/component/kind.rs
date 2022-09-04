@@ -14,17 +14,14 @@ pub enum ComponentType {
     ///
     /// [`ActionRow`]: super::ActionRow
     ActionRow,
-
     /// Component is an [`Button`].
     ///
     /// [`Button`]: super::Button
     Button,
-
     /// Component is an [`SelectMenu`].
     ///
     /// [`SelectMenu`]: super::SelectMenu
     SelectMenu,
-
     /// Component is an [`TextInput`].
     ///
     /// [`TextInput`]: super::TextInput
@@ -67,7 +64,7 @@ impl ComponentType {
     /// Check the [`ActionRow`] variant's name:
     ///
     /// ```
-    /// use twilight_model::application::component::ComponentType;
+    /// use twilight_model::channel::message::component::ComponentType;
     ///
     /// assert_eq!("ActionRow", ComponentType::ActionRow.name());
     /// ```

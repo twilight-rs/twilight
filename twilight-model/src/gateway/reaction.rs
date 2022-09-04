@@ -1,5 +1,5 @@
 use crate::{
-    channel::ReactionType,
+    channel::message::ReactionType,
     guild::member::{Member, MemberIntermediary},
     id::{
         marker::{ChannelMarker, GuildMarker, MessageMarker, UserMarker},
@@ -13,7 +13,7 @@ use serde::{
 use std::fmt::{Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
-pub struct Reaction {
+pub struct GatewayReaction {
     pub channel_id: Id<ChannelMarker>,
     pub emoji: ReactionType,
     pub guild_id: Option<Id<GuildMarker>>,
@@ -36,7 +36,7 @@ enum Field {
 struct ReactionVisitor;
 
 impl<'de> Visitor<'de> for ReactionVisitor {
-    type Value = Reaction;
+    type Value = GatewayReaction;
 
     fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str("struct Reaction")
@@ -135,7 +135,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
             None
         };
 
-        Ok(Reaction {
+        Ok(Self::Value {
             channel_id,
             emoji,
             guild_id,
@@ -146,7 +146,7 @@ impl<'de> Visitor<'de> for ReactionVisitor {
     }
 }
 
-impl<'de> Deserialize<'de> for Reaction {
+impl<'de> Deserialize<'de> for GatewayReaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         const FIELDS: &[&str] = &[
             "channel_id",
@@ -157,29 +157,23 @@ impl<'de> Deserialize<'de> for Reaction {
             "user_id",
         ];
 
-        deserializer.deserialize_struct("Reaction", FIELDS, ReactionVisitor)
+        deserializer.deserialize_struct("GatewayReaction", FIELDS, ReactionVisitor)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::super::{Reaction, ReactionType};
-    use crate::{
-        guild::Member,
-        id::Id,
-        test::image_hash,
-        user::User,
-        util::datetime::{Timestamp, TimestampParseError},
-    };
+    use super::*;
+    use crate::{test::image_hash, user::User, util::Timestamp};
     use serde_test::Token;
     use std::str::FromStr;
 
     #[allow(clippy::too_many_lines)]
     #[test]
-    fn reaction_with_member() -> Result<(), TimestampParseError> {
-        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00")?;
+    fn reaction_with_member() {
+        let joined_at = Timestamp::from_str("2020-01-01T00:00:00.000000+00:00").unwrap();
 
-        let value = Reaction {
+        let value = GatewayReaction {
             channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
@@ -222,7 +216,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "Reaction",
+                    name: "GatewayReaction",
                     len: 6,
                 },
                 Token::Str("channel_id"),
@@ -299,13 +293,11 @@ mod tests {
                 Token::StructEnd,
             ],
         );
-
-        Ok(())
     }
 
     #[test]
     fn reaction_without_member() {
-        let value = Reaction {
+        let value = GatewayReaction {
             channel_id: Id::new(2),
             emoji: ReactionType::Unicode {
                 name: "a".to_owned(),
@@ -320,7 +312,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "Reaction",
+                    name: "GatewayReaction",
                     len: 6,
                 },
                 Token::Str("channel_id"),

@@ -1,4 +1,4 @@
-use crate::channel::ReactionType;
+use crate::channel::message::ReactionType;
 use serde::{Deserialize, Serialize};
 
 /// Dropdown-style interactive components that render on messages.

@@ -49,10 +49,10 @@ pub struct AutoModerationRuleMarker;
 
 /// Marker for channel IDs.
 ///
-/// Types such as [`Channel`] or [`Reaction`] use this ID marker.
+/// Types such as [`Channel`] or [`GatewayReaction`] use this ID marker.
 ///
 /// [`Channel`]: crate::channel::Channel
-/// [`Reaction`]: crate::channel::Reaction
+/// [`GatewayReaction`]: crate::gateway::GatewayReaction
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ChannelMarker;
@@ -80,7 +80,7 @@ pub struct CommandVersionMarker;
 /// Types such as [`Emoji`] or [`ReactionType`] use this ID marker.
 ///
 /// [`Emoji`]: crate::guild::Emoji
-/// [`ReactionType`]: crate::channel::ReactionType
+/// [`ReactionType`]: crate::channel::message::ReactionType
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct EmojiMarker;
@@ -129,10 +129,10 @@ pub struct InteractionMarker;
 
 /// Marker for message IDs.
 ///
-/// Types such as [`Message`] or [`Reaction`] use this ID marker.
+/// Types such as [`Message`] or [`GatewayReaction`] use this ID marker.
 ///
 /// [`Message`]: crate::channel::Message
-/// [`Reaction`]: crate::channel::Reaction
+/// [`GatewayReaction`]: crate::gateway::GatewayReaction
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct MessageMarker;

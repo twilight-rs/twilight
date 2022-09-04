@@ -1,12 +1,9 @@
 //! Models used when responding to interactions over HTTP.
 
+use super::attachment::Attachment;
 use crate::{
-    application::{command::CommandOptionChoice, component::Component},
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, MessageFlags},
-    },
-    http::attachment::Attachment,
+    application::command::CommandOptionChoice,
+    channel::message::{AllowedMentions, Component, Embed, MessageFlags},
 };
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};

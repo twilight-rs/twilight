@@ -8,19 +8,21 @@
 //! [`Message`]: crate::channel::Message
 //! [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components
 
-pub mod action_row;
-pub mod button;
-pub mod select_menu;
-pub mod text_input;
-
+mod action_row;
+mod button;
 mod kind;
+mod select_menu;
+mod text_input;
 
 pub use self::{
-    action_row::ActionRow, button::Button, kind::ComponentType, select_menu::SelectMenu,
-    text_input::TextInput,
+    action_row::ActionRow,
+    button::{Button, ButtonStyle},
+    kind::ComponentType,
+    select_menu::{SelectMenu, SelectMenuOption},
+    text_input::{TextInput, TextInputStyle},
 };
 
-use crate::{application::component::select_menu::SelectMenuOption, channel::ReactionType};
+use super::ReactionType;
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::SerializeStruct,
@@ -47,10 +49,7 @@ impl Component {
     /// Type of component that this is.
     ///
     /// ```
-    /// use twilight_model::application::component::{
-    ///     button::{Button, ButtonStyle},
-    ///     Component, ComponentType,
-    /// };
+    /// use twilight_model::channel::message::component::{Button, ButtonStyle, Component, ComponentType};
     ///
     /// let component = Component::Button(Button {
     ///     custom_id: None,
@@ -595,9 +594,6 @@ mod tests {
     #![allow(clippy::non_ascii_literal)]
 
     use super::*;
-    use crate::application::component::{
-        button::ButtonStyle, select_menu::SelectMenuOption, text_input::TextInputStyle,
-    };
     use serde_test::Token;
     use static_assertions::assert_impl_all;
 
