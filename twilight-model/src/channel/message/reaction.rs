@@ -1,7 +1,7 @@
 use crate::id::{marker::EmojiMarker, Id};
 use serde::{Deserialize, Serialize};
 
-/// Message reaction struct.
+/// Reaction below a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Reaction {
     /// Amount of reactions this emoji has.
@@ -12,22 +12,33 @@ pub struct Reaction {
     pub me: bool,
 }
 
+/// Type of [`Reaction`].
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum ReactionType {
+    /// Custom [`Emoji`].
+    ///
+    /// [`Emoji`]: crate::guild::Emoji
     Custom {
+        /// Whether the emoji is animated.
         #[serde(default)]
         animated: bool,
+        /// Emoji identifier.
         // Even though it says that the id can be nil in the docs,
         // it is a bit misleading as that should only happen when
         // the reaction is a unicode emoji and then it is caught by
         // the other variant.
         id: Id<EmojiMarker>,
+        /// Emoji name.
         // Name is nil if the emoji data is no longer available, for
         // example if the emoji have been deleted off the guild.
         name: Option<String>,
     },
+    /// Standard [Unicode] emoji.
+    ///
+    /// [Unicode]: https://unicode.org/emoji/
     Unicode {
+        /// Unicode name identifier.
         name: String,
     },
 }

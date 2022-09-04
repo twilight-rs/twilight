@@ -1,11 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/// Type of Component.
+/// Type of [`Component`].
 ///
-/// See [Discord Docs/Message Components].
-///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#component-types
+/// [`Component`]: super::Component
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]

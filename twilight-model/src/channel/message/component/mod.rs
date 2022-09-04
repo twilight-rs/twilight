@@ -1,11 +1,8 @@
-//! Types for Message [`Component`] support.
-//!
-//! Message components are a Discord API framework for adding interactive
-//! elements to created [`Message`]s.
+//! Interactive message elements for use with [`Interaction`]s.
 //!
 //! Refer to [Discord Docs/Message Components] for additional information.
 //!
-//! [`Message`]: crate::channel::Message
+//! [`Interaction`]: crate::application::interaction::Interaction
 //! [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components
 
 mod action_row;
@@ -31,18 +28,96 @@ use serde::{
 use serde_value::{DeserializerError, Value};
 use std::fmt::{Formatter, Result as FmtResult};
 
-/// Interactive element of a message that an application uses.
+/// Interactive message element.
 ///
-/// Refer to [Discord Docs/Message Components] for additional information.
+/// Must be either a top level [`ActionRow`] or nested inside one.
 ///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#what-are-components
-#[allow(missing_docs)]
+/// # Examples
+///
+/// Button
+///
+/// ```
+/// use twilight_model::channel::message::component::{ActionRow, Button, ButtonStyle, Component};
+///
+/// Component::ActionRow(ActionRow {
+///     components: vec![Component::Button(Button {
+///         custom_id: Some("click_one".to_owned()),
+///         disabled: false,
+///         emoji: None,
+///         label: Some("Click me!".to_owned()),
+///         style: ButtonStyle::Primary,
+///         url: None,
+///     })],
+/// });
+/// ```
+///
+/// Select menu
+///
+/// ```
+/// use twilight_model::{
+///     channel::message::{
+///         component::{ActionRow, Component, SelectMenu, SelectMenuOption},
+///         ReactionType,
+///     },
+///     id::Id,
+/// };
+///
+/// Component::ActionRow(ActionRow {
+///     components: vec![Component::SelectMenu(SelectMenu {
+///         custom_id: "class_select_1".to_owned(),
+///         disabled: false,
+///         max_values: Some(3),
+///         min_values: Some(1),
+///         options: vec![
+///             SelectMenuOption {
+///                 default: false,
+///                 emoji: Some(ReactionType::Custom {
+///                     animated: false,
+///                     id: Id::new(625891304148303894),
+///                     name: Some("rogue".to_owned()),
+///                 }),
+///                 description: Some("Sneak n stab".to_owned()),
+///                 label: "Rogue".to_owned(),
+///                 value: "rogue".to_owned(),
+///             },
+///             SelectMenuOption {
+///                 default: false,
+///                 emoji: Some(ReactionType::Custom {
+///                     animated: false,
+///                     id: Id::new(625891304081063986),
+///                     name: Some("mage".to_owned()),
+///                 }),
+///                 description: Some("Turn 'em into a sheep".to_owned()),
+///                 label: "Mage".to_owned(),
+///                 value: "mage".to_owned(),
+///             },
+///             SelectMenuOption {
+///                 default: false,
+///                 emoji: Some(ReactionType::Custom {
+///                     animated: false,
+///                     id: Id::new(625891303795982337),
+///                     name: Some("priest".to_owned()),
+///                 }),
+///                 description: Some("You get heals when I'm done doing damage".to_owned()),
+///                 label: "Priest".to_owned(),
+///                 value: "priest".to_owned(),
+///             },
+///         ],
+///         placeholder: Some("Choose a class".to_owned()),
+///     })],
+/// });
+/// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Component {
+    /// Top level, non-interactive container of other (non action row) components.
     ActionRow(ActionRow),
+    /// Clickable item that renders below messages.
     Button(Button),
+    /// Dropdown-style item that renders below messages.
     SelectMenu(SelectMenu),
+    /// Pop-up item that renders on modals.
     TextInput(TextInput),
+    /// Variant value is unknown to the library.
     Unknown(u8),
 }
 
