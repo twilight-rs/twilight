@@ -472,15 +472,15 @@ impl Shard {
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
-        let mut bytes = loop {
+        let bytes = loop {
             match self.next_message().await? {
                 Message::Binary(bytes) => break bytes,
-                Message::Text(text) => break text.into_bytes(),
+                Message::Text(text) => break text.into(),
                 _ => continue,
             }
         };
 
-        json::parse(&mut bytes)
+        json::parse(&bytes)
             .map(Event::from)
             .map_err(ReceiveMessageError::from_json)
     }

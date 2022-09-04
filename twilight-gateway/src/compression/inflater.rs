@@ -14,8 +14,9 @@
 //!   generally sends the largest messages on startup.
 
 use crate::ShardId;
+use bytes::{BufMut, Bytes, BytesMut};
 use flate2::{Decompress, DecompressError, FlushDecompress};
-use std::{mem, time::Instant};
+use std::time::Instant;
 
 /// The "magic number" deciding if a message is done or if another
 /// message needs to be read.
@@ -39,7 +40,7 @@ pub struct Inflater {
     /// Buffer for storing compressed data. Data is stored here via [`extend`].
     ///
     /// [`extend`]: Self::extend
-    compressed: Vec<u8>,
+    compressed: BytesMut,
     /// Internal buffer used to store intermediate decompressed values in.
     ///
     /// Due to decompression sometimes needing to be invoked multiple times this
@@ -49,7 +50,7 @@ pub struct Inflater {
     /// [`buffer`]: Self::buffer
     internal_buffer: Vec<u8>,
     /// Buffer which gets handed to the user when it contains a full message.
-    buffer: Vec<u8>,
+    buffer: BytesMut,
     /// When the last resize occurred, used to compute if it is time for another
     /// resize.
     last_resize: Instant,
@@ -63,8 +64,8 @@ impl Inflater {
     /// Create a new inflater for a shard.
     pub fn new(shard_id: ShardId) -> Self {
         Self {
-            buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
-            compressed: Vec::new(),
+            buffer: BytesMut::with_capacity(INTERNAL_BUFFER_SIZE),
+            compressed: BytesMut::new(),
             decompress: Decompress::new(true),
             internal_buffer: Vec::with_capacity(INTERNAL_BUFFER_SIZE),
             last_resize: Instant::now(),
@@ -118,7 +119,7 @@ impl Inflater {
                 .try_into()
                 .unwrap_or_default();
             // Move the intermediate data into the user facing buffer.
-            self.buffer.extend_from_slice(&self.internal_buffer[..]);
+            self.buffer.put(self.internal_buffer.as_ref());
 
             let not_at_capacity = self.internal_buffer.len() < self.internal_buffer.capacity();
 
@@ -144,6 +145,7 @@ impl Inflater {
             let saved_percentage =
                 self.decompress.total_in() as f64 / self.decompress.total_out() as f64;
             let saved_percentage_readable = saved_percentage * 100.0;
+            dbg!(self.decompress.total_out(), self.decompress.total_in());
             let saved_kib = (self.decompress.total_out() - self.decompress.total_in()) / 1_024;
 
             tracing::trace!(
@@ -183,8 +185,8 @@ impl Inflater {
     }
 
     /// Take the buffer, replacing it with a new one.
-    pub fn take(&mut self) -> Vec<u8> {
-        mem::take(&mut self.buffer)
+    pub fn take(&mut self) -> Bytes {
+        self.buffer.split().freeze()
     }
 
     /// Log metrics about the inflater.
@@ -212,8 +214,8 @@ impl Inflater {
             return;
         }
 
-        self.compressed.shrink_to_fit();
-        self.buffer.shrink_to_fit();
+        self.compressed = BytesMut::new();
+        self.buffer = BytesMut::new();
 
         tracing::trace!(
             capacity = self.compressed.capacity(),

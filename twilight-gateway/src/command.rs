@@ -61,7 +61,7 @@ impl Command for UpdateVoiceState {}
 /// Returns a [`SendErrorType::Serializing`] error type if the provided value
 /// failed to serialize into JSON.
 pub fn prepare(command: &impl Command) -> Result<Message, SendError> {
-    json::to_vec(command)
+    json::to_bytes(command)
         .map(Message::Binary)
         .map_err(|source| SendError {
             source: Some(Box::new(source)),
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn prepare() -> Result<(), Box<dyn Error>> {
         let heartbeat = Heartbeat::new(30_000);
-        let bytes = serde_json::to_vec(&heartbeat)?;
+        let bytes = crate::json::to_bytes(&heartbeat)?;
         let message = super::prepare(&heartbeat)?;
 
         assert_eq!(message, Message::Binary(bytes));

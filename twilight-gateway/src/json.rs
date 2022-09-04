@@ -1,16 +1,29 @@
 //! Function wrappers for deserializing and serializing events and commands.
 
+use bytes::{BufMut, Bytes, BytesMut};
 #[cfg(not(feature = "simd-json"))]
 pub use serde_json::to_vec;
 #[cfg(feature = "simd-json")]
 pub use simd_json::to_vec;
+
+pub fn to_bytes<T>(value: &T) -> Result<Bytes, serde_json::Error>
+where
+    T: ?Sized + Serialize,
+{
+    let mut buf = BytesMut::with_capacity(128);
+    serde_json::to_writer((&mut buf).writer(), value)?;
+    Ok(buf.freeze())
+}
 
 #[cfg(not(feature = "simd-json"))]
 use serde_json::from_slice as from_slice_inner;
 #[cfg(feature = "simd-json")]
 use simd_json::from_slice as from_slice_inner;
 
-use serde::de::{DeserializeOwned, DeserializeSeed};
+use serde::{
+    de::{DeserializeOwned, DeserializeSeed},
+    Serialize,
+};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -129,7 +142,7 @@ pub fn from_slice<T: DeserializeOwned>(json: &mut [u8]) -> Result<T, GatewayEven
 /// Returns a [`GatewayEventParsingErrorType::PayloadInvalid`] error type if the
 /// payload wasn't a valid `GatewayEvent` data structure, such as due to not
 /// being UTF-8 valid.
-pub fn parse(json: &mut [u8]) -> Result<GatewayEvent, GatewayEventParsingError> {
+pub fn parse(json: &[u8]) -> Result<GatewayEvent, GatewayEventParsingError> {
     #[cfg(feature = "simd-json")]
     let (gateway_deserializer, mut json_deserializer) = {
         let gateway_deserializer = EventDeserializer::from_json(

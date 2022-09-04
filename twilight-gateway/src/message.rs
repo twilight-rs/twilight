@@ -6,6 +6,7 @@
 //! input will not be checked and will be passed directly to the underlying
 //! websocket library.
 
+use bytes::Bytes;
 use std::borrow::Cow;
 use tokio_tungstenite::tungstenite::{
     protocol::{frame::coding::CloseCode, CloseFrame as TungsteniteCloseFrame},
@@ -101,7 +102,7 @@ impl<'a> CloseFrame<'a> {
 #[non_exhaustive]
 pub enum Message {
     /// Binary websocket message.
-    Binary(Vec<u8>),
+    Binary(Bytes),
     /// Close message with an optional frame including information about the
     /// reason for the close.
     Close(Option<CloseFrame<'static>>),
@@ -114,7 +115,7 @@ impl Message {
     /// message.
     pub(crate) fn from_tungstenite(tungstenite: TungsteniteMessage) -> Option<Self> {
         match tungstenite {
-            TungsteniteMessage::Binary(bytes) => Some(Self::Binary(bytes)),
+            TungsteniteMessage::Binary(bytes) => Some(Self::Binary(bytes.into())),
             TungsteniteMessage::Close(maybe_close) => {
                 let close = maybe_close.map(CloseFrame::from_tungstenite);
 
@@ -131,7 +132,7 @@ impl Message {
     /// message.
     pub(crate) fn into_tungstenite(self) -> TungsteniteMessage {
         match self {
-            Self::Binary(bytes) => TungsteniteMessage::Binary(bytes),
+            Self::Binary(bytes) => TungsteniteMessage::Binary(bytes.to_vec()),
             Self::Close(close) => {
                 TungsteniteMessage::Close(close.map(CloseFrame::into_tungstenite))
             }

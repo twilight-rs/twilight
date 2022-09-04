@@ -94,7 +94,7 @@ impl MessageSender {
 
 #[cfg(test)]
 mod tests {
-    use crate::message::Message;
+    use crate::{json, message::Message};
 
     use super::{MessageChannel, MessageSender};
     use static_assertions::assert_impl_all;
@@ -115,7 +115,7 @@ mod tests {
 
         let request = RequestGuildMembers::builder(Id::new(1)).query("", None);
         let heartbeat = Heartbeat::new(30_000);
-        let heartbeat_bytes = serde_json::to_vec(&heartbeat)?;
+        let heartbeat_bytes = json::to_bytes(&heartbeat)?;
         assert!(sender.command(&request).is_ok());
         assert!(sender
             .send(Message::Binary(heartbeat_bytes.clone()))

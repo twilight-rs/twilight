@@ -7,6 +7,11 @@
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 mod inflater;
 
+use bytes::Bytes;
+
+#[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
+use bytes::BytesMut;
+
 use crate::ShardId;
 use std::{
     error::Error,
@@ -86,7 +91,7 @@ pub struct Compression {
     inner: Inflater,
     /// Buffer for use without compression.
     #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
-    inner: Vec<u8>,
+    inner: BytesMut,
 }
 
 impl Compression {
@@ -163,7 +168,7 @@ impl Compression {
     }
 
     /// Take the buffer, replacing it with a new one.
-    pub fn take(&mut self) -> Vec<u8> {
+    pub fn take(&mut self) -> Bytes {
         #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         {
             self.inner.take()
@@ -171,7 +176,7 @@ impl Compression {
 
         #[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
         {
-            std::mem::take(&mut self.inner)
+            self.inner.split().freeze()
         }
     }
 }
