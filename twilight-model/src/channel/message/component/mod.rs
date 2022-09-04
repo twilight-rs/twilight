@@ -36,6 +36,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// Refer to [Discord Docs/Message Components] for additional information.
 ///
 /// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#what-are-components
+#[allow(missing_docs)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Component {
     ActionRow(ActionRow),

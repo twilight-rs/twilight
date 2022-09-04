@@ -37,6 +37,8 @@ pub struct SelectMenuOption {
     /// Additional description.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// Emoji associated with the option. Appears left of the label and
+    /// description.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub emoji: Option<ReactionType>,
     /// User-facing name.
