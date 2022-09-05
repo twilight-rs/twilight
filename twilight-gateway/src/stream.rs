@@ -404,8 +404,6 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
     let range = calculate_range(range, total);
     let tls = TlsContainer::new().unwrap();
 
-    tracing::trace!(?range, "starting range of shards");
-
     range
         .map(|index| {
             let id = ShardId::new(index, total);
@@ -468,8 +466,6 @@ pub async fn start_recommended<F: Fn(ShardId) -> Config>(
     client: &Client,
     per_shard_config: F,
 ) -> Result<impl Stream<Item = Result<Shard, ShardInitializeError>> + Send, StartRecommendedError> {
-    tracing::trace!("starting recommended range of shards");
-
     let request = client.gateway().authed();
     let response = request
         .exec()
