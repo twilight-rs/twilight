@@ -101,8 +101,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     loop {
         let (shard, event) = match stream.next().await {
-            Some(Ok((shard, event))) => (shard, event),
-            Some(Err(source)) => {
+            Some((shard, Ok(event))) => (shard, event),
+            Some((shard, Err(source))) => {
                 tracing::warn!(?source, "error receiving event");
     
                 if source.is_fatal() {
