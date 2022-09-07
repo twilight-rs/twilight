@@ -33,9 +33,9 @@ pub enum Route<'a> {
     },
     /// Route information to create a ban on a user in a guild.
     CreateBan {
-        /// The number of days' worth of the user's messages to delete in the
+        /// The number of seconds' worth of the user's messages to delete in the
         /// guild's channels.
-        delete_message_days: Option<u16>,
+        delete_message_seconds: Option<u32>,
         /// The ID of the guild.
         guild_id: u64,
         /// The ID of the user.
@@ -1672,7 +1672,7 @@ impl Display for Route<'_> {
             }
             Route::CreateBan {
                 guild_id,
-                delete_message_days,
+                delete_message_seconds,
                 user_id,
             } => {
                 f.write_str("guilds/")?;
@@ -1681,9 +1681,9 @@ impl Display for Route<'_> {
                 Display::fmt(user_id, f)?;
                 f.write_str("?")?;
 
-                if let Some(delete_message_days) = delete_message_days {
-                    f.write_str("delete_message_days=")?;
-                    Display::fmt(delete_message_days, f)?;
+                if let Some(delete_message_seconds) = delete_message_seconds {
+                    f.write_str("delete_message_seconds=")?;
+                    Display::fmt(delete_message_seconds, f)?;
                 }
 
                 Ok(())
@@ -4261,7 +4261,7 @@ mod tests {
     fn create_ban() {
         let mut route = Route::CreateBan {
             guild_id: GUILD_ID,
-            delete_message_days: None,
+            delete_message_seconds: None,
             user_id: USER_ID,
         };
         assert_eq!(
@@ -4271,12 +4271,12 @@ mod tests {
 
         route = Route::CreateBan {
             guild_id: GUILD_ID,
-            delete_message_days: Some(3),
+            delete_message_seconds: Some(259_200),
             user_id: USER_ID,
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/bans/{USER_ID}?delete_message_days=3")
+            format!("guilds/{GUILD_ID}/bans/{USER_ID}?delete_message_seconds=259200")
         );
     }
 

@@ -426,13 +426,13 @@ impl Client {
         GetBan::new(self, guild_id, user_id)
     }
 
-    /// Bans a user from a guild, optionally with the number of days' worth of
+    /// Bans a user from a guild, optionally with the number of seconds' worth of
     /// messages to delete and the reason.
     ///
     /// # Examples
     ///
     /// Ban user `200` from guild `100`, deleting
-    /// 1 day's worth of messages, for the reason `"memes"`:
+    /// `86_400` second's (this is equivalent to `1` day) worth of messages, for the reason `"memes"`:
     ///
     /// ```no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
@@ -446,7 +446,7 @@ impl Client {
     /// let user_id = Id::new(200);
     /// client
     ///     .create_ban(guild_id, user_id)
-    ///     .delete_message_days(1)?
+    ///     .delete_message_seconds(86_400)?
     ///     .reason("memes")?
     ///     .exec()
     ///     .await?;
