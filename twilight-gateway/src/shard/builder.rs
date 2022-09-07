@@ -145,6 +145,7 @@ impl ShardBuilder {
             large_threshold: self.large_threshold,
             presence: self.presence,
             queue: self.queue,
+            resume_url: None,
             ratelimit_payloads: self.ratelimit_payloads,
             session_id: None,
             sequence: None,

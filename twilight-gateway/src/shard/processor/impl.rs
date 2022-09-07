@@ -321,16 +321,21 @@ impl ShardProcessor {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
-        if !resumable {
+        let mut url = if !resumable {
             tracing::debug!("shard {shard_id:?} is not resumable");
             tracing::debug!("shard {shard_id:?} queued");
 
             config.queue.request(shard_id).await;
 
             tracing::debug!("shard {:?} finished queue", config.shard());
-        }
-
-        let mut url = config.gateway_url().to_owned();
+            config.gateway_url().to_owned()
+        } else {
+            config.resume_url
+                .as_ref()
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| config.gateway_url().to_string())
+                .to_owned()
+        };
 
         url.push_str("?v=");
         url.push_str(&API_VERSION.to_string());
