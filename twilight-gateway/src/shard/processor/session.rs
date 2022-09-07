@@ -69,6 +69,7 @@ pub struct Session {
     pub heartbeats: Arc<Heartbeats>,
     pub heartbeat_interval: AtomicU64,
     pub id: MutexSync<Option<Box<str>>>,
+    pub resume_url: MutexSync<Option<Box<str>>>,
     pub seq: Arc<AtomicU64>,
     pub stage: AtomicU8,
     pub tx: UnboundedSender<TungsteniteMessage>,
@@ -82,6 +83,7 @@ impl Session {
             heartbeats: Arc::new(Heartbeats::default()),
             heartbeat_interval: AtomicU64::new(0),
             id: MutexSync::new(None),
+            resume_url: MutexSync::new(None),
             seq: Arc::new(AtomicU64::new(0)),
             stage: AtomicU8::new(Stage::default() as u8),
             tx,
@@ -191,6 +193,14 @@ impl Session {
 
     pub fn set_id(&self, new_id: Box<str>) {
         self.id.lock().expect("id poisoned").replace(new_id);
+    }
+
+    pub fn resume_url(&self) -> Option<Box<str>> {
+        self.resume_url.lock().expect("resume_url poisoned").clone()
+    }
+
+    pub fn set_resume_url(&self, url: Box<str>) {
+        self.resume_url.lock().expect("resume_url poisoned").replace(url);
     }
 
     pub fn stop_heartbeater(&self) {

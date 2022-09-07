@@ -583,6 +583,8 @@ impl ShardProcessor {
         self.session.set_stage(Stage::Connected);
         self.session
             .set_id(ready.session_id.clone().into_boxed_str());
+        self.session
+            .set_resume_url(ready.resume_gateway_url.clone().into_boxed_str());
 
         self.emitter.event(Event::ShardConnected(Connected {
             heartbeat_interval: self.session.heartbeat_interval(),
@@ -1087,8 +1089,10 @@ impl ShardProcessor {
             shard_id: self.config.shard()[0],
         }));
 
+        let url = self.session.resume_url().unwrap_or_else(|| self.url.clone());
+
         let stream = Self::connect(
-            &self.url,
+            &url,
             #[cfg(any(
                 feature = "native",
                 feature = "rustls-native-roots",
