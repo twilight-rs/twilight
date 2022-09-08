@@ -321,7 +321,12 @@ impl ShardProcessor {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
-        let mut url = if !resumable {
+        let mut url = if resumable {
+            config
+                .resume_url
+                .as_ref()
+                .map_or_else(|| config.gateway_url().to_string(), ToString::to_string)
+        } else {
             tracing::debug!("shard {shard_id:?} is not resumable");
             tracing::debug!("shard {shard_id:?} queued");
 
@@ -329,12 +334,6 @@ impl ShardProcessor {
 
             tracing::debug!("shard {:?} finished queue", config.shard());
             config.gateway_url().to_owned()
-        } else {
-            config.resume_url
-                .as_ref()
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| config.gateway_url().to_string())
-                .to_owned()
         };
 
         url.push_str("?v=");
@@ -1094,7 +1093,10 @@ impl ShardProcessor {
             shard_id: self.config.shard()[0],
         }));
 
-        let url = self.session.resume_url().unwrap_or_else(|| self.url.clone());
+        let url = self
+            .session
+            .resume_url()
+            .unwrap_or_else(|| self.url.clone());
 
         let stream = Self::connect(
             &url,

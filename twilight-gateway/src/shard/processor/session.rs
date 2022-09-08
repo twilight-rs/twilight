@@ -200,7 +200,10 @@ impl Session {
     }
 
     pub fn set_resume_url(&self, url: Box<str>) {
-        self.resume_url.lock().expect("resume_url poisoned").replace(url);
+        self.resume_url
+            .lock()
+            .expect("resume_url poisoned")
+            .replace(url);
     }
 
     pub fn stop_heartbeater(&self) {
