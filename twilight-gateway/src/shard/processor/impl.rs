@@ -325,7 +325,7 @@ impl ShardProcessor {
             config
                 .resume_url
                 .as_ref()
-                .map_or_else(|| config.gateway_url().to_string(), ToString::to_string)
+                .map_or_else(|| config.gateway_url().to_owned(), ToString::to_string)
         } else {
             tracing::debug!("shard {shard_id:?} is not resumable");
             tracing::debug!("shard {shard_id:?} queued");
