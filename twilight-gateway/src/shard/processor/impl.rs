@@ -321,16 +321,20 @@ impl ShardProcessor {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
-        if !resumable {
+        let mut url = if resumable {
+            config
+                .resume_url
+                .as_ref()
+                .map_or_else(|| config.gateway_url().to_owned(), ToString::to_string)
+        } else {
             tracing::debug!("shard {shard_id:?} is not resumable");
             tracing::debug!("shard {shard_id:?} queued");
 
             config.queue.request(shard_id).await;
 
             tracing::debug!("shard {:?} finished queue", config.shard());
-        }
-
-        let mut url = config.gateway_url().to_owned();
+            config.gateway_url().to_owned()
+        };
 
         url.push_str("?v=");
         url.push_str(&API_VERSION.to_string());
@@ -583,6 +587,8 @@ impl ShardProcessor {
         self.session.set_stage(Stage::Connected);
         self.session
             .set_id(ready.session_id.clone().into_boxed_str());
+        self.session
+            .set_resume_url(ready.resume_gateway_url.clone().into_boxed_str());
 
         self.emitter.event(Event::ShardConnected(Connected {
             heartbeat_interval: self.session.heartbeat_interval(),
@@ -1087,8 +1093,13 @@ impl ShardProcessor {
             shard_id: self.config.shard()[0],
         }));
 
+        let url = self
+            .session
+            .resume_url()
+            .unwrap_or_else(|| self.url.clone());
+
         let stream = Self::connect(
-            &self.url,
+            &url,
             #[cfg(any(
                 feature = "native",
                 feature = "rustls-native-roots",

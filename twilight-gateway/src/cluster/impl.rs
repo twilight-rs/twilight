@@ -298,6 +298,7 @@ impl Cluster {
                     if let Some(data) = config.resume_sessions.remove(&idx) {
                         shard_config.session_id = Some(data.session_id.into_boxed_str());
                         shard_config.sequence = Some(data.sequence);
+                        shard_config.resume_url = data.resume_url.map(String::into_boxed_str);
                     }
 
                     if let Some(shard_presence) = &config.shard_presence {
