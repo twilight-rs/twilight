@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- add handling for gateway resume url ([#1894](https://github.com/twilight-rs/twilight/issues/1894))
+
 ## [0.13.0] - 2022-08-14
 
 ### Refactor

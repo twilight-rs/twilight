@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- explicitly drop lock ([#1885](https://github.com/twilight-rs/twilight/issues/1885))
+
 ## [0.13.1] - 2022-09-01
 
 ### Bug Fixes

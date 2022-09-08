@@ -1,5 +1,12 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- add application command badge flag ([#1888](https://github.com/twilight-rs/twilight/issues/1888))
+- add handling for gateway resume url ([#1894](https://github.com/twilight-rs/twilight/issues/1894))
+
 ## [0.13.2] - 2022-09-01
 
 ### Bug Fixes
