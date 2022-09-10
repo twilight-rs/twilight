@@ -40,14 +40,14 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// use twilight_model::channel::message::component::{ActionRow, Button, ButtonStyle, Component};
 ///
 /// Component::ActionRow(ActionRow {
-///     components: vec![Component::Button(Button {
+///     components: Vec::from([Component::Button(Button {
 ///         custom_id: Some("click_one".to_owned()),
 ///         disabled: false,
 ///         emoji: None,
 ///         label: Some("Click me!".to_owned()),
 ///         style: ButtonStyle::Primary,
 ///         url: None,
-///     })],
+///     })]),
 /// });
 /// ```
 ///
@@ -68,7 +68,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///         disabled: false,
 ///         max_values: Some(3),
 ///         min_values: Some(1),
-///         options: vec![
+///         options: Vec::from([
 ///             SelectMenuOption {
 ///                 default: false,
 ///                 emoji: Some(ReactionType::Custom {
@@ -102,7 +102,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///                 label: "Priest".to_owned(),
 ///                 value: "priest".to_owned(),
 ///             },
-///         ],
+///         ]),
 ///         placeholder: Some("Choose a class".to_owned()),
 ///     })],
 /// });
