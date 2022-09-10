@@ -77,12 +77,13 @@ impl<'a> CreateRole<'a> {
         }
     }
 
-    /// Set the color of the role.
-    /// 
-    /// This must be a valid hexadecimal RGB value. `0x000000` is ignored
-    /// and doesn't count towards the final computed color in the user list.
-    /// Refer to [`RoleFieldsBuilder::COLOR_MAXIMUM`] for the maximum
-    /// acceptable value.
+    /// Set the role color.
+    ///
+    /// This must be a valid hexadecimal RGB value. `0x000000` is ignored and
+    /// doesn't count towards the final computed color in the user list. Refer
+    /// to [`COLOR_MAXIMUM`] for the maximum acceptable value.
+    ///
+    /// [`COLOR_MAXIMUM`]: twilight_validate::embed::COLOR_MAXIMUM
     pub const fn color(mut self, color: u32) -> Self {
         self.fields.color = Some(color);
 
