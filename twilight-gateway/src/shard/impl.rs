@@ -331,6 +331,9 @@ impl Information {
 /// Details to resume a gateway session.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ResumeSession {
+    /// URL used to resume
+    #[serde(default)]
+    pub resume_url: Option<String>,
     /// ID of the session being resumed.
     pub session_id: String,
     /// Last received event sequence number.
@@ -758,6 +761,7 @@ impl Shard {
         session.stop_heartbeater();
 
         let data = session_id.map(|id| ResumeSession {
+            resume_url: session.resume_url().map(String::from),
             session_id: id.into_string(),
             sequence,
         });

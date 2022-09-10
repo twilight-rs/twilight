@@ -1,8 +1,10 @@
+//! Textual user communication method.
+#![deny(missing_docs)]
+
 pub mod allowed_mentions;
 pub mod sticker;
 
 mod activity;
-mod activity_type;
 mod application;
 mod flags;
 mod interaction;
@@ -12,10 +14,16 @@ mod reaction;
 mod reference;
 
 pub use self::{
-    activity::MessageActivity, activity_type::MessageActivityType,
-    allowed_mentions::AllowedMentions, application::MessageApplication, flags::MessageFlags,
-    interaction::MessageInteraction, kind::MessageType, mention::Mention,
-    reaction::MessageReaction, reference::MessageReference, sticker::Sticker,
+    activity::{MessageActivity, MessageActivityType},
+    allowed_mentions::AllowedMentions,
+    application::MessageApplication,
+    flags::MessageFlags,
+    interaction::MessageInteraction,
+    kind::MessageType,
+    mention::Mention,
+    reaction::MessageReaction,
+    reference::MessageReference,
+    sticker::Sticker,
 };
 
 use self::sticker::MessageSticker;
@@ -34,15 +42,20 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
+/// Text message sent in a [`Channel`].
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Message {
+    /// Present with Rich Presence-related chat embeds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub activity: Option<MessageActivity>,
+    /// Present with Rich Presence-related chat embeds.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application: Option<MessageApplication>,
     /// Associated application's ID.
     ///
-    /// Sent if the message is a response to an Interaction.
+    /// Present if the message is a response to an [`Interaction`].
+    ///
+    /// [`Interaction`]: crate::application::interaction::Interaction
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
     /// List of attachments.
@@ -58,7 +71,9 @@ pub struct Message {
     ///
     /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     pub attachments: Vec<Attachment>,
+    /// Author of the message.
     pub author: User,
+    /// ID of the [`Channel`] the message was sent in.
     pub channel_id: Id<ChannelMarker>,
     /// List of provided components, such as buttons.
     ///
@@ -87,6 +102,7 @@ pub struct Message {
     ///
     /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     pub content: String,
+    /// When the message was last edited.
     pub edited_timestamp: Option<Timestamp>,
     /// List of embeds.
     ///
@@ -104,29 +120,49 @@ pub struct Message {
     /// Flags of the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
+    /// ID of the [`Guild`] the message was sent in.
+    ///
+    /// [`Guild`]: crate::guild::Guild
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
+    /// Id of the message.
     pub id: Id<MessageMarker>,
+    /// Interaction the message was sent as a response to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interaction: Option<MessageInteraction>,
+    /// Type of message.
     #[serde(rename = "type")]
     pub kind: MessageType,
+    /// Member properties of the [`author`].
+    ///
+    /// [`author`]: Message::author
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<PartialMember>,
+    /// [`Channel`]s mentioned in the message.
+    ///
+    /// Note: only textual channels visible to everyone mentioned in crossposted
+    /// messages (via channel following) will be included.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub mention_channels: Vec<ChannelMention>,
+    /// Whether the message mentions `@everyone`.
     pub mention_everyone: bool,
+    /// [`Role`]s mentioned in the message.
+    ///
+    /// [`Role`]: crate::guild::Role
     pub mention_roles: Vec<Id<RoleMarker>>,
+    /// Users mentioned in the message.
     pub mentions: Vec<Mention>,
+    /// Whether the message is pinned.
     pub pinned: bool,
+    /// List of reactions to the message.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub reactions: Vec<MessageReaction>,
-    /// Reference data sent with crossposted messages and replies.
+    /// Crosspost, channel follow add, pin and reply source message data.
     #[serde(rename = "message_reference", skip_serializing_if = "Option::is_none")]
     pub reference: Option<MessageReference>,
-    /// The message associated with the [reference].
+    /// The message associated with the [`reference`].
     ///
-    /// [reference]: Self::reference
+    /// [`reference`]: Self::reference
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referenced_message: Option<Box<Message>>,
     /// Stickers within the message.
@@ -134,9 +170,12 @@ pub struct Message {
     pub sticker_items: Vec<MessageSticker>,
     /// Timestamp of when the message was created.
     pub timestamp: Timestamp,
+    /// Thread started from this message, includes [`Channel::member`].
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread: Option<Channel>,
+    /// Whether the message was a TTS message.
     pub tts: bool,
+    /// ID of the webhook that generated the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub webhook_id: Option<Id<WebhookMarker>>,
 }
@@ -286,7 +325,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 8,
+                    len: 7,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
@@ -299,8 +338,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("member nick"),
-                Token::Str("permissions"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,
@@ -530,7 +567,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 8,
+                    len: 7,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
@@ -543,8 +580,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("member nick"),
-                Token::Str("permissions"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

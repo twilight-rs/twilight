@@ -21,7 +21,7 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 ///
 /// This brings together all of the types of [`DispatchEvent`]s,
 /// [`GatewayEvent`]s, and [`ShardEvent`]s.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Event {
     /// Message was blocked by AutoMod according to a rule.
     AutoModerationActionExecution(AutoModerationActionExecution),
@@ -294,6 +294,8 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::GuildScheduledEventUserRemove(v) => {
                 Self::GuildScheduledEventUserRemove(v)
             }
+            DispatchEvent::GuildStickersUpdate(v) => Self::GuildStickersUpdate(v),
+            DispatchEvent::GuildUpdate(v) => Self::GuildUpdate(v),
             DispatchEvent::IntegrationCreate(v) => Self::IntegrationCreate(v),
             DispatchEvent::IntegrationDelete(v) => Self::IntegrationDelete(v),
             DispatchEvent::IntegrationUpdate(v) => Self::IntegrationUpdate(v),
@@ -307,7 +309,6 @@ impl From<DispatchEvent> for Event {
             DispatchEvent::RoleCreate(v) => Self::RoleCreate(v),
             DispatchEvent::RoleDelete(v) => Self::RoleDelete(v),
             DispatchEvent::RoleUpdate(v) => Self::RoleUpdate(v),
-            DispatchEvent::GuildUpdate(v) => Self::GuildUpdate(v),
             DispatchEvent::MessageCreate(v) => Self::MessageCreate(v),
             DispatchEvent::MessageDelete(v) => Self::MessageDelete(v),
             DispatchEvent::MessageDeleteBulk(v) => Self::MessageDeleteBulk(v),

@@ -6,6 +6,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
+/// Associated interaction metadata.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageInteraction {
     /// ID of the interaction.
@@ -93,7 +94,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 8,
+                    len: 7,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
@@ -106,8 +107,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("a nickname"),
-                Token::Str("permissions"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
                 Token::NewtypeStruct { name: "Id" },

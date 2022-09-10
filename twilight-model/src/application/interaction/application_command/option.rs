@@ -1,5 +1,5 @@
 use crate::{
-    application::command::{CommandOptionType, Number},
+    application::command::CommandOptionType,
     id::{
         marker::{AttachmentMarker, ChannelMarker, GenericMarker, RoleMarker, UserMarker},
         Id,
@@ -10,14 +10,14 @@ use serde::{
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::fmt::{Debug, Formatter, Result as FmtResult};
+use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 /// Data received when a user fills in a command option.
 ///
 /// See [Discord Docs/Application Command Object].
 ///
 /// [Discord Docs/Application Command Object]: https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-interaction-data-option-structure
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CommandDataOption {
     /// Name of the option.
     pub name: String,
@@ -108,6 +108,18 @@ impl<'de> Deserialize<'de> for CommandDataOption {
             }
         }
 
+        impl Display for ValueEnvelope {
+            fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+                match self {
+                    Self::Boolean(b) => Display::fmt(b, f),
+                    Self::Integer(i) => Display::fmt(i, f),
+                    Self::Number(n) => Display::fmt(n, f),
+                    Self::Id(i) => Display::fmt(i, f),
+                    Self::String(s) => Display::fmt(s, f),
+                }
+            }
+        }
+
         struct CommandDataOptionVisitor;
 
         impl<'de> Visitor<'de> for CommandDataOptionVisitor {
@@ -122,7 +134,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 let mut name_opt = None;
                 let mut kind_opt = None;
                 let mut options = Vec::new();
-                let mut value_opt = None;
+                let mut value_opt: Option<ValueEnvelope> = None;
                 let mut focused = None;
 
                 loop {
@@ -184,16 +196,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                 let value = if focused {
                     let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
-                    match val {
-                        ValueEnvelope::Integer(i) => {
-                            CommandOptionValue::Focused(i.to_string(), kind)
-                        }
-                        ValueEnvelope::Number(f) => {
-                            CommandOptionValue::Focused(f.to_string(), kind)
-                        }
-                        ValueEnvelope::String(s) => CommandOptionValue::Focused(s, kind),
-                        _ => return Err(DeError::invalid_type(val.as_unexpected(), &"focused")),
-                    }
+                    CommandOptionValue::Focused(val.to_string(), kind)
                 } else {
                     match kind {
                         CommandOptionType::Attachment => {
@@ -261,9 +264,9 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                     // but it is safe to cast as there can
                                     // not occur any loss.
                                     #[allow(clippy::cast_precision_loss)]
-                                    CommandOptionValue::Number(Number(i as f64))
+                                    CommandOptionValue::Number(i as f64)
                                 }
-                                ValueEnvelope::Number(f) => CommandOptionValue::Number(Number(f)),
+                                ValueEnvelope::Number(f) => CommandOptionValue::Number(f),
                                 other => {
                                     return Err(DeError::invalid_type(
                                         other.as_unexpected(),
@@ -322,7 +325,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
 }
 
 /// Combined value and value type for a [`CommandDataOption`].
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum CommandOptionValue {
     /// Attachment option.
     Attachment(Id<AttachmentMarker>),
@@ -347,7 +350,7 @@ pub enum CommandOptionValue {
     /// Mentionable option.
     Mentionable(Id<GenericMarker>),
     /// Number option.
-    Number(Number),
+    Number(f64),
     /// Role option.
     Role(Id<RoleMarker>),
     /// String option.
@@ -383,7 +386,7 @@ impl CommandOptionValue {
 mod tests {
     use crate::{
         application::{
-            command::{CommandOptionType, CommandType, Number},
+            command::{CommandOptionType, CommandType},
             interaction::application_command::{
                 CommandData, CommandDataOption, CommandOptionValue,
             },
@@ -603,7 +606,7 @@ mod tests {
     fn numbers() {
         let value = CommandDataOption {
             name: "opt".to_string(),
-            value: CommandOptionValue::Number(Number(5.0)),
+            value: CommandOptionValue::Number(5.0),
         };
 
         serde_test::assert_de_tokens(
@@ -650,6 +653,34 @@ mod tests {
                 Token::U8(CommandOptionType::Number as u8),
                 Token::Str("value"),
                 Token::String("not a number"),
+                Token::StructEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn autocomplete_number() {
+        let value = CommandDataOption {
+            name: "opt".to_string(),
+            value: CommandOptionValue::Focused("1".to_owned(), CommandOptionType::Number),
+        };
+
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "CommandDataOption",
+                    len: 4,
+                },
+                Token::Str("focused"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("name"),
+                Token::Str("opt"),
+                Token::Str("type"),
+                Token::U8(CommandOptionType::Number as u8),
+                Token::Str("value"),
+                Token::String("1"),
                 Token::StructEnd,
             ],
         );

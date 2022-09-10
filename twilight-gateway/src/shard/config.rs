@@ -29,6 +29,7 @@ pub struct Config {
     pub(crate) presence: Option<UpdatePresencePayload>,
     pub(super) queue: Arc<dyn Queue>,
     pub(crate) ratelimit_payloads: bool,
+    pub(crate) resume_url: Option<Box<str>>,
     pub(crate) session_id: Option<Box<str>>,
     pub(crate) sequence: Option<u64>,
     pub(crate) shard: [u64; 2],

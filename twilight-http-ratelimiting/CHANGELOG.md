@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.13.2] - 2022-09-08
+
+### Bug Fixes
+
+- explicitly drop lock ([#1885](https://github.com/twilight-rs/twilight/issues/1885))
+
+## [0.13.1] - 2022-09-01
+
+### Bug Fixes
+
+- `/channels/id/thread-members/id` parsing ([#1880](https://github.com/twilight-rs/twilight/issues/1880))
+
+## [0.13.0] - 2022-08-14
+
+### Documentation
+
+- interaction endpoints not bound to global ratelimit ([#1853](https://github.com/twilight-rs/twilight/issues/1853))
+
+## [0.12.2] - 2022-08-11
+
+### Documentation
+
+- interaction endpoints not bound to global ratelimit ([#1853](https://github.com/twilight-rs/twilight/issues/1853))
+
 ## [0.12.1] - 2022-07-26
 
 ### Documentation

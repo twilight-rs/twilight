@@ -77,11 +77,9 @@ impl UpdateCache for Ready {
 
 impl UpdateCache for UnavailableGuild {
     fn update(&self, cache: &InMemoryCache) {
-        if !cache.wants(ResourceType::GUILD) {
-            return;
+        if cache.wants(ResourceType::GUILD) {
+            cache.unavailable_guild(self.id);
         }
-
-        cache.unavailable_guild(self.id);
     }
 }
 
