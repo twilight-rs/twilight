@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Sticker`]: super::Sticker
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
 pub enum StickerType {
     /// Official sticker in a pack.
