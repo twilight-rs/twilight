@@ -121,7 +121,6 @@ impl ClusterBuilder {
         let info = http
             .gateway()
             .authed()
-            .exec()
             .await
             .map_err(|source| ClusterStartError {
                 kind: ClusterStartErrorType::AutoSharding,

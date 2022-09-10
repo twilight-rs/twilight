@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Deserialize;
+use std::future::IntoFuture;
 use twilight_model::channel::message::sticker::StickerPack;
 
 #[derive(Deserialize)]
@@ -24,7 +25,7 @@ pub struct StickerPackListing {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let packs = client.nitro_sticker_packs().exec().await?.model().await?;
+/// let packs = client.nitro_sticker_packs().await?.model().await?;
 ///
 /// println!("{}", packs.sticker_packs.len());
 /// # Ok(()) }
@@ -40,9 +41,18 @@ impl<'a> GetNitroStickerPacks<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<StickerPackListing> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetNitroStickerPacks<'_> {
+    type Output = Result<Response<StickerPackListing>, Error>;
+
+    type IntoFuture = ResponseFuture<StickerPackListing>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

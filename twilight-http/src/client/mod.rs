@@ -251,7 +251,7 @@ impl Client {
     ///
     /// // Cache the application ID for repeated use later in the process.
     /// let application_id = {
-    ///     let response = client.current_user_application().exec().await?;
+    ///     let response = client.current_user_application().await?;
     ///
     ///     response.model().await?.id
     /// };
@@ -260,7 +260,6 @@ impl Client {
     /// let commands = client
     ///     .interaction(application_id)
     ///     .global_commands()
-    ///     .exec()
     ///     .await?
     ///     .models()
     ///     .await?;
@@ -389,7 +388,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
     /// let guild_id = Id::new(101);
-    /// let audit_log = client.audit_log(guild_id).exec().await?;
+    /// let audit_log = client.audit_log(guild_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn audit_log(&self, guild_id: Id<GuildMarker>) -> GetAuditLog<'_> {
@@ -412,7 +411,7 @@ impl Client {
     /// #
     /// let guild_id = Id::new(1);
     ///
-    /// let bans = client.bans(guild_id).exec().await?;
+    /// let bans = client.bans(guild_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn bans(&self, guild_id: Id<GuildMarker>) -> GetBans<'_> {
@@ -448,7 +447,6 @@ impl Client {
     ///     .create_ban(guild_id, user_id)
     ///     .delete_message_seconds(86_400)?
     ///     .reason("memes")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -477,7 +475,7 @@ impl Client {
     /// let guild_id = Id::new(100);
     /// let user_id = Id::new(200);
     ///
-    /// client.delete_ban(guild_id, user_id).exec().await?;
+    /// client.delete_ban(guild_id, user_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn delete_ban(
@@ -504,7 +502,7 @@ impl Client {
     /// #
     /// let channel_id = Id::new(100);
     /// #
-    /// let channel = client.channel(channel_id).exec().await?;
+    /// let channel = client.channel(channel_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn channel(&self, channel_id: Id<ChannelMarker>) -> GetChannel<'_> {
@@ -568,7 +566,6 @@ impl Client {
     ///     .channel_messages(channel_id)
     ///     .before(message_id)
     ///     .limit(limit)?
-    ///     .exec()
     ///     .await?;
     ///
     /// # Ok(()) }
@@ -625,7 +622,6 @@ impl Client {
     ///
     /// client
     ///     .update_channel_permission(channel_id, &permission_overwrite)
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -712,7 +708,6 @@ impl Client {
     ///     .after(after)
     ///     .before(before)
     ///     .limit(25)?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -736,7 +731,7 @@ impl Client {
     /// #
     /// let guild_id = Id::new(100);
     ///
-    /// client.emojis(guild_id).exec().await?;
+    /// client.emojis(guild_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn emojis(&self, guild_id: Id<GuildMarker>) -> GetEmojis<'_> {
@@ -760,7 +755,7 @@ impl Client {
     /// let guild_id = Id::new(50);
     /// let emoji_id = Id::new(100);
     ///
-    /// client.emoji(guild_id, emoji_id).exec().await?;
+    /// client.emoji(guild_id, emoji_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn emoji(
@@ -819,7 +814,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let info = client.gateway().exec().await?;
+    /// let info = client.gateway().await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -833,7 +828,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let info = client.gateway().authed().exec().await?.model().await?;
+    /// let info = client.gateway().authed().await?.model().await?;
     ///
     /// println!("URL: {}", info.url);
     /// println!("Recommended shards to use: {}", info.shards);
@@ -993,7 +988,7 @@ impl Client {
     /// #
     /// let guild_id = Id::new(100);
     /// let user_id = Id::new(3000);
-    /// let members = client.guild_members(guild_id).after(user_id).exec().await?;
+    /// let members = client.guild_members(guild_id).after(user_id).await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1027,7 +1022,6 @@ impl Client {
     /// let members = client
     ///     .search_guild_members(guild_id, "Wumpus")
     ///     .limit(10)?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1105,7 +1099,6 @@ impl Client {
     ///     .update_guild_member(Id::new(1), Id::new(2))
     ///     .mute(true)
     ///     .nick(Some("pinkie pie"))?
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -1161,7 +1154,6 @@ impl Client {
     /// client
     ///     .add_guild_member_role(guild_id, user_id, role_id)
     ///     .reason("test")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1262,7 +1254,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     /// #
-    /// let invite = client.invite("code").with_counts().exec().await?;
+    /// let invite = client.invite("code").with_counts().await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1287,7 +1279,7 @@ impl Client {
     /// # let client = Client::new("my token".to_owned());
     /// #
     /// let channel_id = Id::new(123);
-    /// let invite = client.create_invite(channel_id).max_uses(3)?.exec().await?;
+    /// let invite = client.create_invite(channel_id).max_uses(3)?.await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -1335,7 +1327,6 @@ impl Client {
     ///     .create_message(channel_id)
     ///     .content("Twilight is best pony")?
     ///     .tts(true)
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1394,7 +1385,6 @@ impl Client {
     /// client
     ///     .update_message(Id::new(1), Id::new(2))
     ///     .content(Some("test update"))?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1411,7 +1401,6 @@ impl Client {
     /// client
     ///     .update_message(Id::new(1), Id::new(2))
     ///     .content(None)?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1492,7 +1481,6 @@ impl Client {
     ///
     /// let reaction = client
     ///     .create_reaction(channel_id, message_id, &emoji)
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1583,7 +1571,6 @@ impl Client {
     ///     .create_role(guild_id)
     ///     .color(0xd90083)
     ///     .name("Bright Pink")
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -1752,12 +1739,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     /// let guild_id = Id::new(234);
     ///
-    /// let threads = client
-    ///     .active_threads(guild_id)
-    ///     .exec()
-    ///     .await?
-    ///     .model()
-    ///     .await?;
+    /// let threads = client.active_threads(guild_id).await?.model().await?;
     /// # Ok(()) }
     /// ```
     pub const fn active_threads(&self, guild_id: Id<GuildMarker>) -> GetActiveThreads<'_> {
@@ -1994,10 +1976,7 @@ impl Client {
     /// # let client = Client::new("my token".to_owned());
     /// let channel_id = Id::new(123);
     ///
-    /// let webhook = client
-    ///     .create_webhook(channel_id, "Twily Bot")?
-    ///     .exec()
-    ///     .await?;
+    /// let webhook = client.create_webhook(channel_id, "Twily Bot")?.await?;
     /// # Ok(()) }
     /// ```
     ///
@@ -2052,7 +2031,6 @@ impl Client {
     /// let webhook = client
     ///     .execute_webhook(id, "webhook token")
     ///     .content("Pinkie...")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2097,7 +2075,6 @@ impl Client {
     /// client
     ///     .update_webhook_message(Id::new(1), "token here", Id::new(2))
     ///     .content(Some("new message content"))?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2128,7 +2105,6 @@ impl Client {
     /// # let client = Client::new("token".to_owned());
     /// client
     ///     .delete_webhook_message(Id::new(1), "token here", Id::new(2))
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2156,7 +2132,6 @@ impl Client {
     ///
     /// client
     ///     .delete_guild_scheduled_event(guild_id, scheduled_event_id)
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2199,7 +2174,6 @@ impl Client {
     ///         &garfield_start_time,
     ///     )?
     ///     .description("Discuss: How important is Garfield to You?")?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2228,7 +2202,6 @@ impl Client {
     ///         "In a spiritual successor to BronyCon, Garfield fans from \
     /// around the globe celebrate all things related to the loveable cat.",
     ///     )?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -2315,7 +2288,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     ///
     /// let id = Id::new(123);
-    /// let sticker = client.sticker(id).exec().await?.model().await?;
+    /// let sticker = client.sticker(id).await?.model().await?;
     ///
     /// println!("{sticker:#?}");
     /// # Ok(()) }
@@ -2335,7 +2308,7 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new("my token".to_owned());
     ///
-    /// let packs = client.nitro_sticker_packs().exec().await?.model().await?;
+    /// let packs = client.nitro_sticker_packs().await?.model().await?;
     ///
     /// println!("{}", packs.sticker_packs.len());
     /// # Ok(()) }
@@ -2357,12 +2330,7 @@ impl Client {
     /// let client = Client::new("my token".to_owned());
     ///
     /// let guild_id = Id::new(1);
-    /// let stickers = client
-    ///     .guild_stickers(guild_id)
-    ///     .exec()
-    ///     .await?
-    ///     .models()
-    ///     .await?;
+    /// let stickers = client.guild_stickers(guild_id).await?.models().await?;
     ///
     /// println!("{}", stickers.len());
     /// # Ok(()) }
@@ -2387,7 +2355,6 @@ impl Client {
     /// let sticker_id = Id::new(2);
     /// let sticker = client
     ///     .guild_sticker(guild_id, sticker_id)
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -2424,7 +2391,6 @@ impl Client {
     ///         &"sticker,tags",
     ///         &[23, 23, 23, 23],
     ///     )?
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -2472,7 +2438,6 @@ impl Client {
     /// let sticker = client
     ///     .update_guild_sticker(guild_id, sticker_id)
     ///     .description("new description")?
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -2503,10 +2468,7 @@ impl Client {
     /// let guild_id = Id::new(1);
     /// let sticker_id = Id::new(2);
     ///
-    /// client
-    ///     .delete_guild_sticker(guild_id, sticker_id)
-    ///     .exec()
-    ///     .await?;
+    /// client.delete_guild_sticker(guild_id, sticker_id).await?;
     /// # Ok(()) }
     /// ```
     pub const fn delete_guild_sticker(

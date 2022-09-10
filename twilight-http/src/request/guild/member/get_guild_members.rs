@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::MemberListBody, ResponseFuture},
+    response::{marker::MemberListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
     Id,
@@ -37,7 +38,7 @@ struct GetGuildMembersFields {
 ///
 /// let guild_id = Id::new(100);
 /// let user_id = Id::new(3000);
-/// let members = client.guild_members(guild_id).after(user_id).exec().await?;
+/// let members = client.guild_members(guild_id).after(user_id).await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
@@ -88,9 +89,18 @@ impl<'a> GetGuildMembers<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<MemberListBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGuildMembers<'_> {
+    type Output = Result<Response<MemberListBody>, Error>;
+
+    type IntoFuture = ResponseFuture<MemberListBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let guild_id = self.guild_id;
         let http = self.http;
 
@@ -107,7 +117,7 @@ impl<'a> GetGuildMembers<'a> {
 }
 
 impl TryIntoRequest for GetGuildMembers<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildMembers {
             after: self.fields.after.map(Id::get),
             guild_id: self.guild_id.get(),

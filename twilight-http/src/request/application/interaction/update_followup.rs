@@ -2,15 +2,16 @@
 
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{
         attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
     },
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed},
     http::attachment::Attachment,
@@ -72,7 +73,6 @@ struct UpdateFollowupFields<'a> {
 ///     // mentioned.
 ///     .allowed_mentions(Some(&AllowedMentions::default()))
 ///     .content(Some("test <@3>"))?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -250,7 +250,6 @@ impl<'a> UpdateFollowup<'a> {
     ///     .interaction(application_id)
     ///     .update_followup("token", message_id)
     ///     .embeds(Some(&[embed]))?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -313,7 +312,18 @@ impl<'a> UpdateFollowup<'a> {
         self
     }
 
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateFollowup<'_> {
+    type Output = Result<Response<EmptyBody>, Error>;
+
+    type IntoFuture = ResponseFuture<EmptyBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -324,7 +334,7 @@ impl<'a> UpdateFollowup<'a> {
 }
 
 impl TryIntoRequest for UpdateFollowup<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateWebhookMessage {
             message_id: self.message_id.get(),
             thread_id: None,
@@ -353,7 +363,7 @@ impl TryIntoRequest for UpdateFollowup<'_> {
                     self.attachment_manager.get_partial_attachments(),
                 )));
 
-                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };

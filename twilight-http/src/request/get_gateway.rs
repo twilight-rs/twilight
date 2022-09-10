@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{GetGatewayAuthed, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::gateway::connection_info::ConnectionInfo;
 
 /// Get information about the gateway, optionally with additional information detailing the
@@ -21,7 +22,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let info = client.gateway().exec().await?.model().await?;
+/// let info = client.gateway().await?.model().await?;
 /// # Ok(()) }
 /// ```
 ///
@@ -35,7 +36,7 @@ use twilight_model::gateway::connection_info::ConnectionInfo;
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let info = client.gateway().authed().exec().await?.model().await?;
+/// let info = client.gateway().authed().await?.model().await?;
 ///
 /// println!("URL: {}", info.url);
 /// println!("Recommended shards to use: {}", info.shards);
@@ -60,9 +61,18 @@ impl<'a> GetGateway<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ConnectionInfo> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGateway<'_> {
+    type Output = Result<Response<ConnectionInfo>, Error>;
+
+    type IntoFuture = ResponseFuture<ConnectionInfo>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

@@ -1,11 +1,12 @@
 use super::RequestReactionType;
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     id::{
         marker::{ChannelMarker, MessageMarker, UserMarker},
@@ -84,9 +85,17 @@ impl<'a> GetReactions<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
     pub fn exec(self) -> ResponseFuture<ListBody<User>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetReactions<'_> {
+    type Output = Result<Response<ListBody<User>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<User>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -97,7 +106,7 @@ impl<'a> GetReactions<'a> {
 }
 
 impl TryIntoRequest for GetReactions<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetReactionUsers {
             after: self.fields.after.map(Id::get),
             channel_id: self.channel_id.get(),

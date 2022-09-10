@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::id::{
     marker::{ChannelMarker, UserMarker},
     Id,
@@ -40,9 +41,18 @@ impl<'a> RemoveThreadMember<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for RemoveThreadMember<'_> {
+    type Output = Result<Response<EmptyBody>, Error>;
+
+    type IntoFuture = ResponseFuture<EmptyBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

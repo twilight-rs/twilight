@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, RequestBuilder, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     application::command::permissions::CommandPermission,
     id::{
@@ -57,9 +58,18 @@ impl<'a> UpdateCommandPermissions<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<CommandPermission>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateCommandPermissions<'_> {
+    type Output = Result<Response<ListBody<CommandPermission>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<CommandPermission>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

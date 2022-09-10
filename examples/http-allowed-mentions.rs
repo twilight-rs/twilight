@@ -32,7 +32,6 @@ async fn main() -> anyhow::Result<()> {
             "<@{user_id}> you are not allowed to ping @everyone!"
         ))?
         .allowed_mentions(Some(&allowed_mentions))
-        .exec()
         .await?;
 
     Ok(())

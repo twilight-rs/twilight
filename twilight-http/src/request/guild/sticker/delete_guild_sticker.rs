@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::id::{
     marker::{GuildMarker, StickerMarker},
     Id,
@@ -25,10 +26,7 @@ use twilight_model::id::{
 /// let guild_id = Id::new(1);
 /// let sticker_id = Id::new(2);
 ///
-/// client
-///     .delete_guild_sticker(guild_id, sticker_id)
-///     .exec()
-///     .await?;
+/// client.delete_guild_sticker(guild_id, sticker_id).await?;
 /// # Ok(()) }
 /// ```
 pub struct DeleteGuildSticker<'a> {
@@ -51,9 +49,18 @@ impl<'a> DeleteGuildSticker<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for DeleteGuildSticker<'_> {
+    type Output = Result<Response<EmptyBody>, Error>;
+
+    type IntoFuture = ResponseFuture<EmptyBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

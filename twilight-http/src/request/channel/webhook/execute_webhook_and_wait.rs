@@ -1,10 +1,11 @@
-use super::execute_webhook::ExecuteWebhook;
+use super::ExecuteWebhook;
 use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
 };
+use std::future::IntoFuture;
 use twilight_model::channel::Message;
 
 /// Execute a webhook, sending a message to its channel, and then wait for the
@@ -25,7 +26,6 @@ use twilight_model::channel::Message;
 ///     .execute_webhook(id, "webhook token")
 ///     .content("Pinkie...")?
 ///     .wait()
-///     .exec()
 ///     .await?
 ///     .model()
 ///     .await?;
@@ -45,9 +45,18 @@ impl<'a> ExecuteWebhookAndWait<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for ExecuteWebhookAndWait<'_> {
+    type Output = Result<Response<Message>, Error>;
+
+    type IntoFuture = ResponseFuture<Message>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, RequestBuilder, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel, ChannelType},
     id::{marker::ChannelMarker, Id},
@@ -82,9 +83,18 @@ impl<'a> CreateThread<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Channel> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for CreateThread<'_> {
+    type Output = Result<Response<Channel>, Error>;
+
+    type IntoFuture = ResponseFuture<Channel>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

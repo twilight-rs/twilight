@@ -4,8 +4,9 @@ use super::{
 use crate::{
     error::Error,
     request::{AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
 };
+use std::future::IntoFuture;
 use twilight_model::{
     guild::scheduled_event::{EntityType, GuildScheduledEvent},
     util::Timestamp,
@@ -75,10 +76,9 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<GuildScheduledEvent> {
-        self.0.exec()
+        self.into_future()
     }
 }
 
@@ -89,6 +89,16 @@ impl<'a> AuditLogReason<'a> for CreateGuildExternalScheduledEvent<'a> {
         self.0.reason.replace(reason);
 
         Ok(self)
+    }
+}
+
+impl IntoFuture for CreateGuildExternalScheduledEvent<'_> {
+    type Output = Result<Response<GuildScheduledEvent>, Error>;
+
+    type IntoFuture = ResponseFuture<GuildScheduledEvent>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        self.0.into_future()
     }
 }
 

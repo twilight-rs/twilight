@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     guild::Emoji,
     id::{
@@ -69,15 +70,9 @@ impl<'a> CreateEmoji<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Emoji> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -88,6 +83,21 @@ impl<'a> AuditLogReason<'a> for CreateEmoji<'a> {
         self.reason.replace(reason);
 
         Ok(self)
+    }
+}
+
+impl IntoFuture for CreateEmoji<'_> {
+    type Output = Result<Response<Emoji>, Error>;
+
+    type IntoFuture = ResponseFuture<Emoji>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 
