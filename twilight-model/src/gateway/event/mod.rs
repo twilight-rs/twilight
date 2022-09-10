@@ -6,7 +6,7 @@ pub mod shard;
 mod dispatch;
 mod kind;
 
-use crate::id::{Id, marker::GuildMarker};
+use crate::id::{marker::GuildMarker, Id};
 
 pub use self::{
     dispatch::{DispatchEvent, DispatchEventWithTypeDeserializer},
