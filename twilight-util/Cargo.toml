@@ -1,18 +1,15 @@
 [package]
-authors = ["Twilight Contributors"]
-categories = []
+authors.workspace = true
 description = "Miscellaneous utilities for Twilight."
-documentation = "https://docs.rs/twilight-util"
-edition = "2021"
+edition.workspace = true
 homepage = "https://twilight.rs"
-include = ["src/**/*.rs", "README.md"]
+include.workspace = true
 keywords = ["discord", "discord-api", "twilight"]
-license = "ISC"
+license.workspace = true
 name = "twilight-util"
 publish = true
-readme = "README.md"
-repository = "https://github.com/twilight-rs/twilight.git"
-rust-version = "1.60"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.13.2"
 
 [dependencies]
