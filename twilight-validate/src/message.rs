@@ -13,8 +13,12 @@ use std::{
 };
 use twilight_model::{
     channel::message::{Component, Embed},
+    http::attachment::Attachment,
     id::{marker::StickerMarker, Id},
 };
+
+/// Maximum length of an attachment's description.
+pub const ATTACHMENT_DESCIPTION_LENGTH_MAX: usize = 1024;
 
 /// Maximum number of embeds that a message may have.
 pub const EMBED_COUNT_LIMIT: usize = 10;
@@ -83,6 +87,13 @@ impl MessageValidationError {
 impl Display for MessageValidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.kind {
+            MessageValidationErrorType::AttachmentDescriptionTooLarge { chars } => {
+                f.write_str("the attachment description is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&ATTACHMENT_DESCIPTION_LENGTH_MAX, f)
+            }
             MessageValidationErrorType::AttachmentFilename { filename } => {
                 f.write_str("attachment filename `")?;
                 Display::fmt(filename, f)?;
@@ -137,6 +148,11 @@ pub enum MessageValidationErrorType {
         /// Invalid filename.
         filename: String,
     },
+    /// Attachment description is too large.
+    AttachmentDescriptionTooLarge {
+        /// Provided number of codepoints.
+        chars: usize,
+    },
     /// Too many message components were provided.
     ComponentCount {
         /// Number of components that were provided.
@@ -171,7 +187,49 @@ pub enum MessageValidationErrorType {
     WebhookUsername,
 }
 
-/// Ensure an attachment's filename is correct.
+/// Ensure an attachment is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+/// the attachments's description is too large.
+///
+/// Returns an error of type [`AttachmentFilename`] if the
+/// filename is invalid.
+///
+/// [`AttachmentDescriptionTooLarge`]: MessageValidationErrorType::AttachmentDescriptionTooLarge
+/// [`AttachmentFilename`]: MessageValidationErrorType::AttachmentFilename
+pub fn attachment(attachment: &Attachment) -> Result<(), MessageValidationError> {
+    attachment_filename(&attachment.filename)?;
+
+    if let Some(description) = &attachment.description {
+        attachment_description(description)?;
+    }
+
+    Ok(())
+}
+
+/// Ensure an attachment's description is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+/// the attachment's description is too large.
+///
+/// [`AttachmentDescriptionTooLarge`]: MessageValidationErrorType::AttachmentDescriptionTooLarge
+pub fn attachment_description(description: impl AsRef<str>) -> Result<(), MessageValidationError> {
+    let chars = description.as_ref().chars().count();
+    if chars <= ATTACHMENT_DESCIPTION_LENGTH_MAX {
+        Ok(())
+    } else {
+        Err(MessageValidationError {
+            kind: MessageValidationErrorType::AttachmentDescriptionTooLarge { chars },
+            source: None,
+        })
+    }
+}
+
+/// Ensure an attachment's description is correct.
 ///
 /// The filename can contain ASCII alphanumeric characters, dots, dashes, and
 /// underscores.
@@ -326,6 +384,19 @@ pub fn sticker_ids(sticker_ids: &[Id<StickerMarker>]) -> Result<(), MessageValid
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn attachment_description_limit() {
+        assert!(attachment_description("").is_ok());
+        assert!(attachment_description(str::repeat("a", 1024)).is_ok());
+
+        assert!(matches!(
+            attachment_description(str::repeat("a", 1025))
+                .unwrap_err()
+                .kind(),
+            MessageValidationErrorType::AttachmentDescriptionTooLarge { chars: 1025 }
+        ));
+    }
 
     #[test]
     fn attachment_allowed_filename() {

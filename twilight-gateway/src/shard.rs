@@ -176,17 +176,17 @@ impl ConnectionStatus {
     }
 
     /// Whether the shard is connected.
-    pub const fn is_connected(self) -> bool {
+    pub const fn is_connected(&self) -> bool {
         matches!(self, Self::Connected)
     }
 
     /// Whether the shard has disconnected but may reconnect in the future.
-    pub const fn is_disconnected(self) -> bool {
+    pub const fn is_disconnected(&self) -> bool {
         matches!(self, Self::Disconnected { .. })
     }
 
     /// Whether the shard has fatally closed, such as due to an invalid token.
-    pub const fn is_fatally_closed(self) -> bool {
+    pub const fn is_fatally_closed(&self) -> bool {
         matches!(self, Self::FatallyClosed { .. })
     }
 }
