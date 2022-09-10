@@ -163,8 +163,11 @@ impl<'de> Deserialize<'de> for GatewayReaction {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::{test::image_hash, user::User, util::Timestamp};
+    use super::GatewayReaction;
+    use crate::{
+        channel::message::ReactionType, guild::Member, id::Id, test::image_hash, user::User,
+        util::Timestamp,
+    };
     use serde_test::Token;
     use std::str::FromStr;
 

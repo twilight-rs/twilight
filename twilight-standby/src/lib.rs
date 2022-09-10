@@ -1049,20 +1049,23 @@ impl ProcessStatus {
 mod tests {
     #![allow(clippy::non_ascii_literal)]
 
-    use super::*;
+    use crate::Standby;
     use futures_util::StreamExt;
     use static_assertions::assert_impl_all;
-    use twilight_gateway::EventType;
+    use std::fmt::Debug;
+    use twilight_gateway::{Event, EventType};
     use twilight_model::{
         application::interaction::{
-            message_component::MessageComponentInteractionData, InteractionData,
+            message_component::MessageComponentInteractionData, Interaction, InteractionData,
+            InteractionType,
         },
         channel::message::{component::ComponentType, Message, MessageType, ReactionType},
         gateway::{
-            payload::incoming::{InteractionCreate, Ready, RoleDelete},
+            payload::incoming::{InteractionCreate, MessageCreate, ReactionAdd, Ready, RoleDelete},
             GatewayReaction,
         },
         guild::Permissions,
+        id::{marker::GuildMarker, Id},
         oauth::{ApplicationFlags, PartialApplication},
         user::{CurrentUser, User},
         util::Timestamp,
@@ -1072,7 +1075,6 @@ mod tests {
 
     fn message() -> Message {
         Message {
-            id: Id::new(3),
             activity: None,
             application: None,
             application_id: None,
@@ -1101,6 +1103,7 @@ mod tests {
             embeds: Vec::new(),
             flags: None,
             guild_id: Some(Id::new(4)),
+            id: Id::new(3),
             interaction: None,
             kind: MessageType::Regular,
             member: None,
@@ -1111,8 +1114,8 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
-            sticker_items: Vec::new(),
             referenced_message: None,
+            sticker_items: Vec::new(),
             timestamp: Timestamp::from_secs(1_632_072_645).expect("non zero"),
             thread: None,
             tts: false,

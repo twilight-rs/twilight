@@ -354,10 +354,13 @@ pub fn chars(embed: &Embed) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{EmbedValidationError, EmbedValidationErrorType};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
-    use twilight_model::channel::message::embed::{EmbedAuthor, EmbedField, EmbedFooter};
+    use twilight_model::channel::message::{
+        embed::{EmbedAuthor, EmbedField, EmbedFooter},
+        Embed,
+    };
 
     assert_impl_all!(EmbedValidationErrorType: Debug, Send, Sync);
     assert_impl_all!(EmbedValidationError: Debug, Send, Sync);

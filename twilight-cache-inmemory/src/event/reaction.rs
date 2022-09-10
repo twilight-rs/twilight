@@ -138,9 +138,16 @@ fn reactions_eq(a: &ReactionType, b: &ReactionType) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::reactions_eq;
     use crate::{model::CachedMessage, test};
-    use twilight_model::{gateway::GatewayReaction, id::Id};
+    use twilight_model::{
+        channel::message::{Reaction, ReactionType},
+        gateway::{
+            payload::incoming::{ReactionRemove, ReactionRemoveAll, ReactionRemoveEmoji},
+            GatewayReaction,
+        },
+        id::Id,
+    };
 
     fn find_custom_react(msg: &CachedMessage) -> Option<&Reaction> {
         msg.reactions.iter().find(|&r| {
