@@ -34,7 +34,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///
 /// # Examples
 ///
-/// Button
+/// ## Button
 ///
 /// ```
 /// use twilight_model::channel::message::component::{ActionRow, Button, ButtonStyle, Component};
@@ -51,7 +51,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// });
 /// ```
 ///
-/// Select menu
+/// ## Select menu
 ///
 /// ```
 /// use twilight_model::{
