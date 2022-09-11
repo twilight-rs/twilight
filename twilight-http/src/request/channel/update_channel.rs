@@ -122,7 +122,7 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`RateLimitPerUserInvalid`] if the name is
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the limit is
     /// invalid.
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
@@ -249,7 +249,7 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// # Errors
     ///
-    /// Returns an error of type [`RateLimitPerUserInvalid`] if the name is
+    /// Returns an error of type [`RateLimitPerUserInvalid`] if the limit is
     /// invalid.
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
