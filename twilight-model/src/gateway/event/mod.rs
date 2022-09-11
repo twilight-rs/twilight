@@ -191,14 +191,9 @@ impl Event {
     ///
     /// While events such as [`MessageDelete`] will never include a guild ID, events
     /// such as [`BanAdd`] and only some [`Channel`] related events will include
-    /// one. [`GuildChannel`] variants will include a guild ID while
-    /// [`PrivateChannel`]s don't on the basis of not taking place in a guild.
+    /// one. Guild variants will include a guild ID while DM Channels don't.
     ///
-    /// [`BanAdd`]: crate::gateway::payload::BanAdd
     /// [`Channel`]: crate::channel::Channel
-    /// [`GuildChannel`]: crate::channel::GuildChannel
-    /// [`MessageDelete`]: crate::gateway::payload::MessageDelete
-    /// [`PrivateChannel`]: crate::channel::PrivateChannel
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
             Event::AutoModerationActionExecution(e) => Some(e.guild_id),
