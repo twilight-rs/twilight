@@ -308,7 +308,8 @@ pub struct ShardProcessor {
     pub rx: UnboundedReceiver<Message>,
     pub session: Arc<Session>,
     compression: Compression,
-    url: Box<str>,
+    gateway_endpoint: Box<str>,
+    gateway_params: Box<str>,
     resume: Option<(u64, Box<str>)>,
     wtx: WatchSender<Arc<Session>>,
 }
@@ -321,7 +322,7 @@ impl ShardProcessor {
         //if we got resume info we don't need to wait
         let shard_id = config.shard();
         let resumable = config.sequence.is_some() && config.session_id.is_some();
-        let mut url = if resumable {
+        let url = if resumable {
             config
                 .resume_url
                 .as_ref()
@@ -336,8 +337,9 @@ impl ShardProcessor {
             config.gateway_url().to_owned()
         };
 
-        url.push_str("?v=");
-        url.push_str(&API_VERSION.to_string());
+        let mut params = String::from("v=");
+
+        params.push_str(&API_VERSION.to_string());
 
         // Discord's documentation states:
         //
@@ -345,9 +347,9 @@ impl ShardProcessor {
         // and encoding".
         //
         // <https://discord.com/developers/docs/topics/gateway#connecting-gateway-url-query-string-params>
-        url.push_str("&encoding=json");
+        params.push_str("&encoding=json");
 
-        compression::add_url_feature(&mut url);
+        compression::add_url_feature(&mut params);
 
         emitter.event(Event::ShardConnecting(Connecting {
             gateway: url.clone(),
@@ -355,6 +357,7 @@ impl ShardProcessor {
         }));
         let stream = Self::connect(
             &url,
+            &params,
             #[cfg(any(
                 feature = "native",
                 feature = "rustls-native-roots",
@@ -377,13 +380,15 @@ impl ShardProcessor {
 
         let (wtx, wrx) = watch_channel(Arc::clone(&session));
 
+        let gateway_url = config.gateway_url().to_owned();
         let mut processor = Self {
             compression: Compression::new(shard_id),
             config,
             emitter,
             rx,
             session,
-            url: url.into_boxed_str(),
+            gateway_endpoint: gateway_url.into_boxed_str(),
+            gateway_params: params.into_boxed_str(),
             resume: None,
             wtx,
         };
@@ -909,6 +914,7 @@ impl ShardProcessor {
 
     async fn connect(
         url: &str,
+        params: &str,
         #[cfg(any(
             feature = "native",
             feature = "rustls-native-roots",
@@ -916,12 +922,14 @@ impl ShardProcessor {
         ))]
         tls: Option<&TlsContainer>,
     ) -> Result<ShardStream, ConnectingError> {
-        let url = Url::parse(url).map_err(|source| ConnectingError {
+        let mut url = Url::parse(url).map_err(|source| ConnectingError {
             kind: ConnectingErrorType::ParsingUrl {
                 url: url.to_owned(),
             },
             source: Some(Box::new(source)),
         })?;
+
+        url.set_query(Some(params));
 
         // `max_frame_size` and `max_message_queue` limits are disabled because
         // Discord is not a malicious actor.
@@ -1020,7 +1028,8 @@ impl ShardProcessor {
             }));
 
             let stream = match Self::connect(
-                &self.url,
+                &self.gateway_endpoint,
+                &self.gateway_params,
                 #[cfg(any(
                     feature = "native",
                     feature = "rustls-native-roots",
@@ -1047,8 +1056,12 @@ impl ShardProcessor {
             break;
         }
 
+        let mut url = self.gateway_endpoint.to_string();
+        url.push('?');
+        url.push_str(&self.gateway_params);
+
         self.emitter.event(Event::ShardConnecting(Connecting {
-            gateway: self.url.clone().into_string(),
+            gateway: url,
             shard_id: self.config.shard()[0],
         }));
     }
@@ -1096,10 +1109,11 @@ impl ShardProcessor {
         let url = self
             .session
             .resume_url()
-            .unwrap_or_else(|| self.url.clone());
+            .unwrap_or_else(|| self.gateway_endpoint.clone());
 
         let stream = Self::connect(
             &url,
+            &self.gateway_params,
             #[cfg(any(
                 feature = "native",
                 feature = "rustls-native-roots",
