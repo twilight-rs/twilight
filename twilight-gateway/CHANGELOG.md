@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.13.1] - 2022-09-08
+## [unreleased]
+
+### Bug Fixes
+
+- reconnect handling of gateway query parameters ([#1901](https://github.com/twilight-rs/twilight/issues/1901))
+
+## [0.13.1] - 2022-09-08 (YANKED)
 
 ### Features
 

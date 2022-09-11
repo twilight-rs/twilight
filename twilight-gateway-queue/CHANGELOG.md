@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- clarify `buckets` for large bot queue ([#1895](https://github.com/twilight-rs/twilight/issues/1895))
+
 ## [0.11.1] - 2022-07-07
 
 ### Documentation
