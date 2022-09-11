@@ -7,6 +7,7 @@
 
 use crate::{connection::Connection, message::Message};
 use futures_util::{future::FutureExt, stream::Next};
+use pin_project_lite::pin_project;
 use std::{
     future::Future,
     pin::Pin,
@@ -36,31 +37,33 @@ pub enum NextMessageFutureOutput {
     UserChannelMessage(Message),
 }
 
-/// Future to determine the next action when [`Shard::next_message`] is called.
-///
-/// Polled futures are given a consistent precedence, from first to last polled:
-///
-/// - [sending a heartbeat to Discord][1];
-/// - [relaying a user's message][2] over the Websocket message;
-/// - [receiving a message][3] from Discord
-///
-/// **Be sure** to keep documented precedence in sync with variants in
-/// [`NextMessageFutureOutput`]!
-///
-/// [1]: NextMessageFutureOutput::SendHeartbeat
-/// [2]: NextMessageFutureOutput::UserChannelMessage
-/// [3]: NextMessageFutureOutput::Message
-/// [`Shard::next_message`]: crate::Shard::next_message
-pub struct NextMessageFuture<'a> {
-    /// Future resolving when the user has sent a message over the channel, to
-    /// be relayed over the Websocket connection.
-    channel_receive_future: &'a mut UnboundedReceiver<Message>,
-    /// Future resolving when the next Websocket message has been received.
-    message_future: Next<'a, Connection>,
-    /// Future resolving when the [`Shard`] must sent a heartbeat.
+pin_project! {
+    /// Future to determine the next action when [`Shard::next_message`] is
+    /// called.
     ///
-    /// [`Shard`]: crate::Shard
-    tick_heartbeat_future: TickHeartbeatFuture,
+    /// Polled futures are given a consistent precedence, from first to last:
+    ///
+    /// - [sending a heartbeat to Discord][1];
+    /// - [relaying a user's message][2] over the Websocket message;
+    /// - [receiving a message][3] from Discord
+    ///
+    /// **Be sure** to keep documented precedence in sync with variants in
+    /// [`NextMessageFutureOutput`]!
+    ///
+    /// [1]: NextMessageFutureOutput::SendHeartbeat
+    /// [2]: NextMessageFutureOutput::UserChannelMessage
+    /// [3]: NextMessageFutureOutput::Message
+    /// [`Shard::next_message`]: crate::Shard::next_message
+    pub struct NextMessageFuture<'a> {
+        // Future resolving when the user has sent a message over the channel,
+        // to be relayed over the Websocket connection.
+        channel_receive_future: &'a mut UnboundedReceiver<Message>,
+        // Future resolving when the next Websocket message has been received.
+        message_future: Next<'a, Connection>,
+        // Future resolving when the shard must sent a heartbeat.
+        #[pin]
+        tick_heartbeat_future: TickHeartbeatFuture,
+    }
 }
 
 impl<'a> NextMessageFuture<'a> {
@@ -85,10 +88,10 @@ impl<'a> NextMessageFuture<'a> {
 impl Future for NextMessageFuture<'_> {
     type Output = NextMessageFutureOutput;
 
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let mut this = self.as_mut();
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let mut this = self.project();
 
-        if this.tick_heartbeat_future.poll_unpin(cx).is_ready() {
+        if this.tick_heartbeat_future.as_mut().poll(cx).is_ready() {
             return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
         }
 
@@ -108,23 +111,26 @@ impl Future for NextMessageFuture<'_> {
     }
 }
 
-/// Future that will resolve when the shard must send its next heartbeat.
-///
-/// The duration of the future is defined by taking the heartbeat interval defined
-/// by the [`Ready`] event, and subtracting the duration since the
-/// [last heartbeat] was sent. If a [`Ready`] event has not yet been received
-/// then the future will never be ready, and if the duration has already passed
-/// then it will immediately be ready.
-///
-/// This future must always take precedence over other actions in order to
-/// maintain the [gateway session]!
-///
-/// [gateway session]: crate::Session
-/// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
-pub struct TickHeartbeatFuture {
-    /// Inner future that will resolve after some time, defined by the type-level
-    /// documentation.
-    inner: Option<Pin<Box<Sleep>>>,
+pin_project! {
+    /// Future that will resolve when the shard must send its next heartbeat.
+    ///
+    /// The duration of the future is defined by taking the heartbeat interval
+    /// defined by the [`Ready`] event, and subtracting the duration since the
+    /// [last heartbeat] was sent. If a [`Ready`] event has not yet been
+    /// received then the future will never be ready, and if the duration has
+    /// already passed then it will immediately be ready.
+    ///
+    /// This future must always take precedence over other actions in order to
+    /// maintain the [gateway session]!
+    ///
+    /// [gateway session]: crate::Session
+    /// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
+    struct TickHeartbeatFuture {
+        // Inner future that will resolve after some time, defined by the
+        // type-level documentation.
+        #[pin]
+        inner: Option<Sleep>,
+    }
 }
 
 impl TickHeartbeatFuture {
@@ -132,15 +138,13 @@ impl TickHeartbeatFuture {
     /// heartbeat must be sent.
     fn new(maybe_heartbeat_interval: Option<Duration>, maybe_last_sent: Option<Instant>) -> Self {
         let inner = match (maybe_heartbeat_interval, maybe_last_sent) {
-            (Some(heartbeat_interval), Some(last_sent)) => Some(Box::pin(time::sleep(
+            (Some(heartbeat_interval), Some(last_sent)) => Some(time::sleep(
                 heartbeat_interval.saturating_sub(last_sent.elapsed()),
-            ))),
+            )),
             (Some(heartbeat_interval), None) => {
                 // First heartbeat should have some jitter, see
                 // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
-                Some(Box::pin(time::sleep(
-                    heartbeat_interval.mul_f64(rand::random()),
-                )))
+                Some(time::sleep(heartbeat_interval.mul_f64(rand::random())))
             }
             (None, _) => None,
         };
@@ -152,9 +156,9 @@ impl TickHeartbeatFuture {
 impl Future for TickHeartbeatFuture {
     type Output = ();
 
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        if let Some(inner) = self.inner.as_mut() {
-            return inner.as_mut().poll(cx);
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if let Some(inner) = self.project().inner.as_pin_mut() {
+            return inner.poll(cx);
         }
 
         Poll::Pending
