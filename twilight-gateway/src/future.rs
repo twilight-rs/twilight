@@ -88,7 +88,7 @@ impl Future for NextMessageFuture<'_> {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let mut this = self.as_mut();
 
-        if let Poll::Ready(()) = this.tick_heartbeat_future.poll_unpin(cx) {
+        if this.tick_heartbeat_future.poll_unpin(cx).is_ready() {
             return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
         }
 
