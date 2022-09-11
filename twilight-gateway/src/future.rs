@@ -75,8 +75,8 @@ impl<'a> NextMessageFuture<'a> {
             channel_receive_future: rx,
             message_future,
             tick_heartbeat_future: TickHeartbeatFuture::new(
-                maybe_last_sent,
                 maybe_heartbeat_interval,
+                maybe_last_sent,
             ),
         }
     }
@@ -130,26 +130,17 @@ pub struct TickHeartbeatFuture {
 impl TickHeartbeatFuture {
     /// Initialize a new unpolled future that will resolve when the next
     /// heartbeat must be sent.
-    pub fn new(
-        maybe_last_sent: Option<Instant>,
-        maybe_heartbeat_interval: Option<Duration>,
-    ) -> Self {
-        let heartbeat_interval = if let Some(heartbeat_interval) = maybe_heartbeat_interval {
-            heartbeat_interval
-        } else {
-            return Self { inner: None };
-        };
-
-        let remaining = if let Some(last_sent) = maybe_last_sent {
-            let time_since = last_sent.elapsed();
-
-            heartbeat_interval.saturating_sub(time_since)
-        } else {
-            Duration::ZERO
-        };
-
-        Self {
-            inner: Some(Box::pin(time::sleep(remaining))),
+    fn new(maybe_heartbeat_interval: Option<Duration>, maybe_last_sent: Option<Instant>) -> Self {
+        match (maybe_heartbeat_interval, maybe_last_sent) {
+            (Some(heartbeat_interval), Some(last_sent)) => Self {
+                inner: Some(Box::pin(time::sleep(
+                    heartbeat_interval.saturating_sub(last_sent.elapsed()),
+                ))),
+            },
+            (Some(_), None) => Self {
+                inner: Some(Box::pin(time::sleep(Duration::ZERO))),
+            },
+            (None, _) => Self { inner: None },
         }
     }
 }
