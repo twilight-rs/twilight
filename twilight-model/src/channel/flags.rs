@@ -6,8 +6,10 @@ use serde::{
 
 bitflags! {
     pub struct ChannelFlags: u64 {
-        /// The channel is pinned in a forum.
+        /// Channel is pinned in a forum.
         const PINNED = 1 << 1;
+        /// New threads in a forum channel require a tag.
+        const REQUIRE_TAG = 1 << 4;
     }
 }
 

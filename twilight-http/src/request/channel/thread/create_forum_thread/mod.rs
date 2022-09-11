@@ -13,7 +13,10 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel, Message},
-    id::{marker::ChannelMarker, Id},
+    id::{
+        marker::{ChannelMarker, TagMarker},
+        Id,
+    },
 };
 
 #[derive(Deserialize, Serialize)]
@@ -25,6 +28,8 @@ pub struct ForumThread {
 
 #[derive(Serialize)]
 struct CreateForumThreadFields<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    applied_tags: Option<&'a [Id<TagMarker>]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     auto_archive_duration: Option<AutoArchiveDuration>,
     message: CreateForumThreadMessageFields<'a>,
@@ -56,6 +61,7 @@ impl<'a> CreateForumThread<'a> {
             attachment_manager: AttachmentManager::new(),
             channel_id,
             fields: CreateForumThreadFields {
+                applied_tags: None,
                 auto_archive_duration: None,
                 message: CreateForumThreadMessageFields {
                     allowed_mentions: None,
@@ -72,6 +78,13 @@ impl<'a> CreateForumThread<'a> {
             },
             http,
         }
+    }
+
+    /// Set the forum thread's applied tags.
+    pub const fn applied_tags(mut self, applied_tags: &'a [Id<TagMarker>]) -> Self {
+        self.fields.applied_tags = Some(applied_tags);
+
+        self
     }
 
     /// Set the default auto archive duration for newly created threads in the

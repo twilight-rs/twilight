@@ -1,4 +1,5 @@
 pub mod embed;
+pub mod forum;
 pub mod message;
 pub mod permission_overwrite;
 pub mod stage_instance;
@@ -14,7 +15,6 @@ mod reaction;
 mod reaction_type;
 mod video_quality_mode;
 
-use self::permission_overwrite::PermissionOverwrite;
 pub use self::{
     attachment::Attachment,
     channel_mention::ChannelMention,
@@ -30,9 +30,15 @@ pub use self::{
 };
 
 use crate::{
-    channel::thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
+    channel::{
+        forum::{DefaultReaction, ForumTag},
+        permission_overwrite::PermissionOverwrite,
+        thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
+    },
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GenericMarker, GuildMarker, UserMarker},
+        marker::{
+            ApplicationMarker, ChannelMarker, GenericMarker, GuildMarker, TagMarker, UserMarker,
+        },
         Id,
     },
     user::User,
@@ -57,6 +63,10 @@ pub struct Channel {
     /// ID of the application that created the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub applied_tags: Option<Vec<Id<TagMarker>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub available_tags: Option<Vec<ForumTag>>,
     /// Bitrate (in bits) setting of audio channels.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bitrate: Option<u32>,
@@ -67,6 +77,10 @@ pub struct Channel {
     /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_reaction_emoji: Option<DefaultReaction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_thread_rate_limit_per_user: Option<u16>,
     /// Flags of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<ChannelFlags>,
@@ -205,10 +219,14 @@ mod tests {
 
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
-            guild_id: Some(Id::new(1)),
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
             flags: None,
+            guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(2),
             invitable: None,
@@ -241,8 +259,12 @@ mod tests {
     fn guild_category_channel_deserialization() {
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(2)),
             icon: None,
@@ -289,10 +311,14 @@ mod tests {
     fn guild_news_channel_deserialization() {
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
-            guild_id: Some(Id::new(2)),
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
             flags: None,
+            guild_id: Some(Id::new(2)),
             icon: None,
             id: Id::new(1),
             invitable: None,
@@ -344,8 +370,12 @@ mod tests {
 
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(1)),
             icon: None,
@@ -426,8 +456,12 @@ mod tests {
 
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(1)),
             icon: None,
@@ -509,8 +543,12 @@ mod tests {
 
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(1)),
             icon: None,
