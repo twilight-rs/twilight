@@ -6,8 +6,6 @@ pub mod shard;
 mod dispatch;
 mod kind;
 
-use crate::id::{marker::GuildMarker, Id};
-
 pub use self::{
     dispatch::{DispatchEvent, DispatchEventWithTypeDeserializer},
     gateway::{GatewayEvent, GatewayEventDeserializer, GatewayEventDeserializerOwned},
@@ -16,6 +14,7 @@ pub use self::{
 
 use self::shard::*;
 use super::payload::incoming::*;
+use crate::id::{marker::GuildMarker, Id};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
