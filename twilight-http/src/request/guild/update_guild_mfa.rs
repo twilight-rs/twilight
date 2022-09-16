@@ -1,7 +1,7 @@
 use crate::{
     client::Client,
     error::Error,
-    request::{Request, TryIntoRequest, AuditLogReason, self},
+    request::{self, AuditLogReason, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
@@ -10,7 +10,7 @@ use twilight_model::{
     guild::MfaLevel,
     id::{marker::GuildMarker, Id},
 };
-use twilight_validate::request::{ValidationError,audit_reason as validate_audit_reason};
+use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
 
 #[derive(Serialize)]
 struct UpdateGuildMfaFields<'a> {
@@ -29,7 +29,10 @@ pub struct UpdateGuildMfa<'a> {
 impl<'a> UpdateGuildMfa<'a> {
     pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>, level: MfaLevel) -> Self {
         Self {
-            fields: UpdateGuildMfaFields { level, reason: None },
+            fields: UpdateGuildMfaFields {
+                level,
+                reason: None,
+            },
             guild_id,
             http,
         }
@@ -57,7 +60,6 @@ impl<'a> AuditLogReason<'a> for UpdateGuildMfa<'a> {
         Ok(self)
     }
 }
-
 
 impl TryIntoRequest for UpdateGuildMfa<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
