@@ -328,7 +328,7 @@ pub fn chars_option(option: &CommandOption) -> usize {
                     value,
                 } = choice
                 {
-                    chars += longest_localization_chars(&name, &name_localizations) + value.len();
+                    chars += longest_localization_chars(name, name_localizations) + value.len();
                 }
             }
         }
@@ -343,7 +343,7 @@ pub fn chars_option(option: &CommandOption) -> usize {
                     ..
                 } = choice
                 {
-                    chars += longest_localization_chars(&name, &name_localizations);
+                    chars += longest_localization_chars(name, name_localizations);
                 }
             }
         }
