@@ -1,13 +1,19 @@
 //! Constants, error types, and functions for validating [`Command`]s.
 
 use std::{
+    collections::HashMap,
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
-use twilight_model::application::command::{Command, CommandOption, CommandType};
+use twilight_model::application::command::{
+    Command, CommandOption, CommandOptionChoice, CommandType,
+};
 
 /// Maximum number of choices an option can have.
 pub const CHOICES_LIMIT: usize = 25;
+
+/// The maximum combined command length in codepoints.
+pub const COMMAND_TOTAL_LENGTH: usize = 4000;
 
 /// Maximum length of a command's description.
 pub const DESCRIPTION_LENGTH_MAX: usize = 100;
@@ -104,6 +110,13 @@ impl Display for CommandValidationError {
 
                 f.write_str(" commands were set")
             }
+            CommandValidationErrorType::CommandTooLarge { chars } => {
+                f.write_str("the combined total length of the command is ")?;
+                Display::fmt(chars, f)?;
+                f.write_str(" characters long, but the max is ")?;
+
+                Display::fmt(&COMMAND_TOTAL_LENGTH, f)
+            }
             CommandValidationErrorType::DescriptionInvalid => {
                 f.write_str("command description must be between ")?;
                 Display::fmt(&DESCRIPTION_LENGTH_MIN, f)?;
@@ -178,6 +191,18 @@ pub enum CommandValidationErrorType {
     /// The maximum number of commands is defined by
     /// [`GUILD_COMMAND_LIMIT`].
     CountInvalid,
+    /// Combined values of the command are larger than
+    /// [`COMMAND_TOTAL_LENGTH`].
+    ///
+    /// This includes name or the longest name localization,
+    /// description or the longest description localization
+    /// of the command and its options and the choice names
+    /// or the longest name localization and the choice value
+    /// if it is a string choice.
+    CommandTooLarge {
+        /// Provided number of codepoints.
+        chars: usize,
+    },
     /// Command description is invalid.
     DescriptionInvalid,
     /// Command name length is invalid.
@@ -221,6 +246,14 @@ pub enum CommandValidationErrorType {
 /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 /// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 pub fn command(value: &Command) -> Result<(), CommandValidationError> {
+    let chars = self::chars(value);
+
+    if chars > COMMAND_TOTAL_LENGTH {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::CommandTooLarge { chars },
+        });
+    }
+
     let Command {
         description,
         description_localizations,
@@ -257,6 +290,105 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
         CommandType::Unknown(_) => Ok(()),
         _ => unimplemented!(),
     }
+}
+
+/// Calculate the total character count of a command.
+pub fn chars(command: &Command) -> usize {
+    let mut chars = longest_localization_chars(&command.name, &command.name_localizations)
+        + longest_localization_chars(&command.description, &command.description_localizations);
+
+    for option in &command.options {
+        chars += chars_option(option);
+    }
+
+    chars
+}
+
+/// Calculate the total character count of a command option.
+pub fn chars_option(option: &CommandOption) -> usize {
+    let mut chars = 0;
+
+    match option {
+        CommandOption::SubCommand(data) | CommandOption::SubCommandGroup(data) => {
+            chars += longest_localization_chars(&data.name, &data.name_localizations);
+            chars += longest_localization_chars(&data.description, &data.description_localizations);
+
+            for option in &data.options {
+                chars += chars_option(option);
+            }
+        }
+        CommandOption::String(data) => {
+            chars += longest_localization_chars(&data.name, &data.name_localizations);
+            chars += longest_localization_chars(&data.description, &data.description_localizations);
+
+            for choice in &data.choices {
+                if let CommandOptionChoice::String {
+                    name,
+                    name_localizations,
+                    value,
+                } = choice
+                {
+                    chars += longest_localization_chars(&name, &name_localizations) + value.len();
+                }
+            }
+        }
+        CommandOption::Integer(data) => {
+            chars += longest_localization_chars(&data.name, &data.name_localizations);
+            chars += longest_localization_chars(&data.description, &data.description_localizations);
+
+            for choice in &data.choices {
+                if let CommandOptionChoice::Int {
+                    name,
+                    name_localizations,
+                    ..
+                } = choice
+                {
+                    chars += longest_localization_chars(&name, &name_localizations);
+                }
+            }
+        }
+        CommandOption::Boolean(data)
+        | CommandOption::User(data)
+        | CommandOption::Role(data)
+        | CommandOption::Mentionable(data)
+        | CommandOption::Attachment(data) => {
+            chars += longest_localization_chars(&data.name, &data.name_localizations);
+            chars += longest_localization_chars(&data.description, &data.description_localizations);
+        }
+        CommandOption::Channel(data) => {
+            chars += longest_localization_chars(&data.name, &data.name_localizations);
+            chars += longest_localization_chars(&data.description, &data.description_localizations);
+        }
+        CommandOption::Number(data) => {
+            chars += longest_localization_chars(&data.name, &data.name_localizations);
+            chars += longest_localization_chars(&data.description, &data.description_localizations);
+        }
+    }
+
+    chars
+}
+
+/// Calculate the characters for the longest name/description.
+///
+/// Discord only counts the longest localization to the character
+/// limit. If the default value is longer than any of the
+/// localizations, the length of the default value will be used
+/// instead.
+fn longest_localization_chars(
+    default: &str,
+    localizations: &Option<HashMap<String, String>>,
+) -> usize {
+    let mut chars = default.len();
+
+    if let Some(localizations) = localizations {
+        for localization in localizations.values() {
+            if localization.len() > chars {
+                chars = localization.len();
+            }
+        }
+    }
+
+    chars
 }
 
 /// Validate the description of a [`Command`].
@@ -514,7 +646,10 @@ mod tests {
 
     use super::*;
     use std::collections::HashMap;
-    use twilight_model::{application::command::CommandType, id::Id};
+    use twilight_model::{
+        application::command::{ChoiceCommandOptionData, CommandType, OptionsCommandOptionData},
+        id::Id,
+    };
 
     // This tests [`description`] and [`name`] by proxy.
     #[test]
@@ -569,5 +704,81 @@ mod tests {
         assert!(guild_permissions(10).is_ok());
 
         assert!(guild_permissions(11).is_err());
+    }
+
+    #[test]
+    fn command_combined_limit() {
+        let mut command = Command {
+            application_id: Some(Id::new(1)),
+            default_member_permissions: None,
+            dm_permission: None,
+            description: "a".repeat(10),
+            description_localizations: Some(HashMap::from([(
+                "en-US".to_string(),
+                "a".repeat(100),
+            )])),
+            guild_id: Some(Id::new(2)),
+            id: Some(Id::new(3)),
+            kind: CommandType::ChatInput,
+            name: "b".repeat(10),
+            name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
+            options: Vec::from([CommandOption::SubCommandGroup(OptionsCommandOptionData {
+                description: "a".repeat(10),
+                description_localizations: Some(HashMap::from([(
+                    "en-US".to_string(),
+                    "a".repeat(100),
+                )])),
+                name: "b".repeat(10),
+                name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
+                options: Vec::from([CommandOption::SubCommand(OptionsCommandOptionData {
+                    description: "a".repeat(100),
+                    description_localizations: Some(HashMap::from([(
+                        "en-US".to_string(),
+                        "a".repeat(10),
+                    )])),
+                    name: "b".repeat(32),
+                    name_localizations: Some(HashMap::from([(
+                        "en-US".to_string(),
+                        "b".repeat(10),
+                    )])),
+                    options: Vec::from([CommandOption::String(ChoiceCommandOptionData {
+                        autocomplete: false,
+                        choices: Vec::from([CommandOptionChoice::String {
+                            name: "b".repeat(32),
+                            name_localizations: Some(HashMap::from([(
+                                "en-US".to_string(),
+                                "b".repeat(10),
+                            )])),
+                            value: "c".repeat(100),
+                        }]),
+                        description: "a".repeat(100),
+                        description_localizations: Some(HashMap::from([(
+                            "en-US".to_string(),
+                            "a".repeat(10),
+                        )])),
+                        max_length: None,
+                        min_length: None,
+                        name: "b".repeat(32),
+                        name_localizations: Some(HashMap::from([(
+                            "en-US".to_string(),
+                            "b".repeat(10),
+                        )])),
+                        required: false,
+                    })]),
+                })]),
+            })]),
+            version: Id::new(4),
+        };
+
+        assert_eq!(chars(&command), 660);
+        assert!(super::command(&command).is_ok());
+
+        command.description = "a".repeat(3441);
+        assert_eq!(chars(&command), 4001);
+
+        assert!(matches!(
+            super::command(&command).unwrap_err().kind(),
+            CommandValidationErrorType::CommandTooLarge { chars: 4001 }
+        ));
     }
 }
