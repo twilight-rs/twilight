@@ -12,8 +12,8 @@ use twilight_model::util::Timestamp;
 /// The maximum audit log reason length in UTF-16 codepoints.
 pub const AUDIT_REASON_MAX: usize = 512;
 
-/// Maximum amount of days for messages to be deleted upon ban.
-pub const CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX: u16 = 7;
+/// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
+pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
 
 /// Maximum amount of time a member can be timed out for.
 pub const COMMUNICATION_DISABLED_MAX_DURATION: i64 = 28 * 24 * 60 * 60;
@@ -174,14 +174,14 @@ impl Display for ValidationError {
 
                 Display::fmt(&AUDIT_REASON_MAX, f)
             }
-            ValidationErrorType::CreateGuildBanDeleteMessageDays {
-                days: delete_message_days,
+            ValidationErrorType::CreateGuildBanDeleteMessageSeconds {
+                seconds: delete_message_seconds,
             } => {
-                f.write_str("provided create guild ban delete_message_days is ")?;
-                Display::fmt(delete_message_days, f)?;
+                f.write_str("provided create guild ban delete_message_seconds is ")?;
+                Display::fmt(delete_message_seconds, f)?;
                 f.write_str(", but it must be at most ")?;
 
-                Display::fmt(&CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX, f)
+                Display::fmt(&CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX, f)
             }
             ValidationErrorType::CommunicationDisabledUntil { .. } => {
                 f.write_str("provided timestamp is too far in the future")
@@ -378,10 +378,10 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
-    /// Provided create guild ban delete message days was invalid.
-    CreateGuildBanDeleteMessageDays {
-        /// Invalid days.
-        days: u16,
+    /// Provided create guild ban delete message seconds was invalid.
+    CreateGuildBanDeleteMessageSeconds {
+        /// Invalid seconds.
+        seconds: u32,
     },
     /// Provided timestamp is too far in the future.
     CommunicationDisabledUntil {
@@ -517,25 +517,25 @@ pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError
     }
 }
 
-/// Ensure that the delete message days amount for the Create Guild Ban request
+/// Ensure that the delete message seconds amount for the Create Guild Ban request
 /// is correct.
 ///
-/// The days must be at most [`CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX`]. This
+/// The seconds must be at most [`CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX`]. This
 /// is based on [this documentation entry].
 ///
 /// # Errors
 ///
-/// Returns an error of type [`CreateGuildBanDeleteMessageDays`] if the days is
+/// Returns an error of type [`CreateGuildBanDeleteMessageSeconds`] if the seconds is
 /// invalid.
 ///
-/// [`CreateGuildBanDeleteMessageDays`]: ValidationErrorType::CreateGuildBanDeleteMessageDays
+/// [`CreateGuildBanDeleteMessageSeconds`]: ValidationErrorType::CreateGuildBanDeleteMessageSeconds
 /// [this documentation entry]: https://discord.com/developers/docs/resources/guild#create-guild-ban
-pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), ValidationError> {
-    if days <= CREATE_GUILD_BAN_DELETE_MESSAGE_DAYS_MAX {
+pub const fn create_guild_ban_delete_message_seconds(seconds: u32) -> Result<(), ValidationError> {
+    if seconds <= CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX {
         Ok(())
     } else {
         Err(ValidationError {
-            kind: ValidationErrorType::CreateGuildBanDeleteMessageDays { days },
+            kind: ValidationErrorType::CreateGuildBanDeleteMessageSeconds { seconds },
         })
     }
 }
@@ -545,8 +545,6 @@ pub const fn create_guild_ban_delete_message_days(days: u16) -> Result<(), Valid
 /// The time must not be farther than 28 days in the future.
 ///
 /// # Errors
-///
-///
 #[allow(clippy::cast_possible_wrap)] // casting of unix timestamp should never wrap
 pub fn communication_disabled_until(timestamp: Timestamp) -> Result<(), ValidationError> {
     let now = SystemTime::now()
@@ -1092,12 +1090,12 @@ mod tests {
     }
 
     #[test]
-    fn create_guild_ban_delete_message_days_length() {
-        assert!(create_guild_ban_delete_message_days(0).is_ok());
-        assert!(create_guild_ban_delete_message_days(1).is_ok());
-        assert!(create_guild_ban_delete_message_days(7).is_ok());
+    fn create_guild_ban_delete_message_seconds_max() {
+        assert!(create_guild_ban_delete_message_seconds(0).is_ok());
+        assert!(create_guild_ban_delete_message_seconds(1).is_ok());
+        assert!(create_guild_ban_delete_message_seconds(604_800).is_ok());
 
-        assert!(create_guild_ban_delete_message_days(8).is_err());
+        assert!(create_guild_ban_delete_message_seconds(604_801).is_err());
     }
 
     #[test]
@@ -1136,7 +1134,7 @@ mod tests {
     }
 
     #[test]
-    fn get_auild_log_limit_count() {
+    fn get_guild_log_limit_count() {
         assert!(get_guild_audit_log_limit(1).is_ok());
         assert!(get_guild_audit_log_limit(100).is_ok());
 

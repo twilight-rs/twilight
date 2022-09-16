@@ -63,7 +63,7 @@ impl UserOrId {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
-pub struct PresenceIntermediary {
+pub(crate) struct PresenceIntermediary {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     #[allow(clippy::too_many_lines)]
-    fn test_custom() {
+    fn custom() {
         let activity = Activity {
             application_id: None,
             assets: None,

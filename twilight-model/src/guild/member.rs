@@ -1,3 +1,5 @@
+//! Mostly internal custom serde deserializers.
+
 use crate::{
     id::{
         marker::{GuildMarker, RoleMarker},
@@ -15,6 +17,9 @@ use serde::{
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
+/// [`User`] that is in a [`Guild`].
+///
+/// [`Guild`]: super::Guild
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Member {
     /// Member's guild avatar.
@@ -37,13 +42,13 @@ pub struct Member {
 
 /// Version of [`Member`] but without a guild ID, useful in some contexts.
 ///
-/// The HTTP and Gateway APIs don't include guild IDs in their payloads, so this
-/// can be useful when you're unable to use a deserialization seed like
+/// The HTTP and Gateway APIs don't always include guild IDs in their payloads,
+/// so this can be useful when you're unable to use a deserialization seed like
 /// [`MemberDeserializer`].
 // Used in the guild deserializer.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename(deserialize = "Member"))]
-pub struct MemberIntermediary {
+pub(crate) struct MemberIntermediary {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<ImageHash>,

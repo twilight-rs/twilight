@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.13.1] - 2022-09-01
+
+### Refactor
+
+- mark c-style enums `#[non_exhaustive]` ([#1862](https://github.com/twilight-rs/twilight/issues/1862))
+
+## [0.13.0] - 2022-08-14
+
+### Refactor
+
+- [**breaking**] remove `Number` ([#1817](https://github.com/twilight-rs/twilight/issues/1817))
+
+## [0.12.1] - 2022-07-26
+
+### Bug Fixes
+
+- member overwrites take precedence over roles ([#1824](https://github.com/twilight-rs/twilight/issues/1824))
+
+### Documentation
+
+- format doc examples ([#1847](https://github.com/twilight-rs/twilight/issues/1847))
+
 ## [0.12.0] - 2022-07-17
 
 ### Features

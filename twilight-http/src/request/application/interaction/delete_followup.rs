@@ -12,6 +12,8 @@ use twilight_model::id::{
 
 /// Delete the original message, by its token.
 ///
+/// This endpoint is not bound to the application's global rate limit.
+///
 /// # Examples
 ///
 /// ```no_run

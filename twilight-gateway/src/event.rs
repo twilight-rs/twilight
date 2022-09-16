@@ -1,8 +1,32 @@
+//! Home of [`EventTypeFlags`], and optimization technique for skipping gateway
+//! event deserialization.
+
 use bitflags::bitflags;
 use twilight_model::gateway::event::EventType;
 
 bitflags! {
-    /// Bitflags representing all of the possible types of events.
+    /// Important optimization for narrowing requested event types.
+    ///
+    /// Specifying event types is an important optimization technique on top of
+    /// [intents], which can dramatically decrease processor usage in many
+    /// circumstances. While specifying intents are required by Discord and
+    /// allow filtering groups of [events], event type flags are a
+    /// Twilight-specific technique to filter out individual events from being
+    /// deserialized at all, effectively discarding those events.
+    ///
+    /// For example, [`Intents::GUILDS`] includes a wide range of events from
+    /// [`GuildCreate`] to [`GuildRoleUpdate`] to [`ChannelPinsUpdate`]. If the
+    /// only events used in this group of events is, say, [`ChannelCreate`] and
+    /// [`GuildRoleCreate`], then the [`CHANNEL_CREATE`] and
+    /// [`GUILD_ROLE_CREATE`] event type flags can be specified in combination
+    /// with that intent. This reduces the events received and deserialized to
+    /// only those events.
+    ///
+    /// [`CHANNEL_CREATE`]: Self::CHANNEL_CREATE
+    /// [`GUILD_ROLE_CREATE`]: Self::GUILD_ROLE_CREATE
+    /// [`ChannelCreate`]: twilight_model::gateway::payload::incoming::ChannelCreate
+    /// [`ChannelPinsUpdate`]: twilight_model::gateway::payload::incoming::ChannelPinsUpdate
+    /// [`GuildRoleCreate`]: twilight_model::gateway::payload::incoming::GuildRoleCreate
     pub struct EventTypeFlags: u128 {
         /// Message has been blocked by AutoMod according to a rule.
         const AUTO_MODERATION_ACTION_EXECUTION = 1 << 71;
@@ -125,20 +149,6 @@ bitflags! {
         const ROLE_DELETE = 1 << 31;
         /// Role has been updated in a guild.
         const ROLE_UPDATE = 1 << 32;
-        /// Shard has finalized a session with the gateway.
-        const SHARD_CONNECTED = 1 << 33;
-        /// Shard has begun connecting to the gateway.
-        const SHARD_CONNECTING = 1 << 34;
-        /// Shard has disconnected from the gateway.
-        const SHARD_DISCONNECTED = 1 << 35;
-        /// Shard is identifying to create a session with the gateway.
-        const SHARD_IDENTIFYING = 1 << 36;
-        /// Incoming message has been received from the gateway.
-        const SHARD_PAYLOAD = 1 << 45;
-        /// Shard is reconnecting to the gateway.
-        const SHARD_RECONNECTING = 1 << 37;
-        /// Shard is resuming a session with the gateway.
-        const SHARD_RESUMING = 1 << 38;
         /// Stage instance was created in a stage channel.
         const STAGE_INSTANCE_CREATE = 1 << 57;
         /// Stage instance was deleted in a stage channel.
@@ -170,293 +180,218 @@ bitflags! {
         const VOICE_STATE_UPDATE = 1 << 43;
         /// Webhook in a guild has been updated.
         const WEBHOOKS_UPDATE = 1 << 44;
+
+        /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_CONFIGURATION`].
+        ///
+        /// [`Intents::AUTO_MODERATION_CONFIGURATION`]: crate::Intents::AUTO_MODERATION_CONFIGURATION
+        const AUTO_MODERATION_CONFIGURATION = Self::AUTO_MODERATION_RULE_CREATE.bits()
+                | Self::AUTO_MODERATION_RULE_DELETE.bits()
+                | Self::AUTO_MODERATION_RULE_UPDATE.bits();
+        /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_EXECUTION`].
+        ///
+        /// [`Intents::AUTO_MODERATION_EXECUTION`]: crate::Intents::AUTO_MODERATION_EXECUTION
+        const AUTO_MODERATION_EXECUTION = Self::AUTO_MODERATION_ACTION_EXECUTION.bits();
+        /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
+        ///
+        /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES
+        const DIRECT_MESSAGES = Self::MESSAGE_CREATE.bits()
+            | Self::MESSAGE_DELETE.bits()
+            | Self::MESSAGE_DELETE_BULK.bits()
+            | Self::MESSAGE_UPDATE.bits();
+        /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_REACTIONS`].
+        ///
+        /// [`Intents::DIRECT_MESSAGE_REACTIONS`]: crate::Intents::DIRECT_MESSAGE_REACTIONS
+        const DIRECT_MESSAGE_REACTIONS = Self::REACTION_ADD.bits()
+            | Self::REACTION_REMOVE.bits()
+            | Self::REACTION_REMOVE_ALL.bits()
+            | Self::REACTION_REMOVE_EMOJI.bits();
+        /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_TYPING`].
+        ///
+        /// [`Intents::DIRECT_MESSAGE_TYPING`]: crate::Intents::DIRECT_MESSAGE_TYPING
+        const DIRECT_MESSAGE_TYPING = Self::TYPING_START.bits();
+        /// All [`EventTypeFlags`] in [`Intents::GUILDS`].
+        ///
+        /// [`Intents::GUILDS`]: crate::Intents::GUILDS
+        const GUILDS = Self::CHANNEL_CREATE.bits()
+            | Self::CHANNEL_DELETE.bits()
+            | Self::CHANNEL_PINS_UPDATE.bits()
+            | Self::CHANNEL_UPDATE.bits()
+            | Self::GUILD_CREATE.bits()
+            | Self::GUILD_DELETE.bits()
+            | Self::GUILD_UPDATE.bits()
+            | Self::ROLE_CREATE.bits()
+            | Self::ROLE_DELETE.bits()
+            | Self::ROLE_UPDATE.bits()
+            | Self::STAGE_INSTANCE_CREATE.bits()
+            | Self::STAGE_INSTANCE_UPDATE.bits()
+            | Self::STAGE_INSTANCE_DELETE.bits()
+            | Self::THREAD_CREATE.bits()
+            | Self::THREAD_UPDATE.bits()
+            | Self::THREAD_DELETE.bits()
+            | Self::THREAD_LIST_SYNC.bits()
+            | Self::THREAD_MEMBER_UPDATE.bits()
+            | Self::THREAD_MEMBERS_UPDATE.bits();
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
+        ///
+        /// [`Intents::GUILD_BANS`]: crate::Intents::GUILD_BANS
+        const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits();
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
+        ///
+        /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
+        const GUILD_EMOJIS_AND_STICKERS = Self::GUILD_EMOJIS_UPDATE.bits()
+            | Self::GUILD_STICKERS_UPDATE.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
+        ///
+        /// [`Intents::GUILD_INTEGRATIONS`]: crate::Intents::GUILD_INTEGRATIONS
+        const GUILD_INTEGRATIONS = Self::GUILD_INTEGRATIONS_UPDATE.bits()
+            | Self::INTEGRATION_CREATE.bits()
+            | Self::INTEGRATION_UPDATE.bits()
+            | Self::INTEGRATION_DELETE.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_INVITES`].
+        ///
+        /// [`Intents::GUILD_INVITES`]: crate::Intents::GUILD_INVITES
+        const GUILD_INVITES = Self::INVITE_CREATE.bits() | Self::INVITE_DELETE.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_MEMBERS`].
+        ///
+        /// [`Intents::GUILD_MEMBERS`]: crate::Intents::GUILD_MEMBERS
+        const GUILD_MEMBERS = Self::MEMBER_ADD.bits()
+            | Self::MEMBER_REMOVE.bits()
+            | Self::MEMBER_UPDATE.bits()
+            | Self::THREAD_MEMBERS_UPDATE.bits();
+
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGES`].
+        ///
+        /// [`Intents::GUILD_MESSAGES`]: crate::Intents::GUILD_MESSAGES
+        const GUILD_MESSAGES = Self::MESSAGE_CREATE.bits()
+            | Self::MESSAGE_DELETE.bits()
+            | Self::MESSAGE_DELETE.bits()
+            | Self::MESSAGE_DELETE_BULK.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_REACTIONS`].
+        ///
+        /// [`Intents::GUILD_MESSAGE_REACTIONS`]: crate::Intents::GUILD_MESSAGE_REACTIONS
+        const GUILD_MESSAGE_REACTIONS = Self::REACTION_ADD.bits()
+            | Self::REACTION_REMOVE.bits()
+            | Self::REACTION_REMOVE_ALL.bits()
+            | Self::REACTION_REMOVE_EMOJI.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_TYPING`].
+        ///
+        /// [`Intents::GUILD_MESSAGE_TYPING`]: crate::Intents::GUILD_MESSAGE_TYPING
+        const GUILD_MESSAGE_TYPING = Self::TYPING_START.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_PRESENCES`].
+        ///
+        /// [`Intents::GUILD_PRESENCES`]: crate::Intents::GUILD_PRESENCES
+        const GUILD_PRESENCES = Self::PRESENCE_UPDATE.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_SCHEDULED_EVENTS`].
+        ///
+        /// [`Intents::GUILD_SCHEDULED_EVENTS`]: crate::Intents::GUILD_SCHEDULED_EVENTS
+        const GUILD_SCHEDULED_EVENTS = Self::GUILD_SCHEDULED_EVENT_CREATE.bits()
+            | Self::GUILD_SCHEDULED_EVENT_DELETE.bits()
+            | Self::GUILD_SCHEDULED_EVENT_UPDATE.bits()
+            | Self::GUILD_SCHEDULED_EVENT_USER_ADD.bits()
+            | Self::GUILD_SCHEDULED_EVENT_USER_REMOVE.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
+        ///
+        /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
+        const GUILD_VOICE_STATES = Self::VOICE_STATE_UPDATE.bits();
+
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
+        ///
+        /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
+        const GUILD_WEBHOOKS = Self::WEBHOOKS_UPDATE.bits();
+
     }
-}
-
-impl EventTypeFlags {
-    /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_CONFIGURATION`].
-    ///
-    /// [`Intents::AUTO_MODERATION_CONFIGURATION`]: crate::Intents::AUTO_MODERATION_CONFIGURATION
-    pub const AUTO_MODERATION_CONFIGURATION: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::AUTO_MODERATION_RULE_CREATE.bits()
-            | EventTypeFlags::AUTO_MODERATION_RULE_DELETE.bits()
-            | EventTypeFlags::AUTO_MODERATION_RULE_UPDATE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::AUTO_MODERATION_EXECUTION`].
-    ///
-    /// [`Intents::AUTO_MODERATION_EXECUTION`]: crate::Intents::AUTO_MODERATION_EXECUTION
-    pub const AUTO_MODERATION_EXECUTION: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::AUTO_MODERATION_ACTION_EXECUTION.bits());
-
-    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGES`].
-    ///
-    /// [`Intents::DIRECT_MESSAGES`]: crate::Intents::DIRECT_MESSAGES
-    pub const DIRECT_MESSAGES: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::MESSAGE_CREATE.bits()
-            | EventTypeFlags::MESSAGE_DELETE.bits()
-            | EventTypeFlags::MESSAGE_DELETE_BULK.bits()
-            | EventTypeFlags::MESSAGE_UPDATE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_REACTIONS`].
-    ///
-    /// [`Intents::DIRECT_MESSAGE_REACTIONS`]: crate::Intents::DIRECT_MESSAGE_REACTIONS
-    pub const DIRECT_MESSAGE_REACTIONS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::REACTION_ADD.bits()
-            | EventTypeFlags::REACTION_REMOVE.bits()
-            | EventTypeFlags::REACTION_REMOVE_ALL.bits()
-            | EventTypeFlags::REACTION_REMOVE_EMOJI.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::DIRECT_MESSAGE_TYPING`].
-    ///
-    /// [`Intents::DIRECT_MESSAGE_TYPING`]: crate::Intents::DIRECT_MESSAGE_TYPING
-    pub const DIRECT_MESSAGE_TYPING: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::TYPING_START.bits());
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILDS`].
-    ///
-    /// [`Intents::GUILDS`]: crate::Intents::GUILDS
-    pub const GUILDS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::CHANNEL_CREATE.bits()
-            | EventTypeFlags::CHANNEL_DELETE.bits()
-            | EventTypeFlags::CHANNEL_PINS_UPDATE.bits()
-            | EventTypeFlags::CHANNEL_UPDATE.bits()
-            | EventTypeFlags::GUILD_CREATE.bits()
-            | EventTypeFlags::GUILD_DELETE.bits()
-            | EventTypeFlags::GUILD_UPDATE.bits()
-            | EventTypeFlags::ROLE_CREATE.bits()
-            | EventTypeFlags::ROLE_DELETE.bits()
-            | EventTypeFlags::ROLE_UPDATE.bits()
-            | EventTypeFlags::STAGE_INSTANCE_CREATE.bits()
-            | EventTypeFlags::STAGE_INSTANCE_UPDATE.bits()
-            | EventTypeFlags::STAGE_INSTANCE_DELETE.bits()
-            | EventTypeFlags::THREAD_CREATE.bits()
-            | EventTypeFlags::THREAD_UPDATE.bits()
-            | EventTypeFlags::THREAD_DELETE.bits()
-            | EventTypeFlags::THREAD_LIST_SYNC.bits()
-            | EventTypeFlags::THREAD_MEMBER_UPDATE.bits()
-            | EventTypeFlags::THREAD_MEMBERS_UPDATE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
-    ///
-    /// [`Intents::GUILD_BANS`]: crate::Intents::GUILD_BANS
-    pub const GUILD_BANS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::BAN_ADD.bits() | EventTypeFlags::BAN_REMOVE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
-    ///
-    /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
-    pub const GUILD_EMOJIS_AND_STICKERS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::GUILD_EMOJIS_UPDATE.bits() | EventTypeFlags::GUILD_STICKERS_UPDATE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_INTEGRATIONS`].
-    ///
-    /// [`Intents::GUILD_INTEGRATIONS`]: crate::Intents::GUILD_INTEGRATIONS
-    pub const GUILD_INTEGRATIONS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::GUILD_INTEGRATIONS_UPDATE.bits()
-            | EventTypeFlags::INTEGRATION_CREATE.bits()
-            | EventTypeFlags::INTEGRATION_UPDATE.bits()
-            | EventTypeFlags::INTEGRATION_DELETE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_INVITES`].
-    ///
-    /// [`Intents::GUILD_INVITES`]: crate::Intents::GUILD_INVITES
-    pub const GUILD_INVITES: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::INVITE_CREATE.bits() | EventTypeFlags::INVITE_DELETE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_MEMBERS`].
-    ///
-    /// [`Intents::GUILD_MEMBERS`]: crate::Intents::GUILD_MEMBERS
-    pub const GUILD_MEMBERS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::MEMBER_ADD.bits()
-            | EventTypeFlags::MEMBER_REMOVE.bits()
-            | EventTypeFlags::MEMBER_UPDATE.bits()
-            | EventTypeFlags::THREAD_MEMBERS_UPDATE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGES`].
-    ///
-    /// [`Intents::GUILD_MESSAGES`]: crate::Intents::GUILD_MESSAGES
-    pub const GUILD_MESSAGES: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::MESSAGE_CREATE.bits()
-            | EventTypeFlags::MESSAGE_DELETE.bits()
-            | EventTypeFlags::MESSAGE_DELETE.bits()
-            | EventTypeFlags::MESSAGE_DELETE_BULK.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_REACTIONS`].
-    ///
-    /// [`Intents::GUILD_MESSAGE_REACTIONS`]: crate::Intents::GUILD_MESSAGE_REACTIONS
-    pub const GUILD_MESSAGE_REACTIONS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::REACTION_ADD.bits()
-            | EventTypeFlags::REACTION_REMOVE.bits()
-            | EventTypeFlags::REACTION_REMOVE_ALL.bits()
-            | EventTypeFlags::REACTION_REMOVE_EMOJI.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_MESSAGE_TYPING`].
-    ///
-    /// [`Intents::GUILD_MESSAGE_TYPING`]: crate::Intents::GUILD_MESSAGE_TYPING
-    pub const GUILD_MESSAGE_TYPING: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::TYPING_START.bits());
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_PRESENCES`].
-    ///
-    /// [`Intents::GUILD_PRESENCES`]: crate::Intents::GUILD_PRESENCES
-    pub const GUILD_PRESENCES: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::PRESENCE_UPDATE.bits());
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_SCHEDULED_EVENTS`].
-    ///
-    /// [`Intents::GUILD_SCHEDULED_EVENTS`]: crate::Intents::GUILD_SCHEDULED_EVENTS
-    pub const GUILD_SCHEDULED_EVENTS: EventTypeFlags = EventTypeFlags::from_bits_truncate(
-        EventTypeFlags::GUILD_SCHEDULED_EVENT_CREATE.bits()
-            | EventTypeFlags::GUILD_SCHEDULED_EVENT_DELETE.bits()
-            | EventTypeFlags::GUILD_SCHEDULED_EVENT_UPDATE.bits()
-            | EventTypeFlags::GUILD_SCHEDULED_EVENT_USER_ADD.bits()
-            | EventTypeFlags::GUILD_SCHEDULED_EVENT_USER_REMOVE.bits(),
-    );
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_VOICE_STATES`].
-    ///
-    /// [`Intents::GUILD_VOICE_STATES`]: crate::Intents::GUILD_VOICE_STATES
-    pub const GUILD_VOICE_STATES: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::VOICE_STATE_UPDATE.bits());
-
-    /// All [`EventTypeFlags`] in [`Intents::GUILD_WEBHOOKS`].
-    ///
-    /// [`Intents::GUILD_WEBHOOKS`]: crate::Intents::GUILD_WEBHOOKS
-    pub const GUILD_WEBHOOKS: EventTypeFlags =
-        EventTypeFlags::from_bits_truncate(EventTypeFlags::WEBHOOKS_UPDATE.bits());
 }
 
 impl From<EventType> for EventTypeFlags {
     fn from(event_type: EventType) -> Self {
         match event_type {
-            EventType::AutoModerationActionExecution => {
-                EventTypeFlags::AUTO_MODERATION_ACTION_EXECUTION
-            }
-            EventType::AutoModerationRuleCreate => EventTypeFlags::AUTO_MODERATION_RULE_CREATE,
-            EventType::AutoModerationRuleDelete => EventTypeFlags::AUTO_MODERATION_RULE_DELETE,
-            EventType::AutoModerationRuleUpdate => EventTypeFlags::AUTO_MODERATION_RULE_UPDATE,
-            EventType::BanAdd => EventTypeFlags::BAN_ADD,
-            EventType::BanRemove => EventTypeFlags::BAN_REMOVE,
-            EventType::ChannelCreate => EventTypeFlags::CHANNEL_CREATE,
-            EventType::ChannelDelete => EventTypeFlags::CHANNEL_DELETE,
-            EventType::ChannelPinsUpdate => EventTypeFlags::CHANNEL_PINS_UPDATE,
-            EventType::ChannelUpdate => EventTypeFlags::CHANNEL_UPDATE,
-            EventType::CommandPermissionsUpdate => EventTypeFlags::COMMAND_PERMISSIONS_UPDATE,
-            EventType::GatewayHeartbeat => EventTypeFlags::GATEWAY_HEARTBEAT,
-            EventType::GatewayHeartbeatAck => EventTypeFlags::GATEWAY_HEARTBEAT_ACK,
-            EventType::GatewayHello => EventTypeFlags::GATEWAY_HELLO,
-            EventType::GatewayInvalidateSession => EventTypeFlags::GATEWAY_INVALIDATE_SESSION,
-            EventType::GatewayReconnect => EventTypeFlags::GATEWAY_RECONNECT,
-            EventType::GiftCodeUpdate => EventTypeFlags::GIFT_CODE_UPDATE,
-            EventType::GuildCreate => EventTypeFlags::GUILD_CREATE,
-            EventType::GuildDelete => EventTypeFlags::GUILD_DELETE,
-            EventType::GuildEmojisUpdate => EventTypeFlags::GUILD_EMOJIS_UPDATE,
-            EventType::GuildIntegrationsUpdate => EventTypeFlags::GUILD_INTEGRATIONS_UPDATE,
-            EventType::GuildScheduledEventCreate => EventTypeFlags::GUILD_SCHEDULED_EVENT_CREATE,
-            EventType::GuildScheduledEventDelete => EventTypeFlags::GUILD_SCHEDULED_EVENT_DELETE,
-            EventType::GuildScheduledEventUpdate => EventTypeFlags::GUILD_SCHEDULED_EVENT_UPDATE,
-            EventType::GuildScheduledEventUserAdd => EventTypeFlags::GUILD_SCHEDULED_EVENT_USER_ADD,
-            EventType::GuildScheduledEventUserRemove => {
-                EventTypeFlags::GUILD_SCHEDULED_EVENT_USER_REMOVE
-            }
-            EventType::GuildStickersUpdate => EventTypeFlags::GUILD_STICKERS_UPDATE,
-            EventType::GuildUpdate => EventTypeFlags::GUILD_UPDATE,
-            EventType::IntegrationCreate => EventTypeFlags::INTEGRATION_CREATE,
-            EventType::IntegrationDelete => EventTypeFlags::INTEGRATION_DELETE,
-            EventType::IntegrationUpdate => EventTypeFlags::INTEGRATION_UPDATE,
-            EventType::InteractionCreate => EventTypeFlags::INTERACTION_CREATE,
-            EventType::InviteCreate => EventTypeFlags::INVITE_CREATE,
-            EventType::InviteDelete => EventTypeFlags::INVITE_DELETE,
-            EventType::MemberAdd => EventTypeFlags::MEMBER_ADD,
-            EventType::MemberRemove => EventTypeFlags::MEMBER_REMOVE,
-            EventType::MemberUpdate => EventTypeFlags::MEMBER_UPDATE,
-            EventType::MemberChunk => EventTypeFlags::MEMBER_CHUNK,
-            EventType::MessageCreate => EventTypeFlags::MESSAGE_CREATE,
-            EventType::MessageDelete => EventTypeFlags::MESSAGE_DELETE,
-            EventType::MessageDeleteBulk => EventTypeFlags::MESSAGE_DELETE_BULK,
-            EventType::MessageUpdate => EventTypeFlags::MESSAGE_UPDATE,
-            EventType::PresenceUpdate => EventTypeFlags::PRESENCE_UPDATE,
-            EventType::PresencesReplace => EventTypeFlags::PRESENCES_REPLACE,
-            EventType::ReactionAdd => EventTypeFlags::REACTION_ADD,
-            EventType::ReactionRemove => EventTypeFlags::REACTION_REMOVE,
-            EventType::ReactionRemoveAll => EventTypeFlags::REACTION_REMOVE_ALL,
-            EventType::ReactionRemoveEmoji => EventTypeFlags::REACTION_REMOVE_EMOJI,
-            EventType::Ready => EventTypeFlags::READY,
-            EventType::Resumed => EventTypeFlags::RESUMED,
-            EventType::RoleCreate => EventTypeFlags::ROLE_CREATE,
-            EventType::RoleDelete => EventTypeFlags::ROLE_DELETE,
-            EventType::RoleUpdate => EventTypeFlags::ROLE_UPDATE,
-            EventType::ShardConnected => EventTypeFlags::SHARD_CONNECTED,
-            EventType::ShardConnecting => EventTypeFlags::SHARD_CONNECTING,
-            EventType::ShardDisconnected => EventTypeFlags::SHARD_DISCONNECTED,
-            EventType::ShardIdentifying => EventTypeFlags::SHARD_IDENTIFYING,
-            EventType::ShardReconnecting => EventTypeFlags::SHARD_RECONNECTING,
-            EventType::ShardPayload => EventTypeFlags::SHARD_PAYLOAD,
-            EventType::ShardResuming => EventTypeFlags::SHARD_RESUMING,
-            EventType::StageInstanceCreate => EventTypeFlags::STAGE_INSTANCE_CREATE,
-            EventType::StageInstanceDelete => EventTypeFlags::STAGE_INSTANCE_DELETE,
-            EventType::StageInstanceUpdate => EventTypeFlags::STAGE_INSTANCE_UPDATE,
-            EventType::ThreadCreate => EventTypeFlags::THREAD_CREATE,
-            EventType::ThreadDelete => EventTypeFlags::THREAD_DELETE,
-            EventType::ThreadListSync => EventTypeFlags::THREAD_LIST_SYNC,
-            EventType::ThreadMembersUpdate => EventTypeFlags::THREAD_MEMBERS_UPDATE,
-            EventType::ThreadMemberUpdate => EventTypeFlags::THREAD_MEMBER_UPDATE,
-            EventType::ThreadUpdate => EventTypeFlags::THREAD_UPDATE,
-            EventType::TypingStart => EventTypeFlags::TYPING_START,
-            EventType::UnavailableGuild => EventTypeFlags::UNAVAILABLE_GUILD,
-            EventType::UserUpdate => EventTypeFlags::USER_UPDATE,
-            EventType::VoiceServerUpdate => EventTypeFlags::VOICE_SERVER_UPDATE,
-            EventType::VoiceStateUpdate => EventTypeFlags::VOICE_STATE_UPDATE,
-            EventType::WebhooksUpdate => EventTypeFlags::WEBHOOKS_UPDATE,
+            EventType::AutoModerationActionExecution => Self::AUTO_MODERATION_ACTION_EXECUTION,
+            EventType::AutoModerationRuleCreate => Self::AUTO_MODERATION_RULE_CREATE,
+            EventType::AutoModerationRuleDelete => Self::AUTO_MODERATION_RULE_DELETE,
+            EventType::AutoModerationRuleUpdate => Self::AUTO_MODERATION_RULE_UPDATE,
+            EventType::BanAdd => Self::BAN_ADD,
+            EventType::BanRemove => Self::BAN_REMOVE,
+            EventType::ChannelCreate => Self::CHANNEL_CREATE,
+            EventType::ChannelDelete => Self::CHANNEL_DELETE,
+            EventType::ChannelPinsUpdate => Self::CHANNEL_PINS_UPDATE,
+            EventType::ChannelUpdate => Self::CHANNEL_UPDATE,
+            EventType::CommandPermissionsUpdate => Self::COMMAND_PERMISSIONS_UPDATE,
+            EventType::GatewayHeartbeat => Self::GATEWAY_HEARTBEAT,
+            EventType::GatewayHeartbeatAck => Self::GATEWAY_HEARTBEAT_ACK,
+            EventType::GatewayHello => Self::GATEWAY_HELLO,
+            EventType::GatewayInvalidateSession => Self::GATEWAY_INVALIDATE_SESSION,
+            EventType::GatewayReconnect => Self::GATEWAY_RECONNECT,
+            EventType::GiftCodeUpdate => Self::GIFT_CODE_UPDATE,
+            EventType::GuildCreate => Self::GUILD_CREATE,
+            EventType::GuildDelete => Self::GUILD_DELETE,
+            EventType::GuildEmojisUpdate => Self::GUILD_EMOJIS_UPDATE,
+            EventType::GuildIntegrationsUpdate => Self::GUILD_INTEGRATIONS_UPDATE,
+            EventType::GuildScheduledEventCreate => Self::GUILD_SCHEDULED_EVENT_CREATE,
+            EventType::GuildScheduledEventDelete => Self::GUILD_SCHEDULED_EVENT_DELETE,
+            EventType::GuildScheduledEventUpdate => Self::GUILD_SCHEDULED_EVENT_UPDATE,
+            EventType::GuildScheduledEventUserAdd => Self::GUILD_SCHEDULED_EVENT_USER_ADD,
+            EventType::GuildScheduledEventUserRemove => Self::GUILD_SCHEDULED_EVENT_USER_REMOVE,
+            EventType::GuildStickersUpdate => Self::GUILD_STICKERS_UPDATE,
+            EventType::GuildUpdate => Self::GUILD_UPDATE,
+            EventType::IntegrationCreate => Self::INTEGRATION_CREATE,
+            EventType::IntegrationDelete => Self::INTEGRATION_DELETE,
+            EventType::IntegrationUpdate => Self::INTEGRATION_UPDATE,
+            EventType::InteractionCreate => Self::INTERACTION_CREATE,
+            EventType::InviteCreate => Self::INVITE_CREATE,
+            EventType::InviteDelete => Self::INVITE_DELETE,
+            EventType::MemberAdd => Self::MEMBER_ADD,
+            EventType::MemberRemove => Self::MEMBER_REMOVE,
+            EventType::MemberUpdate => Self::MEMBER_UPDATE,
+            EventType::MemberChunk => Self::MEMBER_CHUNK,
+            EventType::MessageCreate => Self::MESSAGE_CREATE,
+            EventType::MessageDelete => Self::MESSAGE_DELETE,
+            EventType::MessageDeleteBulk => Self::MESSAGE_DELETE_BULK,
+            EventType::MessageUpdate => Self::MESSAGE_UPDATE,
+            EventType::PresenceUpdate => Self::PRESENCE_UPDATE,
+            EventType::PresencesReplace => Self::PRESENCES_REPLACE,
+            EventType::ReactionAdd => Self::REACTION_ADD,
+            EventType::ReactionRemove => Self::REACTION_REMOVE,
+            EventType::ReactionRemoveAll => Self::REACTION_REMOVE_ALL,
+            EventType::ReactionRemoveEmoji => Self::REACTION_REMOVE_EMOJI,
+            EventType::Ready => Self::READY,
+            EventType::Resumed => Self::RESUMED,
+            EventType::RoleCreate => Self::ROLE_CREATE,
+            EventType::RoleDelete => Self::ROLE_DELETE,
+            EventType::RoleUpdate => Self::ROLE_UPDATE,
+            EventType::StageInstanceCreate => Self::STAGE_INSTANCE_CREATE,
+            EventType::StageInstanceDelete => Self::STAGE_INSTANCE_DELETE,
+            EventType::StageInstanceUpdate => Self::STAGE_INSTANCE_UPDATE,
+            EventType::ThreadCreate => Self::THREAD_CREATE,
+            EventType::ThreadDelete => Self::THREAD_DELETE,
+            EventType::ThreadListSync => Self::THREAD_LIST_SYNC,
+            EventType::ThreadMembersUpdate => Self::THREAD_MEMBERS_UPDATE,
+            EventType::ThreadMemberUpdate => Self::THREAD_MEMBER_UPDATE,
+            EventType::ThreadUpdate => Self::THREAD_UPDATE,
+            EventType::TypingStart => Self::TYPING_START,
+            EventType::UnavailableGuild => Self::UNAVAILABLE_GUILD,
+            EventType::UserUpdate => Self::USER_UPDATE,
+            EventType::VoiceServerUpdate => Self::VOICE_SERVER_UPDATE,
+            EventType::VoiceStateUpdate => Self::VOICE_STATE_UPDATE,
+            EventType::WebhooksUpdate => Self::WEBHOOKS_UPDATE,
         }
-    }
-}
-
-impl<'a> TryFrom<(u8, Option<&'a str>)> for EventTypeFlags {
-    type Error = (u8, Option<&'a str>);
-
-    fn try_from((op, event_type): (u8, Option<&'a str>)) -> Result<Self, Self::Error> {
-        match (op, event_type) {
-            (1, _) => Ok(EventTypeFlags::GATEWAY_HEARTBEAT),
-            (7, _) => Ok(EventTypeFlags::GATEWAY_RECONNECT),
-            (9, _) => Ok(EventTypeFlags::GATEWAY_INVALIDATE_SESSION),
-            (10, _) => Ok(EventTypeFlags::GATEWAY_HELLO),
-            (11, _) => Ok(EventTypeFlags::GATEWAY_HEARTBEAT_ACK),
-            (_, Some(event_type)) => {
-                let flag = EventType::try_from(event_type).map_err(|kind| (op, Some(kind)))?;
-
-                Ok(Self::from(flag))
-            }
-            (_, None) => Err((op, event_type)),
-        }
-    }
-}
-
-impl Default for EventTypeFlags {
-    fn default() -> Self {
-        let mut flags = Self::all();
-        flags.remove(Self::SHARD_PAYLOAD);
-
-        flags
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{EventType, EventTypeFlags};
+    use super::EventTypeFlags;
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, hash::Hash};
+    use twilight_model::gateway::event::EventType;
 
     assert_impl_all!(
         EventTypeFlags: Copy,
@@ -468,6 +403,5 @@ mod tests {
         PartialEq,
         Send,
         Sync,
-        TryFrom<(u8, Option<&'static str>)>
     );
 }

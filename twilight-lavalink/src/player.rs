@@ -114,7 +114,10 @@ impl Player {
     /// Send a [`Play`] and [`Pause`] event:
     ///
     /// ```
-    /// use twilight_lavalink::{model::{Play, Pause}, Lavalink};
+    /// use twilight_lavalink::{
+    ///     model::{Pause, Play},
+    ///     Lavalink,
+    /// };
     /// # use twilight_model::id::Id;
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let (guild_id, user_id) = (Id::new(1), Id::new(2));

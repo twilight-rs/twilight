@@ -26,6 +26,7 @@ pub struct Mention {
     /// Unique ID of the user.
     pub id: Id<UserMarker>,
     /// Member object for the user in the guild, if available.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<PartialMember>,
     #[serde(rename = "username")]
     /// Username of the user.
@@ -70,7 +71,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Mention",
-                    len: 7,
+                    len: 6,
                 },
                 Token::Str("avatar"),
                 Token::None,
@@ -81,8 +82,6 @@ mod tests {
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("member"),
-                Token::None,
                 Token::Str("username"),
                 Token::Str("foo"),
                 Token::Str("public_flags"),
@@ -137,7 +136,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 8,
+                    len: 7,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
@@ -150,8 +149,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("bar"),
-                Token::Str("permissions"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

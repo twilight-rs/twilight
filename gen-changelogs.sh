@@ -1,7 +1,11 @@
 #!/bin/sh
 
 metadata=$(cargo metadata --no-deps --format-version 1)
-root=$(echo "$metadata" | jq -r '.workspace_root')
+root=$(echo "$metadata" | jq -r '.workspace_root' | xargs realpath --relative-to `pwd`)
+
+if [[ "$root" != "." ]]; then
+    echo "Must be run from repository root"
+fi
 
 echo "$metadata" \
     | jq -r '.workspace_members[]' \
@@ -10,5 +14,5 @@ echo "$metadata" \
 do
     tag="$name-$version"
 
-    git-cliff --include-path "$root/$name/**/*.rs" --unreleased --prepend "$root/$name/CHANGELOG.md" "$tag"..HEAD
+    git-cliff --include-path "$name/**/*.rs" --unreleased --prepend "$name/CHANGELOG.md" "$tag"..HEAD
 done

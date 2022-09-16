@@ -11,7 +11,10 @@ use twilight_model::{
     id::{marker::ChannelMarker, Id},
 };
 use twilight_validate::{
-    channel::{name as validate_name, topic as validate_topic, ChannelValidationError},
+    channel::{
+        bitrate as validate_bitrate, name as validate_name, topic as validate_topic,
+        ChannelValidationError,
+    },
     request::{audit_reason as validate_audit_reason, ValidationError},
 };
 
@@ -33,6 +36,8 @@ struct UpdateChannelFields<'a> {
     position: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     rate_limit_per_user: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    rtc_region: Option<Nullable<&'a str>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     topic: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -68,6 +73,7 @@ impl<'a> UpdateChannel<'a> {
                 permission_overwrites: None,
                 position: None,
                 rate_limit_per_user: None,
+                rtc_region: None,
                 topic: None,
                 user_limit: None,
                 video_quality_mode: None,
@@ -78,11 +84,23 @@ impl<'a> UpdateChannel<'a> {
         }
     }
 
-    /// Set the bitrate of the channel. Applicable to voice channels only.
-    pub const fn bitrate(mut self, bitrate: u32) -> Self {
+    /// For voice and stage channels, set the bitrate of the channel.
+    ///
+    /// Must be at least 8000.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`BitrateInvalid`] if the bitrate is invalid.
+    ///
+    /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
+    pub const fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
+        if let Err(source) = validate_bitrate(bitrate) {
+            return Err(source);
+        }
+
         self.fields.bitrate = Some(bitrate);
 
-        self
+        Ok(self)
     }
 
     /// Set the name.
@@ -163,6 +181,15 @@ impl<'a> UpdateChannel<'a> {
         self.fields.rate_limit_per_user = Some(rate_limit_per_user);
 
         Ok(self)
+    }
+
+    /// For voice and stage channels, set the channel's RTC region.
+    ///
+    /// Set to `None` to clear.
+    pub const fn rtc_region(mut self, rtc_region: Option<&'a str>) -> Self {
+        self.fields.rtc_region = Some(Nullable(rtc_region));
+
+        self
     }
 
     /// Set the topic.

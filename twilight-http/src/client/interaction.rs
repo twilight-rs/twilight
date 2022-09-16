@@ -14,7 +14,7 @@ use crate::{
     Client,
 };
 use twilight_model::{
-    application::command::{permissions::CommandPermissions, Command},
+    application::command::{permissions::CommandPermission, Command},
     http::interaction::InteractionResponse,
     id::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker, InteractionMarker, MessageMarker},
@@ -72,6 +72,8 @@ impl<'a> InteractionClient<'a> {
     /// [`InteractionResponseData`], there is an [associated builder] in the
     /// [`twilight-util`] crate.
     ///
+    /// This endpoint is not bound to the application's global rate limit.
+    ///
     /// [`InteractionResponseData`]: twilight_model::http::interaction::InteractionResponseData
     /// [`twilight-util`]: https://docs.rs/twilight-util/latest/index.html
     /// [associated builder]: https://docs.rs/twilight-util/latest/twilight_util/builder/struct.InteractionResponseDataBuilder.html
@@ -85,16 +87,22 @@ impl<'a> InteractionClient<'a> {
     }
 
     /// Delete the original message, by its token.
+    ///
+    /// This endpoint is not bound to the application's global rate limit.
     pub const fn delete_response(&'a self, interaction_token: &'a str) -> DeleteResponse<'a> {
         DeleteResponse::new(self.client, self.application_id, interaction_token)
     }
 
     /// Get the original message, by its token.
+    ///
+    /// This endpoint is not bound to the application's global rate limit.
     pub const fn response(&'a self, interaction_token: &'a str) -> GetResponse<'a> {
         GetResponse::new(self.client, self.application_id, interaction_token)
     }
 
     /// Edit the original message, by its token.
+    ///
+    /// This endpoint is not bound to the application's global rate limit.
     pub const fn update_response(&'a self, interaction_token: &'a str) -> UpdateResponse<'a> {
         UpdateResponse::new(self.client, self.application_id, interaction_token)
     }
@@ -103,6 +111,8 @@ impl<'a> InteractionClient<'a> {
     ///
     /// The message must include at least one of [`attachments`], [`content`],
     /// or [`embeds`].
+    ///
+    /// This endpoint is not bound to the application's global rate limit.
     ///
     /// # Examples
     ///
@@ -133,6 +143,8 @@ impl<'a> InteractionClient<'a> {
 
     /// Delete a followup message to an interaction, by its token and message
     /// ID.
+    ///
+    /// This endpoint is not bound to the application's global rate limit.
     pub const fn delete_followup(
         &'a self,
         interaction_token: &'a str,
@@ -148,6 +160,8 @@ impl<'a> InteractionClient<'a> {
 
     /// Get a followup message of an interaction, by its token and the message
     /// ID.
+    ///
+    /// This endpoint is not bound to the application's global rate limit.
     pub const fn followup(
         &'a self,
         interaction_token: &'a str,
@@ -163,6 +177,8 @@ impl<'a> InteractionClient<'a> {
 
     /// Edit a followup message of an interaction, by its token and the message
     /// ID.
+    ///
+    /// This endpoint is not bound to the application's global rate limit.
     pub const fn update_followup(
         &'a self,
         interaction_token: &'a str,
@@ -323,7 +339,7 @@ impl<'a> InteractionClient<'a> {
         &'a self,
         guild_id: Id<GuildMarker>,
         command_id: Id<CommandMarker>,
-        permissions: &'a [CommandPermissions],
+        permissions: &'a [CommandPermission],
     ) -> Result<UpdateCommandPermissions<'a>, CommandValidationError> {
         UpdateCommandPermissions::new(
             self.client,

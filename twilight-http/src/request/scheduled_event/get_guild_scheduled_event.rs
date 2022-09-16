@@ -6,11 +6,11 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
+    guild::scheduled_event::GuildScheduledEvent,
     id::{
         marker::{GuildMarker, ScheduledEventMarker},
         Id,
     },
-    scheduled_event::GuildScheduledEvent,
 };
 
 /// Get a scheduled event in a guild.

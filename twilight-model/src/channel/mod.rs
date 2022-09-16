@@ -123,7 +123,7 @@ pub struct Channel {
     pub permission_overwrites: Option<Vec<PermissionOverwrite>>,
     /// Sorting position of the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub position: Option<i16>,
+    pub position: Option<i32>,
     /// Amount of seconds a user has to wait before sending another message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limit_per_user: Option<u16>,
@@ -145,7 +145,7 @@ pub struct Channel {
     ///
     /// Zero refers to no limit.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_limit: Option<u8>,
+    pub user_limit: Option<u32>,
     /// Camera video quality mode of the channel.
     ///
     /// Defaults to [`VideoQualityMode::Auto`] for applicable channels.

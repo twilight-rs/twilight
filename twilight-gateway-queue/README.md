@@ -7,11 +7,11 @@ Instances of a queue are given to shards so that they can request to
 initialize a session.
 
 Queue implementations must point to the same broker so that all shards
-across all clusters, processes, and other forms of multi-serviced
-applications, can work together and use the same ratelimiting source. That
-is, if you for example have two clusters in two different processes, then
-the two processes must use some unified form of ratelimiting: this can
-either mean using IPC to communicate ratelimiting or a broker.
+across all shard groups, processes, and other forms of multi-serviced
+applications, can work together and use the same ratelimiting source. That is,
+if two shard groups are in two different processes, then the the two processes
+must use some unified form of ratelimiting: this can either mean using IPC to
+communicate ratelimiting or a broker.
 
 ## Provided queues
 
@@ -20,17 +20,16 @@ smaller bots. Larger bots need the [`LargeBotQueue`], which supports
 single-process [Sharding for Large Bots] through the use of bucket
 releasing.
 
-By default, the gateway's `Cluster` and `Shard`s use the [`LocalQueue`]. You
-can override this in the `ClusterBuilder::queue` and `ShardBuilder::queue`
-configuration methods.
+By default, the gateway's `stream` module and `Shard`s use the [`LocalQueue`].
+This can be overridden via the `ShardBuilder::queue` configuration method.
 
 ## Advanced use cases
 
 Large bots, and smaller bots out of design, may need to implement their own
-queue. The most common reason to need this is if you have clusters in
-multiple processes. You'll need a broker to manage ratelimiting across them
-all so a [`Queue`] trait is provided that shards can use to make requests to
-create sessions.
+queue. The most common reason to need this is if you have shard groups in
+multiple processes. A broker to manage ratelimiting across shard groups is
+required, so a [`Queue`] trait is provided that shards can use to make requests
+to create sessions.
 
 ## Features
 

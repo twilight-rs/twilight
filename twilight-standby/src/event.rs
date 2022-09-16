@@ -71,7 +71,7 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         Event::ThreadUpdate(e) => e.0.guild_id,
         Event::TypingStart(e) => e.guild_id,
         Event::UnavailableGuild(e) => Some(e.id),
-        Event::VoiceServerUpdate(e) => e.guild_id,
+        Event::VoiceServerUpdate(e) => Some(e.guild_id),
         Event::VoiceStateUpdate(e) => e.0.guild_id,
         Event::WebhooksUpdate(e) => Some(e.guild_id),
         Event::ChannelPinsUpdate(_)
@@ -87,13 +87,6 @@ pub const fn guild_id(event: &Event) -> Option<Id<GuildMarker>> {
         | Event::PresencesReplace
         | Event::Ready(_)
         | Event::Resumed
-        | Event::ShardConnected(_)
-        | Event::ShardConnecting(_)
-        | Event::ShardDisconnected(_)
-        | Event::ShardIdentifying(_)
-        | Event::ShardPayload(_)
-        | Event::ShardReconnecting(_)
-        | Event::ShardResuming(_)
         | Event::ThreadMemberUpdate(_)
         | Event::UserUpdate(_) => None,
     }

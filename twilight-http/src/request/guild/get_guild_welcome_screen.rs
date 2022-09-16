@@ -6,8 +6,8 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
+    guild::invite::WelcomeScreen,
     id::{marker::GuildMarker, Id},
-    invite::WelcomeScreen,
 };
 
 /// Get the guild's welcome screen.

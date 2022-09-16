@@ -6,6 +6,7 @@ use crate::{
     },
 };
 
+/// Create an [`AllowedMentions`] with a builder.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 #[must_use = "has no effect if not built into an AllowedMentions"]
 pub struct AllowedMentionsBuilder(AllowedMentions);

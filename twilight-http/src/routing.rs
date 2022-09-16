@@ -28,9 +28,9 @@ pub enum Route<'a> {
     },
     /// Route information to create a ban on a user in a guild.
     CreateBan {
-        /// The number of days' worth of the user's messages to delete in the
+        /// The number of seconds' worth of the user's messages to delete in the
         /// guild's channels.
-        delete_message_days: Option<u16>,
+        delete_message_seconds: Option<u32>,
         /// The ID of the guild.
         guild_id: u64,
         /// The ID of the user.
@@ -938,6 +938,11 @@ pub enum Route<'a> {
         /// The ID of the integration.
         integration_id: u64,
     },
+    /// Route information to update a guild's MFA level.
+    UpdateGuildMfa {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to update a scheduled event in a guild.
     UpdateGuildScheduledEvent {
         /// ID of the guild.
@@ -1164,6 +1169,7 @@ impl<'a> Route<'a> {
             | Self::UpdateGuild { .. }
             | Self::UpdateGuildChannels { .. }
             | Self::UpdateGuildCommand { .. }
+            | Self::UpdateGuildMfa { .. }
             | Self::UpdateGuildWidget { .. }
             | Self::UpdateGuildIntegration { .. }
             | Self::UpdateGuildScheduledEvent { .. }
@@ -1236,9 +1242,7 @@ impl<'a> Route<'a> {
     /// use twilight_http_ratelimiting::{InMemoryRatelimiter, Ratelimiter};
     ///
     /// let ratelimiter = InMemoryRatelimiter::new();
-    /// let route = Route::CreateMessage {
-    ///     channel_id: 123,
-    ///  };
+    /// let route = Route::CreateMessage { channel_id: 123 };
     ///
     /// // Take a ticket from the ratelimiter.
     /// let rx = ratelimiter.ticket(route.to_path()).await?;
@@ -1431,7 +1435,7 @@ impl<'a> Route<'a> {
             } => Path::WebhooksIdToken(webhook_id, token.to_string()),
             Self::DeleteWebhook { webhook_id, .. }
             | Self::GetWebhook { webhook_id, .. }
-            | Self::UpdateWebhook { webhook_id, .. } => (Path::WebhooksId(webhook_id)),
+            | Self::UpdateWebhook { webhook_id, .. } => Path::WebhooksId(webhook_id),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(channel_id),
             Self::GetJoinedPrivateArchivedThreads { channel_id, .. }
             | Self::GetPrivateArchivedThreads { channel_id, .. }
@@ -1517,6 +1521,7 @@ impl<'a> Route<'a> {
                 Path::ChannelsIdMessagesId(Method::Patch, channel_id)
             }
             Self::UpdateNickname { guild_id } => Path::GuildsIdMembersMeNick(guild_id),
+            Self::UpdateGuildMfa { guild_id } => Path::GuildsIdMfa(guild_id),
         }
     }
 }
@@ -1530,9 +1535,7 @@ impl<'a> Route<'a> {
 /// ```
 /// use twilight_http::routing::Route;
 ///
-/// let route = Route::GetPins {
-///     channel_id: 123,
-/// };
+/// let route = Route::GetPins { channel_id: 123 };
 /// assert_eq!("channels/123/pins", route.to_string());
 /// ```
 ///
@@ -1547,10 +1550,7 @@ impl<'a> Route<'a> {
 ///     with_counts: true,
 /// };
 ///
-/// assert_eq!(
-///     "invites/twilight-rs?with-counts=true",
-///     route.to_string(),
-/// );
+/// assert_eq!("invites/twilight-rs?with-counts=true", route.to_string());
 /// ```
 ///
 /// [`GetInvite`]: Self::GetInvite
@@ -1613,7 +1613,7 @@ impl Display for Route<'_> {
             }
             Route::CreateBan {
                 guild_id,
-                delete_message_days,
+                delete_message_seconds,
                 user_id,
             } => {
                 f.write_str("guilds/")?;
@@ -1622,9 +1622,9 @@ impl Display for Route<'_> {
                 Display::fmt(user_id, f)?;
                 f.write_str("?")?;
 
-                if let Some(delete_message_days) = delete_message_days {
-                    f.write_str("delete_message_days=")?;
-                    Display::fmt(delete_message_days, f)?;
+                if let Some(delete_message_seconds) = delete_message_seconds {
+                    f.write_str("delete_message_seconds=")?;
+                    Display::fmt(delete_message_seconds, f)?;
                 }
 
                 Ok(())
@@ -2763,6 +2763,12 @@ impl Display for Route<'_> {
                 f.write_str("/voice-states/")?;
 
                 Display::fmt(user_id, f)
+            }
+            Route::UpdateGuildMfa { guild_id, .. } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/mfa")
             }
         }
     }
@@ -4174,7 +4180,7 @@ mod tests {
     fn create_ban() {
         let mut route = Route::CreateBan {
             guild_id: GUILD_ID,
-            delete_message_days: None,
+            delete_message_seconds: None,
             user_id: USER_ID,
         };
         assert_eq!(
@@ -4184,12 +4190,12 @@ mod tests {
 
         route = Route::CreateBan {
             guild_id: GUILD_ID,
-            delete_message_days: Some(3),
+            delete_message_seconds: Some(259_200),
             user_id: USER_ID,
         };
         assert_eq!(
             route.to_string(),
-            format!("guilds/{GUILD_ID}/bans/{USER_ID}?delete_message_days=3")
+            format!("guilds/{GUILD_ID}/bans/{USER_ID}?delete_message_seconds=259200")
         );
     }
 
@@ -4452,5 +4458,11 @@ mod tests {
             route.to_string(),
             format!("guilds/{GUILD_ID}/members/search?query=foo%2Fbar&limit=99")
         );
+    }
+
+    #[test]
+    fn update_guild_mfa() {
+        let route = Route::UpdateGuildMfa { guild_id: GUILD_ID };
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/mfa"));
     }
 }

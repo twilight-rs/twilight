@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.13.2] - 2022-09-11
+
+### Bug Fixes
+
+- reconnect handling of gateway query parameters ([#1901](https://github.com/twilight-rs/twilight/issues/1901))
+
+## [0.13.1] - 2022-09-08 (YANKED)
+
+### Features
+
+- add handling for gateway resume url ([#1894](https://github.com/twilight-rs/twilight/issues/1894))
+
+## [0.12.1] - 2022-07-26
+
+### Refactor
+
+- move bitflag constants into macro ([#1828](https://github.com/twilight-rs/twilight/issues/1828))
+
 ## [0.12.0] - 2022-07-17
 
 ### Features

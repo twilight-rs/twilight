@@ -58,7 +58,7 @@ pub enum RequestReactionType<'a> {
 /// use twilight_http::request::channel::reaction::RequestReactionType;
 ///
 /// let reaction = RequestReactionType::Unicode {
-///     name: "🏳️‍⚧️",
+///     name: "🏳️‍⚧️"
 /// };
 ///
 /// assert_eq!(

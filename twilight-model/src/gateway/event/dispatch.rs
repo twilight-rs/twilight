@@ -11,7 +11,7 @@ use serde::{
 /// [`DispatchEventWithTypeDeserializer`].
 // **NOTE**: When adding a variant, be sure to add it to the DeserializeSeed
 // implementation.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum DispatchEvent {
     AutoModerationActionExecution(AutoModerationActionExecution),
@@ -35,6 +35,7 @@ pub enum DispatchEvent {
     GuildScheduledEventUpdate(Box<GuildScheduledEventUpdate>),
     GuildScheduledEventUserAdd(GuildScheduledEventUserAdd),
     GuildScheduledEventUserRemove(GuildScheduledEventUserRemove),
+    GuildStickersUpdate(GuildStickersUpdate),
     GuildUpdate(Box<GuildUpdate>),
     IntegrationCreate(Box<IntegrationCreate>),
     IntegrationDelete(IntegrationDelete),
@@ -103,6 +104,7 @@ impl DispatchEvent {
             Self::GuildScheduledEventUpdate(_) => EventType::GuildScheduledEventUpdate,
             Self::GuildScheduledEventUserAdd(_) => EventType::GuildScheduledEventUserAdd,
             Self::GuildScheduledEventUserRemove(_) => EventType::GuildScheduledEventUserRemove,
+            Self::GuildStickersUpdate(_) => EventType::GuildStickersUpdate,
             Self::GuildUpdate(_) => EventType::GuildUpdate,
             Self::IntegrationCreate(_) => EventType::IntegrationCreate,
             Self::IntegrationDelete(_) => EventType::IntegrationDelete,
@@ -319,6 +321,9 @@ impl<'de, 'a> DeserializeSeed<'de> for DispatchEventWithTypeDeserializer<'a> {
             }
             "GUILD_ROLE_UPDATE" => {
                 DispatchEvent::RoleUpdate(RoleUpdate::deserialize(deserializer)?)
+            }
+            "GUILD_STICKERS_UPDATE" => {
+                DispatchEvent::GuildStickersUpdate(GuildStickersUpdate::deserialize(deserializer)?)
             }
             "GUILD_UPDATE" => {
                 DispatchEvent::GuildUpdate(Box::new(GuildUpdate::deserialize(deserializer)?))

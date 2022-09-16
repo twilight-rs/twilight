@@ -30,7 +30,10 @@ use twilight_validate::embed::{embed as validate_embed, EmbedValidationError};
 /// let embed = EmbedBuilder::new()
 ///     .description("Here's a list of reasons why Twilight is the best pony:")
 ///     .field(EmbedFieldBuilder::new("Wings", "She has wings.").inline())
-///     .field(EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.").inline())
+///     .field(
+///         EmbedFieldBuilder::new("Horn", "She can do magic, and she's really good at it.")
+///             .inline(),
+///     )
 ///     .validate()?
 ///     .build();
 /// # Ok(()) }
@@ -119,8 +122,7 @@ impl EmbedBuilder {
 
     /// Set the color.
     ///
-    /// This must be a valid hexadecimal RGB value. `0x000000` is not an
-    /// acceptable value as it would be thrown out by Discord. Refer to
+    /// This must be a valid hexadecimal RGB value. Refer to
     /// [`COLOR_MAXIMUM`] for the maximum acceptable value.
     ///
     /// # Examples
@@ -223,7 +225,8 @@ impl EmbedBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use twilight_util::builder::embed::{EmbedBuilder, EmbedFooterBuilder, ImageSource};
     ///
-    /// let source = ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png")?;
+    /// let source =
+    ///     ImageSource::url("https://raw.githubusercontent.com/twilight-rs/twilight/main/logo.png")?;
     /// let embed = EmbedBuilder::new()
     ///     .footer(EmbedFooterBuilder::new("twilight"))
     ///     .image(source)

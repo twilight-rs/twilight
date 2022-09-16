@@ -21,6 +21,7 @@ pub struct PartialMember {
     /// Sent in an [`Interaction`].
     ///
     /// [`Interaction`]: crate::application::interaction::Interaction
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_since: Option<Timestamp>,
@@ -60,7 +61,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "PartialMember",
-                    len: 8,
+                    len: 7,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
@@ -73,8 +74,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("a nickname"),
-                Token::Str("permissions"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(1) },
                 Token::NewtypeStruct { name: "Id" },

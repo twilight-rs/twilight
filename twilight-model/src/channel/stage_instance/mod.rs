@@ -14,7 +14,7 @@ pub struct StageInstance {
     pub guild_id: Id<GuildMarker>,
     /// The id of the [`GuildScheduledEvent`].
     ///
-    /// [`GuildScheduledEvent`]: crate::scheduled_event::GuildScheduledEvent
+    /// [`GuildScheduledEvent`]: crate::guild::scheduled_event::GuildScheduledEvent
     pub guild_scheduled_event_id: Option<Id<ScheduledEventMarker>>,
     pub id: Id<StageMarker>,
     pub privacy_level: PrivacyLevel,

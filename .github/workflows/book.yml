@@ -3,6 +3,7 @@ name: Twilight Book
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -16,14 +17,14 @@ jobs:
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
-          mdbook-version: 'latest'
+          mdbook-version: "latest"
 
       - run: mdbook build book --dest-dir render
 
       - name: Publish book
         uses: cloudflare/wrangler-action@2.0.0
-        working-directory: book
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           command: pages publish render --project-name twilight-book --commit-dirty=true --branch docs
+          workingDirectory: "book"

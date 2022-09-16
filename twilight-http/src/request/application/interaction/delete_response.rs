@@ -9,14 +9,15 @@ use twilight_model::id::{marker::ApplicationMarker, Id};
 
 /// Delete a followup message to an interaction, by its token and message ID.
 ///
+/// This endpoint is not bound to the application's global rate limit.
+///
 /// # Examples
 ///
 /// ```no_run
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
-/// use twilight_http::Client;
-/// use twilight_http::request::AuditLogReason;
+/// use twilight_http::{Client, request::AuditLogReason};
 /// use twilight_model::id::Id;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);

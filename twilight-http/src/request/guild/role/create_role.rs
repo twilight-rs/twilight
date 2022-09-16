@@ -43,7 +43,8 @@ struct CreateRoleFields<'a> {
 /// let client = Client::new("my token".to_owned());
 /// let guild_id = Id::new(234);
 ///
-/// client.create_role(guild_id)
+/// client
+///     .create_role(guild_id)
 ///     .color(0xd90083)
 ///     .name("Bright Pink")
 ///     .exec()
@@ -76,7 +77,13 @@ impl<'a> CreateRole<'a> {
         }
     }
 
-    /// Set the color of the role.
+    /// Set the role color.
+    ///
+    /// This must be a valid hexadecimal RGB value. `0x000000` is ignored and
+    /// doesn't count towards the final computed color in the user list. Refer
+    /// to [`COLOR_MAXIMUM`] for the maximum acceptable value.
+    ///
+    /// [`COLOR_MAXIMUM`]: twilight_validate::embed::COLOR_MAXIMUM
     pub const fn color(mut self, color: u32) -> Self {
         self.fields.color = Some(color);
 

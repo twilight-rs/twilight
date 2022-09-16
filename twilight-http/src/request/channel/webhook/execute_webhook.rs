@@ -24,7 +24,7 @@ use twilight_model::{
 };
 use twilight_validate::{
     message::{
-        attachment_filename as validate_attachment_filename, components as validate_components,
+        attachment as validate_attachment, components as validate_components,
         content as validate_content, embeds as validate_embeds, MessageValidationError,
         MessageValidationErrorType,
     },
@@ -49,6 +49,8 @@ pub(crate) struct ExecuteWebhookFields<'a> {
     flags: Option<MessageFlags>,
     #[serde(skip_serializing_if = "Option::is_none")]
     payload_json: Option<&'a [u8]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    thread_name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tts: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -108,6 +110,7 @@ impl<'a> ExecuteWebhook<'a> {
                 embeds: None,
                 flags: None,
                 payload_json: None,
+                thread_name: None,
                 tts: None,
                 username: None,
                 allowed_mentions: None,
@@ -136,17 +139,19 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager
@@ -256,7 +261,8 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// let client = Client::new("token".to_owned());
     ///
-    /// let message = client.execute_webhook(Id::new(1), "token here")
+    /// let message = client
+    ///     .execute_webhook(Id::new(1), "token here")
     ///     .content("some content")?
     ///     .embeds(&[EmbedBuilder::new().title("title").validate()?.build()])?
     ///     .wait()
@@ -279,7 +285,8 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// let client = Client::new("token".to_owned());
     ///
-    /// let message = client.execute_webhook(Id::new(1), "token here")
+    /// let message = client
+    ///     .execute_webhook(Id::new(1), "token here")
     ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
@@ -304,6 +311,13 @@ impl<'a> ExecuteWebhook<'a> {
     /// Execute in a thread belonging to the channel instead of the channel itself.
     pub fn thread_id(mut self, thread_id: Id<ChannelMarker>) -> Self {
         self.thread_id.replace(thread_id);
+
+        self
+    }
+
+    /// Set the name of the created thread when used in a forum channel.
+    pub const fn thread_name(mut self, thread_name: &'a str) -> Self {
+        self.fields.thread_name = Some(thread_name);
 
         self
     }

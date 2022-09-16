@@ -21,7 +21,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
+    attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, MessageValidationError,
 };
 
@@ -49,6 +49,8 @@ struct UpdateResponseFields<'a> {
 /// message still contains at least one of [`attachments`], [`content`], or
 /// [`embeds`].
 ///
+/// This endpoint is not bound to the application's global rate limit.
+///
 /// # Examples
 ///
 /// Update the original response by setting the content to `test <@3>` -
@@ -59,10 +61,7 @@ struct UpdateResponseFields<'a> {
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// use std::env;
 /// use twilight_http::Client;
-/// use twilight_model::{
-///     channel::message::AllowedMentions,
-///     id::Id,
-/// };
+/// use twilight_model::{channel::message::AllowedMentions, id::Id};
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let application_id = Id::new(1);
@@ -129,17 +128,19 @@ impl<'a> UpdateResponse<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager
@@ -232,8 +233,10 @@ impl<'a> UpdateResponse<'a> {
     /// let application_id = Id::new(1);
     ///
     /// let embed = EmbedBuilder::new()
-    ///     .description("Powerful, flexible, and scalable ecosystem of Rust \
-    ///     libraries for the Discord API.")
+    ///     .description(
+    ///         "Powerful, flexible, and scalable ecosystem of Rust \
+    ///     libraries for the Discord API.",
+    ///     )
     ///     .title("Twilight")
     ///     .url("https://twilight.rs")
     ///     .validate()?

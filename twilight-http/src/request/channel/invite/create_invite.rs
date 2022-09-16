@@ -7,11 +7,11 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
+    guild::invite::{Invite, TargetType},
     id::{
         marker::{ApplicationMarker, ChannelMarker, UserMarker},
         Id,
     },
-    invite::{Invite, TargetType},
 };
 use twilight_validate::request::{
     audit_reason as validate_audit_reason, invite_max_age as validate_invite_max_age,
@@ -51,11 +51,7 @@ struct CreateInviteFields {
 /// let client = Client::new("my token".to_owned());
 ///
 /// let channel_id = Id::new(123);
-/// let invite = client
-///     .create_invite(channel_id)
-///     .max_uses(3)?
-///     .exec()
-///     .await?;
+/// let invite = client.create_invite(channel_id).max_uses(3)?.exec().await?;
 /// # Ok(()) }
 /// ```
 ///
@@ -104,7 +100,8 @@ impl<'a> CreateInvite<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let invite = client.create_invite(Id::new(1))
+    /// let invite = client
+    ///     .create_invite(Id::new(1))
     ///     .max_age(60 * 60)?
     ///     .exec()
     ///     .await?
@@ -146,7 +143,8 @@ impl<'a> CreateInvite<'a> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let invite = client.create_invite(Id::new(1))
+    /// let invite = client
+    ///     .create_invite(Id::new(1))
     ///     .max_uses(5)?
     ///     .exec()
     ///     .await?

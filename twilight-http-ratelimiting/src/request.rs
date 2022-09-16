@@ -152,6 +152,8 @@ pub enum Path {
     ChannelsIdRecipients(u64),
     /// Operating on a thread's members.
     ChannelsIdThreadMembers(u64),
+    /// Operating on a thread's member.
+    ChannelsIdThreadMembersId(u64),
     /// Operating on a channel's threads.
     ChannelsIdThreads(u64),
     /// Operating on a channel's typing indicator.
@@ -202,6 +204,8 @@ pub enum Path {
     GuildsIdMembersMeNick(u64),
     /// Operating on one of the user's guilds' members by searching.
     GuildsIdMembersSearch(u64),
+    /// Operating on one of the user's guilds' MFA level.
+    GuildsIdMfa(u64),
     /// Operating on one of the user's guilds' by previewing it.
     GuildsIdPreview(u64),
     /// Operating on one of the user's guilds' by pruning members.
@@ -239,6 +243,8 @@ pub enum Path {
     /// Operating on an invite.
     InvitesCode,
     /// Operating on an interaction's callback.
+    ///
+    /// This path is not bound to the application's global rate limit.
     InteractionCallback(u64),
     /// Operating on stage instances.
     StageInstances,
@@ -265,8 +271,14 @@ pub enum Path {
     /// Operating on a webhook as a bot.
     WebhooksId(u64),
     /// Operating on a webhook as a webhook.
+    ///
+    /// When used with interactions, this path is not bound to the application's
+    /// global rate limit.
     WebhooksIdToken(u64, String),
     /// Operating on a message created by a webhook.
+    ///
+    /// When used with interactions, this path is not bound to the application's
+    /// global rate limit.
     WebhooksIdTokenMessagesId(u64, String),
 }
 
@@ -280,8 +292,8 @@ impl FromStr for Path {
     /// # Examples
     ///
     /// ```
-    /// use twilight_http_ratelimiting::Path;
     /// use std::str::FromStr;
+    /// use twilight_http_ratelimiting::Path;
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// assert_eq!(Path::VoiceRegions, Path::from_str("/voice/regions")?);
@@ -354,6 +366,7 @@ impl FromStr for Path {
                 ChannelsIdRecipients(parse_id(id)?)
             }
             ["channels", id, "thread-members"] => ChannelsIdThreadMembers(parse_id(id)?),
+            ["channels", id, "thread-members", _] => ChannelsIdThreadMembersId(parse_id(id)?),
             ["channels", id, "threads"] => ChannelsIdThreads(parse_id(id)?),
             ["channels", id, "typing"] => ChannelsIdTyping(parse_id(id)?),
             ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {

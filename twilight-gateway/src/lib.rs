@@ -1,6 +1,7 @@
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,
+    clippy::missing_docs_in_private_items,
     clippy::pedantic,
     future_incompatible,
     missing_docs,
@@ -12,33 +13,46 @@
 )]
 #![doc = include_str!("../README.md")]
 #![allow(
-    clippy::let_unit_value,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::semicolon_if_nothing_returned,
+    clippy::unnecessary_wraps,
     clippy::used_underscore_binding
 )]
 
-pub mod cluster;
-pub mod shard;
+pub mod error;
+pub mod message;
+pub mod stream;
 
+mod channel;
+mod command;
+mod compression;
+mod config;
+mod connection;
 mod event;
+mod future;
+mod json;
+mod latency;
+mod ratelimiter;
+mod session;
+mod shard;
+mod tls;
 
-pub use self::event::EventTypeFlags;
+pub use self::{
+    channel::MessageSender,
+    command::Command,
+    config::{Config, ConfigBuilder, ShardId},
+    event::EventTypeFlags,
+    latency::Latency,
+    ratelimiter::CommandRatelimiter,
+    session::Session,
+    shard::{ConnectionStatus, Shard},
+};
 pub use twilight_model::gateway::Intents;
 
-#[doc(no_inline)]
-pub use self::{
-    cluster::{Cluster, Config as ClusterConfig},
-    shard::{Config as ShardConfig, Shard},
-};
 #[doc(no_inline)]
 pub use twilight_gateway_queue as queue;
 #[doc(no_inline)]
 pub use twilight_model::gateway::event::{Event, EventType};
 
-/// Discord API version used by this crate.
+/// Discord Gateway API version used by this crate.
 pub const API_VERSION: u8 = 10;
-
-/// Discord gateway url.
-const URL: &str = "wss://gateway.discord.gg";
