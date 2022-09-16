@@ -1,0 +1,26 @@
+name: Changelog Job
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+    secrets:
+      token:
+        required: true
+
+jobs:
+  changelog_job:
+    name: Enforce changelog on ${{ inputs.name }}
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.name }}
+
+    steps:
+      - uses: dangoslen/changelog-enforcer@v2
+        with:
+          changeLogPath: "./CHANGELOG.md"
+          token: ${{ secrets.token }}

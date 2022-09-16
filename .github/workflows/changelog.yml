@@ -1,0 +1,36 @@
+name: Changelog
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+jobs:
+  changelog:
+    name: Changelog
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        name:
+          [
+            "twilight-cache-inmemory",
+            "twilight-gateway",
+            "twilight-gateway-queue",
+            "twilight-http",
+            "twilight-http-ratelimiting",
+            "twilight-lavalink",
+            "twilight-mention",
+            "twilight-model",
+            "twilight-standby",
+            "twilight-util",
+            "twilight-validate",
+          ]
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - uses: ./.github/workflows/changelog-job.yml
+        with:
+          name: ${{ matrix.name }}
+          token: ${{ github.token }}
