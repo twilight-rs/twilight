@@ -110,7 +110,7 @@ impl<'a> InteractionClient<'a> {
     /// Create a followup message to an interaction, by its token.
     ///
     /// The message must include at least one of [`attachments`], [`content`],
-    /// or [`embeds`].
+    /// [`components`], or [`embeds`].
     ///
     /// This endpoint is not bound to the application's global rate limit.
     ///
@@ -136,6 +136,7 @@ impl<'a> InteractionClient<'a> {
     ///
     /// [`attachments`]: CreateFollowup::attachments
     /// [`content`]: CreateFollowup::content
+    /// [`components`]: CreateFollowup::components
     /// [`embeds`]: CreateFollowup::embeds
     pub const fn create_followup(&'a self, interaction_token: &'a str) -> CreateFollowup<'a> {
         CreateFollowup::new(self.client, self.application_id, interaction_token)

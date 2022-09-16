@@ -1230,7 +1230,7 @@ impl Client {
     /// Send a message to a channel.
     ///
     /// The message must include at least one of [`attachments`], [`content`],
-    /// [`embeds`], or [`sticker_ids`].
+    /// [`components`], [`embeds`], or [`sticker_ids`].
     ///
     /// # Example
     ///
@@ -1253,6 +1253,7 @@ impl Client {
     ///
     /// [`attachments`]: CreateMessage::attachments
     /// [`content`]: CreateMessage::content
+    /// [`components`]: CreateMessage::components
     /// [`embeds`]: CreateMessage::embeds
     /// [`sticker_ids`]: CreateMessage::sticker_ids
     pub const fn create_message(&self, channel_id: Id<ChannelMarker>) -> CreateMessage<'_> {
@@ -1937,7 +1938,7 @@ impl Client {
     /// Execute a webhook, sending a message to its channel.
     ///
     /// The message must include at least one of [`attachments`], [`content`],
-    /// or [`embeds`].
+    /// [`components`], or [`embeds`].
     ///
     /// # Examples
     ///
@@ -1959,6 +1960,7 @@ impl Client {
     ///
     /// [`attachments`]: ExecuteWebhook::attachments
     /// [`content`]: ExecuteWebhook::content
+    /// [`components`]: ExecuteWebhook::components
     /// [`embeds`]: ExecuteWebhook::embeds
     pub const fn execute_webhook<'a>(
         &'a self,
