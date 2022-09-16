@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- fix mention on how color works ([#1893](https://github.com/twilight-rs/twilight/issues/1893))
+
 ## [0.13.1] - 2022-09-01
 
 ### Refactor

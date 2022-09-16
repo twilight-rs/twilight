@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- don't serialize `Mention.member` if None ([#1896](https://github.com/twilight-rs/twilight/issues/1896))
+
+### Features
+
+- add `two_way_link` to `Connection` ([#1918](https://github.com/twilight-rs/twilight/issues/1918))
+
 ## [0.13.3] - 2022-09-08
 
 ### Features
