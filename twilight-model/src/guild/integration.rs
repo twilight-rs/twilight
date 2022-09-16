@@ -34,6 +34,11 @@ pub struct GuildIntegration {
     pub revoked: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role_id: Option<Id<RoleMarker>>,
+    /// An array of [OAuth2 scopes] which the application has been authorized for.
+    ///
+    /// [OAuth2 scopes]: https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scopes: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subscriber_count: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -79,6 +84,10 @@ mod tests {
             name: "integration name".to_owned(),
             revoked: Some(false),
             role_id: Some(Id::new(3)),
+            scopes: Some(Vec::from([
+                "applications.commands".to_owned(),
+                "bot".to_owned(),
+            ])),
             subscriber_count: Some(1337),
             synced_at: Some(synced_at),
             syncing: Some(false),
@@ -106,7 +115,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildIntegration",
-                    len: 14,
+                    len: 15,
                 },
                 Token::Str("account"),
                 Token::Struct {
@@ -144,6 +153,12 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
+                Token::Str("scopes"),
+                Token::Some,
+                Token::Seq { len: Some(2) },
+                Token::Str("applications.commands"),
+                Token::Str("bot"),
+                Token::SeqEnd,
                 Token::Str("subscriber_count"),
                 Token::Some,
                 Token::U64(1337),
@@ -210,6 +225,10 @@ mod tests {
             name: "integration name".to_owned(),
             revoked: Some(false),
             role_id: Some(Id::new(3)),
+            scopes: Some(Vec::from([
+                "applications.commands".to_owned(),
+                "bot".to_owned(),
+            ])),
             subscriber_count: Some(1337),
             synced_at: Some(synced_at),
             syncing: Some(false),
@@ -237,7 +256,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "GuildIntegration",
-                    len: 15,
+                    len: 16,
                 },
                 Token::Str("account"),
                 Token::Struct {
@@ -290,6 +309,12 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
+                Token::Str("scopes"),
+                Token::Some,
+                Token::Seq { len: Some(2) },
+                Token::Str("applications.commands"),
+                Token::Str("bot"),
+                Token::SeqEnd,
                 Token::Str("subscriber_count"),
                 Token::Some,
                 Token::U64(1337),
