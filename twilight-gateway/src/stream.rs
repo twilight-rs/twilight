@@ -116,8 +116,8 @@ pub enum StartRecommendedErrorType {
 ///
 /// loop {
 ///     let (shard, event) = match stream.next().await {
-///         Some(Ok((shard, event))) => (shard, event),
-///         Some(Err(source)) => {
+///         Some((shard, Ok(event))) => (shard, event),
+///         Some((shard, Err(source))) => {
 ///             tracing::warn!(?source, "error receiving event");
 ///
 ///             if source.is_fatal() {
@@ -163,22 +163,20 @@ impl<'a> ShardEventStream<'a> {
 }
 
 impl<'a> Stream for ShardEventStream<'a> {
-    type Item = Result<(ShardRef<'a>, Event), ReceiveMessageError>;
+    type Item = (ShardRef<'a>, Result<Event, ReceiveMessageError>);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.as_mut();
         let poll = this.futures.borrow_mut().poll_next_unpin(cx);
 
         match poll {
-            Poll::Ready(Some(output)) => Poll::Ready(Some(output.result.map(|message| {
-                (
-                    ShardRef {
-                        list: ShardList::Events(Rc::clone(&this.futures)),
-                        shard: Some(output.shard),
-                    },
-                    message,
-                )
-            }))),
+            Poll::Ready(Some(output)) => Poll::Ready(Some((
+                ShardRef {
+                    list: ShardList::Events(Rc::clone(&this.futures)),
+                    shard: Some(output.shard),
+                },
+                output.result,
+            ))),
             Poll::Ready(None) => Poll::Ready(None),
             Poll::Pending => Poll::Pending,
         }
@@ -219,8 +217,8 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///
 /// loop {
 ///     let (shard, message) = match stream.next().await {
-///         Some(Ok((shard, message))) => (shard, message),
-///         Some(Err(source)) => {
+///         Some((shard, Ok(message))) => (shard, message),
+///         Some((shard, Err(source))) => {
 ///             tracing::warn!(?source, "error receiving message");
 ///
 ///             if source.is_fatal() {
@@ -266,22 +264,20 @@ impl<'a> ShardMessageStream<'a> {
 }
 
 impl<'a> Stream for ShardMessageStream<'a> {
-    type Item = Result<(ShardRef<'a>, Message), ReceiveMessageError>;
+    type Item = (ShardRef<'a>, Result<Message, ReceiveMessageError>);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.as_mut();
         let poll = this.futures.borrow_mut().poll_next_unpin(cx);
 
         match poll {
-            Poll::Ready(Some(output)) => Poll::Ready(Some(output.result.map(|message| {
-                (
-                    ShardRef {
-                        list: ShardList::Messages(Rc::clone(&this.futures)),
-                        shard: Some(output.shard),
-                    },
-                    message,
-                )
-            }))),
+            Poll::Ready(Some(output)) => Poll::Ready(Some((
+                ShardRef {
+                    list: ShardList::Messages(Rc::clone(&this.futures)),
+                    shard: Some(output.shard),
+                },
+                output.result,
+            ))),
             Poll::Ready(None) => Poll::Ready(None),
             Poll::Pending => Poll::Pending,
         }
