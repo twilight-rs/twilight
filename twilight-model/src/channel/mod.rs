@@ -1,4 +1,3 @@
-pub mod embed;
 pub mod forum;
 pub mod message;
 pub mod permission_overwrite;
@@ -11,8 +10,6 @@ mod channel_mention;
 mod channel_type;
 mod flags;
 mod followed_channel;
-mod reaction;
-mod reaction_type;
 mod video_quality_mode;
 
 pub use self::{
@@ -22,8 +19,6 @@ pub use self::{
     flags::ChannelFlags,
     followed_channel::FollowedChannel,
     message::Message,
-    reaction::Reaction,
-    reaction_type::ReactionType,
     stage_instance::StageInstance,
     video_quality_mode::VideoQualityMode,
     webhook::{Webhook, WebhookType},
