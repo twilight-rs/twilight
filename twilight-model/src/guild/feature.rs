@@ -30,6 +30,8 @@ pub enum GuildFeature {
     Discoverable,
     /// Is able to be featured in the directory.
     Featurable,
+    /// Invites have been paused, this prevents new users from joining.
+    InvitesDisabled,
     /// Has access to set an invite splash background.
     InviteSplash,
     /// Has enabled membership screening.
@@ -73,6 +75,7 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::Community => "COMMUNITY".into(),
             GuildFeature::Discoverable => "DISCOVERABLE".into(),
             GuildFeature::Featurable => "FEATURABLE".into(),
+            GuildFeature::InvitesDisabled => "INVITES_DISABLED".into(),
             GuildFeature::InviteSplash => "INVITE_SPLASH".into(),
             GuildFeature::MemberVerificationGateEnabled => {
                 "MEMBER_VERIFICATION_GATE_ENABLED".into()
@@ -105,6 +108,7 @@ impl From<String> for GuildFeature {
             "COMMUNITY" => Self::Community,
             "DISCOVERABLE" => Self::Discoverable,
             "FEATURABLE" => Self::Featurable,
+            "INVITES_DISABLED" => Self::InvitesDisabled,
             "INVITE_SPLASH" => Self::InviteSplash,
             "MEMBER_VERIFICATION_GATE_ENABLED" => Self::MemberVerificationGateEnabled,
             "MONETIZATION_ENABLED" => Self::MonetizationEnabled,
@@ -145,6 +149,10 @@ mod tests {
         serde_test::assert_tokens(&GuildFeature::Community, &[Token::Str("COMMUNITY")]);
         serde_test::assert_tokens(&GuildFeature::Discoverable, &[Token::Str("DISCOVERABLE")]);
         serde_test::assert_tokens(&GuildFeature::Featurable, &[Token::Str("FEATURABLE")]);
+        serde_test::assert_tokens(
+            &GuildFeature::InvitesDisabled,
+            &[Token::Str("INVITES_DISABLED")],
+        );
         serde_test::assert_tokens(&GuildFeature::InviteSplash, &[Token::Str("INVITE_SPLASH")]);
         serde_test::assert_tokens(
             &GuildFeature::MemberVerificationGateEnabled,
