@@ -19,7 +19,7 @@ version = "0.13.0"
 bitflags = { default-features = false, version = "1" }
 dashmap = { default-features = false, version = "5.3" }
 serde = { default-features = false, features = ["derive"], version = "1" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.3" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.4" }
 
 # Optional dependencies.
 twilight-util = { default-features = false, features = ["permission-calculator"], optional = true, path = "../twilight-util", version = "0.13.1" }
