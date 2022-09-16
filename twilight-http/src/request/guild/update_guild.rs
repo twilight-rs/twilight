@@ -164,11 +164,11 @@ impl<'a> UpdateGuild<'a> {
     ///
     /// Attempting to add or remove the `COMMUNITY` feature requires the
     /// [`Permissions::ADMINISTRATOR`] permission.
-    /// 
+    ///
     /// Attempting to add or remove the `DISCOVERABLE` feature requires
     /// the [`Permissions::ADMINISTRATOR`] permission. Additionally the guild
     /// must pass all the discovery requirements.
-    /// 
+    ///
     /// Attempting to add or remove the `INVITES_DISABLED` feature requires
     /// the [`Permissions::MANAGE_GUILD`] permission.
     ///
