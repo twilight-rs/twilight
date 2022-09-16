@@ -168,7 +168,10 @@ mod tests {
         assert_eq!("GuildCategory", ChannelType::GuildCategory.name());
         assert_eq!("GuildDirectory", ChannelType::GuildDirectory.name());
         assert_eq!("GuildAnnouncement", ChannelType::GuildAnnouncement.name());
-        assert_eq!("GuildAnnouncementThread", ChannelType::GuildAnnouncementThread.name());
+        assert_eq!(
+            "GuildAnnouncementThread",
+            ChannelType::GuildAnnouncementThread.name()
+        );
         assert_eq!("PrivateThread", ChannelType::PrivateThread.name());
         assert_eq!("PublicThread", ChannelType::PublicThread.name());
         assert_eq!("GuildStageVoice", ChannelType::GuildStageVoice.name());
