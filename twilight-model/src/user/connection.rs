@@ -14,6 +14,8 @@ pub struct Connection {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub revoked: Option<bool>,
     pub show_activity: bool,
+    /// Whether this connection has a corresponding third party OAuth2 token.
+    pub two_way_link: bool,
     pub verified: bool,
     pub visibility: ConnectionVisibility,
 }
@@ -34,6 +36,7 @@ mod tests {
             revoked: Some(false),
             show_activity: true,
             verified: true,
+            two_way_link: false,
             visibility: ConnectionVisibility::Everyone,
         };
 
@@ -60,6 +63,8 @@ mod tests {
                 Token::Bool(false),
                 Token::Str("show_activity"),
                 Token::Bool(true),
+                Token::Str("two_way_link"),
+                Token::Bool(false),
                 Token::Str("verified"),
                 Token::Bool(true),
                 Token::Str("visibility"),
