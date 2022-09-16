@@ -68,7 +68,7 @@ use crate::{
         Id,
     },
     util::{ImageHash, Timestamp},
-    voice::voice_state::VoiceState,
+    voice::VoiceState,
 };
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
