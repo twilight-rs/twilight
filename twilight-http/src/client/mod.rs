@@ -1814,8 +1814,8 @@ impl Client {
     /// [`PrivateThread`], and the current user is the creator of the
     /// thread.
     ///
-    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     pub const fn remove_thread_member(
         &self,
         channel_id: Id<ChannelMarker>,
