@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.13.1] - 2022-09-16
+
+### Documentation
+
+- fix mention on how color works ([#1893](https://github.com/twilight-rs/twilight/issues/1893))
+
+### Features
+
+- implement `AuditLogReason` for `UpdateGuildMfa` ([#1916](https://github.com/twilight-rs/twilight/issues/1916))
+
 ## [0.13.0] - 2022-08-14
 
 ### Documentation
