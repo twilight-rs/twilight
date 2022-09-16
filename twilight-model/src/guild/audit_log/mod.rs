@@ -37,6 +37,7 @@ use serde::{Deserialize, Serialize};
 /// [1]: https://discord.com/developers/docs/resources/audit-log#audit-log-object
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct AuditLog {
+    /// List of referenced application commands.
     pub application_commands: Vec<Command>,
     /// List of referenced auto moderation rules.
     pub auto_moderation_rules: Vec<AutoModerationRule>,
