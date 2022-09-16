@@ -275,7 +275,7 @@ mod tests {
     }
 
     #[test]
-    fn guild_news_channel_deserialization() {
+    fn guild_announcement_channel_deserialization() {
         let value = Channel {
             application_id: None,
             bitrate: None,
@@ -284,7 +284,7 @@ mod tests {
             icon: None,
             id: Id::new(1),
             invitable: None,
-            kind: ChannelType::GuildNews,
+            kind: ChannelType::GuildAnnouncement,
             last_message_id: Some(Id::new(4)),
             last_pin_timestamp: None,
             member: None,
@@ -319,14 +319,14 @@ mod tests {
                 "permission_overwrites": permission_overwrites,
                 "position": 3,
                 "topic": "a news channel",
-                "type": ChannelType::GuildNews,
+                "type": ChannelType::GuildAnnouncement,
             }))
             .unwrap()
         );
     }
 
     #[test]
-    fn guild_news_thread_deserialization() {
+    fn guild_announcement_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
 
@@ -338,7 +338,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: None,
-            kind: ChannelType::GuildNewsThread,
+            kind: ChannelType::GuildAnnouncementThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -379,7 +379,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::GuildNewsThread,
+                "type": ChannelType::GuildAnnouncementThread,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,
@@ -408,7 +408,7 @@ mod tests {
     }
 
     #[test]
-    fn guild_public_thread_deserialization() {
+    fn public_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
 
         let value = Channel {
@@ -419,7 +419,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: None,
-            kind: ChannelType::GuildPublicThread,
+            kind: ChannelType::PublicThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -460,7 +460,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::GuildPublicThread,
+                "type": ChannelType::PublicThread,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,
@@ -489,7 +489,7 @@ mod tests {
     }
 
     #[test]
-    fn guild_private_thread_deserialization() {
+    fn private_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
 
@@ -501,7 +501,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: Some(true),
-            kind: ChannelType::GuildPrivateThread,
+            kind: ChannelType::PrivateThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -547,7 +547,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::GuildPrivateThread,
+                "type": ChannelType::PrivateThread,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,

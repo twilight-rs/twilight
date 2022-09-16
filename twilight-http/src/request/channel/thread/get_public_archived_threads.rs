@@ -16,14 +16,14 @@ use twilight_model::{
 ///
 /// Threads are ordered by [`archive_timestamp`] in descending order.
 ///
-/// When called in a [`GuildText`] channel, returns [`GuildPublicThread`]s.
+/// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
 ///
-/// When called in a [`GuildNews`] channel, returns [`GuildNewsThread`]s.
+/// When called in a [`GuildAnnouncement`] channel, returns [`GuildAnnouncementThread`]s.
 ///
 /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
-/// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
-/// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-/// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+/// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
+/// [`GuildAnnouncementThread`]: twilight_model::channel::ChannelType::GuildAnnouncementThread
+/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
 /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
 #[must_use = "requests must be configured and executed"]

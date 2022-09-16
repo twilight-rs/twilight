@@ -340,7 +340,7 @@ mod tests {
             icon: None,
             id: Id::new(222),
             invitable: None,
-            kind: ChannelType::GuildPublicThread,
+            kind: ChannelType::PublicThread,
             last_message_id: None,
             last_pin_timestamp: None,
             member: Some(ThreadMember {

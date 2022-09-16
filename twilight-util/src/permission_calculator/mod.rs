@@ -683,7 +683,7 @@ mod tests {
     fn guild_level_removed_in_channel() {
         const CHANNEL_TYPES: &[ChannelType] = &[
             ChannelType::GuildCategory,
-            ChannelType::GuildNews,
+            ChannelType::GuildAnnouncement,
             ChannelType::GuildStageVoice,
             ChannelType::GuildText,
             ChannelType::GuildVoice,
