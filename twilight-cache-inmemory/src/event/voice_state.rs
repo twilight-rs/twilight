@@ -272,7 +272,6 @@ mod tests {
             self_video: false,
             session_id: "38fj3jfkh3pfho3prh2".to_string(),
             suppress: false,
-            token: None,
             user_id: Id::new(1),
             request_to_speak_timestamp: Some(
                 Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
@@ -328,7 +327,6 @@ mod tests {
             self_video: false,
             session_id: String::new(),
             suppress: false,
-            token: None,
             user_id: Id::new(3),
             request_to_speak_timestamp: Some(
                 Timestamp::from_str("2021-04-21T22:16:50+00:00").expect("proper datetime"),
