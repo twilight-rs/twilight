@@ -18,11 +18,11 @@ use twilight_model::{
 ///
 /// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
 ///
-/// When called in a [`GuildAnnouncement`] channel, returns [`GuildAnnouncementThread`]s.
+/// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
 ///
 /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
 /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-/// [`GuildAnnouncementThread`]: twilight_model::channel::ChannelType::GuildAnnouncementThread
+/// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
 /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
 /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY

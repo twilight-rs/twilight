@@ -1717,7 +1717,7 @@ impl Client {
     /// [`PublicThread`].
     ///
     /// When called on a [`GuildAnnouncement`] channel, this creates a
-    /// [`GuildAnnouncementThread`].
+    /// [`AnnouncementThread`].
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
@@ -1733,7 +1733,7 @@ impl Client {
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
     /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-    /// [`GuildAnnouncementThread`]: twilight_model::channel::ChannelType::GuildAnnouncementThread
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
     /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
@@ -1791,11 +1791,11 @@ impl Client {
     ///
     /// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
     ///
-    /// When called in a [`GuildAnnouncement`] channel, returns [`GuildAnnouncementThread`]s.
+    /// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
     ///
     /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
     /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-    /// [`GuildAnnouncementThread`]: twilight_model::channel::ChannelType::GuildAnnouncementThread
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
     /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
     /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY

@@ -420,7 +420,7 @@ impl<'a> InMemoryCachePermissions<'a> {
 
         let overwrites = match channel.kind {
             ChannelType::PrivateThread
-            | ChannelType::GuildAnnouncementThread
+            | ChannelType::AnnouncementThread
             | ChannelType::PublicThread => self.parent_overwrites(&channel)?,
             _ => channel.permission_overwrites.clone().unwrap_or_default(),
         };

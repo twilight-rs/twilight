@@ -338,7 +338,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: None,
-            kind: ChannelType::GuildAnnouncementThread,
+            kind: ChannelType::AnnouncementThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -379,7 +379,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::GuildAnnouncementThread,
+                "type": ChannelType::AnnouncementThread,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,
