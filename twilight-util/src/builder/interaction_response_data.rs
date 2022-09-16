@@ -1,9 +1,6 @@
 use twilight_model::{
-    application::{command::CommandOptionChoice, component::Component},
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, MessageFlags},
-    },
+    application::command::CommandOptionChoice,
+    channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::{attachment::Attachment, interaction::InteractionResponseData},
 };
 
@@ -11,9 +8,9 @@ use twilight_model::{
 ///
 /// # Example
 /// ```
-/// use twilight_model::{
-///     application::component::{button::ButtonStyle, ActionRow, Button, Component},
-///     channel::message::MessageFlags,
+/// use twilight_model::channel::message::{
+///     component::{ActionRow, Button, ButtonStyle, Component},
+///     MessageFlags,
 /// };
 /// use twilight_util::builder::InteractionResponseDataBuilder;
 ///
@@ -176,7 +173,7 @@ mod tests {
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
     use twilight_model::{
-        application::component::{button::ButtonStyle, Button},
+        channel::message::component::{Button, ButtonStyle},
         util::Timestamp,
     };
 
