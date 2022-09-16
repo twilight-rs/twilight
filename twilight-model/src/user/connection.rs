@@ -45,7 +45,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Connection",
-                    len: 9,
+                    len: 10,
                 },
                 Token::Str("friend_sync"),
                 Token::Bool(true),
