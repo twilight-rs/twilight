@@ -20,6 +20,9 @@ jobs:
         working-directory: ${{ inputs.name }}
 
     steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
       - uses: dangoslen/changelog-enforcer@v2
         with:
           changeLogPath: "./CHANGELOG.md"

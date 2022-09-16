@@ -6,64 +6,24 @@ on:
 
 jobs:
   changelog:
-    name: Changelog
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        name:
+          [
+            twilight-cache-inmemory,
+            twilight-gateway,
+            twilight-gateway-queue,
+            twilight-http,
+            twilight-http-ratelimiting,
+            twilight-lavalink,
+            twilight-mention,
+            twilight-model,
+            twilight-standby,
+            twilight-util,
+            twilight-validate,
+          ]
 
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v3
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-cache-inmemory
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-gateway
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-gateway-queue
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-http
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-http-ratelimiting
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-lavalink
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-mention
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-model
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-standby
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-util
-          token: ${{ github.token }}
-
-      - uses: ./.github/workflows/changelog-job.yml
-        with:
-          name: twilight-validate
-          token: ${{ github.token }}
+    uses: ./.github/workflows/changelog-job.yml
+    with:
+      name: ${{ matrix.name }}
+      token: ${{ github.token }}
