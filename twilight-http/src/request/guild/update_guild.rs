@@ -162,16 +162,19 @@ impl<'a> UpdateGuild<'a> {
 
     /// Set the enabled features of the guild.
     ///
-    /// Attempting to add or remove the `COMMUNITY` feature requires the
+    /// Attempting to add or remove the [`GuildFeature::Community`] feature requires the
     /// [`Permissions::ADMINISTRATOR`] permission.
     ///
-    /// Attempting to add or remove the `DISCOVERABLE` feature requires
+    /// Attempting to add or remove the [`GuildFeature::Discoverable`] feature requires
     /// the [`Permissions::ADMINISTRATOR`] permission. Additionally the guild
     /// must pass all the discovery requirements.
     ///
-    /// Attempting to add or remove the `INVITES_DISABLED` feature requires
+    /// Attempting to add or remove the [`GuildFeature::InvitesDisabled`] feature requires
     /// the [`Permissions::MANAGE_GUILD`] permission.
     ///
+    /// [`GuildFeature::Community`]: twilight_model::guild::GuildFeature
+    /// [`GuildFeature::Discoverable`]: twilight_model::guild::Discoverable
+    /// [`GuildFeature::InvitesDisabled`]: twilight_model::guild::InvitesDisabled
     /// [`Permissions::ADMINISTRATOR`]: twilight_model::guild::Permissions::ADMINISTRATOR
     /// [`Permissions::MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
     pub const fn features(mut self, features: &'a [&'a str]) -> Self {
