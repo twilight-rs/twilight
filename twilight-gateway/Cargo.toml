@@ -25,7 +25,6 @@ tokio = { default-features = false, features = ["net", "rt", "sync", "time"], ve
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.13.1" }
-twilight-http = { default-features = false, path = "../twilight-http", version = "0.13.0" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.3" }
 
 # Optional
@@ -35,6 +34,7 @@ twilight-model = { default-features = false, path = "../twilight-model", version
 # https://github.com/alexcrichton/flate2-rs/issues/217
 flate2 = { default-features = false, optional = true, version = "1.0.24" }
 metrics = { default-features = false, optional = true, version = ">=0.18, <0.20" }
+twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.13.0" }
 simd-json = { default-features = false, features = ["serde_impl", "swar-number-parsing"], optional = true, version = ">=0.4, <0.7" }
 
 # TLS libraries
@@ -53,9 +53,13 @@ tokio = { default-features = false, features = ["macros", "rt-multi-thread"], ve
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 
 [features]
-default = ["rustls-native-roots", "zlib-stock"]
-native = ["dep:native-tls", "twilight-http/native", "tokio-tungstenite/native-tls"]
-rustls-native-roots = ["dep:rustls-tls", "dep:rustls-native-certs", "twilight-http/rustls-native-roots", "tokio-tungstenite/rustls-tls-native-roots"]
-rustls-webpki-roots = ["dep:rustls-tls", "dep:webpki-roots", "twilight-http/rustls-webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
+default = ["rustls-native-roots", "twilight-http", "zlib-stock"]
+native = ["dep:native-tls", "tokio-tungstenite/native-tls"]
+rustls-native-roots = ["dep:rustls-tls", "dep:rustls-native-certs", "tokio-tungstenite/rustls-tls-native-roots"]
+rustls-webpki-roots = ["dep:rustls-tls", "dep:webpki-roots", "tokio-tungstenite/rustls-tls-webpki-roots"]
 zlib-simd = ["dep:flate2", "flate2?/zlib-ng"]
 zlib-stock = ["dep:flate2", "flate2?/zlib"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
