@@ -122,8 +122,7 @@ impl EmbedBuilder {
 
     /// Set the color.
     ///
-    /// This must be a valid hexadecimal RGB value. `0x000000` is not an
-    /// acceptable value as it would be thrown out by Discord. Refer to
+    /// This must be a valid hexadecimal RGB value. Refer to
     /// [`COLOR_MAXIMUM`] for the maximum acceptable value.
     ///
     /// # Examples
