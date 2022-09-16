@@ -220,8 +220,12 @@ pub enum AuditLogEventType {
     ///
     /// [`AutoModerationRule`]: crate::guild::auto_moderation::AutoModerationRule
     AutoModerationRuleDelete,
-    /// Message has been blocked by AutoMod according to a rule.
+    /// Message has been blocked by AutoMod.
     AutoModerationBlockMessage,
+    /// Message has been flagged by AutoMod.
+    AutoModerationFlagToChannel,
+    /// A member has been timed out by AutoMod.
+    AutoModerationUserCommunicationDisabled,
     /// Variant value is unknown to the library.
     Unknown(u16),
 }
@@ -281,6 +285,8 @@ impl From<u16> for AuditLogEventType {
             141 => AuditLogEventType::AutoModerationRuleUpdate,
             142 => AuditLogEventType::AutoModerationRuleDelete,
             143 => AuditLogEventType::AutoModerationBlockMessage,
+            144 => AuditLogEventType::AutoModerationFlagToChannel,
+            145 => AuditLogEventType::AutoModerationUserCommunicationDisabled,
             unknown => AuditLogEventType::Unknown(unknown),
         }
     }
@@ -341,6 +347,8 @@ impl From<AuditLogEventType> for u16 {
             AuditLogEventType::AutoModerationRuleUpdate => 141,
             AuditLogEventType::AutoModerationRuleDelete => 142,
             AuditLogEventType::AutoModerationBlockMessage => 143,
+            AuditLogEventType::AutoModerationFlagToChannel => 144,
+            AuditLogEventType::AutoModerationUserCommunicationDisabled => 145,
             AuditLogEventType::Unknown(unknown) => unknown,
         }
     }
@@ -424,6 +432,14 @@ mod tests {
         assert_eq!(
             143,
             u16::from(AuditLogEventType::AutoModerationBlockMessage)
+        );
+        assert_eq!(
+            144,
+            u16::from(AuditLogEventType::AutoModerationFlagToChannel)
+        );
+        assert_eq!(
+            145,
+            u16::from(AuditLogEventType::AutoModerationUserCommunicationDisabled)
         );
         assert_eq!(250, u16::from(AuditLogEventType::Unknown(250)));
     }
