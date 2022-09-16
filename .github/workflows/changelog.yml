@@ -26,4 +26,5 @@ jobs:
     uses: ./.github/workflows/changelog-job.yml
     with:
       name: ${{ matrix.name }}
+    secrets:
       token: ${{ github.token }}
