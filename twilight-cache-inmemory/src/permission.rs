@@ -419,8 +419,8 @@ impl<'a> InMemoryCachePermissions<'a> {
             .map_err(ChannelError::from_member_roles)?;
 
         let overwrites = match channel.kind {
-            ChannelType::PrivateThread
-            | ChannelType::AnnouncementThread
+            ChannelType::AnnouncementThread
+            | ChannelType::PrivateThread
             | ChannelType::PublicThread => self.parent_overwrites(&channel)?,
             _ => channel.permission_overwrites.clone().unwrap_or_default(),
         };

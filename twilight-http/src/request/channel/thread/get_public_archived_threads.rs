@@ -20,11 +20,11 @@ use twilight_model::{
 ///
 /// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
 ///
+/// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
 /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
 /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-/// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
-/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
 #[must_use = "requests must be configured and executed"]
 pub struct GetPublicArchivedThreads<'a> {

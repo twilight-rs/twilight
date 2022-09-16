@@ -68,15 +68,15 @@ impl ChannelType {
     ///
     /// The following channel types are considered guild channel types:
     ///
+    /// - [`AnnouncementThread`][`Self::AnnouncementThread`]
+    /// - [`GuildAnnouncement`][`Self::GuildAnnouncement`]
     /// - [`GuildCategory`][`Self::GuildCategory`]
     /// - [`GuildDirectory`][`Self::GuildDirectory`]
-    /// - [`GuildAnnouncement`][`Self::GuildAnnouncement`]
-    /// - [`AnnouncementThread`][`Self::AnnouncementThread`]
-    /// - [`PublicThread`][`Self::PublicThread`]
-    /// - [`PrivateThread`][`Self::PrivateThread`]
     /// - [`GuildStageVoice`][`Self::GuildStageVoice`]
     /// - [`GuildText`][`Self::GuildText`]
     /// - [`GuildVoice`][`Self::GuildVoice`]
+    /// - [`PublicThread`][`Self::PublicThread`]
+    /// - [`PrivateThread`][`Self::PrivateThread`]
     pub const fn is_guild(self) -> bool {
         matches!(
             self,
@@ -97,8 +97,8 @@ impl ChannelType {
     /// The following channel types are considered guild channel types:
     ///
     /// - [`AnnouncementThread`][`Self::AnnouncementThread`]
-    /// - [`PublicThread`][`Self::PublicThread`]
     /// - [`PrivateThread`][`Self::PrivateThread`]
+    /// - [`PublicThread`][`Self::PublicThread`]
     pub const fn is_thread(self) -> bool {
         matches!(
             self,
@@ -109,18 +109,18 @@ impl ChannelType {
     /// Name of the variant as a string slice.
     pub const fn name(self) -> &'static str {
         match self {
+            Self::AnnouncementThread => "AnnouncementThread",
             Self::Group => "Group",
             Self::GuildCategory => "GuildCategory",
             Self::GuildDirectory => "GuildDirectory",
             Self::GuildForum => "GuildForum",
             Self::GuildAnnouncement => "GuildAnnouncement",
-            Self::AnnouncementThread => "AnnouncementThread",
-            Self::PrivateThread => "PrivateThread",
-            Self::PublicThread => "PublicThread",
             Self::GuildStageVoice => "GuildStageVoice",
             Self::GuildText => "GuildText",
             Self::GuildVoice => "GuildVoice",
             Self::Private => "Private",
+            Self::PrivateThread => "PrivateThread",
+            Self::PublicThread => "PublicThread",
             Self::Unknown(_) => "Unknown",
         }
     }
@@ -164,17 +164,17 @@ mod tests {
 
     #[test]
     fn names() {
+        assert_eq!("AnnouncementThread", ChannelType::AnnouncementThread.name());
         assert_eq!("Group", ChannelType::Group.name());
         assert_eq!("GuildCategory", ChannelType::GuildCategory.name());
         assert_eq!("GuildDirectory", ChannelType::GuildDirectory.name());
         assert_eq!("GuildAnnouncement", ChannelType::GuildAnnouncement.name());
-        assert_eq!("AnnouncementThread", ChannelType::AnnouncementThread.name());
-        assert_eq!("PrivateThread", ChannelType::PrivateThread.name());
-        assert_eq!("PublicThread", ChannelType::PublicThread.name());
         assert_eq!("GuildStageVoice", ChannelType::GuildStageVoice.name());
         assert_eq!("GuildText", ChannelType::GuildText.name());
         assert_eq!("GuildVoice", ChannelType::GuildVoice.name());
         assert_eq!("Private", ChannelType::Private.name());
+        assert_eq!("PrivateThread", ChannelType::PrivateThread.name());
+        assert_eq!("PublicThread", ChannelType::PublicThread.name());
         assert_eq!("Unknown", ChannelType::Unknown(99).name());
     }
 }

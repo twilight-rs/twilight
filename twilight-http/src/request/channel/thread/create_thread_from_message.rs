@@ -36,8 +36,8 @@ struct CreateThreadFromMessageFields<'a> {
 ///
 /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
 /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
     channel_id: Id<ChannelMarker>,

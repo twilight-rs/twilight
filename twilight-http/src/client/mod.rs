@@ -1699,8 +1699,8 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread<'a>(
         &'a self,
@@ -1732,11 +1732,11 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
     /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
-    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
+    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread_from_message<'a>(
         &'a self,
@@ -1793,11 +1793,11 @@ impl Client {
     ///
     /// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
     ///
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
     /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
     /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
-    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
     pub const fn public_archived_threads(
         &self,
