@@ -102,15 +102,23 @@ impl<'a> InteractionClient<'a> {
 
     /// Edit the original message, by its token.
     ///
+    /// The update must include at least one of [`attachments`], [`components`],
+    /// [`content`] or [`embeds`].
+    ///
     /// This endpoint is not bound to the application's global rate limit.
+    ///
+    /// [`attachments`]: CreateFollowup::attachments
+    /// [`components`]: CreateFollowup::components
+    /// [`content`]: CreateFollowup::content
+    /// [`embeds`]: CreateFollowup::embeds
     pub const fn update_response(&'a self, interaction_token: &'a str) -> UpdateResponse<'a> {
         UpdateResponse::new(self.client, self.application_id, interaction_token)
     }
 
     /// Create a followup message to an interaction, by its token.
     ///
-    /// The message must include at least one of [`attachments`], [`content`],
-    /// [`components`], or [`embeds`].
+    /// The message must include at least one of [`attachments`], [`components`]
+    /// [`content`] or [`embeds`].
     ///
     /// This endpoint is not bound to the application's global rate limit.
     ///
@@ -135,8 +143,8 @@ impl<'a> InteractionClient<'a> {
     /// ```
     ///
     /// [`attachments`]: CreateFollowup::attachments
-    /// [`content`]: CreateFollowup::content
     /// [`components`]: CreateFollowup::components
+    /// [`content`]: CreateFollowup::content
     /// [`embeds`]: CreateFollowup::embeds
     pub const fn create_followup(&'a self, interaction_token: &'a str) -> CreateFollowup<'a> {
         CreateFollowup::new(self.client, self.application_id, interaction_token)
