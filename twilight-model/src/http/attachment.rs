@@ -57,7 +57,7 @@ impl<'a> Attachment<'a> {
     /// Create an attachment with a grocery list named "grocerylist.txt":
     ///
     /// ```
-    /// use std::borrowed::Cow;
+    /// use std::borrow::Cow;
     /// use twilight_model::http::attachment::Attachment;
     ///
     /// let filename = "grocerylist.txt".to_owned();
