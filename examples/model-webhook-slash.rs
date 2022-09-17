@@ -25,12 +25,12 @@ static PUB_KEY: Lazy<PublicKey> = Lazy::new(|| {
 ///
 /// Responses are made by giving a function that takes a Interaction and returns
 /// a InteractionResponse or a error.
-async fn interaction_handler<F>(
+async fn interaction_handler<'a, F>(
     req: Request<Body>,
     f: impl Fn(Box<CommandData>) -> F,
 ) -> anyhow::Result<Response<Body>>
 where
-    F: Future<Output = anyhow::Result<InteractionResponse>>,
+    F: Future<Output = anyhow::Result<InteractionResponse<'a>>>,
 {
     // Check that the method used is a POST, all other methods are not allowed.
     if req.method() != Method::POST {
@@ -133,7 +133,7 @@ where
 
 /// Interaction handler that matches on the name of the interaction that
 /// have been dispatched from Discord.
-async fn handler(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
+async fn handler<'a>(data: Box<CommandData>) -> anyhow::Result<InteractionResponse<'a>> {
     match data.name.as_ref() {
         "vroom" => vroom(data).await,
         "debug" => debug(data).await,
@@ -142,7 +142,7 @@ async fn handler(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> 
 }
 
 /// Example of a handler that returns the formatted version of the interaction.
-async fn debug(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
+async fn debug<'a>(data: Box<CommandData>) -> anyhow::Result<InteractionResponse<'a>> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {
@@ -153,7 +153,7 @@ async fn debug(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
 }
 
 /// Example of interaction that responds with a message saying "Vroom vroom".
-async fn vroom(_: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
+async fn vroom<'a>(_: Box<CommandData>) -> anyhow::Result<InteractionResponse<'a>> {
     Ok(InteractionResponse {
         kind: InteractionResponseType::ChannelMessageWithSource,
         data: Some(InteractionResponseData {

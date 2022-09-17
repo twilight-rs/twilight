@@ -135,7 +135,7 @@ impl<'a> CreateMessage<'a> {
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
-        attachments: &'a [Attachment],
+        attachments: &'a [Attachment<'_>],
     ) -> Result<Self, MessageValidationError> {
         attachments.iter().try_for_each(validate_attachment)?;
 

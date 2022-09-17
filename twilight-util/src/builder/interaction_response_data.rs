@@ -35,9 +35,9 @@ use twilight_model::{
 /// ```
 #[derive(Clone, Debug)]
 #[must_use = "builders have no effect if unused"]
-pub struct InteractionResponseDataBuilder(InteractionResponseData);
+pub struct InteractionResponseDataBuilder<'a>(InteractionResponseData<'a>);
 
-impl InteractionResponseDataBuilder {
+impl<'a> InteractionResponseDataBuilder<'a> {
     /// Create a new builder to construct an [`InteractionResponseData`].
     pub const fn new() -> Self {
         Self(InteractionResponseData {
@@ -57,7 +57,7 @@ impl InteractionResponseDataBuilder {
     /// Consume the builder, returning an [`InteractionResponseData`].
     #[allow(clippy::missing_const_for_fn)]
     #[must_use = "builders have no effect if unused"]
-    pub fn build(self) -> InteractionResponseData {
+    pub fn build(self) -> InteractionResponseData<'a> {
         self.0
     }
 
@@ -74,7 +74,7 @@ impl InteractionResponseDataBuilder {
     /// Set the attachments of the message.
     ///
     /// Defaults to [`None`].
-    pub fn attachments(mut self, attachments: impl IntoIterator<Item = Attachment>) -> Self {
+    pub fn attachments(mut self, attachments: impl IntoIterator<Item = Attachment<'a>>) -> Self {
         self.0.attachments = Some(attachments.into_iter().collect());
 
         self
@@ -161,7 +161,7 @@ impl InteractionResponseDataBuilder {
     }
 }
 
-impl Default for InteractionResponseDataBuilder {
+impl<'a> Default for InteractionResponseDataBuilder<'a> {
     fn default() -> Self {
         Self::new()
     }
@@ -178,7 +178,7 @@ mod tests {
     };
 
     assert_impl_all!(
-        InteractionResponseDataBuilder: Clone,
+        InteractionResponseDataBuilder<'_>: Clone,
         Debug,
         Default,
         Send,

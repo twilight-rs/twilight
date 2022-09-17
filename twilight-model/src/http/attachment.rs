@@ -1,5 +1,7 @@
 //! Models used when sending attachments to Discord.
 
+use std::borrow::Cow;
+
 use serde::{Deserialize, Serialize};
 
 /// Attachments used in messages.
@@ -25,14 +27,14 @@ use serde::{Deserialize, Serialize};
 /// attachment.description("Raw data about Twilight Sparkle".to_owned());
 /// ```
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct Attachment {
+pub struct Attachment<'a> {
     /// Description of the attachment, useful for screen readers and users
     /// requiring alt text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// Content of the file.
     #[serde(skip)]
-    pub file: Vec<u8>,
+    pub file: Cow<'a, [u8]>,
     /// Name of the file.
     ///
     /// Examples may be "twilight_sparkle.png", "cat.jpg", or "logs.txt".
@@ -46,7 +48,7 @@ pub struct Attachment {
     pub id: u64,
 }
 
-impl Attachment {
+impl<'a> Attachment<'a> {
     /// Create an attachment from a filename and bytes.
     ///
     /// # Examples
@@ -62,7 +64,7 @@ impl Attachment {
     ///
     /// let attachment = Attachment::from_bytes(filename, file_content, id);
     /// ```
-    pub const fn from_bytes(filename: String, file: Vec<u8>, id: u64) -> Self {
+    pub const fn from_bytes(filename: String, file: Cow<'a, [u8]>, id: u64) -> Self {
         Self {
             description: None,
             file,

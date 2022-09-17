@@ -14,7 +14,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct InteractionResponse {
+pub struct InteractionResponse<'a> {
     /// Type of the response.
     #[serde(rename = "type")]
     pub kind: InteractionResponseType,
@@ -31,18 +31,18 @@ pub struct InteractionResponse {
     /// [`Modal`]: InteractionResponseType::Modal
     /// [`UpdateMessage`]: InteractionResponseType::UpdateMessage
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<InteractionResponseData>,
+    pub data: Option<InteractionResponseData<'a>>,
 }
 
 /// Data included in an interaction response.
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
-pub struct InteractionResponseData {
+pub struct InteractionResponseData<'a> {
     /// Allowed mentions of the response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_mentions: Option<AllowedMentions>,
     /// List of attachments on the response.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub attachments: Option<Vec<Attachment>>,
+    pub attachments: Option<Vec<Attachment<'a>>>,
     /// List of autocomplete alternatives.
     ///
     /// Can only be used with
@@ -126,7 +126,7 @@ mod tests {
         tts
     );
     assert_impl_all!(
-        InteractionResponseData: Clone,
+        InteractionResponseData<'_>: Clone,
         Debug,
         Deserialize<'static>,
         PartialEq,
@@ -187,7 +187,7 @@ mod tests {
             data: Some(InteractionResponseData {
                 attachments: Some(Vec::from([Attachment {
                     description: None,
-                    file: "file data".into(),
+                    file: "file data".as_bytes().into(),
                     filename: "filename.jpg".into(),
                     id: 1,
                 }])),

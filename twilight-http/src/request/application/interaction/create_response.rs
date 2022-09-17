@@ -17,7 +17,7 @@ use twilight_model::{
 pub struct CreateResponse<'a> {
     interaction_id: Id<InteractionMarker>,
     interaction_token: &'a str,
-    response: &'a InteractionResponse,
+    response: &'a InteractionResponse<'a>,
     http: &'a Client,
 }
 
@@ -26,7 +26,7 @@ impl<'a> CreateResponse<'a> {
         http: &'a Client,
         interaction_id: Id<InteractionMarker>,
         interaction_token: &'a str,
-        response: &'a InteractionResponse,
+        response: &'a InteractionResponse<'_>,
     ) -> Self {
         Self {
             interaction_id,

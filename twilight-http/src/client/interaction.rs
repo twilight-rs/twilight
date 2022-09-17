@@ -81,7 +81,7 @@ impl<'a> InteractionClient<'a> {
         &'a self,
         interaction_id: Id<InteractionMarker>,
         interaction_token: &'a str,
-        response: &'a InteractionResponse,
+        response: &'a InteractionResponse<'_>,
     ) -> CreateResponse<'a> {
         CreateResponse::new(self.client, interaction_id, interaction_token, response)
     }
