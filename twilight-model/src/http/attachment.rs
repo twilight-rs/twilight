@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 /// description for screen readers:
 ///
 /// ```
+/// use std::borrow::Cow;
 /// use twilight_model::http::attachment::Attachment;
 ///
 /// let filename = "twilight_sparkle.json".to_owned();
@@ -23,7 +24,7 @@ use serde::{Deserialize, Serialize};
 /// .to_vec();
 /// let id = 1;
 ///
-/// let mut attachment = Attachment::from_bytes(filename, file_content, id);
+/// let mut attachment = Attachment::from_bytes(filename, Cow::from(file_content), id);
 /// attachment.description("Raw data about Twilight Sparkle".to_owned());
 /// ```
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -56,13 +57,14 @@ impl<'a> Attachment<'a> {
     /// Create an attachment with a grocery list named "grocerylist.txt":
     ///
     /// ```
+    /// use std::borrowed::Cow;
     /// use twilight_model::http::attachment::Attachment;
     ///
     /// let filename = "grocerylist.txt".to_owned();
     /// let file_content = b"Apples\nGrapes\nLemonade".to_vec();
     /// let id = 1;
     ///
-    /// let attachment = Attachment::from_bytes(filename, file_content, id);
+    /// let attachment = Attachment::from_bytes(filename, Cow::from(file_content), id);
     /// ```
     pub const fn from_bytes(filename: String, file: Cow<'a, [u8]>, id: u64) -> Self {
         Self {
