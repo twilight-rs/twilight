@@ -122,7 +122,7 @@ pub struct CommandOption {
     /// [`name`]: Self::name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
-    /// Nested [`CommandOption`]s.
+    /// Nested options.
     ///
     /// Applicable for options of type [`SubCommand`] and [`SubCommandGroup`].
     ///
