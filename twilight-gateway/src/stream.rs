@@ -16,14 +16,18 @@ use crate::{
 use futures_util::stream::{FuturesUnordered, Stream, StreamExt};
 use std::{
     cell::RefCell,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
     future::Future,
     ops::{Bound, Deref, DerefMut, Range, RangeBounds},
     pin::Pin,
     rc::Rc,
     task::{Context, Poll},
 };
+#[cfg(feature = "twilight-http")]
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
+#[cfg(feature = "twilight-http")]
 use twilight_http::Client;
 use twilight_model::gateway::event::Event;
 
@@ -33,6 +37,7 @@ type FutureList<'a, Item> =
 
 /// Failure when fetching the recommended number of shards to use from Discord's
 /// REST API.
+#[cfg(feature = "twilight-http")]
 #[derive(Debug)]
 pub struct StartRecommendedError {
     /// Type of error.
@@ -41,6 +46,7 @@ pub struct StartRecommendedError {
     pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
 }
 
+#[cfg(feature = "twilight-http")]
 impl Display for StartRecommendedError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
@@ -52,6 +58,7 @@ impl Display for StartRecommendedError {
     }
 }
 
+#[cfg(feature = "twilight-http")]
 impl Error for StartRecommendedError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         self.source
@@ -61,6 +68,7 @@ impl Error for StartRecommendedError {
 }
 
 /// Type of [`StartRecommendedError`] that occurred.
+#[cfg(feature = "twilight-http")]
 #[derive(Debug)]
 pub enum StartRecommendedErrorType {
     /// Received gateway event failed to be deserialized.
@@ -108,8 +116,8 @@ pub enum StartRecommendedErrorType {
 ///
 /// loop {
 ///     let (shard, event) = match stream.next().await {
-///         Some(Ok((shard, event))) => (shard, event),
-///         Some(Err(source)) => {
+///         Some((shard, Ok(event))) => (shard, event),
+///         Some((shard, Err(source))) => {
 ///             tracing::warn!(?source, "error receiving event");
 ///
 ///             if source.is_fatal() {
@@ -155,22 +163,20 @@ impl<'a> ShardEventStream<'a> {
 }
 
 impl<'a> Stream for ShardEventStream<'a> {
-    type Item = Result<(ShardRef<'a>, Event), ReceiveMessageError>;
+    type Item = (ShardRef<'a>, Result<Event, ReceiveMessageError>);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.as_mut();
         let poll = this.futures.borrow_mut().poll_next_unpin(cx);
 
         match poll {
-            Poll::Ready(Some(output)) => Poll::Ready(Some(output.result.map(|message| {
-                (
-                    ShardRef {
-                        list: ShardList::Events(Rc::clone(&this.futures)),
-                        shard: Some(output.shard),
-                    },
-                    message,
-                )
-            }))),
+            Poll::Ready(Some(output)) => Poll::Ready(Some((
+                ShardRef {
+                    list: ShardList::Events(Rc::clone(&this.futures)),
+                    shard: Some(output.shard),
+                },
+                output.result,
+            ))),
             Poll::Ready(None) => Poll::Ready(None),
             Poll::Pending => Poll::Pending,
         }
@@ -211,8 +217,8 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///
 /// loop {
 ///     let (shard, message) = match stream.next().await {
-///         Some(Ok((shard, message))) => (shard, message),
-///         Some(Err(source)) => {
+///         Some((shard, Ok(message))) => (shard, message),
+///         Some((shard, Err(source))) => {
 ///             tracing::warn!(?source, "error receiving message");
 ///
 ///             if source.is_fatal() {
@@ -258,22 +264,20 @@ impl<'a> ShardMessageStream<'a> {
 }
 
 impl<'a> Stream for ShardMessageStream<'a> {
-    type Item = Result<(ShardRef<'a>, Message), ReceiveMessageError>;
+    type Item = (ShardRef<'a>, Result<Message, ReceiveMessageError>);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.as_mut();
         let poll = this.futures.borrow_mut().poll_next_unpin(cx);
 
         match poll {
-            Poll::Ready(Some(output)) => Poll::Ready(Some(output.result.map(|message| {
-                (
-                    ShardRef {
-                        list: ShardList::Messages(Rc::clone(&this.futures)),
-                        shard: Some(output.shard),
-                    },
-                    message,
-                )
-            }))),
+            Poll::Ready(Some(output)) => Poll::Ready(Some((
+                ShardRef {
+                    list: ShardList::Messages(Rc::clone(&this.futures)),
+                    shard: Some(output.shard),
+                },
+                output.result,
+            ))),
             Poll::Ready(None) => Poll::Ready(None),
             Poll::Pending => Poll::Pending,
         }
@@ -465,6 +469,7 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 /// # Panics
 ///
 /// Panics if loading TLS certificates fails.
+#[cfg(feature = "twilight-http")]
 #[track_caller]
 pub async fn start_recommended<F: Fn(ShardId) -> Config>(
     client: &Client,

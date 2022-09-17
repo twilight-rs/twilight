@@ -2,12 +2,12 @@
 
 use serde::Serialize;
 use twilight_model::{
-    application::{component::Component, interaction::InteractionType},
+    application::interaction::InteractionType,
     channel::{
-        embed::Embed,
         message::{
-            sticker::MessageSticker, Message, MessageActivity, MessageApplication, MessageFlags,
-            MessageInteraction, MessageReaction, MessageReference, MessageType,
+            sticker::MessageSticker, Component, Embed, Message, MessageActivity,
+            MessageApplication, MessageFlags, MessageInteraction, MessageReference, MessageType,
+            Reaction,
         },
         Attachment, ChannelMention,
     },
@@ -102,7 +102,7 @@ pub struct CachedMessage {
     pub(crate) mention_roles: Vec<Id<RoleMarker>>,
     pub(crate) mentions: Vec<Id<UserMarker>>,
     pub(crate) pinned: bool,
-    pub(crate) reactions: Vec<MessageReaction>,
+    pub(crate) reactions: Vec<Reaction>,
     reference: Option<MessageReference>,
     sticker_items: Vec<MessageSticker>,
     thread_id: Option<Id<ChannelMarker>>,
@@ -242,7 +242,7 @@ impl CachedMessage {
     }
 
     /// Reactions to the message.
-    pub fn reactions(&self) -> &[MessageReaction] {
+    pub fn reactions(&self) -> &[Reaction] {
         &self.reactions
     }
 

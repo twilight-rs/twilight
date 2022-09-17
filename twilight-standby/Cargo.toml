@@ -13,14 +13,14 @@ publish = true
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.60"
-version = "0.13.0"
+version = "0.13.1"
 
 [dependencies]
 dashmap = { default-features = false, version = "5.3" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 tokio = { default-features = false, features = ["sync"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.2" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.4" }
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }

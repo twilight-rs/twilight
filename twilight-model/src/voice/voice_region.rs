@@ -1,12 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-#[allow(clippy::struct_excessive_bools)]
+/// Geographically based collection of voice servers.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceRegion {
+    /// Whether this is a custom voice region, used for e.g. events.
     pub custom: bool,
+    /// Whether this is a deprecated voice region (avoid switching to these).
     pub deprecated: bool,
+    /// Unique region identifier.
     pub id: String,
+    /// Name of the region.
     pub name: String,
+    /// Whether this is the closest region to the current user's client.
     pub optimal: bool,
 }
 

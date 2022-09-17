@@ -1,7 +1,6 @@
 use crate::{
     channel::{
-        embed::Embed,
-        message::{Mention, MessageType},
+        message::{Embed, Mention, MessageType},
         Attachment,
     },
     id::{

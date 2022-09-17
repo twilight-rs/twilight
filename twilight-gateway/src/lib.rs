@@ -1,3 +1,4 @@
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 #![deny(
     clippy::all,
     clippy::missing_const_for_fn,

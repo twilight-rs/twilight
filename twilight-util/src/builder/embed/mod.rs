@@ -12,7 +12,9 @@ pub use self::{
 };
 
 use twilight_model::{
-    channel::embed::{Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedThumbnail},
+    channel::message::embed::{
+        Embed, EmbedAuthor, EmbedField, EmbedFooter, EmbedImage, EmbedThumbnail,
+    },
     util::Timestamp,
 };
 use twilight_validate::embed::{embed as validate_embed, EmbedValidationError};
@@ -122,8 +124,7 @@ impl EmbedBuilder {
 
     /// Set the color.
     ///
-    /// This must be a valid hexadecimal RGB value. `0x000000` is not an
-    /// acceptable value as it would be thrown out by Discord. Refer to
+    /// This must be a valid hexadecimal RGB value. Refer to
     /// [`COLOR_MAXIMUM`] for the maximum acceptable value.
     ///
     /// # Examples
@@ -371,13 +372,8 @@ impl TryFrom<EmbedBuilder> for Embed {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::builder::embed::{EmbedFieldBuilder, EmbedFooterBuilder};
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
-    use twilight_model::{
-        channel::embed::{Embed, EmbedField, EmbedFooter},
-        util::Timestamp,
-    };
 
     assert_impl_all!(EmbedBuilder: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Embed: TryFrom<EmbedBuilder>);
