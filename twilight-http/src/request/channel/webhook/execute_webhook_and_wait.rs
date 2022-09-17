@@ -10,9 +10,6 @@ use twilight_model::channel::Message;
 /// Execute a webhook, sending a message to its channel, and then wait for the
 /// message to be created.
 ///
-/// The message must include at least one of [`attachments`], [`components`],
-/// [`content`], or [`embeds`].
-///
 /// # Examples
 ///
 /// ```no_run
@@ -36,11 +33,6 @@ use twilight_model::channel::Message;
 /// println!("message id: {}", message.id);
 /// # Ok(()) }
 /// ```
-///
-/// [`attachments`]: Self::attachments
-/// [`components`]: Self::components
-/// [`content`]: Self::content
-/// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
 pub struct ExecuteWebhookAndWait<'a> {
     http: &'a Client,
