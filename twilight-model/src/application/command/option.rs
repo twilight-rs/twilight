@@ -20,8 +20,7 @@ use std::{cmp::Eq, collections::HashMap};
 pub struct CommandOption {
     /// Whether the command supports autocomplete.
     ///
-    /// Applicable for [`CommandOption`]s of type [`Integer`], [`Number`], and
-    /// [`String`].
+    /// Applicable for options of type [`Integer`], [`Number`], and [`String`].
     ///
     /// Defaults to `false`.
     ///
@@ -34,7 +33,7 @@ pub struct CommandOption {
     pub autocomplete: Option<bool>,
     /// List of possible channel types users can select from.
     ///
-    /// Applicable for [`CommandOption`] of type [`Channel`].
+    /// Applicable for options of type [`Channel`].
     ///
     /// Defaults to any channel type.
     ///
@@ -43,8 +42,7 @@ pub struct CommandOption {
     pub channel_types: Option<Vec<ChannelType>>,
     /// List of predetermined choices users can select from.
     ///
-    /// Applicable for [`CommandOption`]s of type [`Integer`], [`Number`], and
-    /// [`String`].
+    /// Applicable for options of type [`Integer`], [`Number`], and [`String`].
     ///
     /// Defaults to no choices; users may input a value of their choice.
     ///
@@ -73,7 +71,7 @@ pub struct CommandOption {
     pub kind: CommandOptionType,
     /// Maximum allowed value length.
     ///
-    /// Applicable for [`CommandOption`]s of type [`String`].
+    /// Applicable for options of type [`String`].
     ///
     /// Defaults to `6000`.
     ///
@@ -84,7 +82,7 @@ pub struct CommandOption {
     pub max_length: Option<u16>,
     /// Maximum allowed value.
     ///
-    /// Applicable for [`CommandOption`]s of type [`Integer`] and [`Number`].
+    /// Applicable for options of type [`Integer`] and [`Number`].
     ///
     /// Defaults to no maximum.
     ///
@@ -94,7 +92,7 @@ pub struct CommandOption {
     pub max_value: Option<CommandOptionValue>,
     /// Minimum allowed value length.
     ///
-    /// Applicable for [`CommandOption`]s of type [`String`].
+    /// Applicable for options of type [`String`].
     ///
     /// Defaults to `0`.
     ///
@@ -105,7 +103,7 @@ pub struct CommandOption {
     pub min_length: Option<u16>,
     /// Minimum allowed value.
     ///
-    /// Applicable for [`CommandOption`]s of type [`Integer`] and [`Number`].
+    /// Applicable for options of type [`Integer`] and [`Number`].
     ///
     /// Defaults to no minimum.
     ///
@@ -126,8 +124,7 @@ pub struct CommandOption {
     pub name_localizations: Option<HashMap<String, String>>,
     /// Nested [`CommandOption`]s.
     ///
-    /// Applicable for [`CommandOption`]s of type [`SubCommand`] and
-    /// [`SubCommandGroup`].
+    /// Applicable for options of type [`SubCommand`] and [`SubCommandGroup`].
     ///
     /// Defaults to no options.
     ///
@@ -143,8 +140,8 @@ pub struct CommandOption {
     pub options: Option<Vec<CommandOption>>,
     /// Whether the option is required.
     ///
-    /// Applicable for all [`CommandOption`]s, except those of type
-    /// [`SubCommand`] and [`SubCommandGroup`].
+    /// Applicable for all options except those of type [`SubCommand`] and
+    /// [`SubCommandGroup`].
     ///
     /// Defaults to `false`.
     ///
