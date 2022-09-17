@@ -1230,7 +1230,7 @@ impl Client {
     /// Send a message to a channel.
     ///
     /// The message must include at least one of [`attachments`],
-    /// [`components`], [`content`] [`embeds`], or [`sticker_ids`].
+    /// [`components`], [`content`], [`embeds`], or [`sticker_ids`].
     ///
     /// # Example
     ///
