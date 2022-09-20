@@ -6,7 +6,7 @@ use crate::{
         Id,
     },
     user::User,
-    util::{Timestamp, ImageHash},
+    util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
