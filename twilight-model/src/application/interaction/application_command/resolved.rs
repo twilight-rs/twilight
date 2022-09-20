@@ -6,7 +6,7 @@ use crate::{
         Id,
     },
     user::User,
-    util::Timestamp,
+    util::{Timestamp, ImageHash},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
@@ -72,7 +72,7 @@ pub struct InteractionChannel {
 pub struct InteractionMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// If the member is timed out, when the timeout will expire.
     pub communication_disabled_until: Option<Timestamp>,
     /// Member guild join date.
