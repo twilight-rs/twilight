@@ -8,8 +8,10 @@ use crate::{
 use serde::Serialize;
 use twilight_model::{
     channel::{
-        permission_overwrite::PermissionOverwrite, thread::AutoArchiveDuration, Channel,
-        ChannelType, VideoQualityMode,
+        forum::{DefaultReaction, ForumTag},
+        permission_overwrite::PermissionOverwrite,
+        thread::AutoArchiveDuration,
+        Channel, ChannelType, VideoQualityMode,
     },
     id::{
         marker::{ChannelMarker, GuildMarker},
@@ -28,9 +30,13 @@ use twilight_validate::{
 #[derive(Serialize)]
 struct CreateGuildChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
+    available_tags: Option<&'a [ForumTag]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     bitrate: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_auto_archive_duration: Option<AutoArchiveDuration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_reaction_emoji: Option<&'a DefaultReaction>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: &'a str,
@@ -76,8 +82,10 @@ impl<'a> CreateGuildChannel<'a> {
 
         Ok(Self {
             fields: CreateGuildChannelFields {
+                available_tags: None,
                 bitrate: None,
                 default_auto_archive_duration: None,
+                default_reaction_emoji: None,
                 kind: None,
                 name,
                 nsfw: None,
@@ -94,6 +102,13 @@ impl<'a> CreateGuildChannel<'a> {
             http,
             reason: None,
         })
+    }
+
+    /// Set the available tags for the forum.
+    pub const fn available_tags(mut self, available_tags: &'a [ForumTag]) -> Self {
+        self.fields.available_tags = Some(available_tags);
+
+        self
     }
 
     /// For voice and stage channels, set the bitrate of the channel.
@@ -125,6 +140,16 @@ impl<'a> CreateGuildChannel<'a> {
         auto_archive_duration: AutoArchiveDuration,
     ) -> Self {
         self.fields.default_auto_archive_duration = Some(auto_archive_duration);
+
+        self
+    }
+
+    /// Set the default reaction emoji for new forum threads.
+    pub const fn default_reaction_emoji(
+        mut self,
+        default_reaction_emoji: &'a DefaultReaction,
+    ) -> Self {
+        self.fields.default_reaction_emoji = Some(default_reaction_emoji);
 
         self
     }

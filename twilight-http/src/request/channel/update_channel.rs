@@ -10,7 +10,7 @@ use twilight_model::{
     channel::{
         forum::{DefaultReaction, ForumTag},
         permission_overwrite::PermissionOverwrite,
-        Channel, ChannelType, VideoQualityMode,
+        Channel, ChannelFlags, ChannelType, VideoQualityMode,
     },
     id::{marker::ChannelMarker, Id},
 };
@@ -29,11 +29,16 @@ struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     available_tags: Option<&'a [ForumTag]>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    bitrate: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     default_reaction_emoji: Option<Nullable<&'a DefaultReaction>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_thread_rate_limit_per_user: Option<Nullable<u16>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    bitrate: Option<u32>,
+    flags: Option<ChannelFlags>,
+    #[serde(rename = "type")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    kind: Option<ChannelType>,
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,9 +59,6 @@ struct UpdateChannelFields<'a> {
     user_limit: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
     video_quality_mode: Option<VideoQualityMode>,
-    #[serde(rename = "type")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    kind: Option<ChannelType>,
 }
 
 /// Update a channel.
@@ -77,9 +79,11 @@ impl<'a> UpdateChannel<'a> {
             channel_id,
             fields: UpdateChannelFields {
                 available_tags: None,
+                bitrate: None,
                 default_reaction_emoji: None,
                 default_thread_rate_limit_per_user: None,
-                bitrate: None,
+                flags: None,
+                kind: None,
                 name: None,
                 nsfw: None,
                 parent_id: None,
@@ -90,7 +94,6 @@ impl<'a> UpdateChannel<'a> {
                 topic: None,
                 user_limit: None,
                 video_quality_mode: None,
-                kind: None,
             },
             http,
             reason: None,
@@ -102,6 +105,26 @@ impl<'a> UpdateChannel<'a> {
         self.fields.available_tags = Some(available_tags);
 
         self
+    }
+
+    /// For voice and stage channels, set the bitrate of the channel.
+    ///
+    /// Must be at least 8000.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`BitrateInvalid`] if the bitrate is invalid.
+    ///
+    /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
+        if let Err(source) = validate_bitrate(bitrate) {
+            return Err(source);
+        }
+
+        self.fields.bitrate = Some(bitrate);
+
+        Ok(self)
     }
 
     /// Set the default reaction emoji for new forum threads.
@@ -146,24 +169,11 @@ impl<'a> UpdateChannel<'a> {
         Ok(self)
     }
 
-    /// For voice and stage channels, set the bitrate of the channel.
-    ///
-    /// Must be at least 8000.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error of type [`BitrateInvalid`] if the bitrate is invalid.
-    ///
-    /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
-        if let Err(source) = validate_bitrate(bitrate) {
-            return Err(source);
-        }
+    /// Set the flags of the channel, if supported.
+    pub const fn flags(mut self, flags: ChannelFlags) -> Self {
+        self.fields.flags = Some(flags);
 
-        self.fields.bitrate = Some(bitrate);
-
-        Ok(self)
+        self
     }
 
     /// Set the forum topic.
