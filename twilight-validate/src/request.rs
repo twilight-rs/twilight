@@ -1132,9 +1132,9 @@ mod tests {
     fn auto_moderation_metadata_mention_total() {
         assert!(auto_moderation_metadata_mention_total_limit(0).is_ok());
         assert!(auto_moderation_metadata_mention_total_limit(1).is_ok());
-        assert!(auto_moderation_metadata_mention_total_limit(49).is_ok());
+        assert!(auto_moderation_metadata_mention_total_limit(50).is_ok());
 
-        assert!(auto_moderation_metadata_mention_total_limit(50).is_err());
+        assert!(auto_moderation_metadata_mention_total_limit(51).is_err());
     }
 
     #[test]
