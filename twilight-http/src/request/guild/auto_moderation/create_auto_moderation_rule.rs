@@ -16,7 +16,11 @@ use twilight_model::{
         Id,
     },
 };
-use twilight_validate::request::{audit_reason as validate_audit_reason, ValidationError};
+use twilight_validate::request::{
+    audit_reason as validate_audit_reason,
+    auto_moderation_metadata_mention_total_limit as validate_auto_moderation_metadata_mention_total_limit,
+    ValidationError,
+};
 
 #[derive(Serialize)]
 struct CreateAutoModerationRuleFieldsAction {
@@ -45,6 +49,8 @@ struct CreateAutoModerationRuleFieldsTriggerMetadata<'a> {
     keyword_filter: Option<&'a [&'a str]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     presets: Option<&'a [AutoModerationKeywordPresetType]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    mention_total_limit: Option<u8>,
 }
 
 #[derive(Serialize)]
@@ -203,19 +209,10 @@ impl<'a> CreateAutoModerationRule<'a> {
             allow_list: None,
             keyword_filter: Some(keyword_filter),
             presets: None,
+            mention_total_limit: None,
         });
 
         self.fields.trigger_type = Some(AutoModerationTriggerType::Keyword);
-
-        self.exec()
-    }
-
-    /// Create the request with the trigger type [`HarmfulLink`], then execute
-    /// it.
-    ///
-    /// [`HarmfulLink`]: AutoModerationTriggerType::HarmfulLink
-    pub fn with_harmful_link(mut self) -> ResponseFuture<AutoModerationRule> {
-        self.fields.trigger_type = Some(AutoModerationTriggerType::HarmfulLink);
 
         self.exec()
     }
@@ -247,11 +244,48 @@ impl<'a> CreateAutoModerationRule<'a> {
             allow_list: Some(allow_list),
             keyword_filter: None,
             presets: Some(presets),
+            mention_total_limit: None,
         });
 
         self.fields.trigger_type = Some(AutoModerationTriggerType::KeywordPreset);
 
         self.exec()
+    }
+
+    /// Create the request with the trigger type [`MentionSpam`], then execute
+    /// it.
+    ///
+    /// Rules of this type requires the `mention_total_limit` field specified,
+    /// and this method ensures this. See [Discord Docs/Trigger Metadata].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error of type [`AutoModerationMetadataMentionTotalLimit`] if
+    /// the limit is invalid.
+    ///
+    /// [`AutoModerationMetadataMentionTotalLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataMentionTotalLimit
+    /// [`MentionSpam`]: AutoModerationTriggerType::MentionSpam
+    /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+    pub fn with_mention_spam(
+        mut self,
+        mention_total_limit: u8,
+    ) -> Result<ResponseFuture<AutoModerationRule>, ValidationError> {
+        if let Err(source) =
+            validate_auto_moderation_metadata_mention_total_limit(mention_total_limit)
+        {
+            return Err(source);
+        }
+
+        self.fields.trigger_metadata = Some(CreateAutoModerationRuleFieldsTriggerMetadata {
+            allow_list: None,
+            keyword_filter: None,
+            presets: None,
+            mention_total_limit: Some(mention_total_limit),
+        });
+
+        self.fields.trigger_type = Some(AutoModerationTriggerType::MentionSpam);
+
+        Ok(self.exec())
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
