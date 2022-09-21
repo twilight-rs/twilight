@@ -39,8 +39,10 @@ jobs:
       - name: Deploy docs
         uses: peaceiris/actions-gh-pages@v3
         with:
-          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY_BOT }}
           publish_branch: gh-pages
           publish_dir: target/doc
           allow_empty_commit: true
           cname: api.twilight.rs
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
