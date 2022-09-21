@@ -1343,6 +1343,7 @@ mod tests {
                 locale: None,
             },
             version: 6,
+            resume_gateway_url: "wss://gateway.discord.gg/".to_owned(),
         };
         let event = Event::Ready(Box::new(ready));
 

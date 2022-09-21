@@ -13,19 +13,24 @@ use serde::{Deserialize, Serialize};
 pub struct Application {
     pub bot_public: bool,
     pub bot_require_code_grant: bool,
+    /// Default rich presence invite cover image.
     pub cover_image: Option<ImageHash>,
     /// Application's default custom authorization link, if enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub custom_install_url: Option<String>,
+    /// Description of the application.
     pub description: String,
     pub guild_id: Option<Id<GuildMarker>>,
     /// Public flags of the application.
     pub flags: Option<ApplicationFlags>,
+    /// Icon of the application.
     pub icon: Option<ImageHash>,
+    /// ID of the application.
     pub id: Id<ApplicationMarker>,
     /// Settings for the application's default in-app authorization, if enabled.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub install_params: Option<InstallParams>,
+    /// Name of the application.
     pub name: String,
     pub owner: Option<User>,
     pub primary_sku_id: Option<Id<OauthSkuMarker>>,

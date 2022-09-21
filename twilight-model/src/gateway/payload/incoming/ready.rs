@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct Ready {
     pub application: PartialApplication,
     pub guilds: Vec<UnavailableGuild>,
+    pub resume_gateway_url: String,
     pub session_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub shard: Option<[u64; 2]>,
@@ -63,6 +64,7 @@ mod tests {
                 verified: None,
             },
             version: 8,
+            resume_gateway_url: "wss://gateway.discord.gg/".to_owned(),
         };
 
         serde_test::assert_tokens(
@@ -70,7 +72,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Ready",
-                    len: 6,
+                    len: 7,
                 },
                 Token::Str("application"),
                 Token::Struct {
@@ -106,6 +108,8 @@ mod tests {
                 Token::Bool(true),
                 Token::StructEnd,
                 Token::SeqEnd,
+                Token::Str("resume_gateway_url"),
+                Token::Str("wss://gateway.discord.gg/"),
                 Token::Str("session_id"),
                 Token::Str("foo"),
                 Token::Str("shard"),

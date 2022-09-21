@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.1] - 2022-09-08
+
+### Features
+
+- add handling for gateway resume url ([#1894](https://github.com/twilight-rs/twilight/issues/1894))
+
+## [0.13.0] - 2022-08-14
+
+### Refactor
+
+- [**breaking**] update `VoiceServerUpdate` ([#1837](https://github.com/twilight-rs/twilight/issues/1837))
+
 ## [0.12.1] - 2022-07-26
 
 ### Documentation

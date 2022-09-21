@@ -6,7 +6,7 @@ use crate::{
         Id,
     },
     user::User,
-    util::Timestamp,
+    util::{ImageHash, Timestamp},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
@@ -72,7 +72,7 @@ pub struct InteractionChannel {
 pub struct InteractionMember {
     /// Member's guild avatar.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    pub avatar: Option<ImageHash>,
     /// If the member is timed out, when the timeout will expire.
     pub communication_disabled_until: Option<Timestamp>,
     /// Member guild join date.
@@ -408,7 +408,7 @@ mod tests {
                 Token::Some,
                 Token::Struct {
                     name: "PartialMember",
-                    len: 8,
+                    len: 7,
                 },
                 Token::Str("communication_disabled_until"),
                 Token::None,
@@ -421,8 +421,6 @@ mod tests {
                 Token::Str("nick"),
                 Token::Some,
                 Token::Str("member nick"),
-                Token::Str("permissions"),
-                Token::None,
                 Token::Str("roles"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

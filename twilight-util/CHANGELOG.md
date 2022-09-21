@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.13.2] - 2022-09-16
+
+### Documentation
+
+- fix mention on how color works ([#1893](https://github.com/twilight-rs/twilight/issues/1893))
+
+## [0.13.1] - 2022-09-01
+
+### Refactor
+
+- mark c-style enums `#[non_exhaustive]` ([#1862](https://github.com/twilight-rs/twilight/issues/1862))
+
+## [0.13.0] - 2022-08-14
+
+### Refactor
+
+- [**breaking**] remove `Number` ([#1817](https://github.com/twilight-rs/twilight/issues/1817))
+
 ## [0.12.1] - 2022-07-26
 
 ### Bug Fixes

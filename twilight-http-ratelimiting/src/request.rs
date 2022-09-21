@@ -154,6 +154,8 @@ pub enum Path {
     ChannelsIdRecipients(u64),
     /// Operating on a thread's members.
     ChannelsIdThreadMembers(u64),
+    /// Operating on a thread's member.
+    ChannelsIdThreadMembersId(u64),
     /// Operating on a channel's threads.
     ChannelsIdThreads(u64),
     /// Operating on a channel's typing indicator.
@@ -368,6 +370,7 @@ impl FromStr for Path {
                 ChannelsIdRecipients(parse_id(id)?)
             }
             ["channels", id, "thread-members"] => ChannelsIdThreadMembers(parse_id(id)?),
+            ["channels", id, "thread-members", _] => ChannelsIdThreadMembersId(parse_id(id)?),
             ["channels", id, "threads"] => ChannelsIdThreads(parse_id(id)?),
             ["channels", id, "typing"] => ChannelsIdTyping(parse_id(id)?),
             ["channels", id, "webhooks"] | ["channels", id, "webhooks", _] => {
