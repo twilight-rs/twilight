@@ -57,7 +57,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// Send a message to a channel.
 ///
 /// The message must include at least one of [`attachments`], [`content`],
-/// [`embeds`], or [`sticker_ids`].
+/// [`components`], [`embeds`], or [`sticker_ids`].
 ///
 /// # Example
 ///
@@ -80,6 +80,7 @@ pub(crate) struct CreateMessageFields<'a> {
 ///
 /// [`attachments`]: Self::attachments
 /// [`content`]: Self::content
+/// [`components`]: Self::components
 /// [`embeds`]: Self::embeds
 /// [`sticker_ids`]: Self::sticker_ids
 #[must_use = "requests must be configured and executed"]

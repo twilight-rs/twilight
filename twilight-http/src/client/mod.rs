@@ -1229,8 +1229,8 @@ impl Client {
 
     /// Send a message to a channel.
     ///
-    /// The message must include at least one of [`attachments`], [`content`],
-    /// [`embeds`], or [`sticker_ids`].
+    /// The message must include at least one of [`attachments`],
+    /// [`components`], [`content`], [`embeds`], or [`sticker_ids`].
     ///
     /// # Example
     ///
@@ -1252,6 +1252,7 @@ impl Client {
     /// ```
     ///
     /// [`attachments`]: CreateMessage::attachments
+    /// [`components`]: CreateMessage::components
     /// [`content`]: CreateMessage::content
     /// [`embeds`]: CreateMessage::embeds
     /// [`sticker_ids`]: CreateMessage::sticker_ids
@@ -1289,7 +1290,7 @@ impl Client {
     /// You can pass [`None`] to any of the methods to remove the associated
     /// field. Pass [`None`] to [`content`] to remove the content. You must
     /// ensure that the message still contains at least one of [`attachments`],
-    /// [`content`], [`embeds`], or stickers.
+    /// [`components`], [`content`], [`embeds`], or stickers.
     ///
     /// # Examples
     ///
@@ -1327,6 +1328,7 @@ impl Client {
     /// ```
     ///
     /// [`attachments`]: UpdateMessage::attachments
+    /// [`components`]: UpdateMessage::components
     /// [`content`]: UpdateMessage::content
     /// [`embeds`]: UpdateMessage::embeds
     pub const fn update_message(
@@ -1936,8 +1938,8 @@ impl Client {
 
     /// Execute a webhook, sending a message to its channel.
     ///
-    /// The message must include at least one of [`attachments`], [`content`],
-    /// or [`embeds`].
+    /// The message must include at least one of [`attachments`], [`components`]
+    /// [`content`], or [`embeds`].
     ///
     /// # Examples
     ///
@@ -1958,6 +1960,7 @@ impl Client {
     /// ```
     ///
     /// [`attachments`]: ExecuteWebhook::attachments
+    /// [`components`]: ExecuteWebhook::components
     /// [`content`]: ExecuteWebhook::content
     /// [`embeds`]: ExecuteWebhook::embeds
     pub const fn execute_webhook<'a>(
@@ -1983,7 +1986,7 @@ impl Client {
     /// You can pass [`None`] to any of the methods to remove the associated
     /// field. Pass [`None`] to [`content`] to remove the content. You must
     /// ensure that the message still contains at least one of [`attachments`],
-    /// [`content`], or [`embeds`].
+    /// [`components`], [`content`], or [`embeds`].
     ///
     /// # Examples
     ///
@@ -2002,6 +2005,7 @@ impl Client {
     /// ```
     ///
     /// [`attachments`]: UpdateWebhookMessage::attachments
+    /// [`components`]: UpdateWebhookMessage::components
     /// [`content`]: UpdateWebhookMessage::content
     /// [`embeds`]: UpdateWebhookMessage::embeds
     pub const fn update_webhook_message<'a>(
