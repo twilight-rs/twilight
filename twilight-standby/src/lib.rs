@@ -21,8 +21,6 @@
 
 pub mod future;
 
-mod event;
-
 use self::future::{
     WaitForComponentFuture, WaitForComponentStream, WaitForEventFuture, WaitForEventStream,
     WaitForGuildEventFuture, WaitForGuildEventStream, WaitForMessageFuture, WaitForMessageStream,
@@ -185,7 +183,7 @@ impl Standby {
             _ => {}
         }
 
-        if let Some(guild_id) = event::guild_id(event) {
+        if let Some(guild_id) = event.guild_id() {
             completions.add_with(&Self::process_specific_event(&self.guilds, guild_id, event));
         }
 

@@ -23,6 +23,7 @@ pub use self::{
 
 use super::auto_moderation::AutoModerationRule;
 use crate::{
+    application::command::Command,
     channel::{Channel, Webhook},
     guild::scheduled_event::GuildScheduledEvent,
     user::User,
@@ -34,8 +35,10 @@ use serde::{Deserialize, Serialize};
 /// For additional information refer to [Discord Docs/Audit Logs][1].
 ///
 /// [1]: https://discord.com/developers/docs/resources/audit-log#audit-log-object
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct AuditLog {
+    /// List of referenced application commands.
+    pub application_commands: Vec<Command>,
     /// List of referenced auto moderation rules.
     pub auto_moderation_rules: Vec<AutoModerationRule>,
     /// Paginated entries in a guild's audit log.
@@ -62,7 +65,7 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
-    use std::{fmt::Debug, hash::Hash};
+    use std::fmt::Debug;
 
     assert_fields!(
         AuditLog: entries,
@@ -75,8 +78,6 @@ mod tests {
         AuditLog: Clone,
         Debug,
         Deserialize<'static>,
-        Eq,
-        Hash,
         PartialEq,
         Send,
         Serialize,
@@ -91,6 +92,7 @@ mod tests {
     #[test]
     fn serde() {
         let value = AuditLog {
+            application_commands: Vec::new(),
             auto_moderation_rules: Vec::new(),
             entries: Vec::new(),
             guild_scheduled_events: Vec::new(),
@@ -105,8 +107,11 @@ mod tests {
             &[
                 Token::Struct {
                     name: "AuditLog",
-                    len: 7,
+                    len: 8,
                 },
+                Token::Str("application_commands"),
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
                 Token::Str("auto_moderation_rules"),
                 Token::Seq { len: Some(0) },
                 Token::SeqEnd,

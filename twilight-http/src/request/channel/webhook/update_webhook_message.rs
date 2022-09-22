@@ -45,8 +45,8 @@ struct UpdateWebhookMessageFields<'a> {
 ///
 /// You can pass [`None`] to any of the methods to remove the associated field.
 /// Pass [`None`] to [`content`] to remove the content. You must ensure that the
-/// message still contains at least one of [`attachments`], [`content`], or
-/// [`embeds`].
+/// message still contains at least one of [`attachments`], [`components`],
+/// [`content`], or [`embeds`].
 ///
 /// # Examples
 ///
@@ -72,6 +72,7 @@ struct UpdateWebhookMessageFields<'a> {
 /// ```
 ///
 /// [`attachments`]: Self::attachments
+/// [`components`]: Self::components
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
