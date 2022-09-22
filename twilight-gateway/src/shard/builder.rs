@@ -207,8 +207,7 @@ impl ShardBuilder {
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
-    /// let builder = Shard::builder(token, Intents::empty())
-    ///     .identify_properties(properties);
+    /// let builder = Shard::builder(token, Intents::empty()).identify_properties(properties);
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
@@ -264,8 +263,8 @@ impl ShardBuilder {
     /// };
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let shard = Shard::builder(env::var("DISCORD_TOKEN")?, Intents::empty())
-    ///     .presence(UpdatePresencePayload::new(
+    /// let shard = Shard::builder(env::var("DISCORD_TOKEN")?, Intents::empty()).presence(
+    ///     UpdatePresencePayload::new(
     ///         vec![MinimalActivity {
     ///             kind: ActivityType::Playing,
     ///             name: "Not accepting commands".into(),
@@ -275,9 +274,9 @@ impl ShardBuilder {
     ///         false,
     ///         None,
     ///         Status::Idle,
-    ///     )?);
+    ///     )?,
+    /// );
     /// # Ok(()) }
-    ///
     /// ```
     pub fn presence(mut self, presence: UpdatePresencePayload) -> Self {
         self.presence.replace(presence);
@@ -333,13 +332,15 @@ impl ShardBuilder {
     /// a total of 19 shards:
     ///
     /// ```no_run
-    /// use twilight_gateway::{Intents, Shard};
     /// use std::env;
+    /// use twilight_gateway::{Intents, Shard};
     ///
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let shard = Shard::builder(token, Intents::empty()).shard(18, 19)?.build();
+    /// let shard = Shard::builder(token, Intents::empty())
+    ///     .shard(18, 19)?
+    ///     .build();
     /// # Ok(()) }
     /// ```
     ///

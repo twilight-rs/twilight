@@ -66,7 +66,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{id::Id, guild::scheduled_event::PrivacyLevel, util::Timestamp};
+/// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
@@ -91,7 +91,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{id::Id, guild::scheduled_event::PrivacyLevel, util::Timestamp};
+/// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
