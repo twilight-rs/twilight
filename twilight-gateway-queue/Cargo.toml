@@ -9,7 +9,7 @@ license.workspace = true
 name = "twilight-gateway-queue"
 publish = true
 repository.workspace = true
-rust-version = "1.64"
+rust-version.workspace = true
 version = "0.13.1"
 
 [dependencies]
