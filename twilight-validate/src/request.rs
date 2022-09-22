@@ -1020,7 +1020,7 @@ pub fn username(value: impl AsRef<str>) -> Result<(), ValidationError> {
     let len = value.chars().count();
 
     let range = USERNAME_LIMIT_MIN..=USERNAME_LIMIT_MAX;
-    let invalid_len = (!range.contains(&len)).then(|| len);
+    let invalid_len = (!range.contains(&len)).then_some(len);
 
     let invalid_substring = USERNAME_INVALID_SUBSTRINGS
         .into_iter()
@@ -1060,7 +1060,7 @@ pub fn webhook_username(value: impl AsRef<str>) -> Result<(), ValidationError> {
     let len = value.chars().count();
 
     let range = WEBHOOK_USERNAME_LIMIT_MIN..=WEBHOOK_USERNAME_LIMIT_MAX;
-    let invalid_len = (!range.contains(&len)).then(|| len);
+    let invalid_len = (!range.contains(&len)).then_some(len);
 
     let invalid_substring = WEBHOOK_INVALID_STRINGS
         .into_iter()

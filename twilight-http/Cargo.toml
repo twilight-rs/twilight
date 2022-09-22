@@ -1,18 +1,18 @@
 [package]
-authors = ["Twilight Contributors"]
+authors.workspace = true
 categories = ["api-bindings", "asynchronous", "web-programming::http-client"]
 description = "Discord REST API client for the Twilight ecosystem."
 documentation = "https://docs.rs/twilight-http"
-edition = "2021"
+edition.workspace = true
 homepage = "https://twilight.rs/chapter_1_crates/section_2_http.html"
-include = ["src/**/*.rs", "README.md"]
+include.workspace = true
 keywords = ["discord", "discord-api", "twilight"]
-license = "ISC"
+license.workspace = true
 name = "twilight-http"
 publish = true
 readme = "README.md"
-repository = "https://github.com/twilight-rs/twilight.git"
-rust-version = "1.60"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.13.3"
 
 [dependencies]

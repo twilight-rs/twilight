@@ -295,8 +295,7 @@ impl Lavalink {
     /// or drop all [`Node`]s.
     ///
     /// The node is returned if it existed.
-    #[allow(clippy::unused_async)]
-    pub async fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Arc<Node>)> {
+    pub fn remove(&self, address: SocketAddr) -> Option<(SocketAddr, Arc<Node>)> {
         self.nodes.remove(&address)
     }
 
