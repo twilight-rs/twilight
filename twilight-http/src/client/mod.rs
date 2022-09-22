@@ -336,13 +336,13 @@ impl Client {
         GetBan::new(self, guild_id, user_id)
     }
 
-    /// Bans a user from a guild, optionally with the number of days' worth of
+    /// Bans a user from a guild, optionally with the number of seconds' worth of
     /// messages to delete and the reason.
     ///
     /// # Examples
     ///
     /// Ban user `200` from guild `100`, deleting
-    /// 1 day's worth of messages, for the reason `"memes"`:
+    /// `86_400` second's (this is equivalent to `1` day) worth of messages, for the reason `"memes"`:
     ///
     /// ```no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
@@ -356,7 +356,7 @@ impl Client {
     /// let user_id = Id::new(200);
     /// client
     ///     .create_ban(guild_id, user_id)
-    ///     .delete_message_days(1)?
+    ///     .delete_message_seconds(86_400)?
     ///     .reason("memes")?
     ///     .exec()
     ///     .await?;
@@ -1228,8 +1228,8 @@ impl Client {
 
     /// Send a message to a channel.
     ///
-    /// The message must include at least one of [`attachments`], [`content`],
-    /// [`embeds`], or [`sticker_ids`].
+    /// The message must include at least one of [`attachments`],
+    /// [`components`], [`content`], [`embeds`], or [`sticker_ids`].
     ///
     /// # Example
     ///
@@ -1251,6 +1251,7 @@ impl Client {
     /// ```
     ///
     /// [`attachments`]: CreateMessage::attachments
+    /// [`components`]: CreateMessage::components
     /// [`content`]: CreateMessage::content
     /// [`embeds`]: CreateMessage::embeds
     /// [`sticker_ids`]: CreateMessage::sticker_ids
@@ -1288,7 +1289,7 @@ impl Client {
     /// You can pass [`None`] to any of the methods to remove the associated
     /// field. Pass [`None`] to [`content`] to remove the content. You must
     /// ensure that the message still contains at least one of [`attachments`],
-    /// [`content`], [`embeds`], or stickers.
+    /// [`components`], [`content`], [`embeds`], or stickers.
     ///
     /// # Examples
     ///
@@ -1326,6 +1327,7 @@ impl Client {
     /// ```
     ///
     /// [`attachments`]: UpdateMessage::attachments
+    /// [`components`]: UpdateMessage::components
     /// [`content`]: UpdateMessage::content
     /// [`embeds`]: UpdateMessage::embeds
     pub const fn update_message(
@@ -1935,8 +1937,8 @@ impl Client {
 
     /// Execute a webhook, sending a message to its channel.
     ///
-    /// The message must include at least one of [`attachments`], [`content`],
-    /// or [`embeds`].
+    /// The message must include at least one of [`attachments`], [`components`]
+    /// [`content`], or [`embeds`].
     ///
     /// # Examples
     ///
@@ -1957,6 +1959,7 @@ impl Client {
     /// ```
     ///
     /// [`attachments`]: ExecuteWebhook::attachments
+    /// [`components`]: ExecuteWebhook::components
     /// [`content`]: ExecuteWebhook::content
     /// [`embeds`]: ExecuteWebhook::embeds
     pub const fn execute_webhook<'a>(
@@ -1982,7 +1985,7 @@ impl Client {
     /// You can pass [`None`] to any of the methods to remove the associated
     /// field. Pass [`None`] to [`content`] to remove the content. You must
     /// ensure that the message still contains at least one of [`attachments`],
-    /// [`content`], or [`embeds`].
+    /// [`components`], [`content`], or [`embeds`].
     ///
     /// # Examples
     ///
@@ -2001,6 +2004,7 @@ impl Client {
     /// ```
     ///
     /// [`attachments`]: UpdateWebhookMessage::attachments
+    /// [`components`]: UpdateWebhookMessage::components
     /// [`content`]: UpdateWebhookMessage::content
     /// [`embeds`]: UpdateWebhookMessage::embeds
     pub const fn update_webhook_message<'a>(

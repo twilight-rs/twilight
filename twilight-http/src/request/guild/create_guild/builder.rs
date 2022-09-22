@@ -107,7 +107,10 @@ impl RoleFieldsBuilder {
 
     /// Set the role color.
     ///
-    /// This must be a valid hexadecimal RGB value.
+    /// This must be a valid hexadecimal RGB value. `0x000000` is ignored
+    /// and doesn't count towards the final computed color in the user list.
+    /// Refer to [`Self::COLOR_MAXIMUM`] for the maximum
+    /// acceptable value.
     ///
     /// # Errors
     ///

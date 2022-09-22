@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.13.4] - 2022-09-16
+
+### Bug Fixes
+
+- don't serialize `Mention.member` if None ([#1896](https://github.com/twilight-rs/twilight/issues/1896))
+
+### Features
+
+- add `two_way_link` to `Connection` ([#1918](https://github.com/twilight-rs/twilight/issues/1918))
+
+## [0.13.3] - 2022-09-08
+
+### Features
+
+- add application command badge flag ([#1888](https://github.com/twilight-rs/twilight/issues/1888))
+- add handling for gateway resume url ([#1894](https://github.com/twilight-rs/twilight/issues/1894))
+
 ## [0.13.2] - 2022-09-01
 
 ### Bug Fixes

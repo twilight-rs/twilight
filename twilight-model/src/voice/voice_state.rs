@@ -12,27 +12,42 @@ use serde::{
 };
 use std::fmt::{Formatter, Result as FmtResult};
 
+/// User's voice connection status.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 pub struct VoiceState {
+    /// Channel this user is connected to.
+    ///
+    /// [`None`] corresponds to being disconnected.
     pub channel_id: Option<Id<ChannelMarker>>,
+    /// Whether this user is server deafened.
     pub deaf: bool,
+    /// Guild this voice state is for.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
+    /// Member this voice state is for.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub member: Option<Member>,
+    /// Whether this user is server muted.
     pub mute: bool,
+    /// Whether this user is locally deafened.
     pub self_deaf: bool,
+    /// Whether this user is locally muted.
     pub self_mute: bool,
-    /// Whether this user is streaming via "Go Live".
+    /// Whether this user is streaming using "Go Live".
     #[serde(default)]
     pub self_stream: bool,
     /// Whether this user's camera is enabled.
     pub self_video: bool,
+    /// Session ID for this voice state.
+    ///
+    /// Used to establish a voice websocket connection.
     pub session_id: String,
+    /// Whether this user is suppressed from speaking.
+    ///
+    /// Only applies to stage channels.
     pub suppress: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub token: Option<String>,
+    /// User this voice state is for.
     pub user_id: Id<UserMarker>,
     /// When the user requested to speak.
     ///
@@ -57,7 +72,6 @@ enum Field {
     SelfVideo,
     SessionId,
     Suppress,
-    Token,
     UserId,
     RequestToSpeakTimestamp,
 }
@@ -84,7 +98,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
         let mut self_video = None;
         let mut session_id = None;
         let mut suppress = None;
-        let mut token = None;
         let mut user_id = None;
         let mut request_to_speak_timestamp = None;
 
@@ -190,13 +203,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
 
                     suppress = Some(map.next_value()?);
                 }
-                Field::Token => {
-                    if token.is_some() {
-                        return Err(DeError::duplicate_field("token"));
-                    }
-
-                    token = map.next_value()?;
-                }
                 Field::UserId => {
                     if user_id.is_some() {
                         return Err(DeError::duplicate_field("user_id"));
@@ -257,7 +263,6 @@ impl<'de> Visitor<'de> for VoiceStateVisitor {
             self_video,
             session_id,
             suppress,
-            token,
             user_id,
             request_to_speak_timestamp,
         })
@@ -288,8 +293,9 @@ impl<'de> Deserialize<'de> for VoiceState {
 
 #[cfg(test)]
 mod tests {
-    use super::{Member, VoiceState};
+    use super::VoiceState;
     use crate::{
+        guild::Member,
         id::Id,
         user::User,
         util::datetime::{Timestamp, TimestampParseError},
@@ -311,7 +317,6 @@ mod tests {
             self_video: false,
             session_id: "a".to_owned(),
             suppress: true,
-            token: None,
             user_id: Id::new(3),
             request_to_speak_timestamp: None,
         };
@@ -404,7 +409,6 @@ mod tests {
             self_video: false,
             session_id: "a".to_owned(),
             suppress: true,
-            token: Some("abc".to_owned()),
             user_id: Id::new(3),
             request_to_speak_timestamp: Some(request_to_speak_timestamp),
         };
@@ -414,7 +418,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "VoiceState",
-                    len: 14,
+                    len: 13,
                 },
                 Token::Str("channel_id"),
                 Token::Some,
@@ -490,9 +494,6 @@ mod tests {
                 Token::Str("a"),
                 Token::Str("suppress"),
                 Token::Bool(true),
-                Token::Str("token"),
-                Token::Some,
-                Token::Str("abc"),
                 Token::Str("user_id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),

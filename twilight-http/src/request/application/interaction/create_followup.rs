@@ -10,17 +10,12 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    application::component::Component,
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, MessageFlags},
-        Message,
-    },
+    channel::message::{AllowedMentions, Component, Embed, Message, MessageFlags},
     http::attachment::Attachment,
     id::{marker::ApplicationMarker, Id},
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
+    attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, MessageValidationError,
 };
 
@@ -46,8 +41,8 @@ struct CreateFollowupFields<'a> {
 
 /// Create a followup message to an interaction, by its token.
 ///
-/// The message must include at least one of [`attachments`], [`content`], or
-/// [`embeds`].
+/// The message must include at least one of [`attachments`], [`components`],
+/// [`content`], or [`embeds`].
 ///
 /// This endpoint is not bound to the application's global rate limit.
 ///
@@ -72,6 +67,7 @@ struct CreateFollowupFields<'a> {
 /// ```
 ///
 /// [`attachments`]: Self::attachments
+/// [`components`]: Self::components
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]
@@ -123,17 +119,19 @@ impl<'a> CreateFollowup<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager

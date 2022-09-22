@@ -10,11 +10,8 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    application::component::Component,
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, MessageFlags, MessageReference},
-        Message,
+    channel::message::{
+        AllowedMentions, Component, Embed, Message, MessageFlags, MessageReference,
     },
     http::attachment::Attachment,
     id::{
@@ -23,7 +20,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
+    attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
     MessageValidationError,
 };
@@ -57,7 +54,7 @@ pub(crate) struct CreateMessageFields<'a> {
 /// Send a message to a channel.
 ///
 /// The message must include at least one of [`attachments`], [`content`],
-/// [`embeds`], or [`sticker_ids`].
+/// [`components`], [`embeds`], or [`sticker_ids`].
 ///
 /// # Example
 ///
@@ -80,6 +77,7 @@ pub(crate) struct CreateMessageFields<'a> {
 ///
 /// [`attachments`]: Self::attachments
 /// [`content`]: Self::content
+/// [`components`]: Self::components
 /// [`embeds`]: Self::embeds
 /// [`sticker_ids`]: Self::sticker_ids
 #[must_use = "requests must be configured and executed"]
@@ -128,17 +126,19 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager
