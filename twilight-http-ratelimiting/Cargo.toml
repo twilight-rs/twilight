@@ -10,7 +10,7 @@ license.workspace = true
 name = "twilight-http-ratelimiting"
 publish = true
 repository.workspace = true
-rust-version.workspace = true
+rust-version = "1.64"
 version = "0.13.2"
 
 [dependencies]
