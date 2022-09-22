@@ -73,6 +73,7 @@ impl<'a> SearchGuildMembers<'a> {
     ///
     /// [`SearchGuildMembers`]: twilight_validate::request::ValidationErrorType::SearchGuildMembers
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_search_guild_members_limit(limit) {
             return Err(source);
         }
