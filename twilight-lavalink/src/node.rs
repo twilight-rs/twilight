@@ -556,7 +556,7 @@ impl Connection {
         };
 
         match &event {
-            IncomingEvent::PlayerUpdate(update) => self.player_update(update).await?,
+            IncomingEvent::PlayerUpdate(update) => self.player_update(update)?,
             IncomingEvent::Stats(stats) => self.stats(stats).await?,
             _ => {}
         }
@@ -570,7 +570,7 @@ impl Connection {
         Ok(true)
     }
 
-    async fn player_update(&self, update: &PlayerUpdate) -> Result<(), NodeError> {
+    fn player_update(&self, update: &PlayerUpdate) -> Result<(), NodeError> {
         let player = if let Some(player) = self.players.get(&update.guild_id) {
             player
         } else {

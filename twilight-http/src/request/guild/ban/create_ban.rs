@@ -82,6 +82,7 @@ impl<'a> CreateBan<'a> {
     ///
     /// [`CreateGuildBanDeleteMessageSeconds`]: twilight_validate::request::ValidationErrorType::CreateGuildBanDeleteMessageSeconds
     pub const fn delete_message_seconds(mut self, seconds: u32) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_create_guild_ban_delete_message_seconds(seconds) {
             return Err(source);
         }
