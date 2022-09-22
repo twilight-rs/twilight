@@ -1,5 +1,6 @@
 [package]
 authors.workspace = true
+build = "build.rs"
 edition.workspace = true
 name = "book"
 version = "0.0.0"
