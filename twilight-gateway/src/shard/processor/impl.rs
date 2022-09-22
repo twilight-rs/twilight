@@ -536,8 +536,7 @@ impl ShardProcessor {
                 self.process_resumed(seq);
 
                 if emitter.wants(EventTypeFlags::RESUMED) {
-                    let gateway_event =
-                        GatewayEvent::Dispatch(seq, Box::new(DispatchEvent::Resumed));
+                    let gateway_event = GatewayEvent::Dispatch(seq, DispatchEvent::Resumed);
 
                     emitter.event(Event::from(gateway_event));
                 }
