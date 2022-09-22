@@ -115,6 +115,7 @@ impl<'a> GetChannelMessages<'a> {
     ///
     /// [`GetChannelMessages`]: twilight_validate::request::ValidationErrorType::GetChannelMessages
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_get_channel_messages_limit(limit) {
             return Err(source);
         }

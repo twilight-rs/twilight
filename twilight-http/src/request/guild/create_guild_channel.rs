@@ -106,6 +106,7 @@ impl<'a> CreateGuildChannel<'a> {
     ///
     /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
     pub const fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_bitrate(bitrate) {
             return Err(source);
         }
@@ -188,6 +189,7 @@ impl<'a> CreateGuildChannel<'a> {
         mut self,
         rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
         }
