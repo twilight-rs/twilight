@@ -1790,7 +1790,7 @@ impl Client {
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
     ///
-    /// To make a [`GuildPrivateThread`], the guild must also have the
+    /// To make a [`PrivateThread`], the guild must also have the
     /// `PRIVATE_THREADS` feature.
     ///
     /// # Errors
@@ -1800,8 +1800,8 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread<'a>(
         &'a self,
@@ -1815,10 +1815,10 @@ impl Client {
     /// Create a new thread from an existing message.
     ///
     /// When called on a [`GuildText`] channel, this creates a
-    /// [`GuildPublicThread`].
+    /// [`PublicThread`].
     ///
-    /// When called on a [`GuildNews`] channel, this creates a
-    /// [`GuildNewsThread`].
+    /// When called on a [`GuildAnnouncement`] channel, this creates a
+    /// [`AnnouncementThread`].
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
@@ -1833,11 +1833,11 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
-    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-    /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
+    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread_from_message<'a>(
         &'a self,
@@ -1890,15 +1890,15 @@ impl Client {
     ///
     /// Threads are ordered by [`archive_timestamp`] in descending order.
     ///
-    /// When called in a [`GuildText`] channel, returns [`GuildPublicThread`]s.
+    /// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
     ///
-    /// When called in a [`GuildNews`] channel, returns [`GuildNewsThread`]s.
+    /// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
     ///
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
     /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
-    /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
-    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-    /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
     pub const fn public_archived_threads(
         &self,
@@ -1912,11 +1912,11 @@ impl Client {
     /// Requires that the thread is not archived.
     ///
     /// Requires the [`MANAGE_THREADS`] permission, unless both the thread is a
-    /// [`GuildPrivateThread`], and the current user is the creator of the
+    /// [`PrivateThread`], and the current user is the creator of the
     /// thread.
     ///
-    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     pub const fn remove_thread_member(
         &self,
         channel_id: Id<ChannelMarker>,
