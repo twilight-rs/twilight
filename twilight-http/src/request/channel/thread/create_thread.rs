@@ -27,10 +27,10 @@ struct CreateThreadFields<'a> {
 
 /// Start a thread that is not connected to a message.
 ///
-/// To make a [`GuildPrivateThread`], the guild must also have the
+/// To make a [`PrivateThread`], the guild must also have the
 /// `PRIVATE_THREADS` feature.
 ///
-/// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
+/// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThread<'a> {
     channel_id: Id<ChannelMarker>,
