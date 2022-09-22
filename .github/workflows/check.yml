@@ -104,14 +104,17 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
-      - name: Install stable toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install nightly toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          components: rustfmt
+          toolchain: nightly
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
 
-      - name: Run cargo fmt
-        run: cargo fmt --all -- --check
+      - name: Check code formatting
+        run: cargo fmt --all -- --check --unstable-features --config format_code_in_doc_comments=true
 
   min-vers:
     name: Minimal crate versions

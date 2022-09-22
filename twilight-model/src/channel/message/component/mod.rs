@@ -125,7 +125,9 @@ impl Component {
     /// Type of component that this is.
     ///
     /// ```
-    /// use twilight_model::channel::message::component::{Button, ButtonStyle, Component, ComponentType};
+    /// use twilight_model::channel::message::component::{
+    ///     Button, ButtonStyle, Component, ComponentType,
+    /// };
     ///
     /// let component = Component::Button(Button {
     ///     custom_id: None,
