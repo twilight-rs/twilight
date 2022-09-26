@@ -81,7 +81,7 @@ use twilight_model::gateway::{
         incoming::Hello,
         outgoing::{
             identify::{IdentifyInfo, IdentifyProperties},
-            Heartbeat, Identify,
+            Heartbeat, Identify, Resume,
         },
     },
     CloseCode, Intents, OpCode,
@@ -379,17 +379,6 @@ impl Shard {
         mut config: Config,
     ) -> Result<Self, ShardInitializeError> {
         let session = config.take_session();
-
-        // Determine whether we need to go through the queue; if the user has
-        // configured an existing gateway session then we can skip it
-        if session.is_none() {
-            tracing::debug!(%shard_id, "queued for identify");
-            config
-                .queue()
-                .request([shard_id.number(), shard_id.total()])
-                .await;
-            tracing::debug!(%shard_id, "passed queue");
-        }
 
         let connection = connection::connect(shard_id, config.gateway_url(), config.tls()).await?;
 
@@ -781,6 +770,13 @@ impl Shard {
             .cloned()
             .unwrap_or_else(default_identify_properties);
 
+        tracing::debug!(shard_id = %self.id(), "queued for identify");
+        self.config
+            .queue()
+            .request([self.id.number(), self.id.total()])
+            .await;
+        tracing::debug!(shard_id = %self.id(), "passed queue");
+
         let identify = Identify::new(IdentifyInfo {
             compress: false,
             large_threshold: self.config.large_threshold(),
@@ -892,7 +888,9 @@ impl Shard {
                     self.ratelimiter = Some(CommandRatelimiter::new(interval));
                 }
 
-                self.identify().await.map_err(ProcessError::from_send)?;
+                if self.session.is_none() {
+                    self.identify().await.map_err(ProcessError::from_send)?;
+                }
             }
             Ok(OpCode::InvalidSession) => {
                 let event = Self::parse_event(buffer)?;
@@ -909,7 +907,8 @@ impl Shard {
 
     /// Reconnect to the gateway with a new Websocket connection.
     ///
-    /// Clears the [compression] buffer and sets the [status] to
+    /// Resumes the connection if a session is available, clears the
+    /// [compression] buffer, and sets the [status] to
     /// [`ConnectionStatus::Connected`].
     ///
     /// [compression]: Self::compression
@@ -936,6 +935,17 @@ impl Shard {
 
                 ReceiveMessageError::from_reconnect(source)
             })?;
+
+        if let Some(session) = self.session() {
+            self.command(&Resume::new(
+                session.sequence(),
+                session.id(),
+                self.config.token(),
+            ))
+            .await
+            .expect("not closed or restarting as it's reconnecting");
+        }
+
         self.compression.reset();
         self.status = ConnectionStatus::Connected;
 
