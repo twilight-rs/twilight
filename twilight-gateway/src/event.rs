@@ -396,13 +396,9 @@ impl TryFrom<(OpCode, Option<&str>)> for EventTypeFlags {
             (OpCode::InvalidSession, _) => Ok(Self::GATEWAY_INVALIDATE_SESSION),
             (OpCode::Hello, _) => Ok(Self::GATEWAY_HELLO),
             (OpCode::HeartbeatAck, _) => Ok(Self::GATEWAY_HEARTBEAT_ACK),
-            (_, Some(event_type)) => {
-                if let Ok(flag) = EventType::try_from(event_type) {
-                    Ok(Self::from(flag))
-                } else {
-                    Err(())
-                }
-            }
+            (_, Some(event_type)) => EventType::try_from(event_type)
+                .map(Self::from)
+                .map_err(|_| ()),
             (_, None) => Err(()),
         }
     }
