@@ -1,6 +1,5 @@
 //! Active gateway session details.
 
-use serde::{Deserialize, Serialize};
 use std::mem;
 
 /// Gateway session information for a shard's active connection.
@@ -29,7 +28,7 @@ use std::mem;
 /// [`ConfigBuilder::session`]: crate::ConfigBuilder::session
 /// [identifier]: Self::id
 /// [shard]: crate::Shard
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Session {
     /// ID of the gateway session.
     id: String,
@@ -94,45 +93,10 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::Session;
-    use serde::{Deserialize, Serialize};
-    use serde_test::Token;
     use static_assertions::assert_impl_all;
     use std::fmt::Debug;
 
-    assert_impl_all!(
-        Session: Clone,
-        Debug,
-        Deserialize<'static>,
-        Eq,
-        PartialEq,
-        Send,
-        Serialize,
-        Sync
-    );
-
-    /// Test that sessions deserialize and serialize the same way.
-    #[test]
-    fn serde() {
-        const SEQUENCE: u64 = 56_132;
-        const SESSION_ID: &str = "thisisanid";
-
-        let value = Session::new(SEQUENCE, SESSION_ID.to_owned());
-
-        serde_test::assert_tokens(
-            &value,
-            &[
-                Token::Struct {
-                    name: "Session",
-                    len: 2,
-                },
-                Token::Str("id"),
-                Token::Str(SESSION_ID),
-                Token::Str("sequence"),
-                Token::U64(SEQUENCE),
-                Token::StructEnd,
-            ],
-        );
-    }
+    assert_impl_all!(Session: Clone, Debug, Eq, PartialEq, Send, Sync);
 
     /// Test that session getters return the provided values.
     #[test]
