@@ -182,9 +182,8 @@ pub fn parse(
             source: None,
         })?;
 
-    event_types
-        .contains(event_flag)
-        .then(|| {
+    if event_types.contains(event_flag) {
+        Some(
             gateway_deserializer
                 .deserialize(&mut json_deserializer)
                 .map_err(|source| {
@@ -194,9 +193,12 @@ pub fn parse(
                         kind: GatewayEventParsingErrorType::Deserializing,
                         source: Some(Box::new(source)),
                     }
-                })
-        })
+                }),
+        )
         .transpose()
+    } else {
+        Ok(None)
+    }
 }
 
 #[cfg(test)]
