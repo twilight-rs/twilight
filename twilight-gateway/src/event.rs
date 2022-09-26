@@ -386,10 +386,10 @@ impl From<EventType> for EventTypeFlags {
     }
 }
 
-impl<'a> TryFrom<(OpCode, Option<&'a str>)> for EventTypeFlags {
+impl TryFrom<(OpCode, Option<&str>)> for EventTypeFlags {
     type Error = ();
 
-    fn try_from((op, event_type): (OpCode, Option<&'a str>)) -> Result<Self, Self::Error> {
+    fn try_from((op, event_type): (OpCode, Option<&str>)) -> Result<Self, Self::Error> {
         match (op, event_type) {
             (OpCode::Heartbeat, _) => Ok(Self::GATEWAY_HEARTBEAT),
             (OpCode::Reconnect, _) => Ok(Self::GATEWAY_RECONNECT),
@@ -400,7 +400,7 @@ impl<'a> TryFrom<(OpCode, Option<&'a str>)> for EventTypeFlags {
                 if let Ok(flag) = EventType::try_from(event_type) {
                     Ok(Self::from(flag))
                 } else {
-                    return Err(());
+                    Err(())
                 }
             }
             (_, None) => Err(()),
