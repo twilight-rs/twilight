@@ -183,19 +183,17 @@ pub fn parse(
         })?;
 
     if event_types.contains(event_flag) {
-        Some(
-            gateway_deserializer
-                .deserialize(&mut json_deserializer)
-                .map_err(|source| {
-                    tracing::error!("invalid JSON: {}", String::from_utf8_lossy(json));
+        gateway_deserializer
+            .deserialize(&mut json_deserializer)
+            .map(Some)
+            .map_err(|source| {
+                tracing::error!("invalid JSON: {}", String::from_utf8_lossy(json));
 
-                    GatewayEventParsingError {
-                        kind: GatewayEventParsingErrorType::Deserializing,
-                        source: Some(Box::new(source)),
-                    }
-                }),
-        )
-        .transpose()
+                GatewayEventParsingError {
+                    kind: GatewayEventParsingErrorType::Deserializing,
+                    source: Some(Box::new(source)),
+                }
+            })
     } else {
         Ok(None)
     }
