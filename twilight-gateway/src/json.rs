@@ -10,13 +10,14 @@ use serde_json::from_slice as from_slice_inner;
 #[cfg(feature = "simd-json")]
 use simd_json::from_slice as from_slice_inner;
 
+use crate::EventTypeFlags;
 use serde::de::{DeserializeOwned, DeserializeSeed};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     str::{self, Utf8Error},
 };
-use twilight_model::gateway::event::GatewayEvent;
+use twilight_model::gateway::{event::GatewayEvent, OpCode};
 
 #[cfg(not(feature = "simd-json"))]
 use twilight_model::gateway::event::GatewayEventDeserializer as EventDeserializer;
@@ -121,6 +122,8 @@ pub fn from_slice<T: DeserializeOwned>(json: &mut [u8]) -> Result<T, GatewayEven
 /// Parse JSON into a gateway event without existing knowledge of its underlying
 /// parts.
 ///
+/// Returns [`None`] if the event is not contained inside of `event_types`.
+///
 /// # Errors
 ///
 /// Returns a [`GatewayEventParsingErrorType::Deserializing`] error type if the
@@ -129,7 +132,10 @@ pub fn from_slice<T: DeserializeOwned>(json: &mut [u8]) -> Result<T, GatewayEven
 /// Returns a [`GatewayEventParsingErrorType::PayloadInvalid`] error type if the
 /// payload wasn't a valid `GatewayEvent` data structure, such as due to not
 /// being UTF-8 valid.
-pub fn parse(json: &mut [u8]) -> Result<GatewayEvent, GatewayEventParsingError> {
+pub fn parse(
+    event_types: EventTypeFlags,
+    json: &mut [u8],
+) -> Result<Option<GatewayEvent>, GatewayEventParsingError> {
     #[cfg(feature = "simd-json")]
     let (gateway_deserializer, mut json_deserializer) = {
         let gateway_deserializer = EventDeserializer::from_json(
@@ -164,16 +170,33 @@ pub fn parse(json: &mut [u8]) -> Result<GatewayEvent, GatewayEventParsingError> 
         (gateway_deserializer, json_deserializer)
     };
 
-    gateway_deserializer
-        .deserialize(&mut json_deserializer)
-        .map_err(|source| {
-            tracing::error!("invalid JSON: {}", String::from_utf8_lossy(json));
+    let opcode =
+        OpCode::try_from(gateway_deserializer.op()).map_err(|_| GatewayEventParsingError {
+            kind: GatewayEventParsingErrorType::PayloadInvalid,
+            source: None,
+        })?;
 
-            GatewayEventParsingError {
-                kind: GatewayEventParsingErrorType::Deserializing,
-                source: Some(Box::new(source)),
-            }
+    let event_flag = EventTypeFlags::try_from((opcode, gateway_deserializer.event_type_ref()))
+        .map_err(|_| GatewayEventParsingError {
+            kind: GatewayEventParsingErrorType::PayloadInvalid,
+            source: None,
+        })?;
+
+    event_types
+        .contains(event_flag)
+        .then(|| {
+            gateway_deserializer
+                .deserialize(&mut json_deserializer)
+                .map_err(|source| {
+                    tracing::error!("invalid JSON: {}", String::from_utf8_lossy(json));
+
+                    GatewayEventParsingError {
+                        kind: GatewayEventParsingErrorType::Deserializing,
+                        source: Some(Box::new(source)),
+                    }
+                })
         })
+        .transpose()
 }
 
 #[cfg(test)]
