@@ -481,7 +481,7 @@ impl Shard {
                 }
             };
 
-            // If event is unwanted loop
+            // loop if event is unwanted
             if let Some(event) = json::parse(self.config.event_types(), &mut bytes)
                 .map_err(ReceiveMessageError::from_json)?
             {
