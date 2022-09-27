@@ -736,6 +736,7 @@ impl Shard {
     ///
     /// Panics if called without an `override_sequence` and without having
     /// received an [`OpCode::Hello`] event.
+    #[track_caller]
     async fn heartbeat(&mut self, override_sequence: Option<u64>) -> Result<(), SendError> {
         let is_first_heartbeat = self.heartbeat_interval.is_some() && self.latency.sent().is_none();
 
