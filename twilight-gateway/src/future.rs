@@ -137,8 +137,12 @@ impl TickHeartbeatFuture {
                     heartbeat_interval.saturating_sub(last_sent.elapsed()),
                 ))),
             },
-            (Some(_), None) => Self {
-                inner: Some(Box::pin(time::sleep(Duration::ZERO))),
+            (Some(heartbeat_interval), None) => Self {
+                // First heartbeat should have some jitter, see
+                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
+                inner: Some(Box::pin(time::sleep(
+                    heartbeat_interval.mul_f64(rand::random()),
+                ))),
             },
             (None, _) => Self { inner: None },
         }
