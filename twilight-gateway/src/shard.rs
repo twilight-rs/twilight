@@ -748,7 +748,7 @@ impl Shard {
             self.disconnect(Disconnect::Resume);
         } else {
             let sequence = override_sequence
-                .or(self.session.as_ref().map(Session::sequence))
+                .or_else(|| self.session.as_ref().map(Session::sequence))
                 .unwrap();
 
             let command = Heartbeat::new(sequence);
