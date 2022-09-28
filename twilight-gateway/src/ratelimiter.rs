@@ -76,7 +76,7 @@ mod tests {
         assert!(ratelimiter.available() == 0);
 
         time::pause();
-        // Should not refill untill RESET_PERIOD has passed.
+        // Should not refill until RESET_PERIOD has passed.
         time::advance(RESET_PERIOD - Duration::from_secs(1)).await;
         assert!(ratelimiter.available() == 0);
 
