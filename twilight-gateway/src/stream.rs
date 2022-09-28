@@ -369,7 +369,7 @@ pub fn start_cluster<F: Fn(ShardId) -> Config>(
     concurrency: u64,
     total: u64,
     per_shard_config: F,
-) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static {
+) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + Sync + 'static {
     assert!(bucket_id < total, "bucket id must be less than the total");
     assert!(
         concurrency < total,
@@ -408,7 +408,7 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
     range: impl RangeBounds<u64>,
     total: u64,
     per_shard_config: F,
-) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static {
+) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + Sync + 'static {
     let range = calculate_range(range, total);
     let tls = TlsContainer::new().unwrap();
 
@@ -474,7 +474,10 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 pub async fn start_recommended<F: Fn(ShardId) -> Config>(
     client: &Client,
     per_shard_config: F,
-) -> Result<impl Stream<Item = Result<Shard, ShardInitializeError>> + Send, StartRecommendedError> {
+) -> Result<
+    impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + Sync,
+    StartRecommendedError,
+> {
     let request = client.gateway().authed();
     let response = request
         .exec()
