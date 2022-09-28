@@ -56,9 +56,32 @@ impl CommandRatelimiter {
 
 #[cfg(test)]
 mod tests {
-    use super::CommandRatelimiter;
+    use super::{CommandRatelimiter, COMMANDS_PER_RESET, RESET_PERIOD};
     use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use std::{fmt::Debug, time::Duration};
+    use tokio::time;
 
     assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
+
+    #[tokio::test]
+    async fn ratelimiter_refills() {
+        let ratelimiter = CommandRatelimiter::new();
+
+        assert!(ratelimiter.available() == COMMANDS_PER_RESET);
+        for _ in 0..COMMANDS_PER_RESET {
+            time::timeout(Duration::from_micros(1), ratelimiter.acquire_one())
+                .await
+                .unwrap();
+        }
+        assert!(ratelimiter.available() == 0);
+
+        time::pause();
+        // Should not refill untill RESET_PERIOD has passed.
+        time::advance(RESET_PERIOD - Duration::from_secs(1)).await;
+        assert!(ratelimiter.available() == 0);
+
+        // Should now be refilled.
+        time::advance(Duration::from_secs(1)).await;
+        assert!(ratelimiter.available() == 120);
+    }
 }
