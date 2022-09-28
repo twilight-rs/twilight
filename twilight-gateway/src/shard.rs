@@ -390,8 +390,6 @@ impl Shard {
 
         let connection = connection::connect(shard_id, config.gateway_url(), config.tls()).await?;
 
-        let ratelimiter = config.ratelimit_messages().then(CommandRatelimiter::new);
-
         Ok(Self {
             compression: Compression::new(shard_id),
             config,
@@ -399,7 +397,7 @@ impl Shard {
             heartbeat_interval: None,
             id: shard_id,
             latency: Latency::new(),
-            ratelimiter,
+            ratelimiter: None,
             resume_gateway_url: None,
             session,
             status: ConnectionStatus::Connected,
@@ -861,6 +859,11 @@ impl Shard {
                 let interval = event.data.heartbeat_interval;
                 let heartbeat_duration = Duration::from_millis(interval);
                 self.heartbeat_interval = Some(heartbeat_duration);
+
+                self.ratelimiter = self
+                    .config()
+                    .ratelimit_messages()
+                    .then(|| CommandRatelimiter::new(interval));
 
                 self.identify().await.map_err(ProcessError::from_send)?;
             }
