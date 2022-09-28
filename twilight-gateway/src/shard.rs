@@ -853,7 +853,7 @@ impl Shard {
 
                 self.heartbeat(Some(event.data))
                     .await
-                    .map_err(ProcessError::from_send)?
+                    .map_err(ProcessError::from_send)?;
             }
             Ok(OpCode::HeartbeatAck) => {
                 self.latency.track_received();
