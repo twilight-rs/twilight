@@ -82,6 +82,6 @@ mod tests {
 
         // Should now be refilled.
         time::advance(Duration::from_secs(1)).await;
-        assert!(ratelimiter.available() == 120);
+        assert!(ratelimiter.available() == COMMANDS_PER_RESET);
     }
 }
