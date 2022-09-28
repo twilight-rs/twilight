@@ -74,6 +74,7 @@ fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u32 {
     let reserved_heartbeats =
         (RESET_DURATION.as_secs_f32() / heartbeat_interval.as_secs_f32()).ceil();
 
+    #[allow(clippy::cast_sign_loss)]
     COMMANDS_PER_RESET
         .saturating_sub(reserved_heartbeats as u32 * 2)
         .max(MAX_NONRESERVED_COMMANDS_PER_RESET)
