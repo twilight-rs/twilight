@@ -63,25 +63,42 @@ mod tests {
 
     assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn ratelimiter_refills() {
         let ratelimiter = CommandRatelimiter::new();
 
         assert!(ratelimiter.available() == COMMANDS_PER_RESET);
         for _ in 0..COMMANDS_PER_RESET {
-            time::timeout(Duration::from_micros(1), ratelimiter.acquire_one())
-                .await
-                .unwrap();
+            ratelimiter.acquire_one().await;
         }
         assert!(ratelimiter.available() == 0);
 
-        time::pause();
         // Should not refill until RESET_PERIOD has passed.
         time::advance(RESET_PERIOD - Duration::from_secs(1)).await;
         assert!(ratelimiter.available() == 0);
 
-        // Should now be refilled.
+        // All should be refilled.
         time::advance(Duration::from_secs(1)).await;
+        assert!(ratelimiter.available() == COMMANDS_PER_RESET);
+
+        for _ in 0..COMMANDS_PER_RESET / 2 {
+            ratelimiter.acquire_one().await;
+        }
+        assert!(ratelimiter.available() == COMMANDS_PER_RESET / 2);
+
+        time::advance(RESET_PERIOD / 2).await;
+
+        for _ in 0..COMMANDS_PER_RESET / 2 {
+            ratelimiter.acquire_one().await;
+        }
+        assert!(ratelimiter.available() == 0);
+
+        // Half should be refilled.
+        time::advance(RESET_PERIOD / 2).await;
+        assert!(ratelimiter.available() == COMMANDS_PER_RESET / 2);
+
+        // All should be refilled.
+        time::advance(RESET_PERIOD / 2).await;
         assert!(ratelimiter.available() == COMMANDS_PER_RESET);
     }
 }
