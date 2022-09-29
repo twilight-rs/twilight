@@ -16,9 +16,15 @@ const RESET_DURATION: Duration = Duration::from_secs(60);
 /// Ratelimiter for sending commands over the gateway to Discord.
 #[derive(Debug)]
 pub struct CommandRatelimiter {
-    max: u8,
     /// Semaphore to limit actions.
     semaphore: Arc<Semaphore>,
+    /// Capacity of the semaphore.
+    ///
+    /// Needs to be stored for [`max`] ([`Semaphore`] does not expose the
+    /// value).
+    ///
+    /// [`max`]: Self::max
+    semaphore_capacity: u8,
 }
 
 impl CommandRatelimiter {
@@ -27,8 +33,8 @@ impl CommandRatelimiter {
         let allotted = nonreserved_commands_per_reset(Duration::from_millis(heartbeat_interval));
 
         Self {
-            max: allotted,
             semaphore: Arc::new(Semaphore::new(usize::from(allotted))),
+            semaphore_capacity: allotted,
         }
     }
 
@@ -41,13 +47,16 @@ impl CommandRatelimiter {
     }
 
     /// Maximum number of commands that may be made per interval.
+    // Don't stabilize const for the public API yet as the implementation may
+    // change in a way it cannot be const.
+    #[allow(clippy::missing_const_for_fn)]
     pub fn max(&self) -> u8 {
-        self.max
+        self.semaphore_capacity
     }
 
     /// Acquire a token from the bucket, waiting until one is available.
     pub(crate) async fn acquire(&self) -> RatelimiterGuard {
-        // Is reinserted inside of RatelimiterGuard
+        // Is reinserted inside of RatelimiterGuard.
         self.semaphore
             .acquire()
             .await
@@ -69,6 +78,9 @@ impl CommandRatelimiter {
 ///
 /// [`Shard`]: super::Shard
 pub(crate) struct RatelimiterGuard {
+    /// Shared reference to the semaphore in [`CommandRatelimiter`].
+    ///
+    /// Needed to reinsert the permit in `Drop`.
     semaphore: Arc<Semaphore>,
 }
 
