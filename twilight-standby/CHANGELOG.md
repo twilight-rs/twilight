@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.2] - 2022-09-29
+
+### Features
+
+- method to get the `guild_id` from an `Event` ([#1899](https://github.com/twilight-rs/twilight/issues/1899))
+
 ## [0.13.1] - 2022-09-08
 
 ### Features
