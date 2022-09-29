@@ -236,8 +236,8 @@ pub enum ReceiveMessageErrorType {
     FatallyClosed {
         /// Close code of the close message.
         ///
-        /// The close code may be able to parse into [`CloseCode`] if it's a
-        /// known close code. Unknown close codes are considered fatal.
+        /// The close code may be able to parse into [`CloseCode`] if it is
+        /// known. Unknown close codes are considered fatal.
         close_code: u16,
     },
     /// Processing the message failed.
