@@ -736,10 +736,30 @@ impl Shard {
     }
 
     /// Send a heartbeat, optionally overriding the session's sequence.
+    ///
+    /// Closes the connection and resumes if previous sent heartbeat never got
+    /// a reply.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called without an `override_sequence` and without having
+    /// received an [`OpCode::Hello`] event.
+    #[track_caller]
     async fn heartbeat(&mut self, override_sequence: Option<u64>) -> Result<(), SendError> {
-        let session_sequence = self.session.as_ref().map(Session::sequence);
+        let is_first_heartbeat = self.heartbeat_interval.is_some() && self.latency.sent().is_none();
 
-        if let Some(sequence) = override_sequence.or(session_sequence) {
+        // Discord never replied to the last heartbeat, connection is failed or
+        // "zombied", see
+        // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
+        if !is_first_heartbeat && self.latency().received().is_none() {
+            tracing::warn!("connection failed or \"zombied\"");
+            self.session = self.close(CloseFrame::RESUME).await?;
+            self.disconnect(Disconnect::Resume);
+        } else {
+            let sequence = override_sequence
+                .or_else(|| self.session.as_ref().map(Session::sequence))
+                .unwrap();
+
             let command = Heartbeat::new(sequence);
             self.command(&command).await?;
 
