@@ -657,7 +657,7 @@ impl Shard {
     /// [was enabled]: crate::ConfigBuilder::ratelimit_messages
     pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
         if let Some(ref ratelimiter) = self.ratelimiter {
-            ratelimiter.acquire_one().await;
+            ratelimiter.acquire().await;
         }
 
         self.send_direct(message).await

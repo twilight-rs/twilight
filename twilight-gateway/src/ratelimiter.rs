@@ -4,11 +4,11 @@
 //!
 //! [send messages]: crate::Shard::send
 
-use leaky_bucket_lite::LeakyBucket;
-use std::time::{Duration, Instant};
+use std::{sync::Arc, time::Duration};
+use tokio::sync::Semaphore;
 
 /// Number of commands allowed in a given [`RESET_DURATION`].
-const COMMANDS_PER_RESET: u32 = 120;
+const COMMANDS_PER_RESET: u8 = 120;
 
 /// Duration until the ratelimit bucket resets.
 const RESET_DURATION: Duration = Duration::from_secs(60);
@@ -16,8 +16,9 @@ const RESET_DURATION: Duration = Duration::from_secs(60);
 /// Ratelimiter for sending commands over the gateway to Discord.
 #[derive(Debug)]
 pub struct CommandRatelimiter {
-    /// Bucket used for limiting actions.
-    bucket: LeakyBucket,
+    max: u8,
+    /// Semaphore to limit actions.
+    semaphore: Arc<Semaphore>,
 }
 
 impl CommandRatelimiter {
@@ -26,33 +27,62 @@ impl CommandRatelimiter {
         let allotted = nonreserved_commands_per_reset(Duration::from_millis(heartbeat_interval));
 
         Self {
-            bucket: LeakyBucket::builder()
-                .max(allotted)
-                .tokens(allotted)
-                .refill_interval(RESET_DURATION)
-                .refill_amount(allotted)
-                .build(),
+            max: allotted,
+            semaphore: Arc::new(Semaphore::new(usize::from(allotted))),
         }
     }
 
     /// Current number of commands that are still available within the interval.
-    pub fn available(&self) -> u32 {
-        self.bucket.tokens()
+    pub fn available(&self) -> u8 {
+        self.semaphore
+            .available_permits()
+            .try_into()
+            .expect("constructed from u8")
     }
 
     /// Maximum number of commands that may be made per interval.
-    pub fn max(&self) -> u32 {
-        self.bucket.max()
-    }
-
-    /// When the bucket will refresh the available number of commands again.
-    pub fn next_refill(&self) -> Instant {
-        self.bucket.next_refill().into_std()
+    pub fn max(&self) -> u8 {
+        self.max
     }
 
     /// Acquire a token from the bucket, waiting until one is available.
-    pub(crate) async fn acquire_one(&self) {
-        self.bucket.acquire_one().await;
+    pub(crate) async fn acquire(&self) -> RatelimiterGuard {
+        // Is reinserted inside of RatelimiterGuard
+        self.semaphore
+            .acquire()
+            .await
+            .expect("never closed")
+            .forget();
+
+        RatelimiterGuard {
+            semaphore: (Arc::clone(&self.semaphore)),
+        }
+    }
+}
+
+/// Guard around the ratelimit permit. As long as this is held one command is
+/// guarenteed to not be ratelimited.
+///
+/// Because this hold a shared reference to [`Semaphore`],
+/// [`CommandRatelimiter`] will only be dropped after the last guard has been
+/// dropped. This can cause delays when shutting down a [`Shard`].
+///
+/// [`Shard`]: super::Shard
+pub(crate) struct RatelimiterGuard {
+    semaphore: Arc<Semaphore>,
+}
+
+/// Reinsert the ratelimit permit after [`RESET_DURATION`].
+///
+/// This is a workaround for async drop not being available.
+impl Drop for RatelimiterGuard {
+    fn drop(&mut self) {
+        let semaphore = Arc::clone(&self.semaphore);
+        tokio::spawn(async move {
+            // Reinsert after RESET_DURATION.
+            tokio::time::sleep(RESET_DURATION).await;
+            semaphore.add_permits(1);
+        });
     }
 }
 
@@ -64,16 +94,16 @@ impl CommandRatelimiter {
 /// (which requires the gateway to immediately send a heartbeat back).
 ///
 /// [`OpCode::Heartbeat`]: twilight_model::gateway::OpCode::Heartbeat
-fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u32 {
+fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
     /// Guard against faulty gateway implementations sending absurdly low
     /// heartbeat intervals by maximally reserving 10 heartbeats per
     /// [`RESET_DURATION`].
-    const MAX_NONRESERVED_COMMANDS_PER_RESET: u32 = COMMANDS_PER_RESET - 10;
+    const MAX_NONRESERVED_COMMANDS_PER_RESET: u8 = COMMANDS_PER_RESET - 10;
 
     // Round up to be on the safe side.
     #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     let reserved_heartbeats =
-        (RESET_DURATION.as_secs_f32() / heartbeat_interval.as_secs_f32()).ceil() as u32;
+        (RESET_DURATION.as_secs_f32() / heartbeat_interval.as_secs_f32()).ceil() as u8;
 
     COMMANDS_PER_RESET
         .saturating_sub(reserved_heartbeats * 2)
@@ -103,44 +133,53 @@ mod tests {
         );
     }
 
-    #[tokio::test(start_paused = true)]
-    async fn ratelimiter_specification() {
+    #[tokio::test]
+    async fn ratelimiter_specification_1() {
         let ratelimiter = CommandRatelimiter::new(RESET_DURATION.as_millis().try_into().unwrap());
 
-        let commands_per_reset: u32 = nonreserved_commands_per_reset(RESET_DURATION);
+        let commands_per_reset = nonreserved_commands_per_reset(RESET_DURATION);
 
         assert!(ratelimiter.available() == commands_per_reset);
         for _ in 0..commands_per_reset {
-            ratelimiter.acquire_one().await;
+            ratelimiter.acquire().await;
         }
         assert!(ratelimiter.available() == 0);
 
         // Should not refill until RESET_PERIOD has passed.
-        time::advance(RESET_DURATION - Duration::from_secs(1)).await;
+        time::sleep(RESET_DURATION - Duration::from_secs(1)).await;
         assert!(ratelimiter.available() == 0);
 
         // All should be refilled.
-        time::advance(Duration::from_secs(1)).await;
+        time::sleep(Duration::from_secs(1)).await;
+        assert!(ratelimiter.available() == commands_per_reset);
+    }
+
+    #[tokio::test]
+    async fn ratelimiter_specification_2() {
+        let ratelimiter = CommandRatelimiter::new(RESET_DURATION.as_millis().try_into().unwrap());
+
+        let commands_per_reset = nonreserved_commands_per_reset(RESET_DURATION);
+
         assert!(ratelimiter.available() == commands_per_reset);
 
         for _ in 0..commands_per_reset / 2 {
-            ratelimiter.acquire_one().await;
+            ratelimiter.acquire().await;
         }
         assert!(ratelimiter.available() == commands_per_reset / 2);
 
-        time::advance(RESET_DURATION / 2).await;
+        time::sleep(RESET_DURATION / 2).await;
 
         for _ in 0..commands_per_reset / 2 {
-            ratelimiter.acquire_one().await;
+            ratelimiter.acquire().await;
         }
         assert!(ratelimiter.available() == 0);
 
         // Half should be refilled.
-        time::advance(RESET_DURATION / 2).await;
+        time::sleep(RESET_DURATION / 2).await;
         assert!(ratelimiter.available() == commands_per_reset / 2);
 
         // All should be refilled.
-        time::advance(RESET_DURATION / 2).await;
+        time::sleep(RESET_DURATION / 2).await;
         assert!(ratelimiter.available() == commands_per_reset);
     }
 }
