@@ -108,7 +108,7 @@ impl Drop for RatelimiterGuard {
 /// [`OpCode::Heartbeat`]: twilight_model::gateway::OpCode::Heartbeat
 fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
     /// Guard against faulty gateway implementations sending absurdly low
-    /// heartbeat intervals by maximally reserving 10 heartbeats per
+    /// heartbeat intervals by maximally reserving some number of heartbeats per
     /// [`RESET_DURATION`].
     const MAX_NONRESERVED_COMMANDS_PER_RESET: u8 = COMMANDS_PER_RESET - 10;
 
@@ -132,7 +132,7 @@ mod tests {
     assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
 
     #[test]
-    fn commands_per_interval() {
+    fn nonreserved_commands() {
         assert_eq!(118, nonreserved_commands_per_reset(Duration::from_secs(60)));
         assert_eq!(
             116,
@@ -145,6 +145,7 @@ mod tests {
         );
     }
 
+    // Divide into two tests as they take one minute each to finish.
     #[tokio::test]
     async fn ratelimiter_specification_1() {
         let ratelimiter = CommandRatelimiter::new(RESET_DURATION.as_millis().try_into().unwrap());
