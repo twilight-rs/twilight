@@ -1,5 +1,15 @@
 # Changelog
 
+## [unreleased]
+
+### Build
+
+- fix or ignore clippy for 1.64
+
+### Features
+
+- add gateway url to the shard information ([#1926](https://github.com/twilight-rs/twilight/issues/1926))
+
 ## [0.13.2] - 2022-09-11
 
 ### Bug Fixes

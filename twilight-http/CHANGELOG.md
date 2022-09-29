@@ -1,5 +1,16 @@
 # Changelog
 
+## [unreleased]
+
+### Build
+
+- fix or ignore clippy for 1.64
+
+### Documentation
+
+- document component only messages ([#1911](https://github.com/twilight-rs/twilight/issues/1911))
+- document mutable guild features ([#1912](https://github.com/twilight-rs/twilight/issues/1912))
+
 ## [0.13.1] - 2022-09-16
 
 ### Documentation
