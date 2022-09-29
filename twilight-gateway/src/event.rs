@@ -2,7 +2,7 @@
 //! event deserialization.
 
 use bitflags::bitflags;
-use twilight_model::gateway::event::EventType;
+use twilight_model::gateway::{event::EventType, OpCode};
 
 bitflags! {
     /// Important optimization for narrowing requested event types.
@@ -382,6 +382,24 @@ impl From<EventType> for EventTypeFlags {
             EventType::VoiceServerUpdate => Self::VOICE_SERVER_UPDATE,
             EventType::VoiceStateUpdate => Self::VOICE_STATE_UPDATE,
             EventType::WebhooksUpdate => Self::WEBHOOKS_UPDATE,
+        }
+    }
+}
+
+impl TryFrom<(OpCode, Option<&str>)> for EventTypeFlags {
+    type Error = ();
+
+    fn try_from((op, event_type): (OpCode, Option<&str>)) -> Result<Self, Self::Error> {
+        match (op, event_type) {
+            (OpCode::Heartbeat, _) => Ok(Self::GATEWAY_HEARTBEAT),
+            (OpCode::Reconnect, _) => Ok(Self::GATEWAY_RECONNECT),
+            (OpCode::InvalidSession, _) => Ok(Self::GATEWAY_INVALIDATE_SESSION),
+            (OpCode::Hello, _) => Ok(Self::GATEWAY_HELLO),
+            (OpCode::HeartbeatAck, _) => Ok(Self::GATEWAY_HEARTBEAT_ACK),
+            (_, Some(event_type)) => EventType::try_from(event_type)
+                .map(Self::from)
+                .map_err(|_| ()),
+            (_, None) => Err(()),
         }
     }
 }
