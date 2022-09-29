@@ -95,6 +95,7 @@ impl<'a> GetAuditLog<'a> {
     ///
     /// [`GetGuildAuditLog`]: twilight_validate::request::ValidationErrorType::GetGuildAuditLog
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_get_guild_audit_log_limit(limit) {
             return Err(source);
         }

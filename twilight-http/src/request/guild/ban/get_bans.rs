@@ -110,6 +110,7 @@ impl<'a> GetBans<'a> {
     ///
     /// [`GetGuildBans`]: twilight_validate::request::ValidationErrorType::GetGuildBans
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_get_guild_bans_limit(limit) {
             return Err(source);
         }

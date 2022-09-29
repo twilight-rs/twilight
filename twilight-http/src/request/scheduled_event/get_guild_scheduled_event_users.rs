@@ -89,6 +89,7 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     ///
     /// [`ScheduledEventGetUsers`]: twilight_validate::request::ValidationErrorType::ScheduledEventGetUsers
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_scheduled_event_get_users(limit) {
             return Err(source);
         }

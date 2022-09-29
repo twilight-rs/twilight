@@ -51,6 +51,7 @@ impl<'a> GetGuildPruneCount<'a> {
     ///
     /// [`GuildPruneDays`]: twilight_validate::request::ValidationErrorType::GuildPruneDays
     pub const fn days(mut self, days: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_guild_prune_days(days) {
             return Err(source);
         }

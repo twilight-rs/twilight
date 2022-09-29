@@ -90,6 +90,7 @@ impl EmbedBuilder {
     /// Refer to the documentation of [`twilight_validate::embed::embed`] for
     /// possible errors.
     pub fn validate(self) -> Result<Self, EmbedValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_embed(&self.0) {
             return Err(source);
         }
