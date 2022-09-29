@@ -612,12 +612,9 @@ impl Shard {
     /// not be sent over the websocket. This indicates the shard is either
     /// currently restarting or closed and will restart.
     ///
-    /// Returns a [`SendErrorType::Serializing`] error type if the provided
-    /// command failed to serialize.
-    ///
     /// [`send`]: Self::send
     pub async fn command(&mut self, command: &impl Command) -> Result<(), SendError> {
-        let message = command::prepare(command)?;
+        let message = command::prepare(command);
 
         self.send(message).await
     }

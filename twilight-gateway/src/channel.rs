@@ -68,11 +68,8 @@ impl MessageSender {
     /// Returns a [`SendErrorType::Sending`] error type if the message could
     /// not be sent over the websocket. This indicates the shard is either
     /// currently restarting or closed and will restart.
-    ///
-    /// Returns a [`SendErrorType::Serializing`] error type if the provided
-    /// command failed to serialize.
     pub fn command(&self, command: &impl Command) -> Result<(), SendError> {
-        let message = command::prepare(command)?;
+        let message = command::prepare(command);
 
         self.send(message)
     }

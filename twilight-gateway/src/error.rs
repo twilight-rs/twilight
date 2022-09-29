@@ -195,11 +195,14 @@ impl Display for ReceiveMessageError {
             ReceiveMessageErrorType::FatallyClosed { close_code } => {
                 f.write_str("shard fatally closed: ")?;
 
+                Display::fmt(&close_code, f)?;
                 if let Ok(code) = CloseCode::try_from(close_code) {
-                    Display::fmt(&code, f)
-                } else {
-                    Display::fmt(&close_code, f)
+                    f.write_str(" (")?;
+                    Display::fmt(&code, f)?;
+                    f.write_str(")")?;
                 }
+
+                Ok(())
             }
             ReceiveMessageErrorType::Process => {
                 f.write_str("failed to internally process the received message")
@@ -237,7 +240,6 @@ pub enum ReceiveMessageErrorType {
         /// known close code. Unknown close codes are considered fatal.
         close_code: u16,
     },
-    ///
     /// Processing the message failed.
     ///
     /// The associated error downcasts to [`ProcessError`].
@@ -284,7 +286,6 @@ impl Display for SendError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
             SendErrorType::Sending => f.write_str("sending the message over the websocket failed"),
-            SendErrorType::Serializing => f.write_str("serializing the value as json failed"),
         }
     }
 }
@@ -304,8 +305,6 @@ pub enum SendErrorType {
     /// Sending the payload over the WebSocket failed. This is indicative of a
     /// shutdown shard.
     Sending,
-    /// Serializing the payload as JSON failed.
-    Serializing,
 }
 
 /// Initializing a shard and connecting to the gateway failed.
@@ -429,7 +428,7 @@ mod tests {
             ),
             (
                 ReceiveMessageErrorType::FatallyClosed { close_code: 4013 },
-                "shard fatally closed: Invalid Intents",
+                "shard fatally closed: 4013 (Invalid Intents)",
             ),
             (
                 ReceiveMessageErrorType::Process,
@@ -478,14 +477,6 @@ mod tests {
             }
             .to_string(),
             "sending the message over the websocket failed"
-        );
-        assert_eq!(
-            SendError {
-                kind: SendErrorType::Serializing,
-                source: None,
-            }
-            .to_string(),
-            "serializing the value as json failed"
         );
     }
 
