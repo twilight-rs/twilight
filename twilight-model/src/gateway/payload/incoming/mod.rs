@@ -36,6 +36,7 @@ mod guild_scheduled_event_user_add;
 mod guild_scheduled_event_user_remove;
 mod guild_stickers_update;
 mod guild_update;
+mod hello;
 mod integration_create;
 mod integration_delete;
 mod integration_update;
@@ -88,7 +89,7 @@ pub use self::{
     guild_scheduled_event_update::GuildScheduledEventUpdate,
     guild_scheduled_event_user_add::GuildScheduledEventUserAdd,
     guild_scheduled_event_user_remove::GuildScheduledEventUserRemove,
-    guild_stickers_update::GuildStickersUpdate, guild_update::GuildUpdate,
+    guild_stickers_update::GuildStickersUpdate, guild_update::GuildUpdate, hello::Hello,
     integration_create::IntegrationCreate, integration_delete::IntegrationDelete,
     integration_update::IntegrationUpdate, interaction_create::InteractionCreate,
     invite_create::InviteCreate, invite_delete::InviteDelete, member_add::MemberAdd,

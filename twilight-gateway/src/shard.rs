@@ -76,10 +76,13 @@ use serde::{de::DeserializeOwned, Deserialize};
 use std::{env::consts::OS, str, time::Duration};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
-    event::{gateway::Hello, Event, GatewayEventDeserializer},
-    payload::outgoing::{
-        identify::{IdentifyInfo, IdentifyProperties},
-        Heartbeat, Identify,
+    event::{Event, GatewayEventDeserializer},
+    payload::{
+        incoming::Hello,
+        outgoing::{
+            identify::{IdentifyInfo, IdentifyProperties},
+            Heartbeat, Identify,
+        },
     },
     CloseCode, Intents, OpCode,
 };
