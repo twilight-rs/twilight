@@ -28,5 +28,5 @@ twilight-lavalink = { default-features = false, path = "../twilight-lavalink", v
 twilight-mention = { default-features = false, path = "../twilight-mention", version = "0.13.0" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.5" }
 twilight-standby = { default-features = false, path = "../twilight-standby", version = "0.13.1" }
-twilight-util = { default-features = false, path = "../twilight-util", version = "0.13.2" }
+twilight-util = { default-features = false, path = "../twilight-util", version = "0.13.3" }
 twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.13.1" }

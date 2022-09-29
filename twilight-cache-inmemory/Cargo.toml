@@ -22,7 +22,7 @@ serde = { default-features = false, features = ["derive"], version = "1" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.5" }
 
 # Optional dependencies.
-twilight-util = { default-features = false, features = ["permission-calculator"], optional = true, path = "../twilight-util", version = "0.13.2" }
+twilight-util = { default-features = false, features = ["permission-calculator"], optional = true, path = "../twilight-util", version = "0.13.3" }
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
