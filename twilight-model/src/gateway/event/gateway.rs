@@ -1,6 +1,7 @@
 use super::{
     super::OpCode, DispatchEvent, DispatchEventWithTypeDeserializer, Event, EventConversionError,
 };
+use crate::gateway::payload::incoming::Hello;
 use serde::{
     de::{
         value::U8Deserializer, DeserializeSeed, Deserializer, Error as DeError, IgnoredAny,
@@ -19,7 +20,7 @@ pub enum GatewayEvent {
     Dispatch(u64, DispatchEvent),
     Heartbeat(u64),
     HeartbeatAck,
-    Hello(u64),
+    Hello(Hello),
     InvalidateSession(bool),
     Reconnect,
 }
@@ -47,11 +48,6 @@ enum Field {
     Op,
     S,
     T,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct Hello {
-    pub heartbeat_interval: u64,
 }
 
 /// A deserializer that deserializes into a `GatewayEvent` by cloning some bits
@@ -398,7 +394,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 Self::ignore_all(&mut map)?;
 
-                GatewayEvent::Hello(hello.heartbeat_interval)
+                GatewayEvent::Hello(hello)
             }
             OpCode::InvalidSession => {
                 tracing::trace!("deserializing invalid session");
@@ -497,11 +493,7 @@ impl Serialize for GatewayEvent {
             Self::Heartbeat(sequence) => {
                 s.serialize_field("d", &sequence)?;
             }
-            Self::Hello(interval) => {
-                let hello = Hello {
-                    heartbeat_interval: *interval,
-                };
-
+            Self::Hello(hello) => {
                 s.serialize_field("d", &hello)?;
             }
             Self::InvalidateSession(invalidate) => {
@@ -519,7 +511,11 @@ impl Serialize for GatewayEvent {
 #[cfg(test)]
 mod tests {
     use super::{DispatchEvent, GatewayEvent, GatewayEventDeserializer, OpCode};
-    use crate::{gateway::payload::incoming::RoleDelete, id::Id, test::image_hash};
+    use crate::{
+        gateway::payload::incoming::{Hello, RoleDelete},
+        id::Id,
+        test::image_hash,
+    };
     use serde::de::DeserializeSeed;
     use serde_json::de::Deserializer;
     use serde_test::Token;
@@ -766,7 +762,12 @@ mod tests {
         let mut json_deserializer = Deserializer::from_str(input);
         let event = deserializer.deserialize(&mut json_deserializer).unwrap();
 
-        assert!(matches!(event, GatewayEvent::Hello(41_250)));
+        assert!(matches!(
+            event,
+            GatewayEvent::Hello(Hello {
+                heartbeat_interval: 41_250
+            })
+        ));
     }
 
     #[test]
@@ -921,7 +922,9 @@ mod tests {
     #[test]
     fn serialize_hello() {
         serde_test::assert_ser_tokens(
-            &GatewayEvent::Hello(41250),
+            &GatewayEvent::Hello(Hello {
+                heartbeat_interval: 41250,
+            }),
             &[
                 Token::Struct {
                     name: "GatewayEvent",

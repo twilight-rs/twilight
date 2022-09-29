@@ -49,7 +49,7 @@ pub enum Event {
     /// A heartbeat acknowledgement was received from the gateway.
     GatewayHeartbeatAck,
     /// A "hello" packet was received from the gateway.
-    GatewayHello(u64),
+    GatewayHello(Hello),
     /// A shard's session was invalidated.
     ///
     /// `true` if resumable. If not, then the shard must do a full reconnect.
