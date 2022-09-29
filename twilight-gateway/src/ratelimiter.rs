@@ -127,7 +127,7 @@ mod tests {
     use super::{nonreserved_commands_per_reset, CommandRatelimiter, RESET_DURATION};
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, time::Duration};
-    use tokio::time;
+    use tokio::{task, time};
 
     assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
 
@@ -145,8 +145,7 @@ mod tests {
         );
     }
 
-    // Divide into two tests as they take one minute each to finish.
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn ratelimiter_specification_1() {
         let ratelimiter = CommandRatelimiter::new(RESET_DURATION.as_millis().try_into().unwrap());
 
@@ -164,10 +163,13 @@ mod tests {
 
         // All should be refilled.
         time::sleep(Duration::from_secs(1)).await;
+        for _ in 0..10 {
+            task::yield_now().await;
+        }
         assert!(ratelimiter.available() == commands_per_reset);
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn ratelimiter_specification_2() {
         let ratelimiter = CommandRatelimiter::new(RESET_DURATION.as_millis().try_into().unwrap());
 
@@ -189,10 +191,16 @@ mod tests {
 
         // Half should be refilled.
         time::sleep(RESET_DURATION / 2).await;
+        for _ in 0..10 {
+            task::yield_now().await;
+        }
         assert!(ratelimiter.available() == commands_per_reset / 2);
 
         // All should be refilled.
         time::sleep(RESET_DURATION / 2).await;
+        for _ in 0..10 {
+            task::yield_now().await;
+        }
         assert!(ratelimiter.available() == commands_per_reset);
     }
 }
