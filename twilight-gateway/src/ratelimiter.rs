@@ -61,7 +61,7 @@ impl CommandRatelimiter {
 }
 
 /// Guard around the ratelimit permit. As long as this is held one command is
-/// guarenteed to not be ratelimited.
+/// guaranteed to not be ratelimited.
 ///
 /// Because this hold a shared reference to [`Semaphore`],
 /// [`CommandRatelimiter`] will only be dropped after the last guard has been
