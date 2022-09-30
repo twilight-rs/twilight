@@ -542,7 +542,7 @@ impl Shard {
                     TungsteniteMessage::Close(None)
                 }
                 NextMessageFutureOutput::SendHeartbeat => {
-                    self.heartbeat(None)
+                    self.heartbeat(self.session().map(Session::sequence))
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
 
@@ -735,17 +735,12 @@ impl Shard {
         }
     }
 
-    /// Send a heartbeat, optionally overriding the session's sequence.
+    /// Send a heartbeat with an optional sequence number that should be
+    /// [`None`] if the shard has not received any events yet.
     ///
     /// Closes the connection and resumes if previous sent heartbeat never got
     /// a reply.
-    ///
-    /// # Panics
-    ///
-    /// Panics if called without an `override_sequence` and without having
-    /// received an [`OpCode::Hello`] event.
-    #[track_caller]
-    async fn heartbeat(&mut self, override_sequence: Option<u64>) -> Result<(), SendError> {
+    async fn heartbeat(&mut self, sequence: Option<u64>) -> Result<(), SendError> {
         let is_first_heartbeat = self.heartbeat_interval.is_some() && self.latency.sent().is_none();
 
         // Discord never replied to the last heartbeat, connection is failed or
@@ -756,10 +751,6 @@ impl Shard {
             self.session = self.close(CloseFrame::RESUME).await?;
             self.disconnect(Disconnect::Resume);
         } else {
-            let sequence = override_sequence
-                .or_else(|| self.session.as_ref().map(Session::sequence))
-                .unwrap();
-
             let command = Heartbeat::new(sequence);
             self.command(&command).await?;
 
