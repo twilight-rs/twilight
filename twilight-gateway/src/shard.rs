@@ -732,6 +732,7 @@ impl Shard {
         if disconnect == Disconnect::InvalidateSession {
             tracing::debug!(shard_id = %self.id(), "session invalidated");
             self.session = None;
+            self.resume_gateway_url = None;
         }
     }
 
@@ -933,6 +934,8 @@ impl Shard {
                     close_code,
                     reconnect_attempts: reconnect_attempts + 1,
                 };
+
+                self.resume_gateway_url = None;
 
                 ReceiveMessageError::from_reconnect(source)
             })?;
