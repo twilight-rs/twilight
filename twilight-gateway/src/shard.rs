@@ -76,10 +76,13 @@ use serde::{de::DeserializeOwned, Deserialize};
 use std::{env::consts::OS, str, time::Duration};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
-    event::{gateway::Hello, Event, GatewayEventDeserializer},
-    payload::outgoing::{
-        identify::{IdentifyInfo, IdentifyProperties},
-        Heartbeat, Identify,
+    event::{Event, GatewayEventDeserializer},
+    payload::{
+        incoming::Hello,
+        outgoing::{
+            identify::{IdentifyInfo, IdentifyProperties},
+            Heartbeat, Identify,
+        },
     },
     CloseCode, Intents, OpCode,
 };
@@ -472,17 +475,22 @@ impl Shard {
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
-        let mut bytes = loop {
-            match self.next_message().await? {
-                Message::Binary(bytes) => break bytes,
-                Message::Text(text) => break text.into_bytes(),
-                _ => continue,
-            }
-        };
+        loop {
+            let mut bytes = loop {
+                match self.next_message().await? {
+                    Message::Binary(bytes) => break bytes,
+                    Message::Text(text) => break text.into_bytes(),
+                    _ => continue,
+                }
+            };
 
-        json::parse(&mut bytes)
-            .map(Event::from)
-            .map_err(ReceiveMessageError::from_json)
+            // loop if event is unwanted
+            if let Some(event) = json::parse(self.config.event_types(), &mut bytes)
+                .map_err(ReceiveMessageError::from_json)?
+            {
+                return Ok(event.into());
+            }
+        }
     }
 
     /// Wait for the next raw message from the websocket connection.
@@ -733,10 +741,30 @@ impl Shard {
     }
 
     /// Send a heartbeat, optionally overriding the session's sequence.
+    ///
+    /// Closes the connection and resumes if previous sent heartbeat never got
+    /// a reply.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called without an `override_sequence` and without having
+    /// received an [`OpCode::Hello`] event.
+    #[track_caller]
     async fn heartbeat(&mut self, override_sequence: Option<u64>) -> Result<(), SendError> {
-        let session_sequence = self.session.as_ref().map(Session::sequence);
+        let is_first_heartbeat = self.heartbeat_interval.is_some() && self.latency.sent().is_none();
 
-        if let Some(sequence) = override_sequence.or(session_sequence) {
+        // Discord never replied to the last heartbeat, connection is failed or
+        // "zombied", see
+        // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
+        if !is_first_heartbeat && self.latency().received().is_none() {
+            tracing::warn!("connection failed or \"zombied\"");
+            self.session = self.close(CloseFrame::RESUME).await?;
+            self.disconnect(Disconnect::Resume);
+        } else {
+            let sequence = override_sequence
+                .or_else(|| self.session.as_ref().map(Session::sequence))
+                .unwrap();
+
             let message = command::prepare(&Heartbeat::new(sequence))?;
             // The ratelimiter reserves capacity for heartbeat messages.
             self.send_direct(message).await?;

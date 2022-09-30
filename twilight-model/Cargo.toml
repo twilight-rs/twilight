@@ -12,7 +12,7 @@ publish = true
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version = "0.13.4"
+version = "0.13.5"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
