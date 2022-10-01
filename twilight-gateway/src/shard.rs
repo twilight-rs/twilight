@@ -826,7 +826,7 @@ impl Shard {
         // Instead of returning the event type, we return whether the event type
         // is a Ready event, which is the only one we handle. This gets around
         // having both an immutable and mutable lifetime to the buffer.
-        let (raw_opcode, maybe_sequence, is_ready) = {
+        let (raw_opcode, maybe_sequence, maybe_event_type) = {
             let json = str::from_utf8(buffer).map_err(|source| ProcessError {
                 kind: ProcessErrorType::ParsingPayload,
                 source: Some(Box::new(source)),
@@ -839,36 +839,40 @@ impl Shard {
             (
                 deserializer.op(),
                 deserializer.sequence(),
-                deserializer.event_type_ref() == Some("READY"),
+                deserializer.event_type_ref(),
             )
         };
 
-        if let Some(sequence) = maybe_sequence {
-            if let Some(session) = self.session.as_mut() {
-                let last_sequence = session.set_sequence(sequence);
-
-                // If a sequence has been skipped then we may have missed a
-                // message and should cause a reconnect so we can attempt to get
-                // that message again.
-                if sequence > last_sequence + 1 {
-                    self.disconnect(Disconnect::Resume);
-
-                    return Ok(());
-                }
-            }
-        }
-
         match OpCode::try_from(raw_opcode) {
-            Ok(OpCode::Event) if is_ready => {
-                let event = Self::parse_event::<MinimalReady>(buffer)?;
+            Ok(OpCode::Event) => {
                 let sequence = maybe_sequence.ok_or(ProcessError {
                     kind: ProcessErrorType::ParsingPayload,
                     source: None,
                 })?;
+                let event_type = maybe_event_type.ok_or(ProcessError {
+                    kind: ProcessErrorType::ParsingPayload,
+                    source: None,
+                })?;
 
-                self.resume_gateway_url = Some(event.data.resume_gateway_url);
-                self.status = ConnectionStatus::Connected;
-                self.session = Some(Session::new(sequence, event.data.session_id));
+                if event_type == "READY" {
+                    let event = Self::parse_event::<MinimalReady>(buffer)?;
+
+                    self.resume_gateway_url = Some(event.data.resume_gateway_url);
+                    self.status = ConnectionStatus::Connected;
+                    self.session = Some(Session::new(sequence, event.data.session_id));
+                }
+
+                // Ready should be the first received dispatch event, so this should never fail
+                if let Some(session) = self.session.as_mut() {
+                    let last_sequence = session.set_sequence(sequence);
+
+                    // If a sequence has been skipped then we may have missed a
+                    // message and should cause a reconnect so we can attempt to get
+                    // that message again.
+                    if sequence > last_sequence + 1 {
+                        self.disconnect(Disconnect::Resume);
+                    }
+                }
             }
             Ok(OpCode::Heartbeat) => {
                 let event = Self::parse_event(buffer)?;
