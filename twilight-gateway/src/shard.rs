@@ -905,7 +905,7 @@ impl Shard {
             Ok(OpCode::Reconnect) => {
                 self.disconnect(Disconnect::Resume);
             }
-            _ => {}
+            _ => tracing::warn!("received unknown opcode: {raw_opcode}"),
         }
 
         Ok(())
