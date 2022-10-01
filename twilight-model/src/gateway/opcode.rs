@@ -48,7 +48,7 @@ pub enum OpCode {
 
 impl OpCode {
     /// Try to match an integer value to a opcode, returning [`None`] if no match is found.
-    pub fn from(code: u8) -> Option<Self> {
+    pub const fn from(code: u8) -> Option<Self> {
         Some(match code {
             0 => Self::Dispatch,
             1 => Self::Heartbeat,
