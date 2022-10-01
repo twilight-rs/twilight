@@ -86,7 +86,6 @@ impl Inflater {
     /// This returns `flate2`'s `DecompressError` as its method's type signature
     /// indicates it can return an error, however in reality in versions up to
     /// 1.0.17 it won't.
-    #[tracing::instrument(level = "trace")]
     pub fn msg(&mut self) -> Result<Option<&mut [u8]>, DecompressError> {
         let length = self.compressed.len();
 
@@ -130,10 +129,8 @@ impl Inflater {
         }
 
         tracing::trace!(
-            bytes_in = self.compressed.len(),
-            bytes_out = self.buffer.len(),
-            shard_id = %self.shard_id,
-            "payload lengths",
+            bytes.compressed = self.compressed.len(),
+            bytes.decompressed = self.buffer.len(),
         );
 
         self.compressed.clear();
@@ -142,24 +139,18 @@ impl Inflater {
             // It doesn't matter if we lose precision for logging.
             #[allow(clippy::cast_precision_loss)]
             let saved_percentage =
-                self.decompress.total_in() as f64 / self.decompress.total_out() as f64;
-            let saved_percentage_readable = saved_percentage * 100.0;
+                self.decompress.total_in() as f64 * 100.0 / self.decompress.total_out() as f64;
             let saved_kib = (self.decompress.total_out() - self.decompress.total_in()) / 1_024;
 
             tracing::trace!(
-                saved_kib = saved_kib,
-                saved_percentage = %saved_percentage_readable,
-                shard_id = %self.shard_id,
-                total_in = self.decompress.total_in(),
-                total_out = self.decompress.total_out(),
-                "data saved",
+                "{} KiB saved in total ({:.2}%)",
+                saved_kib,
+                saved_percentage,
             );
         }
 
         #[cfg(feature = "metrics")]
         self.inflater_metrics();
-
-        tracing::trace!(capacity = self.buffer.capacity(), "capacity");
 
         Ok(Some(&mut self.buffer))
     }
@@ -168,7 +159,6 @@ impl Inflater {
     ///
     /// If more than a minute has passed since last shrink another will be
     /// initiated.
-    #[tracing::instrument(level = "trace")]
     pub fn clear(&mut self) {
         self.shrink();
 
@@ -216,14 +206,9 @@ impl Inflater {
         self.buffer.shrink_to_fit();
 
         tracing::trace!(
-            capacity = self.compressed.capacity(),
-            shard_id = %self.shard_id,
-            "compressed capacity",
-        );
-        tracing::trace!(
-            capacity = self.buffer.capacity(),
-            shard_id = %self.shard_id,
-            "buffer capacity",
+            buffer.capacity = self.buffer.capacity(),
+            compressed.capacity = self.compressed.capacity(),
+            "shrank capacity to the size of the last message",
         );
 
         self.last_resize = Instant::now();

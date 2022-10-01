@@ -1,8 +1,7 @@
 //! Utilities for creating Websocket connections.
 
 use crate::{
-    compression::COMPRESSION_FEATURES, error::ReceiveMessageError, tls::TlsContainer, ShardId,
-    API_VERSION,
+    compression::COMPRESSION_FEATURES, error::ReceiveMessageError, tls::TlsContainer, API_VERSION,
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use tokio::net::TcpStream;
@@ -87,16 +86,15 @@ impl Display for ConnectionUrl<'_> {
 /// due to network or TLS errors.
 ///
 /// [`ReceiveMessageErrorType::Reconnect`]: crate::error::ReceiveMessageErrorType::Reconnect
+#[tracing::instrument(skip_all)]
 pub async fn connect(
-    shard_id: ShardId,
     maybe_gateway_url: Option<&str>,
     tls: &TlsContainer,
 ) -> Result<Connection, ReceiveMessageError> {
     let url = ConnectionUrl::new(maybe_gateway_url).to_string();
 
-    tracing::debug!(%shard_id, ?url, "shaking hands with remote");
+    tracing::debug!(?url, "shaking hands with remote");
     let stream = tls.connect(&url, WEBSOCKET_CONFIG).await?;
-    tracing::debug!(%shard_id, "shook hands with remote");
 
     Ok(stream)
 }

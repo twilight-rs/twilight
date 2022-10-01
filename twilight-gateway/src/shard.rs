@@ -469,6 +469,7 @@ impl Shard {
     ///
     /// Returns a [`ReceiveMessageErrorType::SendingMessage`] error type if the
     /// shard failed to send a message to the gateway, such as a heartbeat.
+    #[tracing::instrument(fields(id = %self.id()), name = "shard", skip(self))]
     pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
         self.compression.clear();
 
@@ -526,6 +527,7 @@ impl Shard {
 
         match message {
             Message::Close(maybe_frame) => {
+                tracing::debug!("received websocket close message");
                 self.status = ConnectionStatus::from_close_frame(maybe_frame.as_ref());
                 self.connection = None;
 
@@ -535,12 +537,10 @@ impl Shard {
             Message::Text(ref text) => self.compression.extend(text.as_bytes()),
         }
 
-        if let Err(source) = self.process().await {
-            return Err(ReceiveMessageError {
-                kind: ReceiveMessageErrorType::Process,
-                source: Some(Box::new(source)),
-            });
-        }
+        self.process().await.map_err(|source| ReceiveMessageError {
+            kind: ReceiveMessageErrorType::Process,
+            source: Some(Box::new(source)),
+        })?;
 
         Ok(match message {
             Message::Binary(_) => Message::Binary(self.compression.take()),
@@ -713,7 +713,6 @@ impl Shard {
     /// Disconnect the shard's Websocket connection, optionally invalidating the
     /// session.
     fn disconnect(&mut self, disconnect: Disconnect) {
-        tracing::debug!(shard_id = %self.id(), "disconnected");
         self.status = ConnectionStatus::Disconnected {
             close_code: None,
             reconnect_attempts: 0,
@@ -721,7 +720,6 @@ impl Shard {
         self.connection = None;
 
         if disconnect == Disconnect::InvalidateSession {
-            tracing::debug!(shard_id = %self.id(), "session invalidated");
             self.session = None;
             self.resume_gateway_url = None;
         }
@@ -739,10 +737,11 @@ impl Shard {
         // "zombied", see
         // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
         if !is_first_heartbeat && self.latency().received().is_none() {
-            tracing::warn!("connection failed or \"zombied\"");
+            tracing::info!("connection is failed or \"zombied\"");
             self.session = self.close(CloseFrame::RESUME).await?;
             self.disconnect(Disconnect::Resume);
         } else {
+            tracing::debug!(?sequence, "sending heartbeat");
             let message = command::prepare(&Heartbeat::new(sequence))?;
             // The ratelimiter reserves capacity for heartbeat messages.
             self.send_unratelimited(message).await?;
@@ -762,6 +761,7 @@ impl Shard {
         tokio::spawn({
             let sender = self.sender();
             let shard_id = self.id();
+            let span = tracing::Span::current();
             let queue = self.config().queue().clone();
             let properties = self
                 .config()
@@ -780,9 +780,9 @@ impl Shard {
             });
 
             async move {
-                tracing::debug!(%shard_id, "queued for identify");
                 queue.request([shard_id.number(), shard_id.total()]).await;
-                tracing::debug!(%shard_id, "passed queue");
+                let _span = span.entered();
+                tracing::debug!("sending identify");
                 #[allow(clippy::let_underscore_drop)]
                 let _ = sender.command(&identify);
             }
@@ -841,6 +841,7 @@ impl Shard {
                     kind: ProcessErrorType::ParsingPayload,
                     source: None,
                 })?;
+                tracing::debug!(%sequence, "received dispatch");
 
                 match event_type {
                     "READY" => {
@@ -864,23 +865,30 @@ impl Shard {
                     // message and should cause a reconnect so we can attempt to get
                     // that message again.
                     if sequence > last_sequence + 1 {
+                        tracing::info!(
+                            missed_events = last_sequence - sequence,
+                            "dispatch events have been missed",
+                        );
                         self.disconnect(Disconnect::Resume);
                     }
                 }
             }
             Some(OpCode::Heartbeat) => {
                 let event = Self::parse_event(buffer)?;
-
+                tracing::debug!(last_sequence = event.data, "received heartbeat");
                 self.heartbeat(Some(event.data))
                     .await
                     .map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
+                tracing::debug!("received heartbeat ack");
                 self.latency.track_received();
             }
             Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
-                let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
+                let heartbeat_interval = event.data.heartbeat_interval;
+                tracing::debug!(%heartbeat_interval, "received hello");
+                let heartbeat_interval = Duration::from_millis(heartbeat_interval);
 
                 if self.config().ratelimit_messages() {
                     self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval));
@@ -901,12 +909,14 @@ impl Shard {
             }
             Some(OpCode::InvalidSession) => {
                 let event = Self::parse_event(buffer)?;
+                tracing::info!(resumable = event.data, "received invalid session");
                 self.disconnect(Disconnect::from_resumable(event.data));
             }
             Some(OpCode::Reconnect) => {
+                tracing::debug!("received reconnect");
                 self.disconnect(Disconnect::Resume);
             }
-            _ => tracing::warn!("received an unknown opcode: {raw_opcode}"),
+            _ => tracing::info!("received an unknown opcode: {raw_opcode}"),
         }
 
         Ok(())
@@ -936,7 +946,7 @@ impl Shard {
             .or(self.resume_gateway_url.as_deref());
 
         self.connection = Some(
-            connection::connect(self.id(), maybe_gateway_url, self.config.tls())
+            connection::connect(maybe_gateway_url, self.config.tls())
                 .await
                 .map_err(|source| {
                     self.status = ConnectionStatus::Disconnected {
@@ -951,6 +961,7 @@ impl Shard {
 
         match self.session() {
             Some(session) => {
+                tracing::debug!("sending resume");
                 let resume = Resume::new(session.sequence(), session.id(), self.config().token());
                 self.command(&resume)
                     .await
