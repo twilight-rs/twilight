@@ -858,8 +858,8 @@ impl Shard {
             }
         }
 
-        match OpCode::try_from(raw_opcode) {
-            Ok(OpCode::Event) if is_ready => {
+        match OpCode::from(raw_opcode) {
+            Some(OpCode::Dispatch) if is_ready => {
                 let event = Self::parse_event::<MinimalReady>(buffer)?;
                 let sequence = maybe_sequence.ok_or(ProcessError {
                     kind: ProcessErrorType::ParsingPayload,
@@ -870,7 +870,7 @@ impl Shard {
                 self.status = ConnectionStatus::Connected;
                 self.session = Some(Session::new(sequence, event.data.session_id));
             }
-            Ok(OpCode::Heartbeat) => {
+            Some(OpCode::Heartbeat) => {
                 let event = Self::parse_event(buffer)?;
 
                 if let Err(source) = self.heartbeat(Some(event.data)).await {
@@ -879,10 +879,10 @@ impl Shard {
                     return Err(ProcessError::from_send(source));
                 }
             }
-            Ok(OpCode::HeartbeatAck) => {
+            Some(OpCode::HeartbeatAck) => {
                 self.latency.track_received();
             }
-            Ok(OpCode::Hello) => {
+            Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
                 let interval = event.data.heartbeat_interval;
                 let heartbeat_duration = Duration::from_millis(interval);
@@ -894,11 +894,11 @@ impl Shard {
 
                 self.identify().await.map_err(ProcessError::from_send)?;
             }
-            Ok(OpCode::InvalidSession) => {
+            Some(OpCode::InvalidSession) => {
                 let event = Self::parse_event(buffer)?;
                 self.disconnect(Disconnect::from_resumable(event.data));
             }
-            Ok(OpCode::Reconnect) => {
+            Some(OpCode::Reconnect) => {
                 self.disconnect(Disconnect::Resume);
             }
             _ => {}
