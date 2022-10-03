@@ -1,6 +1,5 @@
-use std::future::IntoFuture;
-
 use futures_util::future;
+use std::future::IntoFuture;
 use twilight_http::Client;
 use twilight_model::id::Id;
 
