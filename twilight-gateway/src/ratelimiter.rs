@@ -4,7 +4,6 @@
 //!
 //! [send messages]: crate::Shard::send
 
-use std::time::Instant as StdInstant;
 use tokio::time::{self, Duration, Instant};
 
 /// Number of commands allowed in a given [`RESET_DURATION`].
@@ -66,16 +65,16 @@ impl CommandRatelimiter {
     }
 
     /// When the next command is available.
-    pub fn next_refill(&self) -> StdInstant {
-        self.instants.first().map_or(StdInstant::now(), |instant| {
-            instant.into_std() + (RESET_DURATION - instant.elapsed())
-        })
+    pub fn next_refill(&self) -> Duration {
+        self.instants
+            .first()
+            .map_or(Duration::ZERO, |instant| RESET_DURATION - instant.elapsed())
     }
 
     /// Acquire a token from the ratelimiter, waiting until one is available.
     pub(crate) async fn acquire(&mut self) {
         if self.available() == 0 {
-            time::sleep_until(Instant::from_std(self.next_refill())).await;
+            time::sleep(self.next_refill()).await;
         }
         self.clean();
         assert!(self.available() > 0);
