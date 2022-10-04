@@ -111,9 +111,10 @@ fn available_commands_per_interval(heartbeat_interval: u64) -> u8 {
 
 #[cfg(test)]
 mod tests {
-    use super::CommandRatelimiter;
+    use super::{CommandRatelimiter, RESET_DURATION_MILLISECONDS};
     use static_assertions::assert_impl_all;
-    use std::fmt::Debug;
+    use std::{fmt::Debug, time::Duration};
+    use tokio::time;
 
     assert_impl_all!(CommandRatelimiter: Debug, Send, Sync);
 
@@ -123,5 +124,56 @@ mod tests {
         assert_eq!(116, super::available_commands_per_interval(42_500));
         assert_eq!(116, super::available_commands_per_interval(30_000));
         assert_eq!(114, super::available_commands_per_interval(29_999));
+    }
+
+    const DURATION: Duration = Duration::from_secs(60);
+
+    #[tokio::test(start_paused = true)]
+    async fn full_reset() {
+        let ratelimiter = CommandRatelimiter::new(DURATION.as_millis().try_into().unwrap());
+
+        assert_eq!(ratelimiter.available(), ratelimiter.max());
+        for _ in 0..ratelimiter.max() {
+            ratelimiter.acquire_one().await;
+        }
+        assert_eq!(ratelimiter.available(), 0);
+
+        // Should not refill until RESET_PERIOD has passed
+        time::advance(
+            Duration::from_millis(RESET_DURATION_MILLISECONDS) - Duration::from_millis(100),
+        )
+        .await;
+        assert_eq!(ratelimiter.available(), 0);
+
+        // All should be refilled.
+        time::advance(Duration::from_millis(100)).await;
+        assert_eq!(ratelimiter.available(), ratelimiter.max());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn half_reset() {
+        let ratelimiter = CommandRatelimiter::new(DURATION.as_millis().try_into().unwrap());
+
+        assert_eq!(ratelimiter.available(), ratelimiter.max());
+        for _ in 0..ratelimiter.max() / 2 {
+            ratelimiter.acquire_one().await;
+        }
+        assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
+
+        time::advance(Duration::from_millis(RESET_DURATION_MILLISECONDS) / 2).await;
+
+        assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
+        for _ in 0..ratelimiter.max() / 2 {
+            ratelimiter.acquire_one().await;
+        }
+        assert_eq!(ratelimiter.available(), 0);
+
+        // Half should be refilled.
+        time::advance(Duration::from_millis(RESET_DURATION_MILLISECONDS) / 2).await;
+        assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
+
+        // All should be refilled.
+        time::advance(Duration::from_millis(RESET_DURATION_MILLISECONDS) / 2).await;
+        assert_eq!(ratelimiter.available(), ratelimiter.max());
     }
 }
