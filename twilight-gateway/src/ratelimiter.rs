@@ -34,6 +34,20 @@ impl CommandRatelimiter {
         }
     }
 
+    /// Recreate the ratelimiter with a new heartbeat interval.
+    ///
+    /// Transfers over instants, dropping the oldest ones when the new
+    /// ratelimiter has less capacity than the older one.
+    pub(crate) fn renew(&mut self, heartbeat_interval: Duration) {
+        let new = Self::new(heartbeat_interval);
+
+        while self.max() - self.available() > new.max() {
+            self.instants.remove(0);
+        }
+
+        *self = new;
+    }
+
     /// Current number of commands that are still available within the interval.
     #[allow(clippy::cast_possible_truncation)]
     pub fn available(&self) -> u8 {
