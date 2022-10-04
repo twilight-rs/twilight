@@ -664,8 +664,8 @@ impl Shard {
     /// [ratelimiter]: CommandRatelimiter
     /// [was enabled]: crate::ConfigBuilder::ratelimit_messages
     pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
-        if let Some(ref ratelimiter) = self.ratelimiter {
-            ratelimiter.acquire_one().await;
+        if let Some(ratelimiter) = &mut self.ratelimiter {
+            ratelimiter.acquire().await;
         }
 
         self.connection
@@ -884,13 +884,13 @@ impl Shard {
             }
             Ok(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
-                let interval = event.data.heartbeat_interval;
-                let heartbeat_duration = Duration::from_millis(interval);
-                self.heartbeat_interval = Some(heartbeat_duration);
+                let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
+                self.heartbeat_interval = Some(heartbeat_interval);
 
-                if self.config().ratelimit_messages() {
-                    self.ratelimiter = Some(CommandRatelimiter::new(interval));
-                }
+                self.ratelimiter = self
+                    .config()
+                    .ratelimit_messages()
+                    .then(|| CommandRatelimiter::new(heartbeat_interval));
 
                 self.identify().await.map_err(ProcessError::from_send)?;
             }
