@@ -68,7 +68,7 @@ impl Latency {
         self.recent.as_slice()
     }
 
-    /// When the last heartbeat acknowledgement was received.
+    /// When the last heartbeat received an acknowledgement.
     pub const fn received(&self) -> Option<Instant> {
         self.received
     }
