@@ -65,7 +65,7 @@ impl CommandRatelimiter {
     }
 
     /// When the next command is available.
-    pub fn next_refill(&self) -> Duration {
+    pub fn next_available(&self) -> Duration {
         self.instants.first().map_or(Duration::ZERO, |instant| {
             RESET_DURATION.saturating_sub(instant.elapsed())
         })
@@ -74,7 +74,7 @@ impl CommandRatelimiter {
     /// Acquire a token from the ratelimiter, waiting until one is available.
     pub(crate) async fn acquire(&mut self) {
         if self.available() == 0 {
-            time::sleep(self.next_refill()).await;
+            time::sleep(self.next_available()).await;
         }
         self.clean();
         assert!(self.available() > 0);
