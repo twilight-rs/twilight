@@ -66,9 +66,9 @@ impl CommandRatelimiter {
 
     /// When the next command is available.
     pub fn next_refill(&self) -> Duration {
-        self.instants
-            .first()
-            .map_or(Duration::ZERO, |instant| RESET_DURATION - instant.elapsed())
+        self.instants.first().map_or(Duration::ZERO, |instant| {
+            RESET_DURATION.saturating_sub(instant.elapsed())
+        })
     }
 
     /// Acquire a token from the ratelimiter, waiting until one is available.
