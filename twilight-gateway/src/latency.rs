@@ -60,10 +60,7 @@ impl Latency {
         self.heartbeats
     }
 
-    /// The most recent latency times.
-    ///
-    /// The lowest index is the oldest while the highest index is the most
-    /// recent.
+    /// The most recent latencies from newest to oldest.
     pub const fn recent(&self) -> &[Duration] {
         self.recent.as_slice()
     }
