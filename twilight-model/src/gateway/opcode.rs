@@ -16,7 +16,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 pub enum OpCode {
     /// [`DispatchEvent`] and sequence number.
     ///
-    /// Will only be received after establishing a session.
+    /// Will only be received after establishing or resuming a session.
     ///
     /// [`DispatchEvent`]: super::event::DispatchEvent
     Dispatch = 0,
