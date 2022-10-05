@@ -13,7 +13,7 @@ pub struct Latency {
     /// Total number of heartbeat acknowledgements that have been received
     /// during the session.
     heartbeats: u32,
-    /// When the last heartbeat acknowledgement was received.
+    /// When the last heartbeat received an acknowledgement.
     received: Option<Instant>,
     /// Most recent latencies between sending a heartbeat and receiving an
     /// acknowledgement.
