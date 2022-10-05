@@ -2,7 +2,10 @@
 
 use std::time::{Duration, Instant};
 
-/// Information about the latency of a [`Shard`]'s websocket connection.
+/// [`Shard`]'s gateway connection latency.
+///
+/// Calculated by measuring the difference between when sending a heartbeat and
+/// receiving an acknowledgement.
 ///
 /// May be obtained via [`Shard::latency`].
 ///
@@ -14,8 +17,7 @@ pub struct Latency {
     heartbeats: u32,
     /// When the last heartbeat received an acknowledgement.
     received: Option<Instant>,
-    /// Most recent latencies between sending a heartbeat and receiving an
-    /// acknowledgement.
+    /// List of most recent latencies.
     recent: [Duration; Self::RECENT_LEN],
     /// When the last heartbeat was sent.
     sent: Option<Instant>,
