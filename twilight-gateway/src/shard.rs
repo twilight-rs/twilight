@@ -937,13 +937,10 @@ impl Shard {
             })?;
 
         if let Some(session) = self.session() {
-            self.command(&Resume::new(
-                session.sequence(),
-                session.id(),
-                self.config.token(),
-            ))
-            .await
-            .expect("not closed or restarting as it's reconnecting");
+            let resume = Resume::new(session.sequence(), session.id(), self.config().token());
+            self.command(&resume)
+                .await
+                .map_err(ReceiveMessageError::from_send)?;
         }
 
         self.compression.reset();
