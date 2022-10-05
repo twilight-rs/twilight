@@ -4,8 +4,8 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 ///
 /// The documentation is written from a client's perspective.
 ///
-/// [`PresenceUpdate`], [`RequestGuildMembers`], and [`VoiceStateUpdate`] are not requiried for
-/// establishing or maintaining a gateway connection.
+/// [`PresenceUpdate`], [`RequestGuildMembers`], and [`VoiceStateUpdate`] are
+/// not requiried for establishing or maintaining a gateway connection.
 ///
 /// [`PresenceUpdate`]: Self::PresenceUpdate
 /// [`RequestGuildMembers`]: Self::RequestGuildMembers
@@ -20,7 +20,8 @@ pub enum OpCode {
     ///
     /// [`DispatchEvent`]: super::event::DispatchEvent
     Dispatch = 0,
-    /// Periodically sent to maintain the connection and may be received to immediately request one.
+    /// Periodically sent to maintain the connection and may be received to
+    /// immediately request one.
     Heartbeat = 1,
     /// Start a new session.
     Identify = 2,
