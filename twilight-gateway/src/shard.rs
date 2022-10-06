@@ -120,7 +120,6 @@ pub enum ConnectionStatus {
         /// May not be available if the shard was closed via an event, such as
         /// [`GatewayEvent::InvalidateSession`].
         ///
-        ///
         /// [`GatewayEvent::InvalidateSession`]: twilight_model::gateway::event::GatewayEvent::InvalidateSession
         close_code: Option<u16>,
         /// Number of reconnection attempts that have been made.
@@ -136,10 +135,7 @@ pub enum ConnectionStatus {
     /// [invalid intents]: CloseCode::InvalidIntents
     FatallyClosed {
         /// Close code of the close message.
-        ///
-        /// The close code may be able to parse into [`CloseCode`] if it's a
-        /// known close code. Unknown close codes aren't considered fatal.
-        close_code: u16,
+        close_code: CloseCode,
     },
 }
 
@@ -147,31 +143,21 @@ impl ConnectionStatus {
     /// Determine the connection status from the close code.
     ///
     /// Defers to [`CloseCode::can_reconnect`] to determine whether the
-    /// connection can be reconnected, defaulting to [`Self::FatallyClosed`] if
+    /// connection can be reconnected, defaulting to [`Self::Disconnected`] if
     /// the close code is unknown.
-    fn from_close_frame(maybe_frame: Option<&CloseFrame<'static>>) -> Self {
-        let raw_code = if let Some(frame) = maybe_frame {
-            frame.code()
-        } else {
-            return Self::Disconnected {
+    fn from_close_frame(maybe_frame: Option<&CloseFrame<'_>>) -> Self {
+        match maybe_frame.map(CloseFrame::code) {
+            Some(raw_code) => match CloseCode::try_from(raw_code) {
+                Ok(close_code) if !close_code.can_reconnect() => Self::FatallyClosed { close_code },
+                _ => Self::Disconnected {
+                    close_code: Some(raw_code),
+                    reconnect_attempts: 0,
+                },
+            },
+            None => Self::Disconnected {
                 close_code: None,
                 reconnect_attempts: 0,
-            };
-        };
-
-        let can_reconnect = CloseCode::try_from(raw_code)
-            .map(CloseCode::can_reconnect)
-            .unwrap_or(true);
-
-        if can_reconnect {
-            Self::Disconnected {
-                close_code: Some(raw_code),
-                reconnect_attempts: 0,
-            }
-        } else {
-            Self::FatallyClosed {
-                close_code: raw_code,
-            }
+            },
         }
     }
 
@@ -985,14 +971,26 @@ mod tests {
             }
         );
 
-        let fatal_code = CloseCode::AuthenticationFailed as u16;
-        let fatal_frame = CloseFrame::new(fatal_code, "");
+        let fatal_code = CloseCode::AuthenticationFailed;
+        let fatal_frame = CloseFrame::new(fatal_code as u16, "");
         let fatal_status = ConnectionStatus::from_close_frame(Some(&fatal_frame));
 
         assert_eq!(
             fatal_status,
             ConnectionStatus::FatallyClosed {
                 close_code: fatal_code
+            }
+        );
+
+        let unknown_code = u16::MAX;
+        let non_fatal_unknown_frame = CloseFrame::new(unknown_code, "");
+        let non_fatal_status = ConnectionStatus::from_close_frame(Some(&non_fatal_unknown_frame));
+
+        assert_eq!(
+            non_fatal_status,
+            ConnectionStatus::Disconnected {
+                close_code: Some(unknown_code),
+                reconnect_attempts: 0
             }
         );
     }
