@@ -11,10 +11,32 @@ use twilight_model::gateway::{
     Intents,
 };
 
-/// Identifier of a [shard], including its ID and the total number of shards in
-/// use by the bot.
+/// [`Shard`] identifier to calculate if it receivies a given event.
 ///
-/// [shard]: crate::Shard
+/// Incoming events are split by their originating guild and are received by the
+/// shard with the id calculated from the following formula:
+/// `number = (guild_id >> 22) % total`. `total` does not therefore need to be
+/// the actual total number of shards and is only used to specify the share of
+/// events the shard will receive (note that a shard may maximally be connected
+/// to 2500 guilds). This formula is independently calculated for all shards,
+/// which means that events may be duplicated or lost if it's determined that an
+/// event should be sent to multiple or no shard.
+///
+/// It may be helpful to visualize the logic in code:
+///
+/// ```
+/// use twilight_gateway::Shard;
+///
+/// fn send(shards: &[Shard], guild_id: u64) {
+///     for shard in shards {
+///         if shard.id().number() == (guild_id >> 22) % shard.id().total() {
+///             unimplemented!("send event to shard");
+///         }
+///     }
+/// }
+/// ```
+///
+/// [`shard`]: crate::Shard
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct ShardId {
     /// Number of the shard, 0-indexed.
@@ -26,15 +48,14 @@ pub struct ShardId {
 impl ShardId {
     /// ID of a bot that has only one shard.
     ///
-    /// This should *only* be used by small bots in under one or two thousand
-    /// guilds.
+    /// Should *only* be used by small bots in under one or two thousand guilds.
     pub const ONE: ShardId = ShardId::new(0, 1);
 
-    /// Create a new identifier for a shard.
+    /// Create a new shard identifier.
     ///
     /// The shard number is 0-indexed while the total number of shards is
-    /// 1-indexed. This means that a shard number of 7 with a total of 8 is
-    /// valid, while a shard number of 8 out of 8 total shards is invalid.
+    /// 1-indexed. A shard number of 7 with a total of 8 is therefore valid,
+    /// whilst a shard number of 8 out of 8 total shards is invalid.
     ///
     /// # Examples
     ///
@@ -49,8 +70,8 @@ impl ShardId {
     ///
     /// # Panics
     ///
-    /// Panics if the number of the shard is greater than or equal to the total
-    /// number of shards, or if the total number of shards is zero.
+    /// Panics if the shard number is greater than or equal to the total number
+    /// of shards, or if the total number of shards is zero.
     pub const fn new(number: u64, total: u64) -> Self {
         assert!(total > 0, "total must be non-zero");
         assert!(
@@ -61,16 +82,13 @@ impl ShardId {
         Self { number, total }
     }
 
-    /// Create a new identifier for a shard if the shard indexes are valid.
+    /// Create a new shard identifier if the shard indexes are valid.
     ///
-    /// The shard number is 0-indexed while the total number of shards is
-    /// 1-indexed. This means that a shard number of 7 with a total of 8 is
-    /// valid, while a shard number of 8 out of 8 total shards is invalid.
+    /// Non panicking version of [`new`].
+    ///
+    /// [`new`]: Self::new
     pub const fn new_checked(number: u64, total: u64) -> Option<Self> {
-        let is_total_nonzero = total > 0;
-        let is_number_valid = number < total;
-
-        if is_total_nonzero && is_number_valid {
+        if total > 0 && number < total {
             Some(Self { number, total })
         } else {
             None
@@ -402,7 +420,7 @@ impl ConfigBuilder {
     ///     )?)
     ///     .build();
     ///
-    /// let shard = Shard::with_config(ShardId::ONE, config).await?;
+    /// let shard = Shard::with_config(ShardId::ONE, config);
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
