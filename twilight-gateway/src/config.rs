@@ -26,11 +26,11 @@ use twilight_model::gateway::{
 ///
 /// > `number = (guild_id >> 22) % total`.
 ///
-/// The total number of shards is in other words unrelated to the value of
-/// `total`, which is only used to specify the share of events that the shard
-/// will receive. This formula is independently calculated for all shards, which
-/// means that events may be duplicated or lost if it's determined that an event
-/// should be sent to multiple or no shard.
+/// `total` is in other words unrelated to the total number of shards and is
+/// only used to specify the share of events a shard will receive. The formula
+/// is independently calculated for all shards, which means that events may be
+/// duplicated or lost if it's determined that an event should be sent to
+/// multiple or no shard.
 ///
 /// It may be helpful to visualize the logic in code:
 ///
