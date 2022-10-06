@@ -83,10 +83,6 @@ impl ShardId {
     }
 
     /// Create a new shard identifier if the shard indexes are valid.
-    ///
-    /// Non panicking version of [`new`].
-    ///
-    /// [`new`]: Self::new
     pub const fn new_checked(number: u64, total: u64) -> Option<Self> {
         if total > 0 && number < total {
             Some(Self { number, total })
@@ -420,7 +416,7 @@ impl ConfigBuilder {
     ///     )?)
     ///     .build();
     ///
-    /// let shard = Shard::with_config(ShardId::ONE, config);
+    /// let shard = Shard::with_config(ShardId::ONE, config).await?;
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
