@@ -13,6 +13,14 @@ use twilight_model::gateway::{
 
 /// [`Shard`] identifier to calculate if it receivies a given event.
 ///
+/// A shard ID consist of two fields: `number` and `total`. These values do not
+/// need to be unique, and are used by Discord for calculating which events to
+/// send to which shard. Shards should in general share the same `total` value
+/// and have an unique `number` value, but users may deviate from this when
+/// resharding/migrating to a new set of shards.
+///
+/// # Advanced use
+///
 /// Incoming events are split by their originating guild and are received by the
 /// shard with the id calculated from the following formula:
 ///
