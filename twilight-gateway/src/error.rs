@@ -441,14 +441,6 @@ mod tests {
 
     #[test]
     fn receive_message_error_is_fatal() {
-        let non_fatal = ReceiveMessageError {
-            kind: ReceiveMessageErrorType::FatallyClosed {
-                close_code: CloseCode::DecodeError,
-            },
-            source: None,
-        };
-        assert!(!non_fatal.is_fatal());
-
         let fatal = ReceiveMessageError {
             kind: ReceiveMessageErrorType::FatallyClosed {
                 close_code: CloseCode::AuthenticationFailed,
