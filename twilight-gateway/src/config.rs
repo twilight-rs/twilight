@@ -15,12 +15,14 @@ use twilight_model::gateway::{
 ///
 /// Incoming events are split by their originating guild and are received by the
 /// shard with the id calculated from the following formula:
-/// `number = (guild_id >> 22) % total`. `total` does not therefore need to be
-/// the actual total number of shards and is only used to specify the share of
-/// events the shard will receive (note that a shard may maximally be connected
-/// to 2500 guilds). This formula is independently calculated for all shards,
-/// which means that events may be duplicated or lost if it's determined that an
-/// event should be sent to multiple or no shard.
+///
+/// > `number = (guild_id >> 22) % total`.
+///
+/// The total number of shards is in other words unrelated to the value of
+/// `total`, which is only used to specify the share of events that the shard
+/// will receive. This formula is independently calculated for all shards, which
+/// means that events may be duplicated or lost if it's determined that an event
+/// should be sent to multiple or no shard.
 ///
 /// It may be helpful to visualize the logic in code:
 ///
