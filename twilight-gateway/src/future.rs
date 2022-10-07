@@ -5,8 +5,9 @@
 //!
 //! [`Shard`]: crate::Shard
 
-use crate::{connection::Connection, message::Message};
+use crate::{connection::Connection, message::Message, ratelimiter::Permit};
 use futures_util::{future::FutureExt, stream::Next};
+use pin_project_lite::pin_project;
 use std::{
     future::Future,
     pin::Pin,
@@ -36,44 +37,52 @@ pub enum NextMessageFutureOutput {
     UserChannelMessage(Message),
 }
 
-/// Future to determine the next action when [`Shard::next_message`] is called.
-///
-/// Polled futures are given a consistent precedence, from first to last polled:
-///
-/// - [sending a heartbeat to Discord][1];
-/// - [relaying a user's message][2] over the Websocket message;
-/// - [receiving a message][3] from Discord
-///
-/// **Be sure** to keep documented precedence in sync with variants in
-/// [`NextMessageFutureOutput`]!
-///
-/// [1]: NextMessageFutureOutput::SendHeartbeat
-/// [2]: NextMessageFutureOutput::UserChannelMessage
-/// [3]: NextMessageFutureOutput::Message
-/// [`Shard::next_message`]: crate::Shard::next_message
-pub struct NextMessageFuture<'a> {
-    /// Future resolving when the user has sent a message over the channel, to
-    /// be relayed over the Websocket connection.
-    channel_receive_future: &'a mut UnboundedReceiver<Message>,
-    /// Future resolving when the next Websocket message has been received.
-    message_future: Next<'a, Connection>,
-    /// Future resolving when the [`Shard`] must sent a heartbeat.
+pin_project! {
+    /// Future to determine the next action when [`Shard::next_message`] is
+    /// called.
     ///
-    /// [`Shard`]: crate::Shard
-    tick_heartbeat_future: TickHeartbeatFuture,
+    /// Polled futures are given a consistent precedence, from first to last:
+    ///
+    /// - [sending a heartbeat to Discord][1];
+    /// - [relaying a user's message][2] over the Websocket message;
+    /// - [receiving a message][3] from Discord
+    ///
+    /// **Be sure** to keep documented precedence in sync with variants in
+    /// [`NextMessageFutureOutput`]!
+    ///
+    /// [1]: NextMessageFutureOutput::SendHeartbeat
+    /// [2]: NextMessageFutureOutput::UserChannelMessage
+    /// [3]: NextMessageFutureOutput::Message
+    /// [`Shard::next_message`]: crate::Shard::next_message
+    pub struct NextMessageFuture<'a, F> {
+        // Future resolving when the user has sent a message over the channel,
+        // to be relayed over the Websocket connection.
+        channel_receive_future: &'a mut UnboundedReceiver<Message>,
+        // Future resolving when the next Websocket message has been received.
+        message_future: Next<'a, Connection>,
+        // Future resolving to a ratelimit permit, if a ratelimiter is enabled.
+        #[pin]
+        ratelimit_permit: Option<F>,
+        // Future resolving when the [`Shard`] must sent a heartbeat.
+        //
+        // [`Shard`]: crate::Shard
+        tick_heartbeat_future: TickHeartbeatFuture,
+    }
 }
 
-impl<'a> NextMessageFuture<'a> {
+impl<'a, F> NextMessageFuture<'a, F> {
     /// Initialize a new series of futures determining the next action to take.
     pub fn new(
         rx: &'a mut UnboundedReceiver<Message>,
         message_future: Next<'a, Connection>,
+        ratelimit_permit: Option<F>,
         maybe_heartbeat_interval: Option<Duration>,
         maybe_last_sent: Option<Instant>,
     ) -> Self {
         Self {
             channel_receive_future: rx,
             message_future,
+            ratelimit_permit,
             tick_heartbeat_future: TickHeartbeatFuture::new(
                 maybe_last_sent,
                 maybe_heartbeat_interval,
@@ -82,20 +91,33 @@ impl<'a> NextMessageFuture<'a> {
     }
 }
 
-impl Future for NextMessageFuture<'_> {
+impl<'a, F: Future<Output = Permit<'a>>> Future for NextMessageFuture<'a, F> {
     type Output = NextMessageFutureOutput;
 
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let mut this = self.as_mut();
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let this = self.project();
 
-        if let Poll::Ready(()) = this.tick_heartbeat_future.poll_unpin(cx) {
+        if this.tick_heartbeat_future.poll_unpin(cx).is_ready() {
             return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
         }
 
-        if let Poll::Ready(maybe_message) = this.channel_receive_future.poll_recv(cx) {
-            let message = maybe_message.expect("shard owns channel");
+        let ratelimited = match this.ratelimit_permit.as_pin_mut() {
+            Some(permit_future) => match permit_future.poll(cx) {
+                Poll::Ready(permit) => {
+                    permit.forget();
+                    false
+                }
+                Poll::Pending => true,
+            },
+            None => false,
+        };
 
-            return Poll::Ready(NextMessageFutureOutput::UserChannelMessage(message));
+        if !ratelimited {
+            if let Poll::Ready(maybe_message) = this.channel_receive_future.poll_recv(cx) {
+                let message = maybe_message.expect("shard owns channel");
+
+                return Poll::Ready(NextMessageFutureOutput::UserChannelMessage(message));
+            }
         }
 
         if let Poll::Ready(maybe_try_message) = this.message_future.poll_unpin(cx) {

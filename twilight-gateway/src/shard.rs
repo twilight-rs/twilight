@@ -530,6 +530,7 @@ impl Shard {
             let future = NextMessageFuture::new(
                 self.user_channel.rx_mut(),
                 self.connection.next(),
+                self.ratelimiter.as_mut().map(CommandRatelimiter::acquire),
                 self.heartbeat_interval,
                 self.latency.sent(),
             );
@@ -664,21 +665,24 @@ impl Shard {
     /// [ratelimiter]: CommandRatelimiter
     /// [was enabled]: crate::ConfigBuilder::ratelimit_messages
     pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
-        if let Some(ratelimiter) = &mut self.ratelimiter {
-            ratelimiter.acquire().await;
-        }
+        let permit = if let Some(ratelimiter) = &mut self.ratelimiter {
+            Some(ratelimiter.acquire().await)
+        } else {
+            None
+        };
 
-        self.connection
-            .send(message.into_tungstenite())
-            .await
-            .map_err(|source| {
-                self.disconnect(Disconnect::Resume);
+        // The runtime can suspend execution for a while, so hold onto the
+        // permit until the message is sent.
+        let res = self.connection.send(message.into_tungstenite()).await;
+        drop(permit);
+        res.map_err(|source| {
+            self.disconnect(Disconnect::Resume);
 
-                SendError {
-                    kind: SendErrorType::Sending,
-                    source: Some(Box::new(source)),
-                }
-            })
+            SendError {
+                kind: SendErrorType::Sending,
+                source: Some(Box::new(source)),
+            }
+        })
     }
 
     /// Retrieve a channel to send messages over the shard to the gateway.

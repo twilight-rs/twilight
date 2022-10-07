@@ -71,20 +71,55 @@ impl CommandRatelimiter {
         })
     }
 
-    /// Acquire a token from the ratelimiter, waiting until one is available.
-    pub(crate) async fn acquire(&mut self) {
+    /// Acquire a permit from the ratelimiter, waiting until one is available.
+    pub(crate) async fn acquire(&mut self) -> Permit<'_> {
         if self.available() == 0 {
             time::sleep(self.next_available()).await;
         }
         self.clean();
         assert!(self.available() > 0);
-        self.instants.push(Instant::now());
+        Permit::new(self)
     }
 
     /// Cleans up elapsed instants.
     fn clean(&mut self) {
         self.instants
             .retain(|instant| instant.elapsed() < RESET_DURATION);
+    }
+}
+
+/// Ratelimit permit.
+///
+/// Holding one of these means there's capacity for sending *one* event.
+pub(crate) struct Permit<'a> {
+    /// `true` if the permit was unused.
+    unused: bool,
+    /// Reference to the ratelimiter.
+    inner: &'a mut CommandRatelimiter,
+}
+
+impl<'a> Permit<'a> {
+    /// Create a new ratelimit permit.
+    fn new(ratelimiter: &'a mut CommandRatelimiter) -> Self {
+        Self {
+            unused: false,
+            inner: ratelimiter,
+        }
+    }
+
+    /// Forget the permit, returning it to the [`CommandRatelimiter`].
+    ///
+    /// Use this when no event was sent.
+    pub(crate) fn forget(mut self) {
+        self.unused = true;
+    }
+}
+
+impl Drop for Permit<'_> {
+    fn drop(&mut self) {
+        if !self.unused {
+            self.inner.instants.push(Instant::now());
+        }
     }
 }
 
