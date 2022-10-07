@@ -101,16 +101,16 @@ impl<'a, F: Future<Output = Permit<'a>>> Future for NextMessageFuture<'a, F> {
             return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
         }
 
-        let ratelimited = match this.ratelimit_permit.as_pin_mut() {
-            Some(permit_future) => match permit_future.poll(cx) {
+        let ratelimited = this
+            .ratelimit_permit
+            .as_pin_mut()
+            .map_or(false, |permit_future| match permit_future.poll(cx) {
                 Poll::Ready(permit) => {
                     permit.forget();
                     false
                 }
                 Poll::Pending => true,
-            },
-            None => false,
-        };
+            });
 
         if !ratelimited {
             if let Poll::Ready(maybe_message) = this.channel_receive_future.poll_recv(cx) {
