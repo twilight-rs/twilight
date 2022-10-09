@@ -802,7 +802,6 @@ impl Shard {
             .cloned()
             .unwrap_or_else(default_identify_properties);
 
-        tracing::debug!(shard_id = %self.id(), "identifying");
         let identify = Identify::new(IdentifyInfo {
             compress: false,
             large_threshold: self.config.large_threshold(),
