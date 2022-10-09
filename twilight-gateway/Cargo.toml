@@ -19,6 +19,7 @@ version = "0.13.3"
 bitflags = { default-features = false, version = "1" }
 futures-util = { default-features = false, features = ["std"], version = "0.3" }
 leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
+pin-project-lite = {default-features = false, version = "0.2" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.5" }

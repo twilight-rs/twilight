@@ -7,6 +7,7 @@
 
 use crate::{connection::Connection, message::Message};
 use futures_util::{future::FutureExt, stream::Next};
+use pin_project_lite::pin_project;
 use std::{
     future::Future,
     pin::Pin,
@@ -15,6 +16,7 @@ use std::{
 };
 use tokio::{
     sync::mpsc::UnboundedReceiver,
+    task::JoinHandle,
     time::{self, Sleep},
 };
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
@@ -31,36 +33,46 @@ pub enum NextMessageFutureOutput {
     Message(Option<TungsteniteMessage>),
     /// Heartbeat must now be sent to Discord.
     SendHeartbeat,
+    /// Identify may now be sent to Discord (gateway queue request finished).
+    SendIdentify,
     /// Message has been received from the user to be relayed over the Websocket
     /// connection.
     UserChannelMessage(Message),
 }
 
-/// Future to determine the next action when [`Shard::next_message`] is called.
-///
-/// Polled futures are given a consistent precedence, from first to last polled:
-///
-/// - [sending a heartbeat to Discord][1];
-/// - [relaying a user's message][2] over the Websocket message;
-/// - [receiving a message][3] from Discord
-///
-/// **Be sure** to keep documented precedence in sync with variants in
-/// [`NextMessageFutureOutput`]!
-///
-/// [1]: NextMessageFutureOutput::SendHeartbeat
-/// [2]: NextMessageFutureOutput::UserChannelMessage
-/// [3]: NextMessageFutureOutput::Message
-/// [`Shard::next_message`]: crate::Shard::next_message
-pub struct NextMessageFuture<'a> {
-    /// Future resolving when the user has sent a message over the channel, to
-    /// be relayed over the Websocket connection.
-    channel_receive_future: &'a mut UnboundedReceiver<Message>,
-    /// Future resolving when the next Websocket message has been received.
-    message_future: Next<'a, Connection>,
-    /// Future resolving when the [`Shard`] must sent a heartbeat.
+pin_project! {
+    /// Future to determine the next action when [`Shard::next_message`] is
+    /// called.
     ///
-    /// [`Shard`]: crate::Shard
-    tick_heartbeat_future: TickHeartbeatFuture,
+    /// Polled futures are given a consistent precedence, from first to last:
+    ///
+    /// - [sending a heartbeat to Discord][1];
+    /// - [sending an identify to Discord][2];
+    /// - [relaying a user's message][3] over the Websocket message;
+    /// - [receiving a message][4] from Discord
+    ///
+    /// **Be sure** to keep documented precedence in sync with variants in
+    /// [`NextMessageFutureOutput`]!
+    ///
+    /// [1]: NextMessageFutureOutput::SendHeartbeat
+    /// [2]: NextMessageFutureOutput::SendIdentify
+    /// [3]: NextMessageFutureOutput::UserChannelMessage
+    /// [4]: NextMessageFutureOutput::Message
+    /// [`Shard::next_message`]: crate::Shard::next_message
+    pub struct NextMessageFuture<'a> {
+        // Future resolving when the user has sent a message over the channel,
+        // to be relayed over the Websocket connection.
+        channel_receive_future: &'a mut UnboundedReceiver<Message>,
+        // Future resolving when the next Websocket message has been received.
+        message_future: Next<'a, Connection>,
+        // Future resolving when the [`Shard`] must sent a heartbeat.
+        //
+        // [`Shard`]: crate::Shard
+        tick_heartbeat_future: TickHeartbeatFuture,
+        // Handle to a background future of a gateway queue request.
+        #[pin]
+        queue_request_handle: Option<&'a mut JoinHandle<()>>,
+    }
 }
 
 impl<'a> NextMessageFuture<'a> {
@@ -70,6 +82,7 @@ impl<'a> NextMessageFuture<'a> {
         message_future: Next<'a, Connection>,
         maybe_heartbeat_interval: Option<Duration>,
         maybe_last_sent: Option<Instant>,
+        queue_request_handle: Option<&'a mut JoinHandle<()>>,
     ) -> Self {
         Self {
             channel_receive_future: rx,
@@ -78,6 +91,7 @@ impl<'a> NextMessageFuture<'a> {
                 maybe_last_sent,
                 maybe_heartbeat_interval,
             ),
+            queue_request_handle,
         }
     }
 }
@@ -85,11 +99,19 @@ impl<'a> NextMessageFuture<'a> {
 impl Future for NextMessageFuture<'_> {
     type Output = NextMessageFutureOutput;
 
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let mut this = self.as_mut();
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let this = self.project();
 
-        if let Poll::Ready(()) = this.tick_heartbeat_future.poll_unpin(cx) {
+        if this.tick_heartbeat_future.poll_unpin(cx).is_ready() {
             return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
+        }
+
+        if this
+            .queue_request_handle
+            .as_pin_mut()
+            .map_or(false, |future| future.poll(cx).is_ready())
+        {
+            return Poll::Ready(NextMessageFutureOutput::SendIdentify);
         }
 
         if let Poll::Ready(maybe_message) = this.channel_receive_future.poll_recv(cx) {
