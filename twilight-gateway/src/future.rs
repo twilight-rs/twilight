@@ -65,13 +65,13 @@ pin_project! {
         channel_receive_future: &'a mut UnboundedReceiver<Message>,
         // Future resolving when the next Websocket message has been received.
         message_future: Next<'a, Connection>,
+        // Handle to a background future of a gateway queue request.
+        #[pin]
+        queue_request_handle: Option<&'a mut JoinHandle<()>>,
         // Future resolving when the [`Shard`] must sent a heartbeat.
         //
         // [`Shard`]: crate::Shard
         tick_heartbeat_future: TickHeartbeatFuture,
-        // Handle to a background future of a gateway queue request.
-        #[pin]
-        queue_request_handle: Option<&'a mut JoinHandle<()>>,
     }
 }
 
@@ -87,11 +87,11 @@ impl<'a> NextMessageFuture<'a> {
         Self {
             channel_receive_future: rx,
             message_future,
+            queue_request_handle,
             tick_heartbeat_future: TickHeartbeatFuture::new(
                 maybe_last_sent,
                 maybe_heartbeat_interval,
             ),
-            queue_request_handle,
         }
     }
 }
