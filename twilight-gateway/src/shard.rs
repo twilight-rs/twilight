@@ -28,9 +28,11 @@
 //! 3. One of three things wait to happen:
 //!   a. the interval for the shard to send the next heartbeat occurs, in which
 //!   case [`Shard::heartbeat`] is called; or
-//!   b. the shard receives a [raw websocket message] from the user over the
+//!   b. the background identify queue task has completed, in which case
+//!   [`Shard::identify`]; or
+//!   c. the shard receives a [raw websocket message] from the user over the
 //!   [user channel], which is then forwarded via [`Shard::send`]; or
-//!   c. the shard receives a message from Discord via the websocket connection.
+//!   d. the shard receives a message from Discord via the websocket connection.
 //! 4. In the case of 3(a) and 3(b), 3 is repeated; otherwise...
 //! 5. If the message is a close it's returned to the user; otherwise, the
 //! message is [processed] by the shard;
@@ -221,9 +223,11 @@ struct MinimalReady {
 /// or invalidate a session - and then pass the events on to the user via an
 /// event stream.
 ///
-/// Shards will [go through a queue][`queue`] to initialize new ratelimited
-/// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
-/// on shards to have a better understanding of what they are.
+/// Shards go through an [identify queue][`queue`] that limits the amount of
+/// concurrent identify events (across all shards), which must be sent before
+/// shards start receiving dispatch events and are able to send other events.
+/// Refer to Discord's [documentation][docs:shards] on sharding to have a better
+/// understanding of what they are.
 ///
 /// # Sending shard commands in different tasks
 ///
