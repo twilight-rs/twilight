@@ -7,14 +7,11 @@ async fn main() -> anyhow::Result<()> {
     // Initialize the tracing subscriber.
     tracing_subscriber::fmt::init();
 
-    // To interact with the gateway we need to first connect to it
     let mut shard = Shard::new(
         ShardId::ONE,
         env::var("DISCORD_TOKEN")?,
         Intents::GUILD_MEMBERS | Intents::GUILDS,
-    )
-    .await?;
-    println!("Created shard");
+    );
 
     loop {
         let event = match shard.next_event().await {

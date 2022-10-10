@@ -8,18 +8,16 @@ use twilight_model::gateway::{
     presence::{Activity, ActivityType, Status},
 };
 
-async fn shard() -> Shard {
+fn shard() -> Shard {
     let token = env::var("DISCORD_TOKEN").unwrap();
 
     Shard::new(ShardId::ONE, token, Intents::empty())
-        .await
-        .unwrap()
 }
 
 #[ignore]
 #[tokio::test]
 async fn shard_command_ratelimit() {
-    let mut shard = shard().await;
+    let mut shard = shard();
 
     assert!(matches!(
         shard.next_event().await.unwrap(),

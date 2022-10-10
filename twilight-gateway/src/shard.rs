@@ -61,7 +61,7 @@ use crate::{
     connection::{self, Connection},
     error::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
-        SendErrorType, ShardInitializeError,
+        SendErrorType,
     },
     future::{self, NextMessageFuture, NextMessageFutureOutput},
     json,
@@ -112,7 +112,7 @@ impl Disconnect {
 /// Current status of a shard.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ConnectionStatus {
-    /// Shard is connected.
+    /// Shard is connected with an active session.
     ///
     /// Note that this does not mean the shard has an active gateway session.
     Connected,
@@ -140,6 +140,10 @@ pub enum ConnectionStatus {
         /// Close code of the close message.
         close_code: CloseCode,
     },
+    /// Shard is waiting to establish an active session.
+    Identifying,
+    /// Shard is replaying missed dispatch events.
+    Resuming,
 }
 
 impl ConnectionStatus {
@@ -164,7 +168,7 @@ impl ConnectionStatus {
         }
     }
 
-    /// Whether the shard is connected.
+    /// Whether the shard is connected with an active session.
     pub const fn is_connected(&self) -> bool {
         matches!(self, Self::Connected)
     }
@@ -177,6 +181,16 @@ impl ConnectionStatus {
     /// Whether the shard has fatally closed, such as due to an invalid token.
     pub const fn is_fatally_closed(&self) -> bool {
         matches!(self, Self::FatallyClosed { .. })
+    }
+
+    /// Whether the shard is waiting to establish an active session.
+    pub const fn is_identifying(&self) -> bool {
+        matches!(self, Self::Identifying)
+    }
+
+    /// Whether the shard is replaying missed dispatch events.
+    pub const fn is_resuming(&self) -> bool {
+        matches!(self, Self::Resuming)
     }
 }
 
@@ -199,12 +213,18 @@ struct MinimalReady {
     session_id: String,
 }
 
-/// Shard to run and manage a session with the gateway.
+/// Gateway API client responsible for up to 2500 guilds.
 ///
-/// Shards are responsible for handling incoming events, process events relevant
-/// to the operation of shards - such as requests from the gateway to re-connect
-/// or invalidate a session - and then pass the events on to the user via an
-/// event stream.
+/// Shards are responsible for maintaining the gateway connection by processing
+/// events relevant to the operation of shards --- such as requests from the
+/// gateway to re-connect or invalidate a session --- and then to pass them on
+/// to the user.
+///
+/// Shards start out disconnected, but will on the first call to
+/// [`next_message`] try to reconnect to the gateway. [`next_message`] must then
+/// be repeatedly called in order for the shard to maintain its connection and
+/// update its internal state. Note that the [`next_event`] method internally
+/// calls [`next_message`].
 ///
 /// Shards go through an [identify queue][`queue`] that ratelimits the amount of
 /// concurrent identify events (across all shards) per 5 seconds. Note that
@@ -236,7 +256,7 @@ struct MinimalReady {
 /// let config = Config::builder(token, Intents::GUILD_MESSAGES)
 ///     .event_types(event_types)
 ///     .build();
-/// let mut shard = Shard::with_config(ShardId::ONE, config).await?;
+/// let mut shard = Shard::with_config(ShardId::ONE, config);
 ///
 /// // Create a loop of only new messages and deleted messages.
 ///
@@ -267,8 +287,10 @@ struct MinimalReady {
 /// # Ok(()) }
 /// ```
 ///
-/// [`queue`]: crate::queue
 /// [gateway commands]: Shard::command
+/// [`next_event`]: Shard::next_event
+/// [`next_message`]: Shard::next_message
+/// [`queue`]: crate::queue
 #[derive(Debug)]
 pub struct Shard {
     /// Abstraction to decompress Websocket messages, if compression is enabled.
@@ -279,7 +301,7 @@ pub struct Shard {
     /// [`Shard::new`] or [`Shard::with_config`].
     config: Config,
     /// Websocket connection, which may be connected to Discord's gateway.
-    connection: Connection,
+    connection: Option<Connection>,
     /// Interval of how often the gateway would like the shard to
     /// [send heartbeats][`Self::heartbeat`].
     ///
@@ -317,70 +339,32 @@ pub struct Shard {
 
 impl Shard {
     /// Create a new shard with the default configuration.
-    ///
-    /// # Examples
-    ///
-    /// Create a new shard and start it, wait a second, and then print its
-    /// current connection status:
-    ///
-    /// ```no_run
-    /// use std::{env, time::Duration};
-    /// use tokio::time as tokio_time;
-    /// use twilight_gateway::{Intents, Shard, ShardId};
-    ///
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// let token = env::var("DISCORD_TOKEN")?;
-    /// let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_TYPING;
-    /// let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
-    ///
-    /// println!("Shard connection status: {:?}", shard.status());
-    /// # Ok(()) }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// Refer to [`Shard::with_config`] for possible errors.
-    pub async fn new(
-        id: ShardId,
-        token: String,
-        intents: Intents,
-    ) -> Result<Self, ShardInitializeError> {
+    pub fn new(id: ShardId, token: String, intents: Intents) -> Self {
         let config = Config::builder(token, intents).build();
 
-        Self::with_config(id, config).await
+        Self::with_config(id, config)
     }
 
     /// Create a new shard with the provided configuration.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ShardInitializeErrorType::Establishing`] error type if the
-    /// connection with the Discord gateway could not be established, such as
-    /// due to network or TLS errors.
-    ///
-    /// [`ShardInitializeErrorType::Establishing`]: crate::error::ShardInitializeErrorType::Establishing
-    pub async fn with_config(
-        shard_id: ShardId,
-        mut config: Config,
-    ) -> Result<Self, ShardInitializeError> {
+    pub fn with_config(shard_id: ShardId, mut config: Config) -> Self {
         let session = config.take_session();
 
-        let connection = connection::connect(shard_id, config.gateway_url(), config.tls()).await?;
-
-        Ok(Self {
+        Self {
             compression: Compression::new(shard_id),
             config,
-            connection,
+            connection: None,
             heartbeat_interval: None,
             id: shard_id,
             latency: Latency::new(),
             ratelimiter: None,
             resume_gateway_url: None,
             session,
-            status: ConnectionStatus::Connected,
+            status: ConnectionStatus::Disconnected {
+                close_code: None,
+                reconnect_attempts: 0,
+            },
             user_channel: MessageChannel::new(),
-        })
+        }
     }
 
     /// Immutable reference to the configuration used to instantiate this shard.
@@ -393,13 +377,7 @@ impl Shard {
         self.id
     }
 
-    /// Whether the shard is currently connected to the gateway.
-    ///
-    /// The shard may not be connected if the gateway session was recently
-    /// invalidated and has not yet reconnected, or if the shard was explicitly
-    /// [closed] by the user.
-    ///
-    /// [closed]: Self::close
+    /// Connection status of the shard.
     pub const fn status(&self) -> &ConnectionStatus {
         &self.status
     }
@@ -423,9 +401,8 @@ impl Shard {
 
     /// Immutable reference to the active gateway session.
     ///
-    /// An active session may not be present if the shard has recently
-    /// disconnected or had its session invalidated and has not yet performed a
-    /// reconnect.
+    /// An active session may not be present if the shard had its session
+    /// invalidated and has not yet reconnected.
     pub const fn session(&self) -> Option<&Session> {
         self.session.as_ref()
     }
@@ -488,7 +465,9 @@ impl Shard {
         self.compression.clear();
 
         match self.status {
-            ConnectionStatus::Connected => {}
+            ConnectionStatus::Connected
+            | ConnectionStatus::Identifying
+            | ConnectionStatus::Resuming => {}
             ConnectionStatus::Disconnected {
                 close_code,
                 reconnect_attempts,
@@ -504,7 +483,7 @@ impl Shard {
         let message = loop {
             let future = NextMessageFuture::new(
                 self.user_channel.rx_mut(),
-                self.connection.next(),
+                self.connection.as_mut().expect("connected").next(),
                 self.heartbeat_interval,
                 self.latency.sent(),
             );
@@ -540,6 +519,7 @@ impl Shard {
         match message {
             Message::Close(maybe_frame) => {
                 self.status = ConnectionStatus::from_close_frame(maybe_frame.as_ref());
+                self.connection = None;
 
                 return Ok(Message::Close(maybe_frame));
             }
@@ -572,16 +552,26 @@ impl Shard {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
-    /// use twilight_gateway::{Intents, Shard, ShardId};
+    /// use twilight_gateway::{ConnectionStatus, Intents, Shard, ShardId};
     /// use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
     ///
     /// let intents = Intents::GUILD_VOICE_STATES;
     /// let token = env::var("DISCORD_TOKEN")?;
     ///
-    /// let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
+    /// let mut shard = Shard::new(ShardId::ONE, token, intents);
     ///
-    /// // Query members whose names start with "tw" and limit the results to
-    /// // 10 members.
+    /// // Discord only allows sending the `RequestGuildMembers` command after
+    /// // the shard is identified.
+    /// while !matches!(
+    ///     shard.status(),
+    ///     ConnectionStatus::Connected | ConnectionStatus::Resuming
+    /// ) {
+    ///     // Ignore these messages.
+    ///     shard.next_message().await?;
+    /// }
+    ///
+    /// // Query members whose names start with "tw" and limit the results to 10
+    /// // members.
     /// let request = RequestGuildMembers::builder(Id::new(1)).query("tw", Some(10));
     ///
     /// // Send the request over the shard.
@@ -623,7 +613,11 @@ impl Shard {
     /// };
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
-    /// let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILDS).await?;
+    /// let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILDS);
+    ///
+    /// // The shard will try to connect on the first call to either
+    /// // `next_event` or `next_message`.
+    /// shard.next_message().await?;
     ///
     /// let message = Message::Close(Some(CloseFrame::NORMAL));
     /// shard.send(message).await?;
@@ -644,6 +638,11 @@ impl Shard {
         }
 
         self.connection
+            .as_mut()
+            .ok_or(SendError {
+                kind: SendErrorType::Sending,
+                source: None,
+            })?
             .send(message.into_tungstenite())
             .await
             .map_err(|source| {
@@ -703,6 +702,7 @@ impl Shard {
             close_code: None,
             reconnect_attempts: 0,
         };
+        self.connection = None;
 
         if disconnect == Disconnect::InvalidateSession {
             tracing::debug!(shard_id = %self.id(), "session invalidated");
@@ -772,8 +772,8 @@ impl Shard {
         });
     }
 
-    /// Process the buffer of the current websocket message to update the shard's
-    /// state.
+    /// Updates the shard's internal state from the current websocket message
+    /// by recording and/or responding to certain Discord events.
     ///
     /// # Errors
     ///
@@ -801,9 +801,6 @@ impl Shard {
             Err(source) => return Err(ProcessError::from_compression(source)),
         };
 
-        // Instead of returning the event type, we return whether the event type
-        // is a Ready event, which is the only one we handle. This gets around
-        // having both an immutable and mutable lifetime to the buffer.
         let (raw_opcode, maybe_sequence, maybe_event_type) = {
             let json = str::from_utf8(buffer).map_err(|source| ProcessError {
                 kind: ProcessErrorType::ParsingPayload,
@@ -814,33 +811,35 @@ impl Shard {
                 source: None,
             })?;
 
-            (
-                deserializer.op(),
-                deserializer.sequence(),
-                deserializer.event_type_ref(),
-            )
+            deserializer.into_parts()
         };
 
         match OpCode::from(raw_opcode) {
             Some(OpCode::Dispatch) => {
-                let sequence = maybe_sequence.ok_or(ProcessError {
-                    kind: ProcessErrorType::ParsingPayload,
-                    source: None,
-                })?;
                 let event_type = maybe_event_type.ok_or(ProcessError {
                     kind: ProcessErrorType::ParsingPayload,
                     source: None,
                 })?;
+                let sequence = maybe_sequence.ok_or(ProcessError {
+                    kind: ProcessErrorType::ParsingPayload,
+                    source: None,
+                })?;
 
-                if event_type == "READY" {
-                    let event = Self::parse_event::<MinimalReady>(buffer)?;
+                match event_type {
+                    "READY" => {
+                        let event = Self::parse_event::<MinimalReady>(buffer)?;
 
-                    self.resume_gateway_url = Some(event.data.resume_gateway_url);
-                    self.status = ConnectionStatus::Connected;
-                    self.session = Some(Session::new(sequence, event.data.session_id));
+                        self.resume_gateway_url = Some(event.data.resume_gateway_url);
+                        self.session = Some(Session::new(sequence, event.data.session_id));
+                        self.status = ConnectionStatus::Connected;
+                    }
+                    "RESUMED" => self.status = ConnectionStatus::Connected,
+                    _ => {}
                 }
 
-                // Ready should be the first received dispatch event, so this should never fail
+                // READY *should* be the first received dispatch event (which
+                // initializes `self.session`), but it shouldn't matter that
+                // much if it's not.
                 if let Some(session) = self.session.as_mut() {
                     let last_sequence = session.set_sequence(sequence);
 
@@ -885,17 +884,20 @@ impl Shard {
             Some(OpCode::Reconnect) => {
                 self.disconnect(Disconnect::Resume);
             }
-            _ => tracing::warn!("received unknown opcode: {raw_opcode}"),
+            _ => tracing::warn!("received an unknown opcode: {raw_opcode}"),
         }
 
         Ok(())
     }
 
-    /// Reconnect to the gateway with a new Websocket connection.
+    /// Establishes a Websocket connection and sends a [`Resume`] event if
+    /// holding an active [`Session`].
     ///
-    /// Resumes the connection if a session is available, clears the
-    /// [compression] buffer, and sets the [status] to
-    /// [`ConnectionStatus::Connected`].
+    /// On successfully sending a [`Resume`] event it sets the [status] to
+    /// [`ConnectionStatus::Resuming`], otherwise if there's no active
+    /// [`Session`] it sets the [status] to [`ConnectionStatus::Identifying`].
+    ///
+    /// Lastly it clears the [compression] buffer.
     ///
     /// [compression]: Self::compression
     /// [status]: Self::status
@@ -911,27 +913,30 @@ impl Shard {
             .gateway_url()
             .or(self.resume_gateway_url.as_deref());
 
-        self.connection = connection::connect(self.id(), maybe_gateway_url, self.config.tls())
-            .await
-            .map_err(|source| {
-                self.status = ConnectionStatus::Disconnected {
-                    close_code,
-                    reconnect_attempts: reconnect_attempts + 1,
-                };
-                self.resume_gateway_url = None;
-
-                ReceiveMessageError::from_reconnect(source)
-            })?;
-
-        if let Some(session) = self.session() {
-            let resume = Resume::new(session.sequence(), session.id(), self.config().token());
-            self.command(&resume)
+        self.connection = Some(
+            connection::connect(self.id(), maybe_gateway_url, self.config.tls())
                 .await
-                .map_err(ReceiveMessageError::from_send)?;
+                .map_err(|source| {
+                    self.status = ConnectionStatus::Disconnected {
+                        close_code,
+                        reconnect_attempts: reconnect_attempts + 1,
+                    };
+                    source
+                })?,
+        );
+
+        match self.session() {
+            Some(session) => {
+                let resume = Resume::new(session.sequence(), session.id(), self.config().token());
+                self.command(&resume)
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+                self.status = ConnectionStatus::Resuming;
+            }
+            None => self.status = ConnectionStatus::Identifying,
         }
 
         self.compression.reset();
-        self.status = ConnectionStatus::Connected;
 
         Ok(())
     }

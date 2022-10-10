@@ -82,7 +82,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Start a shard connected to the gateway to receive events.
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_MESSAGE_REACTIONS;
-    let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
+    let mut shard = Shard::new(ShardId::ONE, token, intents);
 
     let standby = Arc::new(Standby::new());
 

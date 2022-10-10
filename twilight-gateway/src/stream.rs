@@ -8,10 +8,7 @@
 //! and [`ShardMessageStream`].
 
 use crate::{
-    error::{ReceiveMessageError, ShardInitializeError},
-    message::Message,
-    tls::TlsContainer,
-    Config, Shard, ShardId,
+    error::ReceiveMessageError, message::Message, tls::TlsContainer, Config, Shard, ShardId,
 };
 use futures_util::stream::{FuturesUnordered, Stream, StreamExt};
 use std::{
@@ -108,9 +105,7 @@ pub enum StartRecommendedErrorType {
 ///
 /// let mut shards = stream::start_recommended(&client, config_callback)
 ///     .await?
-///     .filter_map(|shard_result| async move { shard_result.ok() })
-///     .collect::<Vec<_>>()
-///     .await;
+///     .collect::<Vec<_>>();
 ///
 /// let mut stream = ShardEventStream::new(shards.iter_mut());
 ///
@@ -209,9 +204,7 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///
 /// let mut shards = stream::start_recommended(&client, config_callback)
 ///     .await?
-///     .filter_map(|shard_result| async move { shard_result.ok() })
-///     .collect::<Vec<_>>()
-///     .await;
+///     .collect::<Vec<_>>();
 ///
 /// let mut stream = ShardMessageStream::new(shards.iter_mut());
 ///
@@ -369,7 +362,7 @@ pub fn start_cluster<F: Fn(ShardId) -> Config>(
     concurrency: u64,
     total: u64,
     per_shard_config: F,
-) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static {
+) -> impl Iterator<Item = Shard> {
     assert!(bucket_id < total, "bucket id must be less than the total");
     assert!(
         concurrency < total,
@@ -379,16 +372,13 @@ pub fn start_cluster<F: Fn(ShardId) -> Config>(
     let concurrency = concurrency.try_into().unwrap();
     let tls = TlsContainer::new().unwrap();
 
-    (bucket_id..total)
-        .step_by(concurrency)
-        .map(|index| {
-            let id = ShardId::new(index, total);
-            let mut config = per_shard_config(id);
-            config.set_tls(tls.clone());
+    (bucket_id..total).step_by(concurrency).map(move |index| {
+        let id = ShardId::new(index, total);
+        let mut config = per_shard_config(id);
+        config.set_tls(tls.clone());
 
-            Shard::with_config(id, config)
-        })
-        .collect::<FuturesUnordered<_>>()
+        Shard::with_config(id, config)
+    })
 }
 
 /// Start a range of shards with provided configuration for each shard.
@@ -408,19 +398,17 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
     range: impl RangeBounds<u64>,
     total: u64,
     per_shard_config: F,
-) -> impl Stream<Item = Result<Shard, ShardInitializeError>> + Send + 'static {
+) -> impl Iterator<Item = Shard> {
     let range = calculate_range(range, total);
     let tls = TlsContainer::new().unwrap();
 
-    range
-        .map(|index| {
-            let id = ShardId::new(index, total);
-            let mut config = per_shard_config(id);
-            config.set_tls(tls.clone());
+    range.map(move |index| {
+        let id = ShardId::new(index, total);
+        let mut config = per_shard_config(id);
+        config.set_tls(tls.clone());
 
-            Shard::with_config(id, config)
-        })
-        .collect::<FuturesUnordered<_>>()
+        Shard::with_config(id, config)
+    })
 }
 
 /// Start all of the shards recommended for Discord in a single group.
@@ -448,11 +436,8 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 ///
 /// let shards = stream::start_recommended(&client, config_callback)
 ///     .await?
-///     .filter_map(|shard_result| async move {
-///         shard_result.ok().map(|shard| (shard.id().number(), shard))
-///     })
-///     .collect::<HashMap<_, _>>()
-///     .await;
+///     .map(|shard| (shard.id().number(), shard))
+///     .collect::<HashMap<_, _>>();
 ///
 /// println!("total shards: {}", shards.len());
 /// # Ok(()) }
@@ -474,7 +459,7 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 pub async fn start_recommended<F: Fn(ShardId) -> Config>(
     client: &Client,
     per_shard_config: F,
-) -> Result<impl Stream<Item = Result<Shard, ShardInitializeError>> + Send, StartRecommendedError> {
+) -> Result<impl Iterator<Item = Shard>, StartRecommendedError> {
     let request = client.gateway().authed();
     let response = request
         .exec()

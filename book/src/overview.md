@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let intents = Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES;
 
     // Create a single shard.
-    let mut shard = Shard::new(ShardId::ONE, token.clone(), intents).await?;
+    let mut shard = Shard::new(ShardId::ONE, token.clone(), intents);
 
     // The http client is separate from the gateway, so startup a new
     // one, also use Arc such that it can be cloned to other threads.
