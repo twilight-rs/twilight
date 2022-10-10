@@ -736,7 +736,7 @@ impl Shard {
     }
 
     /// Send a heartbeat with an optional sequence number that should be
-    /// [`None`] if the shard has not received any events yet.
+    /// [`None`] if the shard has not yet received a dispatch event.
     ///
     /// Closes the connection and resumes if previous sent heartbeat never got
     /// a reply.
