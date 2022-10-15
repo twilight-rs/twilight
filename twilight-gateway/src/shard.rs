@@ -788,6 +788,7 @@ impl Shard {
                 tracing::debug!(%shard_id, "queued for identify");
                 queue.request([shard_id.number(), shard_id.total()]).await;
                 tracing::debug!(%shard_id, "passed queue");
+                #[allow(clippy::let_underscore_drop)]
                 let _ = sender.command(&identify);
             }
         });
