@@ -28,11 +28,9 @@
 //! 3. One of three things wait to happen:
 //!   a. the interval for the shard to send the next heartbeat occurs, in which
 //!   case [`Shard::heartbeat`] is called; or
-//!   b. the background identify queue task has completed, in which case
-//!   [`Shard::identify`]; or
-//!   c. the shard receives a [raw websocket message] from the user over the
+//!   b. the shard receives a [raw websocket message] from the user over the
 //!   [user channel], which is then forwarded via [`Shard::send`]; or
-//!   d. the shard receives a message from Discord via the websocket connection.
+//!   c. the shard receives a message from Discord via the websocket connection.
 //! 4. In the case of 3(a) and 3(b), 3 is repeated; otherwise...
 //! 5. If the message is a close it's returned to the user; otherwise, the
 //! message is [processed] by the shard;
@@ -76,7 +74,6 @@ use crate::{
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
 use std::{env::consts::OS, str, time::Duration};
-use tokio::task::JoinHandle;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
@@ -223,11 +220,10 @@ struct MinimalReady {
 /// or invalidate a session - and then pass the events on to the user via an
 /// event stream.
 ///
-/// Shards go through an [identify queue][`queue`] that limits the amount of
-/// concurrent identify events (across all shards), which must be sent before
-/// shards start receiving dispatch events and are able to send other events.
-/// Refer to Discord's [documentation][docs:shards] on sharding to have a better
-/// understanding of what they are.
+/// Shards go through an [identify queue][`queue`] that ratelimits the amount of
+/// concurrent identify events (across all shards) per 5 seconds. Note that
+/// shards must be identified before they start receiving dispatch events and
+/// are able to send most other events.
 ///
 /// # Sending shard commands in different tasks
 ///
@@ -286,7 +282,6 @@ struct MinimalReady {
 /// ```
 ///
 /// [`queue`]: crate::queue
-/// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 /// [gateway commands]: Shard::command
 #[derive(Debug)]
 pub struct Shard {
@@ -312,8 +307,6 @@ pub struct Shard {
     id: ShardId,
     /// Recent heartbeat latency statistics.
     latency: Latency,
-    /// Handle to a background future of a gateway queue request.
-    queue_request_handle: Option<JoinHandle<()>>,
     /// Command ratelimiter, if it was enabled via
     /// [`Config::ratelimit_messages`].
     ratelimiter: Option<CommandRatelimiter>,
@@ -396,7 +389,6 @@ impl Shard {
             heartbeat_interval: None,
             id: shard_id,
             latency: Latency::new(),
-            queue_request_handle: None,
             ratelimiter: None,
             resume_gateway_url: None,
             session,
@@ -529,7 +521,6 @@ impl Shard {
                 self.connection.next(),
                 self.heartbeat_interval,
                 self.latency.sent(),
-                self.queue_request_handle.as_mut(),
             );
 
             let tungstenite_message = match future.await {
@@ -541,13 +532,6 @@ impl Shard {
                 }
                 NextMessageFutureOutput::SendHeartbeat => {
                     self.heartbeat(None)
-                        .await
-                        .map_err(ReceiveMessageError::from_send)?;
-
-                    continue;
-                }
-                NextMessageFutureOutput::SendIdentify => {
-                    self.identify()
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
 
@@ -774,49 +758,39 @@ impl Shard {
         Ok(())
     }
 
-    /// Queue up for identification in the background.
-    fn queue_identify(&mut self) {
-        tracing::debug!(shard_id = %self.id(), "queued for identify");
-        self.queue_request_handle = Some(tokio::spawn({
-            let queue = self.config().queue().clone();
-            let shard_id = [self.id.number(), self.id.total()];
-
-            async move { queue.request(shard_id).await }
-        }));
-    }
-
     /// Identify a new session with the Discord gateway.
     ///
-    /// **Note** there must be capacity to send an identify event, only call
-    /// this method after [`queue_identify`] and [`identify_handle`] have
-    /// finished.
-    ///
-    /// # Errors
-    ///
-    /// Refer to [`command`][`Self::command`] for possible errors.
-    ///
-    /// [`identify_handle`]: Self::identify_handle
-    /// [`queue_identify`]: Self::queue_identify
-    async fn identify(&mut self) -> Result<(), SendError> {
-        self.queue_request_handle = None;
+    /// Spawn a background task that awaits permission from the gateway queue
+    /// and then sends an identify event back to the shard through a
+    /// [`MessageSender`].
+    fn identify(&self) {
+        tokio::spawn({
+            let sender = self.sender();
+            let shard_id = self.id();
+            let queue = self.config().queue().clone();
+            let properties = self
+                .config()
+                .identify_properties()
+                .cloned()
+                .unwrap_or_else(default_identify_properties);
 
-        let properties = self
-            .config()
-            .identify_properties()
-            .cloned()
-            .unwrap_or_else(default_identify_properties);
+            let identify = Identify::new(IdentifyInfo {
+                compress: false,
+                large_threshold: self.config.large_threshold(),
+                intents: self.config.intents(),
+                properties,
+                shard: Some([self.id().number(), self.id().total()]),
+                presence: self.config.presence().cloned(),
+                token: self.config.token().to_owned(),
+            });
 
-        let identify = Identify::new(IdentifyInfo {
-            compress: false,
-            large_threshold: self.config.large_threshold(),
-            intents: self.config.intents(),
-            properties,
-            shard: Some([self.id().number(), self.id().total()]),
-            presence: self.config.presence().cloned(),
-            token: self.config.token().to_owned(),
+            async move {
+                tracing::debug!(%shard_id, "queued for identify");
+                queue.request([shard_id.number(), shard_id.total()]).await;
+                tracing::debug!(%shard_id, "passed queue");
+                let _ = sender.command(&identify);
+            }
         });
-
-        self.command(&identify).await
     }
 
     /// Process the buffer of the current websocket message to update the shard's
@@ -918,7 +892,7 @@ impl Shard {
                 }
 
                 if self.session.is_none() {
-                    self.queue_identify();
+                    self.identify();
                 }
             }
             Ok(OpCode::InvalidSession) => {
