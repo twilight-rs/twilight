@@ -131,21 +131,21 @@ impl TickHeartbeatFuture {
     /// Initialize a new unpolled future that will resolve when the next
     /// heartbeat must be sent.
     fn new(maybe_heartbeat_interval: Option<Duration>, maybe_last_sent: Option<Instant>) -> Self {
-        match (maybe_heartbeat_interval, maybe_last_sent) {
-            (Some(heartbeat_interval), Some(last_sent)) => Self {
-                inner: Some(Box::pin(time::sleep(
-                    heartbeat_interval.saturating_sub(last_sent.elapsed()),
-                ))),
-            },
-            (Some(heartbeat_interval), None) => Self {
+        let inner = match (maybe_heartbeat_interval, maybe_last_sent) {
+            (Some(heartbeat_interval), Some(last_sent)) => Some(Box::pin(time::sleep(
+                heartbeat_interval.saturating_sub(last_sent.elapsed()),
+            ))),
+            (Some(heartbeat_interval), None) => {
                 // First heartbeat should have some jitter, see
                 // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
-                inner: Some(Box::pin(time::sleep(
+                Some(Box::pin(time::sleep(
                     heartbeat_interval.mul_f64(rand::random()),
-                ))),
-            },
-            (None, _) => Self { inner: None },
-        }
+                )))
+            }
+            (None, _) => None,
+        };
+
+        Self { inner }
     }
 }
 
