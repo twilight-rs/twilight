@@ -122,12 +122,8 @@ impl ReceiveMessageError {
     ///
     /// If the error is fatal then further attempts to use the shard will return
     /// more fatal errors.
-    pub fn is_fatal(&self) -> bool {
-        if let ReceiveMessageErrorType::FatallyClosed { close_code } = self.kind() {
-            CloseCode::try_from(*close_code).map_or(false, |code| !code.can_reconnect())
-        } else {
-            false
-        }
+    pub const fn is_fatal(&self) -> bool {
+        matches!(self.kind(), ReceiveMessageErrorType::FatallyClosed { .. })
     }
 
     /// Immutable reference to the type of error that occurred.
@@ -154,7 +150,7 @@ impl ReceiveMessageError {
     }
 
     /// Shortcut to create a new error from a fatal close code.
-    pub(crate) fn from_fatally_closed(close_code: u16) -> Self {
+    pub(crate) fn from_fatally_closed(close_code: CloseCode) -> Self {
         Self {
             kind: ReceiveMessageErrorType::FatallyClosed { close_code },
             source: None,
@@ -195,11 +191,7 @@ impl Display for ReceiveMessageError {
             ReceiveMessageErrorType::FatallyClosed { close_code } => {
                 f.write_str("shard fatally closed: ")?;
 
-                if let Ok(code) = CloseCode::try_from(close_code) {
-                    Display::fmt(&code, f)
-                } else {
-                    Display::fmt(&close_code, f)
-                }
+                Display::fmt(&close_code, f)
             }
             ReceiveMessageErrorType::Process => {
                 f.write_str("failed to internally process the received message")
@@ -232,10 +224,7 @@ pub enum ReceiveMessageErrorType {
     /// Shard has been closed due to a fatal configuration error.
     FatallyClosed {
         /// Close code of the close message.
-        ///
-        /// The close code may be able to parse into [`CloseCode`] if it's a
-        /// known close code. Unknown close codes are considered fatal.
-        close_code: u16,
+        close_code: CloseCode,
     },
     ///
     /// Processing the message failed.
@@ -418,17 +407,15 @@ mod tests {
 
     #[test]
     fn receive_message_error_display() {
-        const MESSAGES: [(ReceiveMessageErrorType, &str); 6] = [
+        const MESSAGES: [(ReceiveMessageErrorType, &str); 5] = [
             (
                 ReceiveMessageErrorType::Deserializing,
                 "message is an unrecognized payload",
             ),
             (
-                ReceiveMessageErrorType::FatallyClosed { close_code: 1001 },
-                "shard fatally closed: 1001",
-            ),
-            (
-                ReceiveMessageErrorType::FatallyClosed { close_code: 4013 },
+                ReceiveMessageErrorType::FatallyClosed {
+                    close_code: CloseCode::InvalidIntents,
+                },
                 "shard fatally closed: Invalid Intents",
             ),
             (
@@ -454,15 +441,9 @@ mod tests {
 
     #[test]
     fn receive_message_error_is_fatal() {
-        let non_fatal = ReceiveMessageError {
-            kind: ReceiveMessageErrorType::FatallyClosed { close_code: 1001 },
-            source: None,
-        };
-        assert!(!non_fatal.is_fatal());
-
         let fatal = ReceiveMessageError {
             kind: ReceiveMessageErrorType::FatallyClosed {
-                close_code: CloseCode::AuthenticationFailed as u16,
+                close_code: CloseCode::AuthenticationFailed,
             },
             source: None,
         };

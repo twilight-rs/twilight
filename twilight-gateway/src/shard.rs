@@ -123,7 +123,6 @@ pub enum ConnectionStatus {
         /// May not be available if the shard was closed via an event, such as
         /// [`GatewayEvent::InvalidateSession`].
         ///
-        ///
         /// [`GatewayEvent::InvalidateSession`]: twilight_model::gateway::event::GatewayEvent::InvalidateSession
         close_code: Option<u16>,
         /// Number of reconnection attempts that have been made.
@@ -139,10 +138,7 @@ pub enum ConnectionStatus {
     /// [invalid intents]: CloseCode::InvalidIntents
     FatallyClosed {
         /// Close code of the close message.
-        ///
-        /// The close code may be able to parse into [`CloseCode`] if it's a
-        /// known close code. Unknown close codes aren't considered fatal.
-        close_code: u16,
+        close_code: CloseCode,
     },
 }
 
@@ -150,31 +146,21 @@ impl ConnectionStatus {
     /// Determine the connection status from the close code.
     ///
     /// Defers to [`CloseCode::can_reconnect`] to determine whether the
-    /// connection can be reconnected, defaulting to [`Self::FatallyClosed`] if
+    /// connection can be reconnected, defaulting to [`Self::Disconnected`] if
     /// the close code is unknown.
-    fn from_close_frame(maybe_frame: Option<&CloseFrame<'static>>) -> Self {
-        let raw_code = if let Some(frame) = maybe_frame {
-            frame.code()
-        } else {
-            return Self::Disconnected {
+    fn from_close_frame(maybe_frame: Option<&CloseFrame<'_>>) -> Self {
+        match maybe_frame.map(CloseFrame::code) {
+            Some(raw_code) => match CloseCode::try_from(raw_code) {
+                Ok(close_code) if !close_code.can_reconnect() => Self::FatallyClosed { close_code },
+                _ => Self::Disconnected {
+                    close_code: Some(raw_code),
+                    reconnect_attempts: 0,
+                },
+            },
+            None => Self::Disconnected {
                 close_code: None,
                 reconnect_attempts: 0,
-            };
-        };
-
-        let can_reconnect = CloseCode::try_from(raw_code)
-            .map(CloseCode::can_reconnect)
-            .unwrap_or(true);
-
-        if can_reconnect {
-            Self::Disconnected {
-                close_code: Some(raw_code),
-                reconnect_attempts: 0,
-            }
-        } else {
-            Self::FatallyClosed {
-                close_code: raw_code,
-            }
+            },
         }
     }
 
@@ -531,7 +517,7 @@ impl Shard {
                     TungsteniteMessage::Close(None)
                 }
                 NextMessageFutureOutput::SendHeartbeat => {
-                    self.heartbeat(None)
+                    self.heartbeat(self.session().map(Session::sequence))
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
 
@@ -721,20 +707,16 @@ impl Shard {
         if disconnect == Disconnect::InvalidateSession {
             tracing::debug!(shard_id = %self.id(), "session invalidated");
             self.session = None;
+            self.resume_gateway_url = None;
         }
     }
 
-    /// Send a heartbeat, optionally overriding the session's sequence.
+    /// Send a heartbeat with an optional sequence number that should be
+    /// [`None`] if the shard has not yet received a dispatch event.
     ///
     /// Closes the connection and resumes if previous sent heartbeat never got
     /// a reply.
-    ///
-    /// # Panics
-    ///
-    /// Panics if called without an `override_sequence` and without having
-    /// received an [`OpCode::Hello`] event.
-    #[track_caller]
-    async fn heartbeat(&mut self, override_sequence: Option<u64>) -> Result<(), SendError> {
+    async fn heartbeat(&mut self, sequence: Option<u64>) -> Result<(), SendError> {
         let is_first_heartbeat = self.heartbeat_interval.is_some() && self.latency.sent().is_none();
 
         // Discord never replied to the last heartbeat, connection is failed or
@@ -745,10 +727,6 @@ impl Shard {
             self.session = self.close(CloseFrame::RESUME).await?;
             self.disconnect(Disconnect::Resume);
         } else {
-            let sequence = override_sequence
-                .or_else(|| self.session.as_ref().map(Session::sequence))
-                .unwrap();
-
             let command = Heartbeat::new(sequence);
             self.command(&command).await?;
 
@@ -826,7 +804,7 @@ impl Shard {
         // Instead of returning the event type, we return whether the event type
         // is a Ready event, which is the only one we handle. This gets around
         // having both an immutable and mutable lifetime to the buffer.
-        let (raw_opcode, maybe_sequence, is_ready) = {
+        let (raw_opcode, maybe_sequence, maybe_event_type) = {
             let json = str::from_utf8(buffer).map_err(|source| ProcessError {
                 kind: ProcessErrorType::ParsingPayload,
                 source: Some(Box::new(source)),
@@ -839,38 +817,42 @@ impl Shard {
             (
                 deserializer.op(),
                 deserializer.sequence(),
-                deserializer.event_type_ref() == Some("READY"),
+                deserializer.event_type_ref(),
             )
         };
 
-        if let Some(sequence) = maybe_sequence {
-            if let Some(session) = self.session.as_mut() {
-                let last_sequence = session.set_sequence(sequence);
-
-                // If a sequence has been skipped then we may have missed a
-                // message and should cause a reconnect so we can attempt to get
-                // that message again.
-                if sequence > last_sequence + 1 {
-                    self.disconnect(Disconnect::Resume);
-
-                    return Ok(());
-                }
-            }
-        }
-
-        match OpCode::try_from(raw_opcode) {
-            Ok(OpCode::Event) if is_ready => {
-                let event = Self::parse_event::<MinimalReady>(buffer)?;
+        match OpCode::from(raw_opcode) {
+            Some(OpCode::Dispatch) => {
                 let sequence = maybe_sequence.ok_or(ProcessError {
                     kind: ProcessErrorType::ParsingPayload,
                     source: None,
                 })?;
+                let event_type = maybe_event_type.ok_or(ProcessError {
+                    kind: ProcessErrorType::ParsingPayload,
+                    source: None,
+                })?;
 
-                self.resume_gateway_url = Some(event.data.resume_gateway_url);
-                self.status = ConnectionStatus::Connected;
-                self.session = Some(Session::new(sequence, event.data.session_id));
+                if event_type == "READY" {
+                    let event = Self::parse_event::<MinimalReady>(buffer)?;
+
+                    self.resume_gateway_url = Some(event.data.resume_gateway_url);
+                    self.status = ConnectionStatus::Connected;
+                    self.session = Some(Session::new(sequence, event.data.session_id));
+                }
+
+                // Ready should be the first received dispatch event, so this should never fail
+                if let Some(session) = self.session.as_mut() {
+                    let last_sequence = session.set_sequence(sequence);
+
+                    // If a sequence has been skipped then we may have missed a
+                    // message and should cause a reconnect so we can attempt to get
+                    // that message again.
+                    if sequence > last_sequence + 1 {
+                        self.disconnect(Disconnect::Resume);
+                    }
+                }
             }
-            Ok(OpCode::Heartbeat) => {
+            Some(OpCode::Heartbeat) => {
                 let event = Self::parse_event(buffer)?;
 
                 if let Err(source) = self.heartbeat(Some(event.data)).await {
@@ -879,10 +861,10 @@ impl Shard {
                     return Err(ProcessError::from_send(source));
                 }
             }
-            Ok(OpCode::HeartbeatAck) => {
+            Some(OpCode::HeartbeatAck) => {
                 self.latency.track_received();
             }
-            Ok(OpCode::Hello) => {
+            Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
                 let interval = event.data.heartbeat_interval;
                 let heartbeat_duration = Duration::from_millis(interval);
@@ -896,14 +878,14 @@ impl Shard {
                     self.identify();
                 }
             }
-            Ok(OpCode::InvalidSession) => {
+            Some(OpCode::InvalidSession) => {
                 let event = Self::parse_event(buffer)?;
                 self.disconnect(Disconnect::from_resumable(event.data));
             }
-            Ok(OpCode::Reconnect) => {
+            Some(OpCode::Reconnect) => {
                 self.disconnect(Disconnect::Resume);
             }
-            _ => {}
+            _ => tracing::warn!("received unknown opcode: {raw_opcode}"),
         }
 
         Ok(())
@@ -936,6 +918,7 @@ impl Shard {
                     close_code,
                     reconnect_attempts: reconnect_attempts + 1,
                 };
+                self.resume_gateway_url = None;
 
                 ReceiveMessageError::from_reconnect(source)
             })?;
@@ -1024,14 +1007,26 @@ mod tests {
             }
         );
 
-        let fatal_code = CloseCode::AuthenticationFailed as u16;
-        let fatal_frame = CloseFrame::new(fatal_code, "");
+        let fatal_code = CloseCode::AuthenticationFailed;
+        let fatal_frame = CloseFrame::new(fatal_code as u16, "");
         let fatal_status = ConnectionStatus::from_close_frame(Some(&fatal_frame));
 
         assert_eq!(
             fatal_status,
             ConnectionStatus::FatallyClosed {
                 close_code: fatal_code
+            }
+        );
+
+        let unknown_code = u16::MAX;
+        let non_fatal_unknown_frame = CloseFrame::new(unknown_code, "");
+        let non_fatal_status = ConnectionStatus::from_close_frame(Some(&non_fatal_unknown_frame));
+
+        assert_eq!(
+            non_fatal_status,
+            ConnectionStatus::Disconnected {
+                close_code: Some(unknown_code),
+                reconnect_attempts: 0
             }
         );
     }

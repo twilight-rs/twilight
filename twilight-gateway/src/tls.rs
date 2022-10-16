@@ -31,10 +31,10 @@ mod r#impl {
     /// Connect to the provided URL without TLS.
     pub async fn connect(
         url: &str,
-        maybe_config: Option<WebSocketConfig>,
+        config: WebSocketConfig,
         _tls: &TlsContainer,
     ) -> Result<Connection, ShardInitializeError> {
-        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, maybe_config)
+        let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config))
             .await
             .map_err(|source| ShardInitializeError {
                 kind: ShardInitializeErrorType::Establishing,
@@ -86,11 +86,11 @@ mod r#impl {
     /// Connect to the provided URL with the underlying TLS connector.
     pub async fn connect(
         url: &str,
-        maybe_config: Option<WebSocketConfig>,
+        config: WebSocketConfig,
         tls: &TlsContainer,
     ) -> Result<Connection, ShardInitializeError> {
         let (stream, _) =
-            tokio_tungstenite::connect_async_tls_with_config(url, maybe_config, tls.connector())
+            tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.connector())
                 .await
                 .map_err(|source| ShardInitializeError {
                     kind: ShardInitializeErrorType::Establishing,
@@ -176,11 +176,11 @@ mod r#impl {
     /// Connect to the provided URL with the underlying TLS connector.
     pub async fn connect(
         url: &str,
-        maybe_config: Option<WebSocketConfig>,
+        config: WebSocketConfig,
         tls: &TlsContainer,
     ) -> Result<Connection, ShardInitializeError> {
         let (stream, _) =
-            tokio_tungstenite::connect_async_tls_with_config(url, maybe_config, tls.connector())
+            tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.connector())
                 .await
                 .map_err(|source| ShardInitializeError {
                     kind: ShardInitializeErrorType::Establishing,
@@ -302,7 +302,7 @@ impl TlsContainer {
     pub async fn connect(
         &self,
         url: &str,
-        config: Option<WebSocketConfig>,
+        config: WebSocketConfig,
     ) -> Result<Connection, ShardInitializeError> {
         r#impl::connect(url, config, self).await
     }
