@@ -170,11 +170,10 @@ pub fn parse(
         (gateway_deserializer, json_deserializer)
     };
 
-    let opcode =
-        OpCode::try_from(gateway_deserializer.op()).map_err(|_| GatewayEventParsingError {
-            kind: GatewayEventParsingErrorType::PayloadInvalid,
-            source: None,
-        })?;
+    let opcode = OpCode::from(gateway_deserializer.op()).ok_or(GatewayEventParsingError {
+        kind: GatewayEventParsingErrorType::PayloadInvalid,
+        source: None,
+    })?;
 
     let event_flag = EventTypeFlags::try_from((opcode, gateway_deserializer.event_type_ref()))
         .map_err(|_| GatewayEventParsingError {
