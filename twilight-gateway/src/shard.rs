@@ -672,7 +672,7 @@ impl Shard {
     }
 
     /// Send a raw websocket message without first passing the ratelimiter.
-    async fn send_direct(&mut self, message: Message) -> Result<(), SendError> {
+    async fn send_unratelimited(&mut self, message: Message) -> Result<(), SendError> {
         self.connection
             .send(message.into_tungstenite())
             .await
