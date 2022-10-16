@@ -11,11 +11,10 @@ use std::{
     future::Future,
     pin::Pin,
     task::{Context, Poll},
-    time::Duration,
 };
 use tokio::{
     sync::mpsc::UnboundedReceiver,
-    time::{self, Interval},
+    time::{self, Duration, Interval},
 };
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 

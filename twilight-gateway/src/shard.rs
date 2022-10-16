@@ -73,8 +73,8 @@ use crate::{
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
-use std::{env::consts::OS, str, time::Duration};
-use tokio::time::{interval_at, Instant, Interval};
+use std::{env::consts::OS, str};
+use tokio::time::{interval_at, Duration, Instant, Interval};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
