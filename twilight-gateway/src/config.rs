@@ -46,7 +46,10 @@ use twilight_model::gateway::{
 /// }
 /// ```
 ///
+/// See [Discord Docs/Sharding].
+///
 /// [`shard`]: crate::Shard
+/// [Discord Docs/Sharding]: https://discord.com/developers/docs/topics/gateway#sharding
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct ShardId {
     /// Number of the shard, 0-indexed.
