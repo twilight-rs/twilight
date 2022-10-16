@@ -75,8 +75,8 @@ impl<'a> NextMessageFuture<'a> {
             channel_receive_future: rx,
             message_future,
             tick_heartbeat_future: TickHeartbeatFuture::new(
-                maybe_last_sent,
                 maybe_heartbeat_interval,
+                maybe_last_sent,
             ),
         }
     }
@@ -88,7 +88,7 @@ impl Future for NextMessageFuture<'_> {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let mut this = self.as_mut();
 
-        if let Poll::Ready(()) = this.tick_heartbeat_future.poll_unpin(cx) {
+        if this.tick_heartbeat_future.poll_unpin(cx).is_ready() {
             return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
         }
 
@@ -130,27 +130,22 @@ pub struct TickHeartbeatFuture {
 impl TickHeartbeatFuture {
     /// Initialize a new unpolled future that will resolve when the next
     /// heartbeat must be sent.
-    pub fn new(
-        maybe_last_sent: Option<Instant>,
-        maybe_heartbeat_interval: Option<Duration>,
-    ) -> Self {
-        let heartbeat_interval = if let Some(heartbeat_interval) = maybe_heartbeat_interval {
-            heartbeat_interval
-        } else {
-            return Self { inner: None };
+    fn new(maybe_heartbeat_interval: Option<Duration>, maybe_last_sent: Option<Instant>) -> Self {
+        let inner = match (maybe_heartbeat_interval, maybe_last_sent) {
+            (Some(heartbeat_interval), Some(last_sent)) => Some(Box::pin(time::sleep(
+                heartbeat_interval.saturating_sub(last_sent.elapsed()),
+            ))),
+            (Some(heartbeat_interval), None) => {
+                // First heartbeat should have some jitter, see
+                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
+                Some(Box::pin(time::sleep(
+                    heartbeat_interval.mul_f64(rand::random()),
+                )))
+            }
+            (None, _) => None,
         };
 
-        let remaining = if let Some(last_sent) = maybe_last_sent {
-            let time_since = last_sent.elapsed();
-
-            heartbeat_interval.saturating_sub(time_since)
-        } else {
-            Duration::ZERO
-        };
-
-        Self {
-            inner: Some(Box::pin(time::sleep(remaining))),
-        }
+        Self { inner }
     }
 }
 
