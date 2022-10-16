@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn prepare() -> Result<(), Box<dyn Error>> {
-        let heartbeat = Heartbeat::new(30_000);
+        let heartbeat = Heartbeat::new(Some(30_000));
         let bytes = serde_json::to_vec(&heartbeat)?;
         let message = super::prepare(&heartbeat)?;
 
