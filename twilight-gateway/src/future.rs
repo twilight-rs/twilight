@@ -11,11 +11,11 @@ use std::{
     future::Future,
     pin::Pin,
     task::{Context, Poll},
-    time::{Duration, Instant},
+    time::Duration,
 };
 use tokio::{
     sync::mpsc::UnboundedReceiver,
-    time::{self, Sleep},
+    time::{self, Interval},
 };
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 
@@ -60,7 +60,7 @@ pub struct NextMessageFuture<'a> {
     /// Future resolving when the [`Shard`] must sent a heartbeat.
     ///
     /// [`Shard`]: crate::Shard
-    tick_heartbeat_future: TickHeartbeatFuture,
+    maybe_heartbeat_interval: Option<&'a mut Interval>,
 }
 
 impl<'a> NextMessageFuture<'a> {
@@ -68,16 +68,12 @@ impl<'a> NextMessageFuture<'a> {
     pub fn new(
         rx: &'a mut UnboundedReceiver<Message>,
         message_future: Next<'a, Connection>,
-        maybe_heartbeat_interval: Option<Duration>,
-        maybe_last_sent: Option<Instant>,
+        maybe_heartbeat_interval: Option<&'a mut Interval>,
     ) -> Self {
         Self {
             channel_receive_future: rx,
             message_future,
-            tick_heartbeat_future: TickHeartbeatFuture::new(
-                maybe_heartbeat_interval,
-                maybe_last_sent,
-            ),
+            maybe_heartbeat_interval,
         }
     }
 }
@@ -88,8 +84,10 @@ impl Future for NextMessageFuture<'_> {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let mut this = self.as_mut();
 
-        if this.tick_heartbeat_future.poll_unpin(cx).is_ready() {
-            return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
+        if let Some(heartbeat_interval) = &mut this.maybe_heartbeat_interval {
+            if heartbeat_interval.poll_tick(cx).is_ready() {
+                return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
+            }
         }
 
         if let Poll::Ready(maybe_message) = this.channel_receive_future.poll_recv(cx) {
@@ -102,59 +100,6 @@ impl Future for NextMessageFuture<'_> {
             let maybe_message = maybe_try_message.and_then(Result::ok);
 
             return Poll::Ready(NextMessageFutureOutput::Message(maybe_message));
-        }
-
-        Poll::Pending
-    }
-}
-
-/// Future that will resolve when the shard must send its next heartbeat.
-///
-/// The duration of the future is defined by taking the heartbeat interval defined
-/// by the [`Ready`] event, and subtracting the duration since the
-/// [last heartbeat] was sent. If a [`Ready`] event has not yet been received
-/// then the future will never be ready, and if the duration has already passed
-/// then it will immediately be ready.
-///
-/// This future must always take precedence over other actions in order to
-/// maintain the [gateway session]!
-///
-/// [gateway session]: crate::Session
-/// [`Ready`]: twilight_model::gateway::payload::incoming::Ready
-pub struct TickHeartbeatFuture {
-    /// Inner future that will resolve after some time, defined by the type-level
-    /// documentation.
-    inner: Option<Pin<Box<Sleep>>>,
-}
-
-impl TickHeartbeatFuture {
-    /// Initialize a new unpolled future that will resolve when the next
-    /// heartbeat must be sent.
-    fn new(maybe_heartbeat_interval: Option<Duration>, maybe_last_sent: Option<Instant>) -> Self {
-        let inner = match (maybe_heartbeat_interval, maybe_last_sent) {
-            (Some(heartbeat_interval), Some(last_sent)) => Some(Box::pin(time::sleep(
-                heartbeat_interval.saturating_sub(last_sent.elapsed()),
-            ))),
-            (Some(heartbeat_interval), None) => {
-                // First heartbeat should have some jitter, see
-                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
-                Some(Box::pin(time::sleep(
-                    heartbeat_interval.mul_f64(rand::random()),
-                )))
-            }
-            (None, _) => None,
-        };
-
-        Self { inner }
-    }
-}
-
-impl Future for TickHeartbeatFuture {
-    type Output = ();
-
-    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        if let Some(inner) = self.inner.as_mut() {
-            return inner.as_mut().poll(cx);
         }
 
         Poll::Pending

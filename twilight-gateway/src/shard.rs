@@ -74,6 +74,7 @@ use crate::{
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
 use std::{env::consts::OS, str, time::Duration};
+use tokio::time::{interval_at, Instant, Interval};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
@@ -288,7 +289,7 @@ pub struct Shard {
     ///
     /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
     /// [connection]: Self::connection
-    heartbeat_interval: Option<Duration>,
+    heartbeat_interval: Option<Interval>,
     /// ID of the shard.
     id: ShardId,
     /// Recent heartbeat latency statistics.
@@ -516,8 +517,7 @@ impl Shard {
             let future = NextMessageFuture::new(
                 self.user_channel.rx_mut(),
                 self.connection.next(),
-                self.heartbeat_interval,
-                self.latency.sent(),
+                self.heartbeat_interval.as_mut(),
             );
 
             let tungstenite_message = match future.await {
@@ -867,8 +867,11 @@ impl Shard {
             Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
                 let interval = event.data.heartbeat_interval;
-                let heartbeat_duration = Duration::from_millis(interval);
-                self.heartbeat_interval = Some(heartbeat_duration);
+                let period = Duration::from_millis(interval);
+                // First heartbeat should have some jitter, see
+                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
+                let start = Instant::now() + period.mul_f64(rand::random());
+                self.heartbeat_interval = Some(interval_at(start, period));
 
                 if self.config().ratelimit_messages() {
                     self.ratelimiter = Some(CommandRatelimiter::new(interval));
