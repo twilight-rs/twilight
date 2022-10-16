@@ -2,7 +2,10 @@
 
 use std::time::{Duration, Instant};
 
-/// Information about the latency of a [`Shard`]'s websocket connection.
+/// [`Shard`]'s gateway connection latency.
+///
+/// Calculated by measuring the difference between when sending a heartbeat and
+/// receiving an acknowledgement.
 ///
 /// May be obtained via [`Shard::latency`].
 ///
@@ -10,13 +13,11 @@ use std::time::{Duration, Instant};
 /// [`Shard::latency`]: crate::Shard::latency
 #[derive(Clone, Debug)]
 pub struct Latency {
-    /// Total number of heartbeat acknowledgements that have been received
-    /// during the session.
+    /// Total number of heartbeat acknowledgements that have been received.
     heartbeats: u32,
-    /// When the last heartbeat acknowledgement was received.
+    /// When the last heartbeat received an acknowledgement.
     received: Option<Instant>,
-    /// Most recent latencies between sending a heartbeat and receiving an
-    /// acknowledgement.
+    /// List of most recent latencies.
     recent: [Duration; Self::RECENT_LEN],
     /// When the last heartbeat was sent.
     sent: Option<Instant>,
@@ -42,8 +43,7 @@ impl Latency {
         }
     }
 
-    /// The average time it took to receive an acknowledgement for every
-    /// heartbeat sent over the duration of the session.
+    /// The average latency over the lifetime of the shard.
     ///
     /// For example, a reasonable value for this may be between 10 to 100
     /// milliseconds depending on the network connection and physical location.
@@ -55,20 +55,17 @@ impl Latency {
         self.total_duration.checked_div(self.heartbeats)
     }
 
-    /// The total number of heartbeats that have been sent during this session.
+    /// The total number of heartbeats that have been sent over the lifetime of the shard.
     pub const fn heartbeats(&self) -> u32 {
         self.heartbeats
     }
 
-    /// The most recent latency times.
-    ///
-    /// The lowest index is the oldest while the highest index is the most
-    /// recent.
+    /// The most recent latencies from newest to oldest.
     pub const fn recent(&self) -> &[Duration] {
         self.recent.as_slice()
     }
 
-    /// When the last heartbeat acknowledgement was received.
+    /// When the last heartbeat received an acknowledgement.
     pub const fn received(&self) -> Option<Instant> {
         self.received
     }
