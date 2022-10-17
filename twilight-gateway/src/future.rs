@@ -59,7 +59,7 @@ pub struct NextMessageFuture<'a> {
     /// Future resolving when the [`Shard`] must sent a heartbeat.
     ///
     /// [`Shard`]: crate::Shard
-    maybe_heartbeat_interval: Option<&'a mut Interval>,
+    tick_heartbeat_future: Option<&'a mut Interval>,
 }
 
 impl<'a> NextMessageFuture<'a> {
@@ -72,7 +72,7 @@ impl<'a> NextMessageFuture<'a> {
         Self {
             channel_receive_future: rx,
             message_future,
-            maybe_heartbeat_interval,
+            tick_heartbeat_future: maybe_heartbeat_interval,
         }
     }
 }
@@ -83,7 +83,7 @@ impl Future for NextMessageFuture<'_> {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let mut this = self.as_mut();
 
-        if let Some(heartbeat_interval) = &mut this.maybe_heartbeat_interval {
+        if let Some(heartbeat_interval) = &mut this.tick_heartbeat_future {
             if heartbeat_interval.poll_tick(cx).is_ready() {
                 return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
             }
