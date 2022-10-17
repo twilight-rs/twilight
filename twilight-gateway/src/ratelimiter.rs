@@ -170,11 +170,11 @@ mod tests {
         );
     }
 
-    const DURATION: Duration = Duration::from_secs(60);
+    const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
 
     #[tokio::test(start_paused = true)]
     async fn full_reset() {
-        let mut ratelimiter = CommandRatelimiter::new(DURATION);
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
 
         assert_eq!(ratelimiter.available(), ratelimiter.max());
         for _ in 0..ratelimiter.max() {
@@ -193,7 +193,7 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn half_reset() {
-        let mut ratelimiter = CommandRatelimiter::new(DURATION);
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
 
         assert_eq!(ratelimiter.available(), ratelimiter.max());
         for _ in 0..ratelimiter.max() / 2 {
