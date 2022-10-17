@@ -16,15 +16,11 @@ const RESET_DURATION: Duration = Duration::from_secs(60);
 #[derive(Debug)]
 pub struct CommandRatelimiter {
     /// Queue of instants started when a command was sent.
-    ///
-    /// The instants are considered elapsed when they've been running for
-    /// [`RESET_DURATION`].
     instants: Vec<Instant>,
 }
 
 impl CommandRatelimiter {
-    /// Create a new ratelimiter with capacity reserved for heartbeating, see
-    /// [`nonreserved_commands_per_reset`] for why.
+    /// Create a new ratelimiter with some capacity reserved for heartbeating.
     pub(crate) fn new(heartbeat_interval: Duration) -> Self {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
 
@@ -33,29 +29,17 @@ impl CommandRatelimiter {
         }
     }
 
-    /// Recreate the ratelimiter with a new heartbeat interval.
-    ///
-    /// Transfers over instants, dropping the oldest ones when the new
-    /// ratelimiter has less capacity than the older one.
-    pub(crate) fn renew(&mut self, heartbeat_interval: Duration) {
-        let new = Self::new(heartbeat_interval);
-
-        while self.max() - self.available() > new.max() {
-            self.instants.remove(0);
-        }
-
-        *self = new;
-    }
-
     /// Current number of commands that are still available within the interval.
-    #[allow(clippy::cast_possible_truncation)]
     pub fn available(&self) -> u8 {
-        self.max()
-            - self
-                .instants
-                .iter()
-                .filter(|instant| instant.elapsed() < RESET_DURATION)
-                .count() as u8
+        // filter out elapsed instants
+        #[allow(clippy::cast_possible_truncation)]
+        let used_permits = self
+            .instants
+            .iter()
+            .filter(|instant| instant.elapsed() < RESET_DURATION)
+            .count() as u8;
+
+        self.max() - used_permits
     }
 
     /// Maximum number of commands that may be made per interval.
@@ -71,7 +55,7 @@ impl CommandRatelimiter {
         })
     }
 
-    /// Acquire a permit from the ratelimiter, waiting until one is available.
+    /// Completes when a ratelimit permit is available.
     pub(crate) async fn acquire(&mut self) -> Permit<'_> {
         if self.available() == 0 {
             time::sleep(self.next_available()).await;

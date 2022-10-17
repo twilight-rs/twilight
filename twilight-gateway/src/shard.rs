@@ -873,13 +873,8 @@ impl Shard {
                 let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
                 self.heartbeat_interval = Some(heartbeat_interval);
 
-                if let Some(ratelimiter) = &mut self.ratelimiter {
-                    ratelimiter.renew(heartbeat_interval);
-                } else {
-                    self.ratelimiter = self
-                        .config()
-                        .ratelimit_messages()
-                        .then(|| CommandRatelimiter::new(heartbeat_interval));
+                if self.config().ratelimit_messages() {
+                    self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval));
                 }
 
                 self.identify().await.map_err(ProcessError::from_send)?;
