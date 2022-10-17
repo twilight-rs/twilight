@@ -74,7 +74,7 @@ use crate::{
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
 use std::{env::consts::OS, str};
-use tokio::time::{interval_at, Duration, Instant, Interval};
+use tokio::time::{self, Duration, Instant, Interval};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
@@ -871,7 +871,7 @@ impl Shard {
                 // First heartbeat should have some jitter, see
                 // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
                 let start = Instant::now() + period.mul_f64(rand::random());
-                self.heartbeat_interval = Some(interval_at(start, period));
+                self.heartbeat_interval = Some(time::interval_at(start, period));
 
                 if self.config().ratelimit_messages() {
                     self.ratelimiter = Some(CommandRatelimiter::new(interval));
