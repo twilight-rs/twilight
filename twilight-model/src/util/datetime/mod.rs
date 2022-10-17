@@ -53,7 +53,13 @@ use std::{
 use time::{format_description::well_known::Rfc3339, OffsetDateTime, PrimitiveDateTime};
 
 /// Number of microseconds in a second.
+const MILLISECONDS_PER_SECOND: i64 = 1_000;
+
+/// Number of microseconds in a second.
 const MICROSECONDS_PER_SECOND: i64 = 1_000_000;
+
+/// Number of milliseconds in a millisecond.
+const NANOSECONDS_PER_MILLISECOND: i64 = 1_000_000;
 
 /// Number of nanoseconds in a microsecond.
 const NANOSECONDS_PER_MICROSECOND: i64 = 1_000;
@@ -89,6 +95,22 @@ impl Timestamp {
     /// [`TimestampParseErrorType::Parsing`]: self::error::TimestampParseErrorType::Parsing
     pub fn from_micros(unix_microseconds: i64) -> Result<Self, TimestampParseError> {
         let nanoseconds = i128::from(unix_microseconds) * i128::from(NANOSECONDS_PER_MICROSECOND);
+
+        OffsetDateTime::from_unix_timestamp_nanos(nanoseconds)
+            .map(|offset| Self(PrimitiveDateTime::new(offset.date(), offset.time())))
+            .map_err(TimestampParseError::from_component_range)
+    }
+
+    /// Create a timestamp from a Unix timestamp with milliseconds precision.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`TimestampParseErrorType::Parsing`] error type if the parsing
+    /// failed.
+    ///
+    /// [`TimestampParseErrorType::Parsing`]: self::error::TimestampParseErrorType::Parsing
+    pub fn from_millis(unix_milliseconds: i64) -> Result<Self, TimestampParseError> {
+        let nanoseconds = i128::from(unix_milliseconds) * i128::from(NANOSECONDS_PER_MILLISECOND);
 
         OffsetDateTime::from_unix_timestamp_nanos(nanoseconds)
             .map(|offset| Self(PrimitiveDateTime::new(offset.date(), offset.time())))
@@ -167,6 +189,28 @@ impl Timestamp {
     /// ```
     pub const fn as_secs(self) -> i64 {
         self.0.assume_utc().unix_timestamp()
+    }
+
+    /// Total number of milliseconds within the timestamp.
+    ///
+    /// # Examples
+    ///
+    /// Parse a formatted timestamp and then get its Unix timestamp value with
+    /// milliseconds precision:
+    ///
+    /// ```
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use std::str::FromStr;
+    /// use twilight_model::util::Timestamp;
+    ///
+    /// let timestamp = Timestamp::from_str("2021-08-10T11:16:37.123+00:00")?;
+    /// assert_eq!(1_628_594_197_123, timestamp.as_millis());
+    /// # Ok(()) }
+    /// ```
+    pub const fn as_millis(self) -> i64 {
+        let utc = self.0.assume_utc();
+
+        (utc.unix_timestamp() * MILLISECONDS_PER_SECOND) + (utc.millisecond() as i64)
     }
 
     /// Total number of microseconds within the timestamp.
