@@ -513,8 +513,6 @@ pub enum Route<'a> {
         guild_id: u64,
         /// The maximum number of members to get.
         limit: Option<u16>,
-        /// Whether to get the members' presences.
-        presences: Option<bool>,
     },
     /// Route information to get a guild's preview.
     GetGuildPreview {
@@ -2284,7 +2282,6 @@ impl Display for Route<'_> {
                 after,
                 guild_id,
                 limit,
-                presences,
             } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
@@ -2298,11 +2295,6 @@ impl Display for Route<'_> {
                 if let Some(limit) = limit {
                     f.write_str("&limit=")?;
                     Display::fmt(limit, f)?;
-                }
-
-                if let Some(presences) = presences {
-                    f.write_str("&presences=")?;
-                    Display::fmt(presences, f)?;
                 }
 
                 Ok(())
