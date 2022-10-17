@@ -74,7 +74,7 @@ use crate::{
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
 use std::{env::consts::OS, str};
-use tokio::time::{self, Duration, Instant, Interval};
+use tokio::time::{self, Duration, Instant, Interval, MissedTickBehavior};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
@@ -867,15 +867,18 @@ impl Shard {
             Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
                 let interval = event.data.heartbeat_interval;
-                let period = Duration::from_millis(interval);
-                // First heartbeat should have some jitter, see
-                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
-                let start = Instant::now() + period.mul_f64(rand::random());
-                self.heartbeat_interval = Some(time::interval_at(start, period));
 
                 if self.config().ratelimit_messages() {
                     self.ratelimiter = Some(CommandRatelimiter::new(interval));
                 }
+
+                let period = Duration::from_millis(interval);
+                // First heartbeat should have some jitter, see
+                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
+                let start = Instant::now() + period.mul_f64(rand::random());
+                let mut interval = time::interval_at(start, period);
+                interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
+                self.heartbeat_interval = Some(interval);
 
                 self.identify().await.map_err(ProcessError::from_send)?;
             }
