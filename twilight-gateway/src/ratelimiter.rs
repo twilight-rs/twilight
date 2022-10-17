@@ -201,4 +201,15 @@ mod tests {
         time::advance(RESET_DURATION / 2).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max());
     }
+
+    #[tokio::test(start_paused = true)]
+    async fn permit_forget() {
+        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
+
+        assert_eq!(ratelimiter.available(), ratelimiter.max());
+        for _ in 0..ratelimiter.max() {
+            ratelimiter.acquire().await.forget();
+        }
+        assert_eq!(ratelimiter.available(), ratelimiter.max());
+    }
 }
