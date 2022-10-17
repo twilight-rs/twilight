@@ -317,7 +317,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         })?;
 
         Ok(match op {
-            OpCode::Event => {
+            OpCode::Dispatch => {
                 let t = self
                     .2
                     .ok_or_else(|| DeError::custom("event type not provided beforehand"))?;
@@ -421,9 +421,6 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
             OpCode::PresenceUpdate => {
                 return Err(DeError::unknown_variant("PresenceUpdate", VALID_OPCODES))
             }
-            OpCode::VoiceServerPing => {
-                return Err(DeError::unknown_variant("VoiceServerPing", VALID_OPCODES))
-            }
             OpCode::VoiceStateUpdate => {
                 return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES))
             }
@@ -463,7 +460,7 @@ impl Serialize for GatewayEvent {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         const fn opcode(gateway_event: &GatewayEvent) -> OpCode {
             match gateway_event {
-                GatewayEvent::Dispatch(_, _) => OpCode::Event,
+                GatewayEvent::Dispatch(_, _) => OpCode::Dispatch,
                 GatewayEvent::Heartbeat(_) => OpCode::Heartbeat,
                 GatewayEvent::HeartbeatAck => OpCode::HeartbeatAck,
                 GatewayEvent::Hello(_) => OpCode::Hello,
@@ -857,7 +854,7 @@ mod tests {
                 Token::Str("s"),
                 Token::U64(2_048),
                 Token::Str("op"),
-                Token::U8(OpCode::Event as u8),
+                Token::U8(OpCode::Dispatch as u8),
                 Token::Str("d"),
                 Token::Struct {
                     name: "RoleDelete",
