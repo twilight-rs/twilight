@@ -119,7 +119,7 @@ impl<T> Id<T> {
         }
     }
 
-    /// Create a non-zero application ID without checking the value.
+    /// Create an ID without checking the value.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
@@ -131,8 +131,7 @@ impl<T> Id<T> {
         Self::from_nonzero(NonZeroU64::new_unchecked(n))
     }
 
-    /// Create a non-zero application ID, checking if the provided value is
-    /// zero.
+    /// Create an ID, checking if the provided value is zero.
     ///
     /// # Examples
     ///
