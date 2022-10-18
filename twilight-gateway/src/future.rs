@@ -5,8 +5,8 @@
 //!
 //! [`Shard`]: crate::Shard
 
-use crate::{connection::Connection, message::Message, ratelimiter::Permit};
-use futures_util::{future::FutureExt, stream::Next};
+use crate::{message::Message, ratelimiter::Permit};
+use futures_util::{future::FutureExt, stream::Next, Stream};
 use pin_project_lite::pin_project;
 use std::{
     future::Future,
@@ -18,7 +18,7 @@ use tokio::{
     sync::mpsc::UnboundedReceiver,
     time::{self, Sleep},
 };
-use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 
 /// Resolved value from polling a [`NextMessageFuture`].
 ///
@@ -54,12 +54,12 @@ pin_project! {
     /// [2]: NextMessageFutureOutput::UserChannelMessage
     /// [3]: NextMessageFutureOutput::Message
     /// [`Shard::next_message`]: crate::Shard::next_message
-    pub struct NextMessageFuture<'a, F> {
+    pub struct NextMessageFuture<'a, F, St> {
         // Future resolving when the user has sent a message over the channel,
         // to be relayed over the Websocket connection.
         channel_receive_future: &'a mut UnboundedReceiver<Message>,
         // Future resolving when the next Websocket message has been received.
-        message_future: Next<'a, Connection>,
+        message_future: Next<'a, St>,
         // Future resolving to a ratelimit permit, if a ratelimiter is enabled.
         #[pin]
         ratelimit_permit: Option<F>,
@@ -73,11 +73,11 @@ pin_project! {
     }
 }
 
-impl<'a, F> NextMessageFuture<'a, F> {
+impl<'a, F, St> NextMessageFuture<'a, F, St> {
     /// Initialize a new series of futures determining the next action to take.
     pub fn new(
         rx: &'a mut UnboundedReceiver<Message>,
-        message_future: Next<'a, Connection>,
+        message_future: Next<'a, St>,
         ratelimit_permit: Option<F>,
         maybe_heartbeat_interval: Option<Duration>,
         maybe_last_sent: Option<Instant>,
@@ -95,7 +95,11 @@ impl<'a, F> NextMessageFuture<'a, F> {
     }
 }
 
-impl<'a, F: Future<Output = Permit<'a>>> Future for NextMessageFuture<'a, F> {
+impl<'a, F, St> Future for NextMessageFuture<'a, F, St>
+where
+    F: Future<Output = Permit<'a>>,
+    St: Stream<Item = Result<TungsteniteMessage, TungsteniteError>> + Unpin,
+{
     type Output = NextMessageFutureOutput;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -208,4 +212,50 @@ pub async fn reconnect_delay(reconnect_attempts: u8) {
         .min(MAX_WAIT_SECONDS);
 
     time::sleep(Duration::from_secs(wait.into())).await;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::NextMessageFuture;
+    use crate::{message::Message, ratelimiter::CommandRatelimiter};
+    use futures::StreamExt;
+    use tokio::{
+        sync::mpsc,
+        time::{self, Duration},
+    };
+
+    #[tokio::test]
+    async fn ratelimiter_permit_poll_completed_no_panic() {
+        let mut ratelimiter = CommandRatelimiter::new(Duration::from_millis(42_500));
+        let (tx, mut rx) = mpsc::unbounded_channel();
+        let mut stream = futures_util::stream::pending();
+
+        assert_eq!(ratelimiter.available(), ratelimiter.max());
+        for _ in 0..ratelimiter.max() - 1 {
+            ratelimiter.acquire().await;
+        }
+        assert_eq!(ratelimiter.available(), 1);
+
+        tokio::spawn(async move {
+            // send a message after the `permit_future` has been polled and
+            // returned `Poll::Ready`
+            time::sleep(Duration::from_millis(50)).await;
+            tx.send(Message::Close(None)).unwrap()
+        });
+
+        // `CommandRatelimiter::acquire` will be checked two times, assert that
+        // this does not actually poll the future two times, causing a panic
+        let _future = time::timeout(
+            Duration::from_millis(150),
+            NextMessageFuture::new(
+                &mut rx,
+                stream.next(),
+                Some(ratelimiter.acquire()),
+                None,
+                None,
+            ),
+        )
+        .await
+        .unwrap();
+    }
 }
