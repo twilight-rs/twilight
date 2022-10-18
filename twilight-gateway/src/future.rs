@@ -63,6 +63,9 @@ pin_project! {
         // Future resolving to a ratelimit permit, if a ratelimiter is enabled.
         #[pin]
         ratelimit_permit: Option<F>,
+        // `true` when the `ratelimit_permit` future has completed, indicating
+        // it should not be polled again.
+        ratelimit_permit_completed: bool,
         // Future resolving when the [`Shard`] must sent a heartbeat.
         //
         // [`Shard`]: crate::Shard
@@ -83,6 +86,7 @@ impl<'a, F> NextMessageFuture<'a, F> {
             channel_receive_future: rx,
             message_future,
             ratelimit_permit,
+            ratelimit_permit_completed: false,
             tick_heartbeat_future: TickHeartbeatFuture::new(
                 maybe_heartbeat_interval,
                 maybe_last_sent,
@@ -104,12 +108,19 @@ impl<'a, F: Future<Output = Permit<'a>>> Future for NextMessageFuture<'a, F> {
         let ratelimited = this
             .ratelimit_permit
             .as_pin_mut()
-            .map_or(false, |permit_future| match permit_future.poll(cx) {
-                Poll::Ready(permit) => {
-                    permit.forget();
-                    false
+            .map_or(false, |permit_future| {
+                if *this.ratelimit_permit_completed {
+                    return false;
                 }
-                Poll::Pending => true,
+
+                match permit_future.poll(cx) {
+                    Poll::Ready(permit) => {
+                        permit.forget();
+                        *this.ratelimit_permit_completed = true;
+                        false
+                    }
+                    Poll::Pending => true,
+                }
             });
 
         if !ratelimited {
