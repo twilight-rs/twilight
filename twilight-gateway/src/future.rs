@@ -6,7 +6,10 @@
 //! [`Shard`]: crate::Shard
 
 use crate::{message::Message, ratelimiter::Permit};
-use futures_util::{future::FutureExt, stream::Next, Stream};
+use futures_util::{
+    future::FutureExt,
+    stream::{Next, Stream},
+};
 use pin_project_lite::pin_project;
 use std::{
     future::Future,
@@ -240,7 +243,7 @@ mod tests {
             // send a message after the `permit_future` has been polled and
             // returned `Poll::Ready`
             time::sleep(Duration::from_millis(50)).await;
-            tx.send(Message::Close(None)).unwrap()
+            tx.send(Message::Close(None)).unwrap();
         });
 
         // `CommandRatelimiter::acquire` will be checked two times, assert that
