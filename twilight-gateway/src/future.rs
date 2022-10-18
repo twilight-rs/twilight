@@ -233,12 +233,6 @@ mod tests {
         let (tx, mut rx) = mpsc::unbounded_channel();
         let mut stream = futures_util::stream::pending();
 
-        assert_eq!(ratelimiter.available(), ratelimiter.max());
-        for _ in 0..ratelimiter.max() - 1 {
-            ratelimiter.acquire().await;
-        }
-        assert_eq!(ratelimiter.available(), 1);
-
         tokio::spawn(async move {
             // send a message after the `permit_future` has been polled and
             // returned `Poll::Ready`
