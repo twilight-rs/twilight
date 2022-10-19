@@ -73,8 +73,10 @@ impl CommandRatelimiter {
     /// Polls for the next time a permit is available.
     pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
         if self.available() == 0 {
-            let deadline = Instant::now() + self.next_available();
-            self.delay.as_mut().reset(deadline);
+            let new_deadline = Instant::now() + self.next_available();
+            if self.delay.deadline() < new_deadline {
+                self.delay.as_mut().reset(new_deadline);
+            }
             ready!(self.delay.as_mut().poll(cx));
         }
         self.clean();
