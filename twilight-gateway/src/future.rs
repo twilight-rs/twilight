@@ -5,12 +5,8 @@
 //!
 //! [`Shard`]: crate::Shard
 
-use crate::{message::Message, ratelimiter::Permit};
-use futures_util::{
-    future::FutureExt,
-    stream::{Next, Stream},
-};
-use pin_project_lite::pin_project;
+use crate::{connection::Connection, message::Message, CommandRatelimiter};
+use futures_util::{future::FutureExt, stream::Next};
 use std::{
     future::Future,
     pin::Pin,
@@ -21,7 +17,7 @@ use tokio::{
     sync::mpsc::UnboundedReceiver,
     time::{self, Sleep},
 };
-use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
+use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 
 /// Resolved value from polling a [`NextMessageFuture`].
 ///
@@ -40,56 +36,48 @@ pub enum NextMessageFutureOutput {
     UserChannelMessage(Message),
 }
 
-pin_project! {
-    /// Future to determine the next action when [`Shard::next_message`] is
-    /// called.
+/// Future to determine the next action when [`Shard::next_message`] is called.
+///
+/// Polled futures are given a consistent precedence, from first to last polled:
+///
+/// - [sending a heartbeat to Discord][1];
+/// - [relaying a user's message][2] over the Websocket message;
+/// - [receiving a message][3] from Discord
+///
+/// **Be sure** to keep documented precedence in sync with variants in
+/// [`NextMessageFutureOutput`]!
+///
+/// [1]: NextMessageFutureOutput::SendHeartbeat
+/// [2]: NextMessageFutureOutput::UserChannelMessage
+/// [3]: NextMessageFutureOutput::Message
+/// [`Shard::next_message`]: crate::Shard::next_message
+pub struct NextMessageFuture<'a> {
+    /// Future resolving when the user has sent a message over the channel, to
+    /// be relayed over the Websocket connection.
+    channel_receive_future: &'a mut UnboundedReceiver<Message>,
+    /// Future resolving when the next Websocket message has been received.
+    message_future: Next<'a, Connection>,
+    /// Command ratelimiter, if enabled.
+    maybe_ratelimiter: Option<&'a mut CommandRatelimiter>,
+    /// Future resolving when the [`Shard`] must sent a heartbeat.
     ///
-    /// Polled futures are given a consistent precedence, from first to last:
-    ///
-    /// - [sending a heartbeat to Discord][1];
-    /// - [relaying a user's message][2] over the Websocket message;
-    /// - [receiving a message][3] from Discord
-    ///
-    /// **Be sure** to keep documented precedence in sync with variants in
-    /// [`NextMessageFutureOutput`]!
-    ///
-    /// [1]: NextMessageFutureOutput::SendHeartbeat
-    /// [2]: NextMessageFutureOutput::UserChannelMessage
-    /// [3]: NextMessageFutureOutput::Message
-    /// [`Shard::next_message`]: crate::Shard::next_message
-    pub struct NextMessageFuture<'a, F, St> {
-        // Future resolving when the user has sent a message over the channel,
-        // to be relayed over the Websocket connection.
-        channel_receive_future: &'a mut UnboundedReceiver<Message>,
-        // Future resolving when the next Websocket message has been received.
-        message_future: Next<'a, St>,
-        // Future resolving to a ratelimit permit, if a ratelimiter is enabled.
-        #[pin]
-        ratelimit_permit: Option<F>,
-        // `true` when the `ratelimit_permit` future has completed, indicating
-        // it should not be polled again.
-        ratelimit_permit_completed: bool,
-        // Future resolving when the [`Shard`] must sent a heartbeat.
-        //
-        // [`Shard`]: crate::Shard
-        tick_heartbeat_future: TickHeartbeatFuture,
-    }
+    /// [`Shard`]: crate::Shard
+    tick_heartbeat_future: TickHeartbeatFuture,
 }
 
-impl<'a, F, St> NextMessageFuture<'a, F, St> {
+impl<'a> NextMessageFuture<'a> {
     /// Initialize a new series of futures determining the next action to take.
     pub fn new(
         rx: &'a mut UnboundedReceiver<Message>,
-        message_future: Next<'a, St>,
-        ratelimit_permit: Option<F>,
+        message_future: Next<'a, Connection>,
+        maybe_ratelimiter: Option<&'a mut CommandRatelimiter>,
         maybe_heartbeat_interval: Option<Duration>,
         maybe_last_sent: Option<Instant>,
     ) -> Self {
         Self {
             channel_receive_future: rx,
             message_future,
-            ratelimit_permit,
-            ratelimit_permit_completed: false,
+            maybe_ratelimiter,
             tick_heartbeat_future: TickHeartbeatFuture::new(
                 maybe_heartbeat_interval,
                 maybe_last_sent,
@@ -98,36 +86,21 @@ impl<'a, F, St> NextMessageFuture<'a, F, St> {
     }
 }
 
-impl<'a, F, St> Future for NextMessageFuture<'a, F, St>
-where
-    F: Future<Output = Permit<'a>>,
-    St: Stream<Item = Result<TungsteniteMessage, TungsteniteError>> + Unpin,
-{
+impl Future for NextMessageFuture<'_> {
     type Output = NextMessageFutureOutput;
 
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let this = self.project();
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let mut this = self.as_mut();
 
         if this.tick_heartbeat_future.poll_unpin(cx).is_ready() {
             return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
         }
 
         let ratelimited = this
-            .ratelimit_permit
-            .as_pin_mut()
-            .map_or(false, |permit_future| {
-                if *this.ratelimit_permit_completed {
-                    return false;
-                }
-
-                match permit_future.poll(cx) {
-                    Poll::Ready(permit) => {
-                        permit.forget();
-                        *this.ratelimit_permit_completed = true;
-                        false
-                    }
-                    Poll::Pending => true,
-                }
+            .maybe_ratelimiter
+            .as_mut()
+            .map_or(false, |ratelimiter| {
+                ratelimiter.poll_available(cx).is_pending()
             });
 
         if !ratelimited {
@@ -215,44 +188,4 @@ pub async fn reconnect_delay(reconnect_attempts: u8) {
         .min(MAX_WAIT_SECONDS);
 
     time::sleep(Duration::from_secs(wait.into())).await;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::NextMessageFuture;
-    use crate::{message::Message, ratelimiter::CommandRatelimiter};
-    use futures::StreamExt;
-    use tokio::{
-        sync::mpsc,
-        time::{self, Duration},
-    };
-
-    #[tokio::test]
-    async fn ratelimiter_permit_poll_completed_no_panic() {
-        let mut ratelimiter = CommandRatelimiter::new(Duration::from_millis(42_500));
-        let (tx, mut rx) = mpsc::unbounded_channel();
-        let mut stream = futures_util::stream::pending();
-
-        tokio::spawn(async move {
-            // send a message after the `permit_future` has been polled and
-            // returned `Poll::Ready`
-            time::sleep(Duration::from_millis(50)).await;
-            tx.send(Message::Close(None)).unwrap();
-        });
-
-        // `CommandRatelimiter::acquire` will be checked two times, assert that
-        // this does not actually poll the future two times, causing a panic
-        let _future = time::timeout(
-            Duration::from_millis(150),
-            NextMessageFuture::new(
-                &mut rx,
-                stream.next(),
-                Some(ratelimiter.acquire()),
-                None,
-                None,
-            ),
-        )
-        .await
-        .unwrap();
-    }
 }

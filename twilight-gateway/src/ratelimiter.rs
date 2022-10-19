@@ -4,7 +4,12 @@
 //!
 //! [send messages]: crate::Shard::send
 
-use tokio::time::{self, Duration, Instant};
+use std::{
+    future::{poll_fn, Future},
+    pin::Pin,
+    task::{ready, Context, Poll},
+};
+use tokio::time::{sleep, Duration, Instant, Sleep};
 
 /// Number of commands allowed in a given [`RESET_DURATION`].
 const COMMANDS_PER_RESET: u8 = 120;
@@ -15,6 +20,9 @@ const RESET_DURATION: Duration = Duration::from_secs(60);
 /// Ratelimiter for sending commands over the gateway to Discord.
 #[derive(Debug)]
 pub struct CommandRatelimiter {
+    /// Future that completes the next time the `CommandRatelimiter` allows a
+    /// permit.
+    delay: Pin<Box<Sleep>>,
     /// Queue of instants started when a command was sent.
     instants: Vec<Instant>,
 }
@@ -25,6 +33,7 @@ impl CommandRatelimiter {
         let allotted = nonreserved_commands_per_reset(heartbeat_interval);
 
         Self {
+            delay: Box::pin(sleep(Duration::ZERO)),
             instants: Vec::with_capacity(allotted.into()),
         }
     }
@@ -57,12 +66,20 @@ impl CommandRatelimiter {
 
     /// Completes when a ratelimit permit is available.
     pub(crate) async fn acquire(&mut self) -> Permit<'_> {
+        poll_fn(|cx| self.poll_available(cx)).await;
+        Permit::new(self)
+    }
+
+    /// Polls for the next time a permit is available.
+    pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
         if self.available() == 0 {
-            time::sleep(self.next_available()).await;
+            let deadline = Instant::now() + self.next_available();
+            self.delay.as_mut().reset(deadline);
+            ready!(self.delay.as_mut().poll(cx));
         }
         self.clean();
         assert!(self.available() > 0);
-        Permit::new(self)
+        Poll::Ready(())
     }
 
     /// Cleans up elapsed instants.
