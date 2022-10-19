@@ -661,6 +661,7 @@ impl Shard {
         // permit until the message is sent.
         let res = self.connection.send(message.into_tungstenite()).await;
         if let Err(source) = res {
+            // Message was never sent.
             permit.map(Permit::forget);
             self.disconnect(Disconnect::Resume);
 
