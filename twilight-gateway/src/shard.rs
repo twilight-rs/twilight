@@ -661,6 +661,8 @@ impl Shard {
         // permit until the message is sent.
         let res = self.connection.send(message.into_tungstenite()).await;
         if let Err(source) = res {
+            // Clippy suggests invalid code.
+            #[allow(clippy::option_map_unit_fn)]
             // Message was never sent.
             permit.map(Permit::forget);
             self.disconnect(Disconnect::Resume);
