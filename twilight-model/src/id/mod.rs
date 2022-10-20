@@ -131,7 +131,7 @@ impl<T> Id<T> {
         Self::from_nonzero(NonZeroU64::new_unchecked(n))
     }
 
-    /// Create an ID, checking if the provided value is zero.
+    /// Create an ID if the provided value is not zero.
     ///
     /// # Examples
     ///
