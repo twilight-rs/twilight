@@ -873,11 +873,14 @@ impl Shard {
                 }
 
                 let period = Duration::from_millis(interval);
+
                 // First heartbeat should have some jitter, see
                 // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
                 let start = Instant::now() + period.mul_f64(rand::random());
+
                 let mut interval = time::interval_at(start, period);
                 interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
+
                 self.heartbeat_interval = Some(interval);
 
                 self.identify().await.map_err(ProcessError::from_send)?;
