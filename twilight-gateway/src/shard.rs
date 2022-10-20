@@ -82,7 +82,7 @@ use twilight_model::gateway::{
         incoming::Hello,
         outgoing::{
             identify::{IdentifyInfo, IdentifyProperties},
-            Heartbeat, Identify,
+            Heartbeat, Identify, Resume,
         },
     },
     CloseCode, Intents, OpCode,
@@ -207,9 +207,10 @@ struct MinimalReady {
 /// or invalidate a session - and then pass the events on to the user via an
 /// event stream.
 ///
-/// Shards will [go through a queue][`queue`] to initialize new ratelimited
-/// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
-/// on shards to have a better understanding of what they are.
+/// Shards go through an [identify queue][`queue`] that ratelimits the amount of
+/// concurrent identify events (across all shards) per 5 seconds. Note that
+/// shards must be identified before they start receiving dispatch events and
+/// are able to send most other events.
 ///
 /// # Sharding
 ///
@@ -372,17 +373,6 @@ impl Shard {
         mut config: Config,
     ) -> Result<Self, ShardInitializeError> {
         let session = config.take_session();
-
-        // Determine whether we need to go through the queue; if the user has
-        // configured an existing gateway session then we can skip it
-        if session.is_none() {
-            tracing::debug!(%shard_id, "queued for identify");
-            config
-                .queue()
-                .request([shard_id.number(), shard_id.total()])
-                .await;
-            tracing::debug!(%shard_id, "passed queue");
-        }
 
         let connection = connection::connect(shard_id, config.gateway_url(), config.tls()).await?;
 
@@ -761,27 +751,38 @@ impl Shard {
 
     /// Identify a new session with the Discord gateway.
     ///
-    /// # Errors
-    ///
-    /// Refer to [`command`][`Self::command`] for possible errors.
-    async fn identify(&mut self) -> Result<(), SendError> {
-        let properties = self
-            .config()
-            .identify_properties()
-            .cloned()
-            .unwrap_or_else(default_identify_properties);
+    /// Spawn a background task that awaits permission from the gateway queue
+    /// and then sends an identify event back to the shard through a
+    /// [`MessageSender`].
+    fn identify(&self) {
+        tokio::spawn({
+            let sender = self.sender();
+            let shard_id = self.id();
+            let queue = self.config().queue().clone();
+            let properties = self
+                .config()
+                .identify_properties()
+                .cloned()
+                .unwrap_or_else(default_identify_properties);
 
-        let identify = Identify::new(IdentifyInfo {
-            compress: false,
-            large_threshold: self.config.large_threshold(),
-            intents: self.config.intents(),
-            properties,
-            shard: Some([self.id().number(), self.id().total()]),
-            presence: self.config.presence().cloned(),
-            token: self.config.token().to_owned(),
+            let identify = Identify::new(IdentifyInfo {
+                compress: false,
+                large_threshold: self.config.large_threshold(),
+                intents: self.config.intents(),
+                properties,
+                shard: Some([self.id().number(), self.id().total()]),
+                presence: self.config.presence().cloned(),
+                token: self.config.token().to_owned(),
+            });
+
+            async move {
+                tracing::debug!(%shard_id, "queued for identify");
+                queue.request([shard_id.number(), shard_id.total()]).await;
+                tracing::debug!(%shard_id, "passed queue");
+                #[allow(clippy::let_underscore_drop)]
+                let _ = sender.command(&identify);
+            }
         });
-
-        self.command(&identify).await
     }
 
     /// Process the buffer of the current websocket message to update the shard's
@@ -893,7 +894,9 @@ impl Shard {
 
                 self.heartbeat_interval = Some(interval);
 
-                self.identify().await.map_err(ProcessError::from_send)?;
+                if self.session.is_none() {
+                    self.identify();
+                }
             }
             Some(OpCode::InvalidSession) => {
                 let event = Self::parse_event(buffer)?;
@@ -910,7 +913,8 @@ impl Shard {
 
     /// Reconnect to the gateway with a new Websocket connection.
     ///
-    /// Clears the [compression] buffer and sets the [status] to
+    /// Resumes the connection if a session is available, clears the
+    /// [compression] buffer, and sets the [status] to
     /// [`ConnectionStatus::Connected`].
     ///
     /// [compression]: Self::compression
@@ -938,6 +942,14 @@ impl Shard {
 
                 ReceiveMessageError::from_reconnect(source)
             })?;
+
+        if let Some(session) = self.session() {
+            let resume = Resume::new(session.sequence(), session.id(), self.config().token());
+            self.command(&resume)
+                .await
+                .map_err(ReceiveMessageError::from_send)?;
+        }
+
         self.compression.reset();
         self.status = ConnectionStatus::Connected;
 
