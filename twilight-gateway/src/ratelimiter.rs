@@ -66,11 +66,11 @@ impl CommandRatelimiter {
     }
 
     /// Completes when a ratelimit permit is available.
-    pub(crate) async fn acquire(&mut self) -> Permit<'_> {
+    pub(crate) async fn acquire(&mut self) {
         poll_fn(|cx| self.poll_available(cx)).await;
         self.clean();
 
-        Permit::new(self)
+        self.instants.push(Instant::now());
     }
 
     /// Polls for the next time a permit is available.
@@ -90,41 +90,6 @@ impl CommandRatelimiter {
     fn clean(&mut self) {
         self.instants
             .retain(|instant| instant.elapsed() < RESET_DURATION);
-    }
-}
-
-/// Ratelimit permit.
-///
-/// Holding one of these means there's capacity for sending *one* event.
-pub(crate) struct Permit<'a> {
-    /// `true` if the permit was unused.
-    unused: bool,
-    /// Reference to the ratelimiter.
-    inner: &'a mut CommandRatelimiter,
-}
-
-impl<'a> Permit<'a> {
-    /// Create a new ratelimit permit.
-    fn new(ratelimiter: &'a mut CommandRatelimiter) -> Self {
-        Self {
-            unused: false,
-            inner: ratelimiter,
-        }
-    }
-
-    /// Forget the permit, returning it to the [`CommandRatelimiter`].
-    ///
-    /// Use this when no event was sent.
-    pub(crate) fn forget(mut self) {
-        self.unused = true;
-    }
-}
-
-impl Drop for Permit<'_> {
-    fn drop(&mut self) {
-        if !self.unused {
-            self.inner.instants.push(Instant::now());
-        }
     }
 }
 
@@ -224,17 +189,6 @@ mod tests {
 
         // All should be refilled.
         time::advance(RESET_DURATION / 2).await;
-        assert_eq!(ratelimiter.available(), ratelimiter.max());
-    }
-
-    #[tokio::test(start_paused = true)]
-    async fn permit_forget() {
-        let mut ratelimiter = CommandRatelimiter::new(HEARTBEAT_INTERVAL);
-
-        assert_eq!(ratelimiter.available(), ratelimiter.max());
-        for _ in 0..ratelimiter.max() {
-            ratelimiter.acquire().await.forget();
-        }
         assert_eq!(ratelimiter.available(), ratelimiter.max());
     }
 }
