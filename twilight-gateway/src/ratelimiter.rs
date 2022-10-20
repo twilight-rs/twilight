@@ -41,13 +41,12 @@ impl CommandRatelimiter {
     /// Current number of commands that are still available within the interval.
     pub fn available(&self) -> u8 {
         // filter out elapsed instants
-        let used_permits: u8 = self
+        #[allow(clippy::cast_possible_truncation)]
+        let used_permits = self
             .instants
             .iter()
             .filter(|instant| instant.elapsed() < RESET_DURATION)
-            .count()
-            .try_into()
-            .expect("length is at most 118");
+            .count() as u8;
 
         self.max() - used_permits
     }
