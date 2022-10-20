@@ -264,8 +264,7 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn rate_limit_per_user(
+    pub const fn rate_limit_per_user(
         mut self,
         rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
