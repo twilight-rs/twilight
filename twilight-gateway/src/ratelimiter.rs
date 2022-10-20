@@ -41,12 +41,13 @@ impl CommandRatelimiter {
     /// Current number of commands that are still available within the interval.
     pub fn available(&self) -> u8 {
         // filter out elapsed instants
-        #[allow(clippy::cast_possible_truncation)]
-        let used_permits = self
+        let used_permits: u8 = self
             .instants
             .iter()
             .filter(|instant| instant.elapsed() < RESET_DURATION)
-            .count() as u8;
+            .count()
+            .try_into()
+            .expect("length is at most 118");
 
         self.max() - used_permits
     }
@@ -162,6 +163,10 @@ mod tests {
 
     #[test]
     fn nonreserved_commands() {
+        assert_eq!(
+            118,
+            nonreserved_commands_per_reset(Duration::from_secs(u64::MAX))
+        );
         assert_eq!(118, nonreserved_commands_per_reset(Duration::from_secs(60)));
         assert_eq!(
             117,
