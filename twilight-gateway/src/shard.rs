@@ -210,6 +210,11 @@ struct MinimalReady {
 /// sessions with the ratelimit. Refer to Discord's [documentation][docs:shards]
 /// on shards to have a better understanding of what they are.
 ///
+/// # Sharding
+///
+/// Bots in more than 2500 guilds must run multiple shards with different
+/// [`ShardId`]s, which is easiest done by using items in the [`stream`] module.
+///
 /// # Sending shard commands in different tasks
 ///
 /// Because a shard itself can't be used in multiple tasks it's not possible to
@@ -266,9 +271,10 @@ struct MinimalReady {
 /// # Ok(()) }
 /// ```
 ///
-/// [`queue`]: crate::queue
 /// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 /// [gateway commands]: Shard::command
+/// [`stream`]: crate::stream
+/// [`queue`]: crate::queue
 #[derive(Debug)]
 pub struct Shard {
     /// Abstraction to decompress Websocket messages, if compression is enabled.
