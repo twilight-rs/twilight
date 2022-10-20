@@ -513,6 +513,7 @@ impl Shard {
             let future = NextMessageFuture::new(
                 self.user_channel.rx_mut(),
                 self.connection.next(),
+                self.ratelimiter.as_mut(),
                 self.heartbeat_interval.as_mut(),
             );
 
@@ -646,8 +647,8 @@ impl Shard {
     /// [ratelimiter]: CommandRatelimiter
     /// [was enabled]: crate::ConfigBuilder::ratelimit_messages
     pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
-        if let Some(ref ratelimiter) = self.ratelimiter {
-            ratelimiter.acquire_one().await;
+        if let Some(ratelimiter) = &mut self.ratelimiter {
+            ratelimiter.acquire().await;
         }
 
         self.send_unratelimited(message).await
@@ -877,19 +878,17 @@ impl Shard {
             }
             Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
-                let interval = event.data.heartbeat_interval;
+                let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
 
                 if self.config().ratelimit_messages() {
-                    self.ratelimiter = Some(CommandRatelimiter::new(interval));
+                    self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval));
                 }
-
-                let period = Duration::from_millis(interval);
 
                 // First heartbeat should have some jitter, see
                 // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
-                let start = Instant::now() + period.mul_f64(rand::random());
+                let start = Instant::now() + heartbeat_interval.mul_f64(rand::random());
 
-                let mut interval = time::interval_at(start, period);
+                let mut interval = time::interval_at(start, heartbeat_interval);
                 interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
 
                 self.heartbeat_interval = Some(interval);

@@ -5,7 +5,7 @@
 //!
 //! [`Shard`]: crate::Shard
 
-use crate::{connection::Connection, message::Message};
+use crate::{connection::Connection, message::Message, CommandRatelimiter};
 use futures_util::{future::FutureExt, stream::Next};
 use std::{
     future::Future,
@@ -56,6 +56,8 @@ pub struct NextMessageFuture<'a> {
     channel_receive_future: &'a mut UnboundedReceiver<Message>,
     /// Future resolving when the next Websocket message has been received.
     message_future: Next<'a, Connection>,
+    /// Command ratelimiter, if enabled.
+    maybe_ratelimiter: Option<&'a mut CommandRatelimiter>,
     /// Future resolving when the [`Shard`] must sent a heartbeat.
     ///
     /// [`Shard`]: crate::Shard
@@ -67,11 +69,13 @@ impl<'a> NextMessageFuture<'a> {
     pub fn new(
         rx: &'a mut UnboundedReceiver<Message>,
         message_future: Next<'a, Connection>,
+        maybe_ratelimiter: Option<&'a mut CommandRatelimiter>,
         maybe_heartbeat_interval: Option<&'a mut Interval>,
     ) -> Self {
         Self {
             channel_receive_future: rx,
             message_future,
+            maybe_ratelimiter,
             tick_heartbeat_future: maybe_heartbeat_interval,
         }
     }
@@ -89,10 +93,19 @@ impl Future for NextMessageFuture<'_> {
             }
         }
 
-        if let Poll::Ready(maybe_message) = this.channel_receive_future.poll_recv(cx) {
-            let message = maybe_message.expect("shard owns channel");
+        let ratelimited = this
+            .maybe_ratelimiter
+            .as_mut()
+            .map_or(false, |ratelimiter| {
+                ratelimiter.poll_available(cx).is_pending()
+            });
 
-            return Poll::Ready(NextMessageFutureOutput::UserChannelMessage(message));
+        if !ratelimited {
+            if let Poll::Ready(maybe_message) = this.channel_receive_future.poll_recv(cx) {
+                let message = maybe_message.expect("shard owns channel");
+
+                return Poll::Ready(NextMessageFutureOutput::UserChannelMessage(message));
+            }
         }
 
         if let Poll::Ready(maybe_try_message) = this.message_future.poll_unpin(cx) {
