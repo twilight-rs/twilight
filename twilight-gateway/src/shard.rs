@@ -654,6 +654,11 @@ impl Shard {
             ratelimiter.acquire_one().await;
         }
 
+        self.send_unratelimited(message).await
+    }
+
+    /// Send a raw websocket message without first passing the ratelimiter.
+    async fn send_unratelimited(&mut self, message: Message) -> Result<(), SendError> {
         self.connection
             .send(message.into_tungstenite())
             .await
@@ -738,8 +743,9 @@ impl Shard {
             self.session = self.close(CloseFrame::RESUME).await?;
             self.disconnect(Disconnect::Resume);
         } else {
-            let command = Heartbeat::new(sequence);
-            self.command(&command).await?;
+            let message = command::prepare(&Heartbeat::new(sequence))?;
+            // The ratelimiter reserves capacity for heartbeat messages.
+            self.send_unratelimited(message).await?;
 
             self.latency.track_sent();
         }
@@ -855,11 +861,9 @@ impl Shard {
             Some(OpCode::Heartbeat) => {
                 let event = Self::parse_event(buffer)?;
 
-                if let Err(source) = self.heartbeat(Some(event.data)).await {
-                    self.disconnect(Disconnect::Resume);
-
-                    return Err(ProcessError::from_send(source));
-                }
+                self.heartbeat(Some(event.data))
+                    .await
+                    .map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
                 self.latency.track_received();
