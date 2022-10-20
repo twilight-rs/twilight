@@ -155,6 +155,7 @@ impl<'a> UpdateThread<'a> {
         mut self,
         rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
         }

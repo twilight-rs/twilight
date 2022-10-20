@@ -79,6 +79,7 @@ impl<'a> GetGuildMembers<'a> {
     ///
     /// [`GetGuildMembers`]: twilight_validate::request::ValidationErrorType::GetGuildMembers
     pub const fn limit(mut self, limit: u16) -> Result<Self, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_get_guild_members_limit(limit) {
             return Err(source);
         }

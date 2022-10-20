@@ -59,8 +59,8 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 
 /// Execute a webhook, sending a message to its channel.
 ///
-/// The message must include at least one of [`attachments`], [`content`], or
-/// [`embeds`].
+/// The message must include at least one of [`attachments`], [`components`],
+/// [`content`], or [`embeds`].
 ///
 /// # Examples
 ///
@@ -81,6 +81,7 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// ```
 ///
 /// [`attachments`]: Self::attachments
+/// [`components`]: Self::components
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]

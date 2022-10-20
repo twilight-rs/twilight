@@ -266,6 +266,7 @@ pub struct Information {
     ratelimit_refill: Option<Instant>,
     ratelimit_requests: Option<u32>,
     session_id: Option<Box<str>>,
+    gateway_url: String,
     seq: u64,
     stage: Stage,
 }
@@ -305,6 +306,11 @@ impl Information {
     /// Return an immutable reference to the session ID of the shard.
     pub fn session_id(&self) -> Option<&str> {
         self.session_id.as_deref()
+    }
+
+    /// Return an immutable reference to the gateway url of the shard.
+    pub fn gateway_url(&self) -> &str {
+        self.gateway_url.as_str()
     }
 
     /// Current sequence of the connection.
@@ -554,6 +560,7 @@ impl Shard {
             latency: session.heartbeats.latency(),
             ratelimit_refill,
             ratelimit_requests,
+            gateway_url: self.config().gateway_url().to_owned(),
             session_id: session.id(),
             seq: session.seq(),
             stage: session.stage(),

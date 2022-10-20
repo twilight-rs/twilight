@@ -46,8 +46,8 @@ struct CreateFollowupFields<'a> {
 
 /// Create a followup message to an interaction, by its token.
 ///
-/// The message must include at least one of [`attachments`], [`content`], or
-/// [`embeds`].
+/// The message must include at least one of [`attachments`], [`components`],
+/// [`content`], or [`embeds`].
 ///
 /// This endpoint is not bound to the application's global rate limit.
 ///
@@ -72,6 +72,7 @@ struct CreateFollowupFields<'a> {
 /// ```
 ///
 /// [`attachments`]: Self::attachments
+/// [`components`]: Self::components
 /// [`content`]: Self::content
 /// [`embeds`]: Self::embeds
 #[must_use = "requests must be configured and executed"]

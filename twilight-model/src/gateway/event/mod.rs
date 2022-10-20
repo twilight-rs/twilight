@@ -14,6 +14,7 @@ pub use self::{
 
 use self::shard::*;
 use super::payload::incoming::*;
+use crate::id::{marker::GuildMarker, Id};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
@@ -185,6 +186,93 @@ pub enum Event {
 }
 
 impl Event {
+    /// Retrieve the guild ID of an event if it took place in a guild.
+    ///
+    /// While events such as [`MessageDelete`] will never include a guild ID, events
+    /// such as [`BanAdd`] and only some [`Channel`] related events will include
+    /// one. Guild variants will include a guild ID while DM Channels don't.
+    ///
+    /// [`Channel`]: crate::channel::Channel
+    pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
+        match self {
+            Event::AutoModerationActionExecution(e) => Some(e.guild_id),
+            Event::AutoModerationRuleCreate(e) => Some(e.0.guild_id),
+            Event::AutoModerationRuleDelete(e) => Some(e.0.guild_id),
+            Event::AutoModerationRuleUpdate(e) => Some(e.0.guild_id),
+            Event::BanAdd(e) => Some(e.guild_id),
+            Event::BanRemove(e) => Some(e.guild_id),
+            Event::ChannelCreate(e) => e.0.guild_id,
+            Event::ChannelDelete(e) => e.0.guild_id,
+            Event::ChannelUpdate(e) => e.0.guild_id,
+            Event::CommandPermissionsUpdate(e) => Some(e.0.guild_id),
+            Event::GuildCreate(e) => Some(e.0.id),
+            Event::GuildDelete(e) => Some(e.id),
+            Event::GuildEmojisUpdate(e) => Some(e.guild_id),
+            Event::GuildIntegrationsUpdate(e) => Some(e.guild_id),
+            Event::GuildScheduledEventCreate(e) => Some(e.0.guild_id),
+            Event::GuildScheduledEventDelete(e) => Some(e.0.guild_id),
+            Event::GuildScheduledEventUpdate(e) => Some(e.0.guild_id),
+            Event::GuildScheduledEventUserAdd(e) => Some(e.guild_id),
+            Event::GuildScheduledEventUserRemove(e) => Some(e.guild_id),
+            Event::GuildStickersUpdate(e) => Some(e.guild_id),
+            Event::GuildUpdate(e) => Some(e.0.id),
+            Event::IntegrationCreate(e) => e.0.guild_id,
+            Event::IntegrationDelete(e) => Some(e.guild_id),
+            Event::IntegrationUpdate(e) => e.0.guild_id,
+            Event::InteractionCreate(e) => e.0.guild_id,
+            Event::InviteCreate(e) => Some(e.guild_id),
+            Event::InviteDelete(e) => Some(e.guild_id),
+            Event::MemberAdd(e) => Some(e.0.guild_id),
+            Event::MemberChunk(e) => Some(e.guild_id),
+            Event::MemberRemove(e) => Some(e.guild_id),
+            Event::MemberUpdate(e) => Some(e.guild_id),
+            Event::MessageCreate(e) => e.0.guild_id,
+            Event::PresenceUpdate(e) => Some(e.0.guild_id),
+            Event::ReactionAdd(e) => e.0.guild_id,
+            Event::ReactionRemove(e) => e.0.guild_id,
+            Event::ReactionRemoveAll(e) => e.guild_id,
+            Event::ReactionRemoveEmoji(e) => Some(e.guild_id),
+            Event::RoleCreate(e) => Some(e.guild_id),
+            Event::RoleDelete(e) => Some(e.guild_id),
+            Event::RoleUpdate(e) => Some(e.guild_id),
+            Event::StageInstanceCreate(e) => Some(e.0.guild_id),
+            Event::StageInstanceDelete(e) => Some(e.0.guild_id),
+            Event::StageInstanceUpdate(e) => Some(e.0.guild_id),
+            Event::ThreadCreate(e) => e.0.guild_id,
+            Event::ThreadDelete(e) => Some(e.guild_id),
+            Event::ThreadListSync(e) => Some(e.guild_id),
+            Event::ThreadMembersUpdate(e) => Some(e.guild_id),
+            Event::ThreadUpdate(e) => e.0.guild_id,
+            Event::TypingStart(e) => e.guild_id,
+            Event::UnavailableGuild(e) => Some(e.id),
+            Event::VoiceServerUpdate(e) => Some(e.guild_id),
+            Event::VoiceStateUpdate(e) => e.0.guild_id,
+            Event::WebhooksUpdate(e) => Some(e.guild_id),
+            Event::ChannelPinsUpdate(_)
+            | Event::GatewayHeartbeat(_)
+            | Event::GatewayHeartbeatAck
+            | Event::GatewayHello(_)
+            | Event::GatewayInvalidateSession(_)
+            | Event::GatewayReconnect
+            | Event::GiftCodeUpdate
+            | Event::MessageDelete(_)
+            | Event::MessageDeleteBulk(_)
+            | Event::MessageUpdate(_)
+            | Event::PresencesReplace
+            | Event::Ready(_)
+            | Event::Resumed
+            | Event::ShardConnected(_)
+            | Event::ShardConnecting(_)
+            | Event::ShardDisconnected(_)
+            | Event::ShardIdentifying(_)
+            | Event::ShardPayload(_)
+            | Event::ShardReconnecting(_)
+            | Event::ShardResuming(_)
+            | Event::ThreadMemberUpdate(_)
+            | Event::UserUpdate(_) => None,
+        }
+    }
+
     pub const fn kind(&self) -> EventType {
         match self {
             Self::AutoModerationActionExecution(_) => EventType::AutoModerationActionExecution,

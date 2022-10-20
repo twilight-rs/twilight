@@ -116,8 +116,8 @@ impl<'a> UpdateChannel<'a> {
     /// Returns an error of type [`BitrateInvalid`] if the bitrate is invalid.
     ///
     /// [`BitrateInvalid`]: twilight_validate::channel::ChannelValidationErrorType::BitrateInvalid
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
+    pub const fn bitrate(mut self, bitrate: u32) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = validate_bitrate(bitrate) {
             return Err(source);
         }
@@ -150,11 +150,11 @@ impl<'a> UpdateChannel<'a> {
     ///
     /// [`RateLimitPerUserInvalid`]: twilight_validate::channel::ChannelValidationErrorType::RateLimitPerUserInvalid
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn default_thread_rate_limit_per_user(
+    pub const fn default_thread_rate_limit_per_user(
         mut self,
         default_thread_rate_limit_per_user: Option<u16>,
     ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Some(default_thread_rate_limit_per_user) = default_thread_rate_limit_per_user {
             if let Err(source) =
                 twilight_validate::channel::rate_limit_per_user(default_thread_rate_limit_per_user)
@@ -269,6 +269,7 @@ impl<'a> UpdateChannel<'a> {
         mut self,
         rate_limit_per_user: u16,
     ) -> Result<Self, ChannelValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) = twilight_validate::channel::rate_limit_per_user(rate_limit_per_user) {
             return Err(source);
         }

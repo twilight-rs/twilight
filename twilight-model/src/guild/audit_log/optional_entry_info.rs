@@ -9,10 +9,39 @@ use serde::{Deserialize, Serialize};
 /// [`AuditLogEventType`]: super::AuditLogEventType
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AuditLogOptionalEntryInfo {
+    /// Name of the Auto Moderation rule that was triggered.
+    ///
+    /// The following events have this option:
+    ///
+    /// - [`AuditLogEventType::AutoModerationBlockMessage`]
+    /// - [`AuditLogEventType::AutoModerationFlagToChannel`]
+    /// - [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]
+    ///
+    /// [`AuditLogEventType::AutoModerationBlockMessage`]: super::AuditLogEventType::AutoModerationBlockMessage
+    /// [`AuditLogEventType::AutoModerationFlagToChannel`]: super::AuditLogEventType::AutoModerationFlagToChannel
+    /// [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]: super::AuditLogEventType::AutoModerationUserCommunicationDisabled
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_moderation_rule_name: Option<String>,
+    /// Trigger type of the Auto Moderation rule that was triggered.
+    ///
+    /// The following events have this option:
+    ///
+    /// - [`AuditLogEventType::AutoModerationBlockMessage`]
+    /// - [`AuditLogEventType::AutoModerationFlagToChannel`]
+    /// - [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]
+    ///
+    /// [`AuditLogEventType::AutoModerationBlockMessage`]: super::AuditLogEventType::AutoModerationBlockMessage
+    /// [`AuditLogEventType::AutoModerationFlagToChannel`]: super::AuditLogEventType::AutoModerationFlagToChannel
+    /// [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]: super::AuditLogEventType::AutoModerationUserCommunicationDisabled
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_moderation_rule_trigger_type: Option<String>,
     /// Channel in which the entities were targeted.
     ///
     /// The following events have this option:
     ///
+    /// - [`AuditLogEventType::AutoModerationBlockMessage`]
+    /// - [`AuditLogEventType::AutoModerationFlagToChannel`]
+    /// - [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]
     /// - [`AuditLogEventType::MemberMove`]
     /// - [`AuditLogEventType::MessageDelete`]
     /// - [`AuditLogEventType::MessagePin`]
@@ -21,6 +50,9 @@ pub struct AuditLogOptionalEntryInfo {
     /// - [`AuditLogEventType::StageInstanceDelete`]
     /// - [`AuditLogEventType::StageInstanceUpdate`]
     ///
+    /// [`AuditLogEventType::AutoModerationBlockMessage`]: super::AuditLogEventType::AutoModerationBlockMessage
+    /// [`AuditLogEventType::AutoModerationFlagToChannel`]: super::AuditLogEventType::AutoModerationFlagToChannel
+    /// [`AuditLogEventType::AutoModerationUserCommunicationDisabled`]: super::AuditLogEventType::AutoModerationUserCommunicationDisabled
     /// [`AuditLogEventType::MemberMove`]: super::AuditLogEventType::MemberMove
     /// [`AuditLogEventType::MessageDelete`]: super::AuditLogEventType::MessageDelete
     /// [`AuditLogEventType::MessagePin`]: super::AuditLogEventType::MessagePin

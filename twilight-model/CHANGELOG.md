@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.13.5] - 2022-09-29
+
+### Bug Fixes
+
+- [**breaking**] use `ImageHash` for `InteractionMember::avatar` ([#1924](https://github.com/twilight-rs/twilight/issues/1924))
+
+### Build
+
+- fix or ignore clippy for 1.64
+
+### Features
+
+- add `GuildFeature::InvitesDisabled` ([#1910](https://github.com/twilight-rs/twilight/issues/1910))
+- [**breaking**] bring audit log up to date ([#1921](https://github.com/twilight-rs/twilight/issues/1921))
+- method to get the `guild_id` from an `Event` ([#1899](https://github.com/twilight-rs/twilight/issues/1899))
+- add `scopes` to `GuildIntegration` ([#1915](https://github.com/twilight-rs/twilight/issues/1915))
+
 ## [0.13.4] - 2022-09-16
 
 ### Bug Fixes
