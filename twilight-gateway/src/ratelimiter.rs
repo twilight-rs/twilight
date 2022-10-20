@@ -64,7 +64,7 @@ impl CommandRatelimiter {
         })
     }
 
-    /// Completes when a ratelimit permit is available.
+    /// Returns when a ratelimit permit becomes available.
     pub(crate) async fn acquire(&mut self) {
         poll_fn(|cx| self.poll_available(cx)).await;
         self.clean();
