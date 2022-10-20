@@ -119,7 +119,7 @@ impl<T> Id<T> {
         }
     }
 
-    /// Create an ID without checking the value.
+    /// Create an ID without checking if the value is non-zero.
     ///
     /// Equivalent to [`NonZeroU64::new_unchecked`].
     ///
