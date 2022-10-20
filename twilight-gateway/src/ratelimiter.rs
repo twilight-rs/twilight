@@ -68,6 +68,7 @@ impl CommandRatelimiter {
     pub(crate) async fn acquire(&mut self) -> Permit<'_> {
         poll_fn(|cx| self.poll_available(cx)).await;
         self.clean();
+
         Permit::new(self)
     }
 
@@ -80,6 +81,7 @@ impl CommandRatelimiter {
             }
             ready!(self.delay.as_mut().poll(cx));
         }
+
         Poll::Ready(())
     }
 
