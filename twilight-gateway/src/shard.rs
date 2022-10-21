@@ -875,7 +875,7 @@ impl Shard {
             }
             Some(OpCode::Heartbeat) => {
                 let event = Self::parse_event(buffer)?;
-                tracing::debug!(last_sequence = event.data, "received heartbeat");
+                tracing::info!(last_sequence = event.data, "received heartbeat");
                 self.heartbeat(Some(event.data))
                     .await
                     .map_err(ProcessError::from_send)?;
