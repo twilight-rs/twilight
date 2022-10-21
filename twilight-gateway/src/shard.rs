@@ -866,7 +866,7 @@ impl Shard {
                     // that message again.
                     if sequence > last_sequence + 1 {
                         tracing::info!(
-                            missed_events = last_sequence - sequence,
+                            missed_events = sequence - (last_sequence + 1),
                             "dispatch events have been missed",
                         );
                         self.disconnect(Disconnect::Resume);
