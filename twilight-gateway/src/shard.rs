@@ -841,7 +841,7 @@ impl Shard {
                     kind: ProcessErrorType::ParsingPayload,
                     source: None,
                 })?;
-                tracing::debug!(%sequence, "received dispatch");
+                tracing::debug!(%event_type, %sequence, "received dispatch");
 
                 match event_type {
                     "READY" => {
