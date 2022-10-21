@@ -615,8 +615,8 @@ impl Shard {
 
     /// Send a raw websocket message.
     ///
-    /// First calls in to the shard's [ratelimiter] if one [was enabled] in the
-    /// shard's configuration.
+    /// For non [close messages], a permit from the shard's [ratelimiter] will
+    /// be awaited (if ratelimiting is [enabled]) before sending the message.
     ///
     /// # Examples
     ///
@@ -644,11 +644,14 @@ impl Shard {
     /// not be sent over the websocket. This indicates the shard is either
     /// currently restarting or closed and will restart.
     ///
+    /// [close messages]: Message::Close
+    /// [enabled]: crate::ConfigBuilder::ratelimit_messages
     /// [ratelimiter]: CommandRatelimiter
-    /// [was enabled]: crate::ConfigBuilder::ratelimit_messages
     pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
-        if let Some(ratelimiter) = &mut self.ratelimiter {
-            ratelimiter.acquire().await;
+        if !matches!(message, Message::Close(_)) {
+            if let Some(ratelimiter) = &mut self.ratelimiter {
+                ratelimiter.acquire().await;
+            }
         }
 
         self.send_unratelimited(message).await
