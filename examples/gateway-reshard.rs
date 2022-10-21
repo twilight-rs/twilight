@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-// Instrument to diferentiate between the logs produced here and in `reshard`.
+// Instrument to differentiate between the logs produced here and in `reshard`.
 #[tracing::instrument(skip_all)]
 async fn gateway_runner(client: Arc<Client>, mut shards: Vec<Shard>) {
     let mut stream = ShardEventStream::new(shards.iter_mut());
@@ -87,7 +87,7 @@ async fn event_handler(client: Arc<Client>, event: Event) -> anyhow::Result<()> 
     Ok(())
 }
 
-// Instrument to diferentiate between the logs produced here and
+// Instrument to differentiate between the logs produced here and
 // in `gateway_runner`.
 #[tracing::instrument(skip_all)]
 async fn reshard(
@@ -115,10 +115,10 @@ async fn reshard(
                 tracing::warn!(?source, "error receiving event");
 
                 if source.is_fatal() {
-                    // When returing `None` `reshard` will be called again,
+                    // When returning `None` `reshard` will be called again,
                     // retrying after `RESHARD_DURATION`.
                     // A fatal error will however most likely also be
-                    // encountered for the currenty running list of shards at
+                    // encountered for the currently running list of shards at
                     // the same time, exciting the application.
                     return Ok(None);
                 }
