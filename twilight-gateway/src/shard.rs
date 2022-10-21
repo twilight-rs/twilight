@@ -217,9 +217,9 @@ struct MinimalReady {
 /// Gateway API client responsible for up to 2500 guilds.
 ///
 /// Shards are responsible for maintaining the gateway connection by processing
-/// events relevant to the operation of shards --- such as requests from the
-/// gateway to re-connect or invalidate a session --- and then to pass them on
-/// to the user.
+/// events relevant to the operation of shards---such as requests from the
+/// gateway to re-connect or invalidate a session---and then to pass them on to
+/// the user.
 ///
 /// Shards start out disconnected, but will on the first call to
 /// [`next_message`] try to reconnect to the gateway. [`next_message`] must then
