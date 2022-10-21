@@ -940,6 +940,8 @@ impl Shard {
                         close_code,
                         reconnect_attempts: reconnect_attempts + 1,
                     };
+                    self.resume_gateway_url = None;
+
                     source
                 })?,
         );
