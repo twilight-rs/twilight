@@ -125,7 +125,11 @@ pub struct CreateGuildScheduledEvent<'a> {
 }
 
 impl<'a> CreateGuildScheduledEvent<'a> {
-    pub(crate) const fn new(http: &'a Client, guild_id: Id<GuildMarker>) -> Self {
+    pub(crate) const fn new(
+        http: &'a Client,
+        guild_id: Id<GuildMarker>,
+        privacy_level: PrivacyLevel,
+    ) -> Self {
         Self {
             guild_id,
             http,
@@ -136,7 +140,7 @@ impl<'a> CreateGuildScheduledEvent<'a> {
                 entity_type: None,
                 image: None,
                 name: None,
-                privacy_level: None,
+                privacy_level: Some(privacy_level),
                 scheduled_end_time: None,
                 scheduled_start_time: None,
             },

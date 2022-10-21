@@ -105,6 +105,7 @@ use twilight_model::{
         },
         Id,
     },
+    scheduled_event::PrivacyLevel,
 };
 use twilight_validate::{
     channel::ChannelValidationError, request::ValidationError, sticker::StickerValidationError,
@@ -2139,8 +2140,9 @@ impl Client {
     pub const fn create_guild_scheduled_event(
         &self,
         guild_id: Id<GuildMarker>,
+        privacy_level: PrivacyLevel,
     ) -> CreateGuildScheduledEvent<'_> {
-        CreateGuildScheduledEvent::new(self, guild_id)
+        CreateGuildScheduledEvent::new(self, guild_id, privacy_level)
     }
 
     /// Get a scheduled event in a guild.
