@@ -138,15 +138,16 @@ impl Inflater {
         {
             // It doesn't matter if we lose precision for logging.
             #[allow(clippy::cast_precision_loss)]
-            let percentage_compressed =
+            let total_percentage_compressed =
                 self.decompress.total_in() as f64 * 100.0 / self.decompress.total_out() as f64;
-            let percentage_saved = 100.0 - percentage_compressed;
-            let kib_saved = (self.decompress.total_out() - self.decompress.total_in()) / 1_024;
+            let total_percentage_saved = 100.0 - total_percentage_compressed;
+            let total_kib_saved =
+                (self.decompress.total_out() - self.decompress.total_in()) / 1_024;
 
             tracing::trace!(
-                "{} KiB saved in total ({:.2}%)",
-                kib_saved,
-                percentage_saved,
+                total_percentage_saved,
+                "{} KiB saved in total",
+                total_kib_saved,
             );
         }
 
