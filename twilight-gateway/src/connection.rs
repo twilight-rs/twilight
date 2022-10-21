@@ -95,7 +95,7 @@ pub async fn connect(
     let url = ConnectionUrl::new(maybe_gateway_url).to_string();
 
     tracing::debug!(%shard_id, ?url, "shaking hands with remote");
-    let stream = tls.connect(&url, Some(WEBSOCKET_CONFIG)).await?;
+    let stream = tls.connect(&url, WEBSOCKET_CONFIG).await?;
     tracing::debug!(%shard_id, "shook hands with remote");
 
     Ok(stream)

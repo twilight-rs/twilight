@@ -114,7 +114,7 @@ mod tests {
         assert!(channel.rx_mut().try_recv().is_err());
 
         let request = RequestGuildMembers::builder(Id::new(1)).query("", None);
-        let heartbeat = Heartbeat::new(30_000);
+        let heartbeat = Heartbeat::new(Some(30_000));
         let heartbeat_bytes = serde_json::to_vec(&heartbeat)?;
         assert!(sender.command(&request).is_ok());
         assert!(sender
