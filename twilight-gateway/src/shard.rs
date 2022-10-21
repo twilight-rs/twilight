@@ -73,7 +73,8 @@ use crate::{
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
-use std::{env::consts::OS, str, time::Duration};
+use std::{env::consts::OS, str};
+use tokio::time::{self, Duration, Instant, Interval, MissedTickBehavior};
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
@@ -231,6 +232,11 @@ struct MinimalReady {
 /// shards must be identified before they start receiving dispatch events and
 /// are able to send most other events.
 ///
+/// # Sharding
+///
+/// Bots in more than 2500 guilds must run multiple shards with different
+/// [`ShardId`]s, which is easiest done by using items in the [`stream`] module.
+///
 /// # Sending shard commands in different tasks
 ///
 /// Because a shard itself can't be used in multiple tasks it's not possible to
@@ -287,9 +293,11 @@ struct MinimalReady {
 /// # Ok(()) }
 /// ```
 ///
+/// [docs:shards]: https://discord.com/developers/docs/topics/gateway#sharding
 /// [gateway commands]: Shard::command
 /// [`next_event`]: Shard::next_event
 /// [`next_message`]: Shard::next_message
+/// [`stream`]: crate::stream
 /// [`queue`]: crate::queue
 #[derive(Debug)]
 pub struct Shard {
@@ -310,7 +318,7 @@ pub struct Shard {
     ///
     /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
     /// [connection]: Self::connection
-    heartbeat_interval: Option<Duration>,
+    heartbeat_interval: Option<Interval>,
     /// ID of the shard.
     id: ShardId,
     /// Recent heartbeat latency statistics.
@@ -484,8 +492,8 @@ impl Shard {
             let future = NextMessageFuture::new(
                 self.user_channel.rx_mut(),
                 self.connection.as_mut().expect("connected").next(),
-                self.heartbeat_interval,
-                self.latency.sent(),
+                self.ratelimiter.as_mut(),
+                self.heartbeat_interval.as_mut(),
             );
 
             let tungstenite_message = match future.await {
@@ -633,10 +641,15 @@ impl Shard {
     /// [ratelimiter]: CommandRatelimiter
     /// [was enabled]: crate::ConfigBuilder::ratelimit_messages
     pub async fn send(&mut self, message: Message) -> Result<(), SendError> {
-        if let Some(ref ratelimiter) = self.ratelimiter {
-            ratelimiter.acquire_one().await;
+        if let Some(ratelimiter) = &mut self.ratelimiter {
+            ratelimiter.acquire().await;
         }
 
+        self.send_unratelimited(message).await
+    }
+
+    /// Send a raw websocket message without first passing the ratelimiter.
+    async fn send_unratelimited(&mut self, message: Message) -> Result<(), SendError> {
         self.connection
             .as_mut()
             .ok_or(SendError {
@@ -727,8 +740,9 @@ impl Shard {
             self.session = self.close(CloseFrame::RESUME).await?;
             self.disconnect(Disconnect::Resume);
         } else {
-            let command = Heartbeat::new(sequence);
-            self.command(&command).await?;
+            let message = command::prepare(&Heartbeat::new(sequence))?;
+            // The ratelimiter reserves capacity for heartbeat messages.
+            self.send_unratelimited(message).await?;
 
             self.latency.track_sent();
         }
@@ -854,24 +868,29 @@ impl Shard {
             Some(OpCode::Heartbeat) => {
                 let event = Self::parse_event(buffer)?;
 
-                if let Err(source) = self.heartbeat(Some(event.data)).await {
-                    self.disconnect(Disconnect::Resume);
-
-                    return Err(ProcessError::from_send(source));
-                }
+                self.heartbeat(Some(event.data))
+                    .await
+                    .map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
                 self.latency.track_received();
             }
             Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
-                let interval = event.data.heartbeat_interval;
-                let heartbeat_duration = Duration::from_millis(interval);
-                self.heartbeat_interval = Some(heartbeat_duration);
+                let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
 
                 if self.config().ratelimit_messages() {
-                    self.ratelimiter = Some(CommandRatelimiter::new(interval));
+                    self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval));
                 }
+
+                // First heartbeat should have some jitter, see
+                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
+                let start = Instant::now() + heartbeat_interval.mul_f64(rand::random());
+
+                let mut interval = time::interval_at(start, heartbeat_interval);
+                interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
+
+                self.heartbeat_interval = Some(interval);
 
                 if self.session.is_none() {
                     self.identify();

@@ -16,7 +16,6 @@ use twilight_validate::request::{
 struct GetGuildMembersFields {
     after: Option<Id<UserMarker>>,
     limit: Option<u16>,
-    presences: Option<bool>,
 }
 
 /// Get the members of a guild, by id.
@@ -54,7 +53,6 @@ impl<'a> GetGuildMembers<'a> {
             fields: GetGuildMembersFields {
                 after: None,
                 limit: None,
-                presences: None,
             },
             guild_id,
             http,
@@ -89,13 +87,6 @@ impl<'a> GetGuildMembers<'a> {
         Ok(self)
     }
 
-    /// Sets whether to retrieve matched member presences
-    pub const fn presences(mut self, presences: bool) -> Self {
-        self.fields.presences = Some(presences);
-
-        self
-    }
-
     /// Execute the request, returning a future resolving to a [`Response`].
     ///
     /// [`Response`]: crate::response::Response
@@ -121,7 +112,6 @@ impl TryIntoRequest for GetGuildMembers<'_> {
             after: self.fields.after.map(Id::get),
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,
-            presences: self.fields.presences,
         }))
     }
 }
