@@ -900,7 +900,7 @@ impl Shard {
                 self.heartbeat_interval = Some(interval);
 
                 // Reset `Latency` since the shard might have connected to a new
-                // remote, invalidating its records.
+                // remote which invalidates the recorded latencies.
                 self.latency = Latency::new();
 
                 if self.session.is_none() {
