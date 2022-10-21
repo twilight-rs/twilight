@@ -7,7 +7,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let intents = Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES;
-    let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents).await?;
+    let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents);
     println!("Created shard");
 
     loop {

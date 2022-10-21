@@ -53,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
         lavalink.add(lavalink_host, lavalink_auth).await?;
 
         let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-        let shard = Shard::new(ShardId::ONE, token, intents).await?;
+        let shard = Shard::new(ShardId::ONE, token, intents);
         let sender = shard.sender();
 
         (

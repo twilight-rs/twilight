@@ -1,7 +1,7 @@
 //! Utilities for creating Websocket connections.
 
 use crate::{
-    compression::COMPRESSION_FEATURES, error::ShardInitializeError, tls::TlsContainer, ShardId,
+    compression::COMPRESSION_FEATURES, error::ReceiveMessageError, tls::TlsContainer, ShardId,
     API_VERSION,
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -82,16 +82,16 @@ impl Display for ConnectionUrl<'_> {
 ///
 /// # Errors
 ///
-/// Returns a [`ShardInitializeErrorType::Establishing`] error type if the
+/// Returns a [`ReceiveMessageErrorType::Reconnect`] error type if the
 /// connection with the Discord gateway could not be established, such as
 /// due to network or TLS errors.
 ///
-/// [`ShardInitializeErrorType::Establishing`]: crate::error::ShardInitializeErrorType::Establishing
+/// [`ReceiveMessageErrorType::Reconnect`]: crate::error::ReceiveMessageErrorType::Reconnect
 pub async fn connect(
     shard_id: ShardId,
     maybe_gateway_url: Option<&str>,
     tls: &TlsContainer,
-) -> Result<Connection, ShardInitializeError> {
+) -> Result<Connection, ReceiveMessageError> {
     let url = ConnectionUrl::new(maybe_gateway_url).to_string();
 
     tracing::debug!(%shard_id, ?url, "shaking hands with remote");

@@ -7,9 +7,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
     let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
-    let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents).await?;
-
-    println!("Created shard");
+    let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents);
 
     loop {
         let event = match shard.next_event().await {

@@ -43,11 +43,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt::init();
 
     let token = env::var("DISCORD_TOKEN")?;
-    let mut shard = Shard::new(
-        ShardId::ONE,
-        token,
-        Intents::GUILD_MESSAGES,
-    ).await?;
+    let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILD_MESSAGES);
 
     // Create a cache, caching up to 10 messages per channel:
     let cache = InMemoryCache::builder().message_cache_size(10).build();
