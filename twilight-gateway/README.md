@@ -45,9 +45,8 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
     let intents = Intents::GUILDS | Intents::GUILD_VOICE_STATES;
 
-    // Start the first and only shard in use by a bot. Larger bots may need to
-    // use the `twilight_gateway::stream` module to start multiple shards.
-    let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
+    // Initialize the first and only shard in use by a bot.
+    let mut shard = Shard::new(ShardId::ONE, token, intents);
 
     tracing::info!("started shard");
 
@@ -87,34 +86,32 @@ use twilight_http::Client;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
-    
-    // callback to create a config for each shard, useful for when not all shards
-    // have the same configuration, such as for per-shard presences
+
+    // Callback to create a config for each shard, useful for when not all shards
+    // have the same configuration, such as for per-shard presences.
     let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
-    
+
     let mut shards = stream::start_recommended(&client, config_callback)
         .await?
-        .filter_map(|shard_result| async move { shard_result.ok() })
-        .collect::<Vec<_>>()
-        .await;
-    
+        .collect::<Vec<_>>();
+
     let mut stream = ShardEventStream::new(shards.iter_mut());
-    
+
     loop {
         let (shard, event) = match stream.next().await {
             Some((shard, Ok(event))) => (shard, event),
             Some((shard, Err(source))) => {
                 tracing::warn!(?source, "error receiving event");
-    
+
                 if source.is_fatal() {
                     break;
                 }
-    
+
                 continue;
             },
             None => break,
         };
-    
+
         println!("received event on shard {}: {event:?}", shard.id());
     }
 

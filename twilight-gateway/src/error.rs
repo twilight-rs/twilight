@@ -165,14 +165,6 @@ impl ReceiveMessageError {
         }
     }
 
-    /// Shortcut to create a new error from a shard initialization error.
-    pub(crate) fn from_reconnect(source: ShardInitializeError) -> Self {
-        Self {
-            kind: ReceiveMessageErrorType::Reconnect,
-            source: Some(Box::new(source)),
-        }
-    }
-
     /// Shortcut to create a new error from a message sending error.
     pub(crate) fn from_send(source: SendError) -> Self {
         Self {
@@ -297,71 +289,11 @@ pub enum SendErrorType {
     Serializing,
 }
 
-/// Initializing a shard and connecting to the gateway failed.
-#[derive(Debug)]
-pub struct ShardInitializeError {
-    /// Type of error.
-    pub(crate) kind: ShardInitializeErrorType,
-    /// Source error if available.
-    pub(crate) source: Option<Box<dyn Error + Send + Sync>>,
-}
-
-impl ShardInitializeError {
-    /// Immutable reference to the type of error that occurred.
-    #[must_use = "retrieving the type has no effect if left unused"]
-    pub const fn kind(&self) -> &ShardInitializeErrorType {
-        &self.kind
-    }
-
-    /// Consume the error, returning the source error if there is any.
-    #[must_use = "consuming the error and retrieving the source has no effect if left unused"]
-    pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
-        self.source
-    }
-
-    /// Consume the error, returning the owned error type and the source error.
-    #[must_use = "consuming the error into its parts has no effect if left unused"]
-    pub fn into_parts(
-        self,
-    ) -> (
-        ShardInitializeErrorType,
-        Option<Box<dyn Error + Send + Sync>>,
-    ) {
-        (self.kind, None)
-    }
-}
-
-impl Display for ShardInitializeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
-            ShardInitializeErrorType::Establishing => {
-                f.write_str("establishing the connection failed")
-            }
-        }
-    }
-}
-
-impl Error for ShardInitializeError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        self.source
-            .as_ref()
-            .map(|source| &**source as &(dyn Error + 'static))
-    }
-}
-
-/// Type of [`ShardInitializeError`] that occurred.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum ShardInitializeErrorType {
-    /// Establishing a connection to the gateway failed.
-    Establishing,
-}
-
 #[cfg(test)]
 mod tests {
     use super::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
-        SendErrorType, ShardInitializeError, ShardInitializeErrorType,
+        SendErrorType,
     };
     use static_assertions::{assert_fields, assert_impl_all};
     use std::{error::Error, fmt::Debug};
@@ -374,8 +306,6 @@ mod tests {
     assert_impl_all!(ReceiveMessageError: Error, Send, Sync);
     assert_impl_all!(SendErrorType: Debug, Send, Sync);
     assert_impl_all!(SendError: Error, Send, Sync);
-    assert_impl_all!(ShardInitializeErrorType: Debug, Send, Sync);
-    assert_impl_all!(ShardInitializeError: Error, Send, Sync);
 
     #[test]
     fn process_error_display() {
@@ -467,18 +397,6 @@ mod tests {
             }
             .to_string(),
             "serializing the value as json failed"
-        );
-    }
-
-    #[test]
-    fn shard_initialize_error_display() {
-        assert_eq!(
-            ShardInitializeError {
-                kind: ShardInitializeErrorType::Establishing,
-                source: None,
-            }
-            .to_string(),
-            "establishing the connection failed"
         );
     }
 }

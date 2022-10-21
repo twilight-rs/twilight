@@ -133,11 +133,7 @@ async fn main() -> anyhow::Result<()> {
     let token = env::var("DISCORD_TOKEN")?;
 
     // Use intents to only receive guild message events.
-    let mut shard = Shard::new(
-        ShardId::ONE,
-        token.clone(),
-        Intents::GUILD_MESSAGES,
-    ).await?;
+    let mut shard = Shard::new(ShardId::ONE, token.clone(), Intents::GUILD_MESSAGES);
 
     // HTTP is separate from the gateway, so create a new client.
     let http = Arc::new(HttpClient::new(token));

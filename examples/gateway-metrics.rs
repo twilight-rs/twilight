@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
 
     let intents =
         Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
-    let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents).await?;
+    let mut shard = Shard::new(ShardId::ONE, env::var("DISCORD_TOKEN")?, intents);
     println!("Created shard");
 
     // Start exporter in a separate task

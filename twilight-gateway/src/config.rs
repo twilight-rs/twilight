@@ -429,7 +429,7 @@ impl ConfigBuilder {
     ///     )?)
     ///     .build();
     ///
-    /// let shard = Shard::with_config(ShardId::ONE, config).await?;
+    /// let shard = Shard::with_config(ShardId::ONE, config);
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]

@@ -14,7 +14,7 @@ mod r#impl {
     use super::{TlsContainer, TlsError};
     use crate::{
         connection::Connection,
-        error::{ShardInitializeError, ShardInitializeErrorType},
+        error::{ReceiveMessageError, ReceiveMessageErrorType},
     };
     use tokio_tungstenite::{tungstenite::protocol::WebSocketConfig, Connector};
 
@@ -33,11 +33,11 @@ mod r#impl {
         url: &str,
         config: WebSocketConfig,
         _tls: &TlsContainer,
-    ) -> Result<Connection, ShardInitializeError> {
+    ) -> Result<Connection, ReceiveMessageError> {
         let (stream, _) = tokio_tungstenite::connect_async_with_config(url, Some(config))
             .await
-            .map_err(|source| ShardInitializeError {
-                kind: ShardInitializeErrorType::Establishing,
+            .map_err(|source| ReceiveMessageError {
+                kind: ReceiveMessageErrorType::Reconnect,
                 source: Some(Box::new(source)),
             })?;
 
@@ -62,7 +62,7 @@ mod r#impl {
     use super::{TlsContainer, TlsError, TlsErrorType};
     use crate::{
         connection::Connection,
-        error::{ShardInitializeError, ShardInitializeErrorType},
+        error::{ReceiveMessageError, ReceiveMessageErrorType},
     };
     use tokio_tungstenite::{tungstenite::protocol::WebSocketConfig, Connector};
 
@@ -88,12 +88,12 @@ mod r#impl {
         url: &str,
         config: WebSocketConfig,
         tls: &TlsContainer,
-    ) -> Result<Connection, ShardInitializeError> {
+    ) -> Result<Connection, ReceiveMessageError> {
         let (stream, _) =
             tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.connector())
                 .await
-                .map_err(|source| ShardInitializeError {
-                    kind: ShardInitializeErrorType::Establishing,
+                .map_err(|source| ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Reconnect,
                     source: Some(Box::new(source)),
                 })?;
 
@@ -116,7 +116,7 @@ mod r#impl {
     use super::{TlsContainer, TlsError};
     use crate::{
         connection::Connection,
-        error::{ShardInitializeError, ShardInitializeErrorType},
+        error::{ReceiveMessageError, ReceiveMessageErrorType},
     };
     use rustls_tls::ClientConfig;
     use std::sync::Arc;
@@ -178,12 +178,12 @@ mod r#impl {
         url: &str,
         config: WebSocketConfig,
         tls: &TlsContainer,
-    ) -> Result<Connection, ShardInitializeError> {
+    ) -> Result<Connection, ReceiveMessageError> {
         let (stream, _) =
             tokio_tungstenite::connect_async_tls_with_config(url, Some(config), tls.connector())
                 .await
-                .map_err(|source| ShardInitializeError {
-                    kind: ShardInitializeErrorType::Establishing,
+                .map_err(|source| ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Reconnect,
                     source: Some(Box::new(source)),
                 })?;
 
@@ -206,7 +206,7 @@ use std::{
 };
 use tokio_tungstenite::{tungstenite::protocol::WebSocketConfig, Connector};
 
-use crate::{connection::Connection, error::ShardInitializeError};
+use crate::{connection::Connection, error::ReceiveMessageError};
 
 /// Creating a TLS connector failed, possibly due to loading certificates.
 #[derive(Debug)]
@@ -303,7 +303,7 @@ impl TlsContainer {
         &self,
         url: &str,
         config: WebSocketConfig,
-    ) -> Result<Connection, ShardInitializeError> {
+    ) -> Result<Connection, ReceiveMessageError> {
         r#impl::connect(url, config, self).await
     }
 

@@ -91,7 +91,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let token = env::var("DISCORD_TOKEN")?;
     let intents = Intents::GUILD_MESSAGES;
-    let mut shard = Shard::new(ShardId::ONE, token, intents).await?;
+    let mut shard = Shard::new(ShardId::ONE, token, intents);
     tracing::info!("created shard");
 
     loop {
