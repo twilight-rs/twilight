@@ -146,8 +146,7 @@ impl Inflater {
 
             tracing::trace!(
                 total_percentage_saved,
-                "{} KiB saved in total",
-                total_kib_saved,
+                "{total_kib_saved} KiB saved in total",
             );
         }
 
