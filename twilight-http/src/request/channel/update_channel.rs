@@ -189,10 +189,12 @@ impl<'a> UpdateChannel<'a> {
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     /// [`ForumTopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::ForumTopicInvalid
     /// [`GuildForum`]: twilight_model::channel::ChannelType::GuildForum
-    pub fn forum_topic(mut self, topic: &'a str) -> Result<Self, ChannelValidationError> {
-        validate_forum_topic(topic)?;
+    pub fn forum_topic(mut self, topic: Option<&'a str>) -> Result<Self, ChannelValidationError> {
+        if let Some(topic) = topic {
+            validate_forum_topic(topic)?;
+        }
 
-        self.fields.topic.replace(topic);
+        self.fields.topic = topic;
 
         Ok(self)
     }
