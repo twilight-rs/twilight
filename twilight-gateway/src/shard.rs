@@ -322,6 +322,11 @@ pub struct Shard {
     /// ID of the shard.
     id: ShardId,
     /// Recent heartbeat latency statistics.
+    ///
+    /// The latency is reset on receiving [`GatewayEvent::Hello`] as the host
+    /// may have changed, and therefore invalidated previous latency statistic.
+    ///
+    /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
     latency: Latency,
     /// Command ratelimiter, if it was enabled via
     /// [`Config::ratelimit_messages`].

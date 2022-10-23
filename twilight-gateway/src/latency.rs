@@ -43,7 +43,7 @@ impl Latency {
         }
     }
 
-    /// The average latency over the lifetime of the shard.
+    /// The average latency over all recorded ones.
     ///
     /// For example, a reasonable value for this may be between 10 to 100
     /// milliseconds depending on the network connection and physical location.
