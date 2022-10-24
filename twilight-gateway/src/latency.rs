@@ -55,7 +55,7 @@ impl Latency {
         self.total_duration.checked_div(self.heartbeats)
     }
 
-    /// The total number of heartbeats that have been sent over the lifetime of the shard.
+    /// The total number of heartbeats that have been received.
     pub const fn heartbeats(&self) -> u32 {
         self.heartbeats
     }
