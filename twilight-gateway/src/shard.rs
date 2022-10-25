@@ -504,7 +504,7 @@ impl Shard {
                     TungsteniteMessage::Close(None)
                 }
                 NextMessageFutureOutput::SendHeartbeat => {
-                    self.heartbeat(self.session().map(Session::sequence))
+                    self.heartbeat()
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
 
@@ -727,12 +727,11 @@ impl Shard {
         }
     }
 
-    /// Send a heartbeat with an optional sequence number that should be
-    /// [`None`] if the shard has not yet received a dispatch event.
+    /// Send a heartbeat.
     ///
     /// Closes the connection and resumes if previous sent heartbeat never got
     /// a reply.
-    async fn heartbeat(&mut self, sequence: Option<u64>) -> Result<(), SendError> {
+    async fn heartbeat(&mut self) -> Result<(), SendError> {
         let is_first_heartbeat = self.heartbeat_interval.is_some() && self.latency.sent().is_none();
 
         // Discord never replied to the last heartbeat, connection is failed or
@@ -743,6 +742,7 @@ impl Shard {
             self.session = self.close(CloseFrame::RESUME).await?;
             self.disconnect(Disconnect::Resume);
         } else {
+            let sequence = self.session().map(Session::sequence);
             let message = command::prepare(&Heartbeat::new(sequence))?;
             // The ratelimiter reserves capacity for heartbeat messages.
             self.send_unratelimited(message).await?;
@@ -869,9 +869,7 @@ impl Shard {
                 }
             }
             Some(OpCode::Heartbeat) => {
-                self.heartbeat(self.session().map(Session::sequence))
-                    .await
-                    .map_err(ProcessError::from_send)?;
+                self.heartbeat().await.map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
                 self.latency.track_received();
