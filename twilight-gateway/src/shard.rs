@@ -742,6 +742,7 @@ impl Shard {
             self.session = self.close(CloseFrame::RESUME).await?;
             self.disconnect(Disconnect::Resume);
         } else {
+            // Sequence should be null if no dispatch event has been received.
             let sequence = self.session().map(Session::sequence);
             let message = command::prepare(&Heartbeat::new(sequence))?;
             // The ratelimiter reserves capacity for heartbeat messages.
