@@ -147,7 +147,7 @@ mod tests {
             116,
             nonreserved_commands_per_reset(Duration::from_millis(29_999))
         );
-        assert_eq!(110, nonreserved_commands_per_reset(Duration::ZERO))
+        assert_eq!(110, nonreserved_commands_per_reset(Duration::ZERO));
     }
 
     const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
