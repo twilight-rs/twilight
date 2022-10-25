@@ -78,7 +78,7 @@ impl Latency {
     /// Whether a heartbeat ack is expected.
     ///
     /// `True` when a heartbeat has been sent without having received an ack.
-    pub(crate) fn expect_receive(&self) -> bool {
+    pub(crate) const fn expect_receive(&self) -> bool {
         self.received.is_none() && self.sent.is_some()
     }
 
