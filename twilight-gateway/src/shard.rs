@@ -869,9 +869,7 @@ impl Shard {
                 }
             }
             Some(OpCode::Heartbeat) => {
-                let event = Self::parse_event(buffer)?;
-
-                self.heartbeat(Some(event.data))
+                self.heartbeat(self.session().map(Session::sequence))
                     .await
                     .map_err(ProcessError::from_send)?;
             }
