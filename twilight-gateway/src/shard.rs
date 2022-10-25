@@ -881,10 +881,10 @@ impl Shard {
                     .map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
-                if self.latency().received().is_some() {
-                    tracing::info!("received unrequested heartbeat ack");
-                } else {
+                if self.latency().expect_receive() {
                     tracing::debug!("received heartbeat ack");
+                } else {
+                    tracing::info!("received unrequested heartbeat ack");
                 }
                 self.latency.track_received();
             }

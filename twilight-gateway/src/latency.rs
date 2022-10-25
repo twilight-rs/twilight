@@ -75,6 +75,13 @@ impl Latency {
         self.sent
     }
 
+    /// Whether a heartbeat ack is expected.
+    ///
+    /// `True` when a heartbeat has been sent without having received an ack.
+    pub(crate) fn expect_receive(&self) -> bool {
+        self.received.is_none() && self.sent.is_some()
+    }
+
     /// Track that a heartbeat acknowledgement was received.
     ///
     /// The current time will be used to calculate against when the last
