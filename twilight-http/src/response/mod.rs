@@ -181,7 +181,7 @@ pub enum DeserializeBodyErrorType {
 pub struct Response<T> {
     guild_id: Option<Id<GuildMarker>>,
     inner: HyperResponse<Body>,
-    phantom: PhantomData<T>,
+    phantom: PhantomData<fn(T) -> T>,
 }
 
 impl<T> Response<T> {
@@ -568,7 +568,7 @@ impl Future for BytesFuture {
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct ModelFuture<T> {
     future: BytesFuture,
-    phantom: PhantomData<T>,
+    phantom: PhantomData<fn(T) -> T>,
 }
 
 impl<T> ModelFuture<T> {

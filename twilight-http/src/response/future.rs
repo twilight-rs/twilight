@@ -264,7 +264,7 @@ enum ResponseFutureStage {
 /// [`Response`]: super::Response
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct ResponseFuture<T> {
-    phantom: PhantomData<T>,
+    phantom: PhantomData<fn(T) -> T>,
     stage: ResponseFutureStage,
 }
 
