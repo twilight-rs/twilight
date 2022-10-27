@@ -526,12 +526,12 @@ impl Shard {
         };
 
         match message {
-            Message::Close(maybe_frame) => {
-                tracing::debug!("received websocket close message");
-                self.status = ConnectionStatus::from_close_frame(maybe_frame.as_ref());
+            Message::Close(frame) => {
+                tracing::debug!(?frame, "received websocket close message");
+                self.status = ConnectionStatus::from_close_frame(frame.as_ref());
                 self.connection = None;
 
-                return Ok(Message::Close(maybe_frame));
+                return Ok(Message::Close(frame));
             }
             Message::Binary(ref bytes) => self.compression.extend(bytes),
             Message::Text(ref text) => self.compression.extend(text.as_bytes()),
