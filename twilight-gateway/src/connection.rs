@@ -93,7 +93,7 @@ pub async fn connect(
 ) -> Result<Connection, ReceiveMessageError> {
     let url = ConnectionUrl::new(maybe_gateway_url).to_string();
 
-    tracing::debug!(?url, "shaking hands with remote");
+    tracing::debug!(?url, "shaking hands with gateway");
     let stream = tls.connect(&url, WEBSOCKET_CONFIG).await?;
 
     Ok(stream)
