@@ -99,17 +99,6 @@ enum Disconnect {
     Resume,
 }
 
-impl Disconnect {
-    /// Create a disconnect action based on whether a session should be re-used.
-    const fn from_resumable(resumable: bool) -> Self {
-        if resumable {
-            Self::Resume
-        } else {
-            Self::InvalidateSession
-        }
-    }
-}
-
 /// Current status of a shard.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ConnectionStatus {
@@ -910,9 +899,14 @@ impl Shard {
                 }
             }
             Some(OpCode::InvalidSession) => {
-                let event = Self::parse_event(buffer)?;
-                tracing::info!(resumable = event.data, "received invalid session");
-                self.disconnect(Disconnect::from_resumable(event.data));
+                let resumable = Self::parse_event(buffer)?.data;
+                if resumable {
+                    tracing::debug!(resumable, "received invalid session");
+                    self.disconnect(Disconnect::Resume);
+                } else {
+                    tracing::info!(resumable, "received invalid session");
+                    self.disconnect(Disconnect::InvalidateSession);
+                }
             }
             Some(OpCode::Reconnect) => {
                 tracing::debug!("received reconnect");
@@ -1004,9 +998,9 @@ fn default_identify_properties() -> IdentifyProperties {
 
 #[cfg(test)]
 mod tests {
-    use super::{ConnectionStatus, Disconnect, Shard};
+    use super::{ConnectionStatus, Shard};
     use crate::message::CloseFrame;
-    use static_assertions::{assert_fields, assert_impl_all, const_assert};
+    use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
     use twilight_model::gateway::CloseCode;
 
@@ -1017,14 +1011,6 @@ mod tests {
     assert_fields!(ConnectionStatus::FatallyClosed: close_code);
     assert_impl_all!(ConnectionStatus: Clone, Debug, Eq, PartialEq, Send, Sync);
     assert_impl_all!(Shard: Debug, Send, Sync);
-    const_assert!(matches!(
-        Disconnect::from_resumable(true),
-        Disconnect::Resume
-    ));
-    const_assert!(matches!(
-        Disconnect::from_resumable(false),
-        Disconnect::InvalidateSession
-    ));
 
     #[test]
     fn connection_status_from_close_frame() {
