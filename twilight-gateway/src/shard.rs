@@ -954,10 +954,9 @@ impl Shard {
         );
 
         if self.session().is_some() {
-            // We defer sending a Resume event to the gateway until hello has
-            // been received to guard against the first message being a
-            // websocket close message (causing us to miss replayed dispatch
-            // events).
+            // Defer sending a Resume event until Hello has been received to
+            // guard against the first message being a websocket close message
+            // (causing us to miss replayed dispatch events).
             // We also set/reset the ratelimiter upon receiving Hello, which
             // means sending anything before then will not be recorded by the
             // ratelimiter.
