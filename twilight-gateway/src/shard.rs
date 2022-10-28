@@ -527,7 +527,7 @@ impl Shard {
                         self.disconnect(Disconnect::Resume);
                         self.reconnect(None, 0).await?;
                     } else {
-                        self.heartbeat(self.session().map(Session::sequence))
+                        self.heartbeat()
                             .await
                             .map_err(ReceiveMessageError::from_send)?;
                     }
@@ -751,9 +751,10 @@ impl Shard {
         }
     }
 
-    /// Send a heartbeat with an optional sequence number that should be
-    /// [`None`] if the shard has not yet received a dispatch event.
-    async fn heartbeat(&mut self, sequence: Option<u64>) -> Result<(), SendError> {
+    /// Send a heartbeat.
+    async fn heartbeat(&mut self) -> Result<(), SendError> {
+        // Sequence should be null if no dispatch event has been received.
+        let sequence = self.session().map(Session::sequence);
         let message = command::prepare(&Heartbeat::new(sequence))?;
         // The ratelimiter reserves capacity for heartbeat messages.
         self.send_unratelimited(message).await?;
@@ -879,11 +880,7 @@ impl Shard {
                 }
             }
             Some(OpCode::Heartbeat) => {
-                let event = Self::parse_event(buffer)?;
-
-                self.heartbeat(Some(event.data))
-                    .await
-                    .map_err(ProcessError::from_send)?;
+                self.heartbeat().await.map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
