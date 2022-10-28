@@ -961,6 +961,9 @@ impl Shard {
             // been received to guard against the first message being a
             // websocket close message (causing us to miss replayed dispatch
             // events).
+            // We also set/reset the ratelimiter upon receiving Hello, which
+            // means sending anything before then will not be recorded by the
+            // ratelimiter.
             self.status = ConnectionStatus::Resuming;
         } else {
             self.status = ConnectionStatus::Identifying;
