@@ -61,8 +61,10 @@ impl Latency {
     }
 
     /// The most recent latencies from newest to oldest.
-    pub const fn recent(&self) -> &[Duration] {
-        self.recent.as_slice()
+    pub fn recent(&self) -> &[Duration] {
+        let maybe_zero_idx = self.recent.iter().position(Duration::is_zero);
+
+        &self.recent[0..maybe_zero_idx.unwrap_or(Self::RECENT_LEN)]
     }
 
     /// When the last heartbeat received an acknowledgement.
@@ -160,6 +162,7 @@ mod tests {
         let mut latency = Latency::new();
         assert!(latency.received().is_none());
         assert!(latency.sent().is_none());
+        assert!(latency.recent().is_empty());
 
         latency.track_sent();
         assert_eq!(latency.heartbeats(), 0);
@@ -170,5 +173,6 @@ mod tests {
         assert_eq!(latency.heartbeats(), 1);
         assert!(latency.received().is_some());
         assert!(latency.sent().is_some());
+        assert_eq!(latency.recent().len(), 1);
     }
 }
