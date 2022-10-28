@@ -1,5 +1,16 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- update `Id::new_unchecked` and `Id::new_checked` ([#1959](https://github.com/twilight-rs/twilight/issues/1959))
+
+### Features
+
+- [**breaking**] auto moderation http methods and mention spam ([#1846](https://github.com/twilight-rs/twilight/issues/1846))
+- forum channels ([#1864](https://github.com/twilight-rs/twilight/issues/1864))
+
 ## [0.13.5] - 2022-09-29
 
 ### Bug Fixes
