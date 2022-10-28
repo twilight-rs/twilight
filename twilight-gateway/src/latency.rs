@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 /// [`Shard::latency`]: crate::Shard::latency
 #[derive(Clone, Debug)]
 pub struct Latency {
-    /// Total number of heartbeat acknowledgements that have been received.
+    /// Total number of heartbeat periods.
     heartbeats: u32,
     /// When the last heartbeat received an acknowledgement.
     received: Option<Instant>,
@@ -77,22 +77,23 @@ impl Latency {
         self.sent
     }
 
-    /// Track that a heartbeat acknowledgement was received.
+    /// Track that a heartbeat acknowledgement was received, completing one
+    /// period.
     ///
     /// The current time will be used to calculate against when the last
     /// heartbeat [was sent][`track_sent`] to determine latency for the period.
     ///
+    /// # Panics
+    ///
+    /// Panics if `sent` is [`None`] ([`track_sent`] has not been called).
+    ///
     /// [`track_sent`]: Self::track_sent
+    #[track_caller]
     pub(crate) fn track_received(&mut self) {
         self.received = Some(Instant::now());
         self.heartbeats += 1;
 
-        let duration = if let Some(sent) = self.sent {
-            sent.elapsed()
-        } else {
-            return;
-        };
-
+        let duration = self.sent.unwrap().elapsed();
         self.total_duration += duration;
         self.recent.rotate_right(1);
         self.recent[0] = duration;

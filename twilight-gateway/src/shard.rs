@@ -886,7 +886,12 @@ impl Shard {
                     .map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
-                self.latency.track_received();
+                let requested = self.latency.received().is_none() && self.latency.sent().is_some();
+                if requested {
+                    self.latency.track_received();
+                } else {
+                    tracing::info!("received unrequested heartbeat ack");
+                }
             }
             Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
