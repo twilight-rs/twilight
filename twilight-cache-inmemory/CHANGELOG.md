@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.1] - 2022-10-28
+
+### Features
+
+- forum channels ([#1864](https://github.com/twilight-rs/twilight/issues/1864))
+
 ## [0.13.0] - 2022-08-14
 
 ### Bug Fixes

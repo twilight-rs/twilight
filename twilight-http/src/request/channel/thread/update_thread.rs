@@ -1,14 +1,17 @@
 use crate::{
     client::Client,
     error::Error as HttpError,
-    request::{self, AuditLogReason, Request, TryIntoRequest},
+    request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
     channel::{thread::AutoArchiveDuration, Channel},
-    id::{marker::ChannelMarker, Id},
+    id::{
+        marker::{ChannelMarker, TagMarker},
+        Id,
+    },
 };
 use twilight_validate::{
     channel::{
@@ -20,6 +23,8 @@ use twilight_validate::{
 
 #[derive(Serialize)]
 struct UpdateThreadFields<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    applied_tags: Option<Nullable<&'a [Id<TagMarker>]>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     archived: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -51,6 +56,7 @@ impl<'a> UpdateThread<'a> {
         Self {
             channel_id,
             fields: UpdateThreadFields {
+                applied_tags: None,
                 archived: None,
                 auto_archive_duration: None,
                 invitable: None,
@@ -61,6 +67,13 @@ impl<'a> UpdateThread<'a> {
             http,
             reason: None,
         }
+    }
+
+    /// Set the forum thread's applied tags.
+    pub const fn applied_tags(mut self, applied_tags: Option<&'a [Id<TagMarker>]>) -> Self {
+        self.fields.applied_tags = Some(Nullable(applied_tags));
+
+        self
     }
 
     /// Set whether the thread is archived.
@@ -214,6 +227,7 @@ mod tests {
             channel_id: channel_id.get(),
         })
         .json(&UpdateThreadFields {
+            applied_tags: None,
             archived: None,
             auto_archive_duration: None,
             invitable: None,

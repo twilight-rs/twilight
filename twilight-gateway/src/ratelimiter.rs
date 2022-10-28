@@ -11,19 +11,18 @@ use std::{
 };
 use tokio::time::{sleep, Duration, Instant, Sleep};
 
-/// Number of commands allowed in a given [`RESET_DURATION`].
-const COMMANDS_PER_RESET: u8 = 120;
+/// Number of commands allowed in a [`PERIOD`].
+const COMMANDS_PER_PERIOD: u8 = 120;
 
-/// Duration until the ratelimit bucket resets.
-const RESET_DURATION: Duration = Duration::from_secs(60);
+/// Gateway ratelimiter period duration.
+const PERIOD: Duration = Duration::from_secs(60);
 
 /// Ratelimiter for sending commands over the gateway to Discord.
 #[derive(Debug)]
 pub struct CommandRatelimiter {
-    /// Future that completes the next time the `CommandRatelimiter` allows a
-    /// permit.
+    /// Future that completes the next time the ratelimiter allows a permit.
     delay: Pin<Box<Sleep>>,
-    /// Queue of instants started when a command was sent.
+    /// Queue of instants started when a permit was acquired.
     instants: Vec<Instant>,
 }
 
@@ -38,29 +37,29 @@ impl CommandRatelimiter {
         }
     }
 
-    /// Current number of commands that are still available within the interval.
+    /// Number of available permits.
     pub fn available(&self) -> u8 {
-        // filter out elapsed instants
+        // Filter out elapsed instants.
         #[allow(clippy::cast_possible_truncation)]
         let used_permits = self
             .instants
             .iter()
-            .filter(|instant| instant.elapsed() < RESET_DURATION)
+            .filter(|instant| instant.elapsed() < PERIOD)
             .count() as u8;
 
         self.max() - used_permits
     }
 
-    /// Maximum number of commands that may be made per interval.
+    /// Maximum number of available permits.
     #[allow(clippy::cast_possible_truncation)]
     pub fn max(&self) -> u8 {
         self.instants.capacity() as u8
     }
 
-    /// When the next command is available.
+    /// Duration until the next permit is available.
     pub fn next_available(&self) -> Duration {
         self.instants.first().map_or(Duration::ZERO, |instant| {
-            RESET_DURATION.saturating_sub(instant.elapsed())
+            PERIOD.saturating_sub(instant.elapsed())
         })
     }
 
@@ -76,7 +75,9 @@ impl CommandRatelimiter {
     pub(crate) fn poll_available(&mut self, cx: &mut Context<'_>) -> Poll<()> {
         if self.available() == 0 {
             let new_deadline = Instant::now() + self.next_available();
-            if self.delay.deadline() < new_deadline {
+            // Conditionally reset `Sleep` as it is expensive to do so.
+            if self.delay.deadline() != new_deadline {
+                tracing::trace!(?new_deadline, old_deadline = ?self.delay.deadline());
                 self.delay.as_mut().reset(new_deadline);
             }
             ready!(self.delay.as_mut().poll(cx));
@@ -87,45 +88,43 @@ impl CommandRatelimiter {
 
     /// Cleans up elapsed instants.
     fn clean(&mut self) {
-        self.instants
-            .retain(|instant| instant.elapsed() < RESET_DURATION);
+        self.instants.retain(|instant| instant.elapsed() < PERIOD);
     }
 }
 
-/// Calculate the number of non reserved commands for heartbeating (which skips
-/// the ratelimiter) in a given [`RESET_DURATION`].
+/// Calculates the number of non reserved commands for heartbeating (which
+/// bypasses the ratelimiter) in a [`PERIOD`].
 ///
-/// Reserves capacity for the amount of heartbeats + 1, to account for Discord
-/// absurdly sending [`OpCode::Heartbeat`]s when the gateway is ratelimited
-/// (which requires the gateway to immediately send a heartbeat back).
+/// Reserves capacity for an additional gateway event to guard against Discord
+/// sending [`OpCode::Heartbeat`]s (which requires sending a heartbeat back
+/// immediately).
 ///
 /// [`OpCode::Heartbeat`]: twilight_model::gateway::OpCode::Heartbeat
 fn nonreserved_commands_per_reset(heartbeat_interval: Duration) -> u8 {
-    /// Guard against faulty gateway implementations sending absurdly low
-    /// heartbeat intervals by maximally reserving some number of heartbeats per
-    /// [`RESET_DURATION`].
-    const MAX_NONRESERVED_COMMANDS_PER_RESET: u8 = COMMANDS_PER_RESET - 10;
+    /// Guard against faulty gateways specifying low heartbeat intervals by
+    /// maximally reserving this many heartbeats per [`PERIOD`].
+    const MAX_NONRESERVED_COMMANDS_PER_PERIOD: u8 = COMMANDS_PER_PERIOD - 10;
 
-    // Calculate the amount of heartbeats per reset duration.
-    let heartbeats_per_reset = RESET_DURATION.as_secs_f32() / heartbeat_interval.as_secs_f32();
+    // Calculate the amount of heartbeats per heartbeat interval.
+    let heartbeats_per_reset = PERIOD.as_secs_f32() / heartbeat_interval.as_secs_f32();
 
     // Round up to be on the safe side.
     #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     let heartbeats_per_reset = heartbeats_per_reset.ceil() as u8;
 
     // Reserve an extra heartbeat just in case.
-    let heartbeats_per_reset = heartbeats_per_reset + 1;
+    let heartbeats_per_reset = heartbeats_per_reset.saturating_add(1);
 
-    // Subtract the reserved heartbeats from the total available commands.
-    let nonreserved_commands_per_reset = COMMANDS_PER_RESET.saturating_sub(heartbeats_per_reset);
+    // Subtract the reserved heartbeats from the total available events.
+    let nonreserved_commands_per_reset = COMMANDS_PER_PERIOD.saturating_sub(heartbeats_per_reset);
 
-    // Take the larger value between this and our guard value.
-    nonreserved_commands_per_reset.max(MAX_NONRESERVED_COMMANDS_PER_RESET)
+    // Take the larger value between this and the guard value.
+    nonreserved_commands_per_reset.max(MAX_NONRESERVED_COMMANDS_PER_PERIOD)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{nonreserved_commands_per_reset, CommandRatelimiter, RESET_DURATION};
+    use super::{nonreserved_commands_per_reset, CommandRatelimiter, PERIOD};
     use static_assertions::assert_impl_all;
     use std::{fmt::Debug, time::Duration};
     use tokio::time;
@@ -148,6 +147,7 @@ mod tests {
             116,
             nonreserved_commands_per_reset(Duration::from_millis(29_999))
         );
+        assert_eq!(110, nonreserved_commands_per_reset(Duration::ZERO));
     }
 
     const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
@@ -162,8 +162,8 @@ mod tests {
         }
         assert_eq!(ratelimiter.available(), 0);
 
-        // Should not refill until RESET_PERIOD has passed.
-        time::advance(RESET_DURATION - Duration::from_millis(100)).await;
+        // Should not refill until PERIOD has passed.
+        time::advance(PERIOD - Duration::from_millis(100)).await;
         assert_eq!(ratelimiter.available(), 0);
 
         // All should be refilled.
@@ -181,7 +181,7 @@ mod tests {
         }
         assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
 
-        time::advance(RESET_DURATION / 2).await;
+        time::advance(PERIOD / 2).await;
 
         assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
         for _ in 0..ratelimiter.max() / 2 {
@@ -190,11 +190,11 @@ mod tests {
         assert_eq!(ratelimiter.available(), 0);
 
         // Half should be refilled.
-        time::advance(RESET_DURATION / 2).await;
+        time::advance(PERIOD / 2).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max() / 2);
 
         // All should be refilled.
-        time::advance(RESET_DURATION / 2).await;
+        time::advance(PERIOD / 2).await;
         assert_eq!(ratelimiter.available(), ratelimiter.max());
     }
 }

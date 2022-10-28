@@ -2,7 +2,6 @@
 authors.workspace = true
 categories = ["api-bindings"]
 description = "Functions and constants for validating request parameters"
-documentation = "https://docs.rs/twilight-validate"
 edition.workspace = true
 homepage = "https://twilight.rs/"
 include.workspace = true
@@ -10,13 +9,12 @@ keywords = ["discord", "discord-api", "twilight"]
 license.workspace = true
 name = "twilight-validate"
 publish = true
-readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version = "0.13.1"
+version = "0.13.2"
 
 [dependencies]
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.5" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.6" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1.1.0" }

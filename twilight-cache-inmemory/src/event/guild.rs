@@ -304,8 +304,13 @@ mod tests {
 
         let channels = Vec::from([Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: None,
             icon: None,
             id: Id::new(111),
@@ -334,8 +339,13 @@ mod tests {
 
         let threads = Vec::from([Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: None,
             icon: None,
             id: Id::new(222),

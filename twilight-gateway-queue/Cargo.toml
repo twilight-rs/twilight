@@ -1,7 +1,6 @@
 [package]
 authors.workspace = true
 description = "Discord Gateway connection queue implementation for the Twilight ecosystem."
-documentation = "https://docs.rs/twilight-gateway-queue"
 edition.workspace = true
 homepage = "https://twilight.rs/"
 include.workspace = true
@@ -9,7 +8,6 @@ keywords = ["discord", "discord-api", "twilight"]
 license.workspace = true
 name = "twilight-gateway-queue"
 publish = true
-readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
 version = "0.13.1"
@@ -19,7 +17,7 @@ tokio = { default-features = false, features = ["rt", "sync", "time"], version =
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 
 # Optional dependencies.
-twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.13.2" }
+twilight-http = { default-features = false, optional = true, path = "../twilight-http", version = "0.13.3" }
 
 [dev-dependencies]
 static_assertions = { default-features = false, version = "1" }
