@@ -321,6 +321,11 @@ pub struct Shard {
     /// ID of the shard.
     id: ShardId,
     /// Recent heartbeat latency statistics.
+    ///
+    /// The latency is reset on receiving [`GatewayEvent::Hello`] as the host
+    /// may have changed, invalidating previous latency statistic.
+    ///
+    /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
     latency: Latency,
     /// Command ratelimiter, if it was enabled via
     /// [`Config::ratelimit_messages`].
@@ -391,6 +396,8 @@ impl Shard {
 
     /// Shard latency statistics, including average latency and recent heartbeat
     /// latency times.
+    ///
+    /// Reset when reconnecting to the gateway.
     pub const fn latency(&self) -> &Latency {
         &self.latency
     }
@@ -503,9 +510,25 @@ impl Shard {
                     TungsteniteMessage::Close(None)
                 }
                 NextMessageFutureOutput::SendHeartbeat => {
-                    self.heartbeat(self.session().map(Session::sequence))
-                        .await
-                        .map_err(ReceiveMessageError::from_send)?;
+                    let is_first_heartbeat =
+                        self.heartbeat_interval.is_some() && self.latency.sent().is_none();
+
+                    // Discord never replied to the last heartbeat, connection
+                    // is failed or "zombied", see
+                    // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
+                    if !is_first_heartbeat && self.latency().received().is_none() {
+                        tracing::warn!("connection failed or \"zombied\"");
+                        self.session = self
+                            .close(CloseFrame::RESUME)
+                            .await
+                            .map_err(ReceiveMessageError::from_send)?;
+                        self.disconnect(Disconnect::Resume);
+                        self.reconnect(None, 0).await?;
+                    } else {
+                        self.heartbeat(self.session().map(Session::sequence))
+                            .await
+                            .map_err(ReceiveMessageError::from_send)?;
+                    }
 
                     continue;
                 }
@@ -728,26 +751,12 @@ impl Shard {
 
     /// Send a heartbeat with an optional sequence number that should be
     /// [`None`] if the shard has not yet received a dispatch event.
-    ///
-    /// Closes the connection and resumes if previous sent heartbeat never got
-    /// a reply.
     async fn heartbeat(&mut self, sequence: Option<u64>) -> Result<(), SendError> {
-        let is_first_heartbeat = self.heartbeat_interval.is_some() && self.latency.sent().is_none();
+        let message = command::prepare(&Heartbeat::new(sequence))?;
+        // The ratelimiter reserves capacity for heartbeat messages.
+        self.send_unratelimited(message).await?;
 
-        // Discord never replied to the last heartbeat, connection is failed or
-        // "zombied", see
-        // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
-        if !is_first_heartbeat && self.latency().received().is_none() {
-            tracing::warn!("connection failed or \"zombied\"");
-            self.session = self.close(CloseFrame::RESUME).await?;
-            self.disconnect(Disconnect::Resume);
-        } else {
-            let message = command::prepare(&Heartbeat::new(sequence))?;
-            // The ratelimiter reserves capacity for heartbeat messages.
-            self.send_unratelimited(message).await?;
-
-            self.latency.track_sent();
-        }
+        self.latency.track_sent();
 
         Ok(())
     }
@@ -893,6 +902,10 @@ impl Shard {
                 interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
 
                 self.heartbeat_interval = Some(interval);
+
+                // Reset `Latency` since the shard might have connected to a new
+                // remote which invalidates the recorded latencies.
+                self.latency = Latency::new();
 
                 if self.session.is_none() {
                     self.identify();
