@@ -26,6 +26,11 @@ pub enum Route<'a> {
         /// ID of the member.
         user_id: u64,
     },
+    /// Route information to create an auto moderation rule.
+    CreateAutoModerationRule {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to create a ban on a user in a guild.
     CreateBan {
         /// The number of seconds' worth of the user's messages to delete in the
@@ -45,6 +50,11 @@ pub enum Route<'a> {
     CreateEmoji {
         /// The ID of the guild.
         guild_id: u64,
+    },
+    /// Route information to create a thread in a forum channel.
+    CreateForumThread {
+        /// The ID of the channel.
+        channel_id: u64,
     },
     /// Route information to create a global command.
     CreateGlobalCommand {
@@ -107,18 +117,6 @@ pub enum Route<'a> {
     },
     /// Route information to create a private channel.
     CreatePrivateChannel,
-    /// Route information to create a thread in a channel.
-    CreateThread {
-        /// ID of the channel.
-        channel_id: u64,
-    },
-    /// Route information to create a thread from a message.
-    CreateThreadFromMessage {
-        /// ID of the channel.
-        channel_id: u64,
-        /// ID of the message.
-        message_id: u64,
-    },
     /// Route information to create a reaction on a message.
     CreateReaction {
         /// The ID of the channel.
@@ -140,6 +138,18 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create a thread in a channel.
+    CreateThread {
+        /// ID of the channel.
+        channel_id: u64,
+    },
+    /// Route information to create a thread from a message.
+    CreateThreadFromMessage {
+        /// ID of the channel.
+        channel_id: u64,
+        /// ID of the message.
+        message_id: u64,
+    },
     /// Route information to create a typing trigger in a channel.
     CreateTypingTrigger {
         /// The ID of the channel.
@@ -156,6 +166,13 @@ pub enum Route<'a> {
         channel_id: u64,
         /// The ID of the message.
         message_id: u64,
+    },
+    /// Route information to delete an auto moderation rule for a guild.
+    DeleteAutoModerationRule {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the auto moderation rule.
+        auto_moderation_rule_id: u64,
     },
     /// Route information to delete a ban on a user in a guild.
     DeleteBan {
@@ -218,11 +235,6 @@ pub enum Route<'a> {
         /// ID of the sticker.
         sticker_id: u64,
     },
-    /// Route information to delete an invite.
-    DeleteInvite {
-        /// The unique invite code.
-        code: &'a str,
-    },
     /// Route information to delete the original interaction response.
     DeleteInteractionOriginal {
         /// The ID of the owner application
@@ -230,17 +242,17 @@ pub enum Route<'a> {
         /// The token of the interaction.
         interaction_token: &'a str,
     },
+    /// Route information to delete an invite.
+    DeleteInvite {
+        /// The unique invite code.
+        code: &'a str,
+    },
     /// Route information to delete a channel's message.
     DeleteMessage {
         /// The ID of the channel.
         channel_id: u64,
         /// The ID of the message.
         message_id: u64,
-    },
-    /// Route information to bulk delete messages in a channel.
-    DeleteMessages {
-        /// The ID of the channel.
-        channel_id: u64,
     },
     /// Route information to delete all of the reactions on a message.
     DeleteMessageReactions {
@@ -259,6 +271,11 @@ pub enum Route<'a> {
         /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to bulk delete messages in a channel.
+    DeleteMessages {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
     /// Route information to delete a permission overwrite for a role or user in
     /// a channel.
     DeletePermissionOverwrite {
@@ -266,15 +283,6 @@ pub enum Route<'a> {
         channel_id: u64,
         /// The ID of the target role or user.
         target_id: u64,
-    },
-    /// Route information to delete the current user's reaction on a message.
-    DeleteReactionCurrentUser {
-        /// ID of the channel.
-        channel_id: u64,
-        /// URI encoded custom or unicode emoji.
-        emoji: &'a RequestReactionType<'a>,
-        /// ID of the message.
-        message_id: u64,
     },
     /// Route information to delete a user's reaction on a message.
     DeleteReaction {
@@ -286,6 +294,15 @@ pub enum Route<'a> {
         message_id: u64,
         /// The ID of the user.
         user_id: u64,
+    },
+    /// Route information to delete the current user's reaction on a message.
+    DeleteReactionCurrentUser {
+        /// ID of the channel.
+        channel_id: u64,
+        /// URI encoded custom or unicode emoji.
+        emoji: &'a RequestReactionType<'a>,
+        /// ID of the message.
+        message_id: u64,
     },
     /// Route information to delete a guild's role.
     DeleteRole {
@@ -306,19 +323,19 @@ pub enum Route<'a> {
         /// The target template code.
         template_code: &'a str,
     },
+    /// Route information to delete a webhook.
+    DeleteWebhook {
+        /// The token of the webhook.
+        token: Option<&'a str>,
+        /// The ID of the webhook.
+        webhook_id: u64,
+    },
     /// Route information to delete a message created by a webhook.
     DeleteWebhookMessage {
         message_id: u64,
         /// ID of the thread channel, if there is one.
         thread_id: Option<u64>,
         token: &'a str,
-        webhook_id: u64,
-    },
-    /// Route information to delete a webhook.
-    DeleteWebhook {
-        /// The token of the webhook.
-        token: Option<&'a str>,
-        /// The ID of the webhook.
         webhook_id: u64,
     },
     /// Route information to execute a webhook by ID and token.
@@ -354,6 +371,13 @@ pub enum Route<'a> {
         limit: Option<u16>,
         /// The ID of the user, if specified.
         user_id: Option<u64>,
+    },
+    /// Route information to get an auto moderation rule for a guild.
+    GetAutoModerationRule {
+        /// ID of the guild.
+        guild_id: u64,
+        /// ID of the auto moderation rule.
+        auto_moderation_rule_id: u64,
     },
     /// Route information to get information about a single ban in a guild.
     GetBan {
@@ -407,10 +431,10 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
-    /// Route information to get info about application the current bot user belongs to
-    GetCurrentUserApplicationInfo,
     /// Route information to get the current user.
     GetCurrentUser,
+    /// Route information to get info about application the current bot user belongs to
+    GetCurrentUserApplicationInfo,
     /// Route information to get the current user as a member object within a guild.
     GetCurrentUserGuildMember {
         /// ID of the guild.
@@ -465,6 +489,11 @@ pub enum Route<'a> {
         /// guild.
         with_counts: bool,
     },
+    /// Route information to get a list of automation rules for a guild.
+    GetGuildAutoModerationRules {
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a guild command.
     GetGuildCommand {
         /// ID of the owner application.
@@ -489,11 +518,6 @@ pub enum Route<'a> {
         guild_id: u64,
         /// Whether to include full localization dictionaries.
         with_localizations: Option<bool>,
-    },
-    /// Route information to get a guild's widget.
-    GetGuildWidget {
-        /// The ID of the guild.
-        guild_id: u64,
     },
     /// Route information to get a guild's integrations.
     GetGuildIntegrations {
@@ -547,13 +571,6 @@ pub enum Route<'a> {
         /// Whether to include user counts.
         with_user_count: bool,
     },
-    /// Route information to get a guild's scheduled events.
-    GetGuildScheduledEvents {
-        /// ID of the guild.
-        guild_id: u64,
-        /// Whether to include user counts.
-        with_user_count: bool,
-    },
     /// Route information to get a guild scheduled event's members.
     GetGuildScheduledEventUsers {
         /// Get members after this ID.
@@ -568,6 +585,13 @@ pub enum Route<'a> {
         scheduled_event_id: u64,
         /// Whether to return a member object.
         with_member: bool,
+    },
+    /// Route information to get a guild's scheduled events.
+    GetGuildScheduledEvents {
+        /// ID of the guild.
+        guild_id: u64,
+        /// Whether to include user counts.
+        with_user_count: bool,
     },
     /// Route information to get a guild's sticker.
     GetGuildSticker {
@@ -591,13 +615,18 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to get a guild's webhooks.
+    GetGuildWebhooks {
+        /// The ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to get a guild's welcome screen.
     GetGuildWelcomeScreen {
         /// ID of the guild.
         guild_id: u64,
     },
-    /// Route information to get a guild's webhooks.
-    GetGuildWebhooks {
+    /// Route information to get a guild's widget.
+    GetGuildWidget {
         /// The ID of the guild.
         guild_id: u64,
     },
@@ -633,6 +662,15 @@ pub enum Route<'a> {
         /// Whether to retrieve the expiration date of the invite.
         with_expiration: bool,
     },
+    /// Route information to get joined private archived threads in a channel.
+    GetJoinedPrivateArchivedThreads {
+        /// Optional timestamp to return threads before.
+        before: Option<u64>,
+        /// ID of the channel.
+        channel_id: u64,
+        /// Optional maximum number of threads to return.
+        limit: Option<u64>,
+    },
     /// Route information to get a member.
     GetMember {
         /// The ID of the guild.
@@ -667,15 +705,6 @@ pub enum Route<'a> {
     GetPins {
         /// The ID of the channel.
         channel_id: u64,
-    },
-    /// Route information to get joined private archived threads in a channel.
-    GetJoinedPrivateArchivedThreads {
-        /// Optional timestamp to return threads before.
-        before: Option<u64>,
-        /// ID of the channel.
-        channel_id: u64,
-        /// Optional maximum number of threads to return.
-        limit: Option<u64>,
     },
     /// Route information to get private archived threads in a channel.
     GetPrivateArchivedThreads {
@@ -865,6 +894,13 @@ pub enum Route<'a> {
         /// The ID of the message.
         message_id: u64,
     },
+    /// Route information to update an auto moderation rule for a guild.
+    UpdateAutoModerationRule {
+        /// ID of the auto moderation rule.
+        auto_moderation_rule_id: u64,
+        /// ID of the guild.
+        guild_id: u64,
+    },
     /// Route information to update a channel, such as a guild channel or group.
     UpdateChannel {
         /// The ID of the channel.
@@ -924,11 +960,6 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
-    /// Route information to update a guild's widget.
-    UpdateGuildWidget {
-        /// The ID of the guild.
-        guild_id: u64,
-    },
     /// Route information to update a guild's integration.
     UpdateGuildIntegration {
         /// The ID of the guild.
@@ -958,6 +989,11 @@ pub enum Route<'a> {
     /// Route information to update a guild's welcome screen.
     UpdateGuildWelcomeScreen {
         /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to update a guild's widget.
+    UpdateGuildWidget {
+        /// The ID of the guild.
         guild_id: u64,
     },
     /// Update the original interaction response.
@@ -1025,19 +1061,19 @@ pub enum Route<'a> {
         /// ID of the user.
         user_id: u64,
     },
+    /// Route information to update a webhook.
+    UpdateWebhook {
+        /// The token of the webhook.
+        token: Option<&'a str>,
+        /// The ID of the webhook.
+        webhook_id: u64,
+    },
     /// Route information to update a message created by a webhook.
     UpdateWebhookMessage {
         message_id: u64,
         /// ID of the thread channel, if there is one.
         thread_id: Option<u64>,
         token: &'a str,
-        webhook_id: u64,
-    },
-    /// Route information to update a webhook.
-    UpdateWebhook {
-        /// The token of the webhook.
-        token: Option<&'a str>,
-        /// The ID of the webhook.
         webhook_id: u64,
     },
 }
@@ -1064,7 +1100,8 @@ impl<'a> Route<'a> {
     #[allow(clippy::too_many_lines)]
     pub const fn method(&self) -> Method {
         match self {
-            Self::DeleteBan { .. }
+            Self::DeleteAutoModerationRule { .. }
+            | Self::DeleteBan { .. }
             | Self::DeleteChannel { .. }
             | Self::DeleteEmoji { .. }
             | Self::DeleteGlobalCommand { .. }
@@ -1094,6 +1131,7 @@ impl<'a> Route<'a> {
             | Self::UnpinMessage { .. } => Method::Delete,
             Self::GetActiveThreads { .. }
             | Self::GetAuditLogs { .. }
+            | Self::GetAutoModerationRule { .. }
             | Self::GetBan { .. }
             | Self::GetBans { .. }
             | Self::GetBansWithParameters { .. }
@@ -1113,6 +1151,7 @@ impl<'a> Route<'a> {
             | Self::GetGlobalCommand { .. }
             | Self::GetGlobalCommands { .. }
             | Self::GetGuild { .. }
+            | Self::GetGuildAutoModerationRules { .. }
             | Self::GetGuildCommand { .. }
             | Self::GetGuildCommandPermissions { .. }
             | Self::GetGuildCommands { .. }
@@ -1158,7 +1197,8 @@ impl<'a> Route<'a> {
             | Self::GetWebhook { .. }
             | Self::GetWebhookMessage { .. }
             | Self::SearchGuildMembers { .. } => Method::Get,
-            Self::UpdateChannel { .. }
+            Self::UpdateAutoModerationRule { .. }
+            | Self::UpdateChannel { .. }
             | Self::UpdateCurrentMember { .. }
             | Self::UpdateCurrentUser
             | Self::UpdateCurrentUserVoiceState { .. }
@@ -1188,7 +1228,9 @@ impl<'a> Route<'a> {
             | Self::CreateGlobalCommand { .. }
             | Self::CreateGuildCommand { .. }
             | Self::CreateEmoji { .. }
+            | Self::CreateForumThread { .. }
             | Self::CreateGuild
+            | Self::CreateAutoModerationRule { .. }
             | Self::CreateGuildFromTemplate { .. }
             | Self::CreateGuildIntegration { .. }
             | Self::CreateGuildPrune { .. }
@@ -1271,6 +1313,10 @@ impl<'a> Route<'a> {
             | Self::RemoveThreadMember { channel_id, .. } => {
                 Path::ChannelsIdThreadMembers(channel_id)
             }
+            Self::CreateAutoModerationRule { guild_id, .. }
+            | Self::GetGuildAutoModerationRules { guild_id, .. } => {
+                Path::GuildsIdAutoModerationRules(guild_id)
+            }
             Self::CreateBan { guild_id, .. } | Self::DeleteBan { guild_id, .. } => {
                 Path::GuildsIdBansUserId(guild_id)
             }
@@ -1328,7 +1374,13 @@ impl<'a> Route<'a> {
             Self::CreateTemplate { guild_id } | Self::GetTemplates { guild_id } => {
                 Path::GuildsIdTemplates(guild_id)
             }
-            Self::CreateThread { channel_id, .. } => Path::ChannelsIdThreads(channel_id),
+            Self::CreateForumThread { channel_id }
+            | Self::CreateThread { channel_id, .. }
+            | Self::GetJoinedPrivateArchivedThreads { channel_id, .. }
+            | Self::GetPrivateArchivedThreads { channel_id, .. }
+            | Self::GetPublicArchivedThreads { channel_id, .. } => {
+                Path::ChannelsIdThreads(channel_id)
+            }
             Self::CreateThreadFromMessage { channel_id, .. } => {
                 Path::ChannelsIdMessagesIdThreads(channel_id)
             }
@@ -1338,6 +1390,11 @@ impl<'a> Route<'a> {
             }
             Self::CrosspostMessage { channel_id, .. } => {
                 Path::ChannelsIdMessagesIdCrosspost(channel_id)
+            }
+            Self::DeleteAutoModerationRule { guild_id, .. }
+            | Self::GetAutoModerationRule { guild_id, .. }
+            | Self::UpdateAutoModerationRule { guild_id, .. } => {
+                Path::GuildsIdAutoModerationRulesId(guild_id)
             }
             Self::DeleteChannel { channel_id } => Path::ChannelsId(channel_id),
             Self::DeleteEmoji { guild_id, .. } => Path::GuildsIdEmojisId(guild_id),
@@ -1435,11 +1492,6 @@ impl<'a> Route<'a> {
             | Self::GetWebhook { webhook_id, .. }
             | Self::UpdateWebhook { webhook_id, .. } => Path::WebhooksId(webhook_id),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(channel_id),
-            Self::GetJoinedPrivateArchivedThreads { channel_id, .. }
-            | Self::GetPrivateArchivedThreads { channel_id, .. }
-            | Self::GetPublicArchivedThreads { channel_id, .. } => {
-                Path::ChannelsIdThreads(channel_id)
-            }
             Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(guild_id),
             Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(guild_id),
             Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(guild_id),
@@ -1609,6 +1661,13 @@ impl Display for Route<'_> {
 
                 Display::fmt(user_id, f)
             }
+            Route::CreateAutoModerationRule { guild_id, .. }
+            | Route::GetGuildAutoModerationRules { guild_id, .. } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/auto-moderation/rules")
+            }
             Route::CreateBan {
                 guild_id,
                 delete_message_seconds,
@@ -1647,6 +1706,27 @@ impl Display for Route<'_> {
                 Display::fmt(application_id, f)?;
 
                 f.write_str("/commands")
+            }
+            Route::DeleteAutoModerationRule {
+                auto_moderation_rule_id,
+                guild_id,
+                ..
+            }
+            | Route::GetAutoModerationRule {
+                auto_moderation_rule_id,
+                guild_id,
+                ..
+            }
+            | Route::UpdateAutoModerationRule {
+                auto_moderation_rule_id,
+                guild_id,
+                ..
+            } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+                f.write_str("/auto-moderation/rules/")?;
+
+                Display::fmt(auto_moderation_rule_id, f)
             }
             Route::GetGlobalCommands {
                 application_id,
@@ -1808,7 +1888,7 @@ impl Display for Route<'_> {
 
                 f.write_str("/templates")
             }
-            Route::CreateThread { channel_id } => {
+            Route::CreateForumThread { channel_id } | Route::CreateThread { channel_id } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
 
@@ -2826,6 +2906,7 @@ mod tests {
     const TEMPLATE_CODE: &str = "templatecode";
     const USER_ID: u64 = 11;
     const SCHEDULED_EVENT_ID: u64 = 12;
+    const AUTO_MODERATION_RULE_ID: u64 = 13;
 
     const fn emoji() -> RequestReactionType<'static> {
         RequestReactionType::Custom {
@@ -4456,5 +4537,59 @@ mod tests {
     fn update_guild_mfa() {
         let route = Route::UpdateGuildMfa { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/mfa"));
+    }
+
+    #[test]
+    fn create_auto_moderation_rule() {
+        let route = Route::CreateAutoModerationRule { guild_id: GUILD_ID };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules")
+        );
+    }
+
+    #[test]
+    fn delete_auto_moderation_rule() {
+        let route = Route::DeleteAutoModerationRule {
+            guild_id: GUILD_ID,
+            auto_moderation_rule_id: AUTO_MODERATION_RULE_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules/{AUTO_MODERATION_RULE_ID}")
+        );
+    }
+
+    #[test]
+    fn get_auto_moderation_rule() {
+        let route = Route::GetAutoModerationRule {
+            guild_id: GUILD_ID,
+            auto_moderation_rule_id: AUTO_MODERATION_RULE_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules/{AUTO_MODERATION_RULE_ID}")
+        );
+    }
+
+    #[test]
+    fn get_guild_auto_moderation_rules() {
+        let route = Route::GetGuildAutoModerationRules { guild_id: GUILD_ID };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules")
+        );
+    }
+
+    #[test]
+    fn update_auto_moderation_rule() {
+        let route = Route::UpdateAutoModerationRule {
+            guild_id: GUILD_ID,
+            auto_moderation_rule_id: AUTO_MODERATION_RULE_ID,
+        };
+        assert_eq!(
+            route.to_string(),
+            format!("guilds/{GUILD_ID}/auto-moderation/rules/{AUTO_MODERATION_RULE_ID}")
+        );
     }
 }

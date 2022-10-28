@@ -29,6 +29,8 @@ struct CreateThreadFromMessageFields<'a> {
 ///
 /// When called on a [`GuildAnnouncement`] channel, this creates a [`AnnouncementThread`].
 ///
+/// This request does not work when called on a [`GuildForum`] channel.
+///
 /// Automatic archive durations are not locked behind the guild's boost level.
 ///
 /// The thread's ID will be the same as its parent message. This ensures only
@@ -36,6 +38,8 @@ struct CreateThreadFromMessageFields<'a> {
 ///
 /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
 /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
+/// [`GuildForum`]: twilight_model::channel::ChannelType::GuildForum
+/// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
 /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 #[must_use = "requests must be configured and executed"]

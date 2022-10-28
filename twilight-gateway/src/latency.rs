@@ -43,7 +43,7 @@ impl Latency {
         }
     }
 
-    /// The average latency over the lifetime of the shard.
+    /// The average latency over all recorded heartbeats.
     ///
     /// For example, a reasonable value for this may be between 10 to 100
     /// milliseconds depending on the network connection and physical location.
@@ -55,14 +55,16 @@ impl Latency {
         self.total_duration.checked_div(self.heartbeats)
     }
 
-    /// The total number of heartbeat periods over the lifetime of the shard.
+    /// The total number of heartbeats that have been received.
     pub const fn heartbeats(&self) -> u32 {
         self.heartbeats
     }
 
     /// The most recent latencies from newest to oldest.
-    pub const fn recent(&self) -> &[Duration] {
-        self.recent.as_slice()
+    pub fn recent(&self) -> &[Duration] {
+        let maybe_zero_idx = self.recent.iter().position(Duration::is_zero);
+
+        &self.recent[0..maybe_zero_idx.unwrap_or(Self::RECENT_LEN)]
     }
 
     /// When the last heartbeat received an acknowledgement.
@@ -161,6 +163,7 @@ mod tests {
         let mut latency = Latency::new();
         assert!(latency.received().is_none());
         assert!(latency.sent().is_none());
+        assert!(latency.recent().is_empty());
 
         latency.track_sent();
         assert_eq!(latency.heartbeats(), 0);
@@ -171,5 +174,6 @@ mod tests {
         assert_eq!(latency.heartbeats(), 1);
         assert!(latency.received().is_some());
         assert!(latency.sent().is_some());
+        assert_eq!(latency.recent().len(), 1);
     }
 }

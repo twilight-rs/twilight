@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.3] - 2022-10-28
+
+### Features
+
+- auto moderation http methods and mention spam ([#1846](https://github.com/twilight-rs/twilight/issues/1846))
+
 ## [0.13.2] - 2022-09-08
 
 ### Bug Fixes

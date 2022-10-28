@@ -1,3 +1,4 @@
+pub mod forum;
 pub mod message;
 pub mod permission_overwrite;
 pub mod stage_instance;
@@ -7,14 +8,15 @@ pub mod webhook;
 mod attachment;
 mod channel_mention;
 mod channel_type;
+mod flags;
 mod followed_channel;
 mod video_quality_mode;
 
-use self::permission_overwrite::PermissionOverwrite;
 pub use self::{
     attachment::Attachment,
     channel_mention::ChannelMention,
     channel_type::ChannelType,
+    flags::ChannelFlags,
     followed_channel::FollowedChannel,
     message::Message,
     stage_instance::StageInstance,
@@ -23,9 +25,15 @@ pub use self::{
 };
 
 use crate::{
-    channel::thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
+    channel::{
+        forum::{DefaultReaction, ForumTag},
+        permission_overwrite::PermissionOverwrite,
+        thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
+    },
     id::{
-        marker::{ApplicationMarker, ChannelMarker, GuildMarker, MessageMarker, UserMarker},
+        marker::{
+            ApplicationMarker, ChannelMarker, GenericMarker, GuildMarker, TagMarker, UserMarker,
+        },
         Id,
     },
     user::User,
@@ -50,6 +58,10 @@ pub struct Channel {
     /// ID of the application that created the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub application_id: Option<Id<ApplicationMarker>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub applied_tags: Option<Vec<Id<TagMarker>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub available_tags: Option<Vec<ForumTag>>,
     /// Bitrate (in bits) setting of audio channels.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bitrate: Option<u32>,
@@ -60,6 +72,13 @@ pub struct Channel {
     /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_reaction_emoji: Option<DefaultReaction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_thread_rate_limit_per_user: Option<u16>,
+    /// Flags of the channel.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub flags: Option<ChannelFlags>,
     /// ID of the guild the channel is in.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -76,9 +95,13 @@ pub struct Channel {
     /// This can be used to determine what fields *might* be available.
     #[serde(rename = "type")]
     pub kind: ChannelType,
-    /// ID of the last message sent in the channel.
+    /// For text channels, this is the ID of the last message sent in the
+    /// channel.
+    ///
+    /// For forum channels, this is the ID of the last created thread in the
+    /// forum.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message_id: Option<Id<MessageMarker>>,
+    pub last_message_id: Option<Id<GenericMarker>>,
     /// ID of the last message pinned in the channel.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_pin_timestamp: Option<Timestamp>,
@@ -191,8 +214,13 @@ mod tests {
 
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(2),
@@ -226,8 +254,13 @@ mod tests {
     fn guild_category_channel_deserialization() {
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(Id::new(2)),
             icon: None,
             id: Id::new(1),
@@ -273,8 +306,13 @@ mod tests {
     fn guild_announcement_channel_deserialization() {
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(Id::new(2)),
             icon: None,
             id: Id::new(1),
@@ -327,8 +365,13 @@ mod tests {
 
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(6),
@@ -408,8 +451,13 @@ mod tests {
 
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(6),
@@ -490,8 +538,13 @@ mod tests {
 
         let value = Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(Id::new(1)),
             icon: None,
             id: Id::new(6),
