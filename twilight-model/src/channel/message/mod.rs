@@ -120,7 +120,7 @@ pub struct Message {
     ///
     /// [Message Content Intent]: crate::gateway::Intents::MESSAGE_CONTENT
     pub embeds: Vec<Embed>,
-    /// Enabled [`MessageFlags`].
+    /// Flags of the message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub flags: Option<MessageFlags>,
     /// ID of the [`Guild`] the message was sent in.

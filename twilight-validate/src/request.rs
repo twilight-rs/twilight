@@ -12,6 +12,9 @@ use twilight_model::util::Timestamp;
 /// The maximum audit log reason length in UTF-16 codepoints.
 pub const AUDIT_REASON_MAX: usize = 512;
 
+/// Maximum amount of mentions that triggers an auto moderation action.
+pub const AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT: u8 = 50;
+
 /// Maximum amount of seconds (`604_800` this is equivalent to `7` days) for messages to be deleted upon ban.
 pub const CREATE_GUILD_BAN_DELETE_MESSAGE_SECONDS_MAX: u32 = 604_800;
 
@@ -173,6 +176,13 @@ impl Display for ValidationError {
                 f.write_str(", but it must be at most ")?;
 
                 Display::fmt(&AUDIT_REASON_MAX, f)
+            }
+            ValidationErrorType::AutoModerationMetadataMentionTotalLimit { limit } => {
+                f.write_str("provided auto moderation metadata mention_total_limit is ")?;
+                Display::fmt(limit, f)?;
+                f.write_str(", but it must be at most ")?;
+
+                Display::fmt(&AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT, f)
             }
             ValidationErrorType::CreateGuildBanDeleteMessageSeconds {
                 seconds: delete_message_seconds,
@@ -378,6 +388,11 @@ pub enum ValidationErrorType {
         /// Invalid length.
         len: usize,
     },
+    /// Provided limit was too large.
+    AutoModerationMetadataMentionTotalLimit {
+        /// Invalid limit.
+        limit: u8,
+    },
     /// Provided create guild ban delete message seconds was invalid.
     CreateGuildBanDeleteMessageSeconds {
         /// Invalid seconds.
@@ -513,6 +528,30 @@ pub fn audit_reason(audit_reason: impl AsRef<str>) -> Result<(), ValidationError
     } else {
         Err(ValidationError {
             kind: ValidationErrorType::AuditReason { len },
+        })
+    }
+}
+
+/// Ensure that an auto moderation rule's `mention_total_limit` is correct.
+///
+/// The length must be at most [`AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT`].
+/// This is based on [this documentation entry].
+///
+/// # Errors
+///
+/// Returns an error of type [`AutoModerationMetadataMentionTotalLimit`] if the
+/// length is invalid.
+///
+/// [`AutoModerationMetadataMentionTotalLimit`]: ValidationErrorType::AutoModerationMetadataMentionTotalLimit
+/// [this documentation entry]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
+pub const fn auto_moderation_metadata_mention_total_limit(
+    limit: u8,
+) -> Result<(), ValidationError> {
+    if limit <= AUTO_MODERATION_METADATA_MENTION_TOTAL_LIMIT {
+        Ok(())
+    } else {
+        Err(ValidationError {
+            kind: ValidationErrorType::AutoModerationMetadataMentionTotalLimit { limit },
         })
     }
 }
@@ -1087,6 +1126,15 @@ mod tests {
         assert!(audit_reason("a".repeat(512)).is_ok());
 
         assert!(audit_reason("a".repeat(513)).is_err());
+    }
+
+    #[test]
+    fn auto_moderation_metadata_mention_total() {
+        assert!(auto_moderation_metadata_mention_total_limit(0).is_ok());
+        assert!(auto_moderation_metadata_mention_total_limit(1).is_ok());
+        assert!(auto_moderation_metadata_mention_total_limit(50).is_ok());
+
+        assert!(auto_moderation_metadata_mention_total_limit(51).is_err());
     }
 
     #[test]

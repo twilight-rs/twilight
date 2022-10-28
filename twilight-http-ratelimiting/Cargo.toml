@@ -13,7 +13,7 @@ publish = true
 readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
-version = "0.13.2"
+version = "0.13.3"
 
 [dependencies]
 futures-util = { version = "0.3", default-features = false }
