@@ -270,6 +270,7 @@ impl<'a> CreateAutoModerationRule<'a> {
         mut self,
         mention_total_limit: u8,
     ) -> Result<ResponseFuture<AutoModerationRule>, ValidationError> {
+        #[allow(clippy::question_mark)]
         if let Err(source) =
             validate_auto_moderation_metadata_mention_total_limit(mention_total_limit)
         {
