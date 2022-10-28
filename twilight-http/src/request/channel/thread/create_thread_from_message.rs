@@ -29,11 +29,14 @@ struct CreateThreadFromMessageFields<'a> {
 ///
 /// When called on a [`GuildNews`] channel, this creates a [`GuildNewsThread`].
 ///
+/// This request does not work when called on a [`GuildForum`] channel.
+///
 /// Automatic archive durations are not locked behind the guild's boost level.
 ///
 /// The thread's ID will be the same as its parent message. This ensures only
 /// one thread can be created per message.
 ///
+/// [`GuildForum`]: twilight_model::channel::ChannelType::GuildForum
 /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
 /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
 /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread

@@ -32,7 +32,7 @@ mod private {
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
             },
             thread::{
-                AddThreadMember, CreateThread, CreateThreadFromMessage,
+                AddThreadMember, CreateForumThread, CreateThread, CreateThreadFromMessage,
                 GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
                 GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
                 LeaveThread, RemoveThreadMember, UpdateThread,
@@ -99,6 +99,7 @@ mod private {
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
     impl Sealed for CreateFollowup<'_> {}
+    impl Sealed for CreateForumThread<'_> {}
     impl Sealed for CreateGlobalChatInputCommand<'_> {}
     impl Sealed for CreateGlobalCommand<'_> {}
     impl Sealed for CreateGlobalMessageCommand<'_> {}

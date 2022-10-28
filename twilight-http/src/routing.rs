@@ -51,6 +51,11 @@ pub enum Route<'a> {
         /// The ID of the guild.
         guild_id: u64,
     },
+    /// Route information to create a thread in a forum channel.
+    CreateForumThread {
+        /// The ID of the channel.
+        channel_id: u64,
+    },
     /// Route information to create a global command.
     CreateGlobalCommand {
         /// The ID of the owner application.
@@ -1225,6 +1230,7 @@ impl<'a> Route<'a> {
             | Self::CreateGlobalCommand { .. }
             | Self::CreateGuildCommand { .. }
             | Self::CreateEmoji { .. }
+            | Self::CreateForumThread { .. }
             | Self::CreateGuild
             | Self::CreateAutoModerationRule { .. }
             | Self::CreateGuildFromTemplate { .. }
@@ -1370,7 +1376,13 @@ impl<'a> Route<'a> {
             Self::CreateTemplate { guild_id } | Self::GetTemplates { guild_id } => {
                 Path::GuildsIdTemplates(guild_id)
             }
-            Self::CreateThread { channel_id, .. } => Path::ChannelsIdThreads(channel_id),
+            Self::CreateForumThread { channel_id }
+            | Self::CreateThread { channel_id, .. }
+            | Self::GetJoinedPrivateArchivedThreads { channel_id, .. }
+            | Self::GetPrivateArchivedThreads { channel_id, .. }
+            | Self::GetPublicArchivedThreads { channel_id, .. } => {
+                Path::ChannelsIdThreads(channel_id)
+            }
             Self::CreateThreadFromMessage { channel_id, .. } => {
                 Path::ChannelsIdMessagesIdThreads(channel_id)
             }
@@ -1482,11 +1494,6 @@ impl<'a> Route<'a> {
             | Self::GetWebhook { webhook_id, .. }
             | Self::UpdateWebhook { webhook_id, .. } => Path::WebhooksId(webhook_id),
             Self::FollowNewsChannel { channel_id } => Path::ChannelsIdFollowers(channel_id),
-            Self::GetJoinedPrivateArchivedThreads { channel_id, .. }
-            | Self::GetPrivateArchivedThreads { channel_id, .. }
-            | Self::GetPublicArchivedThreads { channel_id, .. } => {
-                Path::ChannelsIdThreads(channel_id)
-            }
             Self::GetActiveThreads { guild_id, .. } => Path::GuildsIdThreads(guild_id),
             Self::GetAuditLogs { guild_id, .. } => Path::GuildsIdAuditLogs(guild_id),
             Self::GetBan { guild_id, .. } => Path::GuildsIdBansId(guild_id),
@@ -1883,7 +1890,7 @@ impl Display for Route<'_> {
 
                 f.write_str("/templates")
             }
-            Route::CreateThread { channel_id } => {
+            Route::CreateForumThread { channel_id } | Route::CreateThread { channel_id } => {
                 f.write_str("channels/")?;
                 Display::fmt(channel_id, f)?;
 

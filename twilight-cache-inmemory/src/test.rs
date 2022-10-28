@@ -225,8 +225,13 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
     let channel_id = Id::new(2);
     let channel = Channel {
         application_id: None,
+        applied_tags: None,
+        available_tags: None,
         bitrate: None,
         default_auto_archive_duration: None,
+        default_reaction_emoji: None,
+        default_thread_rate_limit_per_user: None,
+        flags: None,
         guild_id: Some(guild_id),
         icon: None,
         id: channel_id,
