@@ -489,6 +489,7 @@ impl Shard {
             let tungstenite_message = match future.await {
                 NextMessageFutureOutput::Message(Some(message)) => message,
                 NextMessageFutureOutput::Message(None) => {
+                    tracing::info!("connection stream ended");
                     self.disconnect(Disconnect::Resume);
 
                     TungsteniteMessage::Close(None)
