@@ -17,7 +17,8 @@
 //! 1. If the user sends a [command] via [`Shard::command`] the command is
 //! serialized into a raw websocket message and then...
 //! 2. [`Shard::send`] is called and the sending of the message goes through
-//! ratelimiting via [`CommandRatelimiter`] if ratelimiting [is enabled];
+//! ratelimiting via [`CommandRatelimiter`] if ratelimiting [is enabled] and
+//! it's not a [close message];
 //! 3. The [websocket message] is sent over the [websocket connection].
 //!
 //! Receiving a message is a little bit more complicated, but follows as:
@@ -49,10 +50,11 @@
 //! [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
 //! [`resume_gateway_url`]: twilight_model::gateway::payload::incoming::Ready::resume_gateway_url
 //! [command]: crate::Command
+//! [close message]: Message::Close
 //! [is enabled]: Config::ratelimit_messages
 //! [processed]: Shard::process
 //! [websocket connection]: Shard::connection
-//! [websocket message]: crate::message::Message
+//! [websocket message]: Message
 
 use crate::{
     channel::{MessageChannel, MessageSender},
