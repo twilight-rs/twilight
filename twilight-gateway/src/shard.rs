@@ -812,6 +812,7 @@ impl Shard {
     /// the connection isn't connected.
     ///
     /// [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
+    #[allow(clippy::too_many_lines)]
     async fn process(&mut self) -> Result<(), ProcessError> {
         let buffer = match self.compression.message_mut() {
             Ok(Some(buffer)) => buffer,
