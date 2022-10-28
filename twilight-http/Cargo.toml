@@ -13,7 +13,7 @@ publish = true
 readme = "README.md"
 repository = "https://github.com/twilight-rs/twilight.git"
 rust-version = "1.60"
-version = "0.13.1"
+version = "0.13.2"
 
 [dependencies]
 hyper = { default-features = false, features = ["client", "http1", "http2", "runtime"], version = "0.14" }
@@ -27,7 +27,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["sync", "time"], version = "1.0" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.13.2" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.4" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.5" }
 twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.13.1" }
 
 # Optional dependencies.
@@ -45,5 +45,5 @@ trust-dns = ["dep:hyper-trust-dns"]
 [dev-dependencies]
 serde_test = { default-features = false, version = "1" }
 static_assertions = { default-features = false, version = "1.1.0" }
-twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.13.2" }
+twilight-util = { default-features = false, features = ["builder"], path = "../twilight-util", version = "0.13.3" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }

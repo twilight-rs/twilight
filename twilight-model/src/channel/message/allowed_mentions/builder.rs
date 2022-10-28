@@ -82,21 +82,11 @@ impl AllowedMentionsBuilder {
     /// will be built.
     pub fn build(mut self) -> AllowedMentions {
         if !self.0.users.is_empty() {
-            self.0.parse = self
-                .0
-                .parse
-                .into_iter()
-                .filter(|t| *t != ParseTypes::Users)
-                .collect();
+            self.0.parse.retain(|t| *t != ParseTypes::Users);
         }
 
         if !self.0.roles.is_empty() {
-            self.0.parse = self
-                .0
-                .parse
-                .into_iter()
-                .filter(|t| *t != ParseTypes::Roles)
-                .collect();
+            self.0.parse.retain(|t| *t != ParseTypes::Roles);
         }
 
         self.0

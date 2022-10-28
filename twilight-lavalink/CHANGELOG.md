@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.1] - 2022-09-29
+
+### Build
+
+- fix or ignore clippy for 1.64
+
 ## [0.13.0] - 2022-08-14
 
 ### Bug Fixes
