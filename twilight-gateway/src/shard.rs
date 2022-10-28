@@ -919,16 +919,13 @@ impl Shard {
         Ok(())
     }
 
-    /// Establishes a Websocket connection and sends a [`Resume`] event if
-    /// holding an active [`Session`].
-    ///
-    /// On successfully sending a [`Resume`] event it sets the [status] to
-    /// [`ConnectionStatus::Resuming`], otherwise if there's no active
-    /// [`Session`] it sets the [status] to [`ConnectionStatus::Identifying`].
-    ///
-    /// Lastly it clears the [compression] buffer.
+    /// Establishes a Websocket connection, sets the [status] to [`Resuming`] or
+    /// [`Identifying`] if holding an active [`Session`] or not, and clears the
+    /// [compression] buffer.
     ///
     /// [compression]: Self::compression
+    /// [`Identifying`]: ConnectionStatus::Identifying
+    /// [`Resuming`]: ConnectionStatus::Resuming
     /// [status]: Self::status
     async fn reconnect(
         &mut self,
