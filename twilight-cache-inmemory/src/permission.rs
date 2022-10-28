@@ -766,8 +766,13 @@ mod tests {
     fn channel() -> Channel {
         Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(GUILD_ID),
             icon: None,
             id: CHANNEL_ID,
@@ -811,8 +816,13 @@ mod tests {
     fn thread() -> Channel {
         Channel {
             application_id: None,
+            applied_tags: None,
+            available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_reaction_emoji: None,
+            default_thread_rate_limit_per_user: None,
+            flags: None,
             guild_id: Some(GUILD_ID),
             icon: None,
             id: THREAD_ID,
