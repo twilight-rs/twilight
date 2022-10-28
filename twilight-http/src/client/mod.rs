@@ -37,6 +37,10 @@ use crate::{
             FollowNewsChannel, GetChannel, GetPins, UpdateChannel, UpdateChannelPermission,
         },
         guild::{
+            auto_moderation::{
+                CreateAutoModerationRule, DeleteAutoModerationRule, GetAutoModerationRule,
+                GetGuildAutoModerationRules, UpdateAutoModerationRule,
+            },
             ban::{CreateBan, DeleteBan, GetBan, GetBans},
             create_guild::CreateGuildError,
             emoji::{CreateEmoji, DeleteEmoji, GetEmoji, GetEmojis, UpdateEmoji},
@@ -95,13 +99,13 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
-    guild::MfaLevel,
+    guild::{auto_moderation::AutoModerationEventType, MfaLevel},
     http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
-            ApplicationMarker, ChannelMarker, EmojiMarker, GuildMarker, IntegrationMarker,
-            MessageMarker, RoleMarker, ScheduledEventMarker, StickerMarker, UserMarker,
-            WebhookMarker,
+            ApplicationMarker, AutoModerationRuleMarker, ChannelMarker, EmojiMarker, GuildMarker,
+            IntegrationMarker, MessageMarker, RoleMarker, ScheduledEventMarker, StickerMarker,
+            UserMarker, WebhookMarker,
         },
         Id,
     },
@@ -285,6 +289,92 @@ impl Client {
     /// has been explicitly disabled in the [`ClientBuilder`].
     pub fn ratelimiter(&self) -> Option<&dyn Ratelimiter> {
         self.ratelimiter.as_ref().map(AsRef::as_ref)
+    }
+
+    /// Get an auto moderation rule in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn auto_moderation_rule(
+        &self,
+        guild_id: Id<GuildMarker>,
+        auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
+    ) -> GetAutoModerationRule<'_> {
+        GetAutoModerationRule::new(self, guild_id, auto_moderation_rule_id)
+    }
+
+    /// Get the auto moderation rules in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn auto_moderation_rules(
+        &self,
+        guild_id: Id<GuildMarker>,
+    ) -> GetGuildAutoModerationRules<'_> {
+        GetGuildAutoModerationRules::new(self, guild_id)
+    }
+
+    /// Create an auto moderation rule within a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// # Examples
+    ///
+    /// Create a rule that deletes messages that contain the word "darn":
+    ///
+    /// ```no_run
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use twilight_http::Client;
+    /// use twilight_model::{guild::auto_moderation::AutoModerationEventType, id::Id};
+    ///
+    /// let client = Client::new("my token".to_owned());
+    ///
+    /// let guild_id = Id::new(1);
+    /// client
+    ///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MessageSend)
+    ///     .action_block_message()
+    ///     .enabled(true)
+    ///     .with_keyword(&["darn"])
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn create_auto_moderation_rule<'a>(
+        &'a self,
+        guild_id: Id<GuildMarker>,
+        name: &'a str,
+        event_type: AutoModerationEventType,
+    ) -> CreateAutoModerationRule<'a> {
+        CreateAutoModerationRule::new(self, guild_id, name, event_type)
+    }
+
+    /// Delete an auto moderation rule in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn delete_auto_moderation_rule(
+        &self,
+        guild_id: Id<GuildMarker>,
+        auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
+    ) -> DeleteAutoModerationRule<'_> {
+        DeleteAutoModerationRule::new(self, guild_id, auto_moderation_rule_id)
+    }
+
+    /// Update an auto moderation rule in a guild.
+    ///
+    /// Requires the [`MANAGE_GUILD`] permission.
+    ///
+    /// [`MANAGE_GUILD`]: twilight_model::guild::Permissions::MANAGE_GUILD
+    pub const fn update_auto_moderation_rule(
+        &self,
+        guild_id: Id<GuildMarker>,
+        auto_moderation_rule_id: Id<AutoModerationRuleMarker>,
+    ) -> UpdateAutoModerationRule<'_> {
+        UpdateAutoModerationRule::new(self, guild_id, auto_moderation_rule_id)
     }
 
     /// Get the audit log for a guild.
