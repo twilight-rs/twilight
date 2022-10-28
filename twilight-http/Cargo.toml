@@ -28,7 +28,7 @@ tokio = { default-features = false, features = ["sync", "time"], version = "1.0"
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-http-ratelimiting = { default-features = false, path = "../twilight-http-ratelimiting", version = "0.13.2" }
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.6" }
-twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.13.1" }
+twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.13.2" }
 
 # Optional dependencies.
 brotli = { default-features = false, features = ["std"], optional = true, version = "3.0.0" }
