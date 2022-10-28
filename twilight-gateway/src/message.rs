@@ -54,7 +54,6 @@ impl<'a> CloseFrame<'a> {
     /// # Examples
     ///
     /// ```
-    /// use std::borrow::Cow;
     /// use twilight_gateway::message::CloseFrame;
     ///
     /// let frame = CloseFrame::new(1000, "reason here");

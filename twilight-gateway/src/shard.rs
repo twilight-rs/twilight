@@ -248,7 +248,6 @@ struct MinimalReady {
 /// Create and start a shard and print new and deleted messages:
 ///
 /// ```no_run
-/// use futures::stream::StreamExt;
 /// use std::env;
 /// use twilight_gateway::{Config, Event, EventTypeFlags, Intents, Shard, ShardId};
 ///
