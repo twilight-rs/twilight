@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.3] - 2022-10-28
+
+### Bug Fixes
+
+- [**breaking**] require privacy_level in `CreateGuildScheduledEvent` ([#1962](https://github.com/twilight-rs/twilight/issues/1962))
+
+### Features
+
+- auto moderation http methods and mention spam ([#1846](https://github.com/twilight-rs/twilight/issues/1846))
+- forum channels ([#1864](https://github.com/twilight-rs/twilight/issues/1864))
+
 ## [0.13.2] - 2022-09-29
 
 ### Build

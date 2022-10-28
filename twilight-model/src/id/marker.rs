@@ -231,6 +231,15 @@ pub struct StickerPackMarker;
 #[non_exhaustive]
 pub struct StickerPackSkuMarker;
 
+/// Marker for forum tag IDs.
+///
+/// Types such as [`ForumTag`] use this ID marker.
+///
+/// [`ForumTag`]: crate::channel::forum::ForumTag
+#[derive(Debug)]
+#[non_exhaustive]
+pub struct TagMarker;
+
 /// Marker for user IDs.
 ///
 /// Types such as [`Channel`] or [`User`] use this ID marker.

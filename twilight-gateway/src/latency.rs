@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 /// [`Shard::latency`]: crate::Shard::latency
 #[derive(Clone, Debug)]
 pub struct Latency {
-    /// Total number of heartbeat acknowledgements that have been received.
+    /// Total number of heartbeat periods.
     heartbeats: u32,
     /// When the last heartbeat received an acknowledgement.
     received: Option<Instant>,
@@ -43,7 +43,7 @@ impl Latency {
         }
     }
 
-    /// The average latency over the lifetime of the shard.
+    /// The average latency over all recorded heartbeats.
     ///
     /// For example, a reasonable value for this may be between 10 to 100
     /// milliseconds depending on the network connection and physical location.
@@ -55,14 +55,16 @@ impl Latency {
         self.total_duration.checked_div(self.heartbeats)
     }
 
-    /// The total number of heartbeats that have been sent over the lifetime of the shard.
+    /// The total number of heartbeats that have been received.
     pub const fn heartbeats(&self) -> u32 {
         self.heartbeats
     }
 
     /// The most recent latencies from newest to oldest.
-    pub const fn recent(&self) -> &[Duration] {
-        self.recent.as_slice()
+    pub fn recent(&self) -> &[Duration] {
+        let maybe_zero_idx = self.recent.iter().position(Duration::is_zero);
+
+        &self.recent[0..maybe_zero_idx.unwrap_or(Self::RECENT_LEN)]
     }
 
     /// When the last heartbeat received an acknowledgement.
@@ -75,22 +77,23 @@ impl Latency {
         self.sent
     }
 
-    /// Track that a heartbeat acknowledgement was received.
+    /// Track that a heartbeat acknowledgement was received, completing one
+    /// period.
     ///
     /// The current time will be used to calculate against when the last
     /// heartbeat [was sent][`track_sent`] to determine latency for the period.
     ///
+    /// # Panics
+    ///
+    /// Panics if `sent` is [`None`] ([`track_sent`] has not been called).
+    ///
     /// [`track_sent`]: Self::track_sent
+    #[track_caller]
     pub(crate) fn track_received(&mut self) {
         self.received = Some(Instant::now());
         self.heartbeats += 1;
 
-        let duration = if let Some(sent) = self.sent {
-            sent.elapsed()
-        } else {
-            return;
-        };
-
+        let duration = self.sent.unwrap().elapsed();
         self.total_duration += duration;
         self.recent.rotate_right(1);
         self.recent[0] = duration;
@@ -160,6 +163,7 @@ mod tests {
         let mut latency = Latency::new();
         assert!(latency.received().is_none());
         assert!(latency.sent().is_none());
+        assert!(latency.recent().is_empty());
 
         latency.track_sent();
         assert_eq!(latency.heartbeats(), 0);
@@ -170,5 +174,6 @@ mod tests {
         assert_eq!(latency.heartbeats(), 1);
         assert!(latency.received().is_some());
         assert!(latency.sent().is_some());
+        assert_eq!(latency.recent().len(), 1);
     }
 }
