@@ -502,6 +502,7 @@ impl Shard {
                     continue;
                 }
                 NextMessageFutureOutput::UserChannelMessage(message) => {
+                    tracing::trace!("sending message from user channel");
                     self.send(message)
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
