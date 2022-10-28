@@ -518,7 +518,7 @@ impl Shard {
                         self.disconnect(Disconnect::Resume);
                         self.reconnect(None, 0).await?;
                     } else {
-                        self.heartbeat(self.session().map(Session::sequence))
+                        self.heartbeat()
                             .await
                             .map_err(ReceiveMessageError::from_send)?;
                     }
@@ -740,9 +740,10 @@ impl Shard {
         }
     }
 
-    /// Send a heartbeat with an optional sequence number that should be
-    /// [`None`] if the shard has not yet received a dispatch event.
-    async fn heartbeat(&mut self, sequence: Option<u64>) -> Result<(), SendError> {
+    /// Send a heartbeat.
+    async fn heartbeat(&mut self) -> Result<(), SendError> {
+        // Sequence should be null if no dispatch event has been received.
+        let sequence = self.session().map(Session::sequence);
         tracing::debug!(?sequence, "sending heartbeat");
         let message = command::prepare(&Heartbeat::new(sequence))?;
         // The ratelimiter reserves capacity for heartbeat messages.
@@ -876,11 +877,8 @@ impl Shard {
                 }
             }
             Some(OpCode::Heartbeat) => {
-                let event = Self::parse_event(buffer)?;
-                tracing::info!(last_sequence = event.data, "received heartbeat");
-                self.heartbeat(Some(event.data))
-                    .await
-                    .map_err(ProcessError::from_send)?;
+                tracing::info!("received heartbeat");
+                self.heartbeat().await.map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
@@ -916,8 +914,16 @@ impl Shard {
                 // remote which invalidates the recorded latencies.
                 self.latency = Latency::new();
 
-                if self.session.is_none() {
-                    self.identify();
+                match self.session() {
+                    Some(session) => {
+                        tracing::debug!("sending resume");
+                        let resume =
+                            Resume::new(session.sequence(), session.id(), self.config().token());
+                        self.command(&resume)
+                            .await
+                            .map_err(ProcessError::from_send)?;
+                    }
+                    None => self.identify(),
                 }
             }
             Some(OpCode::InvalidSession) => {
@@ -940,16 +946,13 @@ impl Shard {
         Ok(())
     }
 
-    /// Establishes a Websocket connection and sends a [`Resume`] event if
-    /// holding an active [`Session`].
-    ///
-    /// On successfully sending a [`Resume`] event it sets the [status] to
-    /// [`ConnectionStatus::Resuming`], otherwise if there's no active
-    /// [`Session`] it sets the [status] to [`ConnectionStatus::Identifying`].
-    ///
-    /// Lastly it clears the [compression] buffer.
+    /// Establishes a Websocket connection, sets the [status] to [`Resuming`] or
+    /// [`Identifying`] if holding an active [`Session`] or not, and clears the
+    /// [compression] buffer.
     ///
     /// [compression]: Self::compression
+    /// [`Identifying`]: ConnectionStatus::Identifying
+    /// [`Resuming`]: ConnectionStatus::Resuming
     /// [status]: Self::status
     async fn reconnect(
         &mut self,
@@ -977,16 +980,16 @@ impl Shard {
                 })?,
         );
 
-        match self.session() {
-            Some(session) => {
-                tracing::debug!("sending resume");
-                let resume = Resume::new(session.sequence(), session.id(), self.config().token());
-                self.command(&resume)
-                    .await
-                    .map_err(ReceiveMessageError::from_send)?;
-                self.status = ConnectionStatus::Resuming;
-            }
-            None => self.status = ConnectionStatus::Identifying,
+        if self.session().is_some() {
+            // Defer sending a Resume event until Hello has been received to
+            // guard against the first message being a websocket close message
+            // (causing us to miss replayed dispatch events).
+            // We also set/reset the ratelimiter upon receiving Hello, which
+            // means sending anything before then will not be recorded by the
+            // ratelimiter.
+            self.status = ConnectionStatus::Resuming;
+        } else {
+            self.status = ConnectionStatus::Identifying;
         }
 
         self.compression.reset();
