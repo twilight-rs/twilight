@@ -109,6 +109,7 @@ use twilight_model::{
         },
         Id,
     },
+    scheduled_event::PrivacyLevel,
 };
 use twilight_validate::{
     channel::ChannelValidationError, request::ValidationError, sticker::StickerValidationError,
@@ -2184,7 +2185,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{id::Id, util::Timestamp};
+    /// use twilight_model::{id::Id, scheduled_event::PrivacyLevel, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2193,7 +2194,7 @@ impl Client {
     /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00+00:00")?;
     ///
     /// client
-    ///     .create_guild_scheduled_event(guild_id)
+    ///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
     ///     .stage_instance(
     ///         channel_id,
     ///         "Garfield Appreciation Hour",
@@ -2209,7 +2210,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{id::Id, util::Timestamp};
+    /// use twilight_model::{id::Id, scheduled_event::PrivacyLevel, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2218,7 +2219,7 @@ impl Client {
     /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00+00:00")?;
     ///
     /// client
-    ///     .create_guild_scheduled_event(guild_id)
+    ///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
     ///     .external(
     ///         "Garfield Con 2022",
     ///         "Baltimore Convention Center",
@@ -2238,8 +2239,9 @@ impl Client {
     pub const fn create_guild_scheduled_event(
         &self,
         guild_id: Id<GuildMarker>,
+        privacy_level: PrivacyLevel,
     ) -> CreateGuildScheduledEvent<'_> {
-        CreateGuildScheduledEvent::new(self, guild_id)
+        CreateGuildScheduledEvent::new(self, guild_id, privacy_level)
     }
 
     /// Get a scheduled event in a guild.
