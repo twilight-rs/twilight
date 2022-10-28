@@ -895,8 +895,15 @@ impl Shard {
 
                 self.heartbeat_interval = Some(interval);
 
-                if self.session.is_none() {
-                    self.identify();
+                match self.session() {
+                    Some(session) => {
+                        let resume =
+                            Resume::new(session.sequence(), session.id(), self.config().token());
+                        self.command(&resume)
+                            .await
+                            .map_err(ProcessError::from_send)?;
+                    }
+                    None => self.identify(),
                 }
             }
             Some(OpCode::InvalidSession) => {
@@ -949,15 +956,10 @@ impl Shard {
                 })?,
         );
 
-        match self.session() {
-            Some(session) => {
-                let resume = Resume::new(session.sequence(), session.id(), self.config().token());
-                self.command(&resume)
-                    .await
-                    .map_err(ReceiveMessageError::from_send)?;
-                self.status = ConnectionStatus::Resuming;
-            }
-            None => self.status = ConnectionStatus::Identifying,
+        if self.session().is_some() {
+            self.status = ConnectionStatus::Resuming;
+        } else {
+            self.status = ConnectionStatus::Identifying;
         }
 
         self.compression.reset();
