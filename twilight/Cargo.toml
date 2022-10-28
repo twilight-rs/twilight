@@ -1,7 +1,6 @@
 [package]
 authors.workspace = true
 description = "Advertisement crate for the twilight ecosystem; please use the individual crates instead."
-documentation = "https://docs.rs/twilight"
 edition.workspace = true
 homepage = "https://twilight.rs"
 include.workspace = true
@@ -9,7 +8,6 @@ keywords = ["discord", "discord-api", "twilight"]
 license.workspace = true
 name = "twilight"
 publish = true
-readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
 version = "0.13.0"

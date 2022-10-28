@@ -1,7 +1,6 @@
 [package]
 authors.workspace = true
 description = "Discord API models for the Twilight ecosystem."
-documentation = "https://docs.rs/twilight-model"
 edition.workspace = true
 homepage = "https://twilight.rs/chapter_1_crates/section_1_model.html"
 include.workspace = true
@@ -9,7 +8,6 @@ keywords = ["discord", "discord-api", "twilight"]
 license.workspace = true
 name = "twilight-model"
 publish = true
-readme = "README.md"
 repository.workspace = true
 rust-version.workspace = true
 version = "0.13.7"
