@@ -957,6 +957,10 @@ impl Shard {
         );
 
         if self.session().is_some() {
+            // We defer sending a Resume event to the gateway until hello has
+            // been received to guard against the first message being a
+            // websocket close message (causing us to miss replayed dispatch
+            // events).
             self.status = ConnectionStatus::Resuming;
         } else {
             self.status = ConnectionStatus::Identifying;
