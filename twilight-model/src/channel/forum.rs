@@ -8,15 +8,21 @@ use serde::{
     Deserialize, Serialize,
 };
 
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct DefaultReaction {
+    #[serde(flatten)]
+    pub emoji: ForumReaction,
+}
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum DefaultReaction {
+pub enum ForumReaction {
     EmojiId(Id<EmojiMarker>),
     EmojiName(String),
 }
 
-impl<'de> Deserialize<'de> for DefaultReaction {
+impl<'de> Deserialize<'de> for ForumReaction {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let internal = InternalDefaultReaction::deserialize(deserializer)?;
+        let internal = InternalForumReaction::deserialize(deserializer)?;
         match (internal.emoji_id, internal.emoji_name) {
             (None, Some(name)) => Ok(Self::EmojiName(name)),
             (Some(id), None) => Ok(Self::EmojiId(id)),
@@ -25,16 +31,16 @@ impl<'de> Deserialize<'de> for DefaultReaction {
     }
 }
 
-impl Serialize for DefaultReaction {
+impl Serialize for ForumReaction {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("DefaultReaction", 2)?;
+        let mut state = serializer.serialize_struct("ForumReaction", 2)?;
 
         match self {
-            DefaultReaction::EmojiId(id) => {
+            Self::EmojiId(id) => {
                 state.serialize_field("emoji_id", &Some(id))?;
                 state.serialize_field("emoji_name", &None::<()>)?;
             }
-            DefaultReaction::EmojiName(name) => {
+            Self::EmojiName(name) => {
                 state.serialize_field("emoji_id", &None::<()>)?;
                 state.serialize_field("emoji_name", &Some(name))?;
             }
@@ -44,10 +50,10 @@ impl Serialize for DefaultReaction {
     }
 }
 
-/// Helper struct for [`DefaultReaction`]'s deserialization implementation.
+/// Helper struct for [`ForumReaction`]'s deserialization implementation.
 #[derive(Deserialize)]
-#[serde(rename = "DefaultReaction")]
-struct InternalDefaultReaction {
+#[serde(rename = "ForumReaction")]
+struct InternalForumReaction {
     emoji_id: Option<Id<EmojiMarker>>,
     emoji_name: Option<String>,
 }
@@ -55,7 +61,7 @@ struct InternalDefaultReaction {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ForumTag {
     #[serde(flatten)]
-    pub emoji: DefaultReaction,
+    pub emoji: ForumReaction,
     pub id: Id<TagMarker>,
     pub moderated: bool,
     pub name: String,
@@ -63,7 +69,7 @@ pub struct ForumTag {
 
 #[cfg(test)]
 mod tests {
-    use super::{DefaultReaction, ForumTag};
+    use super::{DefaultReaction, ForumReaction, ForumTag};
     use crate::id::{
         marker::{EmojiMarker, TagMarker},
         Id,
@@ -75,21 +81,21 @@ mod tests {
 
     #[test]
     fn default_reaction() {
-        let value = DefaultReaction::EmojiName("name".into());
+        let value = DefaultReaction {
+            emoji: ForumReaction::EmojiName("name".into()),
+        };
 
+        // justification for `Token::Map`: https://github.com/serde-rs/serde/issues/1346#issuecomment-451715157
         serde_test::assert_tokens(
             &value,
             &[
-                Token::Struct {
-                    name: "DefaultReaction",
-                    len: 2,
-                },
+                Token::Map { len: None },
                 Token::Str("emoji_id"),
                 Token::None,
                 Token::Str("emoji_name"),
                 Token::Some,
                 Token::Str("name"),
-                Token::StructEnd,
+                Token::MapEnd,
             ],
         );
     }
@@ -97,12 +103,13 @@ mod tests {
     #[test]
     fn forum_tag() {
         let value = ForumTag {
-            emoji: DefaultReaction::EmojiId(EMOJI_ID),
+            emoji: ForumReaction::EmojiId(EMOJI_ID),
             id: TAG_ID,
             moderated: false,
             name: "other".into(),
         };
 
+        // justification for `Token::Map`: https://github.com/serde-rs/serde/issues/1346#issuecomment-451715157
         serde_test::assert_tokens(
             &value,
             &[
