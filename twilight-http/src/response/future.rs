@@ -305,10 +305,10 @@ impl<T> ResponseFuture<T> {
     ///     sync::{Arc, Mutex},
     /// };
     /// use twilight_http::{error::ErrorType, Client};
-    /// use twilight_model::id::{ChannelId, MessageId};
+    /// use twilight_model::id::{marker::{ChannelMarker, MessageMarker}, Id};
     ///
-    /// let channel_id = ChannelId::new(1);
-    /// let message_id = MessageId::new(2);
+    /// let channel_id = Id::new::<ChannelMarker>(1);
+    /// let message_id = Id::new::<MessageMarker>(2);
     ///
     /// let channels_ignored = {
     ///     let mut map = HashSet::new();
