@@ -874,6 +874,8 @@ impl Shard {
                         );
                         self.disconnect(Disconnect::Resume);
                     }
+                } else {
+                    tracing::info!("unable to record sequence");
                 }
             }
             Some(OpCode::Heartbeat) => {
