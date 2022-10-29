@@ -733,6 +733,7 @@ impl Shard {
             reconnect_attempts: 0,
         };
         self.connection = None;
+        self.heartbeat_interval = None;
 
         if disconnect == Disconnect::InvalidateSession {
             self.session = None;
