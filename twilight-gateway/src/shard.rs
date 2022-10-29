@@ -397,7 +397,7 @@ impl Shard {
     /// ratelimiter will refresh.
     ///
     /// This won't be present if ratelimiting was disabled via
-    /// [`ConfigBuilder::ratelimit_messages`].
+    /// [`ConfigBuilder::ratelimit_messages`] or if the shard is disconnected.
     ///
     /// [`ConfigBuilder::ratelimit_messages`]: crate::ConfigBuilder::ratelimit_messages
     pub const fn ratelimiter(&self) -> Option<&CommandRatelimiter> {
@@ -733,6 +733,7 @@ impl Shard {
             reconnect_attempts: 0,
         };
         self.connection = None;
+        self.ratelimiter = None;
 
         if disconnect == Disconnect::InvalidateSession {
             self.session = None;
