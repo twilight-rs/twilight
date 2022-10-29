@@ -3,7 +3,9 @@ use crate::id::{
     Id,
 };
 use serde::{
-    de::Error as DeError, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer,
+    de::{Deserializer, Error as DeError},
+    ser::{SerializeStruct, Serializer},
+    Deserialize, Serialize,
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
