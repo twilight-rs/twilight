@@ -101,7 +101,7 @@ impl IntoFuture for CreateGuildVoiceScheduledEvent<'_> {
     type IntoFuture = ResponseFuture<GuildScheduledEvent>;
 
     fn into_future(self) -> Self::IntoFuture {
-        self.0.into_future()
+        self.0.exec()
     }
 }
 

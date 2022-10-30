@@ -12,11 +12,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{AuditLogReason, Request, RequestBuilder, TryIntoRequest},
-    response::{Response, ResponseFuture},
+    response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
-use std::future::IntoFuture;
 use twilight_model::{
     guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
     id::{
@@ -223,6 +222,15 @@ impl<'a> CreateGuildScheduledEvent<'a> {
             scheduled_start_time,
         ))
     }
+
+    fn exec(self) -> ResponseFuture<GuildScheduledEvent> {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
@@ -232,21 +240,6 @@ impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
         self.reason.replace(reason);
 
         Ok(self)
-    }
-}
-
-impl IntoFuture for CreateGuildScheduledEvent<'_> {
-    type Output = Result<Response<GuildScheduledEvent>, Error>;
-
-    type IntoFuture = ResponseFuture<GuildScheduledEvent>;
-
-    fn into_future(self) -> Self::IntoFuture {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
     }
 }
 
