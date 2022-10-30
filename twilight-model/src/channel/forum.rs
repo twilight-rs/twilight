@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn forum_tag() {
-        let with_emoji_id = ForumTag {
+        let value = ForumTag {
             emoji_id: Some(EMOJI_ID),
             emoji_name: None,
             id: TAG_ID,
@@ -94,7 +94,7 @@ mod tests {
         };
 
         serde_test::assert_tokens(
-            &with_emoji_id,
+            &value,
             &[
                 Token::Struct {
                     name: "ForumTag",
@@ -104,36 +104,6 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
-                Token::Str("emoji_name"),
-                Token::None,
-                Token::Str("id"),
-                Token::NewtypeStruct { name: "Id" },
-                Token::Str("2"),
-                Token::Str("moderated"),
-                Token::Bool(false),
-                Token::Str("name"),
-                Token::Str("other"),
-                Token::StructEnd,
-            ],
-        );
-
-        let without_emoji = ForumTag {
-            emoji_id: None,
-            emoji_name: None,
-            id: TAG_ID,
-            moderated: false,
-            name: "other".into(),
-        };
-
-        serde_test::assert_tokens(
-            &without_emoji,
-            &[
-                Token::Struct {
-                    name: "ForumTag",
-                    len: 5,
-                },
-                Token::Str("emoji_id"),
-                Token::None,
                 Token::Str("emoji_name"),
                 Token::None,
                 Token::Str("id"),
