@@ -1,9 +1,11 @@
 use super::{CreateForumThread, ForumThread};
 use crate::{
-    request::{attachment::PartialAttachment, Nullable},
-    response::ResponseFuture,
+    request::{attachment::PartialAttachment, Nullable, TryIntoRequest},
+    response::{Response, ResponseFuture},
+    Error,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
@@ -196,9 +198,24 @@ impl<'a> CreateForumThreadMessage<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ForumThread> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for CreateForumThreadMessage<'_> {
+    type Output = Result<Response<ForumThread>, Error>;
+
+    type IntoFuture = ResponseFuture<ForumThread>;
+
+    fn into_future(self) -> Self::IntoFuture {
         self.0.exec()
+    }
+}
+
+impl TryIntoRequest for CreateForumThreadMessage<'_> {
+    fn try_into_request(self) -> Result<crate::request::Request, Error> {
+        self.0.try_into_request()
     }
 }

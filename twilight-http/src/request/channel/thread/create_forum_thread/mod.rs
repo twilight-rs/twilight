@@ -5,8 +5,8 @@ pub use self::message::CreateForumThreadMessage;
 use self::message::CreateForumThreadMessageFields;
 use crate::{
     client::Client,
-    error::Error as HttpError,
-    request::{attachment::AttachmentManager, Nullable, Request, TryIntoRequest},
+    error::Error,
+    request::{attachment::AttachmentManager, Nullable, Request},
     response::ResponseFuture,
     routing::Route,
 };
@@ -116,10 +116,8 @@ impl<'a> CreateForumThread<'a> {
             Err(source) => ResponseFuture::error(source),
         }
     }
-}
 
-impl TryIntoRequest for CreateForumThread<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::CreateForumThread {
             channel_id: self.channel_id.get(),
         });
@@ -140,7 +138,7 @@ impl TryIntoRequest for CreateForumThread<'_> {
                 self.fields.message.attachments =
                     Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };
