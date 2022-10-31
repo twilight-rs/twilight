@@ -72,10 +72,9 @@ mod private {
             UpdateGuildWidget,
         },
         scheduled_event::{
-            CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
-            CreateGuildStageInstanceScheduledEvent, CreateGuildVoiceScheduledEvent,
-            DeleteGuildScheduledEvent, GetGuildScheduledEvent, GetGuildScheduledEventUsers,
-            GetGuildScheduledEvents, UpdateGuildScheduledEvent,
+            CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
+            CreateGuildVoiceScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
+            GetGuildScheduledEventUsers, GetGuildScheduledEvents, UpdateGuildScheduledEvent,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
@@ -112,7 +111,6 @@ mod private {
     impl Sealed for CreateGuildFromTemplate<'_> {}
     impl Sealed for CreateGuildMessageCommand<'_> {}
     impl Sealed for CreateGuildPrune<'_> {}
-    impl Sealed for CreateGuildScheduledEvent<'_> {}
     impl Sealed for CreateGuildStageInstanceScheduledEvent<'_> {}
     impl Sealed for CreateGuildSticker<'_> {}
     impl Sealed for CreateGuildUserCommand<'_> {}

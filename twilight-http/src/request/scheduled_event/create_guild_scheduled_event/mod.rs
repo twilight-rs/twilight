@@ -11,7 +11,7 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request, RequestBuilder, TryIntoRequest},
+    request::{AuditLogReason, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
@@ -231,6 +231,14 @@ impl<'a> CreateGuildScheduledEvent<'a> {
             Err(source) => ResponseFuture::error(source),
         }
     }
+
+    fn try_into_request(self) -> Result<Request, Error> {
+        Request::builder(&Route::CreateGuildScheduledEvent {
+            guild_id: self.guild_id.get(),
+        })
+        .json(&self.fields)
+        .map(RequestBuilder::build)
+    }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
@@ -240,15 +248,5 @@ impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
         self.reason.replace(reason);
 
         Ok(self)
-    }
-}
-
-impl TryIntoRequest for CreateGuildScheduledEvent<'_> {
-    fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::CreateGuildScheduledEvent {
-            guild_id: self.guild_id.get(),
-        })
-        .json(&self.fields)
-        .map(RequestBuilder::build)
     }
 }
