@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.13.7] - 2022-11-01
 
 ### Bug Fixes
 
