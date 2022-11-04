@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install toolchain (${{ env.minrust }})
-        uses: dtolnay/rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.minrust }}
 
@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install nightly toolchain
-        uses: dtolnay/rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
 
@@ -118,7 +118,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install nightly toolchain
-        uses: dtolnay/rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
 
