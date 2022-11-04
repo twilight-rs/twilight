@@ -918,7 +918,7 @@ impl Shard {
 
                 match self.session() {
                     Some(session) => {
-                        tracing::debug!("sending resume");
+                        tracing::debug!(sequence = session.sequence(), "sending resume");
                         let resume =
                             Resume::new(session.sequence(), session.id(), self.config().token());
                         self.command(&resume)
