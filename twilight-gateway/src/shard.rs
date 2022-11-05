@@ -510,7 +510,7 @@ impl Shard {
                     // is failed or "zombied", see
                     // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
                     if !is_first_heartbeat && self.latency().received().is_none() {
-                        tracing::warn!("connection is failed or \"zombied\"");
+                        tracing::info!("connection is failed or \"zombied\"");
                         self.session = self
                             .close(CloseFrame::RESUME)
                             .await
