@@ -6,7 +6,6 @@ use std::{
 };
 
 /// Error creating an embed field.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct ImageSourceAttachmentError {
     kind: ImageSourceAttachmentErrorType,
@@ -54,7 +53,6 @@ impl Display for ImageSourceAttachmentError {
 impl Error for ImageSourceAttachmentError {}
 
 /// Type of [`ImageSourceAttachmentError`] that occurred.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ImageSourceAttachmentErrorType {
@@ -65,7 +63,6 @@ pub enum ImageSourceAttachmentErrorType {
 }
 
 /// Error creating an embed field.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct ImageSourceUrlError {
     kind: ImageSourceUrlErrorType,
@@ -110,7 +107,6 @@ impl Display for ImageSourceUrlError {
 impl Error for ImageSourceUrlError {}
 
 /// Type of [`ImageSourceUrlError`] that occurred.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ImageSourceUrlErrorType {
