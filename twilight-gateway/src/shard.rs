@@ -879,7 +879,7 @@ impl Shard {
                 }
             }
             Some(OpCode::Heartbeat) => {
-                tracing::info!("received heartbeat");
+                tracing::debug!("received heartbeat");
                 self.heartbeat().await.map_err(ProcessError::from_send)?;
             }
             Some(OpCode::HeartbeatAck) => {
@@ -925,11 +925,10 @@ impl Shard {
             }
             Some(OpCode::InvalidSession) => {
                 let resumable = Self::parse_event(buffer)?.data;
+                tracing::debug!(resumable, "received invalid session");
                 if resumable {
-                    tracing::debug!(resumable, "received invalid session");
                     self.disconnect(Disconnect::Resume);
                 } else {
-                    tracing::info!(resumable, "received invalid session");
                     self.disconnect(Disconnect::InvalidateSession);
                 }
             }
