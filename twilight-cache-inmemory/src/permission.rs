@@ -91,6 +91,8 @@ impl ChannelError {
     }
 
     /// Create a root error from an error while retrieving a member's roles.
+    // clippy: the contents of `member_roles_error` is consumed
+    #[allow(clippy::needless_pass_by_value)]
     fn from_member_roles(member_roles_error: MemberRolesErrorType) -> Self {
         Self {
             kind: match member_roles_error {
@@ -214,6 +216,8 @@ impl RootError {
     }
 
     /// Create a root error from an error while retrieving a member's roles.
+    // clippy: the contents of `member_roles_error` is consumed
+    #[allow(clippy::needless_pass_by_value)]
     fn from_member_roles(member_roles_error: MemberRolesErrorType) -> Self {
         Self {
             kind: match member_roles_error {
