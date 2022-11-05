@@ -218,8 +218,6 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Defaults to [`true`].
     pub const fn fail_if_not_exists(mut self, fail_if_not_exists: bool) -> Self {
-        // Clippy recommends using `Option::map_or_else` which is not `const`.
-        #[allow(clippy::option_if_let_else)]
         let reference = if let Some(reference) = self.fields.message_reference {
             MessageReference {
                 fail_if_not_exists: Some(fail_if_not_exists),
@@ -279,8 +277,6 @@ impl<'a> CreateMessage<'a> {
     pub const fn reply(mut self, other: Id<MessageMarker>) -> Self {
         let channel_id = self.channel_id;
 
-        // Clippy recommends using `Option::map_or_else` which is not `const`.
-        #[allow(clippy::option_if_let_else)]
         let reference = if let Some(reference) = self.fields.message_reference {
             MessageReference {
                 channel_id: Some(channel_id),
