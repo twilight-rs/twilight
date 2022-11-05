@@ -61,7 +61,7 @@ impl Serialize for CommandDataOption {
             CommandOptionValue::User(u) => state.serialize_field("value", u)?,
             CommandOptionValue::SubCommand(s) | CommandOptionValue::SubCommandGroup(s) => {
                 if !subcommand_is_empty {
-                    state.serialize_field("options", s)?
+                    state.serialize_field("options", s)?;
                 }
             }
         }
