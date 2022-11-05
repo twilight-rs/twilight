@@ -893,23 +893,18 @@ impl Shard {
             }
             Some(OpCode::Hello) => {
                 let event = Self::parse_event::<Hello>(buffer)?;
-                let heartbeat_interval = event.data.heartbeat_interval;
-                tracing::debug!(%heartbeat_interval, "received hello");
-                let heartbeat_interval = Duration::from_millis(heartbeat_interval);
+                let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
+                // First heartbeat should have some jitter, see
+                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
+                let jitter = heartbeat_interval.mul_f64(rand::random());
+                tracing::debug!(?heartbeat_interval, ?jitter, "received hello");
 
                 if self.config().ratelimit_messages() {
                     self.ratelimiter = Some(CommandRatelimiter::new(heartbeat_interval));
                 }
 
-                // First heartbeat should have some jitter, see
-                // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
-                let heartbeat_jitter = heartbeat_interval.mul_f64(rand::random());
-                tracing::trace!(?heartbeat_jitter);
-                let start = Instant::now() + heartbeat_jitter;
-
-                let mut interval = time::interval_at(start, heartbeat_interval);
+                let mut interval = time::interval_at(Instant::now() + jitter, heartbeat_interval);
                 interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
-
                 self.heartbeat_interval = Some(interval);
 
                 // Reset `Latency` since the shard might have connected to a new
