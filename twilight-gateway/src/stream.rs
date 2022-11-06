@@ -168,6 +168,7 @@ impl<'a> Stream for ShardEventStream<'a> {
             Poll::Ready(Some(output)) => Poll::Ready(Some((
                 ShardRef {
                     list: ShardList::Events(Rc::clone(&this.futures)),
+                    reinsert: matches!(&output.result, Err(e) if !e.is_fatal()),
                     shard: Some(output.shard),
                 },
                 output.result,
@@ -267,6 +268,7 @@ impl<'a> Stream for ShardMessageStream<'a> {
             Poll::Ready(Some(output)) => Poll::Ready(Some((
                 ShardRef {
                     list: ShardList::Messages(Rc::clone(&this.futures)),
+                    reinsert: matches!(&output.result, Err(e) if !e.is_fatal()),
                     shard: Some(output.shard),
                 },
                 output.result,
@@ -287,6 +289,8 @@ pub struct ShardRef<'a> {
     /// List of futures the shard will be re-inserted into when the reference is
     /// dropped.
     list: ShardList<'a>,
+    /// Whether to reinsert the shard into the [`ShardList`].
+    reinsert: bool,
     /// Mutable reference to the shard that produced an event or message.
     shard: Option<&'a mut Shard>,
 }
@@ -307,6 +311,10 @@ impl<'a> DerefMut for ShardRef<'a> {
 
 impl Drop for ShardRef<'_> {
     fn drop(&mut self) {
+        if !self.reinsert {
+            return;
+        }
+
         if let Some(shard) = self.shard.take() {
             match &mut self.list {
                 ShardList::Events(event_list) => {
