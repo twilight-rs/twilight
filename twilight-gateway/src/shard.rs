@@ -105,8 +105,6 @@ enum Disconnect {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ConnectionStatus {
     /// Shard is connected with an active session.
-    ///
-    /// Note that this does not mean the shard has an active gateway session.
     Connected,
     /// Shard is disconnected but may reconnect in the future.
     Disconnected {
