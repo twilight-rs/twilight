@@ -284,6 +284,9 @@ impl<'a> Stream for ShardMessageStream<'a> {
 /// Note that manually causing the destructor to [not be called] will cause the
 /// shard to not be re-inserted into the stream.
 ///
+/// Shards returning a [fatal error] will not be re-inserted into the stream.
+///
+/// [fatal error]: ReceiveMessageError::is_fatal
 /// [not be called]: std::mem::forget
 pub struct ShardRef<'a> {
     /// List of futures the shard will be re-inserted into when the reference is
