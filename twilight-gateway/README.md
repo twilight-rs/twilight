@@ -54,7 +54,10 @@ async fn main() -> anyhow::Result<()> {
         let event = match shard.next_event().await {
             Ok(event) => event,
             Err(source) => {
-                tracing::warn!(?source, "error receiving event");
+                tracing::warn!(
+                    source = &source as &dyn std::error::Error,
+                    "error receiving event"
+                );
 
                 // If the error is fatal, as may be the case for invalid
                 // authentication or intents, then break out of the loop to
@@ -101,7 +104,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let (shard, event) = match stream.next().await {
             Some((shard, Ok(event))) => (shard, event),
             Some((shard, Err(source))) => {
-                tracing::warn!(?source, "error receiving event");
+                tracing::warn!(
+                    source = &source as &dyn std::error::Error,
+                    "error receiving event"
+                );
 
                 if source.is_fatal() {
                     break;

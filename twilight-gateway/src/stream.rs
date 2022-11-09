@@ -113,7 +113,10 @@ pub enum StartRecommendedErrorType {
 ///     let (shard, event) = match stream.next().await {
 ///         Some((shard, Ok(event))) => (shard, event),
 ///         Some((shard, Err(source))) => {
-///             tracing::warn!(?source, "error receiving event");
+///             tracing::warn!(
+///                 source = &source as &dyn std::error::Error,
+///                 "error receiving event"
+///             );
 ///
 ///             if source.is_fatal() {
 ///                 break;

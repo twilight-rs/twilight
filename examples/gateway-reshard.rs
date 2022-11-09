@@ -57,7 +57,10 @@ async fn gateway_runner(client: Arc<Client>, mut shards: Vec<Shard>) {
         let event = match stream.next().await {
             Some((_, Ok(event))) => event,
             Some((_, Err(source))) => {
-                tracing::warn!(?source, "error receiving event");
+                tracing::warn!(
+                    source = &source as &dyn std::error::Error,
+                    "error receiving event"
+                );
 
                 if source.is_fatal() {
                     break;
@@ -112,7 +115,10 @@ async fn reshard(
     while !identified.iter().all(|&shard| shard) {
         match stream.next().await {
             Some((_, Err(source))) => {
-                tracing::warn!(?source, "error receiving event");
+                tracing::warn!(
+                    source = &source as &dyn std::error::Error,
+                    "error receiving event"
+                );
 
                 if source.is_fatal() {
                     // When returning `None` `reshard` will be called again,
