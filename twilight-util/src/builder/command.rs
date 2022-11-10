@@ -56,7 +56,6 @@ use twilight_model::{
 use twilight_validate::command::{command as validate_command, CommandValidationError};
 
 /// Builder to create a [`Command`].
-#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
 #[must_use = "must be built into a command"]
 pub struct CommandBuilder(Command);
