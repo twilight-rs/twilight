@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.7] - 2022-11-01
+
+### Bug Fixes
+
+- [**breaking**] flatten `DefaultReaction` and `ForumTag` ([#1978](https://github.com/twilight-rs/twilight/issues/1978))
+
 ## [0.13.6] - 2022-10-28
 
 ### Documentation

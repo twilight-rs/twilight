@@ -28,7 +28,6 @@ pub struct Canceled(RecvError);
 
 impl Canceled {
     /// Consume the error, returning the source error if there is any.
-    #[allow(clippy::must_use_candidate)]
     pub fn into_source(self) -> Option<Box<dyn Error + Send + Sync>> {
         Some(Box::new(self.0))
     }
@@ -49,7 +48,6 @@ impl Error for Canceled {
 /// The future returned from [`Standby::wait_for_event`].
 ///
 /// [`Standby::wait_for_event`]: crate::Standby::wait_for_event
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForEventFuture {
@@ -86,7 +84,6 @@ impl Stream for WaitForEventStream {
 /// The future returned from [`Standby::wait_for`].
 ///
 /// [`Standby::wait_for`]: crate::Standby::wait_for
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForGuildEventFuture {
@@ -123,7 +120,6 @@ impl Stream for WaitForGuildEventStream {
 /// The future returned from [`Standby::wait_for_message`].
 ///
 /// [`Standby::wait_for_message`]: crate::Standby::wait_for_message
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForMessageFuture {
@@ -160,7 +156,6 @@ impl Stream for WaitForMessageStream {
 /// The future returned from [`Standby::wait_for_reaction`].
 ///
 /// [`Standby::wait_for_reaction`]: crate::Standby::wait_for_reaction
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct WaitForReactionFuture {

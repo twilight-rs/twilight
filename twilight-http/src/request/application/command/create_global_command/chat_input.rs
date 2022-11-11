@@ -45,7 +45,7 @@ impl<'a> CreateGlobalChatInputCommand<'a> {
         name: &'a str,
         description: &'a str,
     ) -> Result<Self, CommandValidationError> {
-        validate_description(&description)?;
+        validate_description(description)?;
 
         validate_chat_input_name(name)?;
 
