@@ -826,7 +826,7 @@ mod tests {
     #[test]
     fn voice_fields() {
         assert!(matches!(
-            VoiceFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
+            VoiceFieldsBuilder::new(String::new()).unwrap_err().kind(),
             VoiceFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));
@@ -865,7 +865,7 @@ mod tests {
     #[test]
     fn text_fields() {
         assert!(matches!(
-            TextFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
+            TextFieldsBuilder::new(String::new()).unwrap_err().kind(),
             TextFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));
@@ -900,7 +900,7 @@ mod tests {
     #[test]
     fn category_fields() {
         assert!(matches!(
-            CategoryFieldsBuilder::new("".to_owned()).unwrap_err().kind(),
+            CategoryFieldsBuilder::new(String::new()).unwrap_err().kind(),
             CategoryFieldsErrorType::NameTooShort { name }
             if name.is_empty()
         ));
