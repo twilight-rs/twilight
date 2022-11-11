@@ -93,7 +93,7 @@ async fn main() -> anyhow::Result<()> {
                 continue;
             }
 
-            match msg.content.split_once(' ').map(|x| x.0) {
+            match msg.content.split_whitespace().next() {
                 Some("!join") => spawn(join(msg.0, Arc::clone(&state))),
                 Some("!leave") => spawn(leave(msg.0, Arc::clone(&state))),
                 Some("!pause") => spawn(pause(msg.0, Arc::clone(&state))),
