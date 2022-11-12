@@ -9,7 +9,6 @@
 //! most recent message. This is especially useful since Discord generally sends
 //! the largest messages on startup.
 
-use crate::ShardId;
 use flate2::{Decompress, FlushDecompress};
 use std::{
     error::Error,
@@ -97,11 +96,6 @@ pub struct Inflater {
     decompress: Decompress,
     /// When the last shrank occurred.
     last_shrank: Instant,
-    /// Associated shard identifier.
-    ///
-    /// Used solely for recording metrics.
-    #[cfg(feature = "metrics")]
-    shard_id: ShardId,
 }
 
 impl Inflater {
@@ -109,15 +103,12 @@ impl Inflater {
     const BUFFER_SIZE: usize = 32 * 1024;
 
     /// Create a new inflator for a shard.
-    #[cfg_attr(not(feature = "metrics"), allow(unused_variables))]
-    pub fn new(shard_id: ShardId) -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             buffer: Vec::with_capacity(Self::BUFFER_SIZE),
             compressed: Vec::new(),
             decompress: Decompress::new(true),
             last_shrank: Instant::now(),
-            #[cfg(feature = "metrics")]
-            shard_id,
         }
     }
 
@@ -149,7 +140,7 @@ impl Inflater {
     ///
     /// Returns a [`CompressionErrorType::NotUtf8`] error type if the
     /// decompressed message is not UTF-8.
-    pub fn inflate(&mut self, message: &[u8]) -> Result<Option<String>, CompressionError> {
+    pub(crate) fn inflate(&mut self, message: &[u8]) -> Result<Option<String>, CompressionError> {
         self.compressed.extend_from_slice(message);
         let length = self.compressed.len();
 
@@ -199,9 +190,9 @@ impl Inflater {
         {
             #[allow(clippy::cast_precision_loss)]
             let total_percentage_compressed =
-                self.decompress.total_in() as f64 * 100.0 / self.decompress.total_out() as f64;
+                self.total_in() as f64 * 100.0 / self.total_out() as f64;
             let total_percentage_saved = 100.0 - total_percentage_compressed;
-            let total_kib_saved = (self.decompress.total_out() - self.decompress.total_in()) / 1024;
+            let total_kib_saved = (self.total_out() - self.total_in()) / 1024;
 
             tracing::trace!(
                 bytes.compressed = compressed,
@@ -213,9 +204,6 @@ impl Inflater {
 
         self.clear();
 
-        #[cfg(feature = "metrics")]
-        self.metrics();
-
         String::from_utf8(message)
             .map(Some)
             .map_err(|source| CompressionError {
@@ -224,31 +212,26 @@ impl Inflater {
             })
     }
 
-    /// Log metrics about the inflater.
-    #[cfg(feature = "metrics")]
-    #[allow(clippy::cast_precision_loss)]
-    fn metrics(&self) {
-        metrics::gauge!(
-            format!("Inflater-In-{}", self.shard_id.number()),
-            self.decompress.total_in() as f64
-        );
-        metrics::gauge!(
-            format!("Inflater-Out-{}", self.shard_id.number()),
-            self.decompress.total_out() as f64
-        );
-    }
-
     /// Reset the inflater state.
-    pub fn reset(&mut self) {
+    pub(crate) fn reset(&mut self) {
         self.compressed = Vec::new();
         self.decompress.reset(true);
+    }
+
+    /// Total number of bytes processed.
+    pub fn total_in(&self) -> u64 {
+        self.decompress.total_in()
+    }
+
+    /// Total number of bytes produced.
+    pub fn total_out(&self) -> u64 {
+        self.decompress.total_out()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Inflater;
-    use crate::ShardId;
 
     const MESSAGE: &[u8] = &[
         120, 156, 52, 201, 65, 10, 131, 48, 16, 5, 208, 187, 252, 117, 82, 98, 169, 32, 115, 21,
@@ -259,11 +242,10 @@ mod tests {
         181, 9, 83, 107, 95, 0, 0, 0, 255, 255,
     ];
     const OUTPUT: &str = r#"{"t":null,"s":null,"op":10,"d":{"heartbeat_interval":41250,"_trace":["[\"gateway-prd-main-858d\",{\"micros\":0.0}]"]}}"#;
-    const SHARD: ShardId = ShardId::new(2, 5);
 
     #[test]
     fn decompress() {
-        let mut inflator = Inflater::new(SHARD);
+        let mut inflator = Inflater::new();
         assert!(inflator.compressed.is_empty());
         assert!(inflator.buffer.is_empty());
         assert_eq!(inflator.inflate(MESSAGE).unwrap(), Some(OUTPUT.to_owned()));
@@ -274,7 +256,7 @@ mod tests {
 
     #[test]
     fn invalid_is_none() {
-        let mut inflator = Inflater::new(SHARD);
+        let mut inflator = Inflater::new();
         assert_eq!(inflator.inflate(&[]).unwrap(), None);
 
         assert_eq!(
@@ -285,7 +267,7 @@ mod tests {
 
     #[test]
     fn reset() {
-        let mut inflator = Inflater::new(SHARD);
+        let mut inflator = Inflater::new();
         assert_eq!(
             inflator.inflate(&MESSAGE[..MESSAGE.len() - 2]).unwrap(),
             None

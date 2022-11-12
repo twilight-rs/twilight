@@ -15,7 +15,6 @@ Using the `stream` module, shards can be easily managed in groups.
 
 ## Features
 
-* `metrics`: shard analytics for received events and uptime
 * `simd-json`: use [`simd-json`] instead of [`serde_json`] for deserializing
   events
 * TLS (mutually exclusive)

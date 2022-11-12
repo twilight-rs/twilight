@@ -309,7 +309,7 @@ pub struct Shard {
     heartbeat_interval: Option<Interval>,
     /// ID of the shard.
     id: ShardId,
-    /// Abstraction to decompress Zlib compressed Websocket messages.
+    /// Zlib decompressor.
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     inflater: Inflater,
     /// Recent heartbeat latency statistics.
@@ -359,7 +359,7 @@ impl Shard {
             heartbeat_interval: None,
             id: shard_id,
             #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
-            inflater: Inflater::new(shard_id),
+            inflater: Inflater::new(),
             latency: Latency::new(),
             ratelimiter: None,
             resume_gateway_url: None,
@@ -380,6 +380,14 @@ impl Shard {
     /// ID of the shard.
     pub const fn id(&self) -> ShardId {
         self.id
+    }
+
+    /// Zlib decompressor statistics.
+    ///
+    /// Reset when reconnecting to the gateway.
+    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+    pub const fn inflater(&self) -> &Inflater {
+        &self.inflater
     }
 
     /// Connection status of the shard.
