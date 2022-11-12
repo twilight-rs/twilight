@@ -94,7 +94,7 @@ impl MessageSender {
 
 #[cfg(test)]
 mod tests {
-    use crate::message::Message;
+    use crate::{json, message::Message};
 
     use super::{MessageChannel, MessageSender};
     use static_assertions::assert_impl_all;
@@ -115,20 +115,18 @@ mod tests {
 
         let request = RequestGuildMembers::builder(Id::new(1)).query("", None);
         let heartbeat = Heartbeat::new(Some(30_000));
-        let heartbeat_bytes = serde_json::to_vec(&heartbeat)?;
+        let heartbeat_string = json::to_string(&heartbeat)?;
         assert!(sender.command(&request).is_ok());
-        assert!(sender
-            .send(Message::Binary(heartbeat_bytes.clone()))
-            .is_ok());
+        assert!(sender.send(Message::Text(heartbeat_string.clone())).is_ok());
 
         match channel.rx_mut().try_recv()? {
-            Message::Binary(bytes) => assert_eq!(request, serde_json::from_slice(&bytes)?),
-            other => panic!("message isn't binary: {:?}", other),
+            Message::Close(_) => unreachable!(),
+            Message::Text(msg) => assert_eq!(request, json::from_str(&msg)?),
         }
 
         match channel.rx_mut().try_recv()? {
-            Message::Binary(bytes) => assert_eq!(heartbeat, serde_json::from_slice(&bytes)?),
-            other => panic!("message isn't binary: {:?}", other),
+            Message::Close(_) => unreachable!(),
+            Message::Text(msg) => assert_eq!(heartbeat, json::from_str(&msg)?),
         }
 
         assert!(!sender.is_closed());
@@ -136,7 +134,7 @@ mod tests {
         assert!(sender.is_closed());
 
         assert!(sender.command(&heartbeat).is_err());
-        assert!(sender.send(Message::Binary(heartbeat_bytes)).is_err());
+        assert!(sender.send(Message::Text(heartbeat_string)).is_err());
 
         Ok(())
     }

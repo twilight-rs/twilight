@@ -1,11 +1,17 @@
 //! Utilities for creating Websocket connections.
 
-use crate::{
-    compression::COMPRESSION_FEATURES, error::ReceiveMessageError, tls::TlsContainer, API_VERSION,
-};
+use crate::{error::ReceiveMessageError, tls::TlsContainer, API_VERSION};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{tungstenite::protocol::WebSocketConfig, MaybeTlsStream, WebSocketStream};
+
+/// Query argument with zlib-stream enabled.
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+const COMPRESSION_FEATURES: &str = "&compress=zlib-stream";
+
+/// No query arguments due to compression being disabled.
+#[cfg(not(any(feature = "zlib-stock", feature = "zlib-simd")))]
+const COMPRESSION_FEATURES: &str = "";
 
 /// URL of the Discord gateway.
 const GATEWAY_URL: &str = "wss://gateway.discord.gg";
@@ -101,8 +107,8 @@ pub async fn connect(
 
 #[cfg(test)]
 mod tests {
-    use super::GATEWAY_URL;
-    use crate::{compression::COMPRESSION_FEATURES, connection::ConnectionUrl, API_VERSION};
+    use super::{ConnectionUrl, COMPRESSION_FEATURES, GATEWAY_URL};
+    use crate::API_VERSION;
 
     /// Test that [`ConnectionUrl`] formats the default URL as expected.
     #[test]
@@ -110,10 +116,7 @@ mod tests {
         let url = ConnectionUrl::new(None).to_string();
         assert_eq!(
             url,
-            format!(
-                "{}/?v={}&encoding=json{}",
-                GATEWAY_URL, API_VERSION, COMPRESSION_FEATURES
-            ),
+            format!("{GATEWAY_URL}/?v={API_VERSION}&encoding=json{COMPRESSION_FEATURES}"),
         );
     }
 

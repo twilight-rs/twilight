@@ -99,12 +99,12 @@ impl<'a> CloseFrame<'a> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum Message {
-    /// Binary websocket message.
-    Binary(Vec<u8>),
     /// Close message with an optional frame including information about the
     /// reason for the close.
     Close(Option<CloseFrame<'static>>),
     /// Text websocket message.
+    ///
+    /// Should always be a JSON payload.
     Text(String),
 }
 
@@ -113,14 +113,14 @@ impl Message {
     /// message.
     pub(crate) fn from_tungstenite(tungstenite: TungsteniteMessage) -> Option<Self> {
         match tungstenite {
-            TungsteniteMessage::Binary(bytes) => Some(Self::Binary(bytes)),
             TungsteniteMessage::Close(maybe_close) => {
                 let close = maybe_close.map(CloseFrame::from_tungstenite);
 
                 Some(Self::Close(close))
             }
             TungsteniteMessage::Text(string) => Some(Self::Text(string)),
-            TungsteniteMessage::Frame(_)
+            TungsteniteMessage::Binary(_)
+            | TungsteniteMessage::Frame(_)
             | TungsteniteMessage::Ping(_)
             | TungsteniteMessage::Pong(_) => None,
         }
@@ -130,7 +130,6 @@ impl Message {
     /// message.
     pub(crate) fn into_tungstenite(self) -> TungsteniteMessage {
         match self {
-            Self::Binary(bytes) => TungsteniteMessage::Binary(bytes),
             Self::Close(close) => {
                 TungsteniteMessage::Close(close.map(CloseFrame::into_tungstenite))
             }

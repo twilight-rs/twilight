@@ -33,8 +33,7 @@
 //!   [user channel], which is then forwarded via [`Shard::send`]; or
 //!   c. the shard receives a message from Discord via the websocket connection.
 //! 4. In the case of 3(a) and 3(b), 3 is repeated; otherwise...
-//! 5. If the message is a close it's returned to the user; otherwise, the
-//! message is [processed] by the shard;
+//! 5. If the message is not a close it's [processed] by the shard;
 //! 6. The raw Websocket message is returned to the user
 //!
 //! If the user called [`Shard::next_event`] instead of [`Shard::next_message`],
@@ -56,10 +55,11 @@
 //! [websocket connection]: Shard::connection
 //! [websocket message]: Message
 
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+use crate::inflater::Inflater;
 use crate::{
     channel::{MessageChannel, MessageSender},
     command::{self, Command},
-    compression::Compression,
     connection::{self, Connection},
     error::{
         ProcessError, ProcessErrorType, ReceiveMessageError, ReceiveMessageErrorType, SendError,
@@ -291,8 +291,6 @@ struct MinimalReady {
 /// [`queue`]: crate::queue
 #[derive(Debug)]
 pub struct Shard {
-    /// Abstraction to decompress Websocket messages, if compression is enabled.
-    compression: Compression,
     /// User provided configuration.
     ///
     /// Configurations are provided or created in shard initializing via
@@ -311,6 +309,9 @@ pub struct Shard {
     heartbeat_interval: Option<Interval>,
     /// ID of the shard.
     id: ShardId,
+    /// Abstraction to decompress Zlib compressed Websocket messages.
+    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+    inflater: Inflater,
     /// Recent heartbeat latency statistics.
     ///
     /// The latency is reset on receiving [`GatewayEvent::Hello`] as the host
@@ -353,11 +354,12 @@ impl Shard {
         let session = config.take_session();
 
         Self {
-            compression: Compression::new(shard_id),
             config,
             connection: None,
             heartbeat_interval: None,
             id: shard_id,
+            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+            inflater: Inflater::new(shard_id),
             latency: Latency::new(),
             ratelimiter: None,
             resume_gateway_url: None,
@@ -416,6 +418,9 @@ impl Shard {
     ///
     /// # Errors
     ///
+    /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
+    /// message could not be decompressed.
+    ///
     /// Returns a [`ReceiveMessageErrorType::Deserializing`] error type if the
     /// message payload failed to deserialize.
     ///
@@ -433,16 +438,15 @@ impl Shard {
     /// shard failed to send a message to the gateway, such as a heartbeat.
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
-            let mut bytes = loop {
+            let json = loop {
                 match self.next_message().await? {
-                    Message::Binary(bytes) => break bytes,
-                    Message::Text(text) => break text.into_bytes(),
-                    _ => continue,
+                    Message::Close(_) => continue,
+                    Message::Text(json) => break json,
                 }
             };
 
             // loop if event is unwanted
-            if let Some(event) = json::parse(self.config.event_types(), &mut bytes)
+            if let Some(event) = json::parse(self.config.event_types(), json)
                 .map_err(ReceiveMessageError::from_json)?
             {
                 return Ok(event.into());
@@ -453,6 +457,9 @@ impl Shard {
     /// Wait for the next raw message from the websocket connection.
     ///
     /// # Errors
+    ///
+    /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
+    /// message could not be decompressed.
     ///
     /// Returns a [`ReceiveMessageErrorType::FatallyClosed`] error type if the
     /// shard was closed due to a fatal error, such as invalid authorization.
@@ -468,8 +475,6 @@ impl Shard {
     /// shard failed to send a message to the gateway, such as a heartbeat.
     #[tracing::instrument(fields(id = %self.id()), name = "shard", skip(self))]
     pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
-        self.compression.clear();
-
         match self.status {
             ConnectionStatus::Connected
             | ConnectionStatus::Identifying
@@ -535,31 +540,39 @@ impl Shard {
                 }
             };
 
+            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+            if let TungsteniteMessage::Binary(bytes) = &tungstenite_message {
+                if let Some(decompressed) = self
+                    .inflater
+                    .inflate(bytes)
+                    .map_err(ReceiveMessageError::from_compression)?
+                {
+                    tracing::trace!(%decompressed);
+                    break Message::Text(decompressed);
+                };
+            }
             if let Some(message) = Message::from_tungstenite(tungstenite_message) {
                 break message;
             }
         };
 
-        match message {
+        Ok(match message {
             Message::Close(frame) => {
                 tracing::debug!(?frame, "received websocket close message");
                 self.status = ConnectionStatus::from_close_frame(frame.as_ref());
                 self.connection = None;
 
-                return Ok(Message::Close(frame));
+                Message::Close(frame)
             }
-            Message::Binary(ref bytes) => self.compression.extend(bytes),
-            Message::Text(ref text) => self.compression.extend(text.as_bytes()),
-        }
-
-        self.process().await.map_err(|source| ReceiveMessageError {
-            kind: ReceiveMessageErrorType::Process,
-            source: Some(Box::new(source)),
-        })?;
-
-        Ok(match message {
-            Message::Binary(_) => Message::Binary(self.compression.take()),
-            other => other,
+            Message::Text(json) => {
+                self.process(&json)
+                    .await
+                    .map_err(|source| ReceiveMessageError {
+                        kind: ReceiveMessageErrorType::Process,
+                        source: Some(Box::new(source)),
+                    })?;
+                Message::Text(json)
+            }
         })
     }
 
@@ -791,14 +804,10 @@ impl Shard {
         });
     }
 
-    /// Updates the shard's internal state from the current websocket message
-    /// by recording and/or responding to certain Discord events.
+    /// Updates the shard's internal state from a JSON payload by recording
+    /// and/or responding to certain Discord events.
     ///
     /// # Errors
-    ///
-    /// Returns a [`ProcessErrorType::Compression`] error type if the buffer
-    /// could not be read. This may be because the message was invalid or not
-    /// all frames have been received.
     ///
     /// Returns a [`ProcessErrorType::Deserializing`] error type if the gateway
     /// event isn't a recognized structure, which may be the case for new or
@@ -813,26 +822,14 @@ impl Shard {
     /// the connection isn't connected.
     ///
     /// [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
-    #[allow(clippy::too_many_lines)]
-    async fn process(&mut self) -> Result<(), ProcessError> {
-        let buffer = match self.compression.message_mut() {
-            Ok(Some(buffer)) => buffer,
-            Ok(None) => return Ok(()),
-            Err(source) => return Err(ProcessError::from_compression(source)),
-        };
-
-        let (raw_opcode, maybe_sequence, maybe_event_type) = {
-            let json = str::from_utf8(buffer).map_err(|source| ProcessError {
-                kind: ProcessErrorType::ParsingPayload,
-                source: Some(Box::new(source)),
-            })?;
-            let deserializer = GatewayEventDeserializer::from_json(json).ok_or(ProcessError {
-                kind: ProcessErrorType::ParsingPayload,
-                source: None,
-            })?;
-
-            deserializer.into_parts()
-        };
+    async fn process(&mut self, json: &str) -> Result<(), ProcessError> {
+        let (raw_opcode, maybe_sequence, maybe_event_type) =
+            GatewayEventDeserializer::from_json(json)
+                .ok_or(ProcessError {
+                    kind: ProcessErrorType::ParsingPayload,
+                    source: None,
+                })?
+                .into_parts();
 
         match OpCode::from(raw_opcode) {
             Some(OpCode::Dispatch) => {
@@ -848,7 +845,7 @@ impl Shard {
 
                 match event_type {
                     "READY" => {
-                        let event = Self::parse_event::<MinimalReady>(buffer)?;
+                        let event = Self::parse_event::<MinimalReady>(json)?;
 
                         self.resume_gateway_url = Some(event.data.resume_gateway_url);
                         self.session = Some(Session::new(sequence, event.data.session_id));
@@ -892,7 +889,7 @@ impl Shard {
                 }
             }
             Some(OpCode::Hello) => {
-                let event = Self::parse_event::<Hello>(buffer)?;
+                let event = Self::parse_event::<Hello>(json)?;
                 let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
                 // First heartbeat should have some jitter, see
                 // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
@@ -924,7 +921,7 @@ impl Shard {
                 }
             }
             Some(OpCode::InvalidSession) => {
-                let resumable = Self::parse_event(buffer)?.data;
+                let resumable = Self::parse_event(json)?.data;
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
                     self.disconnect(Disconnect::Resume);
@@ -943,11 +940,11 @@ impl Shard {
     }
 
     /// Establishes a Websocket connection, sets the [status] to [`Resuming`] or
-    /// [`Identifying`] if holding an active [`Session`] or not, and clears the
-    /// [compression] buffer.
+    /// [`Identifying`] if holding an active [`Session`] or not, and resets the
+    /// [inflater].
     ///
-    /// [compression]: Self::compression
     /// [`Identifying`]: ConnectionStatus::Identifying
+    /// [inflater]: Self::inflater
     /// [`Resuming`]: ConnectionStatus::Resuming
     /// [status]: Self::status
     async fn reconnect(
@@ -988,12 +985,13 @@ impl Shard {
             self.status = ConnectionStatus::Identifying;
         }
 
-        self.compression.reset();
+        #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+        self.inflater.reset();
 
         Ok(())
     }
 
-    /// Parse a JSON buffer into an event with minimal data for [processing].
+    /// Parse a JSON message into an event with minimal data for [processing].
     ///
     /// # Errors
     ///
@@ -1002,10 +1000,11 @@ impl Shard {
     /// undocumented events.
     ///
     /// [processing]: Self::process
-    fn parse_event<T: DeserializeOwned>(
-        buffer: &mut [u8],
-    ) -> Result<MinimalEvent<T>, ProcessError> {
-        json::from_slice::<MinimalEvent<T>>(buffer).map_err(ProcessError::from_json)
+    fn parse_event<T: DeserializeOwned>(json: &str) -> Result<MinimalEvent<T>, ProcessError> {
+        json::from_str::<MinimalEvent<T>>(json).map_err(|source| ProcessError {
+            kind: ProcessErrorType::Deserializing,
+            source: Some(Box::new(source)),
+        })
     }
 }
 
