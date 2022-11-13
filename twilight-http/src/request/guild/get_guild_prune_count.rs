@@ -100,7 +100,7 @@ mod tests {
     #[test]
     fn days() {
         fn days_valid(days: u16) -> bool {
-            let client = Client::new("".to_owned());
+            let client = Client::new(String::new());
             let count = GetGuildPruneCount::new(&client, Id::new(1));
             let days_result = count.days(days);
             days_result.is_ok()

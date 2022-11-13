@@ -326,7 +326,7 @@ mod tests {
             self_mute: false,
             self_stream: false,
             self_video: false,
-            session_id: "".to_owned(),
+            session_id: String::new(),
             suppress: false,
             token: None,
             user_id: Id::new(3),
