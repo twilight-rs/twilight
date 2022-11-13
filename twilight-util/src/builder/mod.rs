@@ -1,5 +1,4 @@
 //! Builders for large structs.
-#![allow(clippy::module_name_repetitions)]
 
 pub mod command;
 pub mod embed;

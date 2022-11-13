@@ -330,7 +330,7 @@ impl<'a> UpdateChannel<'a> {
     /// Set the kind of channel.
     ///
     /// Only conversion between `ChannelType::GuildText` and
-    /// `ChannelType::GuildNews` is possible, and only if the guild has the
+    /// `ChannelType::GuildAnnouncement` is possible, and only if the guild has the
     /// `NEWS` feature enabled. See [Discord Docs/Modify Channel].
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel

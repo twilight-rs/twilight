@@ -1,18 +1,16 @@
 [package]
-authors = ["Twilight Contributors"]
+authors.workspace = true
 categories = ["api-bindings", "asynchronous", "web-programming::http-client", "web-programming::websocket"]
 description = "Lavalink client for the Twilight ecosystem."
-documentation = "https://docs.rs/twilight-lavalink"
-edition = "2021"
+edition.workspace = true
 homepage = "https://twilight.rs/chapter_1_crates/section_8_first_party/section_3_lavalink.html"
-include = ["src/**/*.rs", "README.md"]
+include.workspace = true
 keywords = ["discord", "discord-api", "lavalink", "twilight"]
-license = "ISC"
+license.workspace = true
 name = "twilight-lavalink"
 publish = true
-readme = "README.md"
-rust-version = "1.60"
-repository = "https://github.com/twilight-rs/twilight.git"
+rust-version.workspace = true
+repository.workspace = true
 version = "0.13.1"
 
 [dependencies]
@@ -24,7 +22,7 @@ serde_json = { default-features = false, features = ["std"], version = "1" }
 tokio = { default-features = false, features = ["macros", "net", "rt", "sync", "time"], version = "1.0" }
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.6" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.7" }
 
 # Optional dependencies.
 percent-encoding = { default-features = false, optional = true, version = "2" }

@@ -1,5 +1,5 @@
 use crate::{
-    channel::ReactionType,
+    channel::message::ReactionType,
     id::{
         marker::{ChannelMarker, GuildMarker, MessageMarker},
         Id,

@@ -44,4 +44,4 @@ Twilight organization, but are recognised by it.
 [http]: ./section_2_http.md
 [model]: ./section_1_model.md
 [standby]: ./section_6_standby.md
-[Lavalink]: https://github.com/Frederikam/Lavalink
+[Lavalink]: https://github.com/freyacodes/Lavalink

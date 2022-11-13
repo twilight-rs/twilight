@@ -6,8 +6,8 @@ use crate::{
     routing::Route,
 };
 use twilight_model::{
+    guild::scheduled_event::GuildScheduledEvent,
     id::{marker::GuildMarker, Id},
-    scheduled_event::GuildScheduledEvent,
 };
 
 /// Get a list of scheduled events in a guild.

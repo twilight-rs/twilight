@@ -10,11 +10,8 @@ use crate::{
 };
 use serde::Serialize;
 use twilight_model::{
-    application::component::Component,
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, MessageFlags, MessageReference},
-        Message,
+    channel::message::{
+        AllowedMentions, Component, Embed, Message, MessageFlags, MessageReference,
     },
     http::attachment::Attachment,
     id::{
@@ -23,7 +20,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
+    attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, sticker_ids as validate_sticker_ids,
     MessageValidationError,
 };
@@ -129,17 +126,19 @@ impl<'a> CreateMessage<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager
@@ -218,8 +217,6 @@ impl<'a> CreateMessage<'a> {
     ///
     /// Defaults to [`true`].
     pub const fn fail_if_not_exists(mut self, fail_if_not_exists: bool) -> Self {
-        // Clippy recommends using `Option::map_or_else` which is not `const`.
-        #[allow(clippy::option_if_let_else)]
         let reference = if let Some(reference) = self.fields.message_reference {
             MessageReference {
                 fail_if_not_exists: Some(fail_if_not_exists),
@@ -279,8 +276,6 @@ impl<'a> CreateMessage<'a> {
     pub const fn reply(mut self, other: Id<MessageMarker>) -> Self {
         let channel_id = self.channel_id;
 
-        // Clippy recommends using `Option::map_or_else` which is not `const`.
-        #[allow(clippy::option_if_let_else)]
         let reference = if let Some(reference) = self.fields.message_reference {
             MessageReference {
                 channel_id: Some(channel_id),

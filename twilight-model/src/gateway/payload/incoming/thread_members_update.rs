@@ -1,5 +1,5 @@
 use crate::{
-    channel::thread::{ThreadMember, ThreadMemberIntermediary},
+    channel::thread::member::{ThreadMember, ThreadMemberIntermediary},
     id::{
         marker::{ChannelMarker, GuildMarker, UserMarker},
         Id,

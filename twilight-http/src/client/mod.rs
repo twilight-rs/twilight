@@ -99,7 +99,7 @@ use tokio::time;
 use twilight_http_ratelimiting::Ratelimiter;
 use twilight_model::{
     channel::{message::allowed_mentions::AllowedMentions, ChannelType},
-    guild::{auto_moderation::AutoModerationEventType, MfaLevel},
+    guild::{auto_moderation::AutoModerationEventType, scheduled_event::PrivacyLevel, MfaLevel},
     http::permission_overwrite::PermissionOverwrite,
     id::{
         marker::{
@@ -109,7 +109,6 @@ use twilight_model::{
         },
         Id,
     },
-    scheduled_event::PrivacyLevel,
 };
 use twilight_validate::{
     channel::ChannelValidationError, request::ValidationError, sticker::StickerValidationError,
@@ -427,13 +426,13 @@ impl Client {
         GetBan::new(self, guild_id, user_id)
     }
 
-    /// Bans a user from a guild, optionally with the number of days' worth of
+    /// Bans a user from a guild, optionally with the number of seconds' worth of
     /// messages to delete and the reason.
     ///
     /// # Examples
     ///
     /// Ban user `200` from guild `100`, deleting
-    /// 1 day's worth of messages, for the reason `"memes"`:
+    /// `86_400` second's (this is equivalent to `1` day) worth of messages, for the reason `"memes"`:
     ///
     /// ```no_run
     /// # use twilight_http::{request::AuditLogReason, Client};
@@ -447,7 +446,7 @@ impl Client {
     /// let user_id = Id::new(200);
     /// client
     ///     .create_ban(guild_id, user_id)
-    ///     .delete_message_days(1)?
+    ///     .delete_message_seconds(86_400)?
     ///     .reason("memes")?
     ///     .exec()
     ///     .await?;
@@ -680,9 +679,8 @@ impl Client {
     pub const fn update_current_user_voice_state(
         &self,
         guild_id: Id<GuildMarker>,
-        channel_id: Id<ChannelMarker>,
     ) -> UpdateCurrentUserVoiceState<'_> {
-        UpdateCurrentUserVoiceState::new(self, guild_id, channel_id)
+        UpdateCurrentUserVoiceState::new(self, guild_id)
     }
 
     /// Get the current user's connections.
@@ -1792,7 +1790,7 @@ impl Client {
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
     ///
-    /// To make a [`GuildPrivateThread`], the guild must also have the
+    /// To make a [`PrivateThread`], the guild must also have the
     /// `PRIVATE_THREADS` feature.
     ///
     /// # Errors
@@ -1802,8 +1800,8 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread<'a>(
         &'a self,
@@ -1817,10 +1815,10 @@ impl Client {
     /// Create a new thread from an existing message.
     ///
     /// When called on a [`GuildText`] channel, this creates a
-    /// [`GuildPublicThread`].
+    /// [`PublicThread`].
     ///
-    /// When called on a [`GuildNews`] channel, this creates a
-    /// [`GuildNewsThread`].
+    /// When called on a [`GuildAnnouncement`] channel, this creates a
+    /// [`AnnouncementThread`].
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
@@ -1835,11 +1833,11 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
-    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-    /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
+    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
+    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread_from_message<'a>(
         &'a self,
@@ -1892,15 +1890,15 @@ impl Client {
     ///
     /// Threads are ordered by [`archive_timestamp`] in descending order.
     ///
-    /// When called in a [`GuildText`] channel, returns [`GuildPublicThread`]s.
+    /// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
     ///
-    /// When called in a [`GuildNews`] channel, returns [`GuildNewsThread`]s.
+    /// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
     ///
+    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
     /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
-    /// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
-    /// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-    /// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
     /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
     /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
     pub const fn public_archived_threads(
         &self,
@@ -1914,11 +1912,11 @@ impl Client {
     /// Requires that the thread is not archived.
     ///
     /// Requires the [`MANAGE_THREADS`] permission, unless both the thread is a
-    /// [`GuildPrivateThread`], and the current user is the creator of the
+    /// [`PrivateThread`], and the current user is the creator of the
     /// thread.
     ///
-    /// [`GuildPrivateThread`]: twilight_model::channel::ChannelType::GuildPrivateThread
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
+    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
     pub const fn remove_thread_member(
         &self,
         channel_id: Id<ChannelMarker>,
@@ -2185,7 +2183,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{id::Id, scheduled_event::PrivacyLevel, util::Timestamp};
+    /// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2210,7 +2208,7 @@ impl Client {
     ///
     /// ```no_run
     /// # use twilight_http::Client;
-    /// use twilight_model::{id::Id, scheduled_event::PrivacyLevel, util::Timestamp};
+    /// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("token".to_owned());
@@ -2291,9 +2289,9 @@ impl Client {
     /// `channel_id` field is cleared and the [`channel_id`] method has no
     /// effect. Additionally, you must set a location with [`location`].
     ///
-    /// [`EntityType::External`]: twilight_model::scheduled_event::EntityType::External
-    /// [`EntityType::StageInstance`]: twilight_model::scheduled_event::EntityType::StageInstance
-    /// [`EntityType::Voice`]: twilight_model::scheduled_event::EntityType::Voice
+    /// [`EntityType::External`]: twilight_model::guild::scheduled_event::EntityType::External
+    /// [`EntityType::StageInstance`]: twilight_model::guild::scheduled_event::EntityType::StageInstance
+    /// [`EntityType::Voice`]: twilight_model::guild::scheduled_event::EntityType::Voice
     /// [`channel_id`]: UpdateGuildScheduledEvent::channel_id
     /// [`location`]: UpdateGuildScheduledEvent::location
     pub const fn update_guild_scheduled_event(

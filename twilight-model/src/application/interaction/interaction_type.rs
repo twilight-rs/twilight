@@ -20,7 +20,7 @@ pub enum InteractionType {
     ApplicationCommand = 2,
     /// Interaction involves a message [`Component`].
     ///
-    /// [`Component`]: super::super::component::Component
+    /// [`Component`]: crate::channel::message::Component
     MessageComponent = 3,
     /// Interaction involves an autocomplete request.
     ApplicationCommandAutocomplete = 4,
