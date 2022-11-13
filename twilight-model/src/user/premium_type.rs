@@ -6,7 +6,7 @@ pub enum PremiumType {
     None,
     NitroClassic,
     Nitro,
-    Unknown(u8)
+    Unknown(u8),
 }
 
 impl From<u8> for PremiumType {
