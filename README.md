@@ -134,7 +134,7 @@ async fn main() -> anyhow::Result<()> {
 
     // A cluster is a manager for multiple shards that by default
     // creates as many shards as Discord recommends.
-    let (cluster, mut events) = Cluster::new(token.to_owned(), Intents::GUILD_MESSAGES).await?;
+    let (cluster, mut events) = Cluster::new(token.to_owned(), Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT).await?;
     let cluster = Arc::new(cluster);
 
     // Start up the cluster.
