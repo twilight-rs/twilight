@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - next
+      - 0.*
   pull_request:
 
 env:
