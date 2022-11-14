@@ -1,11 +1,12 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     guild::PartialMember,
     id::{
@@ -105,9 +106,18 @@ impl<'a> AddGuildMember<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<PartialMember> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for AddGuildMember<'_> {
+    type Output = Result<Response<PartialMember>, Error>;
+
+    type IntoFuture = ResponseFuture<PartialMember>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -118,7 +128,7 @@ impl<'a> AddGuildMember<'a> {
 }
 
 impl TryIntoRequest for AddGuildMember<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::AddGuildMember {
             guild_id: self.guild_id.get(),
             user_id: self.user_id.get(),

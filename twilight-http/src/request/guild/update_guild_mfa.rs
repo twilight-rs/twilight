@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     guild::MfaLevel,
     id::{marker::GuildMarker, Id},
@@ -39,9 +40,18 @@ impl<'a> UpdateGuildMfa<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<MfaLevel> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateGuildMfa<'_> {
+    type Output = Result<Response<MfaLevel>, Error>;
+
+    type IntoFuture = ResponseFuture<MfaLevel>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

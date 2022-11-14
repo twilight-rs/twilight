@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     channel::Message,
     id::{marker::ApplicationMarker, Id},
@@ -29,7 +30,6 @@ use twilight_model::{
 /// client
 ///     .interaction(application_id)
 ///     .response("token here")
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -54,9 +54,18 @@ impl<'a> GetResponse<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetResponse<'_> {
+    type Output = Result<Response<Message>, Error>;
+
+    type IntoFuture = ResponseFuture<Message>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

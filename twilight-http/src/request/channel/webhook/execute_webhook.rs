@@ -1,15 +1,16 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{
         attachment::{AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
         Nullable, Request, TryIntoRequest,
     },
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
@@ -71,7 +72,6 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// client
 ///     .execute_webhook(id, "webhook token")
 ///     .content("Pinkie...")?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -263,7 +263,6 @@ impl<'a> ExecuteWebhook<'a> {
     ///     .content("some content")?
     ///     .embeds(&[EmbedBuilder::new().title("title").validate()?.build()])?
     ///     .wait()
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -287,7 +286,6 @@ impl<'a> ExecuteWebhook<'a> {
     ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -360,9 +358,18 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for ExecuteWebhook<'_> {
+    type Output = Result<Response<EmptyBody>, Error>;
+
+    type IntoFuture = ResponseFuture<EmptyBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -373,7 +380,7 @@ impl<'a> ExecuteWebhook<'a> {
 }
 
 impl TryIntoRequest for ExecuteWebhook<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
@@ -400,7 +407,7 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
             } else {
                 self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };

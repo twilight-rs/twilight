@@ -1,11 +1,12 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     guild::auto_moderation::{
         AutoModerationAction, AutoModerationEventType, AutoModerationRule,
@@ -121,15 +122,9 @@ impl<'a> UpdateAutoModerationRule<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<AutoModerationRule> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -143,8 +138,23 @@ impl<'a> AuditLogReason<'a> for UpdateAutoModerationRule<'a> {
     }
 }
 
+impl IntoFuture for UpdateAutoModerationRule<'_> {
+    type Output = Result<Response<AutoModerationRule>, Error>;
+
+    type IntoFuture = ResponseFuture<AutoModerationRule>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for UpdateAutoModerationRule<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateAutoModerationRule {
             auto_moderation_rule_id: self.auto_moderation_rule_id.get(),
             guild_id: self.guild_id.get(),

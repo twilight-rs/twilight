@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     channel::message::sticker::Sticker,
     id::{
@@ -29,7 +30,6 @@ use twilight_model::{
 /// let sticker_id = Id::new(2);
 /// let sticker = client
 ///     .guild_sticker(guild_id, sticker_id)
-///     .exec()
 ///     .await?
 ///     .model()
 ///     .await?;
@@ -57,9 +57,18 @@ impl<'a> GetGuildSticker<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Sticker> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGuildSticker<'_> {
+    type Output = Result<Response<Sticker>, Error>;
+
+    type IntoFuture = ResponseFuture<Sticker>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

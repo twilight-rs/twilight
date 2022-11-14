@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::id::{
     marker::{GuildMarker, UserMarker},
     Id,
@@ -28,7 +29,7 @@ use twilight_validate::request::{audit_reason as validate_audit_reason, Validati
 /// let guild_id = Id::new(100);
 /// let user_id = Id::new(200);
 ///
-/// client.delete_ban(guild_id, user_id).exec().await?;
+/// client.delete_ban(guild_id, user_id).await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
@@ -54,15 +55,9 @@ impl<'a> DeleteBan<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -73,6 +68,21 @@ impl<'a> AuditLogReason<'a> for DeleteBan<'a> {
         self.reason.replace(reason);
 
         Ok(self)
+    }
+}
+
+impl IntoFuture for DeleteBan<'_> {
+    type Output = Result<Response<EmptyBody>, Error>;
+
+    type IntoFuture = ResponseFuture<EmptyBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 

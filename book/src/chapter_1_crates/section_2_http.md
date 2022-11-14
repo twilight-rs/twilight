@@ -61,7 +61,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let client = Client::new(env::var("DISCORD_TOKEN")?);
 
-    let me = client.current_user().exec().await?.model().await?;
+    let me = client.current_user().await?.model().await?;
     println!("Current user: {}#{}", me.name, me.discriminator);
 
     Ok(())

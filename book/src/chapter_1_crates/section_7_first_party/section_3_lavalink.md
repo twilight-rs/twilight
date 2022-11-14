@@ -61,7 +61,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
     let shard_count = 1_u64;
 
     let http = HttpClient::new(token.clone());
-    let user_id = http.current_user().exec().await?.model().await?.id;
+    let user_id = http.current_user().await?.model().await?.id;
 
     let lavalink = Lavalink::new(user_id, shard_count);
     lavalink.add(lavalink_host, lavalink_auth).await?;

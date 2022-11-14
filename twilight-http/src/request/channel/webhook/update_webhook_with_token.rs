@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{Nullable, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::Webhook,
     id::{marker::WebhookMarker, Id},
@@ -76,9 +77,18 @@ impl<'a> UpdateWebhookWithToken<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Webhook> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateWebhookWithToken<'_> {
+    type Output = Result<Response<Webhook>, Error>;
+
+    type IntoFuture = ResponseFuture<Webhook>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

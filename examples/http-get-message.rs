@@ -1,5 +1,5 @@
 use futures_util::future;
-use std::env;
+use std::{env, future::IntoFuture};
 use twilight_http::Client;
 use twilight_model::id::Id;
 
@@ -16,11 +16,11 @@ async fn main() -> anyhow::Result<()> {
             .create_message(channel_id)
             .content(&format!("Ping #{x}"))
             .expect("content not a valid length")
-            .exec()
+            .into_future()
     }))
     .await;
 
-    let me = client.current_user().exec().await?.model().await?;
+    let me = client.current_user().await?.model().await?;
     println!("Current user: {}#{}", me.name, me.discriminator);
 
     Ok(())
