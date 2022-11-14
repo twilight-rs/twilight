@@ -23,7 +23,7 @@ tokio-tungstenite = { default-features = false, features = ["connect"], version 
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.13.1" }
 twilight-http = { default-features = false, path = "../twilight-http", version = "0.13.3" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.7" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.0" }
 url = { default-features = false, version = "2" }
 leaky-bucket-lite = { default-features = false, features = ["tokio"], version = "0.5.1" }
 
