@@ -309,6 +309,8 @@ pub struct Shard {
     /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
     /// [connection]: Self::connection
     heartbeat_interval: Option<Interval>,
+    /// Whether an event has been received in the current heartbeat interval.
+    heartbeat_interval_event: bool,
     /// ID of the shard.
     id: ShardId,
     /// Recent heartbeat latency statistics.
@@ -357,6 +359,7 @@ impl Shard {
             config,
             connection: None,
             heartbeat_interval: None,
+            heartbeat_interval_event: false,
             id: shard_id,
             latency: Latency::new(),
             ratelimiter: None,
@@ -506,10 +509,12 @@ impl Shard {
                     let is_first_heartbeat =
                         self.heartbeat_interval.is_some() && self.latency.sent().is_none();
 
-                    // Discord never replied to the last heartbeat, connection
-                    // is failed or "zombied", see
+                    // Discord never responded after the last heartbeat,
+                    // connection is failed or "zombied", see
                     // https://discord.com/developers/docs/topics/gateway#heartbeat-interval-example-heartbeat-ack
-                    if !is_first_heartbeat && self.latency().received().is_none() {
+                    // Note that unlike documented *any* event is okay; it does
+                    // not have to be a heartbeat ACK.
+                    if !is_first_heartbeat && !self.heartbeat_interval_event {
                         tracing::info!("connection is failed or \"zombied\"");
                         self.session = self
                             .close(CloseFrame::RESUME)
@@ -521,6 +526,7 @@ impl Shard {
                         self.heartbeat()
                             .await
                             .map_err(ReceiveMessageError::from_send)?;
+                        self.heartbeat_interval_event = false;
                     }
 
                     continue;
@@ -833,6 +839,11 @@ impl Shard {
 
             deserializer.into_parts()
         };
+
+        // Message is probably a event since it has a JSON encoded opcode.
+        if self.latency.sent().is_some() {
+            self.heartbeat_interval_event = true;
+        }
 
         match OpCode::from(raw_opcode) {
             Some(OpCode::Dispatch) => {
