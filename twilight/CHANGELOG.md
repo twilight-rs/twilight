@@ -2,6 +2,11 @@
 
 Changelog for `twilight`.
 
+## [unreleased]
+
+The advertisement crate has been updated to bump development
+dependencies.
+
 ## [0.11.0] - 2022-05-15
 
 The advertisement crate has been updated to bump development

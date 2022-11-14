@@ -1,5 +1,59 @@
 # Changelog
 
+## [unreleased]
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+### Documentation
+
+- [**breaking**] document `application::command::permissions` ([#1816](https://github.com/twilight-rs/twilight/issues/1816))
+
+### Features
+
+[**breaking**] `channel_id` is optional for `UpdateCurrentUserVoiceState` ([#1882] - [@itohatweb]).
+
+[**breaking**] validate attachment descriptions ([#1890] - [@itohatweb]). The
+following requests now validate attachments:
+- `CreateFollowup`
+- `UpdateFollowup`
+- `UpdateResponse`
+- `CreateMessage`
+- `UpdateMessage`
+- `ExecuteWebhook`
+- `UpdateWebhookMessage`
+
+[**breaking**] add `CreateGuildBan::delete_message_seconds` ([#1884] -
+[@itohatweb]). This also removes `delete_message_days`.
+
+### Refactor
+
+impl `IntoFuture` for requests, deprecate `exec` ([#1898] - [@vilgotf]). Allows
+users who don't need `ResponseFuture` (for `set_pre_flight`) to just call
+`.await` on requests and create the `ResponseFuture` and await it in one go. The
+old behavior of `exec()` is available by calling `into_future` as seen in the
+`set_pre_flight` doctest. As a result, `CreateFormThreadMessage` now implements
+`TryIntoRequest` instead of `CreateFormThread`, and `CreateGuildScheduledEvent`
+no longer implements `TryIntoRequest` (its derivative request builders still
+do).
+
+`http` is affected by the following `model` changes:
+
+- [**breaking**] move related modules under `guild` ([#1814](https://github.com/twilight-rs/twilight/issues/1814))
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+- [**breaking**] flatten `CommandOption` ([#1819](https://github.com/twilight-rs/twilight/issues/1819))
+- [**breaking**] remove `GetGuildMembers::presences` ([#1956](https://github.com/twilight-rs/twilight/issues/1956))
+
+### Internal Refactor
+
+- clippy 1.65 lints ([#1985](https://github.com/twilight-rs/twilight/issues/1985))
+- clippy 1.65 lints round 2 ([#1991](https://github.com/twilight-rs/twilight/issues/1991))
+
+[#1882]: https://github.com/twilight-rs/twilight/issues/1882
+[#1884]: https://github.com/twilight-rs/twilight/issues/1884
+[#1890]: https://github.com/twilight-rs/twilight/issues/1890
+[#1897]: https://github.com/twilight-rs/twilight/issues/1897
+
 ## [0.13.3] - 2022-10-28
 
 ### Bug Fixes
