@@ -43,10 +43,6 @@
 
 pub mod marker;
 
-mod r#type;
-
-pub use self::r#type::*;
-
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Unexpected, Visitor},
     ser::{Serialize, Serializer},
