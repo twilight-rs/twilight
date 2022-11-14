@@ -1,5 +1,13 @@
 # Changelog
 
+## [unreleased]
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+Otherwise, there are no breaking changes.
+
+[#1897]: https://github.com/twilight-rs/twilight/pull/1897
+
 ## [0.13.3] - 2022-10-28
 
 ### Features

@@ -1,5 +1,20 @@
 # Changelog
 
+## [unreleased]
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+Otherwise, there are no breaking changes.
+
+### Internal Refactors
+
+- clippy 1.65 lints round 2 ([#1991](https://github.com/twilight-rs/twilight/issues/1991))
+- [**breaking**] cleanup and document `voice` ([#1820](https://github.com/twilight-rs/twilight/issues/1820))
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+
+[#1897]: https://github.com/twilight-rs/twilight/issues/1897
+
 ## [0.13.1] - 2022-10-28
 
 ### Features

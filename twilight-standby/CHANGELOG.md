@@ -1,5 +1,19 @@
 # Changelog
 
+## [unreleased]
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+`standby` is affected by the following `model` changes:
+
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+
+### Internal Refactor
+
+- clippy 1.65 lints ([#1985](https://github.com/twilight-rs/twilight/issues/1985))
+
+[#1897]: https://github.com/twilight-rs/twilight/pull/1897
+
 ## [0.13.2] - 2022-09-29
 
 ### Features
