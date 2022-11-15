@@ -2,14 +2,127 @@
 //!
 //! Multiple shards may easily be created at once, with a per shard config
 //! created from a `Fn(ShardId) -> Config` closure, with the help of the
-//! `create_` set of functions. These functions will also reuse the TLS context,
-//! something otherwise achieved by cloning an existing [`Config`], but will not
-//! by default set a shared [session queue] (see [`ConfigBuilder::queue`]).
+//! `create_` set of functions. These functions will also reuse shards' TLS
+//! context, something otherwise achieved by cloning an existing [`Config`], but
+//! will not by default set a shared [session queue] (see
+//! [`ConfigBuilder::queue`]).
 //!
-//! Multiple shards' events or websocket messages may be collected into a stream
-//! via [`ShardEventStream`] or [`ShardMessageStream`] respectively. These types
-//! will concurrently poll the collection of shards and then return a mutable
-//! reference to the shard and its yielded item.
+//! # Concurrency
+//!
+//! Multiple shards' events or websocket messages may be concurrently streamed
+//! via [`ShardEventStream`] or [`ShardMessageStream`] respectively, returning a
+//! mutable reference to the yielded shard and its item. The yielded shard is
+//! later returned to the stream in its [`Drop`] implementation.
+//!
+//! This is the recommended way to run bots with multiple shards.
+//!
+//! # Parallelism
+//!
+//! A multi-threaded executor is able to run tasks in parallel, but splitting
+//! shards across tasks requires channels to communicate between them, for
+//! example, to coordinate shutdowns or to collect all events to a single event
+//! handler task and is therefore **not** recommended unless it's required for
+//! performance reasons (a single core should, on a reasonably performant CPU,
+//! be capable of handling tens of thousands of Discord events per second).
+//!
+//! ## Example
+//!
+//! Run the recommended number of shards in `available_parallelism` tasks. Note
+//! that neither [`ShardEventStream`] nor [`ShardMessageStream`] is required for
+//! parallelism; each shard can run on an independent task.
+//!
+//! ```no_run
+//! use futures::{future::join_all, StreamExt};
+//! use std::{env, iter, sync::Arc, thread, time::Duration};
+//! use tokio::{signal, sync::watch, time};
+//! use twilight_gateway::{
+//!     message::CloseFrame,
+//!     queue::LocalQueue,
+//!     stream::{self, ShardEventStream},
+//!     Config, Intents, Shard,
+//! };
+//! use twilight_http::Client;
+//!
+//! #[tokio::main]
+//! async fn main() -> anyhow::Result<()> {
+//!     let token = env::var("DISCORD_TOKEN")?;
+//!     let client = Client::new(token.clone());
+//!
+//!     let queue = Arc::new(LocalQueue::new());
+//!     // callback to create a config for each shard, useful for when not all
+//!     // shards have the same configuration, such as for per-shard presences
+//!     let config_callback = |_| {
+//!         Config::builder(token.clone(), Intents::GUILDS)
+//!             .queue(queue.clone())
+//!             .build()
+//!     };
+//!
+//!     let tasks = thread::available_parallelism()?.get();
+//!
+//!     // split shards into a vec of `tasks` vecs of shards
+//!     let init = iter::repeat_with(|| Vec::new())
+//!         .take(tasks)
+//!         .collect::<Vec<Vec<_>>>();
+//!     let shards = stream::create_recommended(&client, config_callback)
+//!         .await?
+//!         .enumerate()
+//!         .fold(init, |mut fold, (idx, shard)| {
+//!             fold[idx % tasks].push(shard);
+//!             fold
+//!         });
+//!
+//!     let (tx, rx) = watch::channel(false);
+//!
+//!     for mut shards in shards {
+//!         let mut rx = rx.clone();
+//!         tokio::spawn(async move {
+//!             // run `process` and `rx.changed()` concurrently, returning when
+//!             // the first branch completes, cancelling the other one
+//!             tokio::select! {
+//!                 _ = process(shards.iter_mut()) => {},
+//!                 _ = rx.changed() => {
+//!                     join_all(shards.iter_mut().map(|shard| async move {
+//!                         shard.close(CloseFrame::NORMAL).await
+//!                     })).await;
+//!                 }
+//!             }
+//!         });
+//!     }
+//!
+//!     signal::ctrl_c().await?;
+//!
+//!     // instruct the tasks to shutdown
+//!     tx.send(true)?;
+//!
+//!     // delay a bit to let all shards shutdown
+//!     // a more realistic option would be to have another channel each task sends
+//!     // on when completed or use the (currently unstable) `tokio::task::JoinSet`
+//!     time::sleep(Duration::from_secs(5)).await;
+//!
+//!     Ok(())
+//! }
+//!
+//! async fn process(shards: impl Iterator<Item = &mut Shard>) {
+//!     let mut stream = ShardEventStream::new(shards);
+//!     loop {
+//!         let (shard, event) = match stream.next().await {
+//!             Some((shard, Ok(event))) => (shard, event),
+//!             Some((shard, Err(source))) => {
+//!                 tracing::warn!(?source, "error receiving event");
+//!
+//!                 if source.is_fatal() {
+//!                     break;
+//!                 }
+//!
+//!                 continue;
+//!             }
+//!             None => break,
+//!         };
+//!
+//!         println!("received event on shard {}: {event:?}", shard.id());
+//!     }
+//! }
+//! ```
 //!
 //! [`ConfigBuilder::queue`]: crate::ConfigBuilder::queue
 //! [session queue]: crate::queue
@@ -17,27 +130,27 @@
 use crate::{
     error::ReceiveMessageError, message::Message, tls::TlsContainer, Config, Shard, ShardId,
 };
-use futures_util::stream::{FuturesUnordered, Stream, StreamExt};
-use std::{
-    cell::RefCell,
-    future::Future,
-    ops::{Bound, Deref, DerefMut, Range, RangeBounds},
-    pin::Pin,
-    rc::Rc,
-    task::{Context, Poll},
+use futures_util::{
+    future::BoxFuture,
+    stream::{FuturesUnordered, Stream, StreamExt},
 };
 #[cfg(feature = "twilight-http")]
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
 };
+use std::{
+    ops::{Bound, Deref, DerefMut, Range, RangeBounds},
+    pin::Pin,
+    sync::mpsc,
+    task::{Context, Poll},
+};
 #[cfg(feature = "twilight-http")]
 use twilight_http::Client;
 use twilight_model::gateway::event::Event;
 
 /// Generic list of unordered futures producing an item for each shard.
-type FutureList<'a, Item> =
-    FuturesUnordered<Pin<Box<dyn Future<Output = NextItemOutput<'a, Item>> + 'a>>>;
+type FutureList<'a, Item> = FuturesUnordered<BoxFuture<'a, NextItemOutput<'a, Item>>>;
 
 /// Failure when fetching the recommended number of shards to use from Discord's
 /// REST API.
@@ -143,14 +256,21 @@ pub enum StartRecommendedErrorType {
 /// ```
 pub struct ShardEventStream<'a> {
     /// Set of futures resolving to the next event of each shard.
-    futures: Rc<RefCell<FutureList<'a, Event>>>,
+    futures: FutureList<'a, Event>,
+    /// Sender to include in [`ShardRef`].
+    sender: mpsc::Sender<&'a mut Shard>,
+    /// Receiver to re-insert shards into to the stream.
+    receiver: mpsc::Receiver<&'a mut Shard>,
 }
 
 impl<'a> ShardEventStream<'a> {
     /// Create a new stream producing events from a set of shards.
     pub fn new(shards: impl Iterator<Item = &'a mut Shard>) -> Self {
+        let (sender, receiver) = mpsc::channel();
         let mut this = Self {
-            futures: Rc::new(RefCell::new(FuturesUnordered::new())),
+            futures: FuturesUnordered::new(),
+            sender,
+            receiver,
         };
 
         for shard in shards {
@@ -162,7 +282,7 @@ impl<'a> ShardEventStream<'a> {
 
     /// Add a shard to the stream to produce a gateway event.
     fn add_shard(&mut self, shard: &'a mut Shard) {
-        self.futures.borrow_mut().push(Box::pin(async {
+        self.futures.push(Box::pin(async {
             let result = shard.next_event().await;
 
             NextItemOutput { result, shard }
@@ -174,13 +294,14 @@ impl<'a> Stream for ShardEventStream<'a> {
     type Item = (ShardRef<'a>, Result<Event, ReceiveMessageError>);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let this = self.as_mut();
-        let poll = this.futures.borrow_mut().poll_next_unpin(cx);
+        while let Some(shard) = self.receiver.try_iter().next() {
+            self.add_shard(shard);
+        }
 
-        match poll {
+        match self.futures.poll_next_unpin(cx) {
             Poll::Ready(Some(output)) => Poll::Ready(Some((
                 ShardRef {
-                    list: ShardList::Events(Rc::clone(&this.futures)),
+                    channel: self.sender.clone(),
                     shard: Some(output.shard),
                 },
                 output.result,
@@ -248,14 +369,21 @@ impl<'a> Stream for ShardEventStream<'a> {
 /// ```
 pub struct ShardMessageStream<'a> {
     /// Set of futures resolving to the next message of each shard.
-    futures: Rc<RefCell<FutureList<'a, Message>>>,
+    futures: FutureList<'a, Message>,
+    /// Sender to include in [`ShardRef`].
+    sender: mpsc::Sender<&'a mut Shard>,
+    /// Receiver to re-insert shards into the stream.
+    receiver: mpsc::Receiver<&'a mut Shard>,
 }
 
 impl<'a> ShardMessageStream<'a> {
     /// Create a new stream producing websocket messages from a set of shards.
     pub fn new(shards: impl Iterator<Item = &'a mut Shard>) -> Self {
+        let (sender, receiver) = mpsc::channel();
         let mut this = Self {
-            futures: Rc::new(RefCell::new(FuturesUnordered::new())),
+            futures: FuturesUnordered::new(),
+            sender,
+            receiver,
         };
 
         for shard in shards {
@@ -267,7 +395,7 @@ impl<'a> ShardMessageStream<'a> {
 
     /// Add a shard to the stream to produce a websocket message.
     fn add_shard(&mut self, shard: &'a mut Shard) {
-        self.futures.borrow_mut().push(Box::pin(async {
+        self.futures.push(Box::pin(async {
             let result = shard.next_message().await;
 
             NextItemOutput { result, shard }
@@ -279,13 +407,14 @@ impl<'a> Stream for ShardMessageStream<'a> {
     type Item = (ShardRef<'a>, Result<Message, ReceiveMessageError>);
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let this = self.as_mut();
-        let poll = this.futures.borrow_mut().poll_next_unpin(cx);
+        while let Some(shard) = self.receiver.try_iter().next() {
+            self.add_shard(shard);
+        }
 
-        match poll {
+        match self.futures.poll_next_unpin(cx) {
             Poll::Ready(Some(output)) => Poll::Ready(Some((
                 ShardRef {
-                    list: ShardList::Messages(Rc::clone(&this.futures)),
+                    channel: self.sender.clone(),
                     shard: Some(output.shard),
                 },
                 output.result,
@@ -303,14 +432,13 @@ impl<'a> Stream for ShardMessageStream<'a> {
 ///
 /// [not be called]: std::mem::forget
 pub struct ShardRef<'a> {
-    /// List of futures the shard will be re-inserted into when the reference is
-    /// dropped.
-    list: ShardList<'a>,
+    /// Sender pointing back to the parent stream.
+    channel: mpsc::Sender<&'a mut Shard>,
     /// Mutable reference to the shard that produced an event or message.
     shard: Option<&'a mut Shard>,
 }
 
-impl<'a> Deref for ShardRef<'a> {
+impl Deref for ShardRef<'_> {
     type Target = Shard;
 
     fn deref(&self) -> &Self::Target {
@@ -318,7 +446,7 @@ impl<'a> Deref for ShardRef<'a> {
     }
 }
 
-impl<'a> DerefMut for ShardRef<'a> {
+impl DerefMut for ShardRef<'_> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.shard.as_mut().unwrap()
     }
@@ -327,32 +455,9 @@ impl<'a> DerefMut for ShardRef<'a> {
 impl Drop for ShardRef<'_> {
     fn drop(&mut self) {
         if let Some(shard) = self.shard.take() {
-            match &mut self.list {
-                ShardList::Events(event_list) => {
-                    event_list.borrow_mut().push(Box::pin(async {
-                        let result = shard.next_event().await;
-
-                        NextItemOutput { result, shard }
-                    }));
-                }
-                ShardList::Messages(message_list) => {
-                    message_list.borrow_mut().push(Box::pin(async {
-                        let result = shard.next_message().await;
-
-                        NextItemOutput { result, shard }
-                    }));
-                }
-            }
+            self.channel.send(shard).unwrap();
         }
     }
-}
-
-/// List of futures for receiving the next event or message of shards.
-enum ShardList<'a> {
-    /// List of futures for receiving the next event of shards.
-    Events(Rc<RefCell<FutureList<'a, Event>>>),
-    /// List of futures for receiving the next message of shards.
-    Messages(Rc<RefCell<FutureList<'a, Message>>>),
 }
 
 /// Output of a stream, such as [`ShardMessageStream`].
@@ -548,4 +653,14 @@ fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
     assert!(end <= total, "range end must be less than the total");
 
     start..end
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ShardEventStream, ShardMessageStream};
+    use futures_util::Stream;
+    use static_assertions::assert_impl_all;
+
+    assert_impl_all!(ShardEventStream<'_>: Send, Stream);
+    assert_impl_all!(ShardMessageStream<'_>: Send, Stream);
 }
