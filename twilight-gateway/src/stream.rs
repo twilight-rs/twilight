@@ -94,7 +94,7 @@ pub enum StartRecommendedErrorType {
 ///
 /// ```no_run
 /// use futures::StreamExt;
-/// use std::{collections::HashMap, env, sync::Arc};
+/// use std::{env, sync::Arc};
 /// use twilight_gateway::{
 ///     queue::LocalQueue,
 ///     stream::{self, ShardEventStream},
@@ -199,7 +199,7 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///
 /// ```no_run
 /// use futures::StreamExt;
-/// use std::{collections::HashMap, env, sync::Arc};
+/// use std::{env, sync::Arc};
 /// use twilight_gateway::{
 ///     queue::LocalQueue,
 ///     stream::{self, ShardMessageStream},
