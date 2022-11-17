@@ -1,11 +1,18 @@
-//! Streaming utilities for initializing groups of shards.
+//! Utilities for managing collections of shards.
 //!
-//! There are two groups of functionality to the stream module: initializers and
-//! selectors. The initializers are functions like [`start_recommended`], which
-//! initializes a group of shards based on Discord's recommendation. Once these
-//! shards are initialized, the events or websocket messages of all of the
-//! shards can be collected into an efficient stream via [`ShardEventStream`]
-//! and [`ShardMessageStream`].
+//! Multiple shards may easily be created at once, with a per shard config
+//! created from a `Fn(ShardId) -> Config` closure, with the help of the
+//! `create_` set of functions. These functions will also reuse the TLS context,
+//! something otherwise achieved by cloning an existing [`Config`], but will not
+//! by default set a shared [session queue] (see [`ConfigBuilder::queue`]).
+//!
+//! Multiple shards' events or websocket messages may be collected into a stream
+//! via [`ShardEventStream`] or [`ShardMessageStream`] respectively. These types
+//! will concurrently poll the collection of shards and then return a mutable
+//! reference to the shard and its yielded item.
+//!
+//! [`ConfigBuilder::queue`]: crate::ConfigBuilder::queue
+//! [session queue]: crate::queue
 
 use crate::{
     error::ReceiveMessageError, message::Message, tls::TlsContainer, Config, Shard, ShardId,
@@ -79,7 +86,7 @@ pub enum StartRecommendedErrorType {
     Request,
 }
 
-/// Stream selecting the next gateway event from a group of shards.
+/// Stream selecting the next gateway event from a collection of shards.
 ///
 /// # Examples
 ///
@@ -87,8 +94,9 @@ pub enum StartRecommendedErrorType {
 ///
 /// ```no_run
 /// use futures::StreamExt;
-/// use std::{collections::HashMap, env, future};
+/// use std::{env, sync::Arc};
 /// use twilight_gateway::{
+///     queue::LocalQueue,
 ///     stream::{self, ShardEventStream},
 ///     Config, Intents,
 /// };
@@ -99,11 +107,16 @@ pub enum StartRecommendedErrorType {
 /// let token = env::var("DISCORD_TOKEN")?;
 /// let client = Client::new(token.clone());
 ///
+/// let queue = Arc::new(LocalQueue::new());
 /// // callback to create a config for each shard, useful for when not all shards
 /// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
+/// let config_callback = |_| {
+///     Config::builder(token.clone(), Intents::GUILDS)
+///         .queue(queue.clone())
+///         .build()
+/// };
 ///
-/// let mut shards = stream::start_recommended(&client, config_callback)
+/// let mut shards = stream::create_recommended(&client, config_callback)
 ///     .await?
 ///     .collect::<Vec<_>>();
 ///
@@ -178,7 +191,7 @@ impl<'a> Stream for ShardEventStream<'a> {
     }
 }
 
-/// Stream selecting the next websocket message from a group of shards.
+/// Stream selecting the next websocket message from a collection of shards.
 ///
 /// # Examples
 ///
@@ -186,8 +199,9 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///
 /// ```no_run
 /// use futures::StreamExt;
-/// use std::{collections::HashMap, env, future};
+/// use std::{env, sync::Arc};
 /// use twilight_gateway::{
+///     queue::LocalQueue,
 ///     stream::{self, ShardMessageStream},
 ///     Config, Intents,
 /// };
@@ -198,11 +212,16 @@ impl<'a> Stream for ShardEventStream<'a> {
 /// let token = env::var("DISCORD_TOKEN")?;
 /// let client = Client::new(token.clone());
 ///
+/// let queue = Arc::new(LocalQueue::new());
 /// // callback to create a config for each shard, useful for when not all shards
 /// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
+/// let config_callback = |_| {
+///     Config::builder(token.clone(), Intents::GUILDS)
+///         .queue(queue.clone())
+///         .build()
+/// };
 ///
-/// let mut shards = stream::start_recommended(&client, config_callback)
+/// let mut shards = stream::create_recommended(&client, config_callback)
 ///     .await?
 ///     .collect::<Vec<_>>();
 ///
@@ -344,20 +363,48 @@ struct NextItemOutput<'a, Item> {
     shard: &'a mut Shard,
 }
 
-/// Start a cluster with provided configuration for each shard.
+/// Create a single bucket's worth of shards with provided configuration for
+/// each shard.
 ///
-/// Shards will all share the same TLS connector to reduce memory usage.
+/// # Examples
+///
+/// Start bucket 2 out of 10 with 100 shards in total and collect them into a
+/// list:
+///
+/// ```no_run
+/// use std::{env, sync::Arc};
+/// use twilight_gateway::{queue::LocalQueue, stream, Config, Intents};
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let token = env::var("DISCORD_TOKEN")?;
+///
+/// let queue = Arc::new(LocalQueue::new());
+/// // callback to create a config for each shard, useful for when not all shards
+/// // have the same configuration, such as for per-shard presences
+/// let config_callback = |_| {
+///     Config::builder(token.clone(), Intents::GUILDS)
+///         .queue(queue.clone())
+///         .build()
+/// };
+///
+/// let shards = stream::create_bucket(2, 10, 100, config_callback)
+///     .map(|shard| (shard.id().number(), shard))
+///     .collect::<Vec<_>>();
+///
+/// assert_eq!(shards.len(), 10);
+/// # Ok(()) }
+/// ```
 ///
 /// # Panics
 ///
-/// Panics if the lower end of the range is equal to the higher end of the
-/// range or the total isn't greater than the lower or higher end of the range.
+/// Panics if `bucket_id >= total` or if `concurrency >= total`.
 ///
-/// Panics if the concurrency doesn't fit into a usize.
+/// Panics if `concurrency` doesn't fit into a usize.
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
-pub fn start_cluster<F: Fn(ShardId) -> Config>(
+pub fn create_bucket<F: Fn(ShardId) -> Config>(
     bucket_id: u64,
     concurrency: u64,
     total: u64,
@@ -381,20 +428,45 @@ pub fn start_cluster<F: Fn(ShardId) -> Config>(
     })
 }
 
-/// Start a range of shards with provided configuration for each shard.
+/// Create a range of shards with provided configuration for each shard.
 ///
-/// Lower end of the range must be less than the higher end.
+/// # Examples
 ///
-/// Shards will all share the same TLS connector to reduce memory usage.
+/// Start 10 out of 10 shards and collect them into a map:
+///
+/// ```no_run
+/// use std::{collections::HashMap, env, sync::Arc};
+/// use twilight_gateway::{queue::LocalQueue, stream, Config, Intents};
+///
+/// # #[tokio::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let token = env::var("DISCORD_TOKEN")?;
+///
+/// let queue = Arc::new(LocalQueue::new());
+/// // callback to create a config for each shard, useful for when not all shards
+/// // have the same configuration, such as for per-shard presences
+/// let config_callback = |_| {
+///     Config::builder(token.clone(), Intents::GUILDS)
+///         .queue(queue.clone())
+///         .build()
+/// };
+///
+/// let shards = stream::create_range(0..10, 10, config_callback)
+///     .map(|shard| (shard.id().number(), shard))
+///     .collect::<HashMap<_, _>>();
+///
+/// assert_eq!(shards.len(), 10);
+/// # Ok(()) }
+/// ```
 ///
 /// # Panics
 ///
-/// Panics if the start is more than the end, the start is more than the total,
-/// or the end is more than the total.
+/// Panics if `start >= total` or if `end > total`, where `start` and `end`
+/// refer to `range`'s start and end.
 ///
 /// Panics if loading TLS certificates fails.
 #[track_caller]
-pub fn start_range<F: Fn(ShardId) -> Config>(
+pub fn create_range<F: Fn(ShardId) -> Config>(
     range: impl RangeBounds<u64>,
     total: u64,
     per_shard_config: F,
@@ -411,37 +483,10 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
     })
 }
 
-/// Start all of the shards recommended for Discord in a single group.
+/// Create a range of shards from Discord's recommendation with configuration
+/// for each shard.
 ///
-/// Shards will all share the same TLS connector to reduce memory usage.
-///
-/// # Examples
-///
-/// Start all of the shards recommended by Discord and collect them into a map:
-///
-/// ```no_run
-/// use futures::StreamExt;
-/// use std::{collections::HashMap, env, future};
-/// use twilight_gateway::{stream, Config, Intents};
-/// use twilight_http::Client;
-///
-/// # #[tokio::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let token = env::var("DISCORD_TOKEN")?;
-/// let client = Client::new(token.clone());
-///
-/// // callback to create a config for each shard, useful for when not all shards
-/// // have the same configuration, such as for per-shard presences
-/// let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
-///
-/// let shards = stream::start_recommended(&client, config_callback)
-///     .await?
-///     .map(|shard| (shard.id().number(), shard))
-///     .collect::<HashMap<_, _>>();
-///
-/// println!("total shards: {}", shards.len());
-/// # Ok(()) }
-/// ```
+/// Internally calls [`create_range`] with the values from [`GetGatewayAuthed`].
 ///
 /// # Errors
 ///
@@ -454,9 +499,11 @@ pub fn start_range<F: Fn(ShardId) -> Config>(
 /// # Panics
 ///
 /// Panics if loading TLS certificates fails.
+///
+/// [`GetGatewayAuthed`]: twilight_http::request::GetGatewayAuthed
 #[cfg(feature = "twilight-http")]
 #[track_caller]
-pub async fn start_recommended<F: Fn(ShardId) -> Config>(
+pub async fn create_recommended<F: Fn(ShardId) -> Config>(
     client: &Client,
     per_shard_config: F,
 ) -> Result<impl Iterator<Item = Shard>, StartRecommendedError> {
@@ -473,15 +520,15 @@ pub async fn start_recommended<F: Fn(ShardId) -> Config>(
             source: Some(Box::new(source)),
         })?;
 
-    Ok(start_range(.., info.shards, per_shard_config))
+    Ok(create_range(.., info.shards, per_shard_config))
 }
 
 /// Transform any range into a sized range based on the total.
 ///
 /// # Panics
 ///
-/// Panics if the start is more than the end, the start is more than the total,
-/// or the end is more than the total.
+/// Panics if `start >= total` or if `end > total`, where `start` and `end`
+/// refer to `range`'s start and end.
 fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
     // 0, or the provided start bound (inclusive).
     let start = match range.start_bound() {
@@ -497,7 +544,6 @@ fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
         Bound::Unbounded => total,
     };
 
-    assert!(start < end, "range start must be less than the end");
     assert!(start < total, "range start must be less than the total");
     assert!(end <= total, "range end must be less than the total");
 
