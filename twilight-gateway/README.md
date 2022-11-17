@@ -24,7 +24,7 @@ Using the `stream` module, shards can be easily managed in groups.
   * `rustls-native-roots` (*default*): [`rustls`] using native root certificates
   * `rustls-webpki-roots`: [`rustls`] using [`webpki-roots`] for root
     certificates, useful for `scratch` containers
-* `twilight-http` (*default*): enable the `stream::start_recommended` function
+* `twilight-http` (*default*): enable the `stream::create_recommended` function
 * Zlib (mutually exclusive)
   * `zlib-stock` (*default*): [`flate2`]'s stock zlib implementation
   * `zlib-ng`: use [`zlib-ng`] for zlib, may have better performance
@@ -78,8 +78,12 @@ Create the recommended number of shards and stream over their events:
 
 ```rust,no_run
 use futures::StreamExt;
-use std::{collections::HashMap, env, future};
-use twilight_gateway::{stream::{self, ShardEventStream}, Config, Intents};
+use std::{collections::HashMap, env, sync::Arc};
+use twilight_gateway::{
+    queue::LocalQueue,
+    stream::{self, ShardEventStream},
+    Config, Intents,
+};
 use twilight_http::Client;
 
 #[tokio::main]
@@ -87,11 +91,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
 
+    let queue = Arc::new(LocalQueue::new());
     // Callback to create a config for each shard, useful for when not all shards
     // have the same configuration, such as for per-shard presences.
-    let config_callback = |_| Config::new(token.clone(), Intents::GUILDS);
+    let config_callback = |_| {
+        Config::builder(token.clone(), Intents::GUILDS)
+            .queue(queue.clone())
+            .build()
+    };
 
-    let mut shards = stream::start_recommended(&client, config_callback)
+    let mut shards = stream::create_recommended(&client, config_callback)
         .await?
         .collect::<Vec<_>>();
 

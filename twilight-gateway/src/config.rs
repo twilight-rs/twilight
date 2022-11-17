@@ -439,11 +439,11 @@ impl ConfigBuilder {
         self
     }
 
-    /// Set the queue to use for queueing shard connections.
+    /// Set the queue to use for queueing shard sessions.
     ///
-    /// You probably don't need to set this yourself unless the application uses
-    /// [Very Large Bot] sharding. Refer to the [`queue`] module for more
-    /// information.
+    /// Defaults to a [`LocalQueue`].
+    ///
+    /// Refer to the [`queue`] module for more information.
     ///
     /// [`queue`]: crate::queue
     pub fn queue(mut self, queue: Arc<dyn Queue>) -> Self {

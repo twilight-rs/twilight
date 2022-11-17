@@ -24,7 +24,7 @@ async fn main() -> anyhow::Result<()> {
             .queue(Arc::clone(&queue))
             .build()
     };
-    let mut shards = stream::start_recommended(&client, &config_callback)
+    let mut shards = stream::create_recommended(&client, &config_callback)
         .await?
         .collect::<Vec<_>>();
 
@@ -98,7 +98,7 @@ async fn reshard(
     // Reshard every eight hours.
     time::sleep(RESHARD_DURATION).await;
 
-    let mut shards = stream::start_recommended(client, config_callback)
+    let mut shards = stream::create_recommended(client, config_callback)
         .await?
         .collect::<Vec<_>>();
 
