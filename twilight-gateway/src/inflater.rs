@@ -1,13 +1,12 @@
 //! Efficiently decompress Discord gateway events.
 //!
 //! The [`Inflater`] decompresses messages sent over the gateway by reusing a
-//! common buffer so only one allocation happens in the hot path.
+//! common buffer to minimize the amount of allocations in the hot path.
 //!
-//! # Shrinking compressed buffer
+//! # Compressed buffer
 //!
-//! The compressed message buffer gets shrank every minute to the size of the
-//! most recent message. This is especially useful since Discord generally sends
-//! the largest messages on startup.
+//! A compressed buffer is used to store partial payloads and gets, if used,
+//! shrank every minute to the size of the most recent complete payload.
 
 use flate2::{Decompress, FlushDecompress};
 use std::{
@@ -72,13 +71,18 @@ pub enum CompressionErrorType {
     NotUtf8,
 }
 
-/// The "magic number" deciding if a message is done or if another
-/// message needs to be read.
-///
-/// The suffix is documented in the [Discord docs].
-///
-/// [Discord docs]: https://discord.com/developers/docs/topics/gateway#transport-compression-transport-compression-example
-const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
+/// Whether the payload is a partial message.
+fn is_partial_payload(payload: &[u8]) -> bool {
+    /// The "magic number" deciding if a message is done or if another
+    /// message needs to be read.
+    ///
+    /// The suffix is documented in the [Discord docs].
+    ///
+    /// [Discord docs]: https://discord.com/developers/docs/topics/gateway#transport-compression-transport-compression-example
+    const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
+
+    payload.len() < 4 || payload[(payload.len() - 4)..] != ZLIB_SUFFIX
+}
 
 /// Gateway event decompressor.
 ///
@@ -114,7 +118,7 @@ impl Inflater {
 
     /// Clear the compressed buffer and periodically shrink its capacity.
     fn clear(&mut self) {
-        if self.last_shrank.elapsed().as_secs() > 60 {
+        if self.compressed.capacity() != 0 && self.last_shrank.elapsed().as_secs() > 60 {
             self.compressed.shrink_to_fit();
 
             tracing::trace!(
@@ -140,26 +144,34 @@ impl Inflater {
     ///
     /// Returns a [`CompressionErrorType::NotUtf8`] error type if the
     /// decompressed message is not UTF-8.
-    pub(crate) fn inflate(&mut self, message: &[u8]) -> Result<Option<String>, CompressionError> {
-        self.compressed.extend_from_slice(message);
-        let length = self.compressed.len();
+    pub(crate) fn inflate(&mut self, payload: &[u8]) -> Result<Option<String>, CompressionError> {
+        // Complete payload. Tries to bypass the `self.compressed` buffer if the
+        // payload is not partial.
+        let payload = if self.compressed.is_empty() {
+            if is_partial_payload(payload) {
+                tracing::trace!("message is not a complete frame");
+                self.compressed.extend_from_slice(payload);
+                return Ok(None);
+            }
+            payload
+        } else {
+            self.compressed.extend_from_slice(payload);
+            if is_partial_payload(&self.compressed) {
+                tracing::trace!("message is not a complete frame");
+                return Ok(None);
+            }
+            &self.compressed
+        };
 
-        if length < 4 || self.compressed[(length - 4)..] != ZLIB_SUFFIX {
-            return Ok(None);
-        }
-
-        debug_assert!(
-            !self.compressed[0..(length - 4)]
-                .windows(4)
-                .any(|window| window == ZLIB_SUFFIX),
-            "compressed buffer contains multiple messages"
-        );
-
+        // Amount of bytes prossessed up to now.
         let before = self.decompress.total_in();
 
-        let mut compressed = 0;
+        // Bytes processed.
+        let mut processed = 0;
 
-        let mut message = Vec::new();
+        // Uncompressed message. `Vec::extend_from_slice` efficiently allocates
+        // only what's necessary.
+        let mut uncompressed = Vec::new();
 
         loop {
             self.buffer.clear();
@@ -167,7 +179,7 @@ impl Inflater {
             // Use Sync to ensure data is flushed to the buffer.
             self.decompress
                 .decompress_vec(
-                    &self.compressed[compressed..],
+                    &payload[processed..],
                     &mut self.buffer,
                     FlushDecompress::Sync,
                 )
@@ -176,15 +188,16 @@ impl Inflater {
                     source: Some(Box::new(source)),
                 })?;
 
-            compressed = (self.decompress.total_in() - before).try_into().unwrap();
+            processed = (self.decompress.total_in() - before).try_into().unwrap();
 
-            message.extend_from_slice(&self.buffer);
+            uncompressed.extend_from_slice(&self.buffer);
 
-            if compressed == self.compressed.len() {
+            // Break when payload's been fully decompressed.
+            if processed == payload.len() {
                 break;
             }
 
-            tracing::trace!(bytes.compressed.remaining = self.compressed.len() - compressed);
+            tracing::trace!(bytes.compressed.remaining = self.compressed.len() - processed);
         }
 
         {
@@ -195,8 +208,8 @@ impl Inflater {
             let total_kib_saved = (self.total_out() - self.total_in()) / 1024;
 
             tracing::trace!(
-                bytes.compressed = compressed,
-                bytes.decompressed = message.len(),
+                bytes.compressed = processed,
+                bytes.decompressed = uncompressed.len(),
                 total_percentage_saved,
                 "{total_kib_saved} KiB saved in total",
             );
@@ -204,7 +217,7 @@ impl Inflater {
 
         self.clear();
 
-        String::from_utf8(message)
+        String::from_utf8(uncompressed)
             .map(Some)
             .map_err(|source| CompressionError {
                 kind: CompressionErrorType::NotUtf8,
@@ -244,12 +257,32 @@ mod tests {
     const OUTPUT: &str = r#"{"t":null,"s":null,"op":10,"d":{"heartbeat_interval":41250,"_trace":["[\"gateway-prd-main-858d\",{\"micros\":0.0}]"]}}"#;
 
     #[test]
-    fn decompress() {
+    fn decompress_fast() {
         let mut inflator = Inflater::new();
         assert!(inflator.compressed.is_empty());
         assert!(inflator.buffer.is_empty());
         assert_eq!(inflator.inflate(MESSAGE).unwrap(), Some(OUTPUT.to_owned()));
 
+        assert!(!inflator.buffer.is_empty());
+        assert!(inflator.compressed.is_empty());
+    }
+
+    #[test]
+    fn decompress_slow() {
+        let mut inflator = Inflater::new();
+        assert!(inflator.compressed.is_empty());
+        assert!(inflator.buffer.is_empty());
+        assert_eq!(
+            inflator.inflate(&MESSAGE[0..MESSAGE.len() / 2]).unwrap(),
+            None
+        );
+        assert!(inflator.buffer.is_empty());
+        assert!(!inflator.compressed.is_empty());
+
+        assert_eq!(
+            inflator.inflate(&MESSAGE[MESSAGE.len() / 2..]).unwrap(),
+            Some(OUTPUT.to_owned()),
+        );
         assert!(!inflator.buffer.is_empty());
         assert!(inflator.compressed.is_empty());
     }
