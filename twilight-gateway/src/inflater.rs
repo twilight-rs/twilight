@@ -1,12 +1,10 @@
-//! Efficiently decompress Discord gateway events.
+//! Efficiently decompress Discord gateway messages.
 //!
 //! The [`Inflater`] decompresses messages sent over the gateway by reusing a
 //! common buffer to minimize the amount of allocations in the hot path.
 //!
-//! # Compressed buffer
-//!
-//! A compressed buffer is used to store partial payloads and gets, if used,
-//! shrank every minute to the size of the most recent complete payload.
+//! A compressed message buffer is used to store partial messages and gets, if
+//! used, shrank every minute to the size of the most recent completed message.
 
 use flate2::{Decompress, FlushDecompress};
 use std::{
@@ -71,8 +69,8 @@ pub enum CompressionErrorType {
     NotUtf8,
 }
 
-/// Whether the payload is a partial message.
-fn is_partial_payload(payload: &[u8]) -> bool {
+/// Whether the message is partial.
+fn is_partial_message(message: &[u8]) -> bool {
     /// The "magic number" deciding if a message is done or if another
     /// message needs to be read.
     ///
@@ -81,7 +79,7 @@ fn is_partial_payload(payload: &[u8]) -> bool {
     /// [Discord docs]: https://discord.com/developers/docs/topics/gateway#transport-compression-transport-compression-example
     const ZLIB_SUFFIX: [u8; 4] = [0x00, 0x00, 0xff, 0xff];
 
-    payload.len() < 4 || payload[(payload.len() - 4)..] != ZLIB_SUFFIX
+    message.len() < 4 || message[(message.len() - 4)..] != ZLIB_SUFFIX
 }
 
 /// Gateway event decompressor.
@@ -144,20 +142,20 @@ impl Inflater {
     ///
     /// Returns a [`CompressionErrorType::NotUtf8`] error type if the
     /// decompressed message is not UTF-8.
-    pub(crate) fn inflate(&mut self, payload: &[u8]) -> Result<Option<String>, CompressionError> {
-        // Complete payload. Tries to bypass the `self.compressed` buffer if the
-        // payload is not partial.
-        let payload = if self.compressed.is_empty() {
-            if is_partial_payload(payload) {
-                tracing::trace!("message is not a complete frame");
-                self.compressed.extend_from_slice(payload);
+    pub(crate) fn inflate(&mut self, message: &[u8]) -> Result<Option<String>, CompressionError> {
+        // Complete message. Tries to bypass the `self.compressed` buffer if the
+        // message is not partial.
+        let message = if self.compressed.is_empty() {
+            if is_partial_message(message) {
+                tracing::trace!("received partial message");
+                self.compressed.extend_from_slice(message);
                 return Ok(None);
             }
-            payload
+            message
         } else {
-            self.compressed.extend_from_slice(payload);
-            if is_partial_payload(&self.compressed) {
-                tracing::trace!("message is not a complete frame");
+            self.compressed.extend_from_slice(message);
+            if is_partial_message(&self.compressed) {
+                tracing::trace!("received partial message");
                 return Ok(None);
             }
             &self.compressed
@@ -179,7 +177,7 @@ impl Inflater {
             // Use Sync to ensure data is flushed to the buffer.
             self.decompress
                 .decompress_vec(
-                    &payload[processed..],
+                    &message[processed..],
                     &mut self.buffer,
                     FlushDecompress::Sync,
                 )
@@ -192,8 +190,8 @@ impl Inflater {
 
             uncompressed.extend_from_slice(&self.buffer);
 
-            // Break when payload's been fully decompressed.
-            if processed == payload.len() {
+            // Break when message has been fully decompressed.
+            if processed == message.len() {
                 break;
             }
 
