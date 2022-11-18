@@ -3,8 +3,9 @@
 //! The [`Inflater`] decompresses messages sent over the gateway by reusing a
 //! common buffer to minimize the amount of allocations in the hot path.
 //!
-//! A compressed message buffer is used to store partial messages and gets, if
-//! used, shrank every minute to the size of the most recent completed message.
+//! A compressed message buffer is used to store incomplete messages and gets,
+//! if used, shrank every minute to the size of the most recent completed
+//! message.
 
 use flate2::{Decompress, FlushDecompress};
 use std::{
@@ -69,8 +70,8 @@ pub enum CompressionErrorType {
     NotUtf8,
 }
 
-/// Whether the message is partial.
-fn is_partial_message(message: &[u8]) -> bool {
+/// Whether the message is incomplete.
+fn is_incomplete_message(message: &[u8]) -> bool {
     /// The "magic number" deciding if a message is done or if another
     /// message needs to be read.
     ///
@@ -144,18 +145,18 @@ impl Inflater {
     /// decompressed message is not UTF-8.
     pub(crate) fn inflate(&mut self, message: &[u8]) -> Result<Option<String>, CompressionError> {
         // Complete message. Tries to bypass the `self.compressed` buffer if the
-        // message is not partial.
+        // message is incomplete.
         let message = if self.compressed.is_empty() {
-            if is_partial_message(message) {
-                tracing::trace!("received partial message");
+            if is_incomplete_message(message) {
+                tracing::trace!("received incomplete message");
                 self.compressed.extend_from_slice(message);
                 return Ok(None);
             }
             message
         } else {
             self.compressed.extend_from_slice(message);
-            if is_partial_message(&self.compressed) {
-                tracing::trace!("received partial message");
+            if is_incomplete_message(&self.compressed) {
+                tracing::trace!("received incomplete message");
                 return Ok(None);
             }
             &self.compressed
