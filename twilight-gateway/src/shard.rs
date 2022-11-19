@@ -449,18 +449,15 @@ impl Shard {
     /// shard failed to send a message to the gateway, such as a heartbeat.
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
-            let json = loop {
-                match self.next_message().await? {
-                    Message::Close(_) => continue,
-                    Message::Text(json) => break json,
+            match self.next_message().await? {
+                Message::Close(_) => {}
+                Message::Text(json) => {
+                    if let Some(event) = json::parse(self.config.event_types(), json)
+                        .map_err(ReceiveMessageError::from_json)?
+                    {
+                        return Ok(event.into());
+                    }
                 }
-            };
-
-            // loop if event is unwanted
-            if let Some(event) = json::parse(self.config.event_types(), json)
-                .map_err(ReceiveMessageError::from_json)?
-            {
-                return Ok(event.into());
             }
         }
     }
