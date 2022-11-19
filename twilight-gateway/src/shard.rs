@@ -570,24 +570,23 @@ impl Shard {
             }
         };
 
-        Ok(match message {
+        match &message {
             Message::Close(frame) => {
                 tracing::debug!(?frame, "received websocket close message");
                 self.status = ConnectionStatus::from_close_frame(frame.as_ref());
                 self.connection = None;
-
-                Message::Close(frame)
             }
-            Message::Text(json) => {
-                self.process(&json)
+            Message::Text(event) => {
+                self.process(event)
                     .await
                     .map_err(|source| ReceiveMessageError {
                         kind: ReceiveMessageErrorType::Process,
                         source: Some(Box::new(source)),
                     })?;
-                Message::Text(json)
             }
-        })
+        }
+
+        Ok(message)
     }
 
     /// Send a command over the gateway.
@@ -820,7 +819,7 @@ impl Shard {
         });
     }
 
-    /// Updates the shard's internal state from a JSON payload by recording
+    /// Updates the shard's internal state from a gateway event by recording
     /// and/or responding to certain Discord events.
     ///
     /// # Errors
@@ -838,9 +837,9 @@ impl Shard {
     /// the connection isn't connected.
     ///
     /// [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
-    async fn process(&mut self, json: &str) -> Result<(), ProcessError> {
+    async fn process(&mut self, event: &str) -> Result<(), ProcessError> {
         let (raw_opcode, maybe_sequence, maybe_event_type) =
-            GatewayEventDeserializer::from_json(json)
+            GatewayEventDeserializer::from_json(event)
                 .ok_or(ProcessError {
                     kind: ProcessErrorType::ParsingPayload,
                     source: None,
@@ -866,7 +865,7 @@ impl Shard {
 
                 match event_type {
                     "READY" => {
-                        let event = Self::parse_event::<MinimalReady>(json)?;
+                        let event = Self::parse_event::<MinimalReady>(event)?;
 
                         self.resume_gateway_url = Some(event.data.resume_gateway_url);
                         self.session = Some(Session::new(sequence, event.data.session_id));
@@ -910,7 +909,7 @@ impl Shard {
                 }
             }
             Some(OpCode::Hello) => {
-                let event = Self::parse_event::<Hello>(json)?;
+                let event = Self::parse_event::<Hello>(event)?;
                 let heartbeat_interval = Duration::from_millis(event.data.heartbeat_interval);
                 // First heartbeat should have some jitter, see
                 // https://discord.com/developers/docs/topics/gateway#heartbeat-interval
@@ -942,7 +941,7 @@ impl Shard {
                 }
             }
             Some(OpCode::InvalidSession) => {
-                let resumable = Self::parse_event(json)?.data;
+                let resumable = Self::parse_event(event)?.data;
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
                     self.disconnect(Disconnect::Resume);
