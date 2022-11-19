@@ -828,9 +828,9 @@ impl Shard {
     /// event isn't a recognized structure, which may be the case for new or
     /// undocumented events.
     ///
-    /// Returns a [`ProcessErrorType::ParsingPayload`] error type if the buffer
-    /// isn't a valid [`GatewayEvent`]. This may happen if the opcode isn't
-    /// present.
+    /// Returns a [`ProcessErrorType::ParsingPayload`] error type if the gateway
+    /// event isn't a valid [`GatewayEvent`]. This may happen if the opcode
+    /// isn't present.
     ///
     /// Returns a [`ProcessErrorType::SendingMessage`] error type if a Websocket
     /// message couldn't be sent over the connection, which may be the case if
@@ -846,7 +846,6 @@ impl Shard {
                 })?
                 .into_parts();
 
-        // Message is probably a event since it has a JSON encoded opcode.
         if self.latency.sent().is_some() {
             self.heartbeat_interval_event = true;
         }
