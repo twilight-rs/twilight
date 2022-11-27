@@ -33,8 +33,8 @@
 //!
 //! ```no_run
 //! use futures::{future::join_all, StreamExt};
-//! use std::{env, iter, sync::Arc, thread, time::Duration};
-//! use tokio::{signal, sync::watch, time};
+//! use std::{env, iter, sync::Arc, thread};
+//! use tokio::{signal, sync::watch, task::JoinSet};
 //! use twilight_gateway::{
 //!     message::CloseFrame,
 //!     queue::LocalQueue,
@@ -73,9 +73,11 @@
 //!
 //!     let (tx, rx) = watch::channel(false);
 //!
+//!     let mut set = JoinSet::new();
+//!
 //!     for mut shards in shards {
 //!         let mut rx = rx.clone();
-//!         tokio::spawn(async move {
+//!         set.spawn(async move {
 //!             // run `process` and `rx.changed()` concurrently, returning when
 //!             // the first branch completes, cancelling the other one
 //!             tokio::select! {
@@ -94,10 +96,7 @@
 //!     // instruct the tasks to shutdown
 //!     tx.send(true)?;
 //!
-//!     // delay a bit to let all shards shutdown
-//!     // a more realistic option would be to have another channel each task sends
-//!     // on when completed or use the (currently unstable) `tokio::task::JoinSet`
-//!     time::sleep(Duration::from_secs(5)).await;
+//!     while let Some(_) = set.join_next().await {}
 //!
 //!     Ok(())
 //! }

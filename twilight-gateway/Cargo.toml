@@ -47,7 +47,7 @@ anyhow = { default-features = false, features = ["std"], version = "1" }
 futures = { default-features = false, version = "0.3" }
 serde_test = { default-features = false, version = "1.0.136" }
 static_assertions = { default-features = false, version = "1" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread", "signal", "test-util"], version = "1.12" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread", "signal", "test-util"], version = "1.21" }
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 
 [features]
