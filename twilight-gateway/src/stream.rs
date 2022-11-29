@@ -367,7 +367,7 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///         None => break,
 ///     };
 ///
-///     tracing::debug!(?event, shard = ?shard.id(), "received event");
+///     tracing::debug!(?message, shard = ?shard.id(), "received event");
 /// }
 /// # Ok(()) }
 /// ```
