@@ -87,7 +87,9 @@ use twilight_gateway::{
 use twilight_http::Client;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
+
     let token = env::var("DISCORD_TOKEN")?;
     let client = Client::new(token.clone());
 
@@ -109,7 +111,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let (shard, event) = match stream.next().await {
             Some((shard, Ok(event))) => (shard, event),
-            Some((shard, Err(source))) => {
+            Some((_, Err(source))) => {
                 tracing::warn!(?source, "error receiving event");
 
                 if source.is_fatal() {
@@ -121,7 +123,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             None => break,
         };
 
-        println!("received event on shard {}: {event:?}", shard.id());
+        tracing::debug!(?event, shard = ?shard.id(), "received event");
     }
 
     Ok(())

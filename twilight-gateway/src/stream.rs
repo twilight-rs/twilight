@@ -45,6 +45,8 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
+//!     tracing_subscriber::fmt::init();
+//!
 //!     let token = env::var("DISCORD_TOKEN")?;
 //!     let client = Client::new(token.clone());
 //!
@@ -59,7 +61,7 @@
 //!
 //!     let tasks = thread::available_parallelism()?.get();
 //!
-//!     // split shards into a vec of `tasks` vecs of shards
+//!     // Split shards into a vec of `tasks` vecs of shards.
 //!     let init = iter::repeat_with(|| Vec::new())
 //!         .take(tasks)
 //!         .collect::<Vec<Vec<_>>>();
@@ -78,8 +80,8 @@
 //!     for mut shards in shards {
 //!         let mut rx = rx.clone();
 //!         set.spawn(async move {
-//!             // run `process` and `rx.changed()` concurrently, returning when
-//!             // the first branch completes, cancelling the other one
+//!             // Run `process` and `rx.changed()` concurrently, returning when
+//!             // the first branch completes, cancelling the other one.
 //!             tokio::select! {
 //!                 _ = process(shards.iter_mut()) => {},
 //!                 _ = rx.changed() => {
@@ -93,9 +95,12 @@
 //!
 //!     signal::ctrl_c().await?;
 //!
-//!     // instruct the tasks to shutdown
+//!     tracing::debug!("shutting down");
+//!
+//!     // Instruct the tasks to shutdown.
 //!     tx.send(true)?;
 //!
+//!     // Await all spawned tasks.
 //!     while let Some(_) = set.join_next().await {}
 //!
 //!     Ok(())
@@ -106,7 +111,7 @@
 //!     loop {
 //!         let (shard, event) = match stream.next().await {
 //!             Some((shard, Ok(event))) => (shard, event),
-//!             Some((shard, Err(source))) => {
+//!             Some((_, Err(source))) => {
 //!                 tracing::warn!(?source, "error receiving event");
 //!
 //!                 if source.is_fatal() {
@@ -118,7 +123,7 @@
 //!             None => break,
 //!         };
 //!
-//!         println!("received event on shard {}: {event:?}", shard.id());
+//!         tracing::debug!(?event, shard = ?shard.id(), "received event");
 //!     }
 //! }
 //! ```
@@ -237,7 +242,7 @@ pub enum StartRecommendedErrorType {
 /// loop {
 ///     let (shard, event) = match stream.next().await {
 ///         Some((shard, Ok(event))) => (shard, event),
-///         Some((shard, Err(source))) => {
+///         Some((_, Err(source))) => {
 ///             tracing::warn!(?source, "error receiving event");
 ///
 ///             if source.is_fatal() {
@@ -249,7 +254,7 @@ pub enum StartRecommendedErrorType {
 ///         None => break,
 ///     };
 ///
-///     println!("received event on shard {}: {event:?}", shard.id());
+///     tracing::debug!(?event, shard = ?shard.id(), "received event");
 /// }
 /// # Ok(()) }
 /// ```
@@ -350,7 +355,7 @@ impl<'a> Stream for ShardEventStream<'a> {
 /// loop {
 ///     let (shard, message) = match stream.next().await {
 ///         Some((shard, Ok(message))) => (shard, message),
-///         Some((shard, Err(source))) => {
+///         Some((_, Err(source))) => {
 ///             tracing::warn!(?source, "error receiving message");
 ///
 ///             if source.is_fatal() {
@@ -362,7 +367,7 @@ impl<'a> Stream for ShardEventStream<'a> {
 ///         None => break,
 ///     };
 ///
-///     println!("received message on shard {}: {message:?}", shard.id());
+///     tracing::debug!(?event, shard = ?shard.id(), "received event");
 /// }
 /// # Ok(()) }
 /// ```
