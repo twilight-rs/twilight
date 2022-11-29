@@ -459,7 +459,7 @@ impl DerefMut for ShardRef<'_> {
 impl Drop for ShardRef<'_> {
     fn drop(&mut self) {
         if let Some(shard) = self.shard.take() {
-            self.channel.send(shard).unwrap();
+            _ = self.channel.send(shard);
         }
     }
 }
