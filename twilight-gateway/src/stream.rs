@@ -14,7 +14,7 @@
 //! mutable reference to the yielded shard and its item. The yielded shard is
 //! later returned to the stream in its [`Drop`] implementation.
 //!
-//! This is the recommended way to run bots with multiple shards.
+//! This is the recommended way to run multiple shards.
 //!
 //! # Parallelism
 //!
