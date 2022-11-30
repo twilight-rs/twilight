@@ -116,7 +116,11 @@ impl Interaction {
     /// [`member`]: Self::member
     /// [`user`]: Self::user
     pub const fn author_id(&self) -> Option<Id<UserMarker>> {
-        Some(self.author()?.id)
+        if let Some(user) = self.author() {
+            Some(user.id)
+        } else {
+            None
+        }
     }
 
     /// The user that invoked the interaction.
