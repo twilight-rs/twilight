@@ -5,7 +5,7 @@
 //!
 //! [`Shard`]: crate::Shard
 
-use crate::{connection::Connection, message::Message, CommandRatelimiter};
+use crate::{connection::Connection, CloseFrame, CommandRatelimiter, ConnectionStatus};
 use futures_util::{future::FutureExt, stream::Next};
 use std::{
     future::Future,
@@ -13,7 +13,8 @@ use std::{
     task::{Context, Poll},
 };
 use tokio::{
-    sync::mpsc::UnboundedReceiver,
+    sync::mpsc,
+    task::JoinHandle,
     time::{self, Duration, Interval},
 };
 use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
@@ -30,53 +31,73 @@ pub enum NextMessageFutureOutput {
     Message(Option<Result<TungsteniteMessage, TungsteniteError>>),
     /// Heartbeat must now be sent to Discord.
     SendHeartbeat,
+    /// Identify may now be sent to Discord.
+    SendIdentify,
+    /// Close frame has been received from the user to be relayed over the
+    /// Websocket connection.
+    UserClose(CloseFrame<'static>),
     /// Message has been received from the user to be relayed over the Websocket
     /// connection.
-    UserChannelMessage(Message),
+    UserCommand(String),
 }
 
 /// Future to determine the next action when [`Shard::next_message`] is called.
 ///
 /// Polled futures are given a consistent precedence, from first to last polled:
 ///
-/// - [sending a heartbeat to Discord][1];
-/// - [relaying a user's message][2] over the Websocket message;
-/// - [receiving a message][3] from Discord
+/// - [relaying a user's close frame][1] over the Websocket connection;
+/// - [sending a heartbeat to Discord][2];
+/// - [sending an identify to Discord][3];
+/// - [relaying a user's message][4] over the Websocket connection;
+/// - [receiving a message][5] from Discord
 ///
 /// **Be sure** to keep documented precedence in sync with variants in
 /// [`NextMessageFutureOutput`]!
 ///
-/// [1]: NextMessageFutureOutput::SendHeartbeat
-/// [2]: NextMessageFutureOutput::UserChannelMessage
-/// [3]: NextMessageFutureOutput::Message
+/// [1]: NextMessageFutureOutput::UserClose
+/// [2]: NextMessageFutureOutput::SendHeartbeat
+/// [3]: NextMessageFutureOutput::SendIdentify
+/// [4]: NextMessageFutureOutput::UserCommand
+/// [5]: NextMessageFutureOutput::Message
 /// [`Shard::next_message`]: crate::Shard::next_message
 pub struct NextMessageFuture<'a> {
-    /// Future resolving when the user has sent a message over the channel, to
-    /// be relayed over the Websocket connection.
-    channel_receive_future: &'a mut UnboundedReceiver<Message>,
+    /// Receiver of user sent close frames to be relayed over the Websocket
+    /// connection.
+    close_receiver: &'a mut mpsc::Receiver<CloseFrame<'static>>,
+    /// Receiver of user sent commands to be relayed over the Websocket
+    /// connection.
+    command_receiver: &'a mut mpsc::UnboundedReceiver<String>,
+    /// Heartbeat interval, if enadbled.
+    heartbeat_interval: Option<&'a mut Interval>,
+    /// Identify queue background task handle.
+    identify_handle: Option<&'a mut JoinHandle<()>>,
     /// Future resolving when the next Websocket message has been received.
     message_future: Next<'a, Connection>,
     /// Command ratelimiter, if enabled.
-    maybe_ratelimiter: Option<&'a mut CommandRatelimiter>,
-    /// Future resolving when the [`Shard`] must sent a heartbeat.
-    ///
-    /// [`Shard`]: crate::Shard
-    tick_heartbeat_future: Option<&'a mut Interval>,
+    ratelimiter: Option<&'a mut CommandRatelimiter>,
+    /// Shard's connection status.
+    status: &'a ConnectionStatus,
 }
 
 impl<'a> NextMessageFuture<'a> {
     /// Initialize a new series of futures determining the next action to take.
     pub fn new(
-        rx: &'a mut UnboundedReceiver<Message>,
+        close_receiver: &'a mut mpsc::Receiver<CloseFrame<'static>>,
+        command_receiver: &'a mut mpsc::UnboundedReceiver<String>,
+        status: &'a ConnectionStatus,
+        identify_handle: Option<&'a mut JoinHandle<()>>,
         message_future: Next<'a, Connection>,
-        maybe_ratelimiter: Option<&'a mut CommandRatelimiter>,
-        maybe_heartbeat_interval: Option<&'a mut Interval>,
+        heartbeat_interval: Option<&'a mut Interval>,
+        ratelimiter: Option<&'a mut CommandRatelimiter>,
     ) -> Self {
         Self {
-            channel_receive_future: rx,
+            close_receiver,
+            command_receiver,
+            heartbeat_interval,
+            identify_handle,
             message_future,
-            maybe_ratelimiter,
-            tick_heartbeat_future: maybe_heartbeat_interval,
+            ratelimiter,
+            status,
         }
     }
 }
@@ -87,24 +108,41 @@ impl Future for NextMessageFuture<'_> {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let mut this = self.as_mut();
 
-        if let Some(heartbeat_interval) = &mut this.tick_heartbeat_future {
-            if heartbeat_interval.poll_tick(cx).is_ready() {
-                return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
+        if !(this.status.is_disconnected() || this.status.is_fatally_closed()) {
+            if let Poll::Ready(frame) = this.close_receiver.poll_recv(cx) {
+                return Poll::Ready(NextMessageFutureOutput::UserClose(
+                    frame.expect("shard owns channel"),
+                ));
             }
         }
 
-        let ratelimited = this
-            .maybe_ratelimiter
+        if this
+            .heartbeat_interval
             .as_mut()
-            .map_or(false, |ratelimiter| {
-                ratelimiter.poll_available(cx).is_pending()
-            });
+            .map_or(false, |heartbeater| heartbeater.poll_tick(cx).is_ready())
+        {
+            return Poll::Ready(NextMessageFutureOutput::SendHeartbeat);
+        }
 
-        if !ratelimited {
-            if let Poll::Ready(maybe_message) = this.channel_receive_future.poll_recv(cx) {
-                let message = maybe_message.expect("shard owns channel");
+        let ratelimited = this.ratelimiter.as_mut().map_or(false, |ratelimiter| {
+            ratelimiter.poll_available(cx).is_pending()
+        });
 
-                return Poll::Ready(NextMessageFutureOutput::UserChannelMessage(message));
+        // Must poll to register waker.
+        if !ratelimited
+            && this
+                .identify_handle
+                .as_mut()
+                .map_or(false, |handle| handle.poll_unpin(cx).is_ready())
+        {
+            return Poll::Ready(NextMessageFutureOutput::SendIdentify);
+        }
+
+        if !ratelimited && this.status.is_identified() {
+            if let Poll::Ready(message) = this.command_receiver.poll_recv(cx) {
+                return Poll::Ready(NextMessageFutureOutput::UserCommand(
+                    message.expect("shard owns channel"),
+                ));
             }
         }
 
