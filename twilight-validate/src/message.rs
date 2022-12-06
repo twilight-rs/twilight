@@ -199,7 +199,7 @@ pub enum MessageValidationErrorType {
 ///
 /// [`AttachmentDescriptionTooLarge`]: MessageValidationErrorType::AttachmentDescriptionTooLarge
 /// [`AttachmentFilename`]: MessageValidationErrorType::AttachmentFilename
-pub fn attachment(attachment: &Attachment) -> Result<(), MessageValidationError> {
+pub fn attachment(attachment: &Attachment<'_>) -> Result<(), MessageValidationError> {
     attachment_filename(&attachment.filename)?;
 
     if let Some(description) = &attachment.description {

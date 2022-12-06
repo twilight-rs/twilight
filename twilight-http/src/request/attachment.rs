@@ -6,7 +6,7 @@ use twilight_model::{
 };
 
 pub struct AttachmentManager<'a> {
-    files: Vec<&'a Attachment>,
+    files: Vec<&'a Attachment<'a>>,
     ids: Vec<Id<AttachmentMarker>>,
 }
 
@@ -54,7 +54,7 @@ impl<'a> AttachmentManager<'a> {
     }
 
     #[must_use = "has no effect if not built into a Form"]
-    pub fn set_files(mut self, files: Vec<&'a Attachment>) -> Self {
+    pub fn set_files(mut self, files: Vec<&'a Attachment<'a>>) -> Self {
         self.files = files;
 
         self
