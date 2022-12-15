@@ -359,6 +359,12 @@ pub enum Route<'a> {
         /// ID of the guild.
         guild_id: u64,
     },
+    /// Returns a list of application role connection metadata objects for the
+    /// given application.
+    GetApplicationRoleConnectionMetadataRecords {
+        /// The ID of the owner application.
+        application_id: u64,
+    },
     /// Route information to get a paginated list of audit logs in a guild.
     GetAuditLogs {
         /// The type of action to get audit logs for.
@@ -861,6 +867,12 @@ pub enum Route<'a> {
         /// Query to search by.
         query: &'a str,
     },
+    /// Updates and returns a list of application role connection metadata
+    /// objects for the given application.
+    SetApplicationRoleConnectionMetadataRecords {
+        /// The ID of the owner application.
+        application_id: u64,
+    },
     /// Route information to set global commands.
     SetGlobalCommands {
         /// The ID of the owner application.
@@ -1130,6 +1142,7 @@ impl<'a> Route<'a> {
             | Self::RemoveThreadMember { .. }
             | Self::UnpinMessage { .. } => Method::Delete,
             Self::GetActiveThreads { .. }
+            | Self::GetApplicationRoleConnectionMetadataRecords { .. }
             | Self::GetAuditLogs { .. }
             | Self::GetAutoModerationRule { .. }
             | Self::GetBan { .. }
@@ -1259,6 +1272,7 @@ impl<'a> Route<'a> {
             | Self::CreateReaction { .. }
             | Self::JoinThread { .. }
             | Self::PinMessage { .. }
+            | Self::SetApplicationRoleConnectionMetadataRecords { .. }
             | Self::SetGlobalCommands { .. }
             | Self::SetGuildCommands { .. }
             | Self::SyncTemplate { .. }
@@ -1328,6 +1342,10 @@ impl<'a> Route<'a> {
             | Self::GetGlobalCommands { application_id, .. }
             | Self::SetGlobalCommands { application_id } => {
                 Path::ApplicationCommand(application_id)
+            }
+            Self::GetApplicationRoleConnectionMetadataRecords { application_id }
+            | Self::SetApplicationRoleConnectionMetadataRecords { application_id } => {
+                Path::ApplicationRoleConnectionsMetadata(application_id)
             }
             Self::CreateGuild => Path::Guilds,
             Self::CreateGuildFromTemplate { template_code, .. }
@@ -1742,6 +1760,12 @@ impl Display for Route<'_> {
                 }
 
                 Ok(())
+            }
+            Route::GetApplicationRoleConnectionMetadataRecords { application_id }
+            | Route::SetApplicationRoleConnectionMetadataRecords { application_id } => {
+                f.write_str("applications/")?;
+                Display::fmt(application_id, f)?;
+                f.write_str("/role-connections/metadata")
             }
             Route::CreateGuild => f.write_str("guilds"),
             Route::CreateGuildCommand {

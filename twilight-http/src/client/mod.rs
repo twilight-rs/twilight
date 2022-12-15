@@ -1,7 +1,9 @@
 mod builder;
 mod connector;
 mod interaction;
+mod role_connections;
 
+use self::role_connections::RoleConnectionsClient;
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
 #[allow(deprecated)]
@@ -274,6 +276,14 @@ impl Client {
         application_id: Id<ApplicationMarker>,
     ) -> InteractionClient<'_> {
         InteractionClient::new(self, application_id)
+    }
+
+    /// Create an interface for using application role connections.
+    pub const fn role_connections(
+        &self,
+        application_id: Id<ApplicationMarker>,
+    ) -> RoleConnectionsClient<'_> {
+        RoleConnectionsClient::new(self, application_id)
     }
 
     /// Get an immutable reference to the default [`AllowedMentions`] for sent

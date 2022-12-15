@@ -18,6 +18,7 @@ mod private {
                 CreateFollowup, CreateResponse, DeleteFollowup, DeleteResponse, GetFollowup,
                 GetResponse, UpdateFollowup, UpdateResponse,
             },
+            role_connections::{GetMetadata, SetMetadata},
         },
         channel::{
             invite::{CreateInvite, DeleteInvite, GetChannelInvites, GetInvite},
@@ -206,6 +207,7 @@ mod private {
     impl Sealed for GetJoinedPrivateArchivedThreads<'_> {}
     impl Sealed for GetMember<'_> {}
     impl Sealed for GetMessage<'_> {}
+    impl Sealed for GetMetadata<'_> {}
     impl Sealed for GetNitroStickerPacks<'_> {}
     impl Sealed for GetPins<'_> {}
     impl Sealed for GetPrivateArchivedThreads<'_> {}
@@ -232,6 +234,7 @@ mod private {
     impl Sealed for SearchGuildMembers<'_> {}
     impl Sealed for SetGlobalCommands<'_> {}
     impl Sealed for SetGuildCommands<'_> {}
+    impl Sealed for SetMetadata<'_> {}
     impl Sealed for SyncTemplate<'_> {}
     impl Sealed for UpdateAutoModerationRule<'_> {}
     impl Sealed for UpdateChannel<'_> {}

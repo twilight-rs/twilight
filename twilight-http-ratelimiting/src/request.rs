@@ -123,6 +123,8 @@ pub enum Path {
     ApplicationGuildCommand(u64),
     /// Operating on a specific command in a guild.
     ApplicationGuildCommandId(u64),
+    /// Operating on application role connections metadata.
+    ApplicationRoleConnectionsMetadata(u64),
     /// Operating on a channel.
     ChannelsId(u64),
     /// Operating on a channel's followers.
@@ -333,6 +335,9 @@ impl FromStr for Path {
             ["applications", id, "guilds", _, "commands", _]
             | ["applications", id, "guilds", _, "commands", _, "permissions"] => {
                 ApplicationGuildCommandId(parse_id(id)?)
+            }
+            ["applications", id, "role-connections", "metadata"] => {
+                ApplicationRoleConnectionsMetadata(parse_id(id)?)
             }
             ["channels", id] => ChannelsId(parse_id(id)?),
             ["channels", id, "followers"] => ChannelsIdFollowers(parse_id(id)?),
