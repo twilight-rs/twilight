@@ -430,7 +430,7 @@ impl Shard {
     /// # Errors
     ///
     /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
-    /// message could not be decompressed.
+    /// message payload failed to decompress.
     ///
     /// Returns a [`ReceiveMessageErrorType::Deserializing`] error type if the
     /// message payload failed to deserialize.
@@ -467,7 +467,7 @@ impl Shard {
     /// # Errors
     ///
     /// Returns a [`ReceiveMessageErrorType::Compression`] error type if the
-    /// message could not be decompressed.
+    /// message payload failed to decompress.
     ///
     /// Returns a [`ReceiveMessageErrorType::FatallyClosed`] error type if the
     /// shard was closed due to a fatal error, such as invalid authorization.
