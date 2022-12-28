@@ -204,7 +204,7 @@ impl Inflater {
             let total_kib_saved = (self.produced() - self.processed()) / 1024;
 
             tracing::trace!(
-                bytes.compressed = processed,
+                bytes.compressed = message.len(),
                 bytes.decompressed = decompressed.len(),
                 total_percentage_saved,
                 "{total_kib_saved} KiB saved in total",
