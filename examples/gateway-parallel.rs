@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let tasks = thread::available_parallelism()?.get();
 
     // Split shards into a vec of `tasks` vecs of shards.
-    let init = iter::repeat_with(|| Vec::new())
+    let init = iter::repeat_with(Vec::new)
         .take(tasks)
         .collect::<Vec<Vec<_>>>();
     let shards = stream::create_recommended(&client, config_callback)
@@ -73,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
     tx.send(true)?;
 
     // Await all spawned tasks.
-    while let Some(_) = set.join_next().await {}
+    while set.join_next().await.is_some() {}
 
     Ok(())
 }
