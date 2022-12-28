@@ -361,7 +361,7 @@ pub fn user(id: Id<UserMarker>) -> User {
 pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
     Guild {
         afk_channel_id: None,
-        afk_timeout: AfkTimeout::FifteenMinutes,
+        afk_timeout: AfkTimeout::FIFTEEN_MINUTES,
         application_id: None,
         approximate_member_count: None,
         approximate_presence_count: None,
