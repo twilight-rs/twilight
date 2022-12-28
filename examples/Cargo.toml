@@ -34,6 +34,10 @@ name = "gateway-metrics"
 path = "gateway-metrics.rs"
 
 [[example]]
+name = "gateway-parallel"
+path = "gateway-parallel.rs"
+
+[[example]]
 name = "gateway-reshard"
 path = "gateway-reshard.rs"
 
