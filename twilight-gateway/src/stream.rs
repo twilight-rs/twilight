@@ -611,7 +611,6 @@ pub fn create_range<F: Fn(ShardId) -> Config>(
 ///
 /// [`GetGatewayAuthed`]: twilight_http::request::GetGatewayAuthed
 #[cfg(feature = "twilight-http")]
-#[track_caller]
 pub async fn create_recommended<F: Fn(ShardId) -> Config>(
     client: &Client,
     per_shard_config: F,
