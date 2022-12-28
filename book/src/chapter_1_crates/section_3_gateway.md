@@ -10,7 +10,6 @@ checks.
 
 ## Features
 
-
 `twilight-gateway` includes a number of features for things ranging from
 payload deserialization to TLS features.
 
@@ -44,21 +43,29 @@ This is disabled by default.
 
 ### TLS
 
-`twilight-gateway` has features to enable [`async-tungstenite`] and
-[`twilight-http`]'s TLS features. These features are mutually exclusive. `rustls`
-is enabled by default.
+`twilight-gateway` has features to enable [`tokio-tungstenite`]'s TLS features.
+These features are mutually exclusive. `rustls-native-roots` is enabled by
+default.
 
 #### Native
 
-The `native` feature enables [`async-tungstenite`]'s `tokio-native-tls` feature
-as well as [`twilight-http`]'s `native` feature which uses `hyper-tls`.
+The `native` feature enables [`tokio-tungstenite`]'s `native-tls` feature.
 
 #### RusTLS
 
-The `rustls` feature enables [`async-tungstenite`]'s `tokio-rustls` feature and
-[`twilight-http`]'s `rustls` feature, which use [RusTLS] as the TLS backend.
+RusTLS allows specifying from where certificate roots are retrieved from.
+
+##### Native roots
+
+The `rustls-native-roots` feature enables [`tokio-tungstenite`]'s
+`rustls-tls-native-roots` feature.
 
 This is enabled by default.
+
+##### Web PKI roots
+
+The `rustls-webpki-roots` feature enables [`tokio-tungstenite`]'s
+`rustls-tls-webpki-roots` feature.
 
 ### Zlib
 

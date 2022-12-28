@@ -256,7 +256,7 @@ mod tests {
     const OUTPUT: &str = r#"{"t":null,"s":null,"op":10,"d":{"heartbeat_interval":41250,"_trace":["[\"gateway-prd-main-858d\",{\"micros\":0.0}]"]}}"#;
 
     #[test]
-    fn decompress_fast() {
+    fn decompress_single_segment() {
         let mut inflator = Inflater::new();
         assert!(inflator.compressed.is_empty());
         assert!(inflator.buffer.is_empty());
@@ -267,7 +267,7 @@ mod tests {
     }
 
     #[test]
-    fn decompress_slow() {
+    fn decompress_split_message() {
         let mut inflator = Inflater::new();
         assert!(inflator.compressed.is_empty());
         assert!(inflator.buffer.is_empty());
