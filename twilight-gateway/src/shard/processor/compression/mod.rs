@@ -119,7 +119,7 @@ impl Compression {
     /// message failed.
     #[cfg_attr(
         not(any(feature = "zlib-stock", feature = "zlib-simd")),
-        allow(clippy::unnecessary_wraps, clippy::unused_self)
+        allow(clippy::unused_self)
     )]
     pub fn message_mut(&mut self) -> Result<Option<&mut [u8]>, ReceivingEventError> {
         #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]

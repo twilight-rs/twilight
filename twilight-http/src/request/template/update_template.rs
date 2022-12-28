@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
+    guild::template::Template,
     id::{marker::GuildMarker, Id},
-    template::Template,
 };
 use twilight_validate::request::{
     template_description as validate_template_description, template_name as validate_template_name,
@@ -84,9 +85,18 @@ impl<'a> UpdateTemplate<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Template> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateTemplate<'_> {
+    type Output = Result<Response<Template>, Error>;
+
+    type IntoFuture = ResponseFuture<Template>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -97,7 +107,7 @@ impl<'a> UpdateTemplate<'a> {
 }
 
 impl TryIntoRequest for UpdateTemplate<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateTemplate {
             guild_id: self.guild_id.get(),
             template_code: self.template_code,

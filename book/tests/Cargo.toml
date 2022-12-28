@@ -1,9 +1,8 @@
 [package]
+authors.workspace = true
+edition.workspace = true
 name = "book"
-version = "0.1.0"
-authors = ["Twilight Contributors"]
-edition = "2018"
-build = "build.rs"
+version = "0.0.0"
 
 [dependencies]
 futures = { version = "0.3", default-features = false }

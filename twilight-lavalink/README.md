@@ -76,7 +76,7 @@ async fn main() -> anyhow::Result<()> {
     let shard_count = 1u64;
 
     let http = HttpClient::new(token.clone());
-    let user_id = http.current_user().exec().await?.model().await?.id;
+    let user_id = http.current_user().await?.model().await?.id;
 
     let lavalink = Lavalink::new(user_id, shard_count);
     lavalink.add(lavalink_host, lavalink_auth).await?;
@@ -114,4 +114,4 @@ There is also an example of a basic bot located in the [root of the
 [license link]: https://github.com/twilight-rs/twilight/blob/main/LICENSE.md
 [node]: Node
 [process]: Lavalink::process
-[rust badge]: https://img.shields.io/badge/rust-1.60+-93450a.svg?style=for-the-badge&logo=rust
+[rust badge]: https://img.shields.io/badge/rust-1.64+-93450a.svg?style=for-the-badge&logo=rust

@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{attachment::AttachmentManager, Request, TryIntoRequest},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     http::interaction::InteractionResponse,
     id::{marker::InteractionMarker, Id},
@@ -37,9 +38,18 @@ impl<'a> CreateResponse<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for CreateResponse<'_> {
+    type Output = Result<Response<EmptyBody>, Error>;
+
+    type IntoFuture = ResponseFuture<EmptyBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -50,7 +60,7 @@ impl<'a> CreateResponse<'a> {
 }
 
 impl TryIntoRequest for CreateResponse<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::InteractionCallback {
             interaction_id: self.interaction_id.get(),
             interaction_token: self.interaction_token,
@@ -68,7 +78,7 @@ impl TryIntoRequest for CreateResponse<'_> {
             .as_ref()
             .and_then(|data| data.attachments.as_ref())
         {
-            let fields = crate::json::to_vec(&self.response).map_err(HttpError::json)?;
+            let fields = crate::json::to_vec(&self.response).map_err(Error::json)?;
 
             let form = AttachmentManager::new()
                 .set_files(attachments.iter().collect())

@@ -23,7 +23,7 @@
 //! use twilight_http::Client;
 //!
 //! let client = Client::new(env::var("DISCORD_TOKEN")?);
-//! let response = client.user(user_id).exec().await?;
+//! let response = client.user(user_id).await?;
 //!
 //! if !response.status().is_success() {
 //!     println!("failed to get user");
@@ -170,7 +170,7 @@ pub enum DeserializeBodyErrorType {
 /// use twilight_http::Client;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let response = client.user(user_id).exec().await?;
+/// let response = client.user(user_id).await?;
 /// println!("status code: {}", response.status());
 ///
 /// let user = response.model().await?;
@@ -226,7 +226,7 @@ impl<T> Response<T> {
     /// use twilight_http::Client;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let response = client.user(user_id).exec().await?;
+    /// let response = client.user(user_id).await?;
     /// let bytes = response.bytes().await?;
     ///
     /// println!("size of body: {}", bytes.len());
@@ -285,7 +285,7 @@ impl<T> Response<T> {
     /// use twilight_http::Client;
     ///
     /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-    /// let response = client.current_user().exec().await?;
+    /// let response = client.current_user().await?;
     /// let text = response.text().await?;
     ///
     /// println!("body: {text}");
@@ -449,7 +449,6 @@ impl Response<MemberListBody> {
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
 /// let response = client.create_message(channel_id)
 //      .content("test")?
-///     .exec()
 ///     .await?;
 /// let mut headers = response.headers();
 ///
@@ -501,7 +500,7 @@ impl<'a> Iterator for HeaderIter<'a> {
 /// use twilight_http::Client;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let response = client.message(channel_id, message_id).exec().await?;
+/// let response = client.message(channel_id, message_id).await?;
 /// let bytes = response.bytes().await?;
 ///
 /// println!("bytes of the body: {bytes:?}");
@@ -547,12 +546,7 @@ impl Future for BytesFuture {
 /// use twilight_http::Client;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let emoji = client
-///     .emoji(guild_id, emoji_id)
-///     .exec()
-///     .await?
-///     .model()
-///     .await?;
+/// let emoji = client.emoji(guild_id, emoji_id).await?.model().await?;
 ///
 /// println!("emoji name: {}", emoji.name);
 /// # Ok(()) }
@@ -617,7 +611,6 @@ impl<T: DeserializeOwned + Unpin> Future for ModelFuture<T> {
 ///
 /// let member = client
 ///     .guild_member(guild_id, user_id)
-///     .exec()
 ///     .await?
 ///     .model()
 ///     .await?;
@@ -656,10 +649,7 @@ impl Future for MemberFuture {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match Pin::new(&mut self.future).poll(cx) {
             Poll::Ready(Ok(mut bytes)) => {
-                let mut deserializer = match json_deserializer(&mut bytes) {
-                    Ok(deserializer) => deserializer,
-                    Err(source) => return Poll::Ready(Err(source)),
-                };
+                let mut deserializer = json_deserializer(&mut bytes)?;
                 let member_deserializer = MemberDeserializer::new(self.guild_id);
 
                 let result = member_deserializer
@@ -694,7 +684,6 @@ impl Future for MemberFuture {
 /// let members = client
 ///     .guild_members(guild_id)
 ///     .limit(100)?
-///     .exec()
 ///     .await?
 ///     .models()
 ///     .await?;
@@ -732,10 +721,7 @@ impl Future for MemberListFuture {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         match Pin::new(&mut self.0.future).poll(cx) {
             Poll::Ready(Ok(mut bytes)) => {
-                let mut deserializer = match json_deserializer(&mut bytes) {
-                    Ok(deserializer) => deserializer,
-                    Err(source) => return Poll::Ready(Err(source)),
-                };
+                let mut deserializer = json_deserializer(&mut bytes)?;
                 let member_list_deserializer = MemberListDeserializer::new(self.0.guild_id);
 
                 let result = member_list_deserializer
@@ -772,7 +758,7 @@ impl Future for MemberListFuture {
 /// use twilight_http::Client;
 ///
 /// let client = Client::new(env::var("DISCORD_TOKEN")?);
-/// let response = client.message(channel_id, message_id).exec().await?;
+/// let response = client.message(channel_id, message_id).await?;
 /// let text = response.text().await?;
 ///
 /// println!("body: {text}");
@@ -894,7 +880,7 @@ mod tests {
     async fn test_decompression() -> Result<(), Box<dyn Error + Send + Sync>> {
         use super::decompress;
         use hyper::Body;
-        use twilight_model::invite::Invite;
+        use twilight_model::guild::invite::Invite;
 
         const COMPRESSED: [u8; 685] = [
             3, 160, 2, 0, 228, 178, 169, 189, 190, 59, 251, 86, 18, 36, 232, 63, 98, 235, 98, 82,

@@ -32,10 +32,10 @@ mod private {
                 CreateStageInstance, DeleteStageInstance, GetStageInstance, UpdateStageInstance,
             },
             thread::{
-                AddThreadMember, CreateForumThread, CreateThread, CreateThreadFromMessage,
-                GetJoinedPrivateArchivedThreads, GetPrivateArchivedThreads,
-                GetPublicArchivedThreads, GetThreadMember, GetThreadMembers, JoinThread,
-                LeaveThread, RemoveThreadMember, UpdateThread,
+                create_forum_thread::CreateForumThreadMessage, AddThreadMember, CreateThread,
+                CreateThreadFromMessage, GetJoinedPrivateArchivedThreads,
+                GetPrivateArchivedThreads, GetPublicArchivedThreads, GetThreadMember,
+                GetThreadMembers, JoinThread, LeaveThread, RemoveThreadMember, UpdateThread,
             },
             webhook::{
                 CreateWebhook, DeleteWebhook, DeleteWebhookMessage, ExecuteWebhook,
@@ -72,10 +72,9 @@ mod private {
             UpdateGuildWidget,
         },
         scheduled_event::{
-            CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
-            CreateGuildStageInstanceScheduledEvent, CreateGuildVoiceScheduledEvent,
-            DeleteGuildScheduledEvent, GetGuildScheduledEvent, GetGuildScheduledEventUsers,
-            GetGuildScheduledEvents, UpdateGuildScheduledEvent,
+            CreateGuildExternalScheduledEvent, CreateGuildStageInstanceScheduledEvent,
+            CreateGuildVoiceScheduledEvent, DeleteGuildScheduledEvent, GetGuildScheduledEvent,
+            GetGuildScheduledEventUsers, GetGuildScheduledEvents, UpdateGuildScheduledEvent,
         },
         sticker::{GetNitroStickerPacks, GetSticker},
         template::{
@@ -99,7 +98,7 @@ mod private {
     impl Sealed for CreateBan<'_> {}
     impl Sealed for CreateEmoji<'_> {}
     impl Sealed for CreateFollowup<'_> {}
-    impl Sealed for CreateForumThread<'_> {}
+    impl Sealed for CreateForumThreadMessage<'_> {}
     impl Sealed for CreateGlobalChatInputCommand<'_> {}
     impl Sealed for CreateGlobalCommand<'_> {}
     impl Sealed for CreateGlobalMessageCommand<'_> {}
@@ -112,7 +111,6 @@ mod private {
     impl Sealed for CreateGuildFromTemplate<'_> {}
     impl Sealed for CreateGuildMessageCommand<'_> {}
     impl Sealed for CreateGuildPrune<'_> {}
-    impl Sealed for CreateGuildScheduledEvent<'_> {}
     impl Sealed for CreateGuildStageInstanceScheduledEvent<'_> {}
     impl Sealed for CreateGuildSticker<'_> {}
     impl Sealed for CreateGuildUserCommand<'_> {}

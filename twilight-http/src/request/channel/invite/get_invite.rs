@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
-use twilight_model::invite::Invite;
+use std::future::IntoFuture;
+use twilight_model::guild::invite::Invite;
 
 struct GetInviteFields {
     with_counts: bool,
@@ -27,7 +28,7 @@ struct GetInviteFields {
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = Client::new("my token".to_owned());
 ///
-/// let invite = client.invite("code").with_counts().exec().await?;
+/// let invite = client.invite("code").with_counts().await?;
 /// # Ok(()) }
 /// ```
 ///
@@ -67,9 +68,18 @@ impl<'a> GetInvite<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Invite> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetInvite<'_> {
+    type Output = Result<Response<Invite>, Error>;
+
+    type IntoFuture = ResponseFuture<Invite>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

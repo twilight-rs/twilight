@@ -121,7 +121,6 @@ impl ClusterBuilder {
         let info = http
             .gateway()
             .authed()
-            .exec()
             .await
             .map_err(|source| ClusterStartError {
                 kind: ClusterStartErrorType::AutoSharding,
@@ -189,14 +188,13 @@ impl ClusterBuilder {
     /// ```no_run
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env::{self, consts::OS};
-    /// use twilight_gateway::{Intents, Cluster};
+    /// use twilight_gateway::{Cluster, Intents};
     /// use twilight_model::gateway::payload::outgoing::identify::IdentifyProperties;
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let properties = IdentifyProperties::new("twilight.rs", "twilight.rs", OS);
     ///
-    /// let builder = Cluster::builder(token, Intents::empty())
-    ///     .identify_properties(properties);
+    /// let builder = Cluster::builder(token, Intents::empty()).identify_properties(properties);
     /// # Ok(()) }
     /// ```
     #[allow(clippy::missing_const_for_fn)]
@@ -273,8 +271,11 @@ impl ClusterBuilder {
     /// Configure a cluster to manage shards 0-9 out of 20 shards total:
     ///
     /// ```no_run
-    /// use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
     /// use std::env;
+    /// use twilight_gateway::{
+    ///     cluster::{Cluster, ShardScheme},
+    ///     Intents,
+    /// };
     ///
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let token = env::var("DISCORD_TOKEN")?;

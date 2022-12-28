@@ -431,7 +431,7 @@ impl From<DispatchEvent> for Event {
 impl From<GatewayEvent> for Event {
     fn from(event: GatewayEvent) -> Self {
         match event {
-            GatewayEvent::Dispatch(_, e) => Self::from(*e),
+            GatewayEvent::Dispatch(_, e) => Self::from(e),
             GatewayEvent::Heartbeat(interval) => Self::GatewayHeartbeat(interval),
             GatewayEvent::HeartbeatAck => Self::GatewayHeartbeatAck,
             GatewayEvent::Hello(interval) => Self::GatewayHello(interval),

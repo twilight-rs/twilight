@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     guild::GuildPrune,
     id::{
@@ -69,9 +70,18 @@ impl<'a> GetGuildPruneCount<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<GuildPrune> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGuildPruneCount<'_> {
+    type Output = Result<Response<GuildPrune>, Error>;
+
+    type IntoFuture = ResponseFuture<GuildPrune>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -82,7 +92,7 @@ impl<'a> GetGuildPruneCount<'a> {
 }
 
 impl TryIntoRequest for GetGuildPruneCount<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetGuildPruneCount {
             days: self.fields.days,
             guild_id: self.guild_id.get(),
@@ -100,7 +110,7 @@ mod tests {
     #[test]
     fn days() {
         fn days_valid(days: u16) -> bool {
-            let client = Client::new("".to_owned());
+            let client = Client::new(String::new());
             let count = GetGuildPruneCount::new(&client, Id::new(1));
             let days_result = count.days(days);
             days_result.is_ok()

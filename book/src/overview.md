@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     // Specify intents requesting events about things like new and updated
     // messages in a guild and direct messages.
-    let intents = Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES;
+    let intents = Intents::GUILD_MESSAGES | Intents::DIRECT_MESSAGES | Intents::MESSAGE_CONTENT;
 
     let (cluster, mut events) = Cluster::builder(token.clone(), intents)
         .shard_scheme(scheme)
@@ -110,7 +110,7 @@ async fn handle_event(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     match event {
         Event::MessageCreate(msg) if msg.content == "!ping" => {
-            http.create_message(msg.channel_id).content("Pong!")?.exec().await?;
+            http.create_message(msg.channel_id).content("Pong!")?.await?;
         }
         Event::ShardConnected(_) => {
             println!("Connected on shard {}", shard_id);

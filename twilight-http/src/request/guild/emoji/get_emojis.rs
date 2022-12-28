@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     guild::Emoji,
     id::{marker::GuildMarker, Id},
@@ -26,7 +27,7 @@ use twilight_model::{
 ///
 /// let guild_id = Id::new(100);
 ///
-/// client.emojis(guild_id).exec().await?;
+/// client.emojis(guild_id).await?;
 /// # Ok(()) }
 /// ```
 #[must_use = "requests must be configured and executed"]
@@ -41,9 +42,18 @@ impl<'a> GetEmojis<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<Emoji>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetEmojis<'_> {
+    type Output = Result<Response<ListBody<Emoji>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<Emoji>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

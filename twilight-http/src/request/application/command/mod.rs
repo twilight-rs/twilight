@@ -63,7 +63,7 @@ mod tests {
     use super::CommandBorrowed;
     use std::collections::HashMap;
     use twilight_model::{
-        application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
+        application::command::{Command, CommandType},
         guild::Permissions,
         id::Id,
     };
@@ -92,13 +92,7 @@ mod tests {
                 "en-US".to_owned(),
                 "command name".to_owned(),
             )])),
-            options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
-                description: "command description".to_owned(),
-                description_localizations: None,
-                name: "command name".to_owned(),
-                name_localizations: None,
-                required: true,
-            })]),
+            options: Vec::new(),
             version: Id::new(1),
         };
 

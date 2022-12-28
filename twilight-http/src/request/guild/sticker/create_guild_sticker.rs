@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{multipart::Form, AuditLogReason, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     channel::message::Sticker,
     id::{marker::GuildMarker, Id},
@@ -45,7 +46,6 @@ struct CreateGuildStickerFields<'a> {
 ///         &"sticker,tags",
 ///         &[23, 23, 23, 23],
 ///     )?
-///     .exec()
 ///     .await?
 ///     .model()
 ///     .await?;
@@ -89,15 +89,9 @@ impl<'a> CreateGuildSticker<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Sticker> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -108,6 +102,21 @@ impl<'a> AuditLogReason<'a> for CreateGuildSticker<'a> {
         self.reason.replace(reason);
 
         Ok(self)
+    }
+}
+
+impl IntoFuture for CreateGuildSticker<'_> {
+    type Output = Result<Response<Sticker>, Error>;
+
+    type IntoFuture = ResponseFuture<Sticker>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 

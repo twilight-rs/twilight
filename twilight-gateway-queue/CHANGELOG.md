@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+### Refactor
+
+[**breaking**] drop TLS features ([#1842] - [@vilgotf]). `LargeBotQueue`
+requires a `Client` from twilight-http, meaning that users must also depend on
+twilight-http to use it. TLS requirements should therefore only be specified in
+twilight-http, with twilight-gateway-queue inheriting said requirements.
+
+[#1842]: https://github.com/twilight-rs/twilight/issues/1842
+[#1897]: https://github.com/twilight-rs/twilight/issues/1897
+
 ## [0.13.1] - 2022-09-11
 
 ### Documentation

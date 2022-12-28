@@ -231,9 +231,9 @@ impl Cluster {
     /// Create a cluster, receiving a stream of events:
     ///
     /// ```no_run
-    /// use twilight_gateway::{Cluster, EventTypeFlags, Event, Intents};
     /// use futures::StreamExt;
     /// use std::env;
+    /// use twilight_gateway::{Cluster, Event, EventTypeFlags, Intents};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -241,10 +241,11 @@ impl Cluster {
     ///     | EventTypeFlags::MESSAGE_DELETE
     ///     | EventTypeFlags::MESSAGE_UPDATE;
     ///
-    /// let (cluster, mut events) = Cluster::builder(env::var("DISCORD_TOKEN")?, Intents::GUILD_MESSAGES)
-    ///     .event_types(types)
-    ///     .build()
-    ///     .await?;
+    /// let (cluster, mut events) =
+    ///     Cluster::builder(env::var("DISCORD_TOKEN")?, Intents::GUILD_MESSAGES)
+    ///         .event_types(types)
+    ///         .build()
+    ///         .await?;
     /// cluster.up().await;
     ///
     /// while let Some((shard_id, event)) = events.next().await {
@@ -253,7 +254,7 @@ impl Cluster {
     ///         Event::MessageDelete(_) => println!("Shard {shard_id} got a deleted message"),
     ///         Event::MessageUpdate(_) => println!("Shard {shard_id} got an updated message"),
     ///         // No other events will come in through the stream.
-    ///         _ => {},
+    ///         _ => {}
     ///     }
     /// }
     /// # Ok(()) }
@@ -327,9 +328,9 @@ impl Cluster {
     /// created, deleted, or updated:
     ///
     /// ```no_run
-    /// use twilight_gateway::{Cluster, EventTypeFlags, Event, Intents};
     /// use futures::StreamExt;
     /// use std::env;
+    /// use twilight_gateway::{Cluster, Event, EventTypeFlags, Intents};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -350,7 +351,7 @@ impl Cluster {
     ///         Event::MessageDelete(_) => println!("Shard {shard_id} got a deleted message"),
     ///         Event::MessageUpdate(_) => println!("Shard {shard_id} got an updated message"),
     ///         // No other events will come in through the stream.
-    ///         _ => {},
+    ///         _ => {}
     ///     }
     /// }
     /// # Ok(()) }
@@ -372,8 +373,11 @@ impl Cluster {
     /// Bring up a cluster, starting shards all 10 shards that a bot uses:
     ///
     /// ```no_run
-    /// use twilight_gateway::{cluster::{Cluster, ShardScheme}, Intents};
     /// use std::env;
+    /// use twilight_gateway::{
+    ///     cluster::{Cluster, ShardScheme},
+    ///     Intents,
+    /// };
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -435,8 +439,8 @@ impl Cluster {
     /// After waiting a minute, print the ID, latency, and stage of each shard:
     ///
     /// ```no_run
-    /// use twilight_gateway::{Cluster, Intents};
     /// use std::{env, time::Duration};
+    /// use twilight_gateway::{Cluster, Intents};
     ///
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -472,11 +476,9 @@ impl Cluster {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::env;
     /// use twilight_gateway::{cluster::Cluster, Intents};
-    /// use twilight_model::{
-    ///     gateway::{
-    ///         payload::outgoing::UpdatePresence,
-    ///         presence::{Activity, ActivityType, MinimalActivity, Status},
-    ///     },
+    /// use twilight_model::gateway::{
+    ///     payload::outgoing::UpdatePresence,
+    ///     presence::{Activity, ActivityType, MinimalActivity, Status},
     /// };
     ///
     /// let intents = Intents::GUILD_VOICE_STATES;
@@ -494,12 +496,7 @@ impl Cluster {
     ///     name: "testing".to_owned(),
     ///     url: None,
     /// });
-    /// let request = UpdatePresence::new(
-    ///     Vec::from([activity]),
-    ///     false,
-    ///     None,
-    ///     Status::Online,
-    /// )?;
+    /// let request = UpdatePresence::new(Vec::from([activity]), false, None, Status::Online)?;
     ///
     /// // Send the request over the shard.
     /// cluster.command(2, &request).await?;

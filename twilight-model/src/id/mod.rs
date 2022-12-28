@@ -43,10 +43,6 @@
 
 pub mod marker;
 
-mod r#type;
-
-pub use self::r#type::*;
-
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Unexpected, Visitor},
     ser::{Serialize, Serializer},
@@ -144,7 +140,6 @@ impl<T> Id<T> {
     ///
     /// Equivalent to [`NonZeroU64::new`].
     pub const fn new_checked(n: u64) -> Option<Self> {
-        #[allow(clippy::option_if_let_else)]
         if let Some(n) = NonZeroU64::new(n) {
             Some(Self::from_nonzero(n))
         } else {

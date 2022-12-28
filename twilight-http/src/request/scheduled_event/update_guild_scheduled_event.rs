@@ -3,16 +3,17 @@ use crate::{
     client::Client,
     error::Error,
     request::{AuditLogReason, Nullable, Request, RequestBuilder, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
+    guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
     id::{
         marker::{ChannelMarker, GuildMarker, ScheduledEventMarker},
         Id,
     },
-    scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel, Status},
     util::Timestamp,
 };
 use twilight_validate::request::{
@@ -220,15 +221,9 @@ impl<'a> UpdateGuildScheduledEvent<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<GuildScheduledEvent> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -239,6 +234,21 @@ impl<'a> AuditLogReason<'a> for UpdateGuildScheduledEvent<'a> {
         self.reason.replace(reason);
 
         Ok(self)
+    }
+}
+
+impl IntoFuture for UpdateGuildScheduledEvent<'_> {
+    type Output = Result<Response<GuildScheduledEvent>, Error>;
+
+    type IntoFuture = ResponseFuture<GuildScheduledEvent>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
     }
 }
 
