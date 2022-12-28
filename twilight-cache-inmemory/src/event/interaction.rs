@@ -51,7 +51,7 @@ impl UpdateCache for InteractionCreate {
                 // Cache resolved roles
                 if cache.wants(ResourceType::ROLE) {
                     if let Some(guild_id) = self.guild_id {
-                        cache.cache_roles(guild_id, resolved.roles.iter().map(|(_, v)| v).cloned());
+                        cache.cache_roles(guild_id, resolved.roles.values().cloned());
                     }
                 }
             }
