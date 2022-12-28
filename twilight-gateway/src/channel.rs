@@ -123,12 +123,12 @@ mod tests {
 
         match channel.rx_mut().try_recv()? {
             Message::Binary(bytes) => assert_eq!(request, serde_json::from_slice(&bytes)?),
-            other => panic!("message isn't binary: {:?}", other),
+            other => panic!("message isn't binary: {other:?}"),
         }
 
         match channel.rx_mut().try_recv()? {
             Message::Binary(bytes) => assert_eq!(heartbeat, serde_json::from_slice(&bytes)?),
-            other => panic!("message isn't binary: {:?}", other),
+            other => panic!("message isn't binary: {other:?}"),
         }
 
         assert!(!sender.is_closed());
