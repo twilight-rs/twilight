@@ -20,11 +20,14 @@ async fn main() -> anyhow::Result<()> {
     let config_callback = |_| {
         // A queue must be specified in the builder for the shards to reuse the
         // same one, which is necessary to not hit any gateway queue ratelimit.
-        Config::builder(token.clone(), Intents::GUILDS)
-            .queue(Arc::clone(&queue))
-            .build()
+        Config::builder(
+            token.clone(),
+            Intents::GUILD_MESSAGES | Intents::MESSAGE_CONTENT,
+        )
+        .queue(Arc::clone(&queue))
+        .build()
     };
-    let mut shards = stream::start_recommended(&client, &config_callback)
+    let mut shards = stream::create_recommended(&client, &config_callback)
         .await?
         .collect::<Vec<_>>();
 
@@ -98,7 +101,7 @@ async fn reshard(
     // Reshard every eight hours.
     time::sleep(RESHARD_DURATION).await;
 
-    let mut shards = stream::start_recommended(client, config_callback)
+    let mut shards = stream::create_recommended(client, config_callback)
         .await?
         .collect::<Vec<_>>();
 
