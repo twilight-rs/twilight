@@ -116,17 +116,26 @@ impl Interaction {
     /// [`member`]: Self::member
     /// [`user`]: Self::user
     pub const fn author_id(&self) -> Option<Id<UserMarker>> {
-        if let Some(member) = &self.member {
-            if let Some(user) = &member.user {
-                return Some(user.id);
-            }
+        if let Some(user) = self.author() {
+            Some(user.id)
+        } else {
+            None
         }
+    }
 
-        if let Some(user) = &self.user {
-            return Some(user.id);
+    /// The user that invoked the interaction.
+    ///
+    /// This will first check for the [`member`]'s
+    /// [`user`][`PartialMember::user`] and then, if not present, check the
+    /// [`user`].
+    ///
+    /// [`member`]: Self::member
+    /// [`user`]: Self::user
+    pub const fn author(&self) -> Option<&User> {
+        match self.member.as_ref() {
+            Some(member) if member.user.is_some() => member.user.as_ref(),
+            _ => self.user.as_ref(),
         }
-
-        None
     }
 
     /// Whether the interaction was invoked in a DM.
