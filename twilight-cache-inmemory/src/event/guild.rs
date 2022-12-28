@@ -288,8 +288,9 @@ mod tests {
             GuildCreate, GuildUpdate, MemberAdd, MemberRemove, UnavailableGuild,
         },
         guild::{
-            DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel, NSFWLevel,
-            PartialGuild, Permissions, PremiumTier, SystemChannelFlags, VerificationLevel,
+            AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, Guild, MfaLevel,
+            NSFWLevel, PartialGuild, Permissions, PremiumTier, SystemChannelFlags,
+            VerificationLevel,
         },
         id::Id,
         util::datetime::{Timestamp, TimestampParseError},
@@ -388,7 +389,7 @@ mod tests {
 
         let guild = Guild {
             afk_channel_id: None,
-            afk_timeout: 300,
+            afk_timeout: AfkTimeout::FifteenMinutes,
             application_id: None,
             approximate_member_count: None,
             approximate_presence_count: None,
