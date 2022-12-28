@@ -105,8 +105,6 @@ enum Disconnect {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ConnectionStatus {
     /// Shard is connected with an active session.
-    ///
-    /// Note that this does not mean the shard has an active gateway session.
     Connected,
     /// Shard is disconnected but may reconnect in the future.
     Disconnected {
@@ -335,8 +333,7 @@ pub struct Shard {
     /// [`GatewayEvent::Hello`]: twilight_model::gateway::event::GatewayEvent::Hello
     /// [`identify`]: Self::identify
     session: Option<Session>,
-    /// Current connection status of the Websocket connection, not necessarily
-    /// correlating to an [active session][`Self::session`].
+    /// Current connection status of the Websocket connection.
     status: ConnectionStatus,
     /// Messages from the user to be relayed and sent over the Websocket
     /// connection.

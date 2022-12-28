@@ -149,6 +149,7 @@ impl ClientBuilder {
 
 impl Default for ClientBuilder {
     fn default() -> Self {
+        #[allow(clippy::box_default)]
         Self {
             default_allowed_mentions: None,
             default_headers: None,
