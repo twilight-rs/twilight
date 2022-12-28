@@ -35,6 +35,10 @@ bitflags! {
         /// Bot uses only HTTP interactions and is shown in the online member
         /// list.
         const BOT_HTTP_INTERACTIONS = 1 << 19;
+        /// User is an [Active Developer].
+        ///
+        /// [Active Developer]: https://support-dev.discord.com/hc/articles/10113997751447
+        const ACTIVE_DEVELOPER = 1 << 22;
     }
 }
 
