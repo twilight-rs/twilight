@@ -87,6 +87,20 @@ fn is_incomplete_message(message: &[u8]) -> bool {
 ///
 /// Each received compressed event gets inflated into a [`String`] who's input
 /// and output size is recorded.
+///
+/// # Example
+///
+/// Calculate the percentage bytes saved
+/// ```
+/// # use twilight_gateway::{Intents, Shard, ShardId};
+/// # #[tokio::main] async fn main() {
+/// # let shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
+/// let inflater = shard.inflater();
+/// let total_percentage_compressed =
+///     inflater.processed() as f64 * 100.0 / inflater.produced() as f64;
+/// let total_percentage_saved = 100.0 - total_percentage_compressed;
+/// # }
+/// ```
 #[derive(Debug)]
 pub struct Inflater {
     /// Common decompressed message buffer.
