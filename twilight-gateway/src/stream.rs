@@ -22,7 +22,7 @@
 //! A multi-threaded executor is able to run tasks in parallel, but splitting
 //! shards across tasks requires channels to communicate between them, for
 //! example, to coordinate shutdowns or to collect all events to a single event
-//! handler task and is therefore **not** recommended unless it's required for
+//! handler task. It is therefore **not** recommended unless required for
 //! performance reasons (a single core should, on a reasonably performant CPU,
 //! be capable of handling tens of thousands of Discord events per second).
 //!
