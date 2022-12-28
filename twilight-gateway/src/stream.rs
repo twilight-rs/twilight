@@ -12,7 +12,8 @@
 //! Multiple shards' events or websocket messages may be concurrently streamed
 //! via [`ShardEventStream`] or [`ShardMessageStream`] respectively, returning a
 //! mutable reference to the yielded shard and its item. The yielded shard is
-//! later returned to the stream in its [`Drop`] implementation.
+//! later returned to the stream in its [`Drop`] implementation. The streams are
+//! currently implemented via the `futures::stream::FuturesUnordered` type.
 //!
 //! This is the recommended way to run multiple shards.
 //!
