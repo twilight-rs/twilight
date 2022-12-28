@@ -33,7 +33,7 @@ jobs:
           toolchain: ${{ env.rust-version }}
 
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Output processor info
         run: cat /proc/cpuinfo
@@ -52,6 +52,9 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Install nightly toolchain
         uses: dtolnay/rust-toolchain@nightly
@@ -78,7 +81,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -132,7 +135,7 @@ jobs:
           toolchain: nightly
 
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -160,7 +163,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -187,7 +190,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
@@ -210,7 +213,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache dependencies
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Test
         working-directory: book
