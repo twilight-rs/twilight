@@ -90,25 +90,23 @@ fn is_incomplete_message(message: &[u8]) -> bool {
 #[derive(Debug)]
 pub struct Inflater {
     /// Common decompressed message buffer.
-    ///
-    /// Note that its capacity is static.
-    buffer: Vec<u8>,
-    /// Compressed message buffer.
+    buffer: Box<[u8]>,
+    /// Per event compressed message buffer.
     compressed: Vec<u8>,
     /// Zlib decompressor with a dictionary of past data.
     decompress: Decompress,
-    /// When the last shrank occurred.
+    /// When the compression buffer last shrank.
     last_shrank: Instant,
 }
 
 impl Inflater {
-    /// Common decompressed buffer size.
+    /// [`Self::buffer`]'s size.
     const BUFFER_SIZE: usize = 32 * 1024;
 
     /// Create a new inflator for a shard.
     pub(crate) fn new() -> Self {
         Self {
-            buffer: Vec::with_capacity(Self::BUFFER_SIZE),
+            buffer: vec![0; Self::BUFFER_SIZE].into_boxed_slice(),
             compressed: Vec::new(),
             decompress: Decompress::new(true),
             last_shrank: Instant::now(),
@@ -162,22 +160,20 @@ impl Inflater {
             &self.compressed
         };
 
-        // Amount of bytes prossessed up to now.
-        let before = self.decompress.total_in();
+        let processed_pre = self.processed();
 
-        // Bytes processed.
         let mut processed = 0;
 
-        // Uncompressed message. `Vec::extend_from_slice` efficiently allocates
+        // Decompressed message. `Vec::extend_from_slice` efficiently allocates
         // only what's necessary.
-        let mut uncompressed = Vec::new();
+        let mut decompressed = Vec::new();
 
         loop {
-            self.buffer.clear();
+            let produced_pre = self.produced();
 
             // Use Sync to ensure data is flushed to the buffer.
             self.decompress
-                .decompress_vec(
+                .decompress(
                     &message[processed..],
                     &mut self.buffer,
                     FlushDecompress::Sync,
@@ -187,28 +183,29 @@ impl Inflater {
                     source: Some(Box::new(source)),
                 })?;
 
-            processed = (self.decompress.total_in() - before).try_into().unwrap();
+            processed = (self.processed() - processed_pre).try_into().unwrap();
+            let produced = (self.produced() - produced_pre).try_into().unwrap();
 
-            uncompressed.extend_from_slice(&self.buffer);
+            decompressed.extend_from_slice(&self.buffer[..produced]);
 
             // Break when message has been fully decompressed.
             if processed == message.len() {
                 break;
             }
 
-            tracing::trace!(bytes.compressed.remaining = self.compressed.len() - processed);
+            tracing::trace!(bytes.compressed.remaining = message.len() - processed);
         }
 
         {
             #[allow(clippy::cast_precision_loss)]
             let total_percentage_compressed =
-                self.total_in() as f64 * 100.0 / self.total_out() as f64;
+                self.processed() as f64 * 100.0 / self.produced() as f64;
             let total_percentage_saved = 100.0 - total_percentage_compressed;
-            let total_kib_saved = (self.total_out() - self.total_in()) / 1024;
+            let total_kib_saved = (self.produced() - self.processed()) / 1024;
 
             tracing::trace!(
                 bytes.compressed = processed,
-                bytes.decompressed = uncompressed.len(),
+                bytes.decompressed = decompressed.len(),
                 total_percentage_saved,
                 "{total_kib_saved} KiB saved in total",
             );
@@ -216,7 +213,7 @@ impl Inflater {
 
         self.clear();
 
-        String::from_utf8(uncompressed)
+        String::from_utf8(decompressed)
             .map(Some)
             .map_err(|source| CompressionError {
                 kind: CompressionErrorType::NotUtf8,
@@ -224,19 +221,19 @@ impl Inflater {
             })
     }
 
-    /// Reset the inflater state.
+    /// Reset the inflater's state.
     pub(crate) fn reset(&mut self) {
         self.compressed = Vec::new();
         self.decompress.reset(true);
     }
 
     /// Total number of bytes processed.
-    pub fn total_in(&self) -> u64 {
+    pub fn processed(&self) -> u64 {
         self.decompress.total_in()
     }
 
     /// Total number of bytes produced.
-    pub fn total_out(&self) -> u64 {
+    pub fn produced(&self) -> u64 {
         self.decompress.total_out()
     }
 }
@@ -259,10 +256,8 @@ mod tests {
     fn decompress_single_segment() {
         let mut inflator = Inflater::new();
         assert!(inflator.compressed.is_empty());
-        assert!(inflator.buffer.is_empty());
         assert_eq!(inflator.inflate(MESSAGE).unwrap(), Some(OUTPUT.to_owned()));
 
-        assert!(!inflator.buffer.is_empty());
         assert!(inflator.compressed.is_empty());
     }
 
@@ -270,19 +265,16 @@ mod tests {
     fn decompress_split_message() {
         let mut inflator = Inflater::new();
         assert!(inflator.compressed.is_empty());
-        assert!(inflator.buffer.is_empty());
         assert_eq!(
             inflator.inflate(&MESSAGE[0..MESSAGE.len() / 2]).unwrap(),
             None
         );
-        assert!(inflator.buffer.is_empty());
         assert!(!inflator.compressed.is_empty());
 
         assert_eq!(
             inflator.inflate(&MESSAGE[MESSAGE.len() / 2..]).unwrap(),
             Some(OUTPUT.to_owned()),
         );
-        assert!(!inflator.buffer.is_empty());
         assert!(inflator.compressed.is_empty());
     }
 
