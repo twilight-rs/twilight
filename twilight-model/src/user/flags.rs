@@ -30,8 +30,11 @@ bitflags! {
         const VERIFIED_BOT = 1 << 16;
         /// Early verified bot developer.
         const VERIFIED_DEVELOPER = 1 << 17;
-        /// Discord certified moderator.
+        /// Moderator Programs Alumni
+        #[deprecated(since = "0.14.0", note = "use `MODERATOR_PROGRAMS_ALUMNI`")]
         const CERTIFIED_MODERATOR = 1 << 18;
+        /// Moderator Programs Alumni
+        const MODERATOR_PROGRAMS_ALUMNI = 1 << 18;
         /// Bot uses only HTTP interactions and is shown in the online member
         /// list.
         const BOT_HTTP_INTERACTIONS = 1 << 19;
