@@ -90,7 +90,7 @@ fn is_incomplete_message(message: &[u8]) -> bool {
 ///
 /// # Example
 ///
-/// Calculate the percentage bytes saved
+/// Calculate the percentage bytes saved:
 /// ```
 /// # use twilight_gateway::{Intents, Shard, ShardId};
 /// # #[tokio::main] async fn main() {
