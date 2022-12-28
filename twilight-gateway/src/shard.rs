@@ -847,13 +847,13 @@ impl Shard {
                     kind: ProcessErrorType::Deserializing {
                         event: event.to_owned(),
                     },
-                    source: Some("dispatch event missing event type".into()),
+                    source: Some("missing dispatch event type".into()),
                 })?;
                 let sequence = maybe_sequence.ok_or(ProcessError {
                     kind: ProcessErrorType::Deserializing {
                         event: event.to_owned(),
                     },
-                    source: Some("dispatch event missing sequence".into()),
+                    source: Some("missing sequence".into()),
                 })?;
                 tracing::debug!(%event_type, %sequence, "received dispatch");
 

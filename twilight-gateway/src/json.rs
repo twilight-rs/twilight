@@ -1,11 +1,10 @@
 //! Function wrappers for deserializing and serializing events and commands.
 
+pub use serde_json::from_str;
 #[cfg(not(feature = "simd-json"))]
 pub use serde_json::to_string;
 #[cfg(feature = "simd-json")]
 pub use simd_json::to_string;
-
-pub use serde_json::from_str;
 
 use crate::{
     error::{ReceiveMessageError, ReceiveMessageErrorType},
@@ -13,12 +12,11 @@ use crate::{
 };
 use serde::de::DeserializeSeed;
 use std::str;
-use twilight_model::gateway::{event::GatewayEvent, OpCode};
-
 #[cfg(not(feature = "simd-json"))]
 use twilight_model::gateway::event::GatewayEventDeserializer as EventDeserializer;
 #[cfg(feature = "simd-json")]
 use twilight_model::gateway::event::GatewayEventDeserializerOwned as EventDeserializer;
+use twilight_model::gateway::{event::GatewayEvent, OpCode};
 
 /// Parse JSON into a gateway event without existing knowledge of its underlying
 /// parts.
@@ -40,7 +38,7 @@ pub fn parse(
     #[cfg(feature = "simd-json")]
     let (gateway_deserializer, mut json_deserializer) = {
         let gateway_deserializer =
-            EventDeserializer::from_json(json).expect("process asserted valid opcode");
+            EventDeserializer::from_json(json).expect("Shard::process asserted valid opcode");
 
         let json_deserializer = match simd_json::Deserializer::from_slice(&mut bytes) {
             Ok(deserializer) => deserializer,
@@ -60,9 +58,9 @@ pub fn parse(
     #[cfg(not(feature = "simd-json"))]
     let (gateway_deserializer, mut json_deserializer) = {
         let gateway_deserializer =
-            EventDeserializer::from_json(&json).expect("process asserted valid opcode");
+            EventDeserializer::from_json(json).expect("Shard::process asserted valid opcode");
 
-        let json_deserializer = serde_json::Deserializer::from_str(&json);
+        let json_deserializer = serde_json::Deserializer::from_str(json);
 
         (gateway_deserializer, json_deserializer)
     };
@@ -90,8 +88,8 @@ pub fn parse(
                 },
                 source: Some(
                     format!(
-                        "unknown opcode/dispatch event type combination: {}/{:?}",
-                        opcode as u8, event_type
+                        "unknown opcode/dispatch event type: {}/{event_type:?}",
+                        opcode as u8
                     )
                     .into(),
                 ),

@@ -74,6 +74,9 @@ pub enum ProcessErrorType {
     /// Gateway event could not be deserialized.
     Deserializing {
         /// Gateway event.
+        ///
+        /// Unlike [`ReceiveMessageErrorType::Deserializing`], the event is
+        /// never modified.
         event: String,
     },
     /// Message could not be sent over the Websocket connection.
@@ -152,12 +155,12 @@ impl ReceiveMessageError {
 
 impl Display for ReceiveMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match &self.kind {
+        match self.kind {
             #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
             ReceiveMessageErrorType::Compression => {
                 f.write_str("binary message could not be decompressed")
             }
-            ReceiveMessageErrorType::Deserializing { event } => {
+            ReceiveMessageErrorType::Deserializing { ref event } => {
                 f.write_str("gateway event could not be deserialized: event=")?;
                 f.write_str(event)
             }
@@ -198,7 +201,7 @@ pub enum ReceiveMessageErrorType {
     Deserializing {
         /// Gateway event.
         ///
-        /// Note that `simd-json` slightly modifies events.
+        /// Note that the `simd-json` feature will slightly modify the event.
         event: String,
     },
     /// Shard has been closed due to a fatal configuration error.
