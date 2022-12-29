@@ -777,10 +777,42 @@ impl Shard {
     /// from the `close_frame`.
     ///
     /// To read all remaining events, continue calling [`Shard::next_message`]
-    /// until it returns the response close message or an error.
+    /// until it returns the response close message or a
+    /// [`ReceiveMessageErrorType::Io`] error type.
     ///
     /// You do not need to call this method upon receiving a close message to
     /// respond do it, Twilight handles this for you.
+    ///
+    /// # Example
+    ///
+    /// Close the gateway connection but process already received messages:
+    ///
+    /// ```no_run
+    /// # use twilight_gateway::{Intents, Shard, ShardId};
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
+    /// use twilight_gateway::{
+    ///     error::ReceiveMessageErrorType,
+    ///     message::{CloseFrame, Message},
+    /// };
+    ///
+    /// shard.close(CloseFrame::NORMAL).await?;
+    ///
+    /// loop {
+    ///     match shard.next_message().await {
+    ///         Ok(Message::Close(_)) => {
+    ///             // We've now received a close message response from the
+    ///             // Gateway.
+    ///             // Further calls to `next_message` would cause a reconnect.
+    ///             break
+    ///         }
+    ///         Ok(_) => unimplemented!("handle message"),
+    ///         Err(source) if matches!(source.kind(), ReceiveMessageErrorType::Io) => break,
+    ///         Err(source) => tracing::warn!(?source, "error receiving message"),
+    ///     }
+    /// }
+    /// # Ok(()) }
+    /// ```
     ///
     /// # Errors
     ///
