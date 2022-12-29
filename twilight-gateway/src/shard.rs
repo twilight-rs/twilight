@@ -795,6 +795,7 @@ impl Shard {
     ) -> Result<Option<Session>, SendError> {
         let close_code = close_frame.code();
 
+        tracing::debug!(frame = ?close_frame, "sending websocket close message");
         let message = Message::Close(Some(close_frame));
 
         self.send(message).await?;
