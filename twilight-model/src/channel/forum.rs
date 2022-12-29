@@ -22,7 +22,7 @@ pub struct DefaultReaction {
 /// Layout of a [channel] that is a [forum].
 ///
 /// [channel]: super::Channel
-/// [forum]: super::ChannelType::Forum
+/// [forum]: super::ChannelType::GuildForum
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
