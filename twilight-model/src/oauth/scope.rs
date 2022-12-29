@@ -12,8 +12,8 @@ pub const ACTIVITIES_READ: &str = "activities.read";
 
 /// Allows your app to update a user's activity
 ///
-/// Requires approval from Discord, but is not required for the GameSDK activity
-/// manager.
+/// Requires approval from Discord, but is not required for the Game SDK
+/// activity manager.
 pub const ACTIVITIES_WRITE: &str = "activities.write";
 
 /// Allows your app to read build data for a user's applications.
