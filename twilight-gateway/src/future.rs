@@ -16,7 +16,7 @@ use tokio::{
     sync::mpsc::UnboundedReceiver,
     time::{self, Duration, Interval},
 };
-use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use tokio_tungstenite::tungstenite::{Error as TungsteniteError, Message as TungsteniteMessage};
 
 /// Resolved value from polling a [`NextMessageFuture`].
 ///
@@ -27,7 +27,7 @@ pub enum NextMessageFutureOutput {
     ///
     /// If no message is present then the stream has ended and a new connection
     /// will need to be made.
-    Message(Option<TungsteniteMessage>),
+    Message(Option<Result<TungsteniteMessage, TungsteniteError>>),
     /// Heartbeat must now be sent to Discord.
     SendHeartbeat,
     /// Message has been received from the user to be relayed over the Websocket
@@ -109,9 +109,7 @@ impl Future for NextMessageFuture<'_> {
         }
 
         if let Poll::Ready(maybe_try_message) = this.message_future.poll_unpin(cx) {
-            let maybe_message = maybe_try_message.and_then(Result::ok);
-
-            return Poll::Ready(NextMessageFutureOutput::Message(maybe_message));
+            return Poll::Ready(NextMessageFutureOutput::Message(maybe_try_message));
         }
 
         Poll::Pending
