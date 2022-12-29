@@ -12,7 +12,6 @@ mod flags;
 mod followed_channel;
 mod video_quality_mode;
 
-use self::forum::ForumLayout;
 pub use self::{
     attachment::Attachment,
     channel_mention::ChannelMention,
@@ -27,7 +26,7 @@ pub use self::{
 
 use crate::{
     channel::{
-        forum::{DefaultReaction, ForumTag},
+        forum::{DefaultReaction, ForumLayout, ForumTag},
         permission_overwrite::PermissionOverwrite,
         thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
     },
