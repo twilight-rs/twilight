@@ -61,8 +61,8 @@ impl Command for UpdateVoiceState {}
 /// Returns a [`SendErrorType::Serializing`] error type if the provided value
 /// failed to serialize into JSON.
 pub fn prepare(command: &impl Command) -> Result<Message, SendError> {
-    json::to_vec(command)
-        .map(Message::Binary)
+    json::to_string(command)
+        .map(Message::Text)
         .map_err(|source| SendError {
             source: Some(Box::new(source)),
             kind: SendErrorType::Serializing,
@@ -72,7 +72,7 @@ pub fn prepare(command: &impl Command) -> Result<Message, SendError> {
 #[cfg(test)]
 mod tests {
     use super::Command;
-    use crate::message::Message;
+    use crate::{json, message::Message};
     use static_assertions::assert_impl_all;
     use std::error::Error;
     use twilight_model::gateway::payload::outgoing::{
@@ -90,10 +90,10 @@ mod tests {
     #[test]
     fn prepare() -> Result<(), Box<dyn Error>> {
         let heartbeat = Heartbeat::new(Some(30_000));
-        let bytes = serde_json::to_vec(&heartbeat)?;
+        let string = json::to_string(&heartbeat)?;
         let message = super::prepare(&heartbeat)?;
 
-        assert_eq!(message, Message::Binary(bytes));
+        assert_eq!(message, Message::Text(string));
 
         Ok(())
     }

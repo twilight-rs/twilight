@@ -26,11 +26,12 @@ pub mod stream;
 
 mod channel;
 mod command;
-mod compression;
 mod config;
 mod connection;
 mod event;
 mod future;
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+mod inflater;
 mod json;
 mod latency;
 mod ratelimiter;
@@ -48,6 +49,8 @@ pub use self::{
     session::Session,
     shard::{ConnectionStatus, Shard},
 };
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+pub use inflater::Inflater;
 pub use twilight_model::gateway::Intents;
 
 #[doc(no_inline)]
