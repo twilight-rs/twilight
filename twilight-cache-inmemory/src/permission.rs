@@ -708,7 +708,7 @@ mod tests {
         Guild {
             id: GUILD_ID,
             afk_channel_id: None,
-            afk_timeout: AfkTimeout::FiveMinutes,
+            afk_timeout: AfkTimeout::FIVE_MINUTES,
             application_id: None,
             banner: None,
             channels: Vec::new(),
