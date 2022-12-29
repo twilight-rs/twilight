@@ -19,6 +19,57 @@ pub struct DefaultReaction {
     pub emoji_name: Option<String>,
 }
 
+/// Layout of a [channel] that is a [forum].
+///
+/// [channel]: super::Channel
+/// [forum]: super::ChannelType::Forum
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[non_exhaustive]
+#[serde(from = "u8", into = "u8")]
+pub enum ForumLayout {
+    /// Display posts as a collection of tiles.
+    GalleryView,
+    /// Display posts as a list.
+    ListView,
+    /// No default has been set for the forum channel.
+    NotSet,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
+}
+
+impl ForumLayout {
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::ListView => "ListView",
+            Self::NotSet => "NotSet",
+            Self::GalleryView => "GalleryView",
+            Self::Unknown(_) => "Unknown",
+        }
+    }
+}
+
+impl From<u8> for ForumLayout {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Self::NotSet,
+            1 => Self::ListView,
+            2 => Self::GalleryView,
+            unknown => Self::Unknown(unknown),
+        }
+    }
+}
+
+impl From<ForumLayout> for u8 {
+    fn from(value: ForumLayout) -> Self {
+        match value {
+            ForumLayout::NotSet => 0,
+            ForumLayout::ListView => 1,
+            ForumLayout::GalleryView => 2,
+            ForumLayout::Unknown(unknown) => unknown,
+        }
+    }
+}
+
 /// Tag that is able to be applied to a thread in a [`GuildForum`] [`Channel`].
 ///
 /// May at most contain one of `emoji_id` and `emoji_name`.
@@ -49,12 +100,28 @@ pub struct ForumTag {
 
 #[cfg(test)]
 mod tests {
-    use super::{DefaultReaction, ForumTag};
+    use super::{DefaultReaction, ForumLayout, ForumTag};
     use crate::id::{
         marker::{EmojiMarker, TagMarker},
         Id,
     };
-    use serde_test::Token;
+    use serde::{Deserialize, Serialize};
+    use serde_test::{assert_tokens, Token};
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        ForumLayout: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
 
     const EMOJI_ID: Id<EmojiMarker> = Id::new(1);
     const TAG_ID: Id<TagMarker> = Id::new(2);
@@ -81,6 +148,23 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn forum_layout() {
+        const MAP: &[(ForumLayout, u8, &str)] = &[
+            (ForumLayout::NotSet, 0, "NotSet"),
+            (ForumLayout::ListView, 1, "ListView"),
+            (ForumLayout::GalleryView, 2, "GalleryView"),
+            (ForumLayout::Unknown(3), 3, "Unknown"),
+        ];
+
+        for (layout, number, name) in MAP {
+            assert_eq!(layout.name(), *name);
+            assert_eq!(u8::from(*layout), *number);
+            assert_eq!(ForumLayout::from(*number), *layout);
+            assert_tokens(layout, &[Token::U8(*number)]);
+        }
     }
 
     #[test]

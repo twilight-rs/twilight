@@ -12,6 +12,7 @@ mod flags;
 mod followed_channel;
 mod video_quality_mode;
 
+use self::forum::ForumLayout;
 pub use self::{
     attachment::Attachment,
     channel_mention::ChannelMention,
@@ -72,6 +73,9 @@ pub struct Channel {
     /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
+    /// Default forum layout view used to display posts in forum channels.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_forum_layout: Option<ForumLayout>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_reaction_emoji: Option<DefaultReaction>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -218,6 +222,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -258,6 +263,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -310,6 +316,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -369,6 +376,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -455,6 +463,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -542,6 +551,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
