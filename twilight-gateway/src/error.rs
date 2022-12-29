@@ -1,9 +1,8 @@
 //! Errors returned by gateway operations.
 
-pub use crate::{
-    compression::{CompressionError, CompressionErrorType},
-    json::{GatewayEventParsingError, GatewayEventParsingErrorType},
-};
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+pub use crate::inflater::{CompressionError, CompressionErrorType};
+pub use crate::json::{GatewayEventParsingError, GatewayEventParsingErrorType};
 
 use std::{
     error::Error,
@@ -39,22 +38,6 @@ impl ProcessError {
         (self.kind, None)
     }
 
-    /// Shortcut to create a new error from a message compression error.
-    pub(crate) fn from_compression(source: CompressionError) -> Self {
-        Self {
-            kind: ProcessErrorType::Compression,
-            source: Some(Box::new(source)),
-        }
-    }
-
-    /// Shortcut to create a new error from a gateway event parsing error.
-    pub(crate) fn from_json(source: GatewayEventParsingError) -> Self {
-        Self {
-            kind: ProcessErrorType::Deserializing,
-            source: Some(Box::new(source)),
-        }
-    }
-
     /// Shortcut to create a new error from a message sending error.
     pub(crate) fn from_send(source: SendError) -> Self {
         Self {
@@ -67,9 +50,6 @@ impl ProcessError {
 impl Display for ProcessError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
-            ProcessErrorType::Compression => {
-                f.write_str("compression failed because the payload may be invalid")
-            }
             ProcessErrorType::Deserializing => {
                 f.write_str("payload isn't a recognized gateway event")
             }
@@ -92,8 +72,6 @@ impl Error for ProcessError {
 /// Type of [`ProcessError`] that occurred.
 #[derive(Debug)]
 pub enum ProcessErrorType {
-    /// Message could not be decompressed.
-    Compression,
     /// Received gateway event failed to be deserialized.
     ///
     /// The message payload is likely an unrecognized type that is not yet
@@ -149,6 +127,15 @@ impl ReceiveMessageError {
         (self.kind, None)
     }
 
+    /// Shortcut to create a new error for a message compression error.
+    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+    pub(crate) fn from_compression(source: CompressionError) -> Self {
+        Self {
+            kind: ReceiveMessageErrorType::Compression,
+            source: Some(Box::new(source)),
+        }
+    }
+
     /// Shortcut to create a new error from a fatal close code.
     pub(crate) fn from_fatally_closed(close_code: CloseCode) -> Self {
         Self {
@@ -177,6 +164,10 @@ impl ReceiveMessageError {
 impl Display for ReceiveMessageError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self.kind {
+            #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+            ReceiveMessageErrorType::Compression => {
+                f.write_str("binary message could not be decompressed")
+            }
             ReceiveMessageErrorType::Deserializing => {
                 f.write_str("message is an unrecognized payload")
             }
@@ -208,6 +199,11 @@ impl Error for ReceiveMessageError {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum ReceiveMessageErrorType {
+    /// Binary message could not be decompressed.
+    ///
+    /// The associated error downcasts to [`CompressionError`].
+    #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
+    Compression,
     /// Received gateway event failed to be deserialized.
     ///
     /// The message payload is likely an unrecognized type that is not yet
@@ -218,7 +214,6 @@ pub enum ReceiveMessageErrorType {
         /// Close code of the close message.
         close_code: CloseCode,
     },
-    ///
     /// Processing the message failed.
     ///
     /// The associated error downcasts to [`ProcessError`].
@@ -309,11 +304,7 @@ mod tests {
 
     #[test]
     fn process_error_display() {
-        const MESSAGES: [(ProcessErrorType, &str); 4] = [
-            (
-                ProcessErrorType::Compression,
-                "compression failed because the payload may be invalid",
-            ),
+        const MESSAGES: [(ProcessErrorType, &str); 3] = [
             (
                 ProcessErrorType::Deserializing,
                 "payload isn't a recognized gateway event",
@@ -337,7 +328,11 @@ mod tests {
 
     #[test]
     fn receive_message_error_display() {
-        const MESSAGES: [(ReceiveMessageErrorType, &str); 5] = [
+        const MESSAGES: [(ReceiveMessageErrorType, &str); 6] = [
+            (
+                ReceiveMessageErrorType::Compression,
+                "binary message could not be decompressed",
+            ),
             (
                 ReceiveMessageErrorType::Deserializing,
                 "message is an unrecognized payload",
