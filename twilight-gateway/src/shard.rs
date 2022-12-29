@@ -804,7 +804,7 @@ impl Shard {
     ///             // We've now received a close message response from the
     ///             // Gateway.
     ///             // Further calls to `next_message` would cause a reconnect.
-    ///             break
+    ///             break;
     ///         }
     ///         Ok(_) => unimplemented!("handle message"),
     ///         Err(source) if matches!(source.kind(), ReceiveMessageErrorType::Io) => break,
