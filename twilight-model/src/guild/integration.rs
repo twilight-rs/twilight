@@ -36,7 +36,7 @@ pub struct GuildIntegration {
     pub role_id: Option<Id<RoleMarker>>,
     /// An array of [OAuth2 scopes] which the application has been authorized for.
     ///
-    /// [OAuth2 scopes]: https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes
+    /// [OAuth2 scopes]: crate::oauth::scope
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scopes: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -57,6 +57,7 @@ mod tests {
     };
     use crate::{
         id::Id,
+        oauth::scope,
         test::image_hash,
         util::datetime::{Timestamp, TimestampParseError},
     };
@@ -85,8 +86,8 @@ mod tests {
             revoked: Some(false),
             role_id: Some(Id::new(3)),
             scopes: Some(Vec::from([
-                "applications.commands".to_owned(),
-                "bot".to_owned(),
+                scope::APPLICATIONS_COMMANDS.to_owned(),
+                scope::BOT.to_owned(),
             ])),
             subscriber_count: Some(1337),
             synced_at: Some(synced_at),
@@ -156,8 +157,8 @@ mod tests {
                 Token::Str("scopes"),
                 Token::Some,
                 Token::Seq { len: Some(2) },
-                Token::Str("applications.commands"),
-                Token::Str("bot"),
+                Token::Str(scope::APPLICATIONS_COMMANDS),
+                Token::Str(scope::BOT),
                 Token::SeqEnd,
                 Token::Str("subscriber_count"),
                 Token::Some,
@@ -226,8 +227,8 @@ mod tests {
             revoked: Some(false),
             role_id: Some(Id::new(3)),
             scopes: Some(Vec::from([
-                "applications.commands".to_owned(),
-                "bot".to_owned(),
+                scope::APPLICATIONS_COMMANDS.to_owned(),
+                scope::BOT.to_owned(),
             ])),
             subscriber_count: Some(1337),
             synced_at: Some(synced_at),
@@ -312,8 +313,8 @@ mod tests {
                 Token::Str("scopes"),
                 Token::Some,
                 Token::Seq { len: Some(2) },
-                Token::Str("applications.commands"),
-                Token::Str("bot"),
+                Token::Str(scope::APPLICATIONS_COMMANDS),
+                Token::Str(scope::BOT),
                 Token::SeqEnd,
                 Token::Str("subscriber_count"),
                 Token::Some,
