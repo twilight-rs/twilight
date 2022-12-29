@@ -75,6 +75,7 @@ impl CommandBuilder {
             kind,
             name: name.into(),
             name_localizations: None,
+            nsfw: None,
             options: Vec::new(),
             version: Id::new(1),
         })
@@ -172,6 +173,15 @@ impl CommandBuilder {
 
     fn _option(mut self, option: CommandOption) -> Self {
         self.0.options.push(option);
+
+        self
+    }
+
+    /// Set whether the command is age-restricted.
+    ///
+    /// Defaults to not being specified, which uses Discord's default.
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
+        self.0.nsfw = Some(nsfw);
 
         self
     }
@@ -1408,6 +1418,7 @@ mod tests {
                 "Get or edit permissions for a user or a role",
                 CommandType::ChatInput,
             )
+            .nsfw(true)
             .option(
                 SubCommandGroupBuilder::new("user", "Get or edit permissions for a user")
                     .subcommands([
@@ -1458,6 +1469,7 @@ mod tests {
             kind: CommandType::ChatInput,
             name: String::from("permissions"),
             name_localizations: None,
+            nsfw: Some(true),
             description_localizations: None,
             options: Vec::from([
                 CommandOption {
