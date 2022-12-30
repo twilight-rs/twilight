@@ -97,7 +97,6 @@ impl<'a> CloseFrame<'a> {
 
 /// Message to send over the connection to the remote.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[non_exhaustive]
 pub enum Message {
     /// Close message with an optional frame including information about the
     /// reason for the close.
