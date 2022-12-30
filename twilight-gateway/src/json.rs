@@ -11,9 +11,8 @@ use crate::{
     EventTypeFlags,
 };
 use serde::de::DeserializeSeed;
-use twilight_model::gateway::{
-    event::{GatewayEvent, GatewayEventDeserializer},
-    OpCode,
+use twilight_model::gateway::event::{
+    DispatchEventType, GatewayEvent, GatewayEventDeserializer, OpCode,
 };
 
 /// Parse a JSON encoded event into a gateway event if its type is in
@@ -58,18 +57,22 @@ pub fn parse(
         });
     };
 
-    let event_type = gateway_deserializer.event_type();
-
-    let event_type = if let Ok(event_type) = EventTypeFlags::try_from((opcode, event_type)) {
-        event_type
-    } else {
-        let opcode = opcode as u8;
-        let source = format!("unknown opcode/dispatch event type: {opcode}/{event_type:?}");
-
-        return Err(ReceiveMessageError {
-            kind: ReceiveMessageErrorType::Deserializing { event },
-            source: Some(source.into()),
-        });
+    let event_type = match gateway_deserializer
+        .event_type()
+        .map(str::parse::<DispatchEventType>)
+        .transpose()
+    {
+        Ok(event_type) => opcode
+            .try_into()
+            .ok()
+            .or_else(|| event_type.map(Into::into))
+            .unwrap_or(EventTypeFlags::empty()),
+        Err(source) => {
+            return Err(ReceiveMessageError {
+                kind: ReceiveMessageErrorType::Deserializing { event },
+                source: Some(Box::new(source)),
+            })
+        }
     };
 
     if wanted_event_types.contains(event_type) {

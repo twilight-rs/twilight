@@ -99,7 +99,7 @@ use tokio_tungstenite::tungstenite::Error as TungsteniteError;
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
-    event::{Event, GatewayEventDeserializer},
+    event::{Event, GatewayEventDeserializer, OpCode},
     payload::{
         incoming::Hello,
         outgoing::{
@@ -107,7 +107,7 @@ use twilight_model::gateway::{
             Heartbeat, Identify, Resume,
         },
     },
-    CloseCode, CloseFrame, Intents, OpCode,
+    CloseCode, CloseFrame, Intents,
 };
 
 /// Who initiated the closing of the websocket connection.

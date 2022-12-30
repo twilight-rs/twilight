@@ -1,5 +1,5 @@
 use crate::gateway::{
-    opcode::OpCode,
+    event::OpCode,
     presence::{Activity, Status},
 };
 use serde::{Deserialize, Serialize};

@@ -1,6 +1,12 @@
+use super::DispatchEventType;
 use serde::{Deserialize, Serialize};
 
-/// The type of an event.
+/// Type of an [`Event`].
+///
+/// The variants starting with `Gateway` are Twilight-specific event types and
+/// therefore lack a name and can not be (de)serialized.
+///
+/// [`Event`]: super::Event
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EventType {
@@ -18,11 +24,17 @@ pub enum EventType {
     ChannelUpdate,
     #[serde(rename = "APPLICATION_COMMAND_PERMISSIONS_UPDATE")]
     CommandPermissionsUpdate,
+    #[serde(skip)]
     GatewayClose,
+    #[serde(skip)]
     GatewayHeartbeat,
+    #[serde(skip)]
     GatewayHeartbeatAck,
+    #[serde(skip)]
     GatewayHello,
+    #[serde(skip)]
     GatewayInvalidateSession,
+    #[serde(skip)]
     GatewayReconnect,
     GiftCodeUpdate,
     GuildAuditLogEntryCreate,
@@ -91,6 +103,9 @@ pub enum EventType {
 }
 
 impl EventType {
+    /// Discord event name.
+    ///
+    /// Returns [`None`] for the variants starting with `Gateway`.
     pub const fn name(self) -> Option<&'static str> {
         match self {
             Self::AutoModerationActionExecution => Some("AUTO_MODERATION_ACTION_EXECUTION"),
@@ -104,6 +119,12 @@ impl EventType {
             Self::ChannelPinsUpdate => Some("CHANNEL_PINS_UPDATE"),
             Self::ChannelUpdate => Some("CHANNEL_UPDATE"),
             Self::CommandPermissionsUpdate => Some("APPLICATION_COMMAND_PERMISSIONS_UPDATE"),
+            Self::GatewayClose
+            | Self::GatewayHeartbeat
+            | Self::GatewayHeartbeatAck
+            | Self::GatewayHello
+            | Self::GatewayInvalidateSession
+            | Self::GatewayReconnect => None,
             Self::GiftCodeUpdate => Some("GIFT_CODE_UPDATE"),
             Self::GuildAuditLogEntryCreate => Some("GUILD_AUDIT_LOG_ENTRY_CREATE"),
             Self::GuildCreate => Some("GUILD_CREATE"),
@@ -157,217 +178,219 @@ impl EventType {
             Self::VoiceServerUpdate => Some("VOICE_SERVER_UPDATE"),
             Self::VoiceStateUpdate => Some("VOICE_STATE_UPDATE"),
             Self::WebhooksUpdate => Some("WEBHOOKS_UPDATE"),
-            Self::GatewayClose
-            | Self::GatewayHeartbeat
-            | Self::GatewayHeartbeatAck
-            | Self::GatewayHello
-            | Self::GatewayInvalidateSession
-            | Self::GatewayReconnect => None,
         }
     }
 }
 
-impl<'a> TryFrom<&'a str> for EventType {
-    type Error = &'a str;
-
-    fn try_from(event_type: &'a str) -> Result<Self, Self::Error> {
+impl From<DispatchEventType> for EventType {
+    fn from(event_type: DispatchEventType) -> Self {
         match event_type {
-            "AUTO_MODERATION_ACTION_EXECUTION" => Ok(Self::AutoModerationActionExecution),
-            "AUTO_MODERATION_RULE_CREATE" => Ok(Self::AutoModerationRuleCreate),
-            "AUTO_MODERATION_RULE_DELETE" => Ok(Self::AutoModerationRuleDelete),
-            "AUTO_MODERATION_RULE_UPDATE" => Ok(Self::AutoModerationRuleUpdate),
-            "GUILD_AUDIT_LOG_ENTRY_CREATE" => Ok(Self::GuildAuditLogEntryCreate),
-            "GUILD_BAN_ADD" => Ok(Self::BanAdd),
-            "GUILD_BAN_REMOVE" => Ok(Self::BanRemove),
-            "CHANNEL_CREATE" => Ok(Self::ChannelCreate),
-            "CHANNEL_DELETE" => Ok(Self::ChannelDelete),
-            "CHANNEL_PINS_UPDATE" => Ok(Self::ChannelPinsUpdate),
-            "CHANNEL_UPDATE" => Ok(Self::ChannelUpdate),
-            "APPLICATION_COMMAND_PERMISSIONS_UPDATE" => Ok(Self::CommandPermissionsUpdate),
-            "GIFT_CODE_UPDATE" => Ok(Self::GiftCodeUpdate),
-            "GUILD_CREATE" => Ok(Self::GuildCreate),
-            "GUILD_DELETE" => Ok(Self::GuildDelete),
-            "GUILD_EMOJIS_UPDATE" => Ok(Self::GuildEmojisUpdate),
-            "GUILD_INTEGRATIONS_UPDATE" => Ok(Self::GuildIntegrationsUpdate),
-            "GUILD_SCHEDULED_EVENT_CREATE" => Ok(Self::GuildScheduledEventCreate),
-            "GUILD_SCHEDULED_EVENT_DELETE" => Ok(Self::GuildScheduledEventDelete),
-            "GUILD_SCHEDULED_EVENT_UPDATE" => Ok(Self::GuildScheduledEventUpdate),
-            "GUILD_SCHEDULED_EVENT_USER_ADD" => Ok(Self::GuildScheduledEventUserAdd),
-            "GUILD_SCHEDULED_EVENT_USER_REMOVE" => Ok(Self::GuildScheduledEventUserRemove),
-            "GUILD_UPDATE" => Ok(Self::GuildUpdate),
-            "INTEGRATION_CREATE" => Ok(Self::IntegrationCreate),
-            "INTEGRATION_DELETE" => Ok(Self::IntegrationDelete),
-            "INTEGRATION_UPDATE" => Ok(Self::IntegrationUpdate),
-            "INTERACTION_CREATE" => Ok(Self::InteractionCreate),
-            "INVITE_CREATE" => Ok(Self::InviteCreate),
-            "INVITE_DELETE" => Ok(Self::InviteDelete),
-            "GUILD_MEMBER_ADD" => Ok(Self::MemberAdd),
-            "GUILD_MEMBER_REMOVE" => Ok(Self::MemberRemove),
-            "GUILD_MEMBER_UPDATE" => Ok(Self::MemberUpdate),
-            "GUILD_MEMBERS_CHUNK" => Ok(Self::MemberChunk),
-            "MESSAGE_CREATE" => Ok(Self::MessageCreate),
-            "MESSAGE_DELETE" => Ok(Self::MessageDelete),
-            "MESSAGE_DELETE_BULK" => Ok(Self::MessageDeleteBulk),
-            "MESSAGE_UPDATE" => Ok(Self::MessageUpdate),
-            "PRESENCE_UPDATE" => Ok(Self::PresenceUpdate),
-            "PRESENCES_REPLACE" => Ok(Self::PresencesReplace),
-            "MESSAGE_REACTION_ADD" => Ok(Self::ReactionAdd),
-            "MESSAGE_REACTION_REMOVE" => Ok(Self::ReactionRemove),
-            "MESSAGE_REACTION_REMOVE_ALL" => Ok(Self::ReactionRemoveAll),
-            "MESSAGE_REACTION_REMOVE_EMOJI" => Ok(Self::ReactionRemoveEmoji),
-            "READY" => Ok(Self::Ready),
-            "RESUMED" => Ok(Self::Resumed),
-            "GUILD_ROLE_CREATE" => Ok(Self::RoleCreate),
-            "GUILD_ROLE_DELETE" => Ok(Self::RoleDelete),
-            "GUILD_ROLE_UPDATE" => Ok(Self::RoleUpdate),
-            "STAGE_INSTANCE_CREATE" => Ok(Self::StageInstanceCreate),
-            "STAGE_INSTANCE_DELETE" => Ok(Self::StageInstanceDelete),
-            "STAGE_INSTANCE_UPDATE" => Ok(Self::StageInstanceUpdate),
-            "THREAD_CREATE" => Ok(Self::ThreadCreate),
-            "THREAD_DELETE" => Ok(Self::ThreadDelete),
-            "THREAD_LIST_SYNC" => Ok(Self::ThreadListSync),
-            "THREAD_MEMBER_UPDATE" => Ok(Self::ThreadMemberUpdate),
-            "THREAD_MEMBERS_UPDATE" => Ok(Self::ThreadMembersUpdate),
-            "THREAD_UPDATE" => Ok(Self::ThreadUpdate),
-            "TYPING_START" => Ok(Self::TypingStart),
-            "UNAVAILABLE_GUILD" => Ok(Self::UnavailableGuild),
-            "USER_UPDATE" => Ok(Self::UserUpdate),
-            "VOICE_SERVER_UPDATE" => Ok(Self::VoiceServerUpdate),
-            "VOICE_STATE_UPDATE" => Ok(Self::VoiceStateUpdate),
-            "WEBHOOKS_UPDATE" => Ok(Self::WebhooksUpdate),
-            _ => Err(event_type),
+            DispatchEventType::AutoModerationActionExecution => Self::AutoModerationActionExecution,
+            DispatchEventType::AutoModerationRuleCreate => Self::AutoModerationRuleCreate,
+            DispatchEventType::AutoModerationRuleDelete => Self::AutoModerationRuleDelete,
+            DispatchEventType::AutoModerationRuleUpdate => Self::AutoModerationRuleUpdate,
+            DispatchEventType::BanAdd => Self::BanAdd,
+            DispatchEventType::BanRemove => Self::BanRemove,
+            DispatchEventType::ChannelCreate => Self::ChannelCreate,
+            DispatchEventType::ChannelDelete => Self::ChannelDelete,
+            DispatchEventType::ChannelPinsUpdate => Self::ChannelPinsUpdate,
+            DispatchEventType::ChannelUpdate => Self::ChannelUpdate,
+            DispatchEventType::CommandPermissionsUpdate => Self::CommandPermissionsUpdate,
+            DispatchEventType::GiftCodeUpdate => Self::GiftCodeUpdate,
+            DispatchEventType::GuildAuditLogEntryCreate => Self::GuildAuditLogEntryCreate,
+            DispatchEventType::GuildCreate => Self::GuildCreate,
+            DispatchEventType::GuildDelete => Self::GuildDelete,
+            DispatchEventType::GuildEmojisUpdate => Self::GuildEmojisUpdate,
+            DispatchEventType::GuildIntegrationsUpdate => Self::GuildIntegrationsUpdate,
+            DispatchEventType::GuildScheduledEventCreate => Self::GuildScheduledEventCreate,
+            DispatchEventType::GuildScheduledEventDelete => Self::GuildScheduledEventDelete,
+            DispatchEventType::GuildScheduledEventUpdate => Self::GuildScheduledEventUpdate,
+            DispatchEventType::GuildScheduledEventUserAdd => Self::GuildScheduledEventUserAdd,
+            DispatchEventType::GuildScheduledEventUserRemove => Self::GuildScheduledEventUserRemove,
+            DispatchEventType::GuildStickersUpdate => Self::GuildStickersUpdate,
+            DispatchEventType::GuildUpdate => Self::GuildUpdate,
+            DispatchEventType::IntegrationCreate => Self::IntegrationCreate,
+            DispatchEventType::IntegrationDelete => Self::IntegrationDelete,
+            DispatchEventType::IntegrationUpdate => Self::IntegrationUpdate,
+            DispatchEventType::InteractionCreate => Self::InteractionCreate,
+            DispatchEventType::InviteCreate => Self::InviteCreate,
+            DispatchEventType::InviteDelete => Self::InviteDelete,
+            DispatchEventType::MemberAdd => Self::MemberAdd,
+            DispatchEventType::MemberChunk => Self::MemberChunk,
+            DispatchEventType::MemberRemove => Self::MemberRemove,
+            DispatchEventType::MemberUpdate => Self::MemberUpdate,
+            DispatchEventType::MessageCreate => Self::MessageCreate,
+            DispatchEventType::MessageDelete => Self::MessageDelete,
+            DispatchEventType::MessageDeleteBulk => Self::MessageDeleteBulk,
+            DispatchEventType::MessageUpdate => Self::MessageUpdate,
+            DispatchEventType::PresenceUpdate => Self::PresenceUpdate,
+            DispatchEventType::PresencesReplace => Self::PresencesReplace,
+            DispatchEventType::ReactionAdd => Self::ReactionAdd,
+            DispatchEventType::ReactionRemove => Self::ReactionRemove,
+            DispatchEventType::ReactionRemoveAll => Self::ReactionRemoveAll,
+            DispatchEventType::ReactionRemoveEmoji => Self::ReactionRemoveEmoji,
+            DispatchEventType::Ready => Self::Ready,
+            DispatchEventType::Resumed => Self::Resumed,
+            DispatchEventType::RoleCreate => Self::RoleCreate,
+            DispatchEventType::RoleDelete => Self::RoleDelete,
+            DispatchEventType::RoleUpdate => Self::RoleUpdate,
+            DispatchEventType::StageInstanceCreate => Self::StageInstanceCreate,
+            DispatchEventType::StageInstanceDelete => Self::StageInstanceDelete,
+            DispatchEventType::StageInstanceUpdate => Self::StageInstanceUpdate,
+            DispatchEventType::ThreadCreate => Self::ThreadCreate,
+            DispatchEventType::ThreadDelete => Self::ThreadDelete,
+            DispatchEventType::ThreadListSync => Self::ThreadListSync,
+            DispatchEventType::ThreadMemberUpdate => Self::ThreadMemberUpdate,
+            DispatchEventType::ThreadMembersUpdate => Self::ThreadMembersUpdate,
+            DispatchEventType::ThreadUpdate => Self::ThreadUpdate,
+            DispatchEventType::TypingStart => Self::TypingStart,
+            DispatchEventType::UnavailableGuild => Self::UnavailableGuild,
+            DispatchEventType::UserUpdate => Self::UserUpdate,
+            DispatchEventType::VoiceServerUpdate => Self::VoiceServerUpdate,
+            DispatchEventType::VoiceStateUpdate => Self::VoiceStateUpdate,
+            DispatchEventType::WebhooksUpdate => Self::WebhooksUpdate,
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::EventType;
+    use super::{super::DispatchEventType, EventType};
+    use serde::{de::DeserializeOwned, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
 
-    fn assert_variant(kind: EventType, name: &'static str) {
-        serde_test::assert_tokens(
-            &kind,
-            &[Token::UnitVariant {
-                name: "EventType",
-                variant: name,
-            }],
-        );
-    }
+    assert_impl_all!(
+        EventType: Clone,
+        Copy,
+        Debug,
+        DeserializeOwned,
+        Eq,
+        From<DispatchEventType>,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
 
-    #[allow(clippy::too_many_lines)]
-    #[test]
-    fn variants() {
-        assert_variant(
+    const MAP: &[(EventType, &str)] = &[
+        (
             EventType::AutoModerationActionExecution,
             "AUTO_MODERATION_ACTION_EXECUTION",
-        );
-        assert_variant(
+        ),
+        (
             EventType::AutoModerationRuleCreate,
             "AUTO_MODERATION_RULE_CREATE",
-        );
-        assert_variant(
+        ),
+        (
             EventType::AutoModerationRuleDelete,
             "AUTO_MODERATION_RULE_DELETE",
-        );
-        assert_variant(
+        ),
+        (
             EventType::AutoModerationRuleUpdate,
             "AUTO_MODERATION_RULE_UPDATE",
-        );
-        assert_variant(EventType::BanAdd, "GUILD_BAN_ADD");
-        assert_variant(EventType::BanRemove, "GUILD_BAN_REMOVE");
-        assert_variant(EventType::ChannelCreate, "CHANNEL_CREATE");
-        assert_variant(EventType::ChannelDelete, "CHANNEL_DELETE");
-        assert_variant(EventType::ChannelPinsUpdate, "CHANNEL_PINS_UPDATE");
-        assert_variant(EventType::ChannelUpdate, "CHANNEL_UPDATE");
-        assert_variant(
+        ),
+        (EventType::BanAdd, "GUILD_BAN_ADD"),
+        (EventType::BanRemove, "GUILD_BAN_REMOVE"),
+        (EventType::ChannelCreate, "CHANNEL_CREATE"),
+        (EventType::ChannelDelete, "CHANNEL_DELETE"),
+        (EventType::ChannelPinsUpdate, "CHANNEL_PINS_UPDATE"),
+        (EventType::ChannelUpdate, "CHANNEL_UPDATE"),
+        (
             EventType::CommandPermissionsUpdate,
             "APPLICATION_COMMAND_PERMISSIONS_UPDATE",
-        );
-        assert_variant(EventType::GatewayClose, "GATEWAY_CLOSE");
-        assert_variant(EventType::GatewayHeartbeat, "GATEWAY_HEARTBEAT");
-        assert_variant(EventType::GatewayHeartbeatAck, "GATEWAY_HEARTBEAT_ACK");
-        assert_variant(EventType::GatewayHello, "GATEWAY_HELLO");
-        assert_variant(
-            EventType::GatewayInvalidateSession,
-            "GATEWAY_INVALIDATE_SESSION",
-        );
-        assert_variant(EventType::GatewayReconnect, "GATEWAY_RECONNECT");
-        assert_variant(EventType::GiftCodeUpdate, "GIFT_CODE_UPDATE");
-        assert_variant(
+        ),
+        (EventType::GiftCodeUpdate, "GIFT_CODE_UPDATE"),
+        (
             EventType::GuildAuditLogEntryCreate,
             "GUILD_AUDIT_LOG_ENTRY_CREATE",
-        );
-        assert_variant(EventType::GuildCreate, "GUILD_CREATE");
-        assert_variant(EventType::GuildDelete, "GUILD_DELETE");
-        assert_variant(EventType::GuildEmojisUpdate, "GUILD_EMOJIS_UPDATE");
-        assert_variant(
+        ),
+        (EventType::GuildCreate, "GUILD_CREATE"),
+        (EventType::GuildDelete, "GUILD_DELETE"),
+        (EventType::GuildEmojisUpdate, "GUILD_EMOJIS_UPDATE"),
+        (
             EventType::GuildIntegrationsUpdate,
             "GUILD_INTEGRATIONS_UPDATE",
-        );
-        assert_variant(
+        ),
+        (
             EventType::GuildScheduledEventCreate,
             "GUILD_SCHEDULED_EVENT_CREATE",
-        );
-        assert_variant(
+        ),
+        (
             EventType::GuildScheduledEventDelete,
             "GUILD_SCHEDULED_EVENT_DELETE",
-        );
-        assert_variant(
+        ),
+        (
             EventType::GuildScheduledEventUpdate,
             "GUILD_SCHEDULED_EVENT_UPDATE",
-        );
-        assert_variant(
+        ),
+        (
             EventType::GuildScheduledEventUserAdd,
             "GUILD_SCHEDULED_EVENT_USER_ADD",
-        );
-        assert_variant(
+        ),
+        (
             EventType::GuildScheduledEventUserRemove,
             "GUILD_SCHEDULED_EVENT_USER_REMOVE",
-        );
-        assert_variant(EventType::GuildUpdate, "GUILD_UPDATE");
-        assert_variant(EventType::IntegrationCreate, "INTEGRATION_CREATE");
-        assert_variant(EventType::IntegrationDelete, "INTEGRATION_DELETE");
-        assert_variant(EventType::IntegrationUpdate, "INTEGRATION_UPDATE");
-        assert_variant(EventType::InteractionCreate, "INTERACTION_CREATE");
-        assert_variant(EventType::InviteCreate, "INVITE_CREATE");
-        assert_variant(EventType::InviteDelete, "INVITE_DELETE");
-        assert_variant(EventType::MemberAdd, "GUILD_MEMBER_ADD");
-        assert_variant(EventType::MemberChunk, "GUILD_MEMBERS_CHUNK");
-        assert_variant(EventType::MemberRemove, "GUILD_MEMBER_REMOVE");
-        assert_variant(EventType::MemberUpdate, "GUILD_MEMBER_UPDATE");
-        assert_variant(EventType::MessageCreate, "MESSAGE_CREATE");
-        assert_variant(EventType::MessageDelete, "MESSAGE_DELETE");
-        assert_variant(EventType::MessageDeleteBulk, "MESSAGE_DELETE_BULK");
-        assert_variant(EventType::MessageUpdate, "MESSAGE_UPDATE");
-        assert_variant(EventType::PresenceUpdate, "PRESENCE_UPDATE");
-        assert_variant(EventType::PresencesReplace, "PRESENCES_REPLACE");
-        assert_variant(EventType::ReactionAdd, "MESSAGE_REACTION_ADD");
-        assert_variant(EventType::ReactionRemove, "MESSAGE_REACTION_REMOVE");
-        assert_variant(EventType::ReactionRemoveAll, "MESSAGE_REACTION_REMOVE_ALL");
-        assert_variant(
+        ),
+        (EventType::GuildUpdate, "GUILD_UPDATE"),
+        (EventType::IntegrationCreate, "INTEGRATION_CREATE"),
+        (EventType::IntegrationDelete, "INTEGRATION_DELETE"),
+        (EventType::IntegrationUpdate, "INTEGRATION_UPDATE"),
+        (EventType::InteractionCreate, "INTERACTION_CREATE"),
+        (EventType::InviteCreate, "INVITE_CREATE"),
+        (EventType::InviteDelete, "INVITE_DELETE"),
+        (EventType::MemberAdd, "GUILD_MEMBER_ADD"),
+        (EventType::MemberChunk, "GUILD_MEMBERS_CHUNK"),
+        (EventType::MemberRemove, "GUILD_MEMBER_REMOVE"),
+        (EventType::MemberUpdate, "GUILD_MEMBER_UPDATE"),
+        (EventType::MessageCreate, "MESSAGE_CREATE"),
+        (EventType::MessageDelete, "MESSAGE_DELETE"),
+        (EventType::MessageDeleteBulk, "MESSAGE_DELETE_BULK"),
+        (EventType::MessageUpdate, "MESSAGE_UPDATE"),
+        (EventType::PresenceUpdate, "PRESENCE_UPDATE"),
+        (EventType::PresencesReplace, "PRESENCES_REPLACE"),
+        (EventType::ReactionAdd, "MESSAGE_REACTION_ADD"),
+        (EventType::ReactionRemove, "MESSAGE_REACTION_REMOVE"),
+        (EventType::ReactionRemoveAll, "MESSAGE_REACTION_REMOVE_ALL"),
+        (
             EventType::ReactionRemoveEmoji,
             "MESSAGE_REACTION_REMOVE_EMOJI",
-        );
-        assert_variant(EventType::Ready, "READY");
-        assert_variant(EventType::Resumed, "RESUMED");
-        assert_variant(EventType::RoleCreate, "GUILD_ROLE_CREATE");
-        assert_variant(EventType::RoleDelete, "GUILD_ROLE_DELETE");
-        assert_variant(EventType::RoleUpdate, "GUILD_ROLE_UPDATE");
-        assert_variant(EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE");
-        assert_variant(EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE");
-        assert_variant(EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE");
-        assert_variant(EventType::ThreadCreate, "THREAD_CREATE");
-        assert_variant(EventType::ThreadDelete, "THREAD_DELETE");
-        assert_variant(EventType::ThreadListSync, "THREAD_LIST_SYNC");
-        assert_variant(EventType::ThreadMemberUpdate, "THREAD_MEMBER_UPDATE");
-        assert_variant(EventType::ThreadMembersUpdate, "THREAD_MEMBERS_UPDATE");
-        assert_variant(EventType::ThreadUpdate, "THREAD_UPDATE");
-        assert_variant(EventType::TypingStart, "TYPING_START");
-        assert_variant(EventType::UnavailableGuild, "UNAVAILABLE_GUILD");
-        assert_variant(EventType::UserUpdate, "USER_UPDATE");
-        assert_variant(EventType::VoiceServerUpdate, "VOICE_SERVER_UPDATE");
-        assert_variant(EventType::VoiceStateUpdate, "VOICE_STATE_UPDATE");
-        assert_variant(EventType::WebhooksUpdate, "WEBHOOKS_UPDATE");
+        ),
+        (EventType::Ready, "READY"),
+        (EventType::Resumed, "RESUMED"),
+        (EventType::RoleCreate, "GUILD_ROLE_CREATE"),
+        (EventType::RoleDelete, "GUILD_ROLE_DELETE"),
+        (EventType::RoleUpdate, "GUILD_ROLE_UPDATE"),
+        (EventType::StageInstanceCreate, "STAGE_INSTANCE_CREATE"),
+        (EventType::StageInstanceDelete, "STAGE_INSTANCE_DELETE"),
+        (EventType::StageInstanceUpdate, "STAGE_INSTANCE_UPDATE"),
+        (EventType::ThreadCreate, "THREAD_CREATE"),
+        (EventType::ThreadDelete, "THREAD_DELETE"),
+        (EventType::ThreadListSync, "THREAD_LIST_SYNC"),
+        (EventType::ThreadMemberUpdate, "THREAD_MEMBER_UPDATE"),
+        (EventType::ThreadMembersUpdate, "THREAD_MEMBERS_UPDATE"),
+        (EventType::ThreadUpdate, "THREAD_UPDATE"),
+        (EventType::TypingStart, "TYPING_START"),
+        (EventType::UnavailableGuild, "UNAVAILABLE_GUILD"),
+        (EventType::UserUpdate, "USER_UPDATE"),
+        (EventType::VoiceServerUpdate, "VOICE_SERVER_UPDATE"),
+        (EventType::VoiceStateUpdate, "VOICE_STATE_UPDATE"),
+        (EventType::WebhooksUpdate, "WEBHOOKS_UPDATE"),
+    ];
+
+    #[test]
+    fn serde() {
+        for (value, name) in MAP {
+            serde_test::assert_tokens(
+                value,
+                &[Token::UnitVariant {
+                    name: "EventType",
+                    variant: name,
+                }],
+            );
+            assert_eq!(value.name().unwrap(), *name);
+        }
     }
 }

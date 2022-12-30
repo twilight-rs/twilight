@@ -1,4 +1,4 @@
-use crate::gateway::OpCode;
+use crate::gateway::event::OpCode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

@@ -1,25 +1,41 @@
-#![allow(clippy::wildcard_imports)]
-
-pub mod gateway;
+//! Receivable shard payloads.
+//!
+//! The [`Event`] enum is a convenient flattened [`GatewayEvent`].
+//!
+//! # Deserializing
+//!
+//! [`GatewayEvent`] does not implement [`Deserialize`] since that would require
+//! the `op` ([`OpCode`]) and `t` ([`DispatchEventType`]) fields to be
+//! deserialized before the `d` ([`DispatchEvent`] and friends) field.
+//! Instead you should use [`GatewayEventDeserializer`], which implements
+//! [`DeserializeSeed`] into [`GatewayEvent`].
+//!
+//! [`Deserialize`]: serde::Deserialize
+//! [`DeserializeSeed`]: serde::de::DeserializeSeed
 
 mod dispatch;
+mod gateway;
 mod kind;
+mod opcode;
 
 pub use self::{
-    dispatch::{DispatchEvent, DispatchEventWithTypeDeserializer},
+    dispatch::{DispatchEvent, DispatchEventDeserializer, DispatchEventType},
     gateway::{GatewayEvent, GatewayEventDeserializer},
     kind::EventType,
+    opcode::OpCode,
 };
 
 use super::{payload::incoming::*, CloseFrame};
 use crate::id::{marker::GuildMarker, Id};
-use std::error::Error;
-use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
+use std::{
+    error::Error,
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+};
 
-/// Any type of event that a shard emits.
+/// Receivable gateway event.
 ///
-/// This brings together all of the types of [`DispatchEvent`] and
-/// [`GatewayEvent`].
+/// Flattens all variants of [`DispatchEvent`] and [`GatewayEvent`] into a
+/// single type (but drops dispatch events' sequence number).
 #[derive(Clone, Debug, PartialEq)]
 pub enum Event {
     /// Message was blocked by AutoMod according to a rule.
@@ -172,88 +188,87 @@ pub enum Event {
 }
 
 impl Event {
-    /// Retrieve the guild ID of an event if it took place in a guild.
+    /// ID of the guild from which the event originated, if known.
     ///
-    /// While events such as [`MessageDelete`] will never include a guild ID, events
-    /// such as [`BanAdd`] and only some [`Channel`] related events will include
-    /// one. Guild variants will include a guild ID while DM Channels don't.
-    ///
-    /// [`Channel`]: crate::channel::Channel
+    /// Some events, such as [`MessageDelete`], will never include a guild ID,
+    /// others, such as [`BanAdd`], will always include one and some events,
+    /// such as [`ChannelCreate`] might include one.
     pub const fn guild_id(&self) -> Option<Id<GuildMarker>> {
         match self {
-            Event::AutoModerationActionExecution(e) => Some(e.guild_id),
-            Event::AutoModerationRuleCreate(e) => Some(e.0.guild_id),
-            Event::AutoModerationRuleDelete(e) => Some(e.0.guild_id),
-            Event::AutoModerationRuleUpdate(e) => Some(e.0.guild_id),
-            Event::BanAdd(e) => Some(e.guild_id),
-            Event::BanRemove(e) => Some(e.guild_id),
-            Event::ChannelCreate(e) => e.0.guild_id,
-            Event::ChannelDelete(e) => e.0.guild_id,
-            Event::ChannelUpdate(e) => e.0.guild_id,
-            Event::CommandPermissionsUpdate(e) => Some(e.0.guild_id),
-            Event::GuildAuditLogEntryCreate(e) => e.0.guild_id,
-            Event::GuildCreate(e) => Some(e.0.id),
-            Event::GuildDelete(e) => Some(e.id),
-            Event::GuildEmojisUpdate(e) => Some(e.guild_id),
-            Event::GuildIntegrationsUpdate(e) => Some(e.guild_id),
-            Event::GuildScheduledEventCreate(e) => Some(e.0.guild_id),
-            Event::GuildScheduledEventDelete(e) => Some(e.0.guild_id),
-            Event::GuildScheduledEventUpdate(e) => Some(e.0.guild_id),
-            Event::GuildScheduledEventUserAdd(e) => Some(e.guild_id),
-            Event::GuildScheduledEventUserRemove(e) => Some(e.guild_id),
-            Event::GuildStickersUpdate(e) => Some(e.guild_id),
-            Event::GuildUpdate(e) => Some(e.0.id),
-            Event::IntegrationCreate(e) => e.0.guild_id,
-            Event::IntegrationDelete(e) => Some(e.guild_id),
-            Event::IntegrationUpdate(e) => e.0.guild_id,
-            Event::InteractionCreate(e) => e.0.guild_id,
-            Event::InviteCreate(e) => Some(e.guild_id),
-            Event::InviteDelete(e) => Some(e.guild_id),
-            Event::MemberAdd(e) => Some(e.guild_id),
-            Event::MemberChunk(e) => Some(e.guild_id),
-            Event::MemberRemove(e) => Some(e.guild_id),
-            Event::MemberUpdate(e) => Some(e.guild_id),
-            Event::MessageCreate(e) => e.0.guild_id,
-            Event::PresenceUpdate(e) => Some(e.0.guild_id),
-            Event::ReactionAdd(e) => e.0.guild_id,
-            Event::ReactionRemove(e) => e.0.guild_id,
-            Event::ReactionRemoveAll(e) => e.guild_id,
-            Event::ReactionRemoveEmoji(e) => Some(e.guild_id),
-            Event::RoleCreate(e) => Some(e.guild_id),
-            Event::RoleDelete(e) => Some(e.guild_id),
-            Event::RoleUpdate(e) => Some(e.guild_id),
-            Event::StageInstanceCreate(e) => Some(e.0.guild_id),
-            Event::StageInstanceDelete(e) => Some(e.0.guild_id),
-            Event::StageInstanceUpdate(e) => Some(e.0.guild_id),
-            Event::ThreadCreate(e) => e.0.guild_id,
-            Event::ThreadDelete(e) => Some(e.guild_id),
-            Event::ThreadListSync(e) => Some(e.guild_id),
-            Event::ThreadMembersUpdate(e) => Some(e.guild_id),
-            Event::ThreadUpdate(e) => e.0.guild_id,
-            Event::TypingStart(e) => e.guild_id,
-            Event::UnavailableGuild(e) => Some(e.id),
-            Event::VoiceServerUpdate(e) => Some(e.guild_id),
-            Event::VoiceStateUpdate(e) => e.0.guild_id,
-            Event::WebhooksUpdate(e) => Some(e.guild_id),
-            Event::ChannelPinsUpdate(_)
-            | Event::GatewayClose(_)
-            | Event::GatewayHeartbeat(_)
-            | Event::GatewayHeartbeatAck
-            | Event::GatewayHello(_)
-            | Event::GatewayInvalidateSession(_)
-            | Event::GatewayReconnect
-            | Event::GiftCodeUpdate
-            | Event::MessageDelete(_)
-            | Event::MessageDeleteBulk(_)
-            | Event::MessageUpdate(_)
-            | Event::PresencesReplace
-            | Event::Ready(_)
-            | Event::Resumed
-            | Event::ThreadMemberUpdate(_)
-            | Event::UserUpdate(_) => None,
+            Self::AutoModerationActionExecution(e) => Some(e.guild_id),
+            Self::AutoModerationRuleCreate(e) => Some(e.0.guild_id),
+            Self::AutoModerationRuleDelete(e) => Some(e.0.guild_id),
+            Self::AutoModerationRuleUpdate(e) => Some(e.0.guild_id),
+            Self::BanAdd(e) => Some(e.guild_id),
+            Self::BanRemove(e) => Some(e.guild_id),
+            Self::ChannelCreate(e) => e.0.guild_id,
+            Self::ChannelDelete(e) => e.0.guild_id,
+            Self::ChannelUpdate(e) => e.0.guild_id,
+            Self::CommandPermissionsUpdate(e) => Some(e.0.guild_id),
+            Self::GuildAuditLogEntryCreate(e) => e.0.guild_id,
+            Self::GuildCreate(e) => Some(e.0.id),
+            Self::GuildDelete(e) => Some(e.id),
+            Self::GuildEmojisUpdate(e) => Some(e.guild_id),
+            Self::GuildIntegrationsUpdate(e) => Some(e.guild_id),
+            Self::GuildScheduledEventCreate(e) => Some(e.0.guild_id),
+            Self::GuildScheduledEventDelete(e) => Some(e.0.guild_id),
+            Self::GuildScheduledEventUpdate(e) => Some(e.0.guild_id),
+            Self::GuildScheduledEventUserAdd(e) => Some(e.guild_id),
+            Self::GuildScheduledEventUserRemove(e) => Some(e.guild_id),
+            Self::GuildStickersUpdate(e) => Some(e.guild_id),
+            Self::GuildUpdate(e) => Some(e.0.id),
+            Self::IntegrationCreate(e) => e.0.guild_id,
+            Self::IntegrationDelete(e) => Some(e.guild_id),
+            Self::IntegrationUpdate(e) => e.0.guild_id,
+            Self::InteractionCreate(e) => e.0.guild_id,
+            Self::InviteCreate(e) => Some(e.guild_id),
+            Self::InviteDelete(e) => Some(e.guild_id),
+            Self::MemberAdd(e) => Some(e.guild_id),
+            Self::MemberChunk(e) => Some(e.guild_id),
+            Self::MemberRemove(e) => Some(e.guild_id),
+            Self::MemberUpdate(e) => Some(e.guild_id),
+            Self::MessageCreate(e) => e.0.guild_id,
+            Self::PresenceUpdate(e) => Some(e.0.guild_id),
+            Self::ReactionAdd(e) => e.0.guild_id,
+            Self::ReactionRemove(e) => e.0.guild_id,
+            Self::ReactionRemoveAll(e) => e.guild_id,
+            Self::ReactionRemoveEmoji(e) => Some(e.guild_id),
+            Self::RoleCreate(e) => Some(e.guild_id),
+            Self::RoleDelete(e) => Some(e.guild_id),
+            Self::RoleUpdate(e) => Some(e.guild_id),
+            Self::StageInstanceCreate(e) => Some(e.0.guild_id),
+            Self::StageInstanceDelete(e) => Some(e.0.guild_id),
+            Self::StageInstanceUpdate(e) => Some(e.0.guild_id),
+            Self::ThreadCreate(e) => e.0.guild_id,
+            Self::ThreadDelete(e) => Some(e.guild_id),
+            Self::ThreadListSync(e) => Some(e.guild_id),
+            Self::ThreadMembersUpdate(e) => Some(e.guild_id),
+            Self::ThreadUpdate(e) => e.0.guild_id,
+            Self::TypingStart(e) => e.guild_id,
+            Self::UnavailableGuild(e) => Some(e.id),
+            Self::VoiceServerUpdate(e) => Some(e.guild_id),
+            Self::VoiceStateUpdate(e) => e.0.guild_id,
+            Self::WebhooksUpdate(e) => Some(e.guild_id),
+            Self::ChannelPinsUpdate(_)
+            | Self::GatewayClose(_)
+            | Self::GatewayHeartbeat(_)
+            | Self::GatewayHeartbeatAck
+            | Self::GatewayHello(_)
+            | Self::GatewayInvalidateSession(_)
+            | Self::GatewayReconnect
+            | Self::GiftCodeUpdate
+            | Self::MessageDelete(_)
+            | Self::MessageDeleteBulk(_)
+            | Self::MessageUpdate(_)
+            | Self::PresencesReplace
+            | Self::Ready(_)
+            | Self::Resumed
+            | Self::ThreadMemberUpdate(_)
+            | Self::UserUpdate(_) => None,
         }
     }
 
+    /// Type of event.
     pub const fn kind(&self) -> EventType {
         match self {
             Self::AutoModerationActionExecution(_) => EventType::AutoModerationActionExecution,
@@ -451,90 +466,22 @@ impl Error for EventConversionError {}
 
 #[cfg(test)]
 mod tests {
-    //! `EVENT_THRESHOLD` is equivalent to 192 bytes. This was decided based on
-    //! the size of `Event` at the time of writing. The assertions here are to
-    //! ensure that in the case the events themselves grow or shrink past the
-    //! threshold, they are properly boxed or unboxed respectively.
-    //!
-    //! If a field has been added to an event in the "unboxed" section and its
-    //! assertion now fails, then you will need to wrap the event in a box in
-    //! the `Event` type and move the assertion to the "boxed" section.
-    //!
-    //! Likewise, if a field has been removed from an event in the "boxed"
-    //! section and the assertion now fails, you will need to remove the box
-    //! wrapping the event in the `Event` type and move the assertion to the
-    //! "unboxed" section.
+    use super::{DispatchEvent, Event, EventConversionError, GatewayEvent};
+    use static_assertions::assert_impl_all;
+    use std::{
+        error::Error,
+        fmt::{Debug, Display},
+    };
 
-    use super::{super::payload::incoming::*, Event};
-    use static_assertions::const_assert;
-    use std::mem;
+    assert_impl_all!(
+        Event: Clone,
+        Debug,
+        From<DispatchEvent>,
+        From<GatewayEvent>,
+        PartialEq,
+        Send,
+        Sync
+    );
 
-    // `dead_code`: `const_assert` operates at the compiler level, and the lint
-    // requires a variable to be used in a function, so this is a false
-    // positive.
-    #[allow(dead_code)]
-    const EVENT_THRESHOLD: usize = 184;
-
-    const_assert!(mem::size_of::<Event>() == EVENT_THRESHOLD);
-
-    // Boxed events.
-    const_assert!(mem::size_of::<AutoModerationRuleCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<AutoModerationRuleDelete>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<AutoModerationRuleUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ChannelCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ChannelDelete>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ChannelUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildScheduledEventCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildScheduledEventDelete>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildScheduledEventUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<IntegrationCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<IntegrationUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<InviteCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<InteractionCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MemberAdd>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MemberUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MessageCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MessageUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<PresenceUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ReactionAdd>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ReactionRemove>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<Ready>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ThreadCreate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ThreadMemberUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ThreadUpdate>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<TypingStart>() > EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<VoiceStateUpdate>() > EVENT_THRESHOLD);
-
-    // Unboxed.
-    const_assert!(mem::size_of::<AutoModerationActionExecution>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<BanAdd>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<BanRemove>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ChannelPinsUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<CommandPermissionsUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildDelete>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildEmojisUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildIntegrationsUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildScheduledEventUserAdd>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<GuildScheduledEventUserRemove>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<IntegrationDelete>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<InviteDelete>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MemberChunk>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MemberRemove>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MessageDelete>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<MessageDeleteBulk>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ReactionRemoveAll>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<RoleCreate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<RoleDelete>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<RoleUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<StageInstanceCreate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<StageInstanceDelete>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<StageInstanceUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ThreadDelete>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ThreadListSync>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<ThreadMembersUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<UnavailableGuild>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<UserUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<VoiceServerUpdate>() <= EVENT_THRESHOLD);
-    const_assert!(mem::size_of::<WebhooksUpdate>() <= EVENT_THRESHOLD);
+    assert_impl_all!(EventConversionError: Debug, Display, Error);
 }
