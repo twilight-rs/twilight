@@ -14,12 +14,10 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     str,
 };
-use twilight_model::gateway::{event::GatewayEvent, OpCode};
-
-#[cfg(not(feature = "simd-json"))]
-use twilight_model::gateway::event::GatewayEventDeserializer as EventDeserializer;
-#[cfg(feature = "simd-json")]
-use twilight_model::gateway::event::GatewayEventDeserializerOwned as EventDeserializer;
+use twilight_model::gateway::{
+    event::{GatewayEvent, GatewayEventDeserializer},
+    OpCode,
+};
 
 /// Parsing of a gateway event failed, likely due to a type being unrecognized.
 #[derive(Debug)]
@@ -111,13 +109,15 @@ pub fn parse(
     let mut bytes = json.into_bytes();
     let json = str::from_utf8(&bytes).unwrap();
 
+    let gateway_deserializer =
+        GatewayEventDeserializer::from_json(json).ok_or(GatewayEventParsingError {
+            kind: GatewayEventParsingErrorType::PayloadInvalid,
+            source: None,
+        })?;
+
     #[cfg(feature = "simd-json")]
     let (gateway_deserializer, mut json_deserializer) = {
-        let gateway_deserializer =
-            EventDeserializer::from_json(json).ok_or(GatewayEventParsingError {
-                kind: GatewayEventParsingErrorType::PayloadInvalid,
-                source: None,
-            })?;
+        let gateway_deserializer = gateway_deserializer.into_owned();
 
         let json_deserializer = simd_json::Deserializer::from_slice(&mut bytes).map_err(|_| {
             GatewayEventParsingError {
@@ -130,24 +130,14 @@ pub fn parse(
     };
 
     #[cfg(not(feature = "simd-json"))]
-    let (gateway_deserializer, mut json_deserializer) = {
-        let gateway_deserializer =
-            EventDeserializer::from_json(json).ok_or(GatewayEventParsingError {
-                kind: GatewayEventParsingErrorType::PayloadInvalid,
-                source: None,
-            })?;
-
-        let json_deserializer = serde_json::Deserializer::from_str(json);
-
-        (gateway_deserializer, json_deserializer)
-    };
+    let mut json_deserializer = serde_json::Deserializer::from_str(json);
 
     let opcode = OpCode::from(gateway_deserializer.op()).ok_or(GatewayEventParsingError {
         kind: GatewayEventParsingErrorType::PayloadInvalid,
         source: None,
     })?;
 
-    let event_flag = EventTypeFlags::try_from((opcode, gateway_deserializer.event_type_ref()))
+    let event_flag = EventTypeFlags::try_from((opcode, gateway_deserializer.event_type()))
         .map_err(|_| GatewayEventParsingError {
             kind: GatewayEventParsingErrorType::PayloadInvalid,
             source: None,

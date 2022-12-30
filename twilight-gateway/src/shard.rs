@@ -856,7 +856,7 @@ impl Shard {
                 })?;
                 tracing::debug!(%event_type, %sequence, "received dispatch");
 
-                match event_type {
+                match event_type.as_ref() {
                     "READY" => {
                         let event = Self::parse_event::<MinimalReady>(event)?;
 

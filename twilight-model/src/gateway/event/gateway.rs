@@ -10,8 +10,11 @@ use serde::{
     ser::{SerializeStruct, Serializer},
     Deserialize, Serialize,
 };
-use std::fmt::{Formatter, Result as FmtResult};
-use std::str::FromStr;
+use std::{
+    borrow::Cow,
+    fmt::{Formatter, Result as FmtResult},
+    str::FromStr,
+};
 
 /// An event from the gateway, which can either be a dispatch event with
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
@@ -50,109 +53,31 @@ enum Field {
     T,
 }
 
-/// A deserializer that deserializes into a `GatewayEvent` by cloning some bits
-/// of scanned information before the actual deserialization.
-///
-/// This is the owned version of [`GatewayEventDeserializer`].
-///
-/// You should use this if you're using a mutable deserialization library
-/// like `simd-json`.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct GatewayEventDeserializerOwned {
-    event_type: Option<String>,
-    op: u8,
-    sequence: Option<u64>,
-}
-
-impl GatewayEventDeserializerOwned {
-    /// Create a new owned gateway event deserializer when you already know the
-    /// event type and opcode.
-    ///
-    /// This might be useful if you scan the payload for this information and
-    /// do some work with the event type prior to deserializing the payload.
-    pub fn new(op: u8, sequence: Option<u64>, event_type: impl Into<Option<String>>) -> Self {
-        Self {
-            event_type: event_type.into(),
-            op,
-            sequence,
-        }
-    }
-
-    pub fn from_json(input: &str) -> Option<Self> {
-        let deser = GatewayEventDeserializer::from_json(input)?;
-        let GatewayEventDeserializer {
-            event_type,
-            op,
-            sequence,
-        } = deser;
-
-        Some(Self {
-            event_type: event_type.map(ToOwned::to_owned),
-            op,
-            sequence,
-        })
-    }
-
-    /// Return an immutable reference to the event type of the payload.
-    pub fn event_type_ref(&self) -> Option<&str> {
-        self.event_type.as_deref()
-    }
-
-    /// Return the opcode of the payload.
-    pub const fn op(&self) -> u8 {
-        self.op
-    }
-
-    /// Return the sequence of the payload.
-    pub const fn sequence(&self) -> Option<u64> {
-        self.sequence
-    }
-
-    /// Consume the deserializer, returning its opcode, sequence, and event type
-    /// components.
-    #[allow(clippy::missing_const_for_fn)]
-    pub fn into_parts(self) -> (u8, Option<u64>, Option<String>) {
-        (self.op, self.sequence, self.event_type)
-    }
-}
-
-/// A deserializer that deserializes into a `GatewayEvent` by borrowing some bits
-/// of scanned information before the actual deserialization.
-///
-/// This is the borrowed version of [`GatewayEventDeserializerOwned`].
-///
-/// You should use this if you're using an immutable deserialization library
-/// like `serde_json`.
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// Deserialize into a [`GatewayEvent`] by knowing its dispatch event type and
+/// opcode.
+#[derive(Debug)]
 pub struct GatewayEventDeserializer<'a> {
-    event_type: Option<&'a str>,
+    event_type: Option<Cow<'a, str>>,
     op: u8,
     sequence: Option<u64>,
 }
 
 impl<'a> GatewayEventDeserializer<'a> {
-    /// Create a new gateway event deserializer when you already know the event
-    /// type and opcode.
-    ///
-    /// This might be useful if you scan the payload for this information and
-    /// do some work with the event type prior to deserializing the payload.
-    pub const fn new(op: u8, sequence: Option<u64>, event_type: Option<&'a str>) -> Self {
+    /// Create a new gateway event deserializer when you already know the opcode
+    /// and dispatch event type.
+    pub fn new(op: u8, event_type: Option<&'a str>) -> Self {
         Self {
-            event_type,
+            event_type: event_type.map(Into::into),
             op,
-            sequence,
+            sequence: None,
         }
     }
 
-    /// Create a gateway event deserializer with some information found by
-    /// scanning the JSON payload to deserialize.
-    ///
-    /// This will scan the payload for the opcode and, optionally, event type if
-    /// provided. The opcode key ("op"), must be in the payload while the event
-    /// type key ("t") is optional and only required for event ops.
+    /// Create a gateway event deserializer by scanning the JSON payload for its
+    /// opcode and dispatch event type.
     pub fn from_json(input: &'a str) -> Option<Self> {
         let op = Self::find_opcode(input)?;
-        let event_type = Self::find_event_type(input);
+        let event_type = Self::find_event_type(input).map(Into::into);
         let sequence = Self::find_sequence(input);
 
         Some(Self {
@@ -162,24 +87,40 @@ impl<'a> GatewayEventDeserializer<'a> {
         })
     }
 
-    /// Return an immutable reference to the event type of the payload.
-    pub const fn event_type_ref(&self) -> Option<&'a str> {
-        self.event_type
+    /// Dispatch event type of the payload.
+    pub fn event_type(&self) -> Option<&str> {
+        self.event_type.as_deref()
     }
 
-    /// Return the opcode of the payload.
+    /// Opcode of the payload.
     pub const fn op(&self) -> u8 {
         self.op
     }
 
-    /// Return the sequence of the payload.
+    /// Sequence of the payload.
+    ///
+    /// May only be available if the deserializer was created from the
+    /// `from_json` function.
     pub const fn sequence(&self) -> Option<u64> {
         self.sequence
     }
 
-    /// Consume the deserializer, returning its opcode and event type
-    /// components.
-    pub const fn into_parts(self) -> (u8, Option<u64>, Option<&'a str>) {
+    /// Clone the `event_type`.
+    ///
+    /// Use this when using a mutable deserialization library like `simd-json`.
+    pub fn into_owned(self) -> GatewayEventDeserializer<'static> {
+        GatewayEventDeserializer {
+            event_type: self
+                .event_type
+                .map(|event_type| Cow::Owned(event_type.into_owned())),
+            op: self.op,
+            sequence: self.sequence,
+        }
+    }
+
+    /// Consume the deserializer, returning its components.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn into_parts(self) -> (u8, Option<u64>, Option<Cow<'a, str>>) {
         (self.op, self.sequence, self.event_type)
     }
 
@@ -235,7 +176,7 @@ impl<'a> GatewayEventDeserializer<'a> {
     }
 }
 
-struct GatewayEventVisitor<'a>(u8, Option<u64>, Option<&'a str>);
+struct GatewayEventVisitor<'a>(u8, Option<u64>, Option<Cow<'a, str>>);
 
 impl GatewayEventVisitor<'_> {
     fn field<'de, T: Deserialize<'de>, V: MapAccess<'de>>(
@@ -325,6 +266,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 tracing::trace!("deserializing gateway dispatch");
 
                 let mut d = None;
+                let mut s = None;
 
                 loop {
                     let span_child = tracing::trace_span!("iterating over element");
@@ -352,11 +294,18 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                                 return Err(DeError::duplicate_field("d"));
                             }
 
-                            let deserializer = DispatchEventWithTypeDeserializer::new(t);
+                            let deserializer = DispatchEventWithTypeDeserializer::new(&t);
 
                             d = Some(map.next_value_seed(deserializer)?);
                         }
-                        Field::Op | Field::S | Field::T => {
+                        Field::S => {
+                            if s.is_some() {
+                                return Err(DeError::duplicate_field("s"));
+                            }
+
+                            s = Some(map.next_value()?);
+                        }
+                        Field::Op | Field::T => {
                             map.next_value::<IgnoredAny>()?;
 
                             tracing::trace!(key=?key, "ignoring key");
@@ -365,9 +314,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
                 }
 
                 let d = d.ok_or_else(|| DeError::missing_field("d"))?;
-                let s = self.1.ok_or_else(|| DeError::missing_field("s"))?;
-
-                Self::ignore_all(&mut map)?;
+                let s = s.ok_or_else(|| DeError::missing_field("s"))?;
 
                 GatewayEvent::Dispatch(s, d)
             }
@@ -432,26 +379,12 @@ impl<'de> DeserializeSeed<'de> for GatewayEventDeserializer<'_> {
     type Value = GatewayEvent;
 
     fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        const FIELDS: &[&str] = &["d", "s"];
+        const FIELDS: &[&str] = &["op", "d", "s", "t"];
 
         deserializer.deserialize_struct(
             "GatewayEvent",
             FIELDS,
             GatewayEventVisitor(self.op, self.sequence, self.event_type),
-        )
-    }
-}
-
-impl<'de> DeserializeSeed<'de> for GatewayEventDeserializerOwned {
-    type Value = GatewayEvent;
-
-    fn deserialize<D: Deserializer<'de>>(self, deserializer: D) -> Result<Self::Value, D::Error> {
-        const FIELDS: &[&str] = &["d", "s"];
-
-        deserializer.deserialize_struct(
-            "GatewayEvent",
-            FIELDS,
-            GatewayEventVisitor(self.op, self.sequence, self.event_type.as_deref()),
         )
     }
 }
@@ -813,7 +746,7 @@ mod tests {
         }"#;
 
         let deserializer = GatewayEventDeserializer::from_json(input).unwrap();
-        assert_eq!(deserializer.event_type, Some("DOESNT_MATTER"));
+        assert_eq!(deserializer.event_type(), Some("DOESNT_MATTER"));
         assert_eq!(deserializer.op, 0);
     }
 
