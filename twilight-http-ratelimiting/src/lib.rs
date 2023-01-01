@@ -88,17 +88,20 @@ impl Bucket {
 
         reset_at.checked_duration_since(Instant::now())
     }
-    
+
     /// Constructs a new bucket instance
     #[must_use]
-    pub fn new(
+    pub const fn new(
         limit: u64,
         remaining: u64,
         reset_after: Duration,
         started_at: Option<Instant>,
     ) -> Self {
         Self {
-            limit, remaining, reset_after, started_at
+            limit,
+            remaining,
+            reset_after,
+            started_at,
         }
     }
 }
