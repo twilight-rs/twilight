@@ -45,9 +45,10 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use std::{
+    marker::PhantomData,
     ops::{Bound, Deref, DerefMut, Range, RangeBounds},
     pin::Pin,
-    sync::mpsc,
+    sync::{mpsc, MutexGuard},
     task::{Context, Poll},
 };
 #[cfg(feature = "twilight-http")]
@@ -208,6 +209,7 @@ impl<'a> Stream for ShardEventStream<'a> {
                 ShardRef {
                     channel: self.sender.clone(),
                     shard: Some(output.shard),
+                    unsend: PhantomData,
                 },
                 output.result,
             ))),
@@ -321,6 +323,7 @@ impl<'a> Stream for ShardMessageStream<'a> {
                 ShardRef {
                     channel: self.sender.clone(),
                     shard: Some(output.shard),
+                    unsend: PhantomData,
                 },
                 output.result,
             ))),
@@ -341,6 +344,8 @@ pub struct ShardRef<'a> {
     channel: mpsc::Sender<&'a mut Shard>,
     /// Mutable reference to the shard that produced an event or message.
     shard: Option<&'a mut Shard>,
+    /// Field to ensure struct is `!Send`.
+    unsend: PhantomData<MutexGuard<'static, ()>>,
 }
 
 impl Deref for ShardRef<'_> {
@@ -568,11 +573,10 @@ mod tests {
 
     assert_impl_all!(ShardEventStream<'_>: Send, Stream, Unpin);
     assert_impl_all!(ShardMessageStream<'_>: Send, Stream, Unpin);
-    // This being `Send` is totally fine, delaying its drop by sleeping on
-    // another thread will not cause it to miss messages.
-    assert_impl_all!(ShardRef<'_>: Deref, DerefMut, Drop, Send);
+    assert_impl_all!(ShardRef<'_>: Deref, DerefMut, Drop);
     // These types should not be `Sync` to avoid users wrapping them in an `Arc`.
     assert_not_impl_all!(ShardEventStream<'_>: Sync);
     assert_not_impl_all!(ShardMessageStream<'_>: Sync);
-    assert_not_impl_all!(ShardRef<'_>: Sync);
+    // Don't implement `Send` on `ShardRef` since its a footgun.
+    assert_not_impl_all!(ShardRef<'_>: Send, Sync);
 }
