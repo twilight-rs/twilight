@@ -566,8 +566,8 @@ mod tests {
     use static_assertions::{assert_impl_all, assert_not_impl_all};
     use std::ops::{Deref, DerefMut};
 
-    assert_impl_all!(ShardEventStream<'_>: Send, Stream);
-    assert_impl_all!(ShardMessageStream<'_>: Send, Stream);
+    assert_impl_all!(ShardEventStream<'_>: Send, Stream, Unpin);
+    assert_impl_all!(ShardMessageStream<'_>: Send, Stream, Unpin);
     // This being `Send` is totally fine, delaying its drop by sleeping on
     // another thread will not cause it to miss messages.
     assert_impl_all!(ShardRef<'_>: Deref, DerefMut, Drop, Send);
