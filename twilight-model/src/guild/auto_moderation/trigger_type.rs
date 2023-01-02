@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub enum AutoModerationTriggerType {
     /// Check if content contains words from a user defined list of keywords.
     ///
-    /// Maximum of 3 per guild.
+    /// Maximum of 5 per guild.
     Keyword,
     /// Check if content represents generic spam.
     ///
