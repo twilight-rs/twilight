@@ -561,10 +561,14 @@ fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ShardEventStream, ShardMessageStream};
+    use super::{ShardEventStream, ShardMessageStream, ShardRef};
     use futures_util::Stream;
     use static_assertions::assert_impl_all;
+    use std::ops::{Deref, DerefMut};
 
     assert_impl_all!(ShardEventStream<'_>: Send, Stream);
     assert_impl_all!(ShardMessageStream<'_>: Send, Stream);
+    // This being `Send` is totally fine, delaying its drop by sleeping on
+    // another thread will not cause it to miss messages.
+    assert_impl_all!(ShardRef<'_>: Deref, DerefMut, Drop, Send);
 }
