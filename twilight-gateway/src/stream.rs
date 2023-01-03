@@ -45,10 +45,9 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 use std::{
-    marker::PhantomData,
     ops::{Bound, Deref, DerefMut, Range, RangeBounds},
     pin::Pin,
-    sync::{mpsc, MutexGuard},
+    sync::mpsc,
     task::{Context, Poll},
 };
 #[cfg(feature = "twilight-http")]
@@ -209,7 +208,6 @@ impl<'a> Stream for ShardEventStream<'a> {
                 ShardRef {
                     channel: self.sender.clone(),
                     shard: Some(output.shard),
-                    unsend: PhantomData,
                 },
                 output.result,
             ))),
@@ -323,7 +321,6 @@ impl<'a> Stream for ShardMessageStream<'a> {
                 ShardRef {
                     channel: self.sender.clone(),
                     shard: Some(output.shard),
-                    unsend: PhantomData,
                 },
                 output.result,
             ))),
@@ -344,8 +341,6 @@ pub struct ShardRef<'a> {
     channel: mpsc::Sender<&'a mut Shard>,
     /// Mutable reference to the shard that produced an event or message.
     shard: Option<&'a mut Shard>,
-    /// Field to ensure struct is `!Send`.
-    unsend: PhantomData<MutexGuard<'static, ()>>,
 }
 
 impl Deref for ShardRef<'_> {
@@ -568,15 +563,10 @@ fn calculate_range(range: impl RangeBounds<u64>, total: u64) -> Range<u64> {
 mod tests {
     use super::{ShardEventStream, ShardMessageStream, ShardRef};
     use futures_util::Stream;
-    use static_assertions::{assert_impl_all, assert_not_impl_all};
+    use static_assertions::assert_impl_all;
     use std::ops::{Deref, DerefMut};
 
     assert_impl_all!(ShardEventStream<'_>: Send, Stream, Unpin);
     assert_impl_all!(ShardMessageStream<'_>: Send, Stream, Unpin);
-    assert_impl_all!(ShardRef<'_>: Deref, DerefMut, Drop);
-    // These types should not be `Sync` to avoid users wrapping them in an `Arc`.
-    assert_not_impl_all!(ShardEventStream<'_>: Sync);
-    assert_not_impl_all!(ShardMessageStream<'_>: Sync);
-    // Don't implement `Send` on `ShardRef` since its a footgun.
-    assert_not_impl_all!(ShardRef<'_>: Send, Sync);
+    assert_impl_all!(ShardRef<'_>: Deref, DerefMut, Send);
 }
