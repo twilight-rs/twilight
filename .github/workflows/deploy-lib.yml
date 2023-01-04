@@ -22,9 +22,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install nightly toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly
+        uses: dtolnay/rust-toolchain@nightly
 
       - name: Add problem matchers
         run: echo "::add-matcher::.github/rust.json"
