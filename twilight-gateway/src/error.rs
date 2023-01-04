@@ -2,7 +2,6 @@
 
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 pub use crate::inflater::{CompressionError, CompressionErrorType};
-pub use crate::json::{GatewayEventParsingError, GatewayEventParsingErrorType};
 
 use std::{
     error::Error,
@@ -49,11 +48,11 @@ impl ProcessError {
 
 impl Display for ProcessError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match self.kind {
-            ProcessErrorType::Deserializing => {
-                f.write_str("payload isn't a recognized gateway event")
+        match &self.kind {
+            ProcessErrorType::Deserializing { event } => {
+                f.write_str("gateway event could not be deserialized: event=")?;
+                f.write_str(event)
             }
-            ProcessErrorType::ParsingPayload => f.write_str("payload could not be parsed as json"),
             ProcessErrorType::SendingMessage => {
                 f.write_str("failed to send a message over the websocket")
             }
@@ -72,13 +71,14 @@ impl Error for ProcessError {
 /// Type of [`ProcessError`] that occurred.
 #[derive(Debug)]
 pub enum ProcessErrorType {
-    /// Received gateway event failed to be deserialized.
-    ///
-    /// The message payload is likely an unrecognized type that is not yet
-    /// supported.
-    Deserializing,
-    /// There was an error parsing a GatewayEvent payload.
-    ParsingPayload,
+    /// Gateway event could not be deserialized.
+    Deserializing {
+        /// Gateway event.
+        ///
+        /// Unlike [`ReceiveMessageErrorType::Deserializing`], the event is
+        /// never modified.
+        event: String,
+    },
     /// Message could not be sent over the Websocket connection.
     ///
     /// This may happen when the shard sends heartbeats or attempts to identify
@@ -144,14 +144,6 @@ impl ReceiveMessageError {
         }
     }
 
-    /// Shortcut to create a new error from a gateway event parsing error.
-    pub(crate) fn from_json(source: GatewayEventParsingError) -> Self {
-        Self {
-            kind: ReceiveMessageErrorType::Deserializing,
-            source: Some(Box::new(source)),
-        }
-    }
-
     /// Shortcut to create a new error from a message sending error.
     pub(crate) fn from_send(source: SendError) -> Self {
         Self {
@@ -168,8 +160,9 @@ impl Display for ReceiveMessageError {
             ReceiveMessageErrorType::Compression => {
                 f.write_str("binary message could not be decompressed")
             }
-            ReceiveMessageErrorType::Deserializing => {
-                f.write_str("message is an unrecognized payload")
+            ReceiveMessageErrorType::Deserializing { ref event } => {
+                f.write_str("gateway event could not be deserialized: event=")?;
+                f.write_str(event)
             }
             ReceiveMessageErrorType::FatallyClosed { close_code } => {
                 f.write_str("shard fatally closed: ")?;
@@ -204,11 +197,13 @@ pub enum ReceiveMessageErrorType {
     /// The associated error downcasts to [`CompressionError`].
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     Compression,
-    /// Received gateway event failed to be deserialized.
-    ///
-    /// The message payload is likely an unrecognized type that is not yet
-    /// supported.
-    Deserializing,
+    /// Gateway event could not be deserialized.
+    Deserializing {
+        /// Gateway event.
+        ///
+        /// Note that the `simd-json` feature will slightly modify the event.
+        event: String,
+    },
     /// Shard has been closed due to a fatal configuration error.
     FatallyClosed {
         /// Close code of the close message.
@@ -304,14 +299,13 @@ mod tests {
 
     #[test]
     fn process_error_display() {
-        const MESSAGES: [(ProcessErrorType, &str); 3] = [
+        let messages: [(ProcessErrorType, &str); 2] = [
             (
-                ProcessErrorType::Deserializing,
-                "payload isn't a recognized gateway event",
-            ),
-            (
-                ProcessErrorType::ParsingPayload,
-                "payload could not be parsed as json",
+                ProcessErrorType::Deserializing {
+                    event: r#"{"t":null,"s":null,"op":10,"d":{"heartbeat_interval":41250,"_trace":["[\"gateway-prd-us-east1-b-0568\",{\"micros\":0.0}]"]}}"#
+                        .to_owned(),
+                },
+                r#"gateway event could not be deserialized: event={"t":null,"s":null,"op":10,"d":{"heartbeat_interval":41250,"_trace":["[\"gateway-prd-us-east1-b-0568\",{\"micros\":0.0}]"]}}"#,
             ),
             (
                 ProcessErrorType::SendingMessage,
@@ -319,23 +313,25 @@ mod tests {
             ),
         ];
 
-        for (kind, message) in MESSAGES {
+        for (kind, message) in messages {
             let error = ProcessError { kind, source: None };
 
-            assert_eq!(error.to_string(), *message);
+            assert_eq!(error.to_string(), message);
         }
     }
 
     #[test]
     fn receive_message_error_display() {
-        const MESSAGES: [(ReceiveMessageErrorType, &str); 6] = [
+        let messages: [(ReceiveMessageErrorType, &str); 6] = [
             (
                 ReceiveMessageErrorType::Compression,
                 "binary message could not be decompressed",
             ),
             (
-                ReceiveMessageErrorType::Deserializing,
-                "message is an unrecognized payload",
+                ReceiveMessageErrorType::Deserializing {
+                    event: r#"{"t":null,"s":null,"op":10,"d":{"heartbeat_interval":41250,"_trace":["[\"gateway-prd-us-east1-b-0568\",{\"micros\":0.0}]"]}}"#.to_owned(),
+                },
+                r#"gateway event could not be deserialized: event={"t":null,"s":null,"op":10,"d":{"heartbeat_interval":41250,"_trace":["[\"gateway-prd-us-east1-b-0568\",{\"micros\":0.0}]"]}}"#,
             ),
             (
                 ReceiveMessageErrorType::FatallyClosed {
@@ -357,10 +353,10 @@ mod tests {
             ),
         ];
 
-        for (kind, message) in MESSAGES {
+        for (kind, message) in messages {
             let error = ReceiveMessageError { kind, source: None };
 
-            assert_eq!(error.to_string(), *message);
+            assert_eq!(error.to_string(), message);
         }
     }
 
