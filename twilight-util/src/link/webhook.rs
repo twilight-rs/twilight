@@ -13,7 +13,6 @@ use twilight_model::id::{marker::WebhookMarker, Id};
 /// Error when [parsing] a webhook URL.
 ///
 /// [parsing]: parse
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 pub struct WebhookParseError {
     kind: WebhookParseErrorType,
@@ -62,7 +61,6 @@ impl Error for WebhookParseError {
 }
 
 /// Type of [`WebhookParseError`] that occurred.
-#[allow(clippy::module_name_repetitions)]
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum WebhookParseErrorType {

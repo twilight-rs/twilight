@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]). Additionally,
+`Lavalink::remove` is no longer an async function.
+
+[#1897]: https://github.com/twilight-rs/twilight/issues/1897
+
 ## [0.13.1] - 2022-09-29
 
 ### Build

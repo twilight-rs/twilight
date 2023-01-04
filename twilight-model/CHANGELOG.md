@@ -1,5 +1,63 @@
 # Changelog
 
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+### Bug Fixes
+
+- [**breaking**] add a unknown variant to `PremiumType` ([#1996](https://github.com/twilight-rs/twilight/issues/1996))
+
+### Documentation
+
+[**breaking**] Document `application::command::permissions` ([#1816] -
+[@vilgotf]). Also renames `CommandPermissions` to `CommandPermission`, and
+`CommandPermissionsType` to `CommandPermissionType`.
+
+### Performance
+
+[**breaking**] unbox `GatewayEvent::Dispatch` ([#1859]) - [@vilgotf]). Most
+gateway events are dispatch events, so this saves one allocation and pointer
+redirection.
+
+### Changes
+
+[**breaking**] flatten `CommandOption` ([#1819] - [@vilgotf]).
+- Simplify and fix errors in `CommandOption` {de,}serialization by delegating
+  to the derive implementation.
+- Remove duplicated shared fields for `CommandOption` and `CommandOptionChoice`
+  variants.
+- Document all public fields.
+- Add a note in the `command` module recommending users to use the
+  `CommandBuilder`.
+- `CommandBuilder` retains its API, but is internally more complicated.
+ 
+Through the following series of PRs, modules and types have been moved around
+and renamed in order to be more concise. `MessageReaction` has been renamed to
+`Reaction`, and thus the previous `Reaction` has been renamed to
+`GatewayReaction`. Besides that, the changes are too extensive to list here;
+proper tooling is recommended in order to sort out the new imports. 
+- [**breaking**] move related modules under `guild` ([#1814](https://github.com/twilight-rs/twilight/issues/1814))
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+
+Remove deprecated `Id` aliases ([#1976] - [@AEnterprise]). These have been
+deprecated since 0.9.
+
+Other changes:
+
+- [**breaking**] cleanup and document `voice` ([#1820](https://github.com/twilight-rs/twilight/issues/1820))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+
+### Internal Refactor
+
+- clippy 1.65 lints ([#1985](https://github.com/twilight-rs/twilight/issues/1985))
+
+[#1816]: https://github.com/twilight-rs/twilight/pull/1816
+[#1819]: https://github.com/twilight-rs/twilight/pull/1819
+[#1859]: https://github.com/twilight-rs/twilight/pull/1859
+[#1897]: https://github.com/twilight-rs/twilight/pull/1897
+[#1976]: https://github.com/twilight-rs/twilight/pull/1976
+
 ## [0.13.7] - 2022-11-01
 
 ### Bug Fixes

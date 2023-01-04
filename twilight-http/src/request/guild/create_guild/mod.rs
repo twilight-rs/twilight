@@ -2,10 +2,11 @@ use crate::{
     client::Client,
     error::Error as HttpError,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -317,7 +318,6 @@ impl<'a> CreateGuild<'a> {
     /// let guild = client
     ///     .create_guild("guild name".to_owned())?
     ///     .channels(channels)?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -430,7 +430,6 @@ impl<'a> CreateGuild<'a> {
     /// client
     ///     .create_guild("guild name".to_owned())?
     ///     .roles(roles)?
-    ///     .exec()
     ///     .await?;
     /// # Ok(()) }
     /// ```
@@ -460,9 +459,18 @@ impl<'a> CreateGuild<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<PartialGuild> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for CreateGuild<'_> {
+    type Output = Result<Response<PartialGuild>, HttpError>;
+
+    type IntoFuture = ResponseFuture<PartialGuild>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

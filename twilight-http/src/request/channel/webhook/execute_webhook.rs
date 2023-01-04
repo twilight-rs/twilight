@@ -1,21 +1,18 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{
         attachment::{AttachmentManager, PartialAttachment},
         channel::webhook::ExecuteWebhookAndWait,
         Nullable, Request, TryIntoRequest,
     },
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
-    application::component::Component,
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, MessageFlags},
-    },
+    channel::message::{AllowedMentions, Component, Embed, MessageFlags},
     http::attachment::Attachment,
     id::{
         marker::{ChannelMarker, WebhookMarker},
@@ -24,7 +21,7 @@ use twilight_model::{
 };
 use twilight_validate::{
     message::{
-        attachment_filename as validate_attachment_filename, components as validate_components,
+        attachment as validate_attachment, components as validate_components,
         content as validate_content, embeds as validate_embeds, MessageValidationError,
         MessageValidationErrorType,
     },
@@ -75,7 +72,6 @@ pub(crate) struct ExecuteWebhookFields<'a> {
 /// client
 ///     .execute_webhook(id, "webhook token")
 ///     .content("Pinkie...")?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -140,17 +136,19 @@ impl<'a> ExecuteWebhook<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager
@@ -265,7 +263,6 @@ impl<'a> ExecuteWebhook<'a> {
     ///     .content("some content")?
     ///     .embeds(&[EmbedBuilder::new().title("title").validate()?.build()])?
     ///     .wait()
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -289,7 +286,6 @@ impl<'a> ExecuteWebhook<'a> {
     ///     .content("some content")?
     ///     .payload_json(br#"{ "content": "other content", "embeds": [ { "title": "title" } ] }"#)
     ///     .wait()
-    ///     .exec()
     ///     .await?
     ///     .model()
     ///     .await?;
@@ -362,9 +358,18 @@ impl<'a> ExecuteWebhook<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for ExecuteWebhook<'_> {
+    type Output = Result<Response<EmptyBody>, Error>;
+
+    type IntoFuture = ResponseFuture<EmptyBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -375,7 +380,7 @@ impl<'a> ExecuteWebhook<'a> {
 }
 
 impl TryIntoRequest for ExecuteWebhook<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::ExecuteWebhook {
             thread_id: self.thread_id.map(Id::get),
             token: self.token,
@@ -402,7 +407,7 @@ impl TryIntoRequest for ExecuteWebhook<'_> {
             } else {
                 self.fields.attachments = Some(self.attachment_manager.get_partial_attachments());
 
-                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };

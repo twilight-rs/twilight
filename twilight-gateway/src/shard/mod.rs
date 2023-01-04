@@ -22,10 +22,7 @@
 //! # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! use std::env;
 //! use twilight_gateway::{shard::Shard, Intents};
-//! use twilight_model::{
-//!     gateway::payload::outgoing::RequestGuildMembers,
-//!     id::Id,
-//! };
+//! use twilight_model::{gateway::payload::outgoing::RequestGuildMembers, id::Id};
 //!
 //! let intents = Intents::GUILD_MEMBERS;
 //! let token = env::var("DISCORD_TOKEN")?;
@@ -35,9 +32,7 @@
 //!
 //! // Query members whose names start with "tw" and limit the results to
 //! // 10 members.
-//! let request =
-//!     RequestGuildMembers::builder(Id::new(1))
-//!         .query("tw", Some(10));
+//! let request = RequestGuildMembers::builder(Id::new(1)).query("tw", Some(10));
 //!
 //! // Send the request over the shard.
 //! shard.command(&request).await?;

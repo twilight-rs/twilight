@@ -1,14 +1,15 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{self, AuditLogReason, Nullable, Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
     channel::{
-        forum::{DefaultReaction, ForumTag},
+        forum::{DefaultReaction, ForumLayout, ForumTag},
         permission_overwrite::PermissionOverwrite,
         Channel, ChannelFlags, ChannelType, VideoQualityMode,
     },
@@ -30,6 +31,8 @@ struct UpdateChannelFields<'a> {
     available_tags: Option<&'a [ForumTag]>,
     #[serde(skip_serializing_if = "Option::is_none")]
     bitrate: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_forum_layout: Option<ForumLayout>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_reaction_emoji: Option<Nullable<&'a DefaultReaction>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -80,6 +83,7 @@ impl<'a> UpdateChannel<'a> {
             fields: UpdateChannelFields {
                 available_tags: None,
                 bitrate: None,
+                default_forum_layout: None,
                 default_reaction_emoji: None,
                 default_thread_rate_limit_per_user: None,
                 flags: None,
@@ -125,6 +129,13 @@ impl<'a> UpdateChannel<'a> {
         self.fields.bitrate = Some(bitrate);
 
         Ok(self)
+    }
+
+    /// Set the default layout for forum channels.
+    pub const fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
+        self.fields.default_forum_layout = Some(default_forum_layout);
+
+        self
     }
 
     /// Set the default reaction emoji for new forum threads.
@@ -330,7 +341,7 @@ impl<'a> UpdateChannel<'a> {
     /// Set the kind of channel.
     ///
     /// Only conversion between `ChannelType::GuildText` and
-    /// `ChannelType::GuildNews` is possible, and only if the guild has the
+    /// `ChannelType::GuildAnnouncement` is possible, and only if the guild has the
     /// `NEWS` feature enabled. See [Discord Docs/Modify Channel].
     ///
     /// [Discord Docs/Modify Channel]: https://discord.com/developers/docs/resources/channel#modify-channel-json-params-guild-channel
@@ -341,15 +352,9 @@ impl<'a> UpdateChannel<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Channel> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -363,8 +368,23 @@ impl<'a> AuditLogReason<'a> for UpdateChannel<'a> {
     }
 }
 
+impl IntoFuture for UpdateChannel<'_> {
+    type Output = Result<Response<Channel>, Error>;
+
+    type IntoFuture = ResponseFuture<Channel>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for UpdateChannel<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateChannel {
             channel_id: self.channel_id.get(),
         })

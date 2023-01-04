@@ -1,4 +1,3 @@
-pub mod embed;
 pub mod forum;
 pub mod message;
 pub mod permission_overwrite;
@@ -11,8 +10,6 @@ mod channel_mention;
 mod channel_type;
 mod flags;
 mod followed_channel;
-mod reaction;
-mod reaction_type;
 mod video_quality_mode;
 
 pub use self::{
@@ -22,8 +19,6 @@ pub use self::{
     flags::ChannelFlags,
     followed_channel::FollowedChannel,
     message::Message,
-    reaction::Reaction,
-    reaction_type::ReactionType,
     stage_instance::StageInstance,
     video_quality_mode::VideoQualityMode,
     webhook::{Webhook, WebhookType},
@@ -31,7 +26,7 @@ pub use self::{
 
 use crate::{
     channel::{
-        forum::{DefaultReaction, ForumTag},
+        forum::{DefaultReaction, ForumLayout, ForumTag},
         permission_overwrite::PermissionOverwrite,
         thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
     },
@@ -77,6 +72,9 @@ pub struct Channel {
     /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
+    /// Default forum layout view used to display posts in forum channels.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_forum_layout: Option<ForumLayout>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_reaction_emoji: Option<DefaultReaction>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -223,6 +221,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -263,6 +262,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -308,13 +308,14 @@ mod tests {
     }
 
     #[test]
-    fn guild_news_channel_deserialization() {
+    fn guild_announcement_channel_deserialization() {
         let value = Channel {
             application_id: None,
             applied_tags: None,
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -322,7 +323,7 @@ mod tests {
             icon: None,
             id: Id::new(1),
             invitable: None,
-            kind: ChannelType::GuildNews,
+            kind: ChannelType::GuildAnnouncement,
             last_message_id: Some(Id::new(4)),
             last_pin_timestamp: None,
             member: None,
@@ -357,14 +358,14 @@ mod tests {
                 "permission_overwrites": permission_overwrites,
                 "position": 3,
                 "topic": "a news channel",
-                "type": ChannelType::GuildNews,
+                "type": ChannelType::GuildAnnouncement,
             }))
             .unwrap()
         );
     }
 
     #[test]
-    fn guild_news_thread_deserialization() {
+    fn guild_announcement_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
 
@@ -374,6 +375,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -381,7 +383,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: None,
-            kind: ChannelType::GuildNewsThread,
+            kind: ChannelType::AnnouncementThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -422,7 +424,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::GuildNewsThread,
+                "type": ChannelType::AnnouncementThread,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,
@@ -451,7 +453,7 @@ mod tests {
     }
 
     #[test]
-    fn guild_public_thread_deserialization() {
+    fn public_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
 
         let value = Channel {
@@ -460,6 +462,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -467,7 +470,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: None,
-            kind: ChannelType::GuildPublicThread,
+            kind: ChannelType::PublicThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -508,7 +511,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::GuildPublicThread,
+                "type": ChannelType::PublicThread,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,
@@ -537,7 +540,7 @@ mod tests {
     }
 
     #[test]
-    fn guild_private_thread_deserialization() {
+    fn private_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
         let formatted = timestamp.iso_8601().to_string();
 
@@ -547,6 +550,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -554,7 +558,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: Some(true),
-            kind: ChannelType::GuildPrivateThread,
+            kind: ChannelType::PrivateThread,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -600,7 +604,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::GuildPrivateThread,
+                "type": ChannelType::PrivateThread,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,

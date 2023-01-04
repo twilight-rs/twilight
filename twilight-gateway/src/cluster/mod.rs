@@ -7,14 +7,15 @@
 //! disconnected, and when new message commands come in:
 //!
 //! ```no_run
-//! use twilight_gateway::{Cluster, Event, Intents};
 //! use futures::StreamExt;
 //! use std::{env, sync::Arc};
+//! use twilight_gateway::{Cluster, Event, Intents};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {
 //!     let token = env::var("DISCORD_TOKEN")?;
-//!     let intents = Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
+//!     let intents =
+//!         Intents::GUILD_BANS | Intents::GUILD_EMOJIS_AND_STICKERS | Intents::GUILD_MESSAGES;
 //!     let (cluster, mut events) = Cluster::new(token, intents).await?;
 //!     let cluster = Arc::new(cluster);
 //!     cluster.up().await;
@@ -32,23 +33,23 @@
 //!     match event {
 //!         Event::ShardConnected { .. } => {
 //!             println!("Shard {shard_id} is now connected");
-//!         },
+//!         }
 //!         Event::ShardDisconnected { .. } => {
 //!             println!("Shard {shard_id} is now disconnected");
-//!         },
+//!         }
 //!         Event::MessageCreate(msg) if msg.content == "!latency" => {
 //!             if let Some(shard) = cluster.shard(shard_id) {
 //!                 if let Ok(info) = shard.info() {
 //!                     println!("Shard {shard_id}'s latency is {:?}", info.latency());
 //!                 }
 //!             }
-//!         },
+//!         }
 //!         Event::MessageCreate(msg) if msg.content == "!shutdown" => {
 //!             println!("Got a shutdown request from shard {shard_id}");
 //!
 //!             cluster.down();
-//!         },
-//!         _ => {},
+//!         }
+//!         _ => {}
 //!     }
 //! }
 //! ```
@@ -57,9 +58,9 @@
 //! of 16:
 //!
 //! ```no_run
-//! use twilight_gateway::{cluster::ShardScheme, Cluster, Event, Intents};
 //! use futures::StreamExt;
 //! use std::env;
+//! use twilight_gateway::{cluster::ShardScheme, Cluster, Event, Intents};
 //!
 //! #[tokio::main]
 //! async fn main() -> anyhow::Result<()> {

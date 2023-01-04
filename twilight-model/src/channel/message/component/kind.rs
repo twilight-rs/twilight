@@ -1,11 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-/// Type of Component.
+/// Type of [`Component`].
 ///
-/// See [Discord Docs/Message Components].
-///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#component-types
+/// [`Component`]: super::Component
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 #[serde(from = "u8", into = "u8")]
@@ -14,17 +12,14 @@ pub enum ComponentType {
     ///
     /// [`ActionRow`]: super::ActionRow
     ActionRow,
-
     /// Component is an [`Button`].
     ///
     /// [`Button`]: super::Button
     Button,
-
     /// Component is an [`SelectMenu`].
     ///
     /// [`SelectMenu`]: super::SelectMenu
     SelectMenu,
-
     /// Component is an [`TextInput`].
     ///
     /// [`TextInput`]: super::TextInput
@@ -67,7 +62,7 @@ impl ComponentType {
     /// Check the [`ActionRow`] variant's name:
     ///
     /// ```
-    /// use twilight_model::application::component::ComponentType;
+    /// use twilight_model::channel::message::component::ComponentType;
     ///
     /// assert_eq!("ActionRow", ComponentType::ActionRow.name());
     /// ```

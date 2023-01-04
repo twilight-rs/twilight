@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+### Performance
+
+[**breaking**] unbox `GatewayEvent::Dispatch` ([#1859]) - [@vilgotf]). Most
+gateway events are dispatch events, so this saves one allocation and pointer
+redirection.
+
+### Internal Refactors
+
+- clippy 1.65 lints ([#1985](https://github.com/twilight-rs/twilight/issues/1985))
+
+[#1859]: https://github.com/twilight-rs/twilight/issues/1859
+[#1897]: https://github.com/twilight-rs/twilight/issues/1897
+
 ## [0.13.3] - 2022-09-29
 
 ### Build

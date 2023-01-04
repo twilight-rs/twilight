@@ -2,15 +2,16 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
+    guild::scheduled_event::GuildScheduledEventUser,
     id::{
         marker::{GuildMarker, ScheduledEventMarker, UserMarker},
         Id,
     },
-    scheduled_event::GuildScheduledEventUser,
 };
 use twilight_validate::request::{
     scheduled_event_get_users as validate_scheduled_event_get_users, ValidationError,
@@ -107,9 +108,18 @@ impl<'a> GetGuildScheduledEventUsers<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<GuildScheduledEventUser>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetGuildScheduledEventUsers<'_> {
+    type Output = Result<Response<ListBody<GuildScheduledEventUser>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<GuildScheduledEventUser>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

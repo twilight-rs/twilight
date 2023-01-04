@@ -113,13 +113,14 @@ impl Ratelimiter for InMemoryRatelimiter {
                 || Box::pin(future::ok(None)),
                 |bucket| {
                     let started_at = bucket.started_at.lock().expect("bucket poisoned");
+                    let reset_after = Duration::from_millis(bucket.reset_after());
 
-                    Box::pin(future::ok(Some(InfoBucket {
-                        limit: bucket.limit(),
-                        remaining: bucket.remaining(),
-                        reset_after: Duration::from_millis(bucket.reset_after()),
-                        started_at: *started_at,
-                    })))
+                    Box::pin(future::ok(Some(InfoBucket::new(
+                        bucket.limit(),
+                        bucket.remaining(),
+                        reset_after,
+                        *started_at,
+                    ))))
                 },
             )
     }

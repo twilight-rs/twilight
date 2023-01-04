@@ -54,6 +54,8 @@ struct CommandBorrowed<'a> {
     pub name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<&'a HashMap<String, String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nsfw: Option<bool>,
     #[serde(default)]
     pub options: Option<&'a [CommandOption]>,
 }
@@ -63,7 +65,7 @@ mod tests {
     use super::CommandBorrowed;
     use std::collections::HashMap;
     use twilight_model::{
-        application::command::{BaseCommandOptionData, Command, CommandOption, CommandType},
+        application::command::{Command, CommandType},
         guild::Permissions,
         id::Id,
     };
@@ -92,13 +94,8 @@ mod tests {
                 "en-US".to_owned(),
                 "command name".to_owned(),
             )])),
-            options: Vec::from([CommandOption::Boolean(BaseCommandOptionData {
-                description: "command description".to_owned(),
-                description_localizations: None,
-                name: "command name".to_owned(),
-                name_localizations: None,
-                required: true,
-            })]),
+            nsfw: Some(true),
+            options: Vec::new(),
             version: Id::new(1),
         };
 
@@ -111,6 +108,7 @@ mod tests {
             kind: CommandType::ChatInput,
             name: &command.name,
             name_localizations: command.name_localizations.as_ref(),
+            nsfw: command.nsfw,
             options: Some(&command.options),
         };
     }

@@ -18,6 +18,9 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
 
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
       - name: Install nightly toolchain
         uses: dtolnay/rust-toolchain@master
         with:

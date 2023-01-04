@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     guild::Ban,
     id::{
@@ -40,12 +41,7 @@ struct GetBansFields {
 /// let guild_id = Id::new(1);
 /// let user_id = Id::new(2);
 ///
-/// let response = client
-///     .bans(guild_id)
-///     .after(user_id)
-///     .limit(25)?
-///     .exec()
-///     .await?;
+/// let response = client.bans(guild_id).after(user_id).limit(25)?.await?;
 /// let bans = response.models().await?;
 ///
 /// for ban in bans {
@@ -121,9 +117,18 @@ impl<'a> GetBans<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ListBody<Ban>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetBans<'_> {
+    type Output = Result<Response<ListBody<Ban>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<Ban>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

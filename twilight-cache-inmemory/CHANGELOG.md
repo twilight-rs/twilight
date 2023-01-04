@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.14.0] - 2022-11-14
+
+MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
+
+`cache-inmemory` is affected by the following `model` changes:
+
+- [**breaking**] cleanup and document `voice` ([#1820](https://github.com/twilight-rs/twilight/issues/1820))
+- [**breaking**] move related modules under `message` ([#1831](https://github.com/twilight-rs/twilight/issues/1831))
+- [**breaking**] update `ChannelType` names ([#1909](https://github.com/twilight-rs/twilight/issues/1909))
+
+### Internal Refactors
+
+- clippy 1.65 lints round 2 ([#1991](https://github.com/twilight-rs/twilight/issues/1991))
+
+[#1897]: https://github.com/twilight-rs/twilight/issues/1897
+
 ## [0.13.1] - 2022-10-28
 
 ### Features

@@ -11,17 +11,17 @@ use super::EntityMetadataFields;
 use crate::{
     client::Client,
     error::Error,
-    request::{AuditLogReason, Request, RequestBuilder, TryIntoRequest},
+    request::{AuditLogReason, Request, RequestBuilder},
     response::ResponseFuture,
     routing::Route,
 };
 use serde::Serialize;
 use twilight_model::{
+    guild::scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
     id::{
         marker::{ChannelMarker, GuildMarker},
         Id,
     },
-    scheduled_event::{EntityType, GuildScheduledEvent, PrivacyLevel},
     util::Timestamp,
 };
 use twilight_validate::request::{
@@ -66,7 +66,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{id::Id, scheduled_event::PrivacyLevel, util::Timestamp};
+/// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
@@ -82,7 +82,6 @@ struct CreateGuildScheduledEventFields<'a> {
 ///         &garfield_start_time,
 ///     )?
 ///     .description("Discuss: How important is Garfield to You?")?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -91,7 +90,7 @@ struct CreateGuildScheduledEventFields<'a> {
 ///
 /// ```no_run
 /// # use twilight_http::Client;
-/// use twilight_model::{id::Id, scheduled_event::PrivacyLevel, util::Timestamp};
+/// use twilight_model::{guild::scheduled_event::PrivacyLevel, id::Id, util::Timestamp};
 /// # #[tokio::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let client = Client::new("token".to_owned());
@@ -111,7 +110,6 @@ struct CreateGuildScheduledEventFields<'a> {
 ///         "In a spiritual successor to BronyCon, Garfield fans from \
 /// around the globe celebrate all things related to the loveable cat.",
 ///     )?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -233,6 +231,14 @@ impl<'a> CreateGuildScheduledEvent<'a> {
             Err(source) => ResponseFuture::error(source),
         }
     }
+
+    fn try_into_request(self) -> Result<Request, Error> {
+        Request::builder(&Route::CreateGuildScheduledEvent {
+            guild_id: self.guild_id.get(),
+        })
+        .json(&self.fields)
+        .map(RequestBuilder::build)
+    }
 }
 
 impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
@@ -242,15 +248,5 @@ impl<'a> AuditLogReason<'a> for CreateGuildScheduledEvent<'a> {
         self.reason.replace(reason);
 
         Ok(self)
-    }
-}
-
-impl TryIntoRequest for CreateGuildScheduledEvent<'_> {
-    fn try_into_request(self) -> Result<Request, Error> {
-        Request::builder(&Route::CreateGuildScheduledEvent {
-            guild_id: self.guild_id.get(),
-        })
-        .json(&self.fields)
-        .map(RequestBuilder::build)
     }
 }

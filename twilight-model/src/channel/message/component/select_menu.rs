@@ -1,11 +1,9 @@
-use crate::channel::ReactionType;
+use crate::channel::message::ReactionType;
 use serde::{Deserialize, Serialize};
 
-/// Dropdown-style interactive components that render on messages.
+/// Dropdown-style [`Component`] that renders belew messages.
 ///
-/// Refer to [Discord Docs/Message Components] for additional information.
-///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#select-menus
+/// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SelectMenu {
     /// Developer defined identifier.
@@ -25,10 +23,6 @@ pub struct SelectMenu {
 }
 
 /// Dropdown options that are part of [`SelectMenu`].
-///
-/// Refer to [Discord Docs/Message Components] for additional information.
-///
-/// [Discord Docs/Message Components]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct SelectMenuOption {
     /// Whether the option will be selected by default.
@@ -37,6 +31,8 @@ pub struct SelectMenuOption {
     /// Additional description.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    /// Emoji associated with the option. Appears left of the label and
+    /// description.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub emoji: Option<ReactionType>,
     /// User-facing name.

@@ -1,21 +1,17 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{
         attachment::{AttachmentManager, PartialAttachment},
         Nullable, Request, TryIntoRequest,
     },
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
-    application::component::Component,
-    channel::{
-        embed::Embed,
-        message::{AllowedMentions, MessageFlags},
-        Message,
-    },
+    channel::message::{AllowedMentions, Component, Embed, Message, MessageFlags},
     http::attachment::Attachment,
     id::{
         marker::{AttachmentMarker, ChannelMarker, MessageMarker},
@@ -23,7 +19,7 @@ use twilight_model::{
     },
 };
 use twilight_validate::message::{
-    attachment_filename as validate_attachment_filename, components as validate_components,
+    attachment as validate_attachment, components as validate_components,
     content as validate_content, embeds as validate_embeds, MessageValidationError,
 };
 
@@ -66,7 +62,6 @@ struct UpdateMessageFields<'a> {
 /// client
 ///     .update_message(Id::new(1), Id::new(2))
 ///     .content(Some("test update"))?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -83,7 +78,6 @@ struct UpdateMessageFields<'a> {
 /// client
 ///     .update_message(Id::new(1), Id::new(2))
 ///     .content(None)?
-///     .exec()
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -139,17 +133,19 @@ impl<'a> UpdateMessage<'a> {
     ///
     /// # Errors
     ///
+    /// Returns an error of type [`AttachmentDescriptionTooLarge`] if
+    /// the attachments's description is too large.
+    ///
     /// Returns an error of type [`AttachmentFilename`] if any filename is
     /// invalid.
     ///
+    /// [`AttachmentDescriptionTooLarge`]: twilight_validate::message::MessageValidationErrorType::AttachmentDescriptionTooLarge
     /// [`AttachmentFilename`]: twilight_validate::message::MessageValidationErrorType::AttachmentFilename
     pub fn attachments(
         mut self,
         attachments: &'a [Attachment],
     ) -> Result<Self, MessageValidationError> {
-        attachments
-            .iter()
-            .try_for_each(|attachment| validate_attachment_filename(&attachment.filename))?;
+        attachments.iter().try_for_each(validate_attachment)?;
 
         self.attachment_manager = self
             .attachment_manager
@@ -297,9 +293,18 @@ impl<'a> UpdateMessage<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Message> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateMessage<'_> {
+    type Output = Result<Response<Message>, Error>;
+
+    type IntoFuture = ResponseFuture<Message>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -310,7 +315,7 @@ impl<'a> UpdateMessage<'a> {
 }
 
 impl TryIntoRequest for UpdateMessage<'_> {
-    fn try_into_request(mut self) -> Result<Request, HttpError> {
+    fn try_into_request(mut self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateMessage {
             channel_id: self.channel_id.get(),
             message_id: self.message_id.get(),
@@ -333,7 +338,7 @@ impl TryIntoRequest for UpdateMessage<'_> {
                     self.attachment_manager.get_partial_attachments(),
                 )));
 
-                let fields = crate::json::to_vec(&self.fields).map_err(HttpError::json)?;
+                let fields = crate::json::to_vec(&self.fields).map_err(Error::json)?;
 
                 self.attachment_manager.build_form(fields.as_ref())
             };

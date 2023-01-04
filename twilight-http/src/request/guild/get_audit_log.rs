@@ -1,10 +1,11 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     guild::audit_log::{AuditLog, AuditLogEventType},
     id::{
@@ -36,7 +37,7 @@ struct GetAuditLogFields {
 /// let client = Client::new("token".to_owned());
 ///
 /// let guild_id = Id::new(101);
-/// let audit_log = client.audit_log(guild_id).exec().await?.model().await?;
+/// let audit_log = client.audit_log(guild_id).await?.model().await?;
 ///
 /// for entry in audit_log.entries {
 ///     println!("ID: {}", entry.id);
@@ -115,9 +116,18 @@ impl<'a> GetAuditLog<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<AuditLog> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetAuditLog<'_> {
+    type Output = Result<Response<AuditLog>, Error>;
+
+    type IntoFuture = ResponseFuture<AuditLog>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {
@@ -128,7 +138,7 @@ impl<'a> GetAuditLog<'a> {
 }
 
 impl TryIntoRequest for GetAuditLog<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| u64::from(u16::from(x))),
             before: self.fields.before,

@@ -16,7 +16,7 @@ use std::str::FromStr;
 /// stateful updates or a heartbeat, hello, etc. that a shard needs to operate.
 #[derive(Clone, Debug)]
 pub enum GatewayEvent {
-    Dispatch(u64, Box<DispatchEvent>),
+    Dispatch(u64, DispatchEvent),
     Heartbeat(u64),
     HeartbeatAck,
     Hello(u64),
@@ -373,7 +373,7 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 Self::ignore_all(&mut map)?;
 
-                GatewayEvent::Dispatch(s, Box::new(d))
+                GatewayEvent::Dispatch(s, d)
             }
             OpCode::Heartbeat => {
                 tracing::trace!("deserializing gateway heartbeat");
@@ -839,8 +839,7 @@ mod tests {
             guild_id: Id::new(1),
             role_id: Id::new(2),
         };
-        let dispatch = Box::new(DispatchEvent::RoleDelete(role_delete));
-        let value = GatewayEvent::Dispatch(2_048, dispatch);
+        let value = GatewayEvent::Dispatch(2_048, DispatchEvent::RoleDelete(role_delete));
 
         serde_test::assert_ser_tokens(
             &value,

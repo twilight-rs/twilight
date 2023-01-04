@@ -2,12 +2,13 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, RequestBuilder, TryIntoRequest},
-    response::{marker::ListBody, ResponseFuture},
+    response::{marker::ListBody, Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::{
-    application::command::permissions::CommandPermissions,
+    application::command::permissions::CommandPermission,
     id::{
         marker::{ApplicationMarker, CommandMarker, GuildMarker},
         Id,
@@ -19,7 +20,7 @@ use twilight_validate::command::{
 
 #[derive(Serialize)]
 struct UpdateCommandPermissionsFields<'a> {
-    pub permissions: &'a [CommandPermissions],
+    pub permissions: &'a [CommandPermission],
 }
 
 /// Update command permissions for a single command in a guild.
@@ -43,7 +44,7 @@ impl<'a> UpdateCommandPermissions<'a> {
         application_id: Id<ApplicationMarker>,
         guild_id: Id<GuildMarker>,
         command_id: Id<CommandMarker>,
-        permissions: &'a [CommandPermissions],
+        permissions: &'a [CommandPermission],
     ) -> Result<Self, CommandValidationError> {
         validate_guild_permissions(permissions.len())?;
 
@@ -57,9 +58,18 @@ impl<'a> UpdateCommandPermissions<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
-    pub fn exec(self) -> ResponseFuture<ListBody<CommandPermissions>> {
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
+    pub fn exec(self) -> ResponseFuture<ListBody<CommandPermission>> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for UpdateCommandPermissions<'_> {
+    type Output = Result<Response<ListBody<CommandPermission>>, Error>;
+
+    type IntoFuture = ResponseFuture<ListBody<CommandPermission>>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

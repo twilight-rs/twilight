@@ -1,3 +1,6 @@
+//! Rich message content.
+
+#![allow(missing_docs)]
 mod author;
 mod field;
 mod footer;

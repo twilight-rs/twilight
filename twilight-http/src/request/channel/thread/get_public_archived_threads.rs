@@ -2,9 +2,10 @@ use crate::{
     client::Client,
     error::Error,
     request::{Request, TryIntoRequest},
-    response::ResponseFuture,
+    response::{Response, ResponseFuture},
     routing::Route,
 };
+use std::future::IntoFuture;
 use twilight_model::{
     channel::thread::ThreadsListing,
     id::{marker::ChannelMarker, Id},
@@ -16,15 +17,15 @@ use twilight_model::{
 ///
 /// Threads are ordered by [`archive_timestamp`] in descending order.
 ///
-/// When called in a [`GuildText`] channel, returns [`GuildPublicThread`]s.
+/// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
 ///
-/// When called in a [`GuildNews`] channel, returns [`GuildNewsThread`]s.
+/// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
 ///
+/// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
 /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
-/// [`GuildNews`]: twilight_model::channel::ChannelType::GuildNews
-/// [`GuildNewsThread`]: twilight_model::channel::ChannelType::GuildNewsThread
-/// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
+/// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
 /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
 /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
 #[must_use = "requests must be configured and executed"]
 pub struct GetPublicArchivedThreads<'a> {
@@ -59,9 +60,18 @@ impl<'a> GetPublicArchivedThreads<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<ThreadsListing> {
+        self.into_future()
+    }
+}
+
+impl IntoFuture for GetPublicArchivedThreads<'_> {
+    type Output = Result<Response<ThreadsListing>, Error>;
+
+    type IntoFuture = ResponseFuture<ThreadsListing>;
+
+    fn into_future(self) -> Self::IntoFuture {
         let http = self.http;
 
         match self.try_into_request() {

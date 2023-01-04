@@ -1,11 +1,12 @@
 use crate::{
     client::Client,
-    error::Error as HttpError,
+    error::Error,
     request::{self, AuditLogReason, Request, TryIntoRequest},
-    response::{marker::EmptyBody, ResponseFuture},
+    response::{marker::EmptyBody, Response, ResponseFuture},
     routing::Route,
 };
 use serde::Serialize;
+use std::future::IntoFuture;
 use twilight_model::id::{marker::GuildMarker, Id};
 use twilight_validate::request::{
     audit_reason as validate_audit_reason, nickname as validate_nickname, ValidationError,
@@ -59,15 +60,9 @@ impl<'a> UpdateCurrentMember<'a> {
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
-    ///
-    /// [`Response`]: crate::response::Response
+    #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<EmptyBody> {
-        let http = self.http;
-
-        match self.try_into_request() {
-            Ok(request) => http.request(request),
-            Err(source) => ResponseFuture::error(source),
-        }
+        self.into_future()
     }
 }
 
@@ -81,8 +76,23 @@ impl<'a> AuditLogReason<'a> for UpdateCurrentMember<'a> {
     }
 }
 
+impl IntoFuture for UpdateCurrentMember<'_> {
+    type Output = Result<Response<EmptyBody>, Error>;
+
+    type IntoFuture = ResponseFuture<EmptyBody>;
+
+    fn into_future(self) -> Self::IntoFuture {
+        let http = self.http;
+
+        match self.try_into_request() {
+            Ok(request) => http.request(request),
+            Err(source) => ResponseFuture::error(source),
+        }
+    }
+}
+
 impl TryIntoRequest for UpdateCurrentMember<'_> {
-    fn try_into_request(self) -> Result<Request, HttpError> {
+    fn try_into_request(self) -> Result<Request, Error> {
         let mut request = Request::builder(&Route::UpdateCurrentMember {
             guild_id: self.guild_id.get(),
         });

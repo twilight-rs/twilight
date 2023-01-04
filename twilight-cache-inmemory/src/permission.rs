@@ -419,9 +419,9 @@ impl<'a> InMemoryCachePermissions<'a> {
             .map_err(ChannelError::from_member_roles)?;
 
         let overwrites = match channel.kind {
-            ChannelType::GuildPrivateThread
-            | ChannelType::GuildNewsThread
-            | ChannelType::GuildPublicThread => self.parent_overwrites(&channel)?,
+            ChannelType::AnnouncementThread
+            | ChannelType::PrivateThread
+            | ChannelType::PublicThread => self.parent_overwrites(&channel)?,
             _ => channel.permission_overwrites.clone().unwrap_or_default(),
         };
 
@@ -770,6 +770,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -820,6 +821,7 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
@@ -827,7 +829,7 @@ mod tests {
             icon: None,
             id: THREAD_ID,
             invitable: None,
-            kind: ChannelType::GuildPublicThread,
+            kind: ChannelType::PublicThread,
             last_message_id: None,
             last_pin_timestamp: None,
             member: None,

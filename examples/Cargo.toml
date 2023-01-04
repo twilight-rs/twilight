@@ -1,9 +1,9 @@
 [package]
+authors.workspace = true
+edition.workspace = true
 name = "examples"
-version = "0.0.0"
 publish = false
-authors = ["Twilight Contributors"]
-edition = "2021"
+version = "0.0.0"
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }

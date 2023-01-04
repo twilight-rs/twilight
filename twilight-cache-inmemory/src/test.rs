@@ -1,21 +1,23 @@
 use crate::InMemoryCache;
 use twilight_model::{
-    channel::message::sticker::{Sticker, StickerFormatType, StickerType},
-    id::marker::StickerMarker,
-};
-use twilight_model::{
     channel::{
-        message::{Message, MessageFlags, MessageType},
-        Channel, ChannelType, Reaction, ReactionType,
+        message::{
+            sticker::{Sticker, StickerFormatType, StickerType},
+            Message, MessageFlags, MessageType, ReactionType,
+        },
+        Channel, ChannelType,
     },
-    gateway::payload::incoming::{MessageCreate, ReactionAdd},
+    gateway::{
+        payload::incoming::{MessageCreate, ReactionAdd},
+        GatewayReaction,
+    },
     guild::{
         DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
         NSFWLevel, PartialMember, Permissions, PremiumTier, Role, SystemChannelFlags,
         VerificationLevel,
     },
     id::{
-        marker::{ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, UserMarker},
+        marker::{ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, StickerMarker, UserMarker},
         Id,
     },
     user::{CurrentUser, User},
@@ -94,7 +96,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
 
     cache.update(&MessageCreate(msg));
 
-    let mut reaction = ReactionAdd(Reaction {
+    let mut reaction = ReactionAdd(GatewayReaction {
         channel_id: Id::new(2),
         emoji: ReactionType::Unicode {
             name: "😀".to_owned(),
@@ -229,6 +231,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         available_tags: None,
         bitrate: None,
         default_auto_archive_duration: None,
+        default_forum_layout: None,
         default_reaction_emoji: None,
         default_thread_rate_limit_per_user: None,
         flags: None,
@@ -328,7 +331,6 @@ pub fn voice_state(
         self_video: false,
         session_id: "a".to_owned(),
         suppress: false,
-        token: None,
         user_id,
         request_to_speak_timestamp: Some(Timestamp::from_secs(1_632_072_645).expect("non zero")),
     }

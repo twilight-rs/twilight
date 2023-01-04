@@ -1,28 +1,26 @@
 [package]
-authors = ["Twilight Contributors"]
+authors.workspace = true
 categories = ["caching"]
 description = "In-process-memory based cache for the Twilight ecosystem."
-documentation = "https://docs.rs/twilight-cache-inmemory"
-edition = "2021"
+edition.workspace = true
 homepage = "https://twilight.rs/chapter_1_crates/section_4_cache_inmemory.html"
-include = ["src/**/*.rs", "README.md"]
+include.workspace = true
 keywords = ["discord", "discord-api", "twilight"]
-license = "ISC"
+license.workspace = true
 name = "twilight-cache-inmemory"
 publish = true
-repository = "https://github.com/twilight-rs/twilight"
-readme = "README.md"
-rust-version = "1.60"
-version = "0.13.1"
+repository.workspace = true
+rust-version.workspace = true
+version = "0.14.0"
 
 [dependencies]
 bitflags = { default-features = false, version = "1" }
 dashmap = { default-features = false, version = "5.3" }
 serde = { default-features = false, features = ["derive"], version = "1" }
-twilight-model = { default-features = false, path = "../twilight-model", version = "0.13.7" }
+twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.0" }
 
 # Optional dependencies.
-twilight-util = { default-features = false, features = ["permission-calculator"], optional = true, path = "../twilight-util", version = "0.13.3" }
+twilight-util = { default-features = false, features = ["permission-calculator"], optional = true, path = "../twilight-util", version = "0.14.0" }
 
 [dev-dependencies]
 futures = { default-features = false, version = "0.3" }
