@@ -99,15 +99,16 @@ impl<'a> GatewayEventDeserializer<'a> {
 
     /// Sequence of the payload.
     ///
-    /// May only be available if the deserializer was created from the
-    /// `from_json` function.
+    /// May only be available if the deserializer was created via
+    /// [`from_json`][`Self::from_json`]
     pub const fn sequence(&self) -> Option<u64> {
         self.sequence
     }
 
-    /// Clone the `event_type`.
+    /// Create a deserializer with an owned event type.
     ///
-    /// Use this when using a mutable deserialization library like `simd-json`.
+    /// This is necessary when using a mutable deserialization library such as
+    /// `simd-json`.
     pub fn into_owned(self) -> GatewayEventDeserializer<'static> {
         GatewayEventDeserializer {
             event_type: self
