@@ -32,6 +32,7 @@ pub struct CreateGuildMessageCommand<'a> {
     http: &'a Client,
     name: &'a str,
     name_localizations: Option<&'a HashMap<String, String>>,
+    nsfw: Option<bool>,
 }
 
 impl<'a> CreateGuildMessageCommand<'a> {
@@ -50,6 +51,7 @@ impl<'a> CreateGuildMessageCommand<'a> {
             http,
             name,
             name_localizations: None,
+            nsfw: None,
         })
     }
 
@@ -82,6 +84,15 @@ impl<'a> CreateGuildMessageCommand<'a> {
         self.name_localizations = Some(localizations);
 
         Ok(self)
+    }
+
+    /// Set whether the command is age-restricted.
+    ///
+    /// Defaults to not being specified, which uses Discord's default.
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
+        self.nsfw = Some(nsfw);
+
+        self
     }
 
     /// Execute the request, returning a future resolving to a [`Response`].
@@ -121,6 +132,7 @@ impl TryIntoRequest for CreateGuildMessageCommand<'_> {
             kind: CommandType::Message,
             name: self.name,
             name_localizations: self.name_localizations,
+            nsfw: self.nsfw,
             options: None,
         })
         .map(RequestBuilder::build)

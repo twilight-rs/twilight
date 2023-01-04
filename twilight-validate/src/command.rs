@@ -520,6 +520,7 @@ mod tests {
             kind: CommandType::ChatInput,
             name: "b".repeat(32),
             name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
+            nsfw: None,
             options: Vec::new(),
             version: Id::new(4),
         };

@@ -37,6 +37,7 @@ pub struct CreateGuildChatInputCommand<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
+    nsfw: Option<bool>,
     name_localizations: Option<&'a HashMap<String, String>>,
     options: Option<&'a [CommandOption]>,
 }
@@ -62,6 +63,7 @@ impl<'a> CreateGuildChatInputCommand<'a> {
             http,
             name,
             name_localizations: None,
+            nsfw: None,
             options: None,
         })
     }
@@ -147,6 +149,15 @@ impl<'a> CreateGuildChatInputCommand<'a> {
         Ok(self)
     }
 
+    /// Set whether the command is age-restricted.
+    ///
+    /// Defaults to not being specified, which uses Discord's default.
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
+        self.nsfw = Some(nsfw);
+
+        self
+    }
+
     /// Execute the request, returning a future resolving to a [`Response`].
     #[deprecated(since = "0.14.0", note = "use `.await` or `into_future` instead")]
     pub fn exec(self) -> ResponseFuture<Command> {
@@ -184,6 +195,7 @@ impl TryIntoRequest for CreateGuildChatInputCommand<'_> {
             kind: CommandType::ChatInput,
             name: self.name,
             name_localizations: self.name_localizations,
+            nsfw: self.nsfw,
             options: self.options,
         })
         .map(RequestBuilder::build)
