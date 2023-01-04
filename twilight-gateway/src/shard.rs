@@ -465,9 +465,7 @@ impl Shard {
             match self.next_message().await? {
                 Message::Close(_) => {}
                 Message::Text(json) => {
-                    if let Some(event) = json::parse(self.config.event_types(), json)
-                        .map_err(ReceiveMessageError::from_json)?
-                    {
+                    if let Some(event) = json::parse(self.config.event_types(), json)? {
                         return Ok(event.into());
                     }
                 }
@@ -918,10 +916,6 @@ impl Shard {
     /// event isn't a recognized structure, which may be the case for new or
     /// undocumented events.
     ///
-    /// Returns a [`ProcessErrorType::ParsingPayload`] error type if the gateway
-    /// event isn't a valid [`GatewayEvent`]. This may happen if the opcode
-    /// isn't present.
-    ///
     /// Returns a [`ProcessErrorType::SendingMessage`] error type if a Websocket
     /// message couldn't be sent over the connection, which may be the case if
     /// the connection isn't connected.
@@ -932,8 +926,10 @@ impl Shard {
         let (raw_opcode, maybe_sequence, maybe_event_type) =
             GatewayEventDeserializer::from_json(event)
                 .ok_or(ProcessError {
-                    kind: ProcessErrorType::ParsingPayload,
-                    source: None,
+                    kind: ProcessErrorType::Deserializing {
+                        event: event.to_owned(),
+                    },
+                    source: Some("missing opcode".into()),
                 })?
                 .into_parts();
 
@@ -944,12 +940,16 @@ impl Shard {
         match OpCode::from(raw_opcode) {
             Some(OpCode::Dispatch) => {
                 let event_type = maybe_event_type.ok_or(ProcessError {
-                    kind: ProcessErrorType::ParsingPayload,
-                    source: None,
+                    kind: ProcessErrorType::Deserializing {
+                        event: event.to_owned(),
+                    },
+                    source: Some("missing dispatch event type".into()),
                 })?;
                 let sequence = maybe_sequence.ok_or(ProcessError {
-                    kind: ProcessErrorType::ParsingPayload,
-                    source: None,
+                    kind: ProcessErrorType::Deserializing {
+                        event: event.to_owned(),
+                    },
+                    source: Some("missing sequence".into()),
                 })?;
                 tracing::debug!(%event_type, %sequence, "received dispatch");
 
@@ -1125,7 +1125,9 @@ impl Shard {
     /// [processing]: Self::process
     fn parse_event<T: DeserializeOwned>(json: &str) -> Result<MinimalEvent<T>, ProcessError> {
         json::from_str::<MinimalEvent<T>>(json).map_err(|source| ProcessError {
-            kind: ProcessErrorType::Deserializing,
+            kind: ProcessErrorType::Deserializing {
+                event: json.to_owned(),
+            },
             source: Some(Box::new(source)),
         })
     }

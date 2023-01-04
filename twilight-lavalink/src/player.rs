@@ -17,7 +17,7 @@ use dashmap::DashMap;
 use std::{
     fmt::Debug,
     sync::{
-        atomic::{AtomicBool, AtomicI64, AtomicU16, AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicI64, AtomicU64, Ordering},
         Arc,
     },
 };
@@ -89,7 +89,7 @@ pub struct Player {
     paused: AtomicBool,
     position: AtomicI64,
     time: AtomicI64,
-    volume: AtomicU16,
+    volume: AtomicI64,
 }
 
 impl Player {
@@ -101,7 +101,7 @@ impl Player {
             paused: AtomicBool::new(false),
             position: AtomicI64::new(0),
             time: AtomicI64::new(0),
-            volume: AtomicU16::new(100),
+            volume: AtomicI64::new(100),
         }
     }
 
@@ -152,7 +152,7 @@ impl Player {
             OutgoingEvent::Pause(event) => self.paused.store(event.pause, Ordering::Release),
             OutgoingEvent::Volume(event) => {
                 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                self.volume.store(event.volume as u16, Ordering::Release);
+                self.volume.store(event.volume, Ordering::Release);
             }
             _ => {}
         }
@@ -213,7 +213,7 @@ impl Player {
     }
 
     /// Return the player's volume.
-    pub fn volume(&self) -> u16 {
+    pub fn volume(&self) -> i64 {
         self.volume.load(Ordering::Relaxed)
     }
 }
