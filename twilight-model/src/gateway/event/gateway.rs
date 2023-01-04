@@ -87,24 +87,6 @@ impl<'a> GatewayEventDeserializer<'a> {
         })
     }
 
-    /// Dispatch event type of the payload.
-    pub fn event_type(&self) -> Option<&str> {
-        self.event_type.as_deref()
-    }
-
-    /// Opcode of the payload.
-    pub const fn op(&self) -> u8 {
-        self.op
-    }
-
-    /// Sequence of the payload.
-    ///
-    /// May only be available if the deserializer was created via
-    /// [`from_json`][`Self::from_json`]
-    pub const fn sequence(&self) -> Option<u64> {
-        self.sequence
-    }
-
     /// Create a deserializer with an owned event type.
     ///
     /// This is necessary when using a mutable deserialization library such as
@@ -123,6 +105,24 @@ impl<'a> GatewayEventDeserializer<'a> {
     #[allow(clippy::missing_const_for_fn)]
     pub fn into_parts(self) -> (u8, Option<u64>, Option<Cow<'a, str>>) {
         (self.op, self.sequence, self.event_type)
+    }
+
+    /// Dispatch event type of the payload.
+    pub fn event_type(&self) -> Option<&str> {
+        self.event_type.as_deref()
+    }
+
+    /// Opcode of the payload.
+    pub const fn op(&self) -> u8 {
+        self.op
+    }
+
+    /// Sequence of the payload.
+    ///
+    /// May only be available if the deserializer was created via
+    /// [`from_json`][`Self::from_json`]
+    pub const fn sequence(&self) -> Option<u64> {
+        self.sequence
     }
 
     fn find_event_type(input: &'a str) -> Option<&'a str> {
