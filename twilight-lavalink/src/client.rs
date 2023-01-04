@@ -200,6 +200,7 @@ impl Lavalink {
 
                     if e.channel_id.is_none() {
                         self.sessions.remove(&guild_id);
+                        self.server_updates.remove(&guild_id);
                     } else {
                         self.sessions
                             .insert(guild_id, e.session_id.clone().into_boxed_str());

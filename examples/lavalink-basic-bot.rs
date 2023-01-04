@@ -53,7 +53,8 @@ async fn main() -> anyhow::Result<()> {
         let lavalink = Lavalink::new(user_id, shard_count);
         lavalink.add(lavalink_host, lavalink_auth).await?;
 
-        let intents = Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES;
+        let intents =
+            Intents::GUILD_MESSAGES | Intents::GUILD_VOICE_STATES | Intents::MESSAGE_CONTENT;
         let (shard, events) = Shard::new(token, intents);
 
         shard.start().await?;
