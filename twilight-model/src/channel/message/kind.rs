@@ -52,6 +52,8 @@ pub enum MessageType {
     ContextMenuCommand,
     /// Message is an auto moderation action.
     AutoModerationAction,
+    /// System message denoting a user subscribed to a role.
+    RoleSubscriptionPurchase,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -83,6 +85,7 @@ impl From<u8> for MessageType {
             22 => Self::GuildInviteReminder,
             23 => Self::ContextMenuCommand,
             24 => Self::AutoModerationAction,
+            25 => Self::RoleSubscriptionPurchase,
             unknown => Self::Unknown(unknown),
         }
     }
@@ -115,6 +118,7 @@ impl From<MessageType> for u8 {
             MessageType::GuildInviteReminder => 22,
             MessageType::ContextMenuCommand => 23,
             MessageType::AutoModerationAction => 24,
+            MessageType::RoleSubscriptionPurchase => 25,
             MessageType::Unknown(unknown) => unknown,
         }
     }

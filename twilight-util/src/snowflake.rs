@@ -5,8 +5,8 @@ use twilight_model::id::{
         ApplicationMarker, AttachmentMarker, AuditLogEntryMarker, ChannelMarker, CommandMarker,
         CommandVersionMarker, EmojiMarker, GenericMarker, GuildMarker, IntegrationMarker,
         InteractionMarker, MessageMarker, OauthSkuMarker, OauthTeamMarker, RoleMarker,
-        ScheduledEventEntityMarker, ScheduledEventMarker, StageMarker, StickerMarker,
-        StickerPackMarker, StickerPackSkuMarker, UserMarker, WebhookMarker,
+        RoleSubscriptionSkuMarker, ScheduledEventEntityMarker, ScheduledEventMarker, StageMarker,
+        StickerMarker, StickerPackMarker, StickerPackSkuMarker, UserMarker, WebhookMarker,
     },
     Id,
 };
@@ -181,6 +181,12 @@ impl Snowflake for Id<RoleMarker> {
     }
 }
 
+impl Snowflake for Id<RoleSubscriptionSkuMarker> {
+    fn id(&self) -> u64 {
+        self.get()
+    }
+}
+
 impl Snowflake for Id<ScheduledEventMarker> {
     fn id(&self) -> u64 {
         self.get()
@@ -249,6 +255,7 @@ mod tests {
     assert_impl_all!(Id<OauthSkuMarker>: Snowflake);
     assert_impl_all!(Id<OauthTeamMarker>: Snowflake);
     assert_impl_all!(Id<RoleMarker>: Snowflake);
+    assert_impl_all!(Id<RoleSubscriptionSkuMarker>: Snowflake);
     assert_impl_all!(Id<ScheduledEventMarker>: Snowflake);
     assert_impl_all!(Id<ScheduledEventEntityMarker>: Snowflake);
     assert_impl_all!(Id<StageMarker>: Snowflake);
