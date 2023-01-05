@@ -1,5 +1,5 @@
 use super::{
-    IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior, IntegrationType,
+    GuildIntegrationType, IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior,
 };
 use crate::{
     id::{
@@ -30,7 +30,7 @@ pub struct GuildIntegration {
     pub guild_id: Option<Id<GuildMarker>>,
     pub id: Id<IntegrationMarker>,
     #[serde(rename = "type")]
-    pub kind: IntegrationType,
+    pub kind: GuildIntegrationType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub revoked: Option<bool>,
@@ -58,7 +58,7 @@ mod tests {
         User,
     };
     use crate::{
-        guild::IntegrationType,
+        guild::GuildIntegrationType,
         id::Id,
         test::image_hash,
         util::datetime::{Timestamp, TimestampParseError},
@@ -83,7 +83,7 @@ mod tests {
             expire_grace_period: Some(3_600),
             guild_id: None,
             id: Id::new(2),
-            kind: IntegrationType::Discord,
+            kind: GuildIntegrationType::Discord,
             name: "integration name".to_owned(),
             revoked: Some(false),
             role_id: Some(Id::new(3)),
@@ -224,7 +224,7 @@ mod tests {
             expire_grace_period: Some(3_600),
             guild_id: None,
             id: Id::new(2),
-            kind: IntegrationType::Discord,
+            kind: GuildIntegrationType::Discord,
             name: "integration name".to_owned(),
             revoked: Some(false),
             role_id: Some(Id::new(3)),

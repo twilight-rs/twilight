@@ -51,7 +51,7 @@ pub use self::{
     explicit_content_filter::ExplicitContentFilter, feature::GuildFeature, info::GuildInfo,
     integration::GuildIntegration, integration_account::IntegrationAccount,
     integration_application::IntegrationApplication,
-    integration_expire_behavior::IntegrationExpireBehavior, integration_type::IntegrationType,
+    integration_expire_behavior::IntegrationExpireBehavior, integration_type::GuildIntegrationType,
     mfa_level::MfaLevel, nsfw_level::NSFWLevel, partial_guild::PartialGuild,
     partial_member::PartialMember, permissions::Permissions, premium_tier::PremiumTier,
     preview::GuildPreview, prune::GuildPrune, role::Role, role_tags::RoleTags,
