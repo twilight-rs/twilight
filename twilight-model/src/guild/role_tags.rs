@@ -34,11 +34,11 @@ mod tests {
     use serde_test::Token;
 
     #[test]
-    fn bot() {
+    fn role_tags_all() {
         let tags = RoleTags {
             bot_id: Some(Id::new(1)),
             integration_id: Some(Id::new(2)),
-            premium_subscriber: false,
+            premium_subscriber: true,
         };
 
         serde_test::assert_tokens(
@@ -46,7 +46,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "RoleTags",
-                    len: 2,
+                    len: 3,
                 },
                 Token::Str("bot_id"),
                 Token::Some,
@@ -56,26 +56,6 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
-                Token::StructEnd,
-            ],
-        );
-    }
-
-    #[test]
-    fn premium_subscriber() {
-        let tags = RoleTags {
-            bot_id: None,
-            integration_id: None,
-            premium_subscriber: true,
-        };
-
-        serde_test::assert_tokens(
-            &tags,
-            &[
-                Token::Struct {
-                    name: "RoleTags",
-                    len: 1,
-                },
                 Token::Str("premium_subscriber"),
                 Token::None,
                 Token::StructEnd,
@@ -83,11 +63,11 @@ mod tests {
         );
     }
 
-    /// Test that if all fields are None and the optional null fields are false,
-    /// then serialize back into the source payload (where all fields are not
+    /// Test that if all fields are None and `premium_subscriber` is false, then
+    /// serialize back into the source payload (where all fields are not
     /// present).
     #[test]
-    fn none() {
+    fn role_tags_none() {
         let tags = RoleTags {
             bot_id: None,
             integration_id: None,
