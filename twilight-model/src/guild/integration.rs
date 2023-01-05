@@ -1,4 +1,6 @@
-use super::{IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior};
+use super::{
+    IntegrationAccount, IntegrationApplication, IntegrationExpireBehavior, IntegrationType,
+};
 use crate::{
     id::{
         marker::{GuildMarker, IntegrationMarker, RoleMarker},
@@ -28,7 +30,7 @@ pub struct GuildIntegration {
     pub guild_id: Option<Id<GuildMarker>>,
     pub id: Id<IntegrationMarker>,
     #[serde(rename = "type")]
-    pub kind: String,
+    pub kind: IntegrationType,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub revoked: Option<bool>,
@@ -56,6 +58,7 @@ mod tests {
         User,
     };
     use crate::{
+        guild::IntegrationType,
         id::Id,
         test::image_hash,
         util::datetime::{Timestamp, TimestampParseError},
@@ -80,7 +83,7 @@ mod tests {
             expire_grace_period: Some(3_600),
             guild_id: None,
             id: Id::new(2),
-            kind: "a".to_owned(),
+            kind: IntegrationType::Discord,
             name: "integration name".to_owned(),
             revoked: Some(false),
             role_id: Some(Id::new(3)),
@@ -143,7 +146,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
-                Token::Str("a"),
+                Token::Str("discord"),
                 Token::Str("name"),
                 Token::Str("integration name"),
                 Token::Str("revoked"),
@@ -221,7 +224,7 @@ mod tests {
             expire_grace_period: Some(3_600),
             guild_id: None,
             id: Id::new(2),
-            kind: "a".to_owned(),
+            kind: IntegrationType::Discord,
             name: "integration name".to_owned(),
             revoked: Some(false),
             role_id: Some(Id::new(3)),
@@ -299,7 +302,7 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
-                Token::Str("a"),
+                Token::Str("discord"),
                 Token::Str("name"),
                 Token::Str("integration name"),
                 Token::Str("revoked"),
