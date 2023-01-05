@@ -80,7 +80,7 @@ impl<'a> GetAuditLog<'a> {
         self
     }
 
-    /// Get audit log entries after the entry specified
+    /// Get audit log entries after the entry specified.
     pub const fn after(mut self, after: u64) -> Self {
         self.fields.after = Some(after);
 
