@@ -1,7 +1,11 @@
+use crate::guild::Permissions;
 use serde::{Deserialize, Serialize};
 
 /// Type of a [`Message`].
 ///
+/// Refer to [Discord Docs/Message Types] for more information.
+///
+/// [Discord Docs/Message Types]: https://discord.com/developers/docs/resources/channel#message-object-message-types
 /// [`Message`]: super::Message
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -54,6 +58,63 @@ pub enum MessageType {
     AutoModerationAction,
     /// Variant value is unknown to the library.
     Unknown(u8),
+}
+
+impl MessageType {
+    /// Whether the message can be deleted, not taking permissions into account.
+    ///
+    /// Some message types can only be deleted with certain permissions. For
+    /// example, [`AutoModerationAction`][`Self::AutoModerationAction`] can only
+    /// be deleted if the user has the
+    /// [Manage Messages] permission.
+    ///
+    /// To check whether a message can be deleted while taking permissions into
+    /// account, use
+    /// [`deletable_by_permissions`][`Self::deletable_by_permissions`].
+    ///
+    /// [Manage Messages]: Permissions::MANAGE_MESSAGES
+    pub const fn deletable(self) -> bool {
+        matches!(
+            self,
+            Self::Regular
+                | Self::ChannelMessagePinned
+                | Self::UserJoin
+                | Self::GuildBoost
+                | Self::GuildBoostTier1
+                | Self::GuildBoostTier2
+                | Self::GuildBoostTier3
+                | Self::ChannelFollowAdd
+                | Self::ThreadCreated
+                | Self::Reply
+                | Self::ChatInputCommand
+                | Self::GuildInviteReminder
+                | Self::ContextMenuCommand
+                | Self::AutoModerationAction
+        )
+    }
+
+    /// Whether the message can be deleted, taking permissions into account.
+    ///
+    /// Some message types can only be deleted with certain permissions. For
+    /// example, [`AutoModerationAction`][`Self::AutoModerationAction`] can only
+    /// be deleted if the user has the [Manage Messages] permission.
+    ///
+    /// To check whether a message can be deleted *without* taking permissions
+    /// into account, use [`deletable`][`Self::deletable`].
+    ///
+    /// [Manage Messages]: Permissions::MANAGE_MESSAGES
+    pub const fn deletable_by_permissions(self, permissions: Permissions) -> bool {
+        let required_permissions = match self {
+            Self::AutoModerationAction => Permissions::MANAGE_MESSAGES,
+            _ => Permissions::empty(),
+        };
+
+        if !permissions.contains(required_permissions) {
+            return false;
+        }
+
+        self.deletable()
+    }
 }
 
 impl From<u8> for MessageType {
@@ -122,82 +183,76 @@ impl From<MessageType> for u8 {
 
 #[cfg(test)]
 mod tests {
+    use crate::guild::Permissions;
+
     use super::MessageType;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash};
+
+    assert_impl_all!(
+        MessageType: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
 
     #[test]
-    fn variants() {
-        serde_test::assert_tokens(&MessageType::Regular, &[Token::U8(0)]);
-        serde_test::assert_tokens(&MessageType::RecipientAdd, &[Token::U8(1)]);
-        serde_test::assert_tokens(&MessageType::RecipientRemove, &[Token::U8(2)]);
-        serde_test::assert_tokens(&MessageType::Call, &[Token::U8(3)]);
-        serde_test::assert_tokens(&MessageType::ChannelNameChange, &[Token::U8(4)]);
-        serde_test::assert_tokens(&MessageType::ChannelIconChange, &[Token::U8(5)]);
-        serde_test::assert_tokens(&MessageType::ChannelMessagePinned, &[Token::U8(6)]);
-        serde_test::assert_tokens(&MessageType::UserJoin, &[Token::U8(7)]);
-        serde_test::assert_tokens(&MessageType::GuildBoost, &[Token::U8(8)]);
-        serde_test::assert_tokens(&MessageType::GuildBoostTier1, &[Token::U8(9)]);
-        serde_test::assert_tokens(&MessageType::GuildBoostTier2, &[Token::U8(10)]);
-        serde_test::assert_tokens(&MessageType::GuildBoostTier3, &[Token::U8(11)]);
-        serde_test::assert_tokens(&MessageType::ChannelFollowAdd, &[Token::U8(12)]);
-        serde_test::assert_tokens(&MessageType::GuildDiscoveryDisqualified, &[Token::U8(14)]);
-        serde_test::assert_tokens(&MessageType::GuildDiscoveryRequalified, &[Token::U8(15)]);
-        serde_test::assert_tokens(
-            &MessageType::GuildDiscoveryGracePeriodInitialWarning,
-            &[Token::U8(16)],
-        );
-        serde_test::assert_tokens(
-            &MessageType::GuildDiscoveryGracePeriodFinalWarning,
-            &[Token::U8(17)],
-        );
-        serde_test::assert_tokens(&MessageType::ThreadCreated, &[Token::U8(18)]);
-        serde_test::assert_tokens(&MessageType::Reply, &[Token::U8(19)]);
-        serde_test::assert_tokens(&MessageType::ChatInputCommand, &[Token::U8(20)]);
-        serde_test::assert_tokens(&MessageType::ThreadStarterMessage, &[Token::U8(21)]);
-        serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
-        serde_test::assert_tokens(&MessageType::ContextMenuCommand, &[Token::U8(23)]);
-        serde_test::assert_tokens(&MessageType::AutoModerationAction, &[Token::U8(24)]);
-        serde_test::assert_tokens(&MessageType::Unknown(99), &[Token::U8(99)]);
+    fn message_type() {
+        const MAP: &[(MessageType, u8, bool)] = &[
+            (MessageType::Regular, 0, true),
+            (MessageType::RecipientAdd, 1, false),
+            (MessageType::RecipientRemove, 2, false),
+            (MessageType::Call, 3, false),
+            (MessageType::ChannelNameChange, 4, false),
+            (MessageType::ChannelIconChange, 5, false),
+            (MessageType::ChannelMessagePinned, 6, true),
+            (MessageType::UserJoin, 7, true),
+            (MessageType::GuildBoost, 8, true),
+            (MessageType::GuildBoostTier1, 9, true),
+            (MessageType::GuildBoostTier2, 10, true),
+            (MessageType::GuildBoostTier3, 11, true),
+            (MessageType::ChannelFollowAdd, 12, true),
+            (MessageType::GuildDiscoveryDisqualified, 14, false),
+            (MessageType::GuildDiscoveryRequalified, 15, false),
+            (
+                MessageType::GuildDiscoveryGracePeriodInitialWarning,
+                16,
+                false,
+            ),
+            (
+                MessageType::GuildDiscoveryGracePeriodFinalWarning,
+                17,
+                false,
+            ),
+            (MessageType::ThreadCreated, 18, true),
+            (MessageType::Reply, 19, true),
+            (MessageType::ChatInputCommand, 20, true),
+            (MessageType::ThreadStarterMessage, 21, false),
+            (MessageType::GuildInviteReminder, 22, true),
+            (MessageType::ContextMenuCommand, 23, true),
+            (MessageType::AutoModerationAction, 24, true),
+        ];
+
+        for (message_type, number, deletable) in MAP {
+            assert_eq!(*message_type, MessageType::from(*number));
+            assert_eq!(*number, u8::from(*message_type));
+            assert_eq!(*deletable, message_type.deletable());
+            serde_test::assert_tokens(message_type, &[Token::U8(*number)]);
+        }
     }
 
     #[test]
-    fn conversions() {
-        assert_eq!(MessageType::from(0), MessageType::Regular);
-        assert_eq!(MessageType::from(1), MessageType::RecipientAdd);
-        assert_eq!(MessageType::from(2), MessageType::RecipientRemove);
-        assert_eq!(MessageType::from(3), MessageType::Call);
-        assert_eq!(MessageType::from(4), MessageType::ChannelNameChange);
-        assert_eq!(MessageType::from(5), MessageType::ChannelIconChange);
-        assert_eq!(MessageType::from(6), MessageType::ChannelMessagePinned);
-        assert_eq!(MessageType::from(7), MessageType::UserJoin);
-        assert_eq!(MessageType::from(8), MessageType::GuildBoost);
-        assert_eq!(MessageType::from(9), MessageType::GuildBoostTier1);
-        assert_eq!(MessageType::from(10), MessageType::GuildBoostTier2);
-        assert_eq!(MessageType::from(11), MessageType::GuildBoostTier3);
-        assert_eq!(MessageType::from(12), MessageType::ChannelFollowAdd);
-        assert_eq!(
-            MessageType::from(14),
-            MessageType::GuildDiscoveryDisqualified
-        );
-        assert_eq!(
-            MessageType::from(15),
-            MessageType::GuildDiscoveryRequalified
-        );
-        assert_eq!(
-            MessageType::from(16),
-            MessageType::GuildDiscoveryGracePeriodInitialWarning
-        );
-        assert_eq!(
-            MessageType::from(17),
-            MessageType::GuildDiscoveryGracePeriodFinalWarning
-        );
-        assert_eq!(MessageType::from(18), MessageType::ThreadCreated);
-        assert_eq!(MessageType::from(19), MessageType::Reply);
-        assert_eq!(MessageType::from(20), MessageType::ChatInputCommand);
-        assert_eq!(MessageType::from(21), MessageType::ThreadStarterMessage);
-        assert_eq!(MessageType::from(22), MessageType::GuildInviteReminder);
-        assert_eq!(MessageType::from(23), MessageType::ContextMenuCommand);
-        assert_eq!(MessageType::from(24), MessageType::AutoModerationAction);
-        assert_eq!(MessageType::from(250), MessageType::Unknown(250));
+    fn deletable_by_type() {
+        assert!(MessageType::AutoModerationAction
+            .deletable_by_permissions(Permissions::MANAGE_MESSAGES));
+        assert!(!MessageType::AutoModerationAction.deletable_by_permissions(Permissions::empty()));
     }
 }
