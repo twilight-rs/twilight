@@ -62,6 +62,7 @@ pub enum MessageType {
 
 impl MessageType {
     /// Whether the message can be deleted, not taking permissions into account.
+    /// Some message types can't be deleted, even by server administrators.
     ///
     /// Some message types can only be deleted with certain permissions. For
     /// example, [`AutoModerationAction`][`Self::AutoModerationAction`] can only
@@ -94,6 +95,7 @@ impl MessageType {
     }
 
     /// Whether the message can be deleted, taking permissions into account.
+    /// Some message types can't be deleted, even by server administrators.
     ///
     /// Some message types can only be deleted with certain permissions. For
     /// example, [`AutoModerationAction`][`Self::AutoModerationAction`] can only
@@ -183,9 +185,8 @@ impl From<MessageType> for u8 {
 
 #[cfg(test)]
 mod tests {
-    use crate::guild::Permissions;
-
     use super::MessageType;
+    use crate::guild::Permissions;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
