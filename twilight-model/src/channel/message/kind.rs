@@ -71,7 +71,7 @@ impl MessageType {
     ///
     /// To check whether a message can be deleted while taking permissions into
     /// account, use
-    /// [`deletable_by_permissions`][`Self::deletable_by_permissions`].
+    /// [`deletable_with_permissions`][`Self::deletable_with_permissions`].
     ///
     /// [Manage Messages]: Permissions::MANAGE_MESSAGES
     pub const fn deletable(self) -> bool {
@@ -251,7 +251,7 @@ mod tests {
     }
 
     #[test]
-    fn deletable_by_type() {
+    fn deletable_with_permissions() {
         assert!(MessageType::AutoModerationAction
             .deletable_with_permissions(Permissions::MANAGE_MESSAGES));
         assert!(!MessageType::AutoModerationAction.deletable_with_permissions(Permissions::empty()));
