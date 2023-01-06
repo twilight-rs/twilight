@@ -1,9 +1,6 @@
 use std::env;
 use twilight_http::Client;
-use twilight_model::{
-    channel::message::allowed_mentions::{AllowedMentions, AllowedMentionsBuilder},
-    id::Id,
-};
+use twilight_model::{channel::message::AllowedMentions, id::Id};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -22,9 +19,10 @@ async fn main() -> anyhow::Result<()> {
 
     // Since we wish to warn a user that they attempted to ping @everyone, we
     // allow the user ID to be pinged with allowed mentions.
-    let allowed_mentions = AllowedMentionsBuilder::new()
-        .user_ids(Vec::from([user_id]))
-        .build();
+    let allowed_mentions = AllowedMentions {
+        users: Vec::from([user_id]),
+        ..Default::default()
+    };
 
     client
         .create_message(channel_id)
