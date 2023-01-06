@@ -169,6 +169,7 @@ impl Display for ReceiveMessageError {
 
                 Display::fmt(&close_code, f)
             }
+            ReceiveMessageErrorType::Io => f.write_str("websocket connection error"),
             ReceiveMessageErrorType::Process => {
                 f.write_str("failed to internally process the received message")
             }
@@ -209,6 +210,8 @@ pub enum ReceiveMessageErrorType {
         /// Close code of the close message.
         close_code: CloseCode,
     },
+    /// WebSocket connection error.
+    Io,
     /// Processing the message failed.
     ///
     /// The associated error downcasts to [`ProcessError`].
@@ -322,7 +325,7 @@ mod tests {
 
     #[test]
     fn receive_message_error_display() {
-        let messages: [(ReceiveMessageErrorType, &str); 6] = [
+        let messages: [(ReceiveMessageErrorType, &str); 7] = [
             (
                 ReceiveMessageErrorType::Compression,
                 "binary message could not be decompressed",
@@ -339,6 +342,7 @@ mod tests {
                 },
                 "shard fatally closed: Invalid Intents",
             ),
+            (ReceiveMessageErrorType::Io, "websocket connection error"),
             (
                 ReceiveMessageErrorType::Process,
                 "failed to internally process the received message",
