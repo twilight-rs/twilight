@@ -19,6 +19,7 @@ use twilight_validate::request::{
 
 struct GetAuditLogFields {
     action_type: Option<AuditLogEventType>,
+    after: Option<u64>,
     before: Option<u64>,
     limit: Option<u16>,
     user_id: Option<Id<UserMarker>>,
@@ -62,6 +63,7 @@ impl<'a> GetAuditLog<'a> {
         Self {
             fields: GetAuditLogFields {
                 action_type: None,
+                after: None,
                 before: None,
                 limit: None,
                 user_id: None,
@@ -74,6 +76,13 @@ impl<'a> GetAuditLog<'a> {
     /// Filter by an action type.
     pub const fn action_type(mut self, action_type: AuditLogEventType) -> Self {
         self.fields.action_type = Some(action_type);
+
+        self
+    }
+
+    /// Get audit log entries after the entry specified.
+    pub const fn after(mut self, after: u64) -> Self {
+        self.fields.after = Some(after);
 
         self
     }
@@ -141,6 +150,7 @@ impl TryIntoRequest for GetAuditLog<'_> {
     fn try_into_request(self) -> Result<Request, Error> {
         Ok(Request::from_route(&Route::GetAuditLogs {
             action_type: self.fields.action_type.map(|x| u64::from(u16::from(x))),
+            after: self.fields.after,
             before: self.fields.before,
             guild_id: self.guild_id.get(),
             limit: self.fields.limit,
