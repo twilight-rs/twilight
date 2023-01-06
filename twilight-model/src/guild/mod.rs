@@ -14,6 +14,7 @@ pub mod invite;
 pub mod member;
 pub mod scheduled_event;
 pub mod template;
+pub mod widget;
 
 mod ban;
 mod default_message_notification_level;
@@ -39,7 +40,6 @@ mod system_channel_flags;
 mod unavailable_guild;
 mod vanity_url;
 mod verification_level;
-mod widget;
 
 // `Member` should appear inline, as the `member` module is only for advanced
 // use. Public documentation is not available for re-exports.
@@ -55,7 +55,7 @@ pub use self::{
     permissions::Permissions, premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune,
     role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
-    verification_level::VerificationLevel, widget::GuildWidget,
+    verification_level::VerificationLevel,
 };
 
 use self::member::MemberListDeserializer;
