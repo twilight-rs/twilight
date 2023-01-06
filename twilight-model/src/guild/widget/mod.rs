@@ -5,8 +5,8 @@ pub use self::settings::GuildWidgetSettings;
 use crate::{
     gateway::presence::Status,
     id::{
-        marker::{ChannelMarker, GuildMarker},
-        Id,
+        marker::{ChannelMarker, GuildMarker, UserMarker},
+        AnonymizableId, Id,
     },
     user::{discriminator, DiscriminatorDisplay},
     util::ImageHash,
@@ -37,10 +37,7 @@ pub struct GuildWidgetMember {
     #[serde(with = "discriminator")]
     pub discriminator: u16,
     /// Member's ID.
-    ///
-    /// This is a string because this is often anonymized to zero, and our
-    /// current ID implementation does not support this.
-    pub id: String,
+    pub id: AnonymizableId<UserMarker>,
     #[serde(rename = "username")]
     pub name: String,
     pub status: Status,
@@ -58,6 +55,7 @@ impl GuildWidgetMember {
 #[cfg(test)]
 mod tests {
     use super::{GuildWidget, GuildWidgetChannel, GuildWidgetMember, Id, Status};
+    use crate::id::AnonymizableId;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::{assert_fields, assert_impl_all};
@@ -128,7 +126,7 @@ mod tests {
                 avatar: None,
                 avatar_url: Some("widget avatar link".to_string()),
                 discriminator: 1,
-                id: "3".to_string(),
+                id: AnonymizableId::Anonymized,
                 name: "Foo".to_string(),
                 status: Status::Online,
             }]),
@@ -178,7 +176,10 @@ mod tests {
                 Token::Str("discriminator"),
                 Token::Str("0001"),
                 Token::Str("id"),
-                Token::Str("3"),
+                Token::NewtypeStruct {
+                    name: "AnonymizableId",
+                },
+                Token::Str("0"),
                 Token::Str("username"),
                 Token::Str("Foo"),
                 Token::Str("status"),

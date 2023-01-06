@@ -43,6 +43,10 @@
 
 pub mod marker;
 
+mod anonymizable;
+
+pub use anonymizable::AnonymizableId;
+
 use serde::{
     de::{Deserialize, Deserializer, Error as DeError, Unexpected, Visitor},
     ser::{Serialize, Serializer},
