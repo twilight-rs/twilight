@@ -12,11 +12,10 @@ use crate::{
 };
 use serde::de::DeserializeSeed;
 use std::str;
-#[cfg(not(feature = "simd-json"))]
-use twilight_model::gateway::event::GatewayEventDeserializer as EventDeserializer;
-#[cfg(feature = "simd-json")]
-use twilight_model::gateway::event::GatewayEventDeserializerOwned as EventDeserializer;
-use twilight_model::gateway::{event::GatewayEvent, OpCode};
+use twilight_model::gateway::{
+    event::{GatewayEvent, GatewayEventDeserializer},
+    OpCode,
+};
 
 /// Parse JSON into a gateway event without existing knowledge of its underlying
 /// parts.
@@ -35,10 +34,12 @@ pub fn parse(
     let mut bytes = json.into_bytes();
     let json = str::from_utf8(&bytes).unwrap();
 
+    let gateway_deserializer =
+        GatewayEventDeserializer::from_json(json).expect("Shard::process asserted valid opcode");
+
     #[cfg(feature = "simd-json")]
     let (gateway_deserializer, mut json_deserializer) = {
-        let gateway_deserializer =
-            EventDeserializer::from_json(json).expect("Shard::process asserted valid opcode");
+        let gateway_deserializer = gateway_deserializer.into_owned();
 
         let json_deserializer = match simd_json::Deserializer::from_slice(&mut bytes) {
             Ok(deserializer) => deserializer,
@@ -56,14 +57,7 @@ pub fn parse(
     };
 
     #[cfg(not(feature = "simd-json"))]
-    let (gateway_deserializer, mut json_deserializer) = {
-        let gateway_deserializer =
-            EventDeserializer::from_json(json).expect("Shard::process asserted valid opcode");
-
-        let json_deserializer = serde_json::Deserializer::from_str(json);
-
-        (gateway_deserializer, json_deserializer)
-    };
+    let mut json_deserializer = serde_json::Deserializer::from_str(json);
 
     let opcode = match OpCode::from(gateway_deserializer.op()) {
         Some(opcode) => opcode,
@@ -77,7 +71,7 @@ pub fn parse(
         }
     };
 
-    let event_type = gateway_deserializer.event_type_ref();
+    let event_type = gateway_deserializer.event_type();
 
     let event_flag = match EventTypeFlags::try_from((opcode, event_type)) {
         Ok(event_flag) => event_flag,

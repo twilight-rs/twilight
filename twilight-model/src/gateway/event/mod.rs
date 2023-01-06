@@ -7,7 +7,7 @@ mod kind;
 
 pub use self::{
     dispatch::{DispatchEvent, DispatchEventWithTypeDeserializer},
-    gateway::{GatewayEvent, GatewayEventDeserializer, GatewayEventDeserializerOwned},
+    gateway::{GatewayEvent, GatewayEventDeserializer},
     kind::EventType,
 };
 
