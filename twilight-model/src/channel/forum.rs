@@ -70,6 +70,52 @@ impl From<ForumLayout> for u8 {
     }
 }
 
+/// Layout of a [channel] that is a [forum].
+///
+/// [channel]: super::Channel
+/// [forum]: super::ChannelType::GuildForum
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[non_exhaustive]
+#[serde(from = "u8", into = "u8")]
+pub enum ForumSortOrder {
+    /// Sort forum posts by creation time (from most recent to oldest).
+    CreationDate,
+    /// Sort forum posts by activity.
+    LatestActivity,
+    /// Variant value is unknown to the library.
+    Unknown(u8),
+}
+
+impl ForumSortOrder {
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::CreationDate => "CreationDate",
+            Self::LatestActivity => "LatestActivity",
+            Self::Unknown(_) => "Unknown",
+        }
+    }
+}
+
+impl From<u8> for ForumSortOrder {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Self::CreationDate,
+            1 => Self::LatestActivity,
+            unknown => Self::Unknown(unknown),
+        }
+    }
+}
+
+impl From<ForumSortOrder> for u8 {
+    fn from(value: ForumSortOrder) -> Self {
+        match value {
+            ForumSortOrder::CreationDate => 0,
+            ForumSortOrder::LatestActivity => 1,
+            ForumSortOrder::Unknown(unknown) => unknown,
+        }
+    }
+}
+
 /// Tag that is able to be applied to a thread in a [`GuildForum`] [`Channel`].
 ///
 /// May at most contain one of `emoji_id` and `emoji_name`.
@@ -100,7 +146,7 @@ pub struct ForumTag {
 
 #[cfg(test)]
 mod tests {
-    use super::{DefaultReaction, ForumLayout, ForumTag};
+    use super::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag};
     use crate::id::{
         marker::{EmojiMarker, TagMarker},
         Id,
@@ -112,6 +158,18 @@ mod tests {
 
     assert_impl_all!(
         ForumLayout: Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync
+    );
+    assert_impl_all!(
+        ForumSortOrder: Clone,
         Copy,
         Debug,
         Deserialize<'static>,
@@ -163,6 +221,22 @@ mod tests {
             assert_eq!(layout.name(), *name);
             assert_eq!(u8::from(*layout), *number);
             assert_eq!(ForumLayout::from(*number), *layout);
+            assert_tokens(layout, &[Token::U8(*number)]);
+        }
+    }
+
+    #[test]
+    fn forum_sort_order() {
+        const MAP: &[(ForumSortOrder, u8, &str)] = &[
+            (ForumSortOrder::LatestActivity, 0, "LatestActivity"),
+            (ForumSortOrder::CreationDate, 1, "CreationDate"),
+            (ForumSortOrder::Unknown(100), 100, "Unknown"),
+        ];
+
+        for (layout, number, name) in MAP {
+            assert_eq!(layout.name(), *name);
+            assert_eq!(u8::from(*layout), *number);
+            assert_eq!(ForumSortOrder::from(*number), *layout);
             assert_tokens(layout, &[Token::U8(*number)]);
         }
     }
