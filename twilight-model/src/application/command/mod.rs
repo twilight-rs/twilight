@@ -83,6 +83,11 @@ pub struct Command {
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name_localizations: Option<HashMap<String, String>>,
+    /// Whether the command is age-restricted.
+    ///
+    /// Defaults to false.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nsfw: Option<bool>,
     #[serde(default)]
     pub options: Vec<CommandOption>,
     /// Autoincrementing version identifier.
@@ -116,6 +121,7 @@ mod tests {
             kind: CommandType::ChatInput,
             name: "test command".into(),
             name_localizations: Some(HashMap::from([("en-US".into(), "test command".into())])),
+            nsfw: None,
             options: Vec::from([CommandOption {
                 autocomplete: None,
                 channel_types: None,

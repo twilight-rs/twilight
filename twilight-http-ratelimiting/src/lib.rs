@@ -53,6 +53,28 @@ pub struct Bucket {
 }
 
 impl Bucket {
+    /// Create a representation of a ratelimiter bucket.
+    ///
+    /// Buckets are returned by ratelimiters via [`Ratelimiter::bucket`] method.
+    /// Its primary use is for informational purposes, including information
+    /// such as the [number of remaining tickets][`Self::limit`] or determining
+    /// how much time remains
+    /// [until the bucket interval resets][`Self::time_remaining`].
+    #[must_use]
+    pub const fn new(
+        limit: u64,
+        remaining: u64,
+        reset_after: Duration,
+        started_at: Option<Instant>,
+    ) -> Self {
+        Self {
+            limit,
+            remaining,
+            reset_after,
+            started_at,
+        }
+    }
+
     /// Total number of tickets allotted in a cycle.
     #[must_use]
     pub const fn limit(&self) -> u64 {

@@ -75,8 +75,13 @@ use crate::{
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
+#[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
+use std::io::ErrorKind as IoErrorKind;
 use std::{env::consts::OS, str};
 use tokio::time::{self, Duration, Instant, Interval, MissedTickBehavior};
+#[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
+use tokio_tungstenite::tungstenite::Error as TungsteniteError;
+#[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use twilight_model::gateway::{
     event::{Event, GatewayEventDeserializer},
@@ -90,30 +95,42 @@ use twilight_model::gateway::{
     CloseCode, Intents, OpCode,
 };
 
-/// Disconnect a shard, optionally invalidating the session.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum Disconnect {
-    /// Disconnect a shard and invalidate its session, requiring a new session
-    /// to be identified after initializing a new connection.
-    InvalidateSession,
-    /// Disconnect a shard but don't invalidate its session, re-using a session
-    /// with a new connection.
-    Resume,
+/// Who initiated the closing of the websocket connection.
+#[derive(Clone, Copy, Debug)]
+enum CloseInitiator {
+    /// The gateway initiated the close.
+    ///
+    /// Contains an optional close code.
+    Gateway(Option<u16>),
+    /// The shard initiated the close.
+    ///
+    /// Contains a close code.
+    Shard(u16),
+    /// Nobody initiated the close (underlying connection errored).
+    None,
+}
+
+impl CloseInitiator {
+    /// The inner close code.
+    const fn close_code(self) -> Option<u16> {
+        match self {
+            CloseInitiator::Gateway(close_code) => close_code,
+            CloseInitiator::Shard(close_code) => Some(close_code),
+            CloseInitiator::None => None,
+        }
+    }
 }
 
 /// Current status of a shard.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ConnectionStatus {
-    /// Shard is connected with an active session.
+    /// Shard is connected to the gateway with an active session.
     Connected,
-    /// Shard is disconnected but may reconnect in the future.
+    /// Shard is disconnected from the gateway but may reconnect in the future.
+    ///
+    /// The underlying connection may still be open.
     Disconnected {
         /// Close code, if available.
-        ///
-        /// May not be available if the shard was closed via an event, such as
-        /// [`GatewayEvent::InvalidateSession`].
-        ///
-        /// [`GatewayEvent::InvalidateSession`]: twilight_model::gateway::event::GatewayEvent::InvalidateSession
         close_code: Option<u16>,
         /// Number of reconnection attempts that have been made.
         reconnect_attempts: u8,
@@ -142,17 +159,13 @@ impl ConnectionStatus {
     /// Defers to [`CloseCode::can_reconnect`] to determine whether the
     /// connection can be reconnected, defaulting to [`Self::Disconnected`] if
     /// the close code is unknown.
-    fn from_close_frame(maybe_frame: Option<&CloseFrame<'_>>) -> Self {
-        match maybe_frame.map(CloseFrame::code) {
-            Some(raw_code) => match CloseCode::try_from(raw_code) {
-                Ok(close_code) if !close_code.can_reconnect() => Self::FatallyClosed { close_code },
-                _ => Self::Disconnected {
-                    close_code: Some(raw_code),
-                    reconnect_attempts: 0,
-                },
-            },
-            None => Self::Disconnected {
-                close_code: None,
+    fn from_close_code(close_code: Option<u16>) -> Self {
+        match close_code.map(CloseCode::try_from) {
+            Some(Ok(close_code)) if !close_code.can_reconnect() => {
+                Self::FatallyClosed { close_code }
+            }
+            _ => Self::Disconnected {
+                close_code,
                 reconnect_attempts: 0,
             },
         }
@@ -295,6 +308,9 @@ pub struct Shard {
     /// [`Shard::new`] or [`Shard::with_config`].
     config: Config,
     /// Websocket connection, which may be connected to Discord's gateway.
+    ///
+    /// The connection should only be dropped after it has returned `Ok(None)`
+    /// to comply with the WebSocket protocol.
     connection: Option<Connection>,
     /// Interval of how often the gateway would like the shard to
     /// [send heartbeats][`Self::heartbeat`].
@@ -479,19 +495,22 @@ impl Shard {
     #[tracing::instrument(fields(id = %self.id()), name = "shard", skip(self))]
     pub async fn next_message(&mut self) -> Result<Message, ReceiveMessageError> {
         match self.status {
-            ConnectionStatus::Connected
-            | ConnectionStatus::Identifying
-            | ConnectionStatus::Resuming => {}
             ConnectionStatus::Disconnected {
                 close_code,
                 reconnect_attempts,
-                ..
             } => {
-                self.reconnect(close_code, reconnect_attempts).await?;
+                // The shard is considered disconnected after having received a
+                // close frame or encountering a websocket error, but it should
+                // only reconnect after the underlying TCP connection is closed
+                // by the server (having returned `Ok(None)`).
+                if self.connection.is_none() {
+                    self.reconnect(close_code, reconnect_attempts).await?;
+                }
             }
-            ConnectionStatus::FatallyClosed { close_code } => {
+            ConnectionStatus::FatallyClosed { close_code } if self.connection.is_none() => {
                 return Err(ReceiveMessageError::from_fatally_closed(close_code));
             }
+            _ => {}
         }
 
         let message = loop {
@@ -503,12 +522,44 @@ impl Shard {
             );
 
             let tungstenite_message = match future.await {
-                NextMessageFutureOutput::Message(Some(message)) => message,
-                NextMessageFutureOutput::Message(None) => {
-                    tracing::info!("connection stream ended");
-                    self.disconnect(Disconnect::Resume);
+                NextMessageFutureOutput::Message(Some(Ok(message))) => message,
+                // Work around #1428.
+                #[cfg(any(feature = "rustls-native-roots", feature = "rustls-webpki-roots"))]
+                NextMessageFutureOutput::Message(Some(Err(TungsteniteError::Io(e))))
+                    if self.status.is_disconnected() && e.kind() == IoErrorKind::UnexpectedEof =>
+                {
+                    continue
+                }
+                NextMessageFutureOutput::Message(Some(Err(source))) => {
+                    self.disconnect(CloseInitiator::None);
 
-                    TungsteniteMessage::Close(None)
+                    return Err(ReceiveMessageError {
+                        kind: ReceiveMessageErrorType::Io,
+                        source: Some(Box::new(source)),
+                    });
+                }
+                NextMessageFutureOutput::Message(None) => {
+                    tracing::debug!("gateway connection closed");
+                    self.connection = None;
+
+                    // This match statement should be similar the initial one in
+                    // this method.
+                    match self.status {
+                        ConnectionStatus::Disconnected {
+                            close_code,
+                            reconnect_attempts,
+                        } => self.reconnect(close_code, reconnect_attempts).await?,
+                        ConnectionStatus::FatallyClosed { close_code } => {
+                            return Err(ReceiveMessageError::from_fatally_closed(close_code))
+                        }
+                        _ => unreachable!(
+                            "stream ended because websocket is closed (received close frame sets \
+                            status to disconnected or fatally closed) or because it errored (which \
+                            also sets status to disconnected)"
+                        ),
+                    };
+
+                    continue;
                 }
                 NextMessageFutureOutput::SendHeartbeat => {
                     let is_first_heartbeat =
@@ -525,8 +576,6 @@ impl Shard {
                             .close(CloseFrame::RESUME)
                             .await
                             .map_err(ReceiveMessageError::from_send)?;
-                        self.disconnect(Disconnect::Resume);
-                        self.reconnect(None, 0).await?;
                     } else {
                         self.heartbeat()
                             .await
@@ -564,9 +613,14 @@ impl Shard {
 
         match &message {
             Message::Close(frame) => {
+                // Tungstenite automatically replies to the close message.
                 tracing::debug!(?frame, "received websocket close message");
-                self.status = ConnectionStatus::from_close_frame(frame.as_ref());
-                self.connection = None;
+                // Don't run `disconnect` if we initiated the close.
+                if !self.status.is_disconnected() {
+                    self.disconnect(CloseInitiator::Gateway(
+                        frame.as_ref().map(CloseFrame::code),
+                    ));
+                }
             }
             Message::Text(event) => {
                 self.process(event)
@@ -694,13 +748,9 @@ impl Shard {
             })?
             .send(message.into_tungstenite())
             .await
-            .map_err(|source| {
-                self.disconnect(Disconnect::Resume);
-
-                SendError {
-                    kind: SendErrorType::Sending,
-                    source: Some(Box::new(source)),
-                }
+            .map_err(|source| SendError {
+                kind: SendErrorType::Sending,
+                source: Some(Box::new(source)),
             })
     }
 
@@ -712,18 +762,55 @@ impl Shard {
         self.user_channel.sender()
     }
 
-    /// Close the shard's connection, providing a close frame indicating whether
-    /// a resume is intended.
+    /// Close the gateway connection with a close frame indicating whether to
+    /// also invalidate the shard's session.
     ///
-    /// Returns the gateway session of the shard, which may be provided via
-    /// [`ConfigBuilder::session`] to create a new shard that will resume the
-    /// gateway session.
+    /// Returns the shard's session if the close frame code is not `1000` or
+    /// `1001`, which invalidates the session and shows the application's bot as
+    /// offline. Otherwise Discord will not invalidate the shard's session and
+    /// will continue to show the application's bot as online until its presence
+    /// times out.
     ///
-    /// If sending a close frame such as [`CloseFrame::NORMAL`] then Discord
-    /// will invalidate the shard's session, showing the application's bot as
-    /// offline. If sending a close frame such as [`CloseFrame::RESUME`] then
-    /// Discord will not invalidate the shard's session and will continue to
-    /// show the application's bot as online until its presence times out.
+    /// Sets status to [`ConnectionStatus::Disconnected`] with the `close_code`
+    /// from the `close_frame`.
+    ///
+    /// To read all remaining events, continue calling [`Shard::next_message`]
+    /// until it returns the response close message or a
+    /// [`ReceiveMessageErrorType::Io`] error type.
+    ///
+    /// You do not need to call this method upon receiving a close message to
+    /// respond do it, Twilight handles this for you.
+    ///
+    /// # Example
+    ///
+    /// Close the gateway connection but process already received messages:
+    ///
+    /// ```no_run
+    /// # use twilight_gateway::{Intents, Shard, ShardId};
+    /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
+    /// use twilight_gateway::{
+    ///     error::ReceiveMessageErrorType,
+    ///     message::{CloseFrame, Message},
+    /// };
+    ///
+    /// shard.close(CloseFrame::NORMAL).await?;
+    ///
+    /// loop {
+    ///     match shard.next_message().await {
+    ///         Ok(Message::Close(_)) => {
+    ///             // We've now received a close message response from the
+    ///             // Gateway.
+    ///             // Further calls to `next_message` would cause a reconnect.
+    ///             break;
+    ///         }
+    ///         Ok(Message::Text(_)) => unimplemented!("handle message"),
+    ///         Err(source) if matches!(source.kind(), ReceiveMessageErrorType::Io) => break,
+    ///         Err(source) => tracing::warn!(?source, "error receiving message"),
+    ///     }
+    /// }
+    /// # Ok(()) }
+    /// ```
     ///
     /// # Errors
     ///
@@ -736,28 +823,37 @@ impl Shard {
         &mut self,
         close_frame: CloseFrame<'static>,
     ) -> Result<Option<Session>, SendError> {
+        let close_code = close_frame.code();
+
+        tracing::debug!(frame = ?close_frame, "sending websocket close message");
         let message = Message::Close(Some(close_frame));
 
         self.send(message).await?;
 
+        self.disconnect(CloseInitiator::Shard(close_code));
+
         Ok(self.session.take())
     }
 
-    /// Disconnect the shard's Websocket connection, optionally invalidating the
-    /// session.
-    fn disconnect(&mut self, disconnect: Disconnect) {
-        self.status = ConnectionStatus::Disconnected {
-            close_code: None,
-            reconnect_attempts: 0,
-        };
-        self.connection = None;
+    /// Update internal state from gateway disconnect.
+    fn disconnect(&mut self, initiator: CloseInitiator) {
+        // May not send any additional WebSocket messages.
         self.heartbeat_interval = None;
         self.ratelimiter = None;
-
-        if disconnect == Disconnect::InvalidateSession {
-            self.session = None;
+        // Not resuming, drop session and resume URL.
+        // https://discord.com/developers/docs/topics/gateway#initiating-a-disconnect
+        if matches!(initiator, CloseInitiator::Shard(1000 | 1001)) {
             self.resume_gateway_url = None;
+            self.session = None;
         }
+        // Avoid setting the status to FatallyClosed should it match for Shard initiated disconnect.
+        self.status = match initiator {
+            CloseInitiator::Gateway(close_code) => ConnectionStatus::from_close_code(close_code),
+            _ => ConnectionStatus::Disconnected {
+                close_code: initiator.close_code(),
+                reconnect_attempts: 0,
+            },
+        };
     }
 
     /// Send a heartbeat.
@@ -857,7 +953,7 @@ impl Shard {
                 })?;
                 tracing::debug!(%event_type, %sequence, "received dispatch");
 
-                match event_type {
+                match event_type.as_ref() {
                     "READY" => {
                         let event = Self::parse_event::<MinimalReady>(event)?;
 
@@ -883,7 +979,10 @@ impl Shard {
                             missed_events = sequence - (last_sequence + 1),
                             "dispatch events have been missed",
                         );
-                        self.disconnect(Disconnect::Resume);
+                        self.session = self
+                            .close(CloseFrame::RESUME)
+                            .await
+                            .map_err(ProcessError::from_send)?;
                     }
                 } else {
                     tracing::info!("unable to store sequence");
@@ -938,14 +1037,22 @@ impl Shard {
                 let resumable = Self::parse_event(event)?.data;
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
-                    self.disconnect(Disconnect::Resume);
+                    self.session = self
+                        .close(CloseFrame::RESUME)
+                        .await
+                        .map_err(ProcessError::from_send)?;
                 } else {
-                    self.disconnect(Disconnect::InvalidateSession);
+                    self.close(CloseFrame::NORMAL)
+                        .await
+                        .map_err(ProcessError::from_send)?;
                 }
             }
             Some(OpCode::Reconnect) => {
                 tracing::debug!("received reconnect");
-                self.disconnect(Disconnect::Resume);
+                self.session = self
+                    .close(CloseFrame::RESUME)
+                    .await
+                    .map_err(ProcessError::from_send)?;
             }
             _ => tracing::info!("received an unknown opcode: {raw_opcode}"),
         }
@@ -956,6 +1063,8 @@ impl Shard {
     /// Establishes a Websocket connection, sets the [status] to [`Resuming`] or
     /// [`Identifying`] if holding an active [`Session`] or not, and resets the
     /// [inflater].
+    ///
+    /// Drops [`Connection`], see [`Self::connection`] when this is okay.
     ///
     /// [`Identifying`]: ConnectionStatus::Identifying
     /// [inflater]: Self::inflater
@@ -977,11 +1086,11 @@ impl Shard {
             connection::connect(maybe_gateway_url, self.config.tls())
                 .await
                 .map_err(|source| {
+                    self.resume_gateway_url = None;
                     self.status = ConnectionStatus::Disconnected {
                         close_code,
                         reconnect_attempts: reconnect_attempts + 1,
                     };
-                    self.resume_gateway_url = None;
 
                     source
                 })?,
@@ -1035,7 +1144,6 @@ fn default_identify_properties() -> IdentifyProperties {
 #[cfg(test)]
 mod tests {
     use super::{ConnectionStatus, Shard};
-    use crate::message::CloseFrame;
     use static_assertions::{assert_fields, assert_impl_all};
     use std::fmt::Debug;
     use twilight_model::gateway::CloseCode;
@@ -1050,7 +1158,7 @@ mod tests {
 
     #[test]
     fn connection_status_from_close_frame() {
-        let empty = ConnectionStatus::from_close_frame(None);
+        let empty = ConnectionStatus::from_close_code(None);
         assert_eq!(
             empty,
             ConnectionStatus::Disconnected {
@@ -1060,8 +1168,7 @@ mod tests {
         );
 
         let non_fatal_code = CloseCode::SessionTimedOut as u16;
-        let non_fatal_frame = CloseFrame::new(non_fatal_code, "");
-        let non_fatal_status = ConnectionStatus::from_close_frame(Some(&non_fatal_frame));
+        let non_fatal_status = ConnectionStatus::from_close_code(Some(non_fatal_code));
 
         assert_eq!(
             non_fatal_status,
@@ -1072,8 +1179,7 @@ mod tests {
         );
 
         let fatal_code = CloseCode::AuthenticationFailed;
-        let fatal_frame = CloseFrame::new(fatal_code as u16, "");
-        let fatal_status = ConnectionStatus::from_close_frame(Some(&fatal_frame));
+        let fatal_status = ConnectionStatus::from_close_code(Some(fatal_code as u16));
 
         assert_eq!(
             fatal_status,
@@ -1083,8 +1189,7 @@ mod tests {
         );
 
         let unknown_code = u16::MAX;
-        let non_fatal_unknown_frame = CloseFrame::new(unknown_code, "");
-        let non_fatal_status = ConnectionStatus::from_close_frame(Some(&non_fatal_unknown_frame));
+        let non_fatal_status = ConnectionStatus::from_close_code(Some(unknown_code));
 
         assert_eq!(
             non_fatal_status,

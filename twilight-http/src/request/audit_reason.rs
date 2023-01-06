@@ -34,6 +34,7 @@ mod private {
             role::{CreateRole, DeleteRole, UpdateRole},
             sticker::{CreateGuildSticker, UpdateGuildSticker},
             CreateGuildChannel, CreateGuildPrune, UpdateCurrentMember, UpdateGuild, UpdateGuildMfa,
+            UpdateGuildWidgetSettings,
         },
         scheduled_event::{
             CreateGuildExternalScheduledEvent, CreateGuildScheduledEvent,
@@ -87,6 +88,7 @@ mod private {
     impl Sealed for UpdateGuildMfa<'_> {}
     impl Sealed for UpdateGuildScheduledEvent<'_> {}
     impl Sealed for UpdateGuildSticker<'_> {}
+    impl Sealed for UpdateGuildWidgetSettings<'_> {}
     impl Sealed for UpdateRole<'_> {}
     impl Sealed for UpdateThread<'_> {}
     impl Sealed for UpdateWebhook<'_> {}

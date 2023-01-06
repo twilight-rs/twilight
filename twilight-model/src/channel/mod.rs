@@ -26,7 +26,7 @@ pub use self::{
 
 use crate::{
     channel::{
-        forum::{DefaultReaction, ForumTag},
+        forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
         thread::{AutoArchiveDuration, ThreadMember, ThreadMetadata},
     },
@@ -72,8 +72,14 @@ pub struct Channel {
     /// level.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_auto_archive_duration: Option<AutoArchiveDuration>,
+    /// Default forum layout view used to display posts in forum channels.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_forum_layout: Option<ForumLayout>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_reaction_emoji: Option<DefaultReaction>,
+    /// Default sort order used to display posts in forum channels.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_sort_order: Option<ForumSortOrder>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_thread_rate_limit_per_user: Option<u16>,
     /// Flags of the channel.
@@ -218,7 +224,9 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
+            default_sort_order: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(1)),
@@ -258,7 +266,9 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
+            default_sort_order: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(2)),
@@ -310,7 +320,9 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: None,
+            default_forum_layout: None,
             default_reaction_emoji: None,
+            default_sort_order: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(2)),
@@ -369,7 +381,9 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
+            default_sort_order: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(1)),
@@ -455,7 +469,9 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
+            default_sort_order: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(1)),
@@ -542,7 +558,9 @@ mod tests {
             available_tags: None,
             bitrate: None,
             default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_forum_layout: None,
             default_reaction_emoji: None,
+            default_sort_order: None,
             default_thread_rate_limit_per_user: None,
             flags: None,
             guild_id: Some(Id::new(1)),

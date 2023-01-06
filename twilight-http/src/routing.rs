@@ -363,6 +363,8 @@ pub enum Route<'a> {
     GetAuditLogs {
         /// The type of action to get audit logs for.
         action_type: Option<u64>,
+        /// The minimum ID of audit logs to get.
+        after: Option<u64>,
         /// The maximum ID of audit logs to get.
         before: Option<u64>,
         /// The ID of the guild.
@@ -627,7 +629,12 @@ pub enum Route<'a> {
     },
     /// Route information to get a guild's widget.
     GetGuildWidget {
-        /// The ID of the guild.
+        /// ID of the guild.
+        guild_id: u64,
+    },
+    /// Route information to get a guild's widget settings.
+    GetGuildWidgetSettings {
+        /// ID of the guild.
         guild_id: u64,
     },
     /// Route information to get a paginated list of guilds.
@@ -991,9 +998,9 @@ pub enum Route<'a> {
         /// ID of the guild.
         guild_id: u64,
     },
-    /// Route information to update a guild's widget.
-    UpdateGuildWidget {
-        /// The ID of the guild.
+    /// Route information to update a guild's widget settings.
+    UpdateGuildWidgetSettings {
+        /// ID of the guild.
         guild_id: u64,
     },
     /// Update the original interaction response.
@@ -1171,6 +1178,7 @@ impl<'a> Route<'a> {
             | Self::GetGuildWelcomeScreen { .. }
             | Self::GetGuildWebhooks { .. }
             | Self::GetGuildWidget { .. }
+            | Self::GetGuildWidgetSettings { .. }
             | Self::GetGuilds { .. }
             | Self::GetInteractionOriginal { .. }
             | Self::GetInvite { .. }
@@ -1208,7 +1216,7 @@ impl<'a> Route<'a> {
             | Self::UpdateGuildChannels { .. }
             | Self::UpdateGuildCommand { .. }
             | Self::UpdateGuildMfa { .. }
-            | Self::UpdateGuildWidget { .. }
+            | Self::UpdateGuildWidgetSettings { .. }
             | Self::UpdateGuildIntegration { .. }
             | Self::UpdateGuildScheduledEvent { .. }
             | Self::UpdateGuildSticker { .. }
@@ -1519,9 +1527,9 @@ impl<'a> Route<'a> {
             Self::GetGuild { guild_id, .. } | Self::UpdateGuild { guild_id } => {
                 Path::GuildsId(guild_id)
             }
-            Self::GetGuildWidget { guild_id } | Self::UpdateGuildWidget { guild_id } => {
-                Path::GuildsIdWidget(guild_id)
-            }
+            Self::GetGuildWidget { guild_id } => Path::GuildsIdWidgetJson(guild_id),
+            Self::GetGuildWidgetSettings { guild_id }
+            | Self::UpdateGuildWidgetSettings { guild_id } => Path::GuildsIdWidget(guild_id),
             Self::GetGuildIntegrations { guild_id } => Path::GuildsIdIntegrations(guild_id),
             Self::GetGuildInvites { guild_id } => Path::GuildsIdInvites(guild_id),
             Self::GetGuildMembers { guild_id, .. } | Self::UpdateCurrentMember { guild_id, .. } => {
@@ -2235,6 +2243,7 @@ impl Display for Route<'_> {
             }
             Route::GetAuditLogs {
                 action_type,
+                after,
                 before,
                 guild_id,
                 limit,
@@ -2247,6 +2256,11 @@ impl Display for Route<'_> {
                 if let Some(action_type) = action_type {
                     f.write_str("action_type=")?;
                     Display::fmt(action_type, f)?;
+                }
+
+                if let Some(after) = after {
+                    f.write_str("&after=")?;
+                    Display::fmt(after, f)?;
                 }
 
                 if let Some(before) = before {
@@ -2526,7 +2540,14 @@ impl Display for Route<'_> {
 
                 f.write_str("/webhooks")
             }
-            Route::GetGuildWidget { guild_id } | Route::UpdateGuildWidget { guild_id } => {
+            Route::GetGuildWidget { guild_id } => {
+                f.write_str("guilds/")?;
+                Display::fmt(guild_id, f)?;
+
+                f.write_str("/widget.json")
+            }
+            Route::GetGuildWidgetSettings { guild_id }
+            | Route::UpdateGuildWidgetSettings { guild_id } => {
                 f.write_str("guilds/")?;
                 Display::fmt(guild_id, f)?;
 
@@ -4076,12 +4097,18 @@ mod tests {
     #[test]
     fn get_guild_widget() {
         let route = Route::GetGuildWidget { guild_id: GUILD_ID };
+        assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/widget.json"));
+    }
+
+    #[test]
+    fn get_guild_widget_settings() {
+        let route = Route::GetGuildWidgetSettings { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/widget"));
     }
 
     #[test]
-    fn update_guild_widget() {
-        let route = Route::UpdateGuildWidget { guild_id: GUILD_ID };
+    fn update_guild_widget_settings() {
+        let route = Route::UpdateGuildWidgetSettings { guild_id: GUILD_ID };
         assert_eq!(route.to_string(), format!("guilds/{GUILD_ID}/widget"));
     }
 

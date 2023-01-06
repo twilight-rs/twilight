@@ -43,7 +43,7 @@ pub struct VoiceState {
     ///
     /// Used to establish a voice websocket connection.
     pub session_id: String,
-    /// Whether this user is suppressed from speaking.
+    /// Whether the user's permission to speak is denied.
     ///
     /// Only applies to stage channels.
     pub suppress: bool,

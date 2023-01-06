@@ -12,8 +12,8 @@ use twilight_model::{
         GatewayReaction,
     },
     guild::{
-        DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member, MfaLevel,
-        NSFWLevel, PartialMember, Permissions, PremiumTier, Role, SystemChannelFlags,
+        AfkTimeout, DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member,
+        MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role, SystemChannelFlags,
         VerificationLevel,
     },
     id::{
@@ -231,7 +231,9 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         available_tags: None,
         bitrate: None,
         default_auto_archive_duration: None,
+        default_forum_layout: None,
         default_reaction_emoji: None,
+        default_sort_order: None,
         default_thread_rate_limit_per_user: None,
         flags: None,
         guild_id: Some(guild_id),
@@ -361,7 +363,7 @@ pub fn user(id: Id<UserMarker>) -> User {
 pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
     Guild {
         afk_channel_id: None,
-        afk_timeout: 0,
+        afk_timeout: AfkTimeout::FIFTEEN_MINUTES,
         application_id: None,
         approximate_member_count: None,
         approximate_presence_count: None,
