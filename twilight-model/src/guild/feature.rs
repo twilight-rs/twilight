@@ -26,6 +26,8 @@ pub enum GuildFeature {
     /// Can enable welcome screen, membership screening, stage channels,
     /// discovery, and receives community updates.
     Community,
+    /// Guild has been set as a support server on the App Directory.
+    DeveloperSupportServer,
     /// Is able to be discovered in the directory.
     Discoverable,
     /// Is able to be featured in the directory.
@@ -73,6 +75,7 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::Banner => "BANNER".into(),
             GuildFeature::Commerce => "COMMERCE".into(),
             GuildFeature::Community => "COMMUNITY".into(),
+            GuildFeature::DeveloperSupportServer => "DEVELOPER_SUPPORT_SERVER".into(),
             GuildFeature::Discoverable => "DISCOVERABLE".into(),
             GuildFeature::Featurable => "FEATURABLE".into(),
             GuildFeature::InvitesDisabled => "INVITES_DISABLED".into(),
@@ -106,6 +109,7 @@ impl From<String> for GuildFeature {
             "BANNER" => Self::Banner,
             "COMMERCE" => Self::Commerce,
             "COMMUNITY" => Self::Community,
+            "DEVELOPER_SUPPORT_SERVER" => Self::DeveloperSupportServer,
             "DISCOVERABLE" => Self::Discoverable,
             "FEATURABLE" => Self::Featurable,
             "INVITES_DISABLED" => Self::InvitesDisabled,
@@ -147,6 +151,10 @@ mod tests {
         serde_test::assert_tokens(&GuildFeature::Banner, &[Token::Str("BANNER")]);
         serde_test::assert_tokens(&GuildFeature::Commerce, &[Token::Str("COMMERCE")]);
         serde_test::assert_tokens(&GuildFeature::Community, &[Token::Str("COMMUNITY")]);
+        serde_test::assert_tokens(
+            &GuildFeature::DeveloperSupportServer,
+            &[Token::Str("DEVELOPER_SUPPORT_SERVER")],
+        );
         serde_test::assert_tokens(&GuildFeature::Discoverable, &[Token::Str("DISCOVERABLE")]);
         serde_test::assert_tokens(&GuildFeature::Featurable, &[Token::Str("FEATURABLE")]);
         serde_test::assert_tokens(
