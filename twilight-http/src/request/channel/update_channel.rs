@@ -9,7 +9,7 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
-        forum::{DefaultReaction, ForumLayout, ForumTag},
+        forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
         Channel, ChannelFlags, ChannelType, VideoQualityMode,
     },
@@ -35,6 +35,8 @@ struct UpdateChannelFields<'a> {
     default_forum_layout: Option<ForumLayout>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_reaction_emoji: Option<Nullable<&'a DefaultReaction>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_sort_order: Option<Nullable<ForumSortOrder>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_thread_rate_limit_per_user: Option<Nullable<u16>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -85,6 +87,7 @@ impl<'a> UpdateChannel<'a> {
                 bitrate: None,
                 default_forum_layout: None,
                 default_reaction_emoji: None,
+                default_sort_order: None,
                 default_thread_rate_limit_per_user: None,
                 flags: None,
                 kind: None,
@@ -144,6 +147,13 @@ impl<'a> UpdateChannel<'a> {
         default_reaction_emoji: Option<&'a DefaultReaction>,
     ) -> Self {
         self.fields.default_reaction_emoji = Some(Nullable(default_reaction_emoji));
+
+        self
+    }
+
+    /// Set the default sort order for forum channels.
+    pub const fn default_sort_order(mut self, default_sort_order: Option<ForumSortOrder>) -> Self {
+        self.fields.default_sort_order = Some(Nullable(default_sort_order));
 
         self
     }
