@@ -9,7 +9,7 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
-        forum::{DefaultReaction, ForumTag},
+        forum::{DefaultReaction, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
         thread::AutoArchiveDuration,
         Channel, ChannelType, VideoQualityMode,
@@ -38,6 +38,8 @@ struct CreateGuildChannelFields<'a> {
     default_auto_archive_duration: Option<AutoArchiveDuration>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_reaction_emoji: Option<&'a DefaultReaction>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_sort_order: Option<ForumSortOrder>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     kind: Option<ChannelType>,
     name: &'a str,
@@ -87,6 +89,7 @@ impl<'a> CreateGuildChannel<'a> {
                 bitrate: None,
                 default_auto_archive_duration: None,
                 default_reaction_emoji: None,
+                default_sort_order: None,
                 kind: None,
                 name,
                 nsfw: None,
@@ -152,6 +155,13 @@ impl<'a> CreateGuildChannel<'a> {
         default_reaction_emoji: &'a DefaultReaction,
     ) -> Self {
         self.fields.default_reaction_emoji = Some(default_reaction_emoji);
+
+        self
+    }
+
+    /// Set the default sort order for newly created forum channels.
+    pub const fn default_sort_order(mut self, default_sort_order: ForumSortOrder) -> Self {
+        self.fields.default_sort_order = Some(default_sort_order);
 
         self
     }

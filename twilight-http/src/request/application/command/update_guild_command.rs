@@ -22,6 +22,8 @@ struct UpdateGuildCommandFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    nsfw: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     options: Option<&'a [CommandOption]>,
 }
 
@@ -53,6 +55,7 @@ impl<'a> UpdateGuildCommand<'a> {
             fields: UpdateGuildCommandFields {
                 description: None,
                 name: None,
+                nsfw: None,
                 options: None,
             },
             guild_id,
@@ -77,6 +80,13 @@ impl<'a> UpdateGuildCommand<'a> {
     /// Edit the command options of the command.
     pub const fn command_options(mut self, options: &'a [CommandOption]) -> Self {
         self.fields.options = Some(options);
+
+        self
+    }
+
+    /// Edit whether the command is age-restricted.
+    pub const fn nsfw(mut self, nsfw: bool) -> Self {
+        self.fields.nsfw = Some(nsfw);
 
         self
     }

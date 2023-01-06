@@ -9,7 +9,7 @@ use serde::Serialize;
 use std::future::IntoFuture;
 use twilight_model::{
     channel::{
-        forum::{DefaultReaction, ForumTag},
+        forum::{DefaultReaction, ForumLayout, ForumSortOrder, ForumTag},
         permission_overwrite::PermissionOverwrite,
         Channel, ChannelFlags, ChannelType, VideoQualityMode,
     },
@@ -32,7 +32,11 @@ struct UpdateChannelFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     bitrate: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    default_forum_layout: Option<ForumLayout>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     default_reaction_emoji: Option<Nullable<&'a DefaultReaction>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_sort_order: Option<Nullable<ForumSortOrder>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     default_thread_rate_limit_per_user: Option<Nullable<u16>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -81,7 +85,9 @@ impl<'a> UpdateChannel<'a> {
             fields: UpdateChannelFields {
                 available_tags: None,
                 bitrate: None,
+                default_forum_layout: None,
                 default_reaction_emoji: None,
+                default_sort_order: None,
                 default_thread_rate_limit_per_user: None,
                 flags: None,
                 kind: None,
@@ -128,12 +134,26 @@ impl<'a> UpdateChannel<'a> {
         Ok(self)
     }
 
+    /// Set the default layout for forum channels.
+    pub const fn default_forum_layout(mut self, default_forum_layout: ForumLayout) -> Self {
+        self.fields.default_forum_layout = Some(default_forum_layout);
+
+        self
+    }
+
     /// Set the default reaction emoji for new forum threads.
     pub const fn default_reaction_emoji(
         mut self,
         default_reaction_emoji: Option<&'a DefaultReaction>,
     ) -> Self {
         self.fields.default_reaction_emoji = Some(Nullable(default_reaction_emoji));
+
+        self
+    }
+
+    /// Set the default sort order for forum channels.
+    pub const fn default_sort_order(mut self, default_sort_order: Option<ForumSortOrder>) -> Self {
+        self.fields.default_sort_order = Some(Nullable(default_sort_order));
 
         self
     }
