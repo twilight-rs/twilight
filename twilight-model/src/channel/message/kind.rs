@@ -105,7 +105,7 @@ impl MessageType {
     /// into account, use [`deletable`][`Self::deletable`].
     ///
     /// [Manage Messages]: Permissions::MANAGE_MESSAGES
-    pub const fn deletable_by_permissions(self, permissions: Permissions) -> bool {
+    pub const fn deletable_with_permissions(self, permissions: Permissions) -> bool {
         let required_permissions = match self {
             Self::AutoModerationAction => Permissions::MANAGE_MESSAGES,
             _ => Permissions::empty(),
@@ -253,7 +253,7 @@ mod tests {
     #[test]
     fn deletable_by_type() {
         assert!(MessageType::AutoModerationAction
-            .deletable_by_permissions(Permissions::MANAGE_MESSAGES));
-        assert!(!MessageType::AutoModerationAction.deletable_by_permissions(Permissions::empty()));
+            .deletable_with_permissions(Permissions::MANAGE_MESSAGES));
+        assert!(!MessageType::AutoModerationAction.deletable_with_permissions(Permissions::empty()));
     }
 }
