@@ -52,6 +52,10 @@ pub enum MessageType {
     ContextMenuCommand,
     /// Message is an auto moderation action.
     AutoModerationAction,
+    /// System message denoting a interaction premium upsell.
+    InteractionPremiumUpsell,
+    /// System message denoting a guild application premium subscription.
+    GuildApplicationPremiumSubscription,
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -83,6 +87,8 @@ impl From<u8> for MessageType {
             22 => Self::GuildInviteReminder,
             23 => Self::ContextMenuCommand,
             24 => Self::AutoModerationAction,
+            26 => Self::InteractionPremiumUpsell,
+            32 => Self::GuildApplicationPremiumSubscription,
             unknown => Self::Unknown(unknown),
         }
     }
@@ -115,6 +121,8 @@ impl From<MessageType> for u8 {
             MessageType::GuildInviteReminder => 22,
             MessageType::ContextMenuCommand => 23,
             MessageType::AutoModerationAction => 24,
+            MessageType::InteractionPremiumUpsell => 26,
+            MessageType::GuildApplicationPremiumSubscription => 32,
             MessageType::Unknown(unknown) => unknown,
         }
     }
@@ -157,6 +165,11 @@ mod tests {
         serde_test::assert_tokens(&MessageType::GuildInviteReminder, &[Token::U8(22)]);
         serde_test::assert_tokens(&MessageType::ContextMenuCommand, &[Token::U8(23)]);
         serde_test::assert_tokens(&MessageType::AutoModerationAction, &[Token::U8(24)]);
+        serde_test::assert_tokens(&MessageType::InteractionPremiumUpsell, &[Token::U8(26)]);
+        serde_test::assert_tokens(
+            &MessageType::GuildApplicationPremiumSubscription,
+            &[Token::U8(32)],
+        );
         serde_test::assert_tokens(&MessageType::Unknown(99), &[Token::U8(99)]);
     }
 
@@ -198,6 +211,11 @@ mod tests {
         assert_eq!(MessageType::from(22), MessageType::GuildInviteReminder);
         assert_eq!(MessageType::from(23), MessageType::ContextMenuCommand);
         assert_eq!(MessageType::from(24), MessageType::AutoModerationAction);
+        assert_eq!(MessageType::from(26), MessageType::InteractionPremiumUpsell);
+        assert_eq!(
+            MessageType::from(32),
+            MessageType::GuildApplicationPremiumSubscription
+        );
         assert_eq!(MessageType::from(250), MessageType::Unknown(250));
     }
 }
