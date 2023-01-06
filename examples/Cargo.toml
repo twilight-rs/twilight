@@ -15,7 +15,7 @@ log = { default-features = false, version = "0.4" }
 once_cell = "1.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+tokio = { default-features = false, features = ["macros", "signal", "rt-multi-thread"], version = "1.0" }
 tracing = "0.1"
 tracing-subscriber = { default-features = false, features = ["fmt", "tracing-log"], version = "0.3" }
 twilight-gateway = { path = "../twilight-gateway" }
@@ -27,6 +27,10 @@ twilight-standby = { path = "../twilight-standby" }
 [[example]]
 name = "gateway-intents"
 path = "gateway-intents.rs"
+
+[[example]]
+name = "gateway-parallel"
+path = "gateway-parallel.rs"
 
 [[example]]
 name = "gateway-reshard"
