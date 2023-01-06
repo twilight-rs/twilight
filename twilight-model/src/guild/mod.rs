@@ -27,6 +27,7 @@ mod integration;
 mod integration_account;
 mod integration_application;
 mod integration_expire_behavior;
+mod integration_type;
 mod mfa_level;
 mod nsfw_level;
 mod partial_guild;
@@ -46,18 +47,20 @@ mod verification_level;
 // use. Public documentation is not available for re-exports.
 #[doc(inline)]
 pub use self::member::Member;
+pub use self::nsfw_level::NSFWLevel;
+pub use self::permissions::Permissions;
 pub use self::{
     afk_timeout::AfkTimeout, ban::Ban,
     default_message_notification_level::DefaultMessageNotificationLevel, emoji::Emoji,
     explicit_content_filter::ExplicitContentFilter, feature::GuildFeature, info::GuildInfo,
     integration::GuildIntegration, integration_account::IntegrationAccount,
     integration_application::IntegrationApplication,
-    integration_expire_behavior::IntegrationExpireBehavior, mfa_level::MfaLevel,
-    nsfw_level::NSFWLevel, partial_guild::PartialGuild, partial_member::PartialMember,
-    permissions::Permissions, premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune,
-    role::Role, role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
+    integration_expire_behavior::IntegrationExpireBehavior, integration_type::GuildIntegrationType,
+    mfa_level::MfaLevel, partial_guild::PartialGuild, partial_member::PartialMember,
+    premium_tier::PremiumTier, preview::GuildPreview, prune::GuildPrune, role::Role,
+    role_tags::RoleTags, system_channel_flags::SystemChannelFlags,
     unavailable_guild::UnavailableGuild, vanity_url::VanityUrl,
-    verification_level::VerificationLevel,
+    verification_level::VerificationLevel, widget::GuildWidget,
 };
 
 use self::member::MemberListDeserializer;
