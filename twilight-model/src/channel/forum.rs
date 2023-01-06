@@ -99,8 +99,8 @@ impl ForumSortOrder {
 impl From<u8> for ForumSortOrder {
     fn from(value: u8) -> Self {
         match value {
-            0 => Self::CreationDate,
-            1 => Self::LatestActivity,
+            0 => Self::LatestActivity,
+            1 => Self::CreationDate,
             unknown => Self::Unknown(unknown),
         }
     }
@@ -109,8 +109,8 @@ impl From<u8> for ForumSortOrder {
 impl From<ForumSortOrder> for u8 {
     fn from(value: ForumSortOrder) -> Self {
         match value {
-            ForumSortOrder::CreationDate => 0,
-            ForumSortOrder::LatestActivity => 1,
+            ForumSortOrder::LatestActivity => 0,
+            ForumSortOrder::CreationDate => 1,
             ForumSortOrder::Unknown(unknown) => unknown,
         }
     }
