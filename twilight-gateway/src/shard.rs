@@ -804,7 +804,7 @@ impl Shard {
     ///             // Further calls to `next_message` would cause a reconnect.
     ///             break;
     ///         }
-    ///         Ok(_) => unimplemented!("handle message"),
+    ///         Ok(Message::Text(_)) => unimplemented!("handle message"),
     ///         Err(source) if matches!(source.kind(), ReceiveMessageErrorType::Io) => break,
     ///         Err(source) => tracing::warn!(?source, "error receiving message"),
     ///     }
