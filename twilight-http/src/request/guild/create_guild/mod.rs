@@ -14,8 +14,8 @@ use std::{
 use twilight_model::{
     channel::ChannelType,
     guild::{
-        DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild, Permissions,
-        SystemChannelFlags, VerificationLevel,
+        AfkTimeout, DefaultMessageNotificationLevel, ExplicitContentFilter, PartialGuild,
+        Permissions, SystemChannelFlags, VerificationLevel,
     },
     http::permission_overwrite::PermissionOverwrite,
     id::{
@@ -103,7 +103,7 @@ struct CreateGuildFields<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     afk_channel_id: Option<Id<ChannelMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    afk_timeout: Option<u64>,
+    afk_timeout: Option<AfkTimeout>,
     #[serde(skip_serializing_if = "Option::is_none")]
     channels: Option<Vec<GuildChannelFields>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -278,7 +278,7 @@ impl<'a> CreateGuild<'a> {
     }
 
     /// Set the AFK timeout, in seconds.
-    pub const fn afk_timeout(mut self, afk_timeout: u64) -> Self {
+    pub const fn afk_timeout(mut self, afk_timeout: AfkTimeout) -> Self {
         self.fields.afk_timeout = Some(afk_timeout);
 
         self
