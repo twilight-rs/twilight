@@ -11,7 +11,7 @@ name = "twilight-lavalink"
 publish = true
 rust-version.workspace = true
 repository.workspace = true
-version = "0.14.0"
+version = "0.14.1"
 
 [dependencies]
 dashmap = { default-features = false, version = "5.3" }
