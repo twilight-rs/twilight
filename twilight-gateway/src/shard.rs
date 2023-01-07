@@ -671,7 +671,7 @@ impl Shard {
     ///
     /// // Discord only allows sending the `RequestGuildMembers` command after
     /// // the shard is identified.
-    /// while !shard.status.is_identified() {
+    /// while !shard.status().is_identified() {
     ///     // Ignore these messages.
     ///     shard.next_message().await?;
     /// }
