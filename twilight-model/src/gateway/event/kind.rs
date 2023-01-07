@@ -18,6 +18,7 @@ pub enum EventType {
     ChannelUpdate,
     #[serde(rename = "APPLICATION_COMMAND_PERMISSIONS_UPDATE")]
     CommandPermissionsUpdate,
+    GatewayClose,
     GatewayHeartbeat,
     GatewayHeartbeatAck,
     GatewayHello,
@@ -154,7 +155,8 @@ impl EventType {
             Self::VoiceServerUpdate => Some("VOICE_SERVER_UPDATE"),
             Self::VoiceStateUpdate => Some("VOICE_STATE_UPDATE"),
             Self::WebhooksUpdate => Some("WEBHOOKS_UPDATE"),
-            Self::GatewayHeartbeat
+            Self::GatewayClose
+            | Self::GatewayHeartbeat
             | Self::GatewayHeartbeatAck
             | Self::GatewayHello
             | Self::GatewayInvalidateSession
@@ -279,6 +281,7 @@ mod tests {
             EventType::CommandPermissionsUpdate,
             "APPLICATION_COMMAND_PERMISSIONS_UPDATE",
         );
+        assert_variant(EventType::GatewayClose, "GATEWAY_CLOSE");
         assert_variant(EventType::GatewayHeartbeat, "GATEWAY_HEARTBEAT");
         assert_variant(EventType::GatewayHeartbeatAck, "GATEWAY_HEARTBEAT_ACK");
         assert_variant(EventType::GatewayHello, "GATEWAY_HELLO");

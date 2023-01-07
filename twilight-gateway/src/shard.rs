@@ -68,10 +68,9 @@ use crate::{
     future::{self, NextMessageFuture, NextMessageFutureOutput},
     json,
     latency::Latency,
-    message::{CloseFrame, Message},
     ratelimiter::CommandRatelimiter,
     session::Session,
-    Config, ShardId,
+    Config, Message, ShardId,
 };
 use futures_util::{SinkExt, StreamExt};
 use serde::{de::DeserializeOwned, Deserialize};
@@ -92,7 +91,7 @@ use twilight_model::gateway::{
             Heartbeat, Identify, Resume,
         },
     },
-    CloseCode, Intents, OpCode,
+    CloseCode, CloseFrame, Intents, OpCode,
 };
 
 /// Who initiated the closing of the websocket connection.
@@ -463,7 +462,7 @@ impl Shard {
     pub async fn next_event(&mut self) -> Result<Event, ReceiveMessageError> {
         loop {
             match self.next_message().await? {
-                Message::Close(_) => {}
+                Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
                 Message::Text(json) => {
                     if let Some(event) = json::parse(self.config.event_types(), json)? {
                         return Ok(event.into());
@@ -618,7 +617,7 @@ impl Shard {
                 // Don't run `disconnect` if we initiated the close.
                 if !self.status.is_disconnected() {
                     self.disconnect(CloseInitiator::Gateway(
-                        frame.as_ref().map(CloseFrame::code),
+                        frame.as_ref().map(|frame| frame.code),
                     ));
                 }
             }
@@ -823,7 +822,7 @@ impl Shard {
         &mut self,
         close_frame: CloseFrame<'static>,
     ) -> Result<Option<Session>, SendError> {
-        let close_code = close_frame.code();
+        let close_code = close_frame.code;
 
         tracing::debug!(frame = ?close_frame, "sending websocket close message");
         let message = Message::Close(Some(close_frame));
