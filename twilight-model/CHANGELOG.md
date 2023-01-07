@@ -1,5 +1,33 @@
 # Changelog
 
+## [unreleased]
+
+### Documentation
+
+- update automod keyword limit ([#2020](https://github.com/twilight-rs/twilight/issues/2020))
+- update voice state suppress field ([#2037](https://github.com/twilight-rs/twilight/issues/2037))
+
+### Features
+
+- add `Interaction::author` ([#2001](https://github.com/twilight-rs/twilight/issues/2001))
+- make `Id<T>` invariant for T ([#1861](https://github.com/twilight-rs/twilight/issues/1861))
+- add active developer user flag ([#2014](https://github.com/twilight-rs/twilight/issues/2014))
+- rename certified moderator to alumni ([#2015](https://github.com/twilight-rs/twilight/issues/2015))
+- support nsfw commands ([#2019](https://github.com/twilight-rs/twilight/issues/2019))
+- forum channel layouts ([#2016](https://github.com/twilight-rs/twilight/issues/2016))
+- add nitro basic user premium type ([#2035](https://github.com/twilight-rs/twilight/issues/2035))
+- add dev support server guild feature ([#2036](https://github.com/twilight-rs/twilight/issues/2036))
+- default forum sort orders ([#2038](https://github.com/twilight-rs/twilight/issues/2038))
+- message type deletable check methods ([#2028](https://github.com/twilight-rs/twilight/issues/2028))
+
+### Refactor
+
+- abstract null boolean visitor ([#2032](https://github.com/twilight-rs/twilight/issues/2032))
+
+### Testing
+
+- add real-world role tag tests ([#2033](https://github.com/twilight-rs/twilight/issues/2033))
+
 ## [0.14.0] - 2022-11-14
 
 MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).

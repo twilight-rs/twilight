@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- support nsfw commands ([#2019](https://github.com/twilight-rs/twilight/issues/2019))
+
 ## [0.14.0] - 2022-11-14
 
 MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
