@@ -701,10 +701,7 @@ impl Shard {
     /// ```no_run
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use std::{borrow::Cow, env};
-    /// use twilight_gateway::{
-    ///     message::{CloseFrame, Message},
-    ///     Intents, Shard, ShardId,
-    /// };
+    /// use twilight_gateway::{CloseFrame, Intents, Message, Shard, ShardId};
     ///
     /// let token = env::var("DISCORD_TOKEN")?;
     /// let mut shard = Shard::new(ShardId::ONE, token, Intents::GUILDS);
@@ -788,10 +785,7 @@ impl Shard {
     /// # use twilight_gateway::{Intents, Shard, ShardId};
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let mut shard = Shard::new(ShardId::ONE, String::new(), Intents::empty());
-    /// use twilight_gateway::{
-    ///     error::ReceiveMessageErrorType,
-    ///     message::{CloseFrame, Message},
-    /// };
+    /// use twilight_gateway::{error::ReceiveMessageErrorType, CloseFrame, Message};
     ///
     /// shard.close(CloseFrame::NORMAL).await?;
     ///
