@@ -671,10 +671,7 @@ impl Shard {
     ///
     /// // Discord only allows sending the `RequestGuildMembers` command after
     /// // the shard is identified.
-    /// while !matches!(
-    ///     shard.status(),
-    ///     ConnectionStatus::Connected | ConnectionStatus::Resuming
-    /// ) {
+    /// while !shard.status.is_identified() {
     ///     // Ignore these messages.
     ///     shard.next_message().await?;
     /// }
