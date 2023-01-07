@@ -26,4 +26,4 @@ twilight-mention = { default-features = false, path = "../twilight-mention", ver
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.14.1" }
 twilight-standby = { default-features = false, path = "../twilight-standby", version = "0.14.0" }
 twilight-util = { default-features = false, path = "../twilight-util", version = "0.14.0" }
-twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.14.0" }
+twilight-validate = { default-features = false, path = "../twilight-validate", version = "0.14.1" }
