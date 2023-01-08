@@ -51,7 +51,7 @@ mod tests {
     };
     use crate::{
         channel::ChannelType,
-        guild::VerificationLevel,
+        guild::{GuildFeature, VerificationLevel},
         id::Id,
         test::image_hash,
         util::datetime::{Timestamp, TimestampParseError},
@@ -167,7 +167,7 @@ mod tests {
             guild: Some(InviteGuild {
                 banner: Some(image_hash::BANNER),
                 description: Some("a description".to_owned()),
-                features: vec!["a feature".to_owned()],
+                features: Vec::from([GuildFeature::Discoverable]),
                 icon: Some(image_hash::ICON),
                 id: Id::new(1),
                 name: "guild name".to_owned(),
@@ -281,7 +281,7 @@ mod tests {
                 Token::Str("a description"),
                 Token::Str("features"),
                 Token::Seq { len: Some(1) },
-                Token::Str("a feature"),
+                Token::Str("DISCOVERABLE"),
                 Token::SeqEnd,
                 Token::Str("icon"),
                 Token::Some,

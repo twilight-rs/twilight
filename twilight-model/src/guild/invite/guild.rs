@@ -1,6 +1,6 @@
 use super::WelcomeScreen;
 use crate::{
-    guild::VerificationLevel,
+    guild::{GuildFeature, VerificationLevel},
     id::{marker::GuildMarker, Id},
     util::image_hash::ImageHash,
 };
@@ -13,7 +13,7 @@ pub struct InviteGuild {
     /// Description used for guild discovery.
     pub description: Option<String>,
     /// List of features that the guild has had enabled.
-    pub features: Vec<String>,
+    pub features: Vec<GuildFeature>,
     /// Hash of the icon image.
     pub icon: Option<ImageHash>,
     /// ID of the guild.
@@ -37,7 +37,7 @@ mod tests {
     use crate::{
         guild::{
             invite::{InviteGuild, WelcomeScreen, WelcomeScreenChannel},
-            VerificationLevel,
+            GuildFeature, VerificationLevel,
         },
         id::Id,
         test::image_hash,
@@ -50,7 +50,7 @@ mod tests {
         let value = InviteGuild {
             banner: Some(image_hash::BANNER),
             description: Some("a description".to_owned()),
-            features: vec!["a feature".to_owned()],
+            features: Vec::from([GuildFeature::Community]),
             icon: Some(image_hash::ICON),
             id: Id::new(1),
             name: "guild name".to_owned(),
@@ -92,7 +92,7 @@ mod tests {
                 Token::Str("a description"),
                 Token::Str("features"),
                 Token::Seq { len: Some(1) },
-                Token::Str("a feature"),
+                Token::Str("COMMUNITY"),
                 Token::SeqEnd,
                 Token::Str("icon"),
                 Token::Some,
