@@ -50,8 +50,8 @@ impl<'a> CloseFrame<'a> {
     ///
     /// let frame = CloseFrame::new(1000, "reason here");
     ///
-    /// assert_eq!(1000, frame.code());
-    /// assert_eq!("reason here", frame.reason());
+    /// assert_eq!(1000, frame.code);
+    /// assert_eq!("reason here", frame.reason);
     /// ```
     pub const fn new(code: u16, reason: &'a str) -> Self {
         Self {
