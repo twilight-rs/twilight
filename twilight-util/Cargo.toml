@@ -14,7 +14,7 @@ version = "0.14.1"
 
 [dependencies]
 twilight-model = { default-features = false, optional = true, path = "../twilight-model", version = "0.15.0-rc.1" }
-twilight-validate = { default-features = false, optional = true, path = "../twilight-validate", version = "0.14.1" }
+twilight-validate = { default-features = false, optional = true, path = "../twilight-validate", version = "0.15.0-rc.1" }
 
 [dev-dependencies]
 chrono = { default-features = false, features = ["std"], version = "0.4" }

@@ -11,7 +11,7 @@ name = "twilight-validate"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.14.1"
+version = "0.15.0-rc.1"
 
 [dependencies]
 twilight-model = { default-features = false, path = "../twilight-model", version = "0.15.0-rc.1" }
