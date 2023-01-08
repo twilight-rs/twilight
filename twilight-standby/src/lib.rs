@@ -199,7 +199,7 @@ impl Standby {
     ///
     /// # Examples
     ///
-    /// Wait for a [`BAN_ADD`] event in guild 123:
+    /// Wait for a [`BanAdd`] event in guild 123:
     ///
     /// ```no_run
     /// # #[tokio::main]
@@ -226,7 +226,7 @@ impl Standby {
     /// The returned future resolves to a [`Canceled`] error if the associated
     /// [`Standby`] instance is dropped.
     ///
-    /// [`BAN_ADD`]: twilight_model::gateway::payload::incoming::BAN_ADD
+    /// [`BanAdd`]: twilight_model::gateway::payload::incoming::BanAdd
     /// [`Canceled`]: future::Canceled
     /// [`wait_for_stream`]: Self::wait_for_stream
     pub fn wait_for<F: Fn(&Event) -> bool + Send + Sync + 'static>(
