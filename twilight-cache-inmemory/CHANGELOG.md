@@ -1,5 +1,12 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- [**breaking**] add `AfkTimeout` for `Guild::afk_timeout` ([#1922](https://github.com/twilight-rs/twilight/issues/1922))
+- [**breaking**] add `Event::GatewayClose` variant ([#2044](https://github.com/twilight-rs/twilight/issues/2044))
+
 ## [0.14.1] - 2023-01-07
 
 ### Bug Fixes
