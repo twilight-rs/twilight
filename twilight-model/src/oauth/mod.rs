@@ -1,3 +1,4 @@
+pub mod scope;
 pub mod team;
 
 pub mod current_application_info {
