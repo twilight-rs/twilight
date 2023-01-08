@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.14.1] - 2023-01-07
+
+### Bug Fixes
+
+- remove server update on state update ([#2025](https://github.com/twilight-rs/twilight/issues/2025))
+
 ## [0.14.0] - 2022-11-14
 
 MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]). Additionally,

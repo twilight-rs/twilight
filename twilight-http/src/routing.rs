@@ -363,6 +363,8 @@ pub enum Route<'a> {
     GetAuditLogs {
         /// The type of action to get audit logs for.
         action_type: Option<u64>,
+        /// The minimum ID of audit logs to get.
+        after: Option<u64>,
         /// The maximum ID of audit logs to get.
         before: Option<u64>,
         /// The ID of the guild.
@@ -2235,6 +2237,7 @@ impl Display for Route<'_> {
             }
             Route::GetAuditLogs {
                 action_type,
+                after,
                 before,
                 guild_id,
                 limit,
@@ -2247,6 +2250,11 @@ impl Display for Route<'_> {
                 if let Some(action_type) = action_type {
                     f.write_str("action_type=")?;
                     Display::fmt(action_type, f)?;
+                }
+
+                if let Some(after) = after {
+                    f.write_str("&after=")?;
+                    Display::fmt(after, f)?;
                 }
 
                 if let Some(before) = before {

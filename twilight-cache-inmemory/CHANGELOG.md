@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.14.1] - 2023-01-07
+
+### Bug Fixes
+
+- clippy 1.66 ([#2005](https://github.com/twilight-rs/twilight/issues/2005))
+
+### Features
+
+- forum channel layouts ([#2016](https://github.com/twilight-rs/twilight/issues/2016))
+- default forum sort orders ([#2038](https://github.com/twilight-rs/twilight/issues/2038))
+
 ## [0.14.0] - 2022-11-14
 
 MSRV has been bumped to 1.64 ([#1897] - [@vilgotf]).
