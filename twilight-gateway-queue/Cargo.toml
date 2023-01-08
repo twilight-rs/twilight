@@ -10,7 +10,7 @@ name = "twilight-gateway-queue"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.14.0"
+version = "0.15.0-rc.1"
 
 [dependencies]
 tokio = { default-features = false, features = ["rt", "sync", "time"], version = "1.0" }
