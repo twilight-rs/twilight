@@ -48,21 +48,21 @@ pub struct Interaction {
     pub application_id: Id<ApplicationMarker>,
     /// ID of the channel the interaction was invoked in.
     ///
-    /// Present on all interactions types, except [`Ping`].
+    /// Present on all interactions types, except [`PING`].
     ///
-    /// [`Ping`]: InteractionType::Ping
+    /// [`PING`]: InteractionType::PING
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_id: Option<Id<ChannelMarker>>,
     /// Data from the interaction.
     ///
-    /// This field present on [`ApplicationCommand`], [`MessageComponent`],
-    /// [`ApplicationCommandAutocomplete`] and [`ModalSubmit`] interactions.
+    /// This field present on [`APPLICATION_COMMAND`], [`MESSAGE_COMPONENT`],
+    /// [`APPLICATION_COMMAND_AUTOCOMPLETE`] and [`MODAL_SUBMIT`] interactions.
     /// The inner enum variant matches the interaction type.
     ///
-    /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
-    /// [`MessageComponent`]: InteractionType::MessageComponent
-    /// [`ApplicationCommandAutocomplete`]: InteractionType::ApplicationCommandAutocomplete
-    /// [`ModalSubmit`]: InteractionType::ModalSubmit
+    /// [`APPLICATION_COMMAND`]: InteractionType::APPLICATION_COMMAND
+    /// [`MESSAGE_COMPONENT`]: InteractionType::MESSAGE_COMPONENT
+    /// [`APPLICATION_COMMAND_AUTOCOMPLETE`]: InteractionType::APPLICATION_COMMAND_AUTOCOMPLETE
+    /// [`MODAL_SUBMIT`]: InteractionType::MODAL_SUBMIT
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<InteractionData>,
     /// ID of the guild the interaction was invoked in.
@@ -80,9 +80,9 @@ pub struct Interaction {
     pub kind: InteractionType,
     /// Selected language of the user who invoked the interaction.
     ///
-    /// Present on all interactions types, except [`Ping`].
+    /// Present on all interactions types, except [`PING`].
     ///
-    /// [`Ping`]: InteractionType::Ping
+    /// [`PING`]: InteractionType::PING
     #[serde(skip_serializing_if = "Option::is_none")]
     pub locale: Option<String>,
     /// Member that invoked the interaction.
@@ -92,9 +92,9 @@ pub struct Interaction {
     pub member: Option<PartialMember>,
     /// Message attached to the interaction.
     ///
-    /// Present on [`MessageComponent`] interactions.
+    /// Present on [`MESSAGE_COMPONENT`] interactions.
     ///
-    /// [`MessageComponent`]: InteractionType::MessageComponent
+    /// [`MESSAGE_COMPONENT`]: InteractionType::MESSAGE_COMPONENT
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<Message>,
     /// Token for responding to the interaction.
@@ -337,8 +337,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         );
 
         let data = match kind {
-            InteractionType::Ping => None,
-            InteractionType::ApplicationCommand => {
+            InteractionType::APPLICATION_COMMAND => {
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
@@ -346,7 +345,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                 Some(InteractionData::ApplicationCommand(data))
             }
-            InteractionType::MessageComponent => {
+            InteractionType::MESSAGE_COMPONENT => {
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
@@ -354,7 +353,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                 Some(InteractionData::MessageComponent(data))
             }
-            InteractionType::ApplicationCommandAutocomplete => {
+            InteractionType::APPLICATION_COMMAND_AUTOCOMPLETE => {
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
@@ -362,7 +361,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                 Some(InteractionData::ApplicationCommand(data))
             }
-            InteractionType::ModalSubmit => {
+            InteractionType::MODAL_SUBMIT => {
                 let data = data
                     .ok_or_else(|| DeError::missing_field("data"))?
                     .deserialize_into()
@@ -370,6 +369,7 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 
                 Some(InteractionData::ModalSubmit(data))
             }
+            _ => None,
         };
 
         Ok(Self::Value {
@@ -395,19 +395,19 @@ impl<'de> Visitor<'de> for InteractionVisitor {
 #[non_exhaustive]
 #[serde(untagged)]
 pub enum InteractionData {
-    /// Data received for the [`ApplicationCommand`] and [`ApplicationCommandAutocomplete`]
-    /// interaction types.
+    /// Data received for the [`APPLICATION_COMMAND`] and
+    /// [`APPLICATION_COMMAND_AUTOCOMPLETE`] interaction types.
     ///
-    /// [`ApplicationCommand`]: InteractionType::ApplicationCommand
-    /// [`ApplicationCommandAutocomplete`]: InteractionType::ApplicationCommandAutocomplete
+    /// [`APPLICATION_COMMAND`]: InteractionType::APPLICATION_COMMAND
+    /// [`APPLICATION_COMMAND_AUTOCOMPLETE`]: InteractionType::APPLICATION_COMMAND_AUTOCOMPLETE
     ApplicationCommand(Box<CommandData>),
-    /// Data received for the [`MessageComponent`] interaction type.
+    /// Data received for the [`MESSAGE_COMPONENT`] interaction type.
     ///
-    /// [`MessageComponent`]: InteractionType::MessageComponent
+    /// [`MESSAGE_COMPONENT`]: InteractionType::MESSAGE_COMPONENT
     MessageComponent(MessageComponentInteractionData),
-    /// Data received for the [`ModalSubmit`] interaction type.
+    /// Data received for the [`MODAL_SUBMIT`] interaction type.
     ///
-    /// [`ModalSubmit`]: InteractionType::ModalSubmit
+    /// [`MODAL_SUBMIT`]: InteractionType::MODAL_SUBMIT
     ModalSubmit(ModalInteractionData),
 }
 
@@ -444,7 +444,7 @@ mod tests {
                 guild_id: None,
                 id: Id::new(300),
                 name: "command name".into(),
-                kind: CommandType::ChatInput,
+                kind: CommandType::CHAT_INPUT,
                 options: Vec::from([CommandDataOption {
                     name: "member".into(),
                     value: CommandOptionValue::User(Id::new(600)),
@@ -495,7 +495,7 @@ mod tests {
             guild_id: Some(Id::new(400)),
             guild_locale: Some("de".to_owned()),
             id: Id::new(500),
-            kind: InteractionType::ApplicationCommand,
+            kind: InteractionType::APPLICATION_COMMAND,
             locale: Some("en-GB".to_owned()),
             member: Some(PartialMember {
                 avatar: None,
@@ -559,6 +559,9 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("command name"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "CommandType",
+                },
                 Token::U8(1),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
@@ -569,7 +572,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("member"),
                 Token::Str("type"),
-                Token::U8(CommandOptionType::User as u8),
+                Token::NewtypeStruct {
+                    name: "CommandOptionType",
+                },
+                Token::U8(CommandOptionType::USER.get()),
                 Token::Str("value"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("600"),
@@ -644,7 +650,10 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("500"),
                 Token::Str("type"),
-                Token::U8(InteractionType::ApplicationCommand as u8),
+                Token::NewtypeStruct {
+                    name: "InteractionType",
+                },
+                Token::U8(InteractionType::APPLICATION_COMMAND.get()),
                 Token::Str("locale"),
                 Token::Some,
                 Token::Str("en-GB"),

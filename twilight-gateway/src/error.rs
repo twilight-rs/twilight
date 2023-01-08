@@ -338,7 +338,7 @@ mod tests {
             ),
             (
                 ReceiveMessageErrorType::FatallyClosed {
-                    close_code: CloseCode::InvalidIntents,
+                    close_code: CloseCode::INVALID_INTENTS,
                 },
                 "shard fatally closed: Invalid Intents",
             ),
@@ -368,7 +368,7 @@ mod tests {
     fn receive_message_error_is_fatal() {
         let fatal = ReceiveMessageError {
             kind: ReceiveMessageErrorType::FatallyClosed {
-                close_code: CloseCode::AuthenticationFailed,
+                close_code: CloseCode::AUTHENTICATION_FAILED,
             },
             source: None,
         };

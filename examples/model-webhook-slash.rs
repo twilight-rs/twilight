@@ -93,9 +93,9 @@ where
 
     match interaction.kind {
         // Return a Pong if a Ping is received.
-        InteractionType::Ping => {
+        InteractionType::PING => {
             let response = InteractionResponse {
-                kind: InteractionResponseType::Pong,
+                kind: InteractionResponseType::PONG,
                 data: None,
             };
 
@@ -107,7 +107,7 @@ where
                 .body(json.into())?)
         }
         // Respond to a slash command.
-        InteractionType::ApplicationCommand => {
+        InteractionType::APPLICATION_COMMAND => {
             // Run the handler to gain a response.
             let data = match interaction.data {
                 Some(InteractionData::ApplicationCommand(data)) => Some(data),
@@ -144,7 +144,7 @@ async fn handler(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> 
 /// Example of a handler that returns the formatted version of the interaction.
 async fn debug(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
     Ok(InteractionResponse {
-        kind: InteractionResponseType::ChannelMessageWithSource,
+        kind: InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE,
         data: Some(InteractionResponseData {
             content: Some(format!("```rust\n{data:?}\n```")),
             ..Default::default()
@@ -155,7 +155,7 @@ async fn debug(data: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
 /// Example of interaction that responds with a message saying "Vroom vroom".
 async fn vroom(_: Box<CommandData>) -> anyhow::Result<InteractionResponse> {
     Ok(InteractionResponse {
-        kind: InteractionResponseType::ChannelMessageWithSource,
+        kind: InteractionResponseType::CHANNEL_MESSAGE_WITH_SOURCE,
         data: Some(InteractionResponseData {
             content: Some("Vroom vroom".to_owned()),
             ..Default::default()

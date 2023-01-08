@@ -1,4 +1,4 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
+use serde::{Deserialize, Serialize};
 
 /// Pop-up [`Component`] that renders on modals.
 ///
@@ -28,14 +28,48 @@ pub struct TextInput {
 }
 
 /// Style of an [`TextInput`].
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
-pub enum TextInputStyle {
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct TextInputStyle(u8);
+
+impl TextInputStyle {
     /// Intended for short single-line text.
-    Short = 1,
+    pub const SHORT: Self = Self::new(1);
+
     /// Intended for much longer inputs.
-    Paragraph = 2,
+    pub const PARAGRAPH: Self = Self::new(2);
+
+    /// Create a new text input style from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`SHORT`][`Self::SHORT`].
+    pub const fn new(text_input_style: u8) -> Self {
+        Self(text_input_style)
+    }
+
+    /// Retrieve the value of the text input style.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::message::component::TextInputStyle;
+    ///
+    /// assert_eq!(2, TextInputStyle::PARAGRAPH.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
+}
+
+impl From<u8> for TextInputStyle {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
+
+impl From<TextInputStyle> for u8 {
+    fn from(value: TextInputStyle) -> Self {
+        value.get()
+    }
 }
 
 #[cfg(test)]
@@ -43,7 +77,7 @@ mod tests {
     use super::*;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
-    use static_assertions::{assert_fields, assert_impl_all, const_assert_eq};
+    use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(
@@ -69,12 +103,26 @@ mod tests {
         Serialize,
         Sync
     );
-    const_assert_eq!(1, TextInputStyle::Short as u8);
-    const_assert_eq!(2, TextInputStyle::Paragraph as u8);
 
     #[test]
     fn text_input_style() {
-        serde_test::assert_tokens(&TextInputStyle::Short, &[Token::U8(1)]);
-        serde_test::assert_tokens(&TextInputStyle::Paragraph, &[Token::U8(2)]);
+        serde_test::assert_tokens(
+            &TextInputStyle::SHORT,
+            &[
+                Token::NewtypeStruct {
+                    name: "TextInputStyle",
+                },
+                Token::U8(1),
+            ],
+        );
+        serde_test::assert_tokens(
+            &TextInputStyle::PARAGRAPH,
+            &[
+                Token::NewtypeStruct {
+                    name: "TextInputStyle",
+                },
+                Token::U8(2),
+            ],
+        );
     }
 }

@@ -1,201 +1,244 @@
-#![allow(deprecated)]
-use std::borrow::Cow;
-
+use crate::util::known_string::KnownString;
 use serde::{Deserialize, Serialize};
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    ops::Deref,
+    str::FromStr,
+};
 
 /// Special and optional guild features.
 ///
 /// See [Discord Docs/Guild Features].
 ///
 /// [Discord Docs/Guild Features]: https://discord.com/developers/docs/resources/guild#guild-object-guild-features
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "String", into = "Cow<'static, str>")]
-pub enum GuildFeature {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct GuildFeature(KnownString<64>);
+
+impl GuildFeature {
     /// Has access to set an animated guild banner image.
-    AnimatedBanner,
+    pub const ANIMATED_BANNER: Self = Self::from_bytes(b"ANIMATED_BANNER");
+
     /// Has access to set an animated guild icon.
-    AnimatedIcon,
+    pub const ANIMATED_ICON: Self = Self::from_bytes(b"ANIMATED_ICON");
+
     /// Has set up auto moderation rules.
-    AutoModeration,
+    pub const AUTO_MODERATION: Self = Self::from_bytes(b"AUTO_MODERATION");
+
     /// Has access to set a guild banner image.
-    Banner,
+    pub const BANNER: Self = Self::from_bytes(b"BANNER");
+
     /// Has access to use commerce features (create store channels).
     #[deprecated]
-    Commerce,
+    pub const COMMERCE: Self = Self::from_bytes(b"COMMERCE");
+
     /// Can enable welcome screen, membership screening, stage channels,
     /// discovery, and receives community updates.
-    Community,
-    /// Guild has been set as a support server on the App Directory.
-    DeveloperSupportServer,
-    /// Is able to be discovered in the directory.
-    Discoverable,
-    /// Is able to be featured in the directory.
-    Featurable,
-    /// Invites have been paused, this prevents new users from joining.
-    InvitesDisabled,
-    /// Has access to set an invite splash background.
-    InviteSplash,
-    /// Has enabled membership screening.
-    MemberVerificationGateEnabled,
-    /// Has enabled monetization.
-    MonetizationEnabled,
-    /// Has increased custom sticker slots.
-    MoreStickers,
-    /// Has access to create news channels.
-    News,
-    /// Is partnered.
-    Partnered,
-    /// Can be previewed before joining via membership screening or the directory.
-    PreviewEnabled,
-    /// Has access to create private threads.
-    PrivateThreads,
-    /// Is able to set role icons.
-    RoleIcons,
-    /// Has enabled ticketed events.
-    TicketedEventsEnabled,
-    /// Has access to set a vanity URL.
-    VanityUrl,
-    /// Is verified.
-    Verified,
-    /// Has access to set 384kps bitrate in voice (previously VIP voice servers).
-    VipRegions,
-    /// Has enabled the welcome screen.
-    WelcomeScreenEnabled,
-    /// Variant value is unknown to the library.
-    Unknown(String),
-}
+    pub const COMMUNITY: Self = Self::from_bytes(b"COMMUNITY");
 
-impl From<GuildFeature> for Cow<'static, str> {
-    fn from(value: GuildFeature) -> Self {
-        match value {
-            GuildFeature::AnimatedBanner => "ANIMATED_BANNER".into(),
-            GuildFeature::AnimatedIcon => "ANIMATED_ICON".into(),
-            GuildFeature::AutoModeration => "AUTO_MODERATION".into(),
-            GuildFeature::Banner => "BANNER".into(),
-            GuildFeature::Commerce => "COMMERCE".into(),
-            GuildFeature::Community => "COMMUNITY".into(),
-            GuildFeature::DeveloperSupportServer => "DEVELOPER_SUPPORT_SERVER".into(),
-            GuildFeature::Discoverable => "DISCOVERABLE".into(),
-            GuildFeature::Featurable => "FEATURABLE".into(),
-            GuildFeature::InvitesDisabled => "INVITES_DISABLED".into(),
-            GuildFeature::InviteSplash => "INVITE_SPLASH".into(),
-            GuildFeature::MemberVerificationGateEnabled => {
-                "MEMBER_VERIFICATION_GATE_ENABLED".into()
-            }
-            GuildFeature::MonetizationEnabled => "MONETIZATION_ENABLED".into(),
-            GuildFeature::MoreStickers => "MORE_STICKERS".into(),
-            GuildFeature::News => "NEWS".into(),
-            GuildFeature::Partnered => "PARTNERED".into(),
-            GuildFeature::PreviewEnabled => "PREVIEW_ENABLED".into(),
-            GuildFeature::PrivateThreads => "PRIVATE_THREADS".into(),
-            GuildFeature::RoleIcons => "ROLE_ICONS".into(),
-            GuildFeature::TicketedEventsEnabled => "TICKETED_EVENTS_ENABLED".into(),
-            GuildFeature::VanityUrl => "VANITY_URL".into(),
-            GuildFeature::Verified => "VERIFIED".into(),
-            GuildFeature::VipRegions => "VIP_REGIONS".into(),
-            GuildFeature::WelcomeScreenEnabled => "WELCOME_SCREEN_ENABLED".into(),
-            GuildFeature::Unknown(unknown) => unknown.into(),
-        }
+    /// Guild has been set as a support server on the App Directory.
+    pub const DEVELOPER_SUPPORT_SERVER: Self = Self::from_bytes(b"DEVELOPER_SUPPORT_SERVER");
+
+    /// Is able to be discovered in the directory.
+    pub const DISCOVERABLE: Self = Self::from_bytes(b"DISCOVERABLE");
+
+    /// Is able to be featured in the directory.
+    pub const FEATURABLE: Self = Self::from_bytes(b"FEATURABLE");
+
+    /// Invites have been paused, this prevents new users from joining.
+    pub const INVITES_DISABLED: Self = Self::from_bytes(b"INVITES_DISABLED");
+
+    /// Has access to set an invite splash background.
+    pub const INVITE_SPLASH: Self = Self::from_bytes(b"INVITE_SPLASH");
+
+    /// Has enabled membership screening.
+    pub const MEMBER_VERIFICATION_GATE_ENABLED: Self =
+        Self::from_bytes(b"MEMBER_VERIFICATION_GATE_ENABLED");
+
+    /// Has enabled monetization.
+    pub const MONETIZATION_ENABLED: Self = Self::from_bytes(b"MONETIZATION_ENABLED");
+
+    /// Has increased custom sticker slots.
+    pub const MORE_STICKERS: Self = Self::from_bytes(b"MORE_STICKERS");
+
+    /// Has access to create news channels.
+    pub const NEWS: Self = Self::from_bytes(b"NEWS");
+
+    /// Is partnered.
+    pub const PARTNERED: Self = Self::from_bytes(b"PARTNERED");
+
+    /// Can be previewed before joining via membership screening or the
+    /// directory.
+    pub const PREVIEW_ENABLED: Self = Self::from_bytes(b"PREVIEW_ENABLED");
+
+    /// Has access to create private threads.
+    pub const PRIVATE_THREADS: Self = Self::from_bytes(b"PRIVATE_THREADS");
+
+    /// Is able to set role icons.
+    pub const ROLE_ICONS: Self = Self::from_bytes(b"ROLE_ICONS");
+
+    /// Has enabled ticketed events.
+    pub const TICKETED_EVENTS_ENABLED: Self = Self::from_bytes(b"TICKETED_EVENTS_ENABLED");
+
+    /// Has access to set a vanity URL.
+    pub const VANITY_URL: Self = Self::from_bytes(b"VANITY_URL");
+
+    /// Is verified.
+    pub const VERIFIED: Self = Self::from_bytes(b"VERIFIED");
+
+    /// Has access to set 384kps bitrate in voice (previously VIP voice
+    /// servers).
+    pub const VIP_REGIONS: Self = Self::from_bytes(b"VIP_REGIONS");
+
+    /// Has enabled the welcome screen.
+    pub const WELCOME_SCREEN_ENABLED: Self = Self::from_bytes(b"WELCOME_SCREEN_ENABLED");
+
+    /// Create a guild feature from a dynamic value.
+    ///
+    /// The provided guild feature must be 64 bytes or smaller.
+    pub fn new(guild_feature: &str) -> Option<Self> {
+        KnownString::from_str(guild_feature).map(Self)
+    }
+
+    /// Get the value of the guild feature.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the guild feature isn't valid UTF-8.
+    pub fn get(&self) -> &str {
+        self.0.get()
+    }
+
+    /// Create a guild feature from a set of bytes.
+    const fn from_bytes(input: &[u8]) -> Self {
+        Self(KnownString::from_bytes(input))
     }
 }
 
-impl From<String> for GuildFeature {
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "ANIMATED_BANNER" => Self::AnimatedBanner,
-            "ANIMATED_ICON" => Self::AnimatedIcon,
-            "AUTO_MODERATION" => Self::AutoModeration,
-            "BANNER" => Self::Banner,
-            "COMMERCE" => Self::Commerce,
-            "COMMUNITY" => Self::Community,
-            "DEVELOPER_SUPPORT_SERVER" => Self::DeveloperSupportServer,
-            "DISCOVERABLE" => Self::Discoverable,
-            "FEATURABLE" => Self::Featurable,
-            "INVITES_DISABLED" => Self::InvitesDisabled,
-            "INVITE_SPLASH" => Self::InviteSplash,
-            "MEMBER_VERIFICATION_GATE_ENABLED" => Self::MemberVerificationGateEnabled,
-            "MONETIZATION_ENABLED" => Self::MonetizationEnabled,
-            "MORE_STICKERS" => Self::MoreStickers,
-            "NEWS" => Self::News,
-            "PARTNERED" => Self::Partnered,
-            "PREVIEW_ENABLED" => Self::PreviewEnabled,
-            "PRIVATE_THREADS" => Self::PrivateThreads,
-            "ROLE_ICONS" => Self::RoleIcons,
-            "TICKETED_EVENTS_ENABLED" => Self::TicketedEventsEnabled,
-            "VANITY_URL" => Self::VanityUrl,
-            "VERIFIED" => Self::Verified,
-            "VIP_REGIONS" => Self::VipRegions,
-            "WELCOME_SCREEN_ENABLED" => Self::WelcomeScreenEnabled,
-            _ => Self::Unknown(value),
-        }
+impl AsRef<str> for GuildFeature {
+    fn as_ref(&self) -> &str {
+        self.get()
+    }
+}
+
+impl Debug for GuildFeature {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(self.get())
+    }
+}
+
+impl Deref for GuildFeature {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        self.get()
+    }
+}
+
+impl FromStr for GuildFeature {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::try_from(s)
+    }
+}
+
+impl ToString for GuildFeature {
+    fn to_string(&self) -> String {
+        KnownString::to_string(&self.0)
+    }
+}
+
+impl TryFrom<&str> for GuildFeature {
+    type Error = ();
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value).ok_or(())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::GuildFeature;
+    use serde::{Deserialize, Serialize};
     use serde_test::Token;
+    use static_assertions::assert_impl_all;
+    use std::{fmt::Debug, hash::Hash, str::FromStr, string::ToString};
+
+    assert_impl_all!(
+        GuildFeature: AsRef<str>,
+        Clone,
+        Copy,
+        Debug,
+        Deserialize<'static>,
+        Eq,
+        FromStr,
+        Hash,
+        PartialEq,
+        Send,
+        Serialize,
+        Sync,
+        ToString,
+        TryFrom<&'static str>,
+    );
+
+    const MAP: &[(GuildFeature, &str)] = &[
+        (GuildFeature::ANIMATED_BANNER, "ANIMATED_BANNER"),
+        (GuildFeature::ANIMATED_ICON, "ANIMATED_ICON"),
+        (GuildFeature::AUTO_MODERATION, "AUTO_MODERATION"),
+        (GuildFeature::BANNER, "BANNER"),
+        #[allow(deprecated)]
+        (GuildFeature::COMMERCE, "COMMERCE"),
+        (GuildFeature::COMMUNITY, "COMMUNITY"),
+        (
+            GuildFeature::DEVELOPER_SUPPORT_SERVER,
+            "DEVELOPER_SUPPORT_SERVER",
+        ),
+        (GuildFeature::DISCOVERABLE, "DISCOVERABLE"),
+        (GuildFeature::FEATURABLE, "FEATURABLE"),
+        (GuildFeature::INVITES_DISABLED, "INVITES_DISABLED"),
+        (GuildFeature::INVITE_SPLASH, "INVITE_SPLASH"),
+        (
+            GuildFeature::MEMBER_VERIFICATION_GATE_ENABLED,
+            "MEMBER_VERIFICATION_GATE_ENABLED",
+        ),
+        (GuildFeature::MONETIZATION_ENABLED, "MONETIZATION_ENABLED"),
+        (GuildFeature::MORE_STICKERS, "MORE_STICKERS"),
+        (GuildFeature::NEWS, "NEWS"),
+        (GuildFeature::PARTNERED, "PARTNERED"),
+        (GuildFeature::PREVIEW_ENABLED, "PREVIEW_ENABLED"),
+        (GuildFeature::PRIVATE_THREADS, "PRIVATE_THREADS"),
+        (GuildFeature::ROLE_ICONS, "ROLE_ICONS"),
+        (
+            GuildFeature::TICKETED_EVENTS_ENABLED,
+            "TICKETED_EVENTS_ENABLED",
+        ),
+        (GuildFeature::VANITY_URL, "VANITY_URL"),
+        (GuildFeature::VERIFIED, "VERIFIED"),
+        (GuildFeature::VIP_REGIONS, "VIP_REGIONS"),
+        (
+            GuildFeature::WELCOME_SCREEN_ENABLED,
+            "WELCOME_SCREEN_ENABLED",
+        ),
+    ];
 
     #[test]
     fn variants() {
-        serde_test::assert_tokens(
-            &GuildFeature::AnimatedBanner,
-            &[Token::Str("ANIMATED_BANNER")],
-        );
-        serde_test::assert_tokens(&GuildFeature::AnimatedIcon, &[Token::Str("ANIMATED_ICON")]);
-        serde_test::assert_tokens(
-            &GuildFeature::AutoModeration,
-            &[Token::Str("AUTO_MODERATION")],
-        );
-        serde_test::assert_tokens(&GuildFeature::Banner, &[Token::Str("BANNER")]);
-        serde_test::assert_tokens(&GuildFeature::Commerce, &[Token::Str("COMMERCE")]);
-        serde_test::assert_tokens(&GuildFeature::Community, &[Token::Str("COMMUNITY")]);
-        serde_test::assert_tokens(
-            &GuildFeature::DeveloperSupportServer,
-            &[Token::Str("DEVELOPER_SUPPORT_SERVER")],
-        );
-        serde_test::assert_tokens(&GuildFeature::Discoverable, &[Token::Str("DISCOVERABLE")]);
-        serde_test::assert_tokens(&GuildFeature::Featurable, &[Token::Str("FEATURABLE")]);
-        serde_test::assert_tokens(
-            &GuildFeature::InvitesDisabled,
-            &[Token::Str("INVITES_DISABLED")],
-        );
-        serde_test::assert_tokens(&GuildFeature::InviteSplash, &[Token::Str("INVITE_SPLASH")]);
-        serde_test::assert_tokens(
-            &GuildFeature::MemberVerificationGateEnabled,
-            &[Token::Str("MEMBER_VERIFICATION_GATE_ENABLED")],
-        );
-        serde_test::assert_tokens(
-            &GuildFeature::MonetizationEnabled,
-            &[Token::Str("MONETIZATION_ENABLED")],
-        );
-        serde_test::assert_tokens(&GuildFeature::MoreStickers, &[Token::Str("MORE_STICKERS")]);
-        serde_test::assert_tokens(&GuildFeature::News, &[Token::Str("NEWS")]);
-        serde_test::assert_tokens(&GuildFeature::Partnered, &[Token::Str("PARTNERED")]);
-        serde_test::assert_tokens(
-            &GuildFeature::PreviewEnabled,
-            &[Token::Str("PREVIEW_ENABLED")],
-        );
-        serde_test::assert_tokens(
-            &GuildFeature::PrivateThreads,
-            &[Token::Str("PRIVATE_THREADS")],
-        );
-        serde_test::assert_tokens(&GuildFeature::RoleIcons, &[Token::Str("ROLE_ICONS")]);
-        serde_test::assert_tokens(
-            &GuildFeature::TicketedEventsEnabled,
-            &[Token::Str("TICKETED_EVENTS_ENABLED")],
-        );
-        serde_test::assert_tokens(&GuildFeature::VanityUrl, &[Token::Str("VANITY_URL")]);
-        serde_test::assert_tokens(&GuildFeature::Verified, &[Token::Str("VERIFIED")]);
-        serde_test::assert_tokens(&GuildFeature::VipRegions, &[Token::Str("VIP_REGIONS")]);
-        serde_test::assert_tokens(
-            &GuildFeature::WelcomeScreenEnabled,
-            &[Token::Str("WELCOME_SCREEN_ENABLED")],
-        );
-        serde_test::assert_tokens(
-            &GuildFeature::Unknown("UNKNOWN".to_owned()),
-            &[Token::Str("UNKNOWN")],
-        );
+        for (kind, name) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "GuildFeature",
+                    },
+                    Token::Str(name),
+                ],
+            );
+            assert_eq!(Some(*kind), GuildFeature::new(name));
+            assert_eq!(*name, kind.as_ref());
+            assert_eq!(Ok(*kind), GuildFeature::from_str(name));
+            assert_eq!(Ok(*kind), GuildFeature::try_from(*name));
+            assert_eq!(name, &kind.to_string());
+            assert_eq!(*name, kind.get());
+        }
     }
 }

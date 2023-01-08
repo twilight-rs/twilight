@@ -27,7 +27,7 @@ mod tests {
         let value = ChannelMention {
             guild_id: Id::new(1),
             id: Id::new(2),
-            kind: ChannelType::GuildText,
+            kind: ChannelType::GUILD_TEXT,
             name: "channel".to_owned(),
         };
 
@@ -45,6 +45,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "ChannelType",
+                },
                 Token::U8(0),
                 Token::Str("name"),
                 Token::Str("channel"),

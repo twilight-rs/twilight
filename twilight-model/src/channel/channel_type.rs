@@ -1,94 +1,83 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum ChannelType {
-    GuildText,
-    Private,
-    GuildVoice,
-    Group,
-    GuildCategory,
-    GuildAnnouncement,
-    AnnouncementThread,
-    PublicThread,
-    PrivateThread,
-    GuildStageVoice,
+pub struct ChannelType(u8);
+
+impl ChannelType {
+    pub const GUILD_TEXT: Self = Self::new(0);
+
+    pub const PRIVATE: Self = Self::new(1);
+
+    pub const GUILD_VOICE: Self = Self::new(2);
+
+    pub const GROUP: Self = Self::new(3);
+
+    pub const GUILD_CATEGORY: Self = Self::new(4);
+
+    pub const GUILD_ANNOUNCEMENT: Self = Self::new(5);
+
+    pub const ANNOUNCEMENT_THREAD: Self = Self::new(10);
+
+    pub const PUBLIC_THREAD: Self = Self::new(11);
+
+    pub const PRIVATE_THREAD: Self = Self::new(12);
+
+    pub const GUILD_STAGE_VOICE: Self = Self::new(13);
+
     /// Channel in a [hub] containing the listed servers.
     ///
     /// [hub]: https://support.discord.com/hc/en-us/articles/4406046651927-Discord-Student-Hubs-FAQ
-    GuildDirectory,
+    pub const GUILD_DIRECTORY: Self = Self::new(14);
+
     /// Channel that can only contain threads.
-    GuildForum,
-    Unknown(u8),
-}
+    pub const GUILD_FORUM: Self = Self::new(15);
 
-impl From<u8> for ChannelType {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => ChannelType::GuildText,
-            1 => ChannelType::Private,
-            2 => ChannelType::GuildVoice,
-            3 => ChannelType::Group,
-            4 => ChannelType::GuildCategory,
-            5 => ChannelType::GuildAnnouncement,
-            10 => ChannelType::AnnouncementThread,
-            11 => ChannelType::PublicThread,
-            12 => ChannelType::PrivateThread,
-            13 => ChannelType::GuildStageVoice,
-            14 => ChannelType::GuildDirectory,
-            15 => ChannelType::GuildForum,
-            unknown => ChannelType::Unknown(unknown),
-        }
+    /// Create a new channel type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`GUILD_TEXT`][`Self::GUILD_TEXT`].
+    pub const fn new(channel_type: u8) -> Self {
+        Self(channel_type)
     }
-}
 
-impl From<ChannelType> for u8 {
-    fn from(value: ChannelType) -> Self {
-        match value {
-            ChannelType::GuildText => 0,
-            ChannelType::Private => 1,
-            ChannelType::GuildVoice => 2,
-            ChannelType::Group => 3,
-            ChannelType::GuildCategory => 4,
-            ChannelType::GuildAnnouncement => 5,
-            ChannelType::AnnouncementThread => 10,
-            ChannelType::PublicThread => 11,
-            ChannelType::PrivateThread => 12,
-            ChannelType::GuildStageVoice => 13,
-            ChannelType::GuildDirectory => 14,
-            ChannelType::GuildForum => 15,
-            ChannelType::Unknown(unknown) => unknown,
-        }
+    /// Retrieve the value of the channel type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::ChannelType;
+    ///
+    /// assert_eq!(15, ChannelType::GUILD_FORUM.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
     }
-}
 
-impl ChannelType {
     /// Whether the channel type is that of a guild.
     ///
     /// The following channel types are considered guild channel types:
     ///
-    /// - [`AnnouncementThread`][`Self::AnnouncementThread`]
-    /// - [`GuildAnnouncement`][`Self::GuildAnnouncement`]
-    /// - [`GuildCategory`][`Self::GuildCategory`]
-    /// - [`GuildDirectory`][`Self::GuildDirectory`]
-    /// - [`GuildStageVoice`][`Self::GuildStageVoice`]
-    /// - [`GuildText`][`Self::GuildText`]
-    /// - [`GuildVoice`][`Self::GuildVoice`]
-    /// - [`PublicThread`][`Self::PublicThread`]
-    /// - [`PrivateThread`][`Self::PrivateThread`]
+    /// - [`ANNOUNCEMENT_THREAD`][`Self::ANNOUNCEMENT_THREAD`]
+    /// - [`GUILD_ANNOUNCEMENT`][`Self::GUILD_ANNOUNCEMENT`]
+    /// - [`GUILD_CATEGORY`][`Self::GUILD_CATEGORY`]
+    /// - [`GUILD_DIRECTORY`][`Self::GUILD_DIRECTORY`]
+    /// - [`GUILD_STAGE_VOICE`][`Self::GUILD_STAGE_VOICE`]
+    /// - [`GUILD_TEXT`][`Self::GUILD_TEXT`]
+    /// - [`GUILD_VOICE`][`Self::GUILD_VOICE`]
+    /// - [`PUBLIC_THREAD`][`Self::PUBLIC_THREAD`]
+    /// - [`PRIVATE_THREAD`][`Self::PRIVATE_THREAD`]
     pub const fn is_guild(self) -> bool {
         matches!(
             self,
-            Self::GuildCategory
-                | Self::GuildDirectory
-                | Self::GuildAnnouncement
-                | Self::AnnouncementThread
-                | Self::PublicThread
-                | Self::PrivateThread
-                | Self::GuildStageVoice
-                | Self::GuildText
-                | Self::GuildVoice
+            Self::GUILD_CATEGORY
+                | Self::GUILD_DIRECTORY
+                | Self::GUILD_ANNOUNCEMENT
+                | Self::ANNOUNCEMENT_THREAD
+                | Self::PUBLIC_THREAD
+                | Self::PRIVATE_THREAD
+                | Self::GUILD_STAGE_VOICE
+                | Self::GUILD_TEXT
+                | Self::GUILD_VOICE
         )
     }
 
@@ -96,33 +85,45 @@ impl ChannelType {
     ///
     /// The following channel types are considered guild channel types:
     ///
-    /// - [`AnnouncementThread`][`Self::AnnouncementThread`]
-    /// - [`PrivateThread`][`Self::PrivateThread`]
-    /// - [`PublicThread`][`Self::PublicThread`]
+    /// - [`ANNOUNCEMENT_THREAD`][`Self::ANNOUNCEMENT_THREAD`]
+    /// - [`PRIVATE_THREAD`][`Self::PRIVATE_THREAD`]
+    /// - [`PUBLIC_THREAD`][`Self::PUBLIC_THREAD`]
     pub const fn is_thread(self) -> bool {
         matches!(
             self,
-            Self::AnnouncementThread | Self::PublicThread | Self::PrivateThread
+            Self::ANNOUNCEMENT_THREAD | Self::PUBLIC_THREAD | Self::PRIVATE_THREAD
         )
     }
 
     /// Name of the variant as a string slice.
     pub const fn name(self) -> &'static str {
         match self {
-            Self::AnnouncementThread => "AnnouncementThread",
-            Self::Group => "Group",
-            Self::GuildCategory => "GuildCategory",
-            Self::GuildDirectory => "GuildDirectory",
-            Self::GuildForum => "GuildForum",
-            Self::GuildAnnouncement => "GuildAnnouncement",
-            Self::GuildStageVoice => "GuildStageVoice",
-            Self::GuildText => "GuildText",
-            Self::GuildVoice => "GuildVoice",
-            Self::Private => "Private",
-            Self::PrivateThread => "PrivateThread",
-            Self::PublicThread => "PublicThread",
-            Self::Unknown(_) => "Unknown",
+            Self::ANNOUNCEMENT_THREAD => "ANNOUNCEMENT_THREAD",
+            Self::GROUP => "GROUP",
+            Self::GUILD_CATEGORY => "GUILD_CATEGORY",
+            Self::GUILD_DIRECTORY => "GUILD_DIRECTORY",
+            Self::GUILD_FORUM => "GUILD_FORUM",
+            Self::GUILD_ANNOUNCEMENT => "GUILD_ANNOUNCEMENT",
+            Self::GUILD_STAGE_VOICE => "GUILD_STAGE_VOICE",
+            Self::GUILD_TEXT => "GUILD_TEXT",
+            Self::GUILD_VOICE => "GUILD_VOICE",
+            Self::PRIVATE => "PRIVATE",
+            Self::PRIVATE_THREAD => "PRIVATE_THREAD",
+            Self::PUBLIC_THREAD => "PUBLIC_THREAD",
+            _ => "UNKNOWN",
         }
+    }
+}
+
+impl From<u8> for ChannelType {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
+
+impl From<ChannelType> for u8 {
+    fn from(value: ChannelType) -> Self {
+        value.get()
     }
 }
 
@@ -132,49 +133,50 @@ mod tests {
     use serde_test::Token;
     use static_assertions::const_assert;
 
-    const_assert!(ChannelType::GuildCategory.is_guild());
-    const_assert!(ChannelType::GuildDirectory.is_guild());
-    const_assert!(ChannelType::GuildAnnouncement.is_guild());
-    const_assert!(ChannelType::AnnouncementThread.is_guild());
-    const_assert!(ChannelType::PublicThread.is_guild());
-    const_assert!(ChannelType::PrivateThread.is_guild());
-    const_assert!(ChannelType::GuildStageVoice.is_guild());
-    const_assert!(ChannelType::GuildText.is_guild());
-    const_assert!(ChannelType::GuildVoice.is_guild());
+    const_assert!(ChannelType::GUILD_CATEGORY.is_guild());
+    const_assert!(ChannelType::GUILD_DIRECTORY.is_guild());
+    const_assert!(ChannelType::GUILD_ANNOUNCEMENT.is_guild());
+    const_assert!(ChannelType::ANNOUNCEMENT_THREAD.is_guild());
+    const_assert!(ChannelType::PUBLIC_THREAD.is_guild());
+    const_assert!(ChannelType::PRIVATE_THREAD.is_guild());
+    const_assert!(ChannelType::GUILD_STAGE_VOICE.is_guild());
+    const_assert!(ChannelType::GUILD_TEXT.is_guild());
+    const_assert!(ChannelType::GUILD_VOICE.is_guild());
 
-    const_assert!(ChannelType::AnnouncementThread.is_thread());
-    const_assert!(ChannelType::PublicThread.is_thread());
-    const_assert!(ChannelType::PrivateThread.is_thread());
+    const_assert!(ChannelType::ANNOUNCEMENT_THREAD.is_thread());
+    const_assert!(ChannelType::PUBLIC_THREAD.is_thread());
+    const_assert!(ChannelType::PRIVATE_THREAD.is_thread());
+
+    const MAP: &[(ChannelType, u8, &str)] = &[
+        (ChannelType::GUILD_TEXT, 0, "GUILD_TEXT"),
+        (ChannelType::PRIVATE, 1, "PRIVATE"),
+        (ChannelType::GUILD_VOICE, 2, "GUILD_VOICE"),
+        (ChannelType::GROUP, 3, "GROUP"),
+        (ChannelType::GUILD_CATEGORY, 4, "GUILD_CATEGORY"),
+        (ChannelType::GUILD_ANNOUNCEMENT, 5, "GUILD_ANNOUNCEMENT"),
+        (ChannelType::ANNOUNCEMENT_THREAD, 10, "ANNOUNCEMENT_THREAD"),
+        (ChannelType::PUBLIC_THREAD, 11, "PUBLIC_THREAD"),
+        (ChannelType::PRIVATE_THREAD, 12, "PRIVATE_THREAD"),
+        (ChannelType::GUILD_STAGE_VOICE, 13, "GUILD_STAGE_VOICE"),
+        (ChannelType::GUILD_DIRECTORY, 14, "GUILD_DIRECTORY"),
+        (ChannelType::GUILD_FORUM, 15, "GUILD_FORUM"),
+    ];
 
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&ChannelType::GuildText, &[Token::U8(0)]);
-        serde_test::assert_tokens(&ChannelType::Private, &[Token::U8(1)]);
-        serde_test::assert_tokens(&ChannelType::GuildVoice, &[Token::U8(2)]);
-        serde_test::assert_tokens(&ChannelType::Group, &[Token::U8(3)]);
-        serde_test::assert_tokens(&ChannelType::GuildCategory, &[Token::U8(4)]);
-        serde_test::assert_tokens(&ChannelType::GuildAnnouncement, &[Token::U8(5)]);
-        serde_test::assert_tokens(&ChannelType::AnnouncementThread, &[Token::U8(10)]);
-        serde_test::assert_tokens(&ChannelType::PublicThread, &[Token::U8(11)]);
-        serde_test::assert_tokens(&ChannelType::PrivateThread, &[Token::U8(12)]);
-        serde_test::assert_tokens(&ChannelType::GuildStageVoice, &[Token::U8(13)]);
-        serde_test::assert_tokens(&ChannelType::GuildDirectory, &[Token::U8(14)]);
-        serde_test::assert_tokens(&ChannelType::Unknown(99), &[Token::U8(99)]);
-    }
-
-    #[test]
-    fn names() {
-        assert_eq!("AnnouncementThread", ChannelType::AnnouncementThread.name());
-        assert_eq!("Group", ChannelType::Group.name());
-        assert_eq!("GuildCategory", ChannelType::GuildCategory.name());
-        assert_eq!("GuildDirectory", ChannelType::GuildDirectory.name());
-        assert_eq!("GuildAnnouncement", ChannelType::GuildAnnouncement.name());
-        assert_eq!("GuildStageVoice", ChannelType::GuildStageVoice.name());
-        assert_eq!("GuildText", ChannelType::GuildText.name());
-        assert_eq!("GuildVoice", ChannelType::GuildVoice.name());
-        assert_eq!("Private", ChannelType::Private.name());
-        assert_eq!("PrivateThread", ChannelType::PrivateThread.name());
-        assert_eq!("PublicThread", ChannelType::PublicThread.name());
-        assert_eq!("Unknown", ChannelType::Unknown(99).name());
+        for (kind, num, name) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "ChannelType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, ChannelType::from(*num));
+            assert_eq!(*num, kind.get());
+            assert_eq!(kind.name(), *name);
+        }
     }
 }

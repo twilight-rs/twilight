@@ -29,7 +29,7 @@ impl<'a> CreateGuildStageInstanceScheduledEvent<'a> {
         Self(CreateGuildScheduledEvent {
             fields: CreateGuildScheduledEventFields {
                 channel_id: Some(channel_id),
-                entity_type: Some(EntityType::StageInstance),
+                entity_type: Some(EntityType::STAGE_INSTANCE),
                 name: Some(name),
                 scheduled_start_time: Some(scheduled_start_time),
                 ..inner.fields

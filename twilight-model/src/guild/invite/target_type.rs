@@ -1,31 +1,44 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum TargetType {
-    Stream,
-    EmbeddedApplication,
-    Unknown(u8),
+pub struct TargetType(u8);
+
+impl TargetType {
+    pub const STREAM: Self = Self::new(1);
+
+    pub const EMBEDDED_APPLICATION: Self = Self::new(2);
+
+    /// Create a new command type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`STREAM`][`Self::STREAM`].
+    pub const fn new(target_type: u8) -> Self {
+        Self(target_type)
+    }
+
+    /// Retrieve the value of the command type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::guild::invite::TargetType;
+    ///
+    /// assert_eq!(2, TargetType::EMBEDDED_APPLICATION.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for TargetType {
     fn from(value: u8) -> Self {
-        match value {
-            1 => TargetType::Stream,
-            2 => TargetType::EmbeddedApplication,
-            unknown => TargetType::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<TargetType> for u8 {
     fn from(value: TargetType) -> Self {
-        match value {
-            TargetType::Stream => 1,
-            TargetType::EmbeddedApplication => 2,
-            TargetType::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -34,10 +47,20 @@ mod tests {
     use super::TargetType;
     use serde_test::Token;
 
+    const MAP: &[(TargetType, u8)] = &[
+        (TargetType::STREAM, 1),
+        (TargetType::EMBEDDED_APPLICATION, 2),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&TargetType::Stream, &[Token::U8(1)]);
-        serde_test::assert_tokens(&TargetType::EmbeddedApplication, &[Token::U8(2)]);
-        serde_test::assert_tokens(&TargetType::Unknown(99), &[Token::U8(99)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[Token::NewtypeStruct { name: "TargetType" }, Token::U8(*num)],
+            );
+            assert_eq!(*kind, TargetType::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

@@ -332,7 +332,7 @@ impl Client {
     ///
     /// let guild_id = Id::new(1);
     /// client
-    ///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MessageSend)
+    ///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MESSAGE_SEND)
     ///     .action_block_message()
     ///     .enabled(true)
     ///     .with_keyword(&["darn"])
@@ -617,7 +617,7 @@ impl Client {
     ///     allow: Some(Permissions::VIEW_CHANNEL),
     ///     deny: Some(Permissions::SEND_MESSAGES),
     ///     id: role_id.cast(),
-    ///     kind: PermissionOverwriteType::Role,
+    ///     kind: PermissionOverwriteType::ROLE,
     /// };
     ///
     /// client
@@ -1791,7 +1791,7 @@ impl Client {
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
     ///
-    /// To make a [`PrivateThread`], the guild must also have the
+    /// To make a [`PRIVATE_THREAD`], the guild must also have the
     /// `PRIVATE_THREADS` feature.
     ///
     /// # Errors
@@ -1802,7 +1802,7 @@ impl Client {
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
-    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
+    /// [`PRIVATE_THREAD`]: twilight_model::channel::ChannelType::PRIVATE_THREAD
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread<'a>(
         &'a self,
@@ -1815,11 +1815,11 @@ impl Client {
 
     /// Create a new thread from an existing message.
     ///
-    /// When called on a [`GuildText`] channel, this creates a
-    /// [`PublicThread`].
+    /// When called on a [`GUILD_TEXT`] channel, this creates a
+    /// [`PUBLIC_THREAD`].
     ///
-    /// When called on a [`GuildAnnouncement`] channel, this creates a
-    /// [`AnnouncementThread`].
+    /// When called on a [`GUILD_ANNOUNCEMENT`] channel, this creates a
+    /// [`ANNOUNCEMENT_THREAD`].
     ///
     /// Automatic archive durations are not locked behind the guild's boost
     /// level.
@@ -1834,11 +1834,11 @@ impl Client {
     ///
     /// Returns an error of type [`TypeInvalid`] if the channel is not a thread.
     ///
-    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
-    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-    /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
+    /// [`ANNOUNCEMENT_THREAD`]: twilight_model::channel::ChannelType::ANNOUNCEMENT_THREAD
+    /// [`GUILD_ANNOUNCEMENT`]: twilight_model::channel::ChannelType::GUILD_ANNOUNCEMENT
+    /// [`GUILD_TEXT`]: twilight_model::channel::ChannelType::GUILD_TEXT
     /// [`NameInvalid`]: twilight_validate::channel::ChannelValidationErrorType::NameInvalid
-    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
+    /// [`PUBLIC_THREAD`]: twilight_model::channel::ChannelType::PUBLIC_THREAD
     /// [`TypeInvalid`]: twilight_validate::channel::ChannelValidationErrorType::TypeInvalid
     pub fn create_thread_from_message<'a>(
         &'a self,
@@ -1891,15 +1891,15 @@ impl Client {
     ///
     /// Threads are ordered by [`archive_timestamp`] in descending order.
     ///
-    /// When called in a [`GuildText`] channel, returns [`PublicThread`]s.
+    /// When called in a [`GUILD_TEXT`] channel, returns [`PUBLIC_THREAD`]s.
     ///
-    /// When called in a [`GuildAnnouncement`] channel, returns [`AnnouncementThread`]s.
+    /// When called in a [`GUILD_ANNOUNCEMENT`] channel, returns [`ANNOUNCEMENT_THREAD`]s.
     ///
-    /// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
+    /// [`ANNOUNCEMENT_THREAD`]: twilight_model::channel::ChannelType::ANNOUNCEMENT_THREAD
     /// [`archive_timestamp`]: twilight_model::channel::thread::ThreadMetadata::archive_timestamp
-    /// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-    /// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
-    /// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
+    /// [`GUILD_ANNOUNCEMENT`]: twilight_model::channel::ChannelType::GUILD_ANNOUNCEMENT
+    /// [`GUILD_TEXT`]: twilight_model::channel::ChannelType::GUILD_TEXT
+    /// [`PUBLIC_THREAD`]: twilight_model::channel::ChannelType::PUBLIC_THREAD
     /// [`READ_MESSAGE_HISTORY`]: twilight_model::guild::Permissions::READ_MESSAGE_HISTORY
     pub const fn public_archived_threads(
         &self,
@@ -1913,11 +1913,11 @@ impl Client {
     /// Requires that the thread is not archived.
     ///
     /// Requires the [`MANAGE_THREADS`] permission, unless both the thread is a
-    /// [`PrivateThread`], and the current user is the creator of the
+    /// [`PRIVATE_THREAD`], and the current user is the creator of the
     /// thread.
     ///
     /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
-    /// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
+    /// [`PRIVATE_THREAD`]: twilight_model::channel::ChannelType::PRIVATE_THREAD
     pub const fn remove_thread_member(
         &self,
         channel_id: Id<ChannelMarker>,
@@ -2186,7 +2186,7 @@ impl Client {
     /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00+00:00")?;
     ///
     /// client
-    ///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
+    ///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GUILD_ONLY)
     ///     .stage_instance(
     ///         channel_id,
     ///         "Garfield Appreciation Hour",
@@ -2210,7 +2210,7 @@ impl Client {
     /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00+00:00")?;
     ///
     /// client
-    ///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
+    ///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GUILD_ONLY)
     ///     .external(
     ///         "Garfield Con 2022",
     ///         "Baltimore Convention Center",
@@ -2273,17 +2273,17 @@ impl Client {
     /// Update a scheduled event in a guild.
     ///
     /// This endpoint supports changing the type of event. When changing the
-    /// entity type to either [`EntityType::StageInstance`] or
-    /// [`EntityType::Voice`], an [`Id<ChannelMarker>`] must be provided if it
+    /// entity type to either [`EntityType::STAGE_INSTANCE`] or
+    /// [`EntityType::VOICE`], an [`Id<ChannelMarker>`] must be provided if it
     /// does not already exist.
     ///
-    /// When changing the entity type to [`EntityType::External`], the
+    /// When changing the entity type to [`EntityType::EXTERNAL`], the
     /// `channel_id` field is cleared and the [`channel_id`] method has no
     /// effect. Additionally, you must set a location with [`location`].
     ///
-    /// [`EntityType::External`]: twilight_model::guild::scheduled_event::EntityType::External
-    /// [`EntityType::StageInstance`]: twilight_model::guild::scheduled_event::EntityType::StageInstance
-    /// [`EntityType::Voice`]: twilight_model::guild::scheduled_event::EntityType::Voice
+    /// [`EntityType::EXTERNAL`]: twilight_model::guild::scheduled_event::EntityType::EXTERNAL
+    /// [`EntityType::STAGE_INSTANCE`]: twilight_model::guild::scheduled_event::EntityType::STAGE_INSTANCE
+    /// [`EntityType::VOICE`]: twilight_model::guild::scheduled_event::EntityType::VOICE
     /// [`channel_id`]: UpdateGuildScheduledEvent::channel_id
     /// [`location`]: UpdateGuildScheduledEvent::location
     pub const fn update_guild_scheduled_event(

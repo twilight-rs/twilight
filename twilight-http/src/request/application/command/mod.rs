@@ -88,7 +88,7 @@ mod tests {
             )])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             name: "command name".to_owned(),
             name_localizations: Some(HashMap::from([(
                 "en-US".to_owned(),
@@ -105,7 +105,7 @@ mod tests {
             dm_permission: command.dm_permission,
             description: Some(&command.description),
             description_localizations: command.description_localizations.as_ref(),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             name: &command.name,
             name_localizations: command.name_localizations.as_ref(),
             nsfw: command.nsfw,

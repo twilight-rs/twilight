@@ -94,7 +94,7 @@ mod tests {
             guild_id: Id::new(2),
             guild_scheduled_event_id: Some(Id::new(3)),
             id: Id::new(4),
-            privacy_level: PrivacyLevel::GuildOnly,
+            privacy_level: PrivacyLevel::GUILD_ONLY,
             topic: "topic".into(),
         };
 

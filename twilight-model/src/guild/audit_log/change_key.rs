@@ -1,5 +1,10 @@
+use crate::util::known_string::KnownString;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    ops::Deref,
+    str::FromStr,
+};
 
 /// Type of [`AuditLogChange`].
 ///
@@ -7,262 +12,295 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 ///
 /// [`AuditLogChange`]: super::AuditLogChange
 /// [1]: https://discord.com/developers/docs/resources/audit-log#audit-log-change-object-audit-log-change-key
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-#[non_exhaustive]
-#[serde(rename_all = "snake_case")]
-pub enum AuditLogChangeKey {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct AuditLogChangeKey(KnownString<64>);
+
+impl AuditLogChangeKey {
     /// AFK voice channel for a guild.
-    AfkChannelId,
+    pub const AFK_CHANNEL_ID: Self = Self::from_bytes(b"afk_channel_id");
+
     /// Timeout to cause a user to be moved to an AFK voice channel.
-    AfkTimeout,
+    pub const AFK_TIMEOUT: Self = Self::from_bytes(b"afk_timeout");
+
     /// Allowed permissions of a permission overwrite target.
-    Allow,
+    pub const ALLOW: Self = Self::from_bytes(b"allow");
+
     /// ID of an application.
-    ApplicationId,
+    pub const APPLICATION_ID: Self = Self::from_bytes(b"application_id");
+
     /// Thread was archived or unarchived.
-    Archived,
+    pub const ARCHIVED: Self = Self::from_bytes(b"archived");
+
     /// Asset of a sticker.
     ///
     /// Empty string.
-    Asset,
-    /// Auto archive duration of a thread.
-    AutoArchiveDuration,
-    /// Availability of a sticker.
-    Available,
-    /// Hash of an avatar.
-    AvatarHash,
-    /// Hash of a guild banner.
-    BannerHash,
-    /// Bitrate of an audio channel.
-    Bitrate,
-    /// Channel for an invite code.
-    ChannelId,
-    /// Code of an invite.
-    Code,
-    /// Color of a role.
-    Color,
-    /// Permissions for a command were updated.
-    CommandId,
-    /// Member timeout state changed.
-    CommunicationDisabledUntil,
-    /// Whether a user is guild deafened.
-    Deaf,
-    /// Default auto archive duration for new threads.
-    DefaultAutoArchiveDuration,
-    /// Default message notification level for a guild.
-    DefaultMessageNotifications,
-    /// Denied permissions of a permission overwrite target.
-    Deny,
-    /// Description of a guild.
-    Description,
-    /// Hash of a guild's discovery splash.
-    DiscoverySplashHash,
-    /// Whether emoticons are enabled.
-    EnableEmoticons,
-    /// Entity type of guild scheduled event was changed.
-    EntityType,
-    /// Behavior of the expiration of an integration.
-    ExpireBehavior,
-    /// Grace period of the expiration of an integration.
-    ExpireGracePeriod,
-    /// Explicit content filter level of a guild.
-    ExplicitContentFilter,
-    /// Format type of a sticker.
-    FormatType,
-    /// Guild that a sticker is in.
-    GuildId,
-    /// Whether a role is hoisted.
-    Hoist,
-    /// Hash of a guild icon.
-    IconHash,
-    /// ID of an entity.
-    Id,
-    /// Hash of a guild scheduled event cover.
-    ImageHash,
-    /// Invitable state of a private thread.
-    Invitable,
-    /// ID of the user who created an invite.
-    InviterId,
-    /// Channel ID for a scheduled event changed.
-    Location,
-    /// Thread was locked or unlocked.
-    Locked,
-    /// Maximum age of an invite.
-    MaxAge,
-    /// Maximum uses of an invite.
-    MaxUses,
-    /// Whether a role can be mentioned in a message.
-    Mentionable,
-    /// Multi-Factor Authentication level required of a guild's moderators.
-    MfaLevel,
-    /// Whether a user is guild muted.
-    Mute,
-    /// Name of an entity such as a channel or role.
-    Name,
-    /// Nickname of a member.
-    Nick,
-    /// Whether a channel is NSFW.
-    Nsfw,
-    /// NSFW level of a guild.
-    NsfwLevel,
-    /// ID of the owner of a guild.
-    OwnerId,
-    /// Permission overwrites on a channel changed.
-    PermissionOverwrites,
-    /// Default permissions of a role.
-    Permissions,
-    /// Position of an entity such as a channel or role.
-    Position,
-    /// Preferred locale of a guild.
-    PreferredLocale,
-    /// Privacy level of a stage instance.
-    PrivacyLevel,
-    /// Number of days' worth of inactivity for a guild prune.
-    PruneDeleteDays,
-    /// ID of a guild's public updates channel.
-    PublicUpdatesChannelId,
-    /// Ratelimit per user in a textual channel.
-    RateLimitPerUser,
-    /// Region of a guild changed.
-    Region,
-    /// Role added to a user.
-    #[serde(rename = "$add")]
-    RoleAdded,
-    /// Role removed from a user.
-    #[serde(rename = "$remove")]
-    RoleRemoved,
-    /// ID of a guild's rules channel.
-    RulesChannelId,
-    /// Hash of a guild's splash.
-    SplashHash,
-    /// Status of guild scheduled event was changed.
-    Status,
-    /// ID of a guild's system channel.
-    SystemChannelId,
-    /// Related emoji of a sticker.
-    Tags,
-    /// Whether an invite is temporary.
-    Temporary,
-    /// Topic of a textual channel.
-    Topic,
-    /// Type of a created entity.
-    Type,
-    /// Role unicode emoji.
-    UnicodeEmoji,
-    /// Maximum number of users in a voice channel.
-    UserLimit,
-    /// Number of uses of an invite.
-    Uses,
-    /// Code of a guild's vanity invite.
-    VanityUrlCode,
-    /// Required verification level of new members in a guild.
-    VerificationLevel,
-    /// Channel ID of a widget.
-    WidgetChannelId,
-    /// Whether a widget is enabled.
-    WidgetEnabled,
-}
+    pub const ASSET: Self = Self::from_bytes(b"asset");
 
-impl AuditLogChangeKey {
-    /// Raw name of the key.
+    /// Auto archive duration of a thread.
+    pub const AUTO_ARCHIVE_DURATION: Self = Self::from_bytes(b"auto_archive_duration");
+
+    /// Availability of a sticker.
+    pub const AVAILABLE: Self = Self::from_bytes(b"available");
+
+    /// Hash of an avatar.
+    pub const AVATAR_HASH: Self = Self::from_bytes(b"avatar_hash");
+
+    /// Hash of a guild banner.
+    pub const BANNER_HASH: Self = Self::from_bytes(b"banner_hash");
+
+    /// Bitrate of an audio channel.
+    pub const BITRATE: Self = Self::from_bytes(b"bitrate");
+
+    /// Channel for an invite code.
+    pub const CHANNEL_ID: Self = Self::from_bytes(b"channel_id");
+
+    /// Code of an invite.
+    pub const CODE: Self = Self::from_bytes(b"code");
+
+    /// Color of a role.
+    pub const COLOR: Self = Self::from_bytes(b"color");
+
+    /// Permissions for a command were updated.
+    pub const COMMAND_ID: Self = Self::from_bytes(b"command_id");
+
+    /// Member timeout state changed.
+    pub const COMMUNICATION_DISABLED_UNTIL: Self =
+        Self::from_bytes(b"communication_disabled_until");
+
+    /// Whether a user is guild deafened.
+    pub const DEAF: Self = Self::from_bytes(b"deaf");
+
+    /// Default auto archive duration for new threads.
+    pub const DEFAULT_AUTO_ARCHIVE_DURATION: Self =
+        Self::from_bytes(b"default_auto_archive_duration");
+
+    /// Default message notification level for a guild.
+    pub const DEFAULT_MESSAGE_NOTIFICATIONS: Self =
+        Self::from_bytes(b"default_message_notifications");
+
+    /// Denied permissions of a permission overwrite target.
+    pub const DENY: Self = Self::from_bytes(b"deny");
+
+    /// Description of a guild.
+    pub const DESCRIPTION: Self = Self::from_bytes(b"description");
+
+    /// Hash of a guild's discovery splash.
+    pub const DISCOVERY_SPLASH_HASH: Self = Self::from_bytes(b"discovery_splash_hash");
+
+    /// Whether emoticons are enabled.
+    pub const ENABLE_EMOTICONS: Self = Self::from_bytes(b"enable_emoticons");
+
+    /// Entity type of guild scheduled event was changed.
+    pub const ENTITY_TYPE: Self = Self::from_bytes(b"entity_type");
+
+    /// Behavior of the expiration of an integration.
+    pub const EXPIRE_BEHAVIOR: Self = Self::from_bytes(b"expire_behavior");
+
+    /// Grace period of the expiration of an integration.
+    pub const EXPIRE_GRACE_PERIOD: Self = Self::from_bytes(b"expire_grace_period");
+
+    /// Explicit content filter level of a guild.
+    pub const EXPLICIT_CONTENT_FILTER: Self = Self::from_bytes(b"explicit_content_filter");
+
+    /// Format type of a sticker.
+    pub const FORMAT_TYPE: Self = Self::from_bytes(b"format_type");
+
+    /// Guild that a sticker is in.
+    pub const GUILD_ID: Self = Self::from_bytes(b"guild_id");
+
+    /// Whether a role is hoisted.
+    pub const HOIST: Self = Self::from_bytes(b"hoist");
+
+    /// Hash of a guild icon.
+    pub const ICON_HASH: Self = Self::from_bytes(b"icon_hash");
+
+    /// ID of an entity.
+    pub const ID: Self = Self::from_bytes(b"id");
+
+    /// Hash of a guild scheduled event cover.
+    pub const IMAGE_HASH: Self = Self::from_bytes(b"image_hash");
+
+    /// Invitable state of a private thread.
+    pub const INVITABLE: Self = Self::from_bytes(b"invitable");
+
+    /// ID of the user who created an invite.
+    pub const INVITER_ID: Self = Self::from_bytes(b"inviter_id");
+
+    /// Channel ID for a scheduled event changed.
+    pub const LOCATION: Self = Self::from_bytes(b"location");
+
+    /// Thread was locked or unlocked.
+    pub const LOCKED: Self = Self::from_bytes(b"locked");
+
+    /// Maximum age of an invite.
+    pub const MAX_AGE: Self = Self::from_bytes(b"max_age");
+
+    /// Maximum uses of an invite.
+    pub const MAX_USES: Self = Self::from_bytes(b"max_uses");
+
+    /// Whether a role can be mentioned in a message.
+    pub const MENTIONABLE: Self = Self::from_bytes(b"mentionable");
+
+    /// Multi-Factor Authentication level required of a guild's moderators.
+    pub const MFA_LEVEL: Self = Self::from_bytes(b"mfa_level");
+
+    /// Whether a user is guild muted.
+    pub const MUTE: Self = Self::from_bytes(b"mute");
+
+    /// Name of an entity such as a channel or role.
+    pub const NAME: Self = Self::from_bytes(b"name");
+
+    /// Nickname of a member.
+    pub const NICK: Self = Self::from_bytes(b"nick");
+
+    /// Whether a channel is NSFW.
+    pub const NSFW: Self = Self::from_bytes(b"nsfw");
+
+    /// NSFW level of a guild.
+    pub const NSFW_LEVEL: Self = Self::from_bytes(b"nsfw_level");
+
+    /// ID of the owner of a guild.
+    pub const OWNER_ID: Self = Self::from_bytes(b"owner_id");
+
+    /// Permission overwrites on a channel changed.
+    pub const PERMISSION_OVERWRITES: Self = Self::from_bytes(b"permission_overwrites");
+
+    /// Default permissions of a role.
+    pub const PERMISSIONS: Self = Self::from_bytes(b"permissions");
+
+    /// Position of an entity such as a channel or role.
+    pub const POSITION: Self = Self::from_bytes(b"position");
+
+    /// Preferred locale of a guild.
+    pub const PREFERRED_LOCALE: Self = Self::from_bytes(b"preferred_locale");
+
+    /// Privacy level of a stage instance.
+    pub const PRIVACY_LEVEL: Self = Self::from_bytes(b"privacy_level");
+
+    /// Number of days' worth of inactivity for a guild prune.
+    pub const PRUNE_DELETE_DAYS: Self = Self::from_bytes(b"prune_delete_days");
+
+    /// ID of a guild's public updates channel.
+    pub const PUBLIC_UPDATES_CHANNEL_ID: Self = Self::from_bytes(b"public_updates_channel_id");
+
+    /// Ratelimit per user in a textual channel.
+    pub const RATE_LIMIT_PER_USER: Self = Self::from_bytes(b"rate_limit_per_user");
+
+    /// Region of a guild changed.
+    pub const REGION: Self = Self::from_bytes(b"region");
+
+    /// Role added to a user.
+    pub const ROLE_ADDED: Self = Self::from_bytes(b"$add");
+
+    /// Role removed from a user.
+    pub const ROLE_REMOVED: Self = Self::from_bytes(b"$remove");
+
+    /// ID of a guild's rules channel.
+    pub const RULES_CHANNEL_ID: Self = Self::from_bytes(b"rules_channel_id");
+
+    /// Hash of a guild's splash.
+    pub const SPLASH_HASH: Self = Self::from_bytes(b"splash_hash");
+
+    /// Status of guild scheduled event was changed.
+    pub const STATUS: Self = Self::from_bytes(b"status");
+
+    /// ID of a guild's system channel.
+    pub const SYSTEM_CHANNEL_ID: Self = Self::from_bytes(b"system_channel_id");
+
+    /// Related emoji of a sticker.
+    pub const TAGS: Self = Self::from_bytes(b"tags");
+
+    /// Whether an invite is temporary.
+    pub const TEMPORARY: Self = Self::from_bytes(b"temporary");
+
+    /// Topic of a textual channel.
+    pub const TOPIC: Self = Self::from_bytes(b"topic");
+
+    /// Type of a created entity.
+    pub const TYPE: Self = Self::from_bytes(b"type");
+
+    /// Role unicode emoji.
+    pub const UNICODE_EMOJI: Self = Self::from_bytes(b"unicode_emoji");
+
+    /// Maximum number of users in a voice channel.
+    pub const USER_LIMIT: Self = Self::from_bytes(b"user_limit");
+
+    /// Number of uses of an invite.
+    pub const USES: Self = Self::from_bytes(b"uses");
+
+    /// Code of a guild's vanity invite.
+    pub const VANITY_URL_CODE: Self = Self::from_bytes(b"vanity_url_code");
+
+    /// Required verification level of new members in a guild.
+    pub const VERIFICATION_LEVEL: Self = Self::from_bytes(b"verification_level");
+
+    /// Channel ID of a widget.
+    pub const WIDGET_CHANNEL_ID: Self = Self::from_bytes(b"widget_channel_id");
+
+    /// Whether a widget is enabled.
+    pub const WIDGET_ENABLED: Self = Self::from_bytes(b"widget_enabled");
+
+    /// Create a scope from a dynamic value.
     ///
-    /// The raw names of keys are in `snake_case` form.
+    /// The provided scope must be 64 bytes or smaller.
+    pub fn new(scope: &str) -> Option<Self> {
+        KnownString::from_str(scope).map(Self)
+    }
+
+    /// Get the value of the scope.
     ///
-    /// # Examples
+    /// # Panics
     ///
-    /// Check the names of the [`Allow`] and [`BannerHash`] keys:
-    ///
-    /// ```
-    /// use twilight_model::guild::audit_log::AuditLogChangeKey;
-    ///
-    /// assert_eq!("allow", AuditLogChangeKey::Allow.name());
-    /// assert_eq!("banner_hash", AuditLogChangeKey::BannerHash.name());
-    /// ```
-    ///
-    /// [`Allow`]: Self::Allow
-    /// [`BannerHash`]: Self::BannerHash
-    pub const fn name(self) -> &'static str {
-        match self {
-            Self::AfkChannelId => "afk_channel_id",
-            Self::AfkTimeout => "afk_timeout",
-            Self::Allow => "allow",
-            Self::ApplicationId => "application_id",
-            Self::Archived => "archived",
-            Self::Asset => "asset",
-            Self::AutoArchiveDuration => "auto_archive_duration",
-            Self::Available => "available",
-            Self::AvatarHash => "avatar_hash",
-            Self::BannerHash => "banner_hash",
-            Self::Bitrate => "bitrate",
-            Self::ChannelId => "channel_id",
-            Self::Code => "code",
-            Self::Color => "color",
-            Self::CommandId => "command_id",
-            Self::CommunicationDisabledUntil => "communication_disabled_until",
-            Self::Deaf => "deaf",
-            Self::DefaultAutoArchiveDuration => "default_auto_archive_duration",
-            Self::DefaultMessageNotifications => "default_message_notifications",
-            Self::Deny => "deny",
-            Self::Description => "description",
-            Self::DiscoverySplashHash => "discovery_splash_hash",
-            Self::EnableEmoticons => "enable_emoticons",
-            Self::EntityType => "entity_type",
-            Self::ExpireBehavior => "expire_behavior",
-            Self::ExpireGracePeriod => "expire_grace_period",
-            Self::ExplicitContentFilter => "explicit_content_filter",
-            Self::FormatType => "format_type",
-            Self::GuildId => "guild_id",
-            Self::Hoist => "hoist",
-            Self::IconHash => "icon_hash",
-            Self::Id => "id",
-            Self::ImageHash => "image_hash",
-            Self::Invitable => "invitable",
-            Self::InviterId => "inviter_id",
-            Self::Location => "location",
-            Self::Locked => "locked",
-            Self::MaxAge => "max_age",
-            Self::MaxUses => "max_uses",
-            Self::Mentionable => "mentionable",
-            Self::MfaLevel => "mfa_level",
-            Self::Mute => "mute",
-            Self::Name => "name",
-            Self::Nick => "nick",
-            Self::Nsfw => "nsfw",
-            Self::NsfwLevel => "nsfw_level",
-            Self::OwnerId => "owner_id",
-            Self::PermissionOverwrites => "permission_overwrites",
-            Self::Permissions => "permissions",
-            Self::Position => "position",
-            Self::PreferredLocale => "preferred_locale",
-            Self::PrivacyLevel => "privacy_level",
-            Self::PruneDeleteDays => "prune_delete_days",
-            Self::PublicUpdatesChannelId => "public_updates_channel_id",
-            Self::RateLimitPerUser => "rate_limit_per_user",
-            Self::Region => "region",
-            Self::RoleAdded => "$add",
-            Self::RoleRemoved => "$remove",
-            Self::RulesChannelId => "rules_channel_id",
-            Self::SplashHash => "splash_hash",
-            Self::Status => "status",
-            Self::SystemChannelId => "system_channel_id",
-            Self::Tags => "tags",
-            Self::Temporary => "temporary",
-            Self::Topic => "topic",
-            Self::Type => "type",
-            Self::UnicodeEmoji => "unicode_emoji",
-            Self::UserLimit => "user_limit",
-            Self::Uses => "uses",
-            Self::VanityUrlCode => "vanity_url_code",
-            Self::VerificationLevel => "verification_level",
-            Self::WidgetChannelId => "widget_channel_id",
-            Self::WidgetEnabled => "widget_enabled",
-        }
+    /// Panics if the scope isn't valid UTF-8.
+    pub fn get(&self) -> &str {
+        self.0.get()
+    }
+
+    /// Create a scope from a set of bytes.
+    const fn from_bytes(input: &[u8]) -> Self {
+        Self(KnownString::from_bytes(input))
     }
 }
 
-impl Display for AuditLogChangeKey {
+impl AsRef<str> for AuditLogChangeKey {
+    fn as_ref(&self) -> &str {
+        self.get()
+    }
+}
+
+impl Debug for AuditLogChangeKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.name())
+        f.write_str(self.get())
+    }
+}
+
+impl Deref for AuditLogChangeKey {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        self.get()
+    }
+}
+
+impl FromStr for AuditLogChangeKey {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::try_from(s)
+    }
+}
+
+impl ToString for AuditLogChangeKey {
+    fn to_string(&self) -> String {
+        KnownString::to_string(&self.0)
+    }
+}
+
+impl TryFrom<&str> for AuditLogChangeKey {
+    type Error = ();
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value).ok_or(())
     }
 }
 
@@ -272,526 +310,643 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
-    use std::{
-        fmt::{Debug, Display},
-        hash::Hash,
-    };
+    use std::{fmt::Debug, hash::Hash, str::FromStr};
 
     assert_impl_all!(
-        AuditLogChangeKey: Clone,
+        AuditLogChangeKey: AsRef<str>,
+        Clone,
         Copy,
         Debug,
         Deserialize<'static>,
-        Display,
         Eq,
+        FromStr,
         Hash,
         PartialEq,
         Send,
         Serialize,
-        Sync
+        Sync,
+        ToString,
+        TryFrom<&'static str>,
     );
 
     #[test]
     fn name() {
-        assert_eq!("afk_channel_id", AuditLogChangeKey::AfkChannelId.name());
-        assert_eq!("afk_timeout", AuditLogChangeKey::AfkTimeout.name());
-        assert_eq!("allow", AuditLogChangeKey::Allow.name());
-        assert_eq!("application_id", AuditLogChangeKey::ApplicationId.name());
-        assert_eq!("avatar_hash", AuditLogChangeKey::AvatarHash.name());
-        assert_eq!("banner_hash", AuditLogChangeKey::BannerHash.name());
-        assert_eq!("bitrate", AuditLogChangeKey::Bitrate.name());
-        assert_eq!("channel_id", AuditLogChangeKey::ChannelId.name());
-        assert_eq!("code", AuditLogChangeKey::Code.name());
-        assert_eq!("color", AuditLogChangeKey::Color.name());
-        assert_eq!("command_id", AuditLogChangeKey::CommandId.name());
+        assert_eq!("afk_channel_id", AuditLogChangeKey::AFK_CHANNEL_ID.get());
+        assert_eq!("afk_timeout", AuditLogChangeKey::AFK_TIMEOUT.get());
+        assert_eq!("allow", AuditLogChangeKey::ALLOW.get());
+        assert_eq!("application_id", AuditLogChangeKey::APPLICATION_ID.get());
+        assert_eq!("avatar_hash", AuditLogChangeKey::AVATAR_HASH.get());
+        assert_eq!("banner_hash", AuditLogChangeKey::BANNER_HASH.get());
+        assert_eq!("bitrate", AuditLogChangeKey::BITRATE.get());
+        assert_eq!("channel_id", AuditLogChangeKey::CHANNEL_ID.get());
+        assert_eq!("code", AuditLogChangeKey::CODE.get());
+        assert_eq!("color", AuditLogChangeKey::COLOR.get());
+        assert_eq!("command_id", AuditLogChangeKey::COMMAND_ID.get());
         assert_eq!(
             "communication_disabled_until",
-            AuditLogChangeKey::CommunicationDisabledUntil.name()
+            AuditLogChangeKey::COMMUNICATION_DISABLED_UNTIL.get()
         );
-        assert_eq!("deaf", AuditLogChangeKey::Deaf.name());
+        assert_eq!("deaf", AuditLogChangeKey::DEAF.get());
         assert_eq!(
             "default_message_notifications",
-            AuditLogChangeKey::DefaultMessageNotifications.name()
+            AuditLogChangeKey::DEFAULT_MESSAGE_NOTIFICATIONS.get()
         );
-        assert_eq!("deny", AuditLogChangeKey::Deny.name());
-        assert_eq!("description", AuditLogChangeKey::Description.name());
+        assert_eq!("deny", AuditLogChangeKey::DENY.get());
+        assert_eq!("description", AuditLogChangeKey::DESCRIPTION.get());
         assert_eq!(
             "discovery_splash_hash",
-            AuditLogChangeKey::DiscoverySplashHash.name()
+            AuditLogChangeKey::DISCOVERY_SPLASH_HASH.get()
         );
         assert_eq!(
             "enable_emoticons",
-            AuditLogChangeKey::EnableEmoticons.name()
+            AuditLogChangeKey::ENABLE_EMOTICONS.get()
         );
-        assert_eq!("expire_behavior", AuditLogChangeKey::ExpireBehavior.name());
+        assert_eq!("expire_behavior", AuditLogChangeKey::EXPIRE_BEHAVIOR.get());
         assert_eq!(
             "expire_grace_period",
-            AuditLogChangeKey::ExpireGracePeriod.name()
+            AuditLogChangeKey::EXPIRE_GRACE_PERIOD.get()
         );
         assert_eq!(
             "explicit_content_filter",
-            AuditLogChangeKey::ExplicitContentFilter.name()
+            AuditLogChangeKey::EXPLICIT_CONTENT_FILTER.get()
         );
-        assert_eq!("hoist", AuditLogChangeKey::Hoist.name());
-        assert_eq!("icon_hash", AuditLogChangeKey::IconHash.name());
-        assert_eq!("id", AuditLogChangeKey::Id.name());
-        assert_eq!("image_hash", AuditLogChangeKey::ImageHash.name());
-        assert_eq!("invitable", AuditLogChangeKey::Invitable.name());
-        assert_eq!("inviter_id", AuditLogChangeKey::InviterId.name());
-        assert_eq!("max_age", AuditLogChangeKey::MaxAge.name());
-        assert_eq!("max_uses", AuditLogChangeKey::MaxUses.name());
-        assert_eq!("mentionable", AuditLogChangeKey::Mentionable.name());
-        assert_eq!("mfa_level", AuditLogChangeKey::MfaLevel.name());
-        assert_eq!("mute", AuditLogChangeKey::Mute.name());
-        assert_eq!("name", AuditLogChangeKey::Name.name());
-        assert_eq!("nick", AuditLogChangeKey::Nick.name());
-        assert_eq!("nsfw_level", AuditLogChangeKey::NsfwLevel.name());
-        assert_eq!("owner_id", AuditLogChangeKey::OwnerId.name());
-        assert_eq!("permissions", AuditLogChangeKey::Permissions.name());
-        assert_eq!("position", AuditLogChangeKey::Position.name());
+        assert_eq!("hoist", AuditLogChangeKey::HOIST.get());
+        assert_eq!("icon_hash", AuditLogChangeKey::ICON_HASH.get());
+        assert_eq!("id", AuditLogChangeKey::ID.get());
+        assert_eq!("image_hash", AuditLogChangeKey::IMAGE_HASH.get());
+        assert_eq!("invitable", AuditLogChangeKey::INVITABLE.get());
+        assert_eq!("inviter_id", AuditLogChangeKey::INVITER_ID.get());
+        assert_eq!("max_age", AuditLogChangeKey::MAX_AGE.get());
+        assert_eq!("max_uses", AuditLogChangeKey::MAX_USES.get());
+        assert_eq!("mentionable", AuditLogChangeKey::MENTIONABLE.get());
+        assert_eq!("mfa_level", AuditLogChangeKey::MFA_LEVEL.get());
+        assert_eq!("mute", AuditLogChangeKey::MUTE.get());
+        assert_eq!("name", AuditLogChangeKey::NAME.get());
+        assert_eq!("nick", AuditLogChangeKey::NICK.get());
+        assert_eq!("nsfw_level", AuditLogChangeKey::NSFW_LEVEL.get());
+        assert_eq!("owner_id", AuditLogChangeKey::OWNER_ID.get());
+        assert_eq!("permissions", AuditLogChangeKey::PERMISSIONS.get());
+        assert_eq!("position", AuditLogChangeKey::POSITION.get());
         assert_eq!(
             "preferred_locale",
-            AuditLogChangeKey::PreferredLocale.name()
+            AuditLogChangeKey::PREFERRED_LOCALE.get()
         );
-        assert_eq!("privacy_level", AuditLogChangeKey::PrivacyLevel.name());
+        assert_eq!("privacy_level", AuditLogChangeKey::PRIVACY_LEVEL.get());
         assert_eq!(
             "prune_delete_days",
-            AuditLogChangeKey::PruneDeleteDays.name()
+            AuditLogChangeKey::PRUNE_DELETE_DAYS.get()
         );
         assert_eq!(
             "public_updates_channel_id",
-            AuditLogChangeKey::PublicUpdatesChannelId.name()
+            AuditLogChangeKey::PUBLIC_UPDATES_CHANNEL_ID.get()
         );
         assert_eq!(
             "rate_limit_per_user",
-            AuditLogChangeKey::RateLimitPerUser.name()
+            AuditLogChangeKey::RATE_LIMIT_PER_USER.get()
         );
-        assert_eq!("$add", AuditLogChangeKey::RoleAdded.name());
-        assert_eq!("$remove", AuditLogChangeKey::RoleRemoved.name());
-        assert_eq!("rules_channel_id", AuditLogChangeKey::RulesChannelId.name());
-        assert_eq!("splash_hash", AuditLogChangeKey::SplashHash.name());
+        assert_eq!("$add", AuditLogChangeKey::ROLE_ADDED.get());
+        assert_eq!("$remove", AuditLogChangeKey::ROLE_REMOVED.get());
+        assert_eq!(
+            "rules_channel_id",
+            AuditLogChangeKey::RULES_CHANNEL_ID.get()
+        );
+        assert_eq!("splash_hash", AuditLogChangeKey::SPLASH_HASH.get());
         assert_eq!(
             "system_channel_id",
-            AuditLogChangeKey::SystemChannelId.name()
+            AuditLogChangeKey::SYSTEM_CHANNEL_ID.get()
         );
-        assert_eq!("temporary", AuditLogChangeKey::Temporary.name());
-        assert_eq!("topic", AuditLogChangeKey::Topic.name());
-        assert_eq!("type", AuditLogChangeKey::Type.name());
-        assert_eq!("user_limit", AuditLogChangeKey::UserLimit.name());
-        assert_eq!("uses", AuditLogChangeKey::Uses.name());
-        assert_eq!("vanity_url_code", AuditLogChangeKey::VanityUrlCode.name());
+        assert_eq!("temporary", AuditLogChangeKey::TEMPORARY.get());
+        assert_eq!("topic", AuditLogChangeKey::TOPIC.get());
+        assert_eq!("type", AuditLogChangeKey::TYPE.get());
+        assert_eq!("user_limit", AuditLogChangeKey::USER_LIMIT.get());
+        assert_eq!("uses", AuditLogChangeKey::USES.get());
+        assert_eq!("vanity_url_code", AuditLogChangeKey::VANITY_URL_CODE.get());
         assert_eq!(
             "verification_level",
-            AuditLogChangeKey::VerificationLevel.name()
+            AuditLogChangeKey::VERIFICATION_LEVEL.get()
         );
         assert_eq!(
             "widget_channel_id",
-            AuditLogChangeKey::WidgetChannelId.name()
+            AuditLogChangeKey::WIDGET_CHANNEL_ID.get()
         );
-        assert_eq!("widget_enabled", AuditLogChangeKey::WidgetEnabled.name());
+        assert_eq!("widget_enabled", AuditLogChangeKey::WIDGET_ENABLED.get());
     }
 
     #[allow(clippy::too_many_lines)]
     #[test]
     fn serde() {
         serde_test::assert_tokens(
-            &AuditLogChangeKey::AfkChannelId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "afk_channel_id",
-            }],
+            &AuditLogChangeKey::AFK_CHANNEL_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("afk_channel_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::AfkTimeout,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "afk_timeout",
-            }],
+            &AuditLogChangeKey::AFK_TIMEOUT,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("afk_timeout"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Allow,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "allow",
-            }],
+            &AuditLogChangeKey::ALLOW,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("allow"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::ApplicationId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "application_id",
-            }],
+            &AuditLogChangeKey::APPLICATION_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("application_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::AvatarHash,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "avatar_hash",
-            }],
+            &AuditLogChangeKey::AVATAR_HASH,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("avatar_hash"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::BannerHash,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "banner_hash",
-            }],
+            &AuditLogChangeKey::BANNER_HASH,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("banner_hash"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Bitrate,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "bitrate",
-            }],
+            &AuditLogChangeKey::BITRATE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("bitrate"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::ChannelId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "channel_id",
-            }],
+            &AuditLogChangeKey::CHANNEL_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("channel_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Code,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "code",
-            }],
+            &AuditLogChangeKey::CODE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("code"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Color,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "color",
-            }],
+            &AuditLogChangeKey::COLOR,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("color"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::CommandId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "command_id",
-            }],
+            &AuditLogChangeKey::COMMAND_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("command_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::CommunicationDisabledUntil,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "communication_disabled_until",
-            }],
+            &AuditLogChangeKey::COMMUNICATION_DISABLED_UNTIL,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("communication_disabled_until"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Deaf,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "deaf",
-            }],
+            &AuditLogChangeKey::DEAF,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("deaf"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::DefaultMessageNotifications,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "default_message_notifications",
-            }],
+            &AuditLogChangeKey::DEFAULT_MESSAGE_NOTIFICATIONS,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("default_message_notifications"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Deny,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "deny",
-            }],
+            &AuditLogChangeKey::DENY,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("deny"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Description,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "description",
-            }],
+            &AuditLogChangeKey::DESCRIPTION,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("description"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::DiscoverySplashHash,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "discovery_splash_hash",
-            }],
+            &AuditLogChangeKey::DISCOVERY_SPLASH_HASH,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("discovery_splash_hash"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::EnableEmoticons,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "enable_emoticons",
-            }],
+            &AuditLogChangeKey::ENABLE_EMOTICONS,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("enable_emoticons"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::ExpireBehavior,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "expire_behavior",
-            }],
+            &AuditLogChangeKey::EXPIRE_BEHAVIOR,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("expire_behavior"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::ExpireGracePeriod,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "expire_grace_period",
-            }],
+            &AuditLogChangeKey::EXPIRE_GRACE_PERIOD,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("expire_grace_period"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::ExplicitContentFilter,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "explicit_content_filter",
-            }],
+            &AuditLogChangeKey::EXPLICIT_CONTENT_FILTER,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("explicit_content_filter"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Hoist,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "hoist",
-            }],
+            &AuditLogChangeKey::HOIST,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("hoist"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::IconHash,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "icon_hash",
-            }],
+            &AuditLogChangeKey::ICON_HASH,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("icon_hash"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Id,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "id",
-            }],
+            &AuditLogChangeKey::ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::ImageHash,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "image_hash",
-            }],
+            &AuditLogChangeKey::IMAGE_HASH,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("image_hash"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Invitable,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "invitable",
-            }],
+            &AuditLogChangeKey::INVITABLE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("invitable"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::InviterId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "inviter_id",
-            }],
+            &AuditLogChangeKey::INVITER_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("inviter_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::MaxAge,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "max_age",
-            }],
+            &AuditLogChangeKey::MAX_AGE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("max_age"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::MaxUses,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "max_uses",
-            }],
+            &AuditLogChangeKey::MAX_USES,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("max_uses"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Mentionable,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "mentionable",
-            }],
+            &AuditLogChangeKey::MENTIONABLE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("mentionable"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::MfaLevel,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "mfa_level",
-            }],
+            &AuditLogChangeKey::MFA_LEVEL,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("mfa_level"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Mute,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "mute",
-            }],
+            &AuditLogChangeKey::MUTE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("mute"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Name,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "name",
-            }],
+            &AuditLogChangeKey::NAME,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("name"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Nick,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "nick",
-            }],
+            &AuditLogChangeKey::NICK,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("nick"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::NsfwLevel,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "nsfw_level",
-            }],
+            &AuditLogChangeKey::NSFW_LEVEL,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("nsfw_level"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::OwnerId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "owner_id",
-            }],
+            &AuditLogChangeKey::OWNER_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("owner_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Permissions,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "permissions",
-            }],
+            &AuditLogChangeKey::PERMISSIONS,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("permissions"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Position,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "position",
-            }],
+            &AuditLogChangeKey::POSITION,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("position"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::PreferredLocale,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "preferred_locale",
-            }],
+            &AuditLogChangeKey::PREFERRED_LOCALE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("preferred_locale"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::PrivacyLevel,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "privacy_level",
-            }],
+            &AuditLogChangeKey::PRIVACY_LEVEL,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("privacy_level"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::PruneDeleteDays,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "prune_delete_days",
-            }],
+            &AuditLogChangeKey::PRUNE_DELETE_DAYS,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("prune_delete_days"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::PublicUpdatesChannelId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "public_updates_channel_id",
-            }],
+            &AuditLogChangeKey::PUBLIC_UPDATES_CHANNEL_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("public_updates_channel_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::RateLimitPerUser,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "rate_limit_per_user",
-            }],
+            &AuditLogChangeKey::RATE_LIMIT_PER_USER,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("rate_limit_per_user"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::RoleAdded,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "$add",
-            }],
+            &AuditLogChangeKey::ROLE_ADDED,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("$add"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::RoleRemoved,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "$remove",
-            }],
+            &AuditLogChangeKey::ROLE_REMOVED,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("$remove"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::RulesChannelId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "rules_channel_id",
-            }],
+            &AuditLogChangeKey::RULES_CHANNEL_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("rules_channel_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::SplashHash,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "splash_hash",
-            }],
+            &AuditLogChangeKey::SPLASH_HASH,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("splash_hash"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::SystemChannelId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "system_channel_id",
-            }],
+            &AuditLogChangeKey::SYSTEM_CHANNEL_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("system_channel_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Temporary,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "temporary",
-            }],
+            &AuditLogChangeKey::TEMPORARY,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("temporary"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Topic,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "topic",
-            }],
+            &AuditLogChangeKey::TOPIC,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("topic"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Type,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "type",
-            }],
+            &AuditLogChangeKey::TYPE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("type"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::UserLimit,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "user_limit",
-            }],
+            &AuditLogChangeKey::USER_LIMIT,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("user_limit"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::Uses,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "uses",
-            }],
+            &AuditLogChangeKey::USES,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("uses"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::VanityUrlCode,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "vanity_url_code",
-            }],
+            &AuditLogChangeKey::VANITY_URL_CODE,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("vanity_url_code"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::VerificationLevel,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "verification_level",
-            }],
+            &AuditLogChangeKey::VERIFICATION_LEVEL,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("verification_level"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::WidgetChannelId,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "widget_channel_id",
-            }],
+            &AuditLogChangeKey::WIDGET_CHANNEL_ID,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("widget_channel_id"),
+            ],
         );
         serde_test::assert_tokens(
-            &AuditLogChangeKey::WidgetEnabled,
-            &[Token::UnitVariant {
-                name: "AuditLogChangeKey",
-                variant: "widget_enabled",
-            }],
+            &AuditLogChangeKey::WIDGET_ENABLED,
+            &[
+                Token::NewtypeStruct {
+                    name: "AuditLogChangeKey",
+                },
+                Token::Str("widget_enabled"),
+            ],
         );
     }
 }

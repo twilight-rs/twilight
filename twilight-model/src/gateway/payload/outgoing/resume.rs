@@ -11,7 +11,7 @@ impl Resume {
     pub fn new(seq: u64, session_id: impl Into<String>, token: impl Into<String>) -> Self {
         Self {
             d: ResumeInfo::new(seq, session_id, token),
-            op: OpCode::Resume,
+            op: OpCode::RESUME,
         }
     }
 }

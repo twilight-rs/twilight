@@ -1,35 +1,44 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum ExplicitContentFilter {
-    None,
-    MembersWithoutRole,
-    AllMembers,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+pub struct ExplicitContentFilter(u8);
+
+impl ExplicitContentFilter {
+    pub const NONE: Self = Self::new(0);
+    pub const MEMBERS_WITHOUT_ROLE: Self = Self::new(1);
+    pub const ALL_MEMBERS: Self = Self::new(2);
+
+    /// Create a new explicit content filter from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`NONE`][`Self::NONE`].
+    pub const fn new(explicit_content_filter: u8) -> Self {
+        Self(explicit_content_filter)
+    }
+
+    /// Retrieve the value of the explicit content filter.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::guild::ExplicitContentFilter;
+    ///
+    /// assert_eq!(2, ExplicitContentFilter::ALL_MEMBERS.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for ExplicitContentFilter {
     fn from(value: u8) -> Self {
-        match value {
-            0 => ExplicitContentFilter::None,
-            1 => ExplicitContentFilter::MembersWithoutRole,
-            2 => ExplicitContentFilter::AllMembers,
-            unknown => ExplicitContentFilter::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<ExplicitContentFilter> for u8 {
     fn from(value: ExplicitContentFilter) -> Self {
-        match value {
-            ExplicitContentFilter::None => 0,
-            ExplicitContentFilter::MembersWithoutRole => 1,
-            ExplicitContentFilter::AllMembers => 2,
-            ExplicitContentFilter::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -38,11 +47,26 @@ mod tests {
     use super::ExplicitContentFilter;
     use serde_test::Token;
 
+    const MAP: &[(ExplicitContentFilter, u8)] = &[
+        (ExplicitContentFilter::NONE, 0),
+        (ExplicitContentFilter::MEMBERS_WITHOUT_ROLE, 1),
+        (ExplicitContentFilter::ALL_MEMBERS, 2),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&ExplicitContentFilter::None, &[Token::U8(0)]);
-        serde_test::assert_tokens(&ExplicitContentFilter::MembersWithoutRole, &[Token::U8(1)]);
-        serde_test::assert_tokens(&ExplicitContentFilter::AllMembers, &[Token::U8(2)]);
-        serde_test::assert_tokens(&ExplicitContentFilter::Unknown(99), &[Token::U8(99)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "ExplicitContentFilter",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, ExplicitContentFilter::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

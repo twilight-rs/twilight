@@ -112,7 +112,7 @@ mod tests {
         let client = Client::new(String::new());
 
         let response = InteractionResponse {
-            kind: InteractionResponseType::DeferredUpdateMessage,
+            kind: InteractionResponseType::DEFERRED_UPDATE_MESSAGE,
             data: None,
         };
 

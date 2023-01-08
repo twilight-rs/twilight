@@ -83,7 +83,7 @@ impl UpdatePresence {
 
         Ok(Self {
             d,
-            op: OpCode::PresenceUpdate,
+            op: OpCode::PRESENCE_UPDATE,
         })
     }
 }

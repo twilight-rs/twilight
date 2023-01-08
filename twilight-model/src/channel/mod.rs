@@ -172,7 +172,7 @@ pub struct Channel {
     pub user_limit: Option<u32>,
     /// Camera video quality mode of the channel.
     ///
-    /// Defaults to [`VideoQualityMode::Auto`] for applicable channels.
+    /// Defaults to [`VideoQualityMode::AUTO`] for applicable channels.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub video_quality_mode: Option<VideoQualityMode>,
 }
@@ -233,7 +233,7 @@ mod tests {
             icon: None,
             id: Id::new(2),
             invitable: None,
-            kind: ChannelType::GuildText,
+            kind: ChannelType::GUILD_TEXT,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: None,
@@ -275,7 +275,7 @@ mod tests {
             icon: None,
             id: Id::new(1),
             invitable: None,
-            kind: ChannelType::GuildCategory,
+            kind: ChannelType::GUILD_CATEGORY,
             last_message_id: None,
             last_pin_timestamp: None,
             member: None,
@@ -329,7 +329,7 @@ mod tests {
             icon: None,
             id: Id::new(1),
             invitable: None,
-            kind: ChannelType::GuildAnnouncement,
+            kind: ChannelType::GUILD_ANNOUNCEMENT,
             last_message_id: Some(Id::new(4)),
             last_pin_timestamp: None,
             member: None,
@@ -364,7 +364,7 @@ mod tests {
                 "permission_overwrites": permission_overwrites,
                 "position": 3,
                 "topic": "a news channel",
-                "type": ChannelType::GuildAnnouncement,
+                "type": ChannelType::GUILD_ANNOUNCEMENT,
             }))
             .unwrap()
         );
@@ -380,7 +380,7 @@ mod tests {
             applied_tags: None,
             available_tags: None,
             bitrate: None,
-            default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_auto_archive_duration: Some(AutoArchiveDuration::HOUR),
             default_forum_layout: None,
             default_reaction_emoji: None,
             default_sort_order: None,
@@ -390,7 +390,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: None,
-            kind: ChannelType::AnnouncementThread,
+            kind: ChannelType::ANNOUNCEMENT_THREAD,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -415,7 +415,7 @@ mod tests {
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
-                auto_archive_duration: AutoArchiveDuration::Day,
+                auto_archive_duration: AutoArchiveDuration::DAY,
                 archive_timestamp: timestamp,
                 create_timestamp: Some(timestamp),
                 invitable: None,
@@ -431,7 +431,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::AnnouncementThread,
+                "type": ChannelType::ANNOUNCEMENT_THREAD,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,
@@ -450,7 +450,7 @@ mod tests {
                 "thread_metadata": {
                     "archive_timestamp": formatted,
                     "archived": false,
-                    "auto_archive_duration": AutoArchiveDuration::Day,
+                    "auto_archive_duration": AutoArchiveDuration::DAY,
                     "create_timestamp": formatted,
                     "locked": false
                 }
@@ -468,7 +468,7 @@ mod tests {
             applied_tags: None,
             available_tags: None,
             bitrate: None,
-            default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_auto_archive_duration: Some(AutoArchiveDuration::HOUR),
             default_forum_layout: None,
             default_reaction_emoji: None,
             default_sort_order: None,
@@ -478,7 +478,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: None,
-            kind: ChannelType::PublicThread,
+            kind: ChannelType::PUBLIC_THREAD,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -503,7 +503,7 @@ mod tests {
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
-                auto_archive_duration: AutoArchiveDuration::Day,
+                auto_archive_duration: AutoArchiveDuration::DAY,
                 archive_timestamp: timestamp,
                 create_timestamp: Some(timestamp),
                 invitable: None,
@@ -519,7 +519,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::PublicThread,
+                "type": ChannelType::PUBLIC_THREAD,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,
@@ -538,7 +538,7 @@ mod tests {
                 "thread_metadata": {
                     "archive_timestamp": timestamp,
                     "archived": false,
-                    "auto_archive_duration": AutoArchiveDuration::Day,
+                    "auto_archive_duration": AutoArchiveDuration::DAY,
                     "create_timestamp": timestamp,
                     "locked": false
                 }
@@ -557,7 +557,7 @@ mod tests {
             applied_tags: None,
             available_tags: None,
             bitrate: None,
-            default_auto_archive_duration: Some(AutoArchiveDuration::Hour),
+            default_auto_archive_duration: Some(AutoArchiveDuration::HOUR),
             default_forum_layout: None,
             default_reaction_emoji: None,
             default_sort_order: None,
@@ -567,7 +567,7 @@ mod tests {
             icon: None,
             id: Id::new(6),
             invitable: Some(true),
-            kind: ChannelType::PrivateThread,
+            kind: ChannelType::PRIVATE_THREAD,
             last_message_id: Some(Id::new(3)),
             last_pin_timestamp: None,
             member: Some(ThreadMember {
@@ -589,7 +589,7 @@ mod tests {
                 allow: Permissions::empty(),
                 deny: Permissions::empty(),
                 id: Id::new(5),
-                kind: PermissionOverwriteType::Member,
+                kind: PermissionOverwriteType::MEMBER,
             }])),
             position: None,
             rate_limit_per_user: Some(1000),
@@ -597,7 +597,7 @@ mod tests {
             rtc_region: None,
             thread_metadata: Some(ThreadMetadata {
                 archived: false,
-                auto_archive_duration: AutoArchiveDuration::Day,
+                auto_archive_duration: AutoArchiveDuration::DAY,
                 archive_timestamp: timestamp,
                 create_timestamp: Some(timestamp),
                 invitable: None,
@@ -613,7 +613,7 @@ mod tests {
             serde_json::from_value(serde_json::json!({
                 "id": "6",
                 "guild_id": "1",
-                "type": ChannelType::PrivateThread,
+                "type": ChannelType::PRIVATE_THREAD,
                 "last_message_id": "3",
                 "member": {
                     "flags": 0,
@@ -633,7 +633,7 @@ mod tests {
                 "thread_metadata": {
                     "archive_timestamp": formatted,
                     "archived": false,
-                    "auto_archive_duration": AutoArchiveDuration::Day,
+                    "auto_archive_duration": AutoArchiveDuration::DAY,
                     "create_timestamp": formatted,
                     "locked": false
                 },

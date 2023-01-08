@@ -240,22 +240,20 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
 
     if let Some(name_localizations) = name_localizations {
         for name in name_localizations.values() {
-            match kind {
-                CommandType::ChatInput => self::chat_input_name(name)?,
-                CommandType::User | CommandType::Message => {
+            match *kind {
+                CommandType::CHAT_INPUT => self::chat_input_name(name)?,
+                CommandType::USER | CommandType::MESSAGE => {
                     self::name(name)?;
                 }
-                CommandType::Unknown(_) => (),
-                _ => unimplemented!(),
+                _ => {}
             }
         }
     }
 
-    match kind {
-        CommandType::ChatInput => self::chat_input_name(name),
-        CommandType::User | CommandType::Message => self::name(name),
-        CommandType::Unknown(_) => Ok(()),
-        _ => unimplemented!(),
+    match *kind {
+        CommandType::CHAT_INPUT => self::chat_input_name(name),
+        CommandType::USER | CommandType::MESSAGE => self::name(name),
+        _ => Ok(()),
     }
 }
 
@@ -294,9 +292,9 @@ pub fn description(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 ///
 /// Returns an error of type [`NameLengthInvalid`] if the name is invalid.
 ///
-/// [`User`]: CommandType::User
-/// [`Message`]: CommandType::Message
-/// [`ChatInput`]: CommandType::ChatInput
+/// [`User`]: CommandType::USER
+/// [`Message`]: CommandType::MESSAGE
+/// [`ChatInput`]: CommandType::CHAT_INPUT
 /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let len = value.as_ref().chars().count();
@@ -326,7 +324,7 @@ pub fn name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
 /// non-alphanumeric character or an uppercase character for which a lowercase
 /// variant exists.
 ///
-/// [`ChatInput`]: CommandType::ChatInput
+/// [`ChatInput`]: CommandType::CHAT_INPUT
 /// [`NameLengthInvalid`]: CommandValidationErrorType::NameLengthInvalid
 /// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 pub fn chat_input_name(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
@@ -380,7 +378,7 @@ pub fn option_name(value: impl AsRef<str>) -> Result<(), CommandValidationError>
 /// non-alphanumeric character or an uppercase character for which a lowercase
 /// variant exists.
 ///
-/// [`ChatInput`]: CommandType::ChatInput
+/// [`ChatInput`]: CommandType::CHAT_INPUT
 /// [`NameCharacterInvalid`]: CommandValidationErrorType::NameCharacterInvalid
 fn name_characters(value: impl AsRef<str>) -> Result<(), CommandValidationError> {
     let chars = value.as_ref().chars();
@@ -517,7 +515,7 @@ mod tests {
             )])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             name: "b".repeat(32),
             name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
             nsfw: None,

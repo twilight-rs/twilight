@@ -129,7 +129,7 @@ impl TryIntoRequest for CreateGuildUserCommand<'_> {
             dm_permission: None,
             description: None,
             description_localizations: None,
-            kind: CommandType::User,
+            kind: CommandType::USER,
             name: self.name,
             name_localizations: self.name_localizations,
             nsfw: self.nsfw,

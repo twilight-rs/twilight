@@ -5,7 +5,6 @@ use crate::{
     id::{marker::GenericMarker, Id},
 };
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// Permission overwrite data for a role or member.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -20,15 +19,48 @@ pub struct PermissionOverwrite {
 }
 
 /// Type of a permission overwrite target.
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
-#[serde(rename_all = "snake_case")]
-pub enum PermissionOverwriteType {
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct PermissionOverwriteType(u8);
+
+impl PermissionOverwriteType {
     /// Permission overwrite targets an individual member.
-    Member = 1,
+    pub const MEMBER: Self = Self::new(1);
+
     /// Permission overwrite targets an individual role.
-    Role = 0,
+    pub const ROLE: Self = Self::new(0);
+
+    /// Create a new permission overwrite from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`MEMBER`][`Self::MEMBER`].
+    pub const fn new(permission_overwrite: u8) -> Self {
+        Self(permission_overwrite)
+    }
+
+    /// Retrieve the value of the permission overwrite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::http::permission_overwrite::PermissionOverwriteType;
+    ///
+    /// assert_eq!(0, PermissionOverwriteType::ROLE.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
+}
+
+impl From<u8> for PermissionOverwriteType {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
+
+impl From<PermissionOverwriteType> for u8 {
+    fn from(value: PermissionOverwriteType) -> Self {
+        value.get()
+    }
 }
 
 #[cfg(test)]
@@ -37,7 +69,7 @@ mod tests {
     use crate::id::Id;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
-    use static_assertions::{assert_fields, assert_impl_all, const_assert_eq};
+    use static_assertions::{assert_fields, assert_impl_all};
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(PermissionOverwrite: allow, deny, kind);
@@ -62,8 +94,6 @@ mod tests {
         Send,
         Sync
     );
-    const_assert_eq!(0, PermissionOverwriteType::Role as u8);
-    const_assert_eq!(1, PermissionOverwriteType::Member as u8);
 
     #[test]
     fn overwrite() {
@@ -71,7 +101,7 @@ mod tests {
             allow: Some(Permissions::CREATE_INVITE),
             deny: Some(Permissions::KICK_MEMBERS),
             id: Id::new(12_345_678),
-            kind: PermissionOverwriteType::Member,
+            kind: PermissionOverwriteType::MEMBER,
         };
 
         serde_test::assert_tokens(
@@ -91,7 +121,10 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("12345678"),
                 Token::Str("type"),
-                Token::U8(PermissionOverwriteType::Member as u8),
+                Token::NewtypeStruct {
+                    name: "PermissionOverwriteType",
+                },
+                Token::U8(PermissionOverwriteType::MEMBER.get()),
                 Token::StructEnd,
             ],
         );
@@ -111,7 +144,7 @@ mod tests {
             allow: Some(Permissions::CREATE_INVITE),
             deny: Some(Permissions::KICK_MEMBERS),
             id: Id::new(1),
-            kind: PermissionOverwriteType::Member,
+            kind: PermissionOverwriteType::MEMBER,
         };
 
         let deserialized = serde_json::from_str::<PermissionOverwrite>(raw).unwrap();
@@ -135,6 +168,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "PermissionOverwriteType",
+                },
                 Token::U8(1),
                 Token::StructEnd,
             ],
@@ -142,8 +178,24 @@ mod tests {
     }
 
     #[test]
-    fn overwrite_type_name() {
-        serde_test::assert_tokens(&PermissionOverwriteType::Member, &[Token::U8(1)]);
-        serde_test::assert_tokens(&PermissionOverwriteType::Role, &[Token::U8(0)]);
+    fn overwrite_type() {
+        const MAP: &[(PermissionOverwriteType, u8)] = &[
+            (PermissionOverwriteType::MEMBER, 1),
+            (PermissionOverwriteType::ROLE, 0),
+        ];
+
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "PermissionOverwriteType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, PermissionOverwriteType::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

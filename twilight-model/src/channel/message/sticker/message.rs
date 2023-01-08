@@ -41,7 +41,7 @@ mod tests {
     #[test]
     fn full() {
         let value = MessageSticker {
-            format_type: StickerFormatType::Lottie,
+            format_type: StickerFormatType::LOTTIE,
             id: Id::new(1),
             name: "sticker".into(),
         };
@@ -54,7 +54,10 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("format_type"),
-                Token::U8(StickerFormatType::Lottie.into()),
+                Token::NewtypeStruct {
+                    name: "StickerFormatType",
+                },
+                Token::U8(StickerFormatType::LOTTIE.get()),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),

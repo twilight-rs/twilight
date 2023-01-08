@@ -9,55 +9,101 @@ use serde::{Deserialize, Serialize};
 /// [`Message`]: super::Message
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum MessageType {
+pub struct MessageType(u8);
+
+impl MessageType {
     /// Regular message.
-    Regular,
+    pub const REGULAR: Self = Self::new(0);
+
     /// System message denoting a recipient has been added to a group.
-    RecipientAdd,
+    pub const RECIPIENT_ADD: Self = Self::new(1);
+
     /// System message denoting a recipient has been removed from a group.
-    RecipientRemove,
+    pub const RECIPIENT_REMOVE: Self = Self::new(2);
+
     /// System message denoting a call state, e.g. missed, started.
-    Call,
+    pub const CALL: Self = Self::new(3);
+
     /// System message denoting a channel's name has been changed.
-    ChannelNameChange,
+    pub const CHANNEL_NAME_CHANGE: Self = Self::new(4);
+
     /// System message denoting a channel's icon has been changed.
-    ChannelIconChange,
+    pub const CHANNEL_ICON_CHANGE: Self = Self::new(5);
+
     /// System message denoting a message has been pinned.
-    ChannelMessagePinned,
+    pub const CHANNEL_MESSAGE_PINNED: Self = Self::new(6);
+
     /// System message denoting a member has joined a guild.
-    UserJoin,
+    pub const USER_JOIN: Self = Self::new(7);
+
     /// System message denoting a user nitro boosted a guild.
-    GuildBoost,
+    pub const GUILD_BOOST: Self = Self::new(8);
+
     /// System message denoting a user nitro boosted a guild to level 1.
-    GuildBoostTier1,
+    pub const GUILD_BOOST_TIER1: Self = Self::new(9);
+
     /// System message denoting a user nitro boosted a guild to level 2.
-    GuildBoostTier2,
+    pub const GUILD_BOOST_TIER2: Self = Self::new(10);
+
     /// System message denoting a user nitro boosted a guild to level 3.
-    GuildBoostTier3,
+    pub const GUILD_BOOST_TIER3: Self = Self::new(11);
+
     /// System message denoting a channel has been followed.
-    ChannelFollowAdd,
+    pub const CHANNEL_FOLLOW_ADD: Self = Self::new(12);
+
     /// System message denoting a guild has been disqualified for Server Discovery.
-    GuildDiscoveryDisqualified,
+    pub const GUILD_DISCOVERY_DISQUALIFIED: Self = Self::new(14);
+
     /// System message denoting a guild has been redisqualified for Server Discovery.
-    GuildDiscoveryRequalified,
+    pub const GUILD_DISCOVERY_REQUALIFIED: Self = Self::new(15);
+
     /// System message denoting an initial warning for Server Discovery disqualification.
-    GuildDiscoveryGracePeriodInitialWarning,
+    pub const GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING: Self = Self::new(16);
+
     /// System message denoting a final warning for Server Discovery disqualification.
-    GuildDiscoveryGracePeriodFinalWarning,
-    ThreadCreated,
+    pub const GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING: Self = Self::new(17);
+
+    /// Message is about a new thread.
+    pub const THREAD_CREATED: Self = Self::new(18);
+
     /// Message is an inline reply.
-    Reply,
+    pub const REPLY: Self = Self::new(19);
+
     /// Message is a chat input command.
-    ChatInputCommand,
-    ThreadStarterMessage,
-    GuildInviteReminder,
-    ContextMenuCommand,
+    pub const CHAT_INPUT_COMMAND: Self = Self::new(20);
+
+    /// Message is the starter for a thread.
+    pub const THREAD_STARTER_MESSAGE: Self = Self::new(21);
+
+    /// Message is a reminder for a scheduled event.
+    pub const GUILD_INVITE_REMINDER: Self = Self::new(22);
+
+    /// Message is a context menu command use.
+    pub const CONTEXT_MENU_COMMAND: Self = Self::new(23);
+
     /// Message is an auto moderation action.
-    AutoModerationAction,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+    pub const AUTO_MODERATION_ACTION: Self = Self::new(24);
+
+    /// Create a new message type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`REGULAR`][`Self::REGULAR`].
+    pub const fn new(message_type: u8) -> Self {
+        Self(message_type)
+    }
+
+    /// Retrieve the value of the message type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::message::MessageType;
+    ///
+    /// assert_eq!(19, MessageType::REPLY.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl MessageType {
@@ -65,7 +111,7 @@ impl MessageType {
     /// Some message types can't be deleted, even by server administrators.
     ///
     /// Some message types can only be deleted with certain permissions. For
-    /// example, [`AutoModerationAction`][`Self::AutoModerationAction`] can only
+    /// example, [`AUTO_MODERATION_ACTION`][`Self::AUTO_MODERATION_ACTION`] can only
     /// be deleted if the user has the
     /// [Manage Messages] permission.
     ///
@@ -77,20 +123,20 @@ impl MessageType {
     pub const fn deletable(self) -> bool {
         matches!(
             self,
-            Self::Regular
-                | Self::ChannelMessagePinned
-                | Self::UserJoin
-                | Self::GuildBoost
-                | Self::GuildBoostTier1
-                | Self::GuildBoostTier2
-                | Self::GuildBoostTier3
-                | Self::ChannelFollowAdd
-                | Self::ThreadCreated
-                | Self::Reply
-                | Self::ChatInputCommand
-                | Self::GuildInviteReminder
-                | Self::ContextMenuCommand
-                | Self::AutoModerationAction
+            Self::REGULAR
+                | Self::CHANNEL_MESSAGE_PINNED
+                | Self::USER_JOIN
+                | Self::GUILD_BOOST
+                | Self::GUILD_BOOST_TIER1
+                | Self::GUILD_BOOST_TIER2
+                | Self::GUILD_BOOST_TIER3
+                | Self::CHANNEL_FOLLOW_ADD
+                | Self::THREAD_CREATED
+                | Self::REPLY
+                | Self::CHAT_INPUT_COMMAND
+                | Self::GUILD_INVITE_REMINDER
+                | Self::CONTEXT_MENU_COMMAND
+                | Self::AUTO_MODERATION_ACTION
         )
     }
 
@@ -98,7 +144,7 @@ impl MessageType {
     /// Some message types can't be deleted, even by server administrators.
     ///
     /// Some message types can only be deleted with certain permissions. For
-    /// example, [`AutoModerationAction`][`Self::AutoModerationAction`] can only
+    /// example, [`AUTO_MODERATION_ACTION`][`Self::AUTO_MODERATION_ACTION`] can only
     /// be deleted if the user has the [Manage Messages] permission.
     ///
     /// To check whether a message can be deleted *without* taking permissions
@@ -107,7 +153,7 @@ impl MessageType {
     /// [Manage Messages]: Permissions::MANAGE_MESSAGES
     pub const fn deletable_with_permissions(self, permissions: Permissions) -> bool {
         let required_permissions = match self {
-            Self::AutoModerationAction => Permissions::MANAGE_MESSAGES,
+            Self::AUTO_MODERATION_ACTION => Permissions::MANAGE_MESSAGES,
             _ => Permissions::empty(),
         };
 
@@ -121,65 +167,13 @@ impl MessageType {
 
 impl From<u8> for MessageType {
     fn from(value: u8) -> Self {
-        match value {
-            0 => Self::Regular,
-            1 => Self::RecipientAdd,
-            2 => Self::RecipientRemove,
-            3 => Self::Call,
-            4 => Self::ChannelNameChange,
-            5 => Self::ChannelIconChange,
-            6 => Self::ChannelMessagePinned,
-            7 => Self::UserJoin,
-            8 => Self::GuildBoost,
-            9 => Self::GuildBoostTier1,
-            10 => Self::GuildBoostTier2,
-            11 => Self::GuildBoostTier3,
-            12 => Self::ChannelFollowAdd,
-            14 => Self::GuildDiscoveryDisqualified,
-            15 => Self::GuildDiscoveryRequalified,
-            16 => Self::GuildDiscoveryGracePeriodInitialWarning,
-            17 => Self::GuildDiscoveryGracePeriodFinalWarning,
-            18 => Self::ThreadCreated,
-            19 => Self::Reply,
-            20 => Self::ChatInputCommand,
-            21 => Self::ThreadStarterMessage,
-            22 => Self::GuildInviteReminder,
-            23 => Self::ContextMenuCommand,
-            24 => Self::AutoModerationAction,
-            unknown => Self::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<MessageType> for u8 {
     fn from(value: MessageType) -> Self {
-        match value {
-            MessageType::Regular => 0,
-            MessageType::RecipientAdd => 1,
-            MessageType::RecipientRemove => 2,
-            MessageType::Call => 3,
-            MessageType::ChannelNameChange => 4,
-            MessageType::ChannelIconChange => 5,
-            MessageType::ChannelMessagePinned => 6,
-            MessageType::UserJoin => 7,
-            MessageType::GuildBoost => 8,
-            MessageType::GuildBoostTier1 => 9,
-            MessageType::GuildBoostTier2 => 10,
-            MessageType::GuildBoostTier3 => 11,
-            MessageType::ChannelFollowAdd => 12,
-            MessageType::GuildDiscoveryDisqualified => 14,
-            MessageType::GuildDiscoveryRequalified => 15,
-            MessageType::GuildDiscoveryGracePeriodInitialWarning => 16,
-            MessageType::GuildDiscoveryGracePeriodFinalWarning => 17,
-            MessageType::ThreadCreated => 18,
-            MessageType::Reply => 19,
-            MessageType::ChatInputCommand => 20,
-            MessageType::ThreadStarterMessage => 21,
-            MessageType::GuildInviteReminder => 22,
-            MessageType::ContextMenuCommand => 23,
-            MessageType::AutoModerationAction => 24,
-            MessageType::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -205,55 +199,66 @@ mod tests {
         Sync
     );
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn message_type() {
         const MAP: &[(MessageType, u8, bool)] = &[
-            (MessageType::Regular, 0, true),
-            (MessageType::RecipientAdd, 1, false),
-            (MessageType::RecipientRemove, 2, false),
-            (MessageType::Call, 3, false),
-            (MessageType::ChannelNameChange, 4, false),
-            (MessageType::ChannelIconChange, 5, false),
-            (MessageType::ChannelMessagePinned, 6, true),
-            (MessageType::UserJoin, 7, true),
-            (MessageType::GuildBoost, 8, true),
-            (MessageType::GuildBoostTier1, 9, true),
-            (MessageType::GuildBoostTier2, 10, true),
-            (MessageType::GuildBoostTier3, 11, true),
-            (MessageType::ChannelFollowAdd, 12, true),
-            (MessageType::GuildDiscoveryDisqualified, 14, false),
-            (MessageType::GuildDiscoveryRequalified, 15, false),
+            (MessageType::REGULAR, 0, true),
+            (MessageType::RECIPIENT_ADD, 1, false),
+            (MessageType::RECIPIENT_REMOVE, 2, false),
+            (MessageType::CALL, 3, false),
+            (MessageType::CHANNEL_NAME_CHANGE, 4, false),
+            (MessageType::CHANNEL_ICON_CHANGE, 5, false),
+            (MessageType::CHANNEL_MESSAGE_PINNED, 6, true),
+            (MessageType::USER_JOIN, 7, true),
+            (MessageType::GUILD_BOOST, 8, true),
+            (MessageType::GUILD_BOOST_TIER1, 9, true),
+            (MessageType::GUILD_BOOST_TIER2, 10, true),
+            (MessageType::GUILD_BOOST_TIER3, 11, true),
+            (MessageType::CHANNEL_FOLLOW_ADD, 12, true),
+            (MessageType::GUILD_DISCOVERY_DISQUALIFIED, 14, false),
+            (MessageType::GUILD_DISCOVERY_REQUALIFIED, 15, false),
             (
-                MessageType::GuildDiscoveryGracePeriodInitialWarning,
+                MessageType::GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING,
                 16,
                 false,
             ),
             (
-                MessageType::GuildDiscoveryGracePeriodFinalWarning,
+                MessageType::GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING,
                 17,
                 false,
             ),
-            (MessageType::ThreadCreated, 18, true),
-            (MessageType::Reply, 19, true),
-            (MessageType::ChatInputCommand, 20, true),
-            (MessageType::ThreadStarterMessage, 21, false),
-            (MessageType::GuildInviteReminder, 22, true),
-            (MessageType::ContextMenuCommand, 23, true),
-            (MessageType::AutoModerationAction, 24, true),
+            (MessageType::THREAD_CREATED, 18, true),
+            (MessageType::REPLY, 19, true),
+            (MessageType::CHAT_INPUT_COMMAND, 20, true),
+            (MessageType::THREAD_STARTER_MESSAGE, 21, false),
+            (MessageType::GUILD_INVITE_REMINDER, 22, true),
+            (MessageType::CONTEXT_MENU_COMMAND, 23, true),
+            (MessageType::AUTO_MODERATION_ACTION, 24, true),
         ];
 
         for (message_type, number, deletable) in MAP {
             assert_eq!(*message_type, MessageType::from(*number));
             assert_eq!(*number, u8::from(*message_type));
             assert_eq!(*deletable, message_type.deletable());
-            serde_test::assert_tokens(message_type, &[Token::U8(*number)]);
+            serde_test::assert_tokens(
+                message_type,
+                &[
+                    Token::NewtypeStruct {
+                        name: "MessageType",
+                    },
+                    Token::U8(*number),
+                ],
+            );
         }
     }
 
     #[test]
     fn deletable_with_permissions() {
-        assert!(MessageType::AutoModerationAction
+        assert!(MessageType::AUTO_MODERATION_ACTION
             .deletable_with_permissions(Permissions::MANAGE_MESSAGES));
-        assert!(!MessageType::AutoModerationAction.deletable_with_permissions(Permissions::empty()));
+        assert!(
+            !MessageType::AUTO_MODERATION_ACTION.deletable_with_permissions(Permissions::empty())
+        );
     }
 }

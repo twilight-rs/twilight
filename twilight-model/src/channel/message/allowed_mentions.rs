@@ -3,9 +3,14 @@ use crate::{
         marker::{RoleMarker, UserMarker},
         Id,
     },
-    util::is_false,
+    util::{is_false, known_string::KnownString},
 };
 use serde::{Deserialize, Serialize};
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    ops::Deref,
+    str::FromStr,
+};
 
 /// Allowed mentions (pings).
 ///
@@ -23,7 +28,7 @@ use serde::{Deserialize, Serialize};
 pub struct AllowedMentions {
     /// List of allowed mention types.
     ///
-    /// [`MentionType::Roles`] and [`MentionType::Users`] allows all roles and users to be
+    /// [`MentionType::ROLES`] and [`MentionType::USERS`] allows all roles and users to be
     /// mentioned; they are mutually exclusive with the [`roles`] and [`users`] fields.
     ///
     /// [`roles`]: Self::roles
@@ -44,16 +49,81 @@ pub struct AllowedMentions {
 }
 
 /// Allowed mention type.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(rename_all = "lowercase")]
-pub enum MentionType {
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct MentionType(KnownString<16>);
+
+impl MentionType {
     /// `@everyone` and `@here` mentions.
-    Everyone,
+    pub const EVERYONE: Self = Self::from_bytes(b"everyone");
+
     /// Role mentions.
-    Roles,
+    pub const ROLES: Self = Self::from_bytes(b"roles");
+
     /// User mentions.
-    Users,
+    pub const USERS: Self = Self::from_bytes(b"users");
+
+    /// Create a mention type from a dynamic value.
+    ///
+    /// The provided mention type must be 64 bytes or smaller.
+    pub fn new(mention_type: &str) -> Option<Self> {
+        KnownString::from_str(mention_type).map(Self)
+    }
+
+    /// Get the value of the mention type.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the mention type isn't valid UTF-8.
+    pub fn get(&self) -> &str {
+        self.0.get()
+    }
+
+    /// Create a mention type from a set of bytes.
+    const fn from_bytes(input: &[u8]) -> Self {
+        Self(KnownString::from_bytes(input))
+    }
+}
+
+impl AsRef<str> for MentionType {
+    fn as_ref(&self) -> &str {
+        self.get()
+    }
+}
+
+impl Debug for MentionType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(self.get())
+    }
+}
+
+impl Deref for MentionType {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        self.get()
+    }
+}
+
+impl FromStr for MentionType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::try_from(s)
+    }
+}
+
+impl ToString for MentionType {
+    fn to_string(&self) -> String {
+        KnownString::to_string(&self.0)
+    }
+}
+
+impl TryFrom<&str> for MentionType {
+    type Error = ();
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value).ok_or(())
+    }
 }
 
 #[cfg(test)]
@@ -89,7 +159,7 @@ mod tests {
     #[test]
     fn full() {
         let value = AllowedMentions {
-            parse: Vec::from([MentionType::Everyone]),
+            parse: Vec::from([MentionType::EVERYONE]),
             users: Vec::from([Id::new(100)]),
             roles: Vec::from([Id::new(200)]),
             replied_user: true,
@@ -104,10 +174,10 @@ mod tests {
                 },
                 Token::Str("parse"),
                 Token::Seq { len: Some(1) },
-                Token::UnitVariant {
+                Token::NewtypeStruct {
                     name: "MentionType",
-                    variant: "everyone",
                 },
+                Token::Str("everyone"),
                 Token::SeqEnd,
                 Token::Str("replied_user"),
                 Token::Bool(true),

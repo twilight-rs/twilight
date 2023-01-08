@@ -192,7 +192,7 @@ impl TryIntoRequest for CreateGuildChatInputCommand<'_> {
             dm_permission: None,
             description: Some(self.description),
             description_localizations: self.description_localizations,
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             name: self.name,
             name_localizations: self.name_localizations,
             nsfw: self.nsfw,

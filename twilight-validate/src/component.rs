@@ -203,7 +203,7 @@ impl Display for ComponentValidationError {
                 Debug::fmt(style, f)?;
                 f.write_str(", which must have a ")?;
 
-                f.write_str(if *style == ButtonStyle::Link {
+                f.write_str(if *style == ButtonStyle::LINK {
                     "url"
                 } else {
                     "custom id"
@@ -353,7 +353,7 @@ pub enum ComponentValidationErrorType {
     ButtonConflict,
     /// Button does not have the required field based on its style.
     ///
-    /// A button with a style of [`ButtonStyle::Link`] must have a URL set,
+    /// A button with a style of [`ButtonStyle::LINK`] must have a URL set,
     /// while buttons of other styles must have a custom ID set.
     ButtonStyle {
         /// Style of the button.
@@ -518,7 +518,7 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
             Component::ActionRow(_) => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::InvalidChildComponent {
-                        kind: ComponentType::ActionRow,
+                        kind: ComponentType::ACTION_ROW,
                     },
                 });
             }
@@ -527,9 +527,7 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
             Component::TextInput(text_input) => self::text_input(text_input)?,
             Component::Unknown(unknown) => {
                 return Err(ComponentValidationError {
-                    kind: ComponentValidationErrorType::InvalidChildComponent {
-                        kind: ComponentType::Unknown(*unknown),
-                    },
+                    kind: ComponentValidationErrorType::InvalidChildComponent { kind: *unknown },
                 })
             }
         }
@@ -547,8 +545,8 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
 ///
 /// Returns an error of type
 /// [`ButtonStyle`][`ComponentValidationErrorType::ButtonStyle`] if
-/// [`ButtonStyle::Link`] is provided and a URL is provided, or if the style is
-/// not [`ButtonStyle::Link`] and a custom ID is not provided.
+/// [`ButtonStyle::LINK`] is provided and a URL is provided, or if the style is
+/// not [`ButtonStyle::LINK`] and a custom ID is not provided.
 ///
 /// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
 /// ID is too long.
@@ -575,7 +573,7 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     //
     // Lastly, we check if the button is not a link and a custom ID is
     // not set.
-    let is_link = button.style == ButtonStyle::Link;
+    let is_link = button.style == ButtonStyle::LINK;
 
     if (is_link && !has_url) || (!is_link && !has_custom_id) {
         return Err(ComponentValidationError {
@@ -1071,11 +1069,11 @@ mod tests {
 
     // All styles of buttons.
     const ALL_BUTTON_STYLES: &[ButtonStyle] = &[
-        ButtonStyle::Primary,
-        ButtonStyle::Secondary,
-        ButtonStyle::Success,
-        ButtonStyle::Danger,
-        ButtonStyle::Link,
+        ButtonStyle::PRIMARY,
+        ButtonStyle::SECONDARY,
+        ButtonStyle::SUCCESS,
+        ButtonStyle::DANGER,
+        ButtonStyle::LINK,
     ];
 
     #[test]
@@ -1087,7 +1085,7 @@ mod tests {
                 name: "📚".into()
             }),
             label: Some("Read".into()),
-            style: ButtonStyle::Link,
+            style: ButtonStyle::LINK,
             url: Some("https://abebooks.com".into()),
         };
 
@@ -1142,7 +1140,7 @@ mod tests {
             disabled: false,
             emoji: None,
             label: None,
-            style: ButtonStyle::Primary,
+            style: ButtonStyle::PRIMARY,
             url: Some("https://twilight.rs".to_owned()),
         };
 

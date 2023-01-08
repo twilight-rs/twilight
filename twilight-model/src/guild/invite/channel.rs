@@ -27,7 +27,7 @@ mod tests {
         let value = InviteChannel {
             id: Id::new(1),
             name: Some("channel name".to_owned()),
-            kind: ChannelType::GuildText,
+            kind: ChannelType::GUILD_TEXT,
         };
 
         serde_test::assert_tokens(
@@ -44,6 +44,9 @@ mod tests {
                 Token::Some,
                 Token::Str("channel name"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "ChannelType",
+                },
                 Token::U8(0),
                 Token::StructEnd,
             ],

@@ -1,6 +1,5 @@
 use crate::channel::ChannelType;
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{cmp::Eq, collections::HashMap};
 
 /// Option for a [`Command`].
@@ -20,15 +19,15 @@ use std::{cmp::Eq, collections::HashMap};
 pub struct CommandOption {
     /// Whether the command supports autocomplete.
     ///
-    /// Applicable for options of type [`Integer`], [`Number`], and [`String`].
+    /// Applicable for options of type [`INTEGER`], [`NUMBER`], and [`STRING`].
     ///
     /// Defaults to `false`.
     ///
     /// **Note**: may not be set to `true` if `choices` are set.
     ///
-    /// [`Integer`]: CommandOptionType::Integer
-    /// [`Number`]: CommandOptionType::Number
-    /// [`String`]: CommandOptionType::String
+    /// [`INTEGER`]: CommandOptionType::INTEGER
+    /// [`NUMBER`]: CommandOptionType::NUMBER
+    /// [`STRING`]: CommandOptionType::STRING
     #[serde(skip_serializing_if = "Option::is_none")]
     pub autocomplete: Option<bool>,
     /// List of possible channel types users can select from.
@@ -37,12 +36,12 @@ pub struct CommandOption {
     ///
     /// Defaults to any channel type.
     ///
-    /// [`Channel`]: CommandOptionType::Channel
+    /// [`CHANNEL`]: CommandOptionType::CHANNEL
     #[serde(skip_serializing_if = "Option::is_none")]
     pub channel_types: Option<Vec<ChannelType>>,
     /// List of predetermined choices users can select from.
     ///
-    /// Applicable for options of type [`Integer`], [`Number`], and [`String`].
+    /// Applicable for options of type [`INTEGER`], [`NUMBER`], and [`STRING`].
     ///
     /// Defaults to no choices; users may input a value of their choice.
     ///
@@ -50,9 +49,9 @@ pub struct CommandOption {
     ///
     /// **Note**: all choices must be of the same type.
     ///
-    /// [`Integer`]: CommandOptionType::Integer
-    /// [`Number`]: CommandOptionType::Number
-    /// [`String`]: CommandOptionType::String
+    /// [`INTEGER`]: CommandOptionType::INTEGER
+    /// [`NUMBER`]: CommandOptionType::NUMBER
+    /// [`STRING`]: CommandOptionType::STRING
     #[serde(skip_serializing_if = "Option::is_none")]
     pub choices: Option<Vec<CommandOptionChoice>>,
     /// Description of the option. Must be 100 characters or less.
@@ -77,38 +76,38 @@ pub struct CommandOption {
     ///
     /// Must be at least `1` and at most `6000`.
     ///
-    /// [`String`]: CommandOptionType::String
+    /// [`STRING`]: CommandOptionType::STRING
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_length: Option<u16>,
     /// Maximum allowed value.
     ///
-    /// Applicable for options of type [`Integer`] and [`Number`].
+    /// Applicable for options of type [`INTEGER`] and [`NUMBER`].
     ///
     /// Defaults to no maximum.
     ///
-    /// [`Integer`]: CommandOptionType::Integer
-    /// [`Number`]: CommandOptionType::Number
+    /// [`INTEGER`]: CommandOptionType::INTEGER
+    /// [`NUMBER`]: CommandOptionType::NUMBER
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_value: Option<CommandOptionValue>,
     /// Minimum allowed value length.
     ///
-    /// Applicable for options of type [`String`].
+    /// Applicable for options of type [`STRING`].
     ///
     /// Defaults to `0`.
     ///
     /// Must be at most `6000`.
     ///
-    /// [`String`]: CommandOptionType::String
+    /// [`STRING`]: CommandOptionType::STRING
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_length: Option<u16>,
     /// Minimum allowed value.
     ///
-    /// Applicable for options of type [`Integer`] and [`Number`].
+    /// Applicable for options of type [`INTEGER`] and [`NUMBER`].
     ///
     /// Defaults to no minimum.
     ///
-    /// [`Integer`]: CommandOptionType::Integer
-    /// [`Number`]: CommandOptionType::Number
+    /// [`INTEGER`]: CommandOptionType::INTEGER
+    /// [`NUMBER`]: CommandOptionType::NUMBER
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_value: Option<CommandOptionValue>,
     /// Name of the option. Must be 32 characters or less.
@@ -124,29 +123,29 @@ pub struct CommandOption {
     pub name_localizations: Option<HashMap<String, String>>,
     /// Nested options.
     ///
-    /// Applicable for options of type [`SubCommand`] and [`SubCommandGroup`].
+    /// Applicable for options of type [`SUB_COMMAND`] and [`SUB_COMMAND_GROUP`].
     ///
     /// Defaults to no options.
     ///
-    /// **Note**: at least one option is required and [`SubCommandGroup`] may
-    /// only contain [`SubCommand`]s.
+    /// **Note**: at least one option is required and [`SUB_COMMAND_GROUP`] may
+    /// only contain [`SUB_COMMAND`]s.
     ///
     /// See [Discord Docs/Subcommands and Subcommand Groups].
     ///
     /// [Discord Docs/Subcommands and Subcommand Groups]: https://discord.com/developers/docs/interactions/application-commands#subcommands-and-subcommand-groups
-    /// [`SubCommand`]: CommandOptionType::SubCommand
-    /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
+    /// [`SUB_COMMAND`]: CommandOptionType::SUB_COMMAND
+    /// [`SUB_COMMAND_GROUP`]: CommandOptionType::SUB_COMMAND_GROUP
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Vec<CommandOption>>,
     /// Whether the option is required.
     ///
-    /// Applicable for all options except those of type [`SubCommand`] and
-    /// [`SubCommandGroup`].
+    /// Applicable for all options except those of type [`SUB_COMMAND`] and
+    /// [`SUB_COMMAND_GROUP`].
     ///
     /// Defaults to `false`.
     ///
-    /// [`SubCommand`]: CommandOptionType::SubCommand
-    /// [`SubCommandGroup`]: CommandOptionType::SubCommandGroup
+    /// [`SUB_COMMAND`]: CommandOptionType::SUB_COMMAND
+    /// [`SUB_COMMAND_GROUP`]: CommandOptionType::SUB_COMMAND_GROUP
     #[serde(skip_serializing_if = "Option::is_none")]
     pub required: Option<bool>,
 }
@@ -200,37 +199,99 @@ pub enum CommandOptionValue {
 }
 
 /// Type of a [`CommandOption`].
-#[derive(Clone, Copy, Debug, Deserialize_repr, Eq, Hash, PartialEq, Serialize_repr)]
-#[non_exhaustive]
-#[repr(u8)]
-pub enum CommandOptionType {
-    SubCommand = 1,
-    SubCommandGroup = 2,
-    String = 3,
-    Integer = 4,
-    Boolean = 5,
-    User = 6,
-    Channel = 7,
-    Role = 8,
-    Mentionable = 9,
-    Number = 10,
-    Attachment = 11,
-}
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct CommandOptionType(u8);
 
 impl CommandOptionType {
-    pub const fn kind(self) -> &'static str {
-        match self {
-            CommandOptionType::SubCommand => "SubCommand",
-            CommandOptionType::SubCommandGroup => "SubCommandGroup",
-            CommandOptionType::String => "String",
-            CommandOptionType::Integer => "Integer",
-            CommandOptionType::Boolean => "Boolean",
-            CommandOptionType::User => "User",
-            CommandOptionType::Channel => "Channel",
-            CommandOptionType::Role => "Role",
-            CommandOptionType::Mentionable => "Mentionable",
-            CommandOptionType::Number => "Number",
-            CommandOptionType::Attachment => "Attachment",
+    pub const SUB_COMMAND: Self = Self::new(1);
+
+    pub const SUB_COMMAND_GROUP: Self = Self::new(2);
+
+    pub const STRING: Self = Self::new(3);
+
+    pub const INTEGER: Self = Self::new(4);
+
+    pub const BOOLEAN: Self = Self::new(5);
+
+    pub const USER: Self = Self::new(6);
+
+    pub const CHANNEL: Self = Self::new(7);
+
+    pub const ROLE: Self = Self::new(8);
+
+    pub const MENTIONABLE: Self = Self::new(9);
+
+    pub const NUMBER: Self = Self::new(10);
+
+    pub const ATTACHMENT: Self = Self::new(11);
+
+    /// Create a new command option type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`STRING`][`Self::STRING`].
+    pub const fn new(command_option_type: u8) -> Self {
+        Self(command_option_type)
+    }
+
+    /// Retrieve the value of the command option type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::application::command::CommandOptionType;
+    ///
+    /// assert_eq!(4, CommandOptionType::INTEGER.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
+}
+
+impl From<u8> for CommandOptionType {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
+
+impl From<CommandOptionType> for u8 {
+    fn from(value: CommandOptionType) -> Self {
+        value.get()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CommandOptionType;
+    use serde_test::Token;
+
+    const MAP: &[(CommandOptionType, u8)] = &[
+        (CommandOptionType::SUB_COMMAND, 1),
+        (CommandOptionType::SUB_COMMAND_GROUP, 2),
+        (CommandOptionType::STRING, 3),
+        (CommandOptionType::INTEGER, 4),
+        (CommandOptionType::BOOLEAN, 5),
+        (CommandOptionType::USER, 6),
+        (CommandOptionType::CHANNEL, 7),
+        (CommandOptionType::ROLE, 8),
+        (CommandOptionType::MENTIONABLE, 9),
+        (CommandOptionType::NUMBER, 10),
+        (CommandOptionType::ATTACHMENT, 11),
+    ];
+
+    #[test]
+    fn variants() {
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "CommandOptionType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, CommandOptionType::from(*num));
+            assert_eq!(*num, kind.get());
         }
     }
 }

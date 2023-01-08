@@ -238,7 +238,7 @@ mod tests {
             guild_id: Some(Id::new(1)),
             id: Id::new(4),
             interaction: None,
-            kind: MessageType::Regular,
+            kind: MessageType::REGULAR,
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,
@@ -259,7 +259,7 @@ mod tests {
             reactions: Vec::new(),
             reference: None,
             sticker_items: vec![MessageSticker {
-                format_type: StickerFormatType::Png,
+                format_type: StickerFormatType::PNG,
                 id: Id::new(1),
                 name: "sticker name".to_owned(),
             }],
@@ -323,6 +323,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "MessageType",
+                },
                 Token::U8(0),
                 Token::Str("member"),
                 Token::Some,
@@ -364,6 +367,9 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("format_type"),
+                Token::NewtypeStruct {
+                    name: "StickerFormatType",
+                },
                 Token::U8(1),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -390,7 +396,7 @@ mod tests {
 
         let value = Message {
             activity: Some(MessageActivity {
-                kind: MessageActivityType::Join,
+                kind: MessageActivityType::JOIN,
                 party_id: None,
             }),
             application: Some(MessageApplication {
@@ -428,7 +434,7 @@ mod tests {
             guild_id: Some(Id::new(1)),
             id: Id::new(4),
             interaction: None,
-            kind: MessageType::Regular,
+            kind: MessageType::REGULAR,
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,
@@ -444,7 +450,7 @@ mod tests {
             mention_channels: vec![ChannelMention {
                 guild_id: Id::new(1),
                 id: Id::new(2),
-                kind: ChannelType::GuildText,
+                kind: ChannelType::GUILD_TEXT,
                 name: "channel".to_owned(),
             }],
             mention_everyone: false,
@@ -465,7 +471,7 @@ mod tests {
                 fail_if_not_exists: None,
             }),
             sticker_items: vec![MessageSticker {
-                format_type: StickerFormatType::Png,
+                format_type: StickerFormatType::PNG,
                 id: Id::new(1),
                 name: "sticker name".to_owned(),
             }],
@@ -490,6 +496,9 @@ mod tests {
                     len: 1,
                 },
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "MessageActivityType",
+                },
                 Token::U8(1),
                 Token::StructEnd,
                 Token::Str("application"),
@@ -563,6 +572,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "MessageType",
+                },
                 Token::U8(0),
                 Token::Str("member"),
                 Token::Some,
@@ -600,6 +612,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("2"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "ChannelType",
+                },
                 Token::U8(0),
                 Token::Str("name"),
                 Token::Str("channel"),
@@ -653,6 +668,9 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("format_type"),
+                Token::NewtypeStruct {
+                    name: "StickerFormatType",
+                },
                 Token::U8(1),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },

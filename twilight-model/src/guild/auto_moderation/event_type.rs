@@ -2,29 +2,43 @@ use serde::{Deserialize, Serialize};
 
 /// Indicates in what event context a rule should be checked.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(from = "u8", into = "u8")]
-pub enum AutoModerationEventType {
+pub struct AutoModerationEventType(u8);
+
+impl AutoModerationEventType {
     /// When a member sends or edits a message in a guild.
-    MessageSend,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+    pub const MESSAGE_SEND: Self = Self::new(1);
+
+    /// Create a new auto moderation event type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`MESSAGE_SEND`][`Self::MESSAGE_SEND`].
+    pub const fn new(auto_moderation_event_type: u8) -> Self {
+        Self(auto_moderation_event_type)
+    }
+
+    /// Retrieve the value of the auto moderation event type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::guild::auto_moderation::AutoModerationEventType;
+    ///
+    /// assert_eq!(1, AutoModerationEventType::MESSAGE_SEND.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for AutoModerationEventType {
     fn from(value: u8) -> Self {
-        match value {
-            1 => Self::MessageSend,
-            _ => Self::Unknown(value),
-        }
+        Self(value)
     }
 }
 
 impl From<AutoModerationEventType> for u8 {
     fn from(value: AutoModerationEventType) -> Self {
-        match value {
-            AutoModerationEventType::MessageSend => 1,
-            AutoModerationEventType::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -50,7 +64,7 @@ mod tests {
 
     #[test]
     fn values() {
-        assert_eq!(1, u8::from(AutoModerationEventType::MessageSend));
-        assert_eq!(250, u8::from(AutoModerationEventType::Unknown(250)));
+        assert_eq!(1, u8::from(AutoModerationEventType::MESSAGE_SEND));
+        assert_eq!(250, u8::from(AutoModerationEventType::new(250)));
     }
 }

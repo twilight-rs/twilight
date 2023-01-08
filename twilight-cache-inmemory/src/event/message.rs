@@ -180,7 +180,7 @@ mod tests {
             guild_id: Some(Id::new(1)),
             id: Id::new(4),
             interaction: None,
-            kind: MessageType::Regular,
+            kind: MessageType::REGULAR,
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,

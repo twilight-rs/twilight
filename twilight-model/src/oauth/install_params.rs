@@ -1,3 +1,4 @@
+use super::Scope;
 use crate::guild::Permissions;
 use serde::{Deserialize, Serialize};
 
@@ -10,14 +11,16 @@ use serde::{Deserialize, Serialize};
 pub struct InstallParams {
     /// Permissions to request for the bot role.
     pub permissions: Permissions,
-    /// Scopes to add the application to the guild with.
-    pub scopes: Vec<String>,
+    /// List of [scopes] to add the application to the guild with.
+    ///
+    /// [scopes]: crate::oauth::Scope
+    pub scopes: Vec<Scope>,
 }
 
 #[cfg(test)]
 mod tests {
     use super::InstallParams;
-    use crate::guild::Permissions;
+    use crate::{guild::Permissions, oauth::Scope};
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
     use static_assertions::assert_impl_all;
@@ -39,9 +42,9 @@ mod tests {
         let value = InstallParams {
             permissions: Permissions::empty(),
             scopes: Vec::from([
-                "applications.commands".to_owned(),
-                "applications.commands.permissions.update".to_owned(),
-                "identify".to_owned(),
+                Scope::APPLICATIONS_COMMANDS,
+                Scope::APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE,
+                Scope::IDENTIFY,
             ]),
         };
 
@@ -56,8 +59,11 @@ mod tests {
                 Token::String("0"),
                 Token::String("scopes"),
                 Token::Seq { len: Some(3) },
+                Token::NewtypeStruct { name: "Scope" },
                 Token::String("applications.commands"),
+                Token::NewtypeStruct { name: "Scope" },
                 Token::String("applications.commands.permissions.update"),
+                Token::NewtypeStruct { name: "Scope" },
                 Token::String("identify"),
                 Token::SeqEnd,
                 Token::StructEnd,

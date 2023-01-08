@@ -25,24 +25,24 @@ struct CreateThreadFromMessageFields<'a> {
 
 /// Create a new thread from an existing message.
 ///
-/// When called on a [`GuildText`] channel, this creates a
-/// [`PublicThread`].
+/// When called on a [`GUILD_TEXT`] channel, this creates a
+/// [`PUBLIC_THREAD`].
 ///
-/// When called on a [`GuildAnnouncement`] channel, this creates a [`AnnouncementThread`].
+/// When called on a [`GUILD_ANNOUNCEMENT`] channel, this creates a [`ANNOUNCEMENT_THREAD`].
 ///
-/// This request does not work when called on a [`GuildForum`] channel.
+/// This request does not work when called on a [`GUILD_FORUM`] channel.
 ///
 /// Automatic archive durations are not locked behind the guild's boost level.
 ///
 /// The thread's ID will be the same as its parent message. This ensures only
 /// one thread can be created per message.
 ///
-/// [`AnnouncementThread`]: twilight_model::channel::ChannelType::AnnouncementThread
-/// [`GuildAnnouncement`]: twilight_model::channel::ChannelType::GuildAnnouncement
-/// [`GuildForum`]: twilight_model::channel::ChannelType::GuildForum
-/// [`GuildPublicThread`]: twilight_model::channel::ChannelType::GuildPublicThread
-/// [`GuildText`]: twilight_model::channel::ChannelType::GuildText
-/// [`PublicThread`]: twilight_model::channel::ChannelType::PublicThread
+/// [`ANNOUNCEMENT_THREAD`]: twilight_model::channel::ChannelType::ANNOUNCEMENT_THREAD
+/// [`GUILD_ANNOUNCEMENT`]: twilight_model::channel::ChannelType::GUILD_ANNOUNCEMENT
+/// [`GUILD_FORUM`]: twilight_model::channel::ChannelType::GUILD_FORUM
+/// [`GUILD_PUBLIC_THREAD`]: twilight_model::channel::ChannelType::GUILD_PUBLIC_THREAD
+/// [`GUILD_TEXT`]: twilight_model::channel::ChannelType::GUILD_TEXT
+/// [`PUBLIC_THREAD`]: twilight_model::channel::ChannelType::PUBLIC_THREAD
 #[must_use = "requests must be configured and executed"]
 pub struct CreateThreadFromMessage<'a> {
     channel_id: Id<ChannelMarker>,

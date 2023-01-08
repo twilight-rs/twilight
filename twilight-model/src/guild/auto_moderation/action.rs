@@ -29,44 +29,56 @@ pub struct AutoModerationActionMetadata {
 
 /// Type of [`AutoModerationAction`].
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(from = "u8", into = "u8")]
-pub enum AutoModerationActionType {
+pub struct AutoModerationActionType(u8);
+
+impl AutoModerationActionType {
     /// Blocks the content of a message according to the rule.
-    BlockMessage,
+    pub const BLOCK_MESSAGE: Self = Self::new(1);
+
     /// Logs user content to a specified channel.
-    SendAlertMessage,
+    pub const SEND_ALERT_MESSAGE: Self = Self::new(2);
+
     /// Timeout user for a specified duration.
     ///
-    /// A `Timeout` action can only be setup for [`Keyword`] rules.
+    /// A `Timeout` action can only be setup for [`KEYWORD`] rules.
     /// [`Permissions::MODERATE_MEMBERS`] is required to use the `Timeout` action
     /// type.
     ///
-    /// [`Keyword`]: super::AutoModerationTriggerType::Keyword
+    /// [`KEYWORD`]: super::AutoModerationTriggerType::KEYWORD
     /// [`Permissions::MODERATE_MEMBERS`]: crate::guild::Permissions::MODERATE_MEMBERS
-    Timeout,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+    pub const TIMEOUT: Self = Self::new(3);
+
+    /// Create a new auto moderation action type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`BLOCK_MESSAGE`][`Self::BLOCK_MESSAGE`].
+    pub const fn new(auto_moderation_action_type: u8) -> Self {
+        Self(auto_moderation_action_type)
+    }
+
+    /// Retrieve the value of the auto moderation action type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::guild::auto_moderation::AutoModerationActionType;
+    ///
+    /// assert_eq!(3, AutoModerationActionType::TIMEOUT.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for AutoModerationActionType {
     fn from(value: u8) -> Self {
-        match value {
-            1 => Self::BlockMessage,
-            2 => Self::SendAlertMessage,
-            3 => Self::Timeout,
-            _ => Self::Unknown(value),
-        }
+        Self(value)
     }
 }
 
 impl From<AutoModerationActionType> for u8 {
     fn from(value: AutoModerationActionType) -> Self {
-        match value {
-            AutoModerationActionType::BlockMessage => 1,
-            AutoModerationActionType::SendAlertMessage => 2,
-            AutoModerationActionType::Timeout => 3,
-            AutoModerationActionType::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -116,9 +128,9 @@ mod tests {
 
     #[test]
     fn values() {
-        assert_eq!(1, u8::from(AutoModerationActionType::BlockMessage));
-        assert_eq!(2, u8::from(AutoModerationActionType::SendAlertMessage));
-        assert_eq!(3, u8::from(AutoModerationActionType::Timeout));
-        assert_eq!(250, u8::from(AutoModerationActionType::Unknown(250)));
+        assert_eq!(1, u8::from(AutoModerationActionType::BLOCK_MESSAGE));
+        assert_eq!(2, u8::from(AutoModerationActionType::SEND_ALERT_MESSAGE));
+        assert_eq!(3, u8::from(AutoModerationActionType::TIMEOUT));
+        assert_eq!(250, u8::from(AutoModerationActionType::new(250)));
     }
 }

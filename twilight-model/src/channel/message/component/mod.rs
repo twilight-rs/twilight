@@ -45,7 +45,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///         disabled: false,
 ///         emoji: None,
 ///         label: Some("Click me!".to_owned()),
-///         style: ButtonStyle::Primary,
+///         style: ButtonStyle::PRIMARY,
 ///         url: None,
 ///     })]),
 /// });
@@ -118,7 +118,7 @@ pub enum Component {
     /// Pop-up item that renders on modals.
     TextInput(TextInput),
     /// Variant value is unknown to the library.
-    Unknown(u8),
+    Unknown(ComponentType),
 }
 
 impl Component {
@@ -134,19 +134,19 @@ impl Component {
     ///     disabled: false,
     ///     emoji: None,
     ///     label: Some("ping".to_owned()),
-    ///     style: ButtonStyle::Primary,
+    ///     style: ButtonStyle::PRIMARY,
     ///     url: None,
     /// });
     ///
-    /// assert_eq!(ComponentType::Button, component.kind());
+    /// assert_eq!(ComponentType::BUTTON, component.kind());
     /// ```
     pub const fn kind(&self) -> ComponentType {
         match self {
-            Self::ActionRow(_) => ComponentType::ActionRow,
-            Self::Button(_) => ComponentType::Button,
-            Self::SelectMenu(_) => ComponentType::SelectMenu,
-            Self::TextInput(_) => ComponentType::TextInput,
-            Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
+            Self::ActionRow(_) => ComponentType::ACTION_ROW,
+            Self::Button(_) => ComponentType::BUTTON,
+            Self::SelectMenu(_) => ComponentType::SELECT_MENU,
+            Self::TextInput(_) => ComponentType::TEXT_INPUT,
+            Self::Unknown(component_type) => *component_type,
         }
     }
 }
@@ -399,7 +399,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         Ok(match kind {
             // Required fields:
             // - components
-            ComponentType::ActionRow => {
+            ComponentType::ACTION_ROW => {
                 let components = components.ok_or_else(|| DeError::missing_field("components"))?;
 
                 Self::Value::ActionRow(ActionRow { components })
@@ -413,7 +413,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             // - emoji
             // - label
             // - url
-            ComponentType::Button => {
+            ComponentType::BUTTON => {
                 let style = style
                     .ok_or_else(|| DeError::missing_field("style"))?
                     .deserialize_into()
@@ -443,7 +443,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             // - max_values
             // - min_values
             // - placeholder
-            ComponentType::SelectMenu => {
+            ComponentType::SELECT_MENU => {
                 let custom_id = custom_id
                     .flatten()
                     .ok_or_else(|| DeError::missing_field("custom_id"))?
@@ -472,7 +472,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             // - placeholder
             // - required
             // - value
-            ComponentType::TextInput => {
+            ComponentType::TEXT_INPUT => {
                 let custom_id = custom_id
                     .flatten()
                     .ok_or_else(|| DeError::missing_field("custom_id"))?
@@ -499,7 +499,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     value: value.unwrap_or_default(),
                 })
             }
-            ComponentType::Unknown(unknown) => Self::Value::Unknown(unknown),
+            other => Self::Value::Unknown(other),
         })
     }
 }
@@ -572,12 +572,12 @@ impl Serialize for Component {
 
         match self {
             Component::ActionRow(action_row) => {
-                state.serialize_field("type", &ComponentType::ActionRow)?;
+                state.serialize_field("type", &ComponentType::ACTION_ROW)?;
 
                 state.serialize_field("components", &action_row.components)?;
             }
             Component::Button(button) => {
-                state.serialize_field("type", &ComponentType::Button)?;
+                state.serialize_field("type", &ComponentType::BUTTON)?;
 
                 if button.custom_id.is_some() {
                     state.serialize_field("custom_id", &button.custom_id)?;
@@ -602,7 +602,7 @@ impl Serialize for Component {
                 }
             }
             Component::SelectMenu(select_menu) => {
-                state.serialize_field("type", &ComponentType::SelectMenu)?;
+                state.serialize_field("type", &ComponentType::SELECT_MENU)?;
 
                 // Due to `custom_id` being required in some variants and
                 // optional in others, serialize as an Option.
@@ -625,7 +625,7 @@ impl Serialize for Component {
                 }
             }
             Component::TextInput(text_input) => {
-                state.serialize_field("type", &ComponentType::TextInput)?;
+                state.serialize_field("type", &ComponentType::TEXT_INPUT)?;
 
                 // Due to `custom_id` and `label` being required in some
                 // variants and optional in others, serialize as an Option.
@@ -658,7 +658,7 @@ impl Serialize for Component {
             // deserialize. But it is all that can be done to avoid losing
             // incoming messages at this time.
             Component::Unknown(unknown) => {
-                state.serialize_field("type", &ComponentType::Unknown(*unknown))?;
+                state.serialize_field("type", unknown)?;
             }
         }
 
@@ -692,7 +692,7 @@ mod tests {
                     disabled: true,
                     emoji: None,
                     label: Some("test label".into()),
-                    style: ButtonStyle::Primary,
+                    style: ButtonStyle::PRIMARY,
                     url: None,
                 }),
                 Component::SelectMenu(SelectMenu {
@@ -720,7 +720,10 @@ mod tests {
                     len: 2,
                 },
                 Token::Str("type"),
-                Token::U8(ComponentType::ActionRow.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::ACTION_ROW.get()),
                 Token::Str("components"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {
@@ -728,7 +731,10 @@ mod tests {
                     len: 5,
                 },
                 Token::Str("type"),
-                Token::U8(ComponentType::Button.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::BUTTON.get()),
                 Token::Str("custom_id"),
                 Token::Some,
                 Token::Str("test custom id"),
@@ -738,14 +744,20 @@ mod tests {
                 Token::Some,
                 Token::Str("test label"),
                 Token::Str("style"),
-                Token::U8(ButtonStyle::Primary.into()),
+                Token::NewtypeStruct {
+                    name: "ButtonStyle",
+                },
+                Token::U8(ButtonStyle::PRIMARY.get()),
                 Token::StructEnd,
                 Token::Struct {
                     name: "Component",
                     len: 6,
                 },
                 Token::Str("type"),
-                Token::U8(ComponentType::SelectMenu.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::SELECT_MENU.get()),
                 Token::Str("custom_id"),
                 Token::Some,
                 Token::Str("test custom id 2"),
@@ -791,7 +803,7 @@ mod tests {
                 custom_id: Some("button-1".to_owned()),
                 disabled: false,
                 emoji: None,
-                style: ButtonStyle::Primary,
+                style: ButtonStyle::PRIMARY,
                 label: Some("Button".to_owned()),
                 url: None,
             })]),
@@ -805,7 +817,10 @@ mod tests {
                     len: 2,
                 },
                 Token::String("type"),
-                Token::U8(ComponentType::ActionRow.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::ACTION_ROW.get()),
                 Token::String("components"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -813,6 +828,9 @@ mod tests {
                     len: 4,
                 },
                 Token::String("type"),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
                 Token::U8(2),
                 Token::String("custom_id"),
                 Token::Some,
@@ -821,6 +839,9 @@ mod tests {
                 Token::Some,
                 Token::String("Button"),
                 Token::String("style"),
+                Token::NewtypeStruct {
+                    name: "ButtonStyle",
+                },
                 Token::U8(1),
                 Token::StructEnd,
                 Token::SeqEnd,
@@ -843,7 +864,7 @@ mod tests {
                 name: FLAG.to_owned(),
             }),
             label: Some("Test".to_owned()),
-            style: ButtonStyle::Link,
+            style: ButtonStyle::LINK,
             url: Some("https://twilight.rs".to_owned()),
         });
 
@@ -855,7 +876,10 @@ mod tests {
                     len: 6,
                 },
                 Token::String("type"),
-                Token::U8(ComponentType::Button.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::BUTTON.get()),
                 Token::String("custom_id"),
                 Token::Some,
                 Token::String("test"),
@@ -872,7 +896,10 @@ mod tests {
                 Token::Some,
                 Token::String("Test"),
                 Token::String("style"),
-                Token::U8(ButtonStyle::Link.into()),
+                Token::NewtypeStruct {
+                    name: "ButtonStyle",
+                },
+                Token::U8(ButtonStyle::LINK.get()),
                 Token::String("url"),
                 Token::Some,
                 Token::String("https://twilight.rs"),
@@ -890,7 +917,7 @@ mod tests {
             min_length: Some(1),
             placeholder: Some("Taking this place".to_owned()),
             required: Some(true),
-            style: TextInputStyle::Short,
+            style: TextInputStyle::SHORT,
             value: Some("Hello World!".to_owned()),
         });
 
@@ -902,7 +929,10 @@ mod tests {
                     len: 9,
                 },
                 Token::String("type"),
-                Token::U8(ComponentType::TextInput.into()),
+                Token::NewtypeStruct {
+                    name: "ComponentType",
+                },
+                Token::U8(ComponentType::TEXT_INPUT.get()),
                 Token::String("custom_id"),
                 Token::Some,
                 Token::String("test"),
@@ -922,7 +952,10 @@ mod tests {
                 Token::Some,
                 Token::Bool(true),
                 Token::String("style"),
-                Token::U8(TextInputStyle::Short as u8),
+                Token::NewtypeStruct {
+                    name: "TextInputStyle",
+                },
+                Token::U8(TextInputStyle::SHORT.get()),
                 Token::String("value"),
                 Token::Some,
                 Token::String("Hello World!"),

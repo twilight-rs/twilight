@@ -1,69 +1,55 @@
-use crate::visitor::U16EnumVisitor;
-use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Serialize, Serializer},
-};
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum AutoArchiveDuration {
-    Hour,
-    Day,
-    ThreeDays,
-    Week,
-    Unknown { value: u16 },
-}
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct AutoArchiveDuration(u16);
 
 impl AutoArchiveDuration {
-    /// Retrieve the length of the duration in minutes, used by the API
+    pub const HOUR: Self = Self::new(60);
+
+    pub const DAY: Self = Self::new(Self::HOUR.get() * 24);
+
+    pub const THREE_DAYS: Self = Self::new(Self::DAY.get() * 3);
+
+    pub const WEEK: Self = Self::new(Self::DAY.get() * 7);
+
+    /// Create a new auto archive duration from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants, such as [`HOUR`][`Self::HOUR`] or [`WEEK`][`Self::WEEK`].
+    pub const fn new(auto_archive_duration: u16) -> Self {
+        Self(auto_archive_duration)
+    }
+
+    /// Retrieve the value of the auto archive duration.
     ///
     /// # Examples
     ///
     /// ```
     /// use twilight_model::channel::thread::AutoArchiveDuration;
     ///
-    /// assert_eq!(60, AutoArchiveDuration::Hour.number());
+    /// assert_eq!(60, AutoArchiveDuration::HOUR.get());
     /// ```
-    pub const fn number(self) -> u16 {
-        match self {
-            Self::Hour => 60,
-            Self::Day => 1440,
-            Self::ThreeDays => 4320,
-            Self::Week => 10080,
-            Self::Unknown { value } => value,
-        }
+    pub const fn get(&self) -> u16 {
+        self.0
     }
 }
 
 impl From<u16> for AutoArchiveDuration {
     fn from(value: u16) -> Self {
-        match value {
-            60 => Self::Hour,
-            1440 => Self::Day,
-            4320 => Self::ThreeDays,
-            10080 => Self::Week,
-            value => Self::Unknown { value },
-        }
+        Self::new(value)
+    }
+}
+
+impl From<AutoArchiveDuration> for u16 {
+    fn from(value: AutoArchiveDuration) -> Self {
+        value.get()
     }
 }
 
 impl From<AutoArchiveDuration> for Duration {
     fn from(value: AutoArchiveDuration) -> Self {
-        Self::from_secs(u64::from(value.number()) * 60)
-    }
-}
-
-impl<'de> Deserialize<'de> for AutoArchiveDuration {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer
-            .deserialize_u16(U16EnumVisitor::new("auto archive duration"))
-            .map(u16::into)
-    }
-}
-
-impl Serialize for AutoArchiveDuration {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_u16(self.number())
+        Self::from_secs(u64::from(value.get()) * 60)
     }
 }
 
@@ -74,34 +60,34 @@ mod tests {
     use std::time::Duration;
 
     const MAP: &[(AutoArchiveDuration, u16)] = &[
-        (AutoArchiveDuration::Hour, 60),
-        (AutoArchiveDuration::Day, 1440),
-        (AutoArchiveDuration::ThreeDays, 4320),
-        (AutoArchiveDuration::Week, 10080),
+        (AutoArchiveDuration::HOUR, 60),
+        (AutoArchiveDuration::DAY, 1440),
+        (AutoArchiveDuration::THREE_DAYS, 4320),
+        (AutoArchiveDuration::WEEK, 10080),
     ];
 
     #[test]
     fn variants() {
         for (kind, num) in MAP {
-            serde_test::assert_tokens(kind, &[Token::U16(*num)]);
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "AutoArchiveDuration",
+                    },
+                    Token::U16(*num),
+                ],
+            );
             assert_eq!(*kind, AutoArchiveDuration::from(*num));
-            assert_eq!(*num, kind.number());
+            assert_eq!(*num, kind.get());
         }
-    }
-
-    #[test]
-    fn unknown_conversion() {
-        assert_eq!(
-            AutoArchiveDuration::Unknown { value: 250 },
-            AutoArchiveDuration::from(250)
-        );
     }
 
     #[test]
     fn std_time_duration() {
         for (kind, _) in MAP {
             let std_duration = Duration::from(*kind);
-            assert_eq!(u64::from(kind.number()) * 60, std_duration.as_secs());
+            assert_eq!(u64::from(kind.get()) * 60, std_duration.as_secs());
         }
     }
 }

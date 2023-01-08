@@ -1,19 +1,19 @@
 [workspace]
 members = [
-    "book/tests",
-    "examples",
-    "twilight",
-    "twilight-cache-inmemory",
-    "twilight-gateway",
-    "twilight-gateway-queue",
-    "twilight-http",
-    "twilight-http-ratelimiting",
-    "twilight-lavalink",
-    "twilight-mention",
+    # "book/tests",
+    # "examples",
+    # "twilight",
+    # "twilight-cache-inmemory",
+    # "twilight-gateway",
+    # "twilight-gateway-queue",
+    # "twilight-http",
+    # "twilight-http-ratelimiting",
+    # "twilight-lavalink",
+    # "twilight-mention",
     "twilight-model",
-    "twilight-standby",
-    "twilight-util",
-    "twilight-validate",
+    # "twilight-standby",
+    # "twilight-util",
+    # "twilight-validate",
 ]
 resolver = "2"
 

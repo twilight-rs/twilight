@@ -43,7 +43,7 @@ mod tests {
 
         let value = MessageInteraction {
             id: Id::new(1),
-            kind: InteractionType::ApplicationCommand,
+            kind: InteractionType::APPLICATION_COMMAND,
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,
@@ -69,7 +69,7 @@ mod tests {
                 locale: Some("en-us".to_owned()),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
-                premium_type: Some(PremiumType::Nitro),
+                premium_type: Some(PremiumType::NITRO),
                 public_flags: Some(
                     UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
                 ),
@@ -89,7 +89,10 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("type"),
-                Token::U8(InteractionType::ApplicationCommand as u8),
+                Token::NewtypeStruct {
+                    name: "InteractionType",
+                },
+                Token::U8(InteractionType::APPLICATION_COMMAND.get()),
                 Token::Str("member"),
                 Token::Some,
                 Token::Struct {
@@ -153,6 +156,9 @@ mod tests {
                 Token::Str("test"),
                 Token::Str("premium_type"),
                 Token::Some,
+                Token::NewtypeStruct {
+                    name: "PremiumType",
+                },
                 Token::U8(2),
                 Token::Str("public_flags"),
                 Token::Some,

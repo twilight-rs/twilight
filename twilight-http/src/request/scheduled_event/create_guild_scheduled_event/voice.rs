@@ -29,7 +29,7 @@ impl<'a> CreateGuildVoiceScheduledEvent<'a> {
         Self(CreateGuildScheduledEvent {
             fields: CreateGuildScheduledEventFields {
                 channel_id: Some(channel_id),
-                entity_type: Some(EntityType::Voice),
+                entity_type: Some(EntityType::VOICE),
                 name: Some(name),
                 scheduled_start_time: Some(scheduled_start_time),
                 ..inner.fields

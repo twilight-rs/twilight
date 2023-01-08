@@ -60,12 +60,12 @@ mod tests {
         let payload = PresenceUpdate(Presence {
             activities: Vec::new(),
             client_status: ClientStatus {
-                desktop: Some(Status::Online),
+                desktop: Some(Status::ONLINE),
                 mobile: None,
                 web: None,
             },
             guild_id,
-            status: Status::Online,
+            status: Status::ONLINE,
             user: UserOrId::User(test::user(user_id)),
         });
         cache.update(&Event::PresenceUpdate(Box::new(payload)));

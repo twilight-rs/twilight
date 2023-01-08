@@ -205,11 +205,11 @@ impl<'a> UpdateChannel<'a> {
     /// # Errors
     ///
     /// Returns an error of type [`ForumTopicInvalid`] if the channel type is
-    /// [`GuildForum`] and the topic is invalid.
+    /// [`GUILD_FORUM`] and the topic is invalid.
     ///
     /// [Discord Docs/Channel Object]: https://discordapp.com/developers/docs/resources/channel#channel-object-channel-structure
     /// [`ForumTopicInvalid`]: twilight_validate::channel::ChannelValidationErrorType::ForumTopicInvalid
-    /// [`GuildForum`]: twilight_model::channel::ChannelType::GuildForum
+    /// [`GUILD_FORUM`]: twilight_model::channel::ChannelType::GUILD_FORUM
     pub fn forum_topic(mut self, topic: Option<&'a str>) -> Result<Self, ChannelValidationError> {
         if let Some(topic) = topic {
             validate_forum_topic(topic)?;

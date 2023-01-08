@@ -4,42 +4,52 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`User`]: super::User
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum PremiumType {
+pub struct PremiumType(u8);
+
+impl PremiumType {
     /// User doesn't have premium.
-    None,
+    pub const NONE: Self = Self::new(0);
+
     /// User has Nitro Classic.
-    NitroClassic,
+    pub const NITRO_CLASSIC: Self = Self::new(1);
+
     /// User has the standard Nitro.
-    Nitro,
+    pub const NITRO: Self = Self::new(2);
+
     /// User has Nitro Basic.
-    NitroBasic,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+    pub const NITRO_BASIC: Self = Self::new(3);
+
+    /// Create a new premium type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`NITRO`][`Self::NITRO`].
+    pub const fn new(premium_type: u8) -> Self {
+        Self(premium_type)
+    }
+
+    /// Retrieve the value of the premium type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::user::PremiumType;
+    ///
+    /// assert_eq!(2, PremiumType::NITRO.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for PremiumType {
     fn from(value: u8) -> Self {
-        match value {
-            0 => Self::None,
-            1 => Self::NitroClassic,
-            2 => Self::Nitro,
-            3 => Self::NitroBasic,
-            unknown => PremiumType::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<PremiumType> for u8 {
     fn from(value: PremiumType) -> Self {
-        match value {
-            PremiumType::None => 0,
-            PremiumType::NitroClassic => 1,
-            PremiumType::Nitro => 2,
-            PremiumType::NitroBasic => 3,
-            PremiumType::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -64,12 +74,27 @@ mod tests {
         Sync
     );
 
+    const MAP: &[(PremiumType, u8)] = &[
+        (PremiumType::NONE, 0),
+        (PremiumType::NITRO_CLASSIC, 1),
+        (PremiumType::NITRO, 2),
+        (PremiumType::NITRO_BASIC, 3),
+    ];
+
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&PremiumType::None, &[Token::U8(0)]);
-        serde_test::assert_tokens(&PremiumType::NitroClassic, &[Token::U8(1)]);
-        serde_test::assert_tokens(&PremiumType::Nitro, &[Token::U8(2)]);
-        serde_test::assert_tokens(&PremiumType::NitroBasic, &[Token::U8(3)]);
-        serde_test::assert_tokens(&PremiumType::Unknown(42), &[Token::U8(42)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "PremiumType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, PremiumType::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

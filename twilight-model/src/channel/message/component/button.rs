@@ -10,10 +10,10 @@ pub struct Button {
     ///
     /// This field is required when using the following [`ButtonStyle`]s:
     ///
-    /// - [`ButtonStyle::Danger`]
-    /// - [`ButtonStyle::Primary`]
-    /// - [`ButtonStyle::Secondary`]
-    /// - [`ButtonStyle::Success`]
+    /// - [`ButtonStyle::DANGER`]
+    /// - [`ButtonStyle::PRIMARY`]
+    /// - [`ButtonStyle::SECONDARY`]
+    /// - [`ButtonStyle::SUCCESS`]
     pub custom_id: Option<String>,
     /// Whether the button is disabled.
     ///
@@ -25,74 +25,82 @@ pub struct Button {
     pub label: Option<String>,
     /// Style variant of the button.
     pub style: ButtonStyle,
-    /// URL for buttons of a [`ButtonStyle::Link`] style.
+    /// URL for buttons of a [`ButtonStyle::LINK`] style.
     pub url: Option<String>,
 }
 
 /// Style of a [`Button`].
 // Keep in sync with `twilight-validate::component`!
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum ButtonStyle {
+pub struct ButtonStyle(u8);
+
+impl ButtonStyle {
     /// Button indicates a primary action.
     ///
     /// Selecting this button style requires specifying the
     /// [`Button::custom_id`] field.
-    Primary,
+    pub const PRIMARY: Self = Self::new(1);
+
     /// Button indicates a secondary action.
     ///
     /// Selecting this button style requires specifying the
     /// [`Button::custom_id`] field.
-    Secondary,
+    pub const SECONDARY: Self = Self::new(2);
+
     /// Button indicates a successful action.
     ///
     /// Selecting this button style requires specifying the
     /// [`Button::custom_id`] field.
-    Success,
+    pub const SUCCESS: Self = Self::new(3);
+
     /// Button indicates a dangerous action.
     ///
     /// Selecting this button style requires specifying the
     /// [`Button::custom_id`] field.
-    Danger,
+    pub const DANGER: Self = Self::new(4);
+
     /// Button indicates an action with a link.
     ///
     /// Selecting this button style requires specifying the [`Button::url`]
     /// field.
-    Link,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+    pub const LINK: Self = Self::new(5);
+
+    /// Create a new button style from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`DANGER`][`Self::DANGER`].
+    pub const fn new(button_style: u8) -> Self {
+        Self(button_style)
+    }
+
+    /// Retrieve the value of the button style.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::message::component::ButtonStyle;
+    ///
+    /// assert_eq!(3, ButtonStyle::SUCCESS.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for ButtonStyle {
     fn from(value: u8) -> Self {
-        match value {
-            1 => ButtonStyle::Primary,
-            2 => ButtonStyle::Secondary,
-            3 => ButtonStyle::Success,
-            4 => ButtonStyle::Danger,
-            5 => ButtonStyle::Link,
-            unknown => ButtonStyle::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<ButtonStyle> for u8 {
     fn from(value: ButtonStyle) -> Self {
-        match value {
-            ButtonStyle::Primary => 1,
-            ButtonStyle::Secondary => 2,
-            ButtonStyle::Success => 3,
-            ButtonStyle::Danger => 4,
-            ButtonStyle::Link => 5,
-            ButtonStyle::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use serde::{Deserialize, Serialize};
     use serde_test::Token;
@@ -116,12 +124,27 @@ mod tests {
     );
 
     #[test]
-    fn button_style() {
-        serde_test::assert_tokens(&ButtonStyle::Primary, &[Token::U8(1)]);
-        serde_test::assert_tokens(&ButtonStyle::Secondary, &[Token::U8(2)]);
-        serde_test::assert_tokens(&ButtonStyle::Success, &[Token::U8(3)]);
-        serde_test::assert_tokens(&ButtonStyle::Danger, &[Token::U8(4)]);
-        serde_test::assert_tokens(&ButtonStyle::Link, &[Token::U8(5)]);
-        serde_test::assert_tokens(&ButtonStyle::Unknown(99), &[Token::U8(99)]);
+    fn button_style_variants() {
+        const MAP: &[(ButtonStyle, u8)] = &[
+            (ButtonStyle::PRIMARY, 1),
+            (ButtonStyle::SECONDARY, 2),
+            (ButtonStyle::SUCCESS, 3),
+            (ButtonStyle::DANGER, 4),
+            (ButtonStyle::LINK, 5),
+        ];
+
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "ButtonStyle",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, ButtonStyle::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

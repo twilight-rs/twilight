@@ -37,7 +37,7 @@ mod tests {
             show_activity: true,
             verified: true,
             two_way_link: false,
-            visibility: ConnectionVisibility::Everyone,
+            visibility: ConnectionVisibility::EVERYONE,
         };
 
         serde_test::assert_tokens(
@@ -68,6 +68,9 @@ mod tests {
                 Token::Str("verified"),
                 Token::Bool(true),
                 Token::Str("visibility"),
+                Token::NewtypeStruct {
+                    name: "ConnectionVisibility",
+                },
                 Token::U8(1),
                 Token::StructEnd,
             ],

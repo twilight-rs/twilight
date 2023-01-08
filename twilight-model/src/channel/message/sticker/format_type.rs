@@ -4,38 +4,49 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Sticker`]: super::Sticker
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum StickerFormatType {
+pub struct StickerFormatType(u8);
+
+impl StickerFormatType {
     /// Sticker format is a PNG.
-    Png,
+    pub const PNG: Self = Self::new(1);
+
     /// Sticker format is an APNG.
-    Apng,
+    pub const APNG: Self = Self::new(2);
+
     /// Sticker format is a LOTTIE.
-    Lottie,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+    pub const LOTTIE: Self = Self::new(3);
+
+    /// Create a new sticker format type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`LOTTIE`][`Self::LOTTIE`].
+    pub const fn new(command_type: u8) -> Self {
+        Self(command_type)
+    }
+
+    /// Retrieve the value of the sticker format type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::message::sticker::StickerFormatType;
+    ///
+    /// assert_eq!(1, StickerFormatType::PNG.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for StickerFormatType {
     fn from(value: u8) -> Self {
-        match value {
-            1 => StickerFormatType::Png,
-            2 => StickerFormatType::Apng,
-            3 => StickerFormatType::Lottie,
-            unknown => StickerFormatType::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<StickerFormatType> for u8 {
     fn from(value: StickerFormatType) -> Self {
-        match value {
-            StickerFormatType::Png => 1,
-            StickerFormatType::Apng => 2,
-            StickerFormatType::Lottie => 3,
-            StickerFormatType::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -44,19 +55,26 @@ mod tests {
     use super::StickerFormatType;
     use serde_test::Token;
 
-    #[test]
-    fn variants() {
-        serde_test::assert_tokens(&StickerFormatType::Png, &[Token::U8(1)]);
-        serde_test::assert_tokens(&StickerFormatType::Apng, &[Token::U8(2)]);
-        serde_test::assert_tokens(&StickerFormatType::Lottie, &[Token::U8(3)]);
-        serde_test::assert_tokens(&StickerFormatType::Unknown(99), &[Token::U8(99)]);
-    }
+    const MAP: &[(StickerFormatType, u8)] = &[
+        (StickerFormatType::PNG, 1),
+        (StickerFormatType::APNG, 2),
+        (StickerFormatType::LOTTIE, 3),
+    ];
 
     #[test]
-    fn conversions() {
-        assert_eq!(StickerFormatType::from(1), StickerFormatType::Png);
-        assert_eq!(StickerFormatType::from(2), StickerFormatType::Apng);
-        assert_eq!(StickerFormatType::from(3), StickerFormatType::Lottie);
-        assert_eq!(StickerFormatType::from(99), StickerFormatType::Unknown(99));
+    fn variants() {
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "StickerFormatType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, StickerFormatType::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

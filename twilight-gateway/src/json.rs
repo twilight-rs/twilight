@@ -59,15 +59,17 @@ pub fn parse(
     #[cfg(not(feature = "simd-json"))]
     let mut json_deserializer = serde_json::Deserializer::from_str(json);
 
-    let opcode = match OpCode::from(gateway_deserializer.op()) {
-        Some(opcode) => opcode,
-        None => {
+    let opcode = match OpCode::new(gateway_deserializer.op()) {
+        opcode => opcode,
+        #[allow(unused)]
+        _ => {
+            // todo!()
             return Err(ReceiveMessageError {
                 kind: ReceiveMessageErrorType::Deserializing {
                     event: String::from_utf8_lossy(&bytes).into_owned(),
                 },
                 source: Some(format!("unknown opcode: {}", gateway_deserializer.op()).into()),
-            })
+            });
         }
     };
 
@@ -83,7 +85,7 @@ pub fn parse(
                 source: Some(
                     format!(
                         "unknown opcode/dispatch event type: {}/{event_type:?}",
-                        opcode as u8
+                        u8::from(opcode),
                     )
                     .into(),
                 ),

@@ -16,9 +16,9 @@ use twilight_model::id::{
 /// Requires that the thread is not archived.
 ///
 /// Requires the [`MANAGE_THREADS`] permission, unless both the thread is a
-/// [`PrivateThread`], and the current user is the creator of the thread.
+/// [`PRIVATE_THREAD`], and the current user is the creator of the thread.
 ///
-/// [`PrivateThread`]: twilight_model::channel::ChannelType::PrivateThread
+/// [`PRIVATE_THREAD`]: twilight_model::channel::ChannelType::PRIVATE_THREAD
 /// [`MANAGE_THREADS`]: twilight_model::guild::Permissions::MANAGE_THREADS
 #[must_use = "requests must be configured and executed"]
 pub struct RemoveThreadMember<'a> {

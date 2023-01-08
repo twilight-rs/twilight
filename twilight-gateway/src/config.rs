@@ -418,14 +418,14 @@ impl ConfigBuilder {
     /// let config = Config::builder(env::var("DISCORD_TOKEN")?, Intents::empty())
     ///     .presence(UpdatePresencePayload::new(
     ///         vec![MinimalActivity {
-    ///             kind: ActivityType::Playing,
+    ///             kind: ActivityType::PLAYING,
     ///             name: "Not accepting commands".into(),
     ///             url: None,
     ///         }
     ///         .into()],
     ///         false,
     ///         None,
-    ///         Status::Idle,
+    ///         Status::IDLE,
     ///     )?)
     ///     .build();
     ///

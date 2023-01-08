@@ -138,7 +138,7 @@ pub const fn bitrate(value: u32) -> Result<(), ChannelValidationError> {
 pub const fn is_thread(kind: ChannelType) -> Result<(), ChannelValidationError> {
     if matches!(
         kind,
-        ChannelType::AnnouncementThread | ChannelType::PublicThread | ChannelType::PrivateThread
+        ChannelType::ANNOUNCEMENT_THREAD | ChannelType::PUBLIC_THREAD | ChannelType::PRIVATE_THREAD
     ) {
         Ok(())
     } else {
@@ -249,11 +249,11 @@ mod tests {
 
     #[test]
     fn thread_is_thread() {
-        assert!(is_thread(ChannelType::AnnouncementThread).is_ok());
-        assert!(is_thread(ChannelType::PrivateThread).is_ok());
-        assert!(is_thread(ChannelType::PublicThread).is_ok());
+        assert!(is_thread(ChannelType::ANNOUNCEMENT_THREAD).is_ok());
+        assert!(is_thread(ChannelType::PRIVATE_THREAD).is_ok());
+        assert!(is_thread(ChannelType::PUBLIC_THREAD).is_ok());
 
-        assert!(is_thread(ChannelType::Group).is_err());
+        assert!(is_thread(ChannelType::GROUP).is_err());
     }
 
     #[test]

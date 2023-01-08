@@ -86,7 +86,7 @@ mod tests {
             channel_id: Id::new(1),
             guild_id: Some(Id::new(2)),
             id: Id::new(3),
-            kind: WebhookType::Incoming,
+            kind: WebhookType::INCOMING,
             name: Some("a webhook".to_owned()),
             source_channel: None,
             source_guild: None,
@@ -120,6 +120,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "WebhookType",
+                },
                 Token::U8(1),
                 Token::Str("name"),
                 Token::Some,
@@ -141,7 +144,7 @@ mod tests {
             channel_id: Id::new(1),
             guild_id: Some(Id::new(2)),
             id: Id::new(3),
-            kind: WebhookType::Incoming,
+            kind: WebhookType::INCOMING,
             name: Some("a webhook".to_owned()),
             source_channel: Some(WebhookChannel {
                 id: Id::new(4),
@@ -198,6 +201,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("3"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "WebhookType",
+                },
                 Token::U8(1),
                 Token::Str("name"),
                 Token::Some,

@@ -105,7 +105,7 @@ mod tests {
                 guild_id: None,
                 id: Id::new(5),
                 name: "command name".into(),
-                kind: CommandType::ChatInput, // This isn't actually a valid command, so just mark it as a slash command.
+                kind: CommandType::CHAT_INPUT, // This isn't actually a valid command, so just mark it as a slash command.
                 options: Vec::new(),
                 resolved: Some(CommandInteractionDataResolved {
                     attachments: HashMap::new(),
@@ -156,7 +156,7 @@ mod tests {
                             guild_id: Some(Id::new(1)),
                             id: Id::new(4),
                             interaction: None,
-                            kind: MessageType::Regular,
+                            kind: MessageType::REGULAR,
                             member: Some(PartialMember {
                                 avatar: None,
                                 communication_disabled_until: None,
@@ -177,7 +177,7 @@ mod tests {
                             reactions: Vec::new(),
                             reference: None,
                             sticker_items: vec![MessageSticker {
-                                format_type: StickerFormatType::Png,
+                                format_type: StickerFormatType::PNG,
                                 id: Id::new(1),
                                 name: "sticker name".to_owned(),
                             }],
@@ -230,7 +230,7 @@ mod tests {
             guild_id: Some(Id::new(3)),
             guild_locale: None,
             id: Id::new(4),
-            kind: InteractionType::ApplicationCommand,
+            kind: InteractionType::APPLICATION_COMMAND,
             locale: Some("en-GB".to_owned()),
             member: Some(PartialMember {
                 avatar: None,

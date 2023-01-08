@@ -22,106 +22,125 @@ pub struct DefaultReaction {
 /// Layout of a [channel] that is a [forum].
 ///
 /// [channel]: super::Channel
-/// [forum]: super::ChannelType::GuildForum
+/// [forum]: super::ChannelType::GUILD_FORUM
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum ForumLayout {
-    /// Display posts as a collection of tiles.
-    GalleryView,
-    /// Display posts as a list.
-    ListView,
-    /// No default has been set for the forum channel.
-    NotSet,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+pub struct ForumLayout(u8);
 
 impl ForumLayout {
+    /// Display posts as a collection of tiles.
+    pub const GALLERY_VIEW: Self = Self::new(2);
+
+    /// Display posts as a list.
+    pub const LIST_VIEW: Self = Self::new(1);
+
+    /// No default has been set for the forum channel.
+    pub const NOT_SET: Self = Self::new(0);
+
+    /// Create a new forum layout from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`GALLERY_VIEW`][`Self::GALLERY_VIEW`].
+    pub const fn new(forum_layout: u8) -> Self {
+        Self(forum_layout)
+    }
+
+    /// Retrieve the value of the forum layout.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::forum::ForumLayout;
+    ///
+    /// assert_eq!(1, ForumLayout::LIST_VIEW.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
+
     pub const fn name(self) -> &'static str {
         match self {
-            Self::ListView => "ListView",
-            Self::NotSet => "NotSet",
-            Self::GalleryView => "GalleryView",
-            Self::Unknown(_) => "Unknown",
+            Self::GALLERY_VIEW => "GALLERY_VIEW",
+            Self::LIST_VIEW => "LIST_VIEW",
+            Self::NOT_SET => "NOT_SET",
+            _ => "UNKNOWN",
         }
     }
 }
 
 impl From<u8> for ForumLayout {
     fn from(value: u8) -> Self {
-        match value {
-            0 => Self::NotSet,
-            1 => Self::ListView,
-            2 => Self::GalleryView,
-            unknown => Self::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<ForumLayout> for u8 {
     fn from(value: ForumLayout) -> Self {
-        match value {
-            ForumLayout::NotSet => 0,
-            ForumLayout::ListView => 1,
-            ForumLayout::GalleryView => 2,
-            ForumLayout::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
 /// Layout of a [channel] that is a [forum].
 ///
 /// [channel]: super::Channel
-/// [forum]: super::ChannelType::GuildForum
+/// [forum]: super::ChannelType::GUILD_FORUM
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8")]
-pub enum ForumSortOrder {
-    /// Sort forum posts by creation time (from most recent to oldest).
-    CreationDate,
-    /// Sort forum posts by activity.
-    LatestActivity,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+pub struct ForumSortOrder(u8);
 
 impl ForumSortOrder {
+    /// Sort forum posts by activity.
+    pub const LATEST_ACTIVITY: Self = Self::new(0);
+
+    /// Sort forum posts by creation time (from most recent to oldest).
+    pub const CREATION_DATE: Self = Self::new(1);
+
+    /// Create a new forum sort order from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`CREATION_DATE`][`Self::CREATION_DATE`].
+    pub const fn new(forum_sort_order: u8) -> Self {
+        Self(forum_sort_order)
+    }
+
+    /// Retrieve the value of the forum sort order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::forum::ForumSortOrder;
+    ///
+    /// assert_eq!(0, ForumSortOrder::LATEST_ACTIVITY.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
+
     pub const fn name(self) -> &'static str {
         match self {
-            Self::CreationDate => "CreationDate",
-            Self::LatestActivity => "LatestActivity",
-            Self::Unknown(_) => "Unknown",
+            Self::CREATION_DATE => "CREATION_DATE",
+            Self::LATEST_ACTIVITY => "LATEST_ACTIVITY",
+            _ => "UNKNOWN",
         }
     }
 }
 
 impl From<u8> for ForumSortOrder {
     fn from(value: u8) -> Self {
-        match value {
-            0 => Self::LatestActivity,
-            1 => Self::CreationDate,
-            unknown => Self::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<ForumSortOrder> for u8 {
     fn from(value: ForumSortOrder) -> Self {
-        match value {
-            ForumSortOrder::LatestActivity => 0,
-            ForumSortOrder::CreationDate => 1,
-            ForumSortOrder::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
-/// Tag that is able to be applied to a thread in a [`GuildForum`] [`Channel`].
+/// Tag that is able to be applied to a thread in a [`GUILD_FORUM`] [`Channel`].
 ///
 /// May at most contain one of `emoji_id` and `emoji_name`.
 ///
 /// [`Channel`]: super::Channel
-/// [`GuildForum`]: super::ChannelType::GuildForum
+/// [`GUILD_FORUM`]: super::ChannelType::GUILD_FORUM
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ForumTag {
     /// ID of custom guild emoji.
@@ -211,33 +230,47 @@ mod tests {
     #[test]
     fn forum_layout() {
         const MAP: &[(ForumLayout, u8, &str)] = &[
-            (ForumLayout::NotSet, 0, "NotSet"),
-            (ForumLayout::ListView, 1, "ListView"),
-            (ForumLayout::GalleryView, 2, "GalleryView"),
-            (ForumLayout::Unknown(3), 3, "Unknown"),
+            (ForumLayout::NOT_SET, 0, "NOT_SET"),
+            (ForumLayout::LIST_VIEW, 1, "LIST_VIEW"),
+            (ForumLayout::GALLERY_VIEW, 2, "GALLERY_VIEW"),
         ];
 
         for (layout, number, name) in MAP {
-            assert_eq!(layout.name(), *name);
             assert_eq!(u8::from(*layout), *number);
             assert_eq!(ForumLayout::from(*number), *layout);
-            assert_tokens(layout, &[Token::U8(*number)]);
+            assert_tokens(
+                layout,
+                &[
+                    Token::NewtypeStruct {
+                        name: "ForumLayout",
+                    },
+                    Token::U8(*number),
+                ],
+            );
+            assert_eq!(layout.name(), *name);
         }
     }
 
     #[test]
     fn forum_sort_order() {
         const MAP: &[(ForumSortOrder, u8, &str)] = &[
-            (ForumSortOrder::LatestActivity, 0, "LatestActivity"),
-            (ForumSortOrder::CreationDate, 1, "CreationDate"),
-            (ForumSortOrder::Unknown(100), 100, "Unknown"),
+            (ForumSortOrder::LATEST_ACTIVITY, 0, "LATEST_ACTIVITY"),
+            (ForumSortOrder::CREATION_DATE, 1, "CREATION_DATE"),
         ];
 
         for (layout, number, name) in MAP {
             assert_eq!(layout.name(), *name);
             assert_eq!(u8::from(*layout), *number);
             assert_eq!(ForumSortOrder::from(*number), *layout);
-            assert_tokens(layout, &[Token::U8(*number)]);
+            assert_tokens(
+                layout,
+                &[
+                    Token::NewtypeStruct {
+                        name: "ForumSortOrder",
+                    },
+                    Token::U8(*number),
+                ],
+            );
         }
     }
 

@@ -75,7 +75,7 @@ struct CreateGuildScheduledEventFields<'a> {
 /// let garfield_start_time = Timestamp::parse("2022-01-01T14:00:00+00:00")?;
 ///
 /// client
-///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
+///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GUILD_ONLY)
 ///     .stage_instance(
 ///         channel_id,
 ///         "Garfield Appreciation Hour",
@@ -99,7 +99,7 @@ struct CreateGuildScheduledEventFields<'a> {
 /// let garfield_con_end_time = Timestamp::parse("2022-01-06T17:00:00+00:00")?;
 ///
 /// client
-///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GuildOnly)
+///     .create_guild_scheduled_event(guild_id, PrivacyLevel::GUILD_ONLY)
 ///     .external(
 ///         "Garfield Con 2022",
 ///         "Baltimore Convention Center",

@@ -2,37 +2,49 @@ use serde::{Deserialize, Serialize};
 
 /// Internally pre-defined wordsets which will be searched for in content.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(from = "u8", into = "u8")]
-pub enum AutoModerationKeywordPresetType {
+pub struct AutoModerationKeywordPresetType(u8);
+
+impl AutoModerationKeywordPresetType {
     /// Words that may be considered forms of swearing or cursing.
-    Profanity,
+    pub const PROFANITY: Self = Self::new(1);
+
     /// Words that refer to sexually explicit behavior or activity.
-    SexualContent,
+    pub const SEXUAL_CONTENT: Self = Self::new(2);
+
     /// Personal insults or words that may be considered hate speech.
-    Slurs,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+    pub const SLURS: Self = Self::new(3);
+
+    /// Create a new auto moderation keyword preset type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`PROFANITY`][`Self::PROFANITY`].
+    pub const fn new(auto_moderation_keyword_preset_type: u8) -> Self {
+        Self(auto_moderation_keyword_preset_type)
+    }
+
+    /// Retrieve the value of the auto moderation keyword preset type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::guild::auto_moderation::AutoModerationKeywordPresetType;
+    ///
+    /// assert_eq!(2, AutoModerationKeywordPresetType::SEXUAL_CONTENT.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for AutoModerationKeywordPresetType {
     fn from(value: u8) -> Self {
-        match value {
-            1 => Self::Profanity,
-            2 => Self::SexualContent,
-            3 => Self::Slurs,
-            _ => Self::Unknown(value),
-        }
+        Self(value)
     }
 }
 
 impl From<AutoModerationKeywordPresetType> for u8 {
     fn from(value: AutoModerationKeywordPresetType) -> Self {
-        match value {
-            AutoModerationKeywordPresetType::Profanity => 1,
-            AutoModerationKeywordPresetType::SexualContent => 2,
-            AutoModerationKeywordPresetType::Slurs => 3,
-            AutoModerationKeywordPresetType::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -58,9 +70,9 @@ mod tests {
 
     #[test]
     fn values() {
-        assert_eq!(1, u8::from(AutoModerationKeywordPresetType::Profanity));
-        assert_eq!(2, u8::from(AutoModerationKeywordPresetType::SexualContent));
-        assert_eq!(3, u8::from(AutoModerationKeywordPresetType::Slurs));
-        assert_eq!(250, u8::from(AutoModerationKeywordPresetType::Unknown(250)));
+        assert_eq!(1, u8::from(AutoModerationKeywordPresetType::PROFANITY));
+        assert_eq!(2, u8::from(AutoModerationKeywordPresetType::SEXUAL_CONTENT));
+        assert_eq!(3, u8::from(AutoModerationKeywordPresetType::SLURS));
+        assert_eq!(250, u8::from(AutoModerationKeywordPresetType::new(250)));
     }
 }

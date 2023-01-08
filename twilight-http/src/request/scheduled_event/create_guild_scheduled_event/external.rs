@@ -31,7 +31,7 @@ impl<'a> CreateGuildExternalScheduledEvent<'a> {
     ) -> Self {
         Self(CreateGuildScheduledEvent {
             fields: CreateGuildScheduledEventFields {
-                entity_type: Some(EntityType::External),
+                entity_type: Some(EntityType::EXTERNAL),
                 entity_metadata: Some(EntityMetadataFields {
                     location: Some(location),
                 }),

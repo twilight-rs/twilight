@@ -1,41 +1,53 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(from = "u8", into = "u8")]
-pub enum WebhookType {
-    Incoming,
-    ChannelFollower,
+pub struct WebhookType(u8);
+
+impl WebhookType {
+    pub const INCOMING: Self = Self::new(1);
+
+    pub const CHANNEL_FOLLOWER: Self = Self::new(2);
+
     /// Webhooks used with interactions.
-    Application,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
-}
+    pub const APPLICATION: Self = Self::new(3);
 
-impl From<u8> for WebhookType {
-    fn from(value: u8) -> Self {
-        match value {
-            1 => WebhookType::Incoming,
-            2 => WebhookType::ChannelFollower,
-            3 => WebhookType::Application,
-            unknown => WebhookType::Unknown(unknown),
-        }
+    /// Create a new webhook type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`INCOMING`][`Self::INCOMING`].
+    pub const fn new(webhook_type: u8) -> Self {
+        Self(webhook_type)
     }
-}
 
-impl From<WebhookType> for u8 {
-    fn from(value: WebhookType) -> Self {
-        match value {
-            WebhookType::Incoming => 1,
-            WebhookType::ChannelFollower => 2,
-            WebhookType::Application => 3,
-            WebhookType::Unknown(unknown) => unknown,
-        }
+    /// Retrieve the value of the webhook type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::WebhookType;
+    ///
+    /// assert_eq!(2, WebhookType::CHANNEL_FOLLOWER.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
     }
 }
 
 impl Default for WebhookType {
     fn default() -> Self {
-        Self::Incoming
+        Self::INCOMING
+    }
+}
+
+impl From<u8> for WebhookType {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
+
+impl From<WebhookType> for u8 {
+    fn from(value: WebhookType) -> Self {
+        value.get()
     }
 }
 
@@ -44,16 +56,26 @@ mod tests {
     use super::WebhookType;
     use serde_test::Token;
 
-    #[test]
-    fn default() {
-        assert_eq!(WebhookType::Incoming, WebhookType::default());
-    }
+    const MAP: &[(WebhookType, u8)] = &[
+        (WebhookType::INCOMING, 1),
+        (WebhookType::CHANNEL_FOLLOWER, 2),
+        (WebhookType::APPLICATION, 3),
+    ];
 
     #[test]
     fn variants() {
-        serde_test::assert_tokens(&WebhookType::Incoming, &[Token::U8(1)]);
-        serde_test::assert_tokens(&WebhookType::ChannelFollower, &[Token::U8(2)]);
-        serde_test::assert_tokens(&WebhookType::Application, &[Token::U8(3)]);
-        serde_test::assert_tokens(&WebhookType::Unknown(99), &[Token::U8(99)]);
+        for (kind, num) in MAP {
+            serde_test::assert_tokens(
+                kind,
+                &[
+                    Token::NewtypeStruct {
+                        name: "WebhookType",
+                    },
+                    Token::U8(*num),
+                ],
+            );
+            assert_eq!(*kind, WebhookType::from(*num));
+            assert_eq!(*num, kind.get());
+        }
     }
 }

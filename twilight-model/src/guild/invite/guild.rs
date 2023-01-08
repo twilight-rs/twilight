@@ -57,7 +57,7 @@ mod tests {
             premium_subscription_count: Some(14),
             splash: Some(image_hash::SPLASH),
             vanity_url_code: Some("twilight".to_owned()),
-            verification_level: VerificationLevel::Medium,
+            verification_level: VerificationLevel::MEDIUM,
             welcome_screen: Some(WelcomeScreen {
                 description: Some("welcome description".to_owned()),
                 welcome_channels: vec![
@@ -112,6 +112,9 @@ mod tests {
                 Token::Some,
                 Token::Str("twilight"),
                 Token::Str("verification_level"),
+                Token::NewtypeStruct {
+                    name: "VerificationLevel",
+                },
                 Token::U8(2),
                 Token::Str("welcome_screen"),
                 Token::Some,

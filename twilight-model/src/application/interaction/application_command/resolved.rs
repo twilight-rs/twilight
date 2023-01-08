@@ -138,7 +138,7 @@ mod tests {
                 Id::new(100),
                 InteractionChannel {
                     id: Id::new(100),
-                    kind: ChannelType::GuildText,
+                    kind: ChannelType::GUILD_TEXT,
                     name: "channel name".into(),
                     parent_id: None,
                     permissions: Permissions::empty(),
@@ -193,7 +193,7 @@ mod tests {
                     guild_id: Some(Id::new(1)),
                     id: Id::new(4),
                     interaction: None,
-                    kind: MessageType::Regular,
+                    kind: MessageType::REGULAR,
                     member: Some(PartialMember {
                         avatar: None,
                         communication_disabled_until: None,
@@ -214,7 +214,7 @@ mod tests {
                     reactions: Vec::new(),
                     reference: None,
                     sticker_items: vec![MessageSticker {
-                        format_type: StickerFormatType::Png,
+                        format_type: StickerFormatType::PNG,
                         id: Id::new(1),
                         name: "sticker name".to_owned(),
                     }],
@@ -257,7 +257,7 @@ mod tests {
                     locale: Some("en-us".to_owned()),
                     mfa_enabled: Some(true),
                     name: "test".to_owned(),
-                    premium_type: Some(PremiumType::Nitro),
+                    premium_type: Some(PremiumType::NITRO),
                     public_flags: Some(
                         UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER,
                     ),
@@ -319,6 +319,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("100"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "ChannelType",
+                },
                 Token::U8(0),
                 Token::Str("name"),
                 Token::Str("channel name"),
@@ -403,6 +406,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("4"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "MessageType",
+                },
                 Token::U8(0),
                 Token::Str("member"),
                 Token::Some,
@@ -444,6 +450,9 @@ mod tests {
                     len: 3,
                 },
                 Token::Str("format_type"),
+                Token::NewtypeStruct {
+                    name: "StickerFormatType",
+                },
                 Token::U8(1),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
@@ -523,6 +532,9 @@ mod tests {
                 Token::Str("test"),
                 Token::Str("premium_type"),
                 Token::Some,
+                Token::NewtypeStruct {
+                    name: "PremiumType",
+                },
                 Token::U8(2),
                 Token::Str("public_flags"),
                 Token::Some,

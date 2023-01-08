@@ -12,10 +12,11 @@ mod application;
 mod application_flags;
 mod install_params;
 mod partial_application;
+mod scope;
 
 pub use self::{
     application::Application, application_flags::ApplicationFlags, install_params::InstallParams,
-    partial_application::PartialApplication,
+    partial_application::PartialApplication, scope::Scope,
 };
 
 #[allow(deprecated)]

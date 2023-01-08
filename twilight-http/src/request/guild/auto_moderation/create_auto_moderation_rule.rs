@@ -82,7 +82,7 @@ struct CreateAutoModerationRuleFields<'a> {
 ///
 /// let guild_id = Id::new(1);
 /// client
-///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MessageSend)
+///     .create_auto_moderation_rule(guild_id, "no darns", AutoModerationEventType::MESSAGE_SEND)
 ///     .action_block_message()
 ///     .enabled(true)
 ///     .with_keyword(&["darn"])
@@ -123,13 +123,13 @@ impl<'a> CreateAutoModerationRule<'a> {
         }
     }
 
-    /// Append an action of type [`BlockMessage`].
+    /// Append an action of type [`BLOCK_MESSAGE`].
     ///
-    /// [`BlockMessage`]: AutoModerationActionType::BlockMessage
+    /// [`BLOCK_MESSAGE`]: AutoModerationActionType::BLOCK_MESSAGE
     pub fn action_block_message(mut self) -> Self {
         self.fields.actions.get_or_insert_with(Vec::new).push(
             CreateAutoModerationRuleFieldsAction {
-                kind: AutoModerationActionType::BlockMessage,
+                kind: AutoModerationActionType::BLOCK_MESSAGE,
                 metadata: CreateAutoModerationRuleFieldsActionMetadata::default(),
             },
         );
@@ -137,13 +137,13 @@ impl<'a> CreateAutoModerationRule<'a> {
         self
     }
 
-    /// Append an action of type [`SendAlertMessage`].
+    /// Append an action of type [`SEND_ALERT_MESSAGE`].
     ///
-    /// [`SendAlertMessage`]: AutoModerationActionType::SendAlertMessage
+    /// [`SEND_ALERT_MESSAGE`]: AutoModerationActionType::SEND_ALERT_MESSAGE
     pub fn action_send_alert_message(mut self, channel_id: Id<ChannelMarker>) -> Self {
         self.fields.actions.get_or_insert_with(Vec::new).push(
             CreateAutoModerationRuleFieldsAction {
-                kind: AutoModerationActionType::SendAlertMessage,
+                kind: AutoModerationActionType::SEND_ALERT_MESSAGE,
                 metadata: CreateAutoModerationRuleFieldsActionMetadata {
                     channel_id: Some(channel_id),
                     ..Default::default()
@@ -154,13 +154,13 @@ impl<'a> CreateAutoModerationRule<'a> {
         self
     }
 
-    /// Append an action of type [`Timeout`].
+    /// Append an action of type [`TIMEOUT`].
     ///
-    /// [`Timeout`]: AutoModerationActionType::Timeout
+    /// [`TIMEOUT`]: AutoModerationActionType::TIMEOUT
     pub fn action_timeout(mut self, duration_seconds: u32) -> Self {
         self.fields.actions.get_or_insert_with(Vec::new).push(
             CreateAutoModerationRuleFieldsAction {
-                kind: AutoModerationActionType::Timeout,
+                kind: AutoModerationActionType::TIMEOUT,
                 metadata: CreateAutoModerationRuleFieldsActionMetadata {
                     duration_seconds: Some(duration_seconds),
                     ..Default::default()
@@ -192,13 +192,13 @@ impl<'a> CreateAutoModerationRule<'a> {
         self
     }
 
-    /// Create the request with the trigger type [`Keyword`], then execute it.
+    /// Create the request with the trigger type [`KEYWORD`], then execute it.
     ///
     /// Rules of this type require the `keyword_filter` field specified, and
     /// this method ensures this. See [Discord Docs/Keyword Matching Strategies]
     /// and [Discord Docs/Trigger Metadata].
     ///
-    /// [`Keyword`]: AutoModerationTriggerType::Keyword
+    /// [`KEYWORD`]: AutoModerationTriggerType::KEYWORD
     /// [Discord Docs/Keyword Matching Strategies]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-keyword-matching-strategies
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     pub fn with_keyword(
@@ -212,28 +212,28 @@ impl<'a> CreateAutoModerationRule<'a> {
             mention_total_limit: None,
         });
 
-        self.fields.trigger_type = Some(AutoModerationTriggerType::Keyword);
+        self.fields.trigger_type = Some(AutoModerationTriggerType::KEYWORD);
 
         self.exec()
     }
 
-    /// Create the request with the trigger type [`Spam`], then execute it.
+    /// Create the request with the trigger type [`SPAM`], then execute it.
     ///
-    /// [`Spam`]: AutoModerationTriggerType::Spam
+    /// [`SPAM`]: AutoModerationTriggerType::SPAM
     pub fn with_spam(mut self) -> ResponseFuture<AutoModerationRule> {
-        self.fields.trigger_type = Some(AutoModerationTriggerType::Spam);
+        self.fields.trigger_type = Some(AutoModerationTriggerType::SPAM);
 
         self.exec()
     }
 
-    /// Create the request with the trigger type [`KeywordPreset`], then execute
-    /// it.
+    /// Create the request with the trigger type [`KEYWORD_PRESET`], then
+    /// execute it.
     ///
     /// Rules of this type require the `presets` and `allow_list` fields
     /// specified, and this method ensures this. See [Discord Docs/Trigger
     /// Metadata].
     ///
-    /// [`KeywordPreset`]: AutoModerationTriggerType::KeywordPreset
+    /// [`KEYWORD_PRESET`]: AutoModerationTriggerType::KEYWORD_PRESET
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     pub fn with_keyword_preset(
         mut self,
@@ -247,12 +247,12 @@ impl<'a> CreateAutoModerationRule<'a> {
             mention_total_limit: None,
         });
 
-        self.fields.trigger_type = Some(AutoModerationTriggerType::KeywordPreset);
+        self.fields.trigger_type = Some(AutoModerationTriggerType::KEYWORD_PRESET);
 
         self.exec()
     }
 
-    /// Create the request with the trigger type [`MentionSpam`], then execute
+    /// Create the request with the trigger type [`MENTION_SPAM`], then execute
     /// it.
     ///
     /// Rules of this type requires the `mention_total_limit` field specified,
@@ -264,7 +264,7 @@ impl<'a> CreateAutoModerationRule<'a> {
     /// the limit is invalid.
     ///
     /// [`AutoModerationMetadataMentionTotalLimit`]: twilight_validate::request::ValidationErrorType::AutoModerationMetadataMentionTotalLimit
-    /// [`MentionSpam`]: AutoModerationTriggerType::MentionSpam
+    /// [`MENTION_SPAM`]: AutoModerationTriggerType::MENTION_SPAM
     /// [Discord Docs/Trigger Metadata]: https://discord.com/developers/docs/resources/auto-moderation#auto-moderation-rule-object-trigger-metadata
     pub fn with_mention_spam(
         mut self,
@@ -284,7 +284,7 @@ impl<'a> CreateAutoModerationRule<'a> {
             mention_total_limit: Some(mention_total_limit),
         });
 
-        self.fields.trigger_type = Some(AutoModerationTriggerType::MentionSpam);
+        self.fields.trigger_type = Some(AutoModerationTriggerType::MENTION_SPAM);
 
         Ok(self.exec())
     }

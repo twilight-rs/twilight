@@ -3,6 +3,8 @@
 pub mod datetime;
 pub mod image_hash;
 
+pub(crate) mod known_string;
+
 pub use self::{datetime::Timestamp, image_hash::ImageHash};
 
 #[allow(clippy::trivially_copy_pass_by_ref)]

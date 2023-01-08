@@ -34,7 +34,7 @@ mod tests {
             guild_id: Id::new(200),
             guild_scheduled_event_id: Some(Id::new(300)),
             id: Id::new(400),
-            privacy_level: PrivacyLevel::GuildOnly,
+            privacy_level: PrivacyLevel::GUILD_ONLY,
             topic: "a topic".into(),
         };
 
@@ -59,6 +59,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("400"),
                 Token::Str("privacy_level"),
+                Token::NewtypeStruct {
+                    name: "PrivacyLevel",
+                },
                 Token::U8(2),
                 Token::Str("topic"),
                 Token::Str("a topic"),

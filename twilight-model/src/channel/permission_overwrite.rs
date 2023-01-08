@@ -17,34 +17,46 @@ pub struct PermissionOverwrite {
 /// Type of a permission overwrite target.
 // Keep in sync with `twilight_util::permission_calculator::PermissionCalculator`!
 #[derive(Clone, Copy, Debug, Serialize, Eq, Hash, PartialEq, Deserialize)]
-#[non_exhaustive]
-#[serde(from = "u8", into = "u8", rename_all = "snake_case")]
-pub enum PermissionOverwriteType {
+pub struct PermissionOverwriteType(u8);
+
+impl PermissionOverwriteType {
     /// Permission overwrite targets an individual member.
-    Member,
+    pub const MEMBER: Self = Self::new(1);
+
     /// Permission overwrite targets an individual role.
-    Role,
-    /// Variant value is unknown to the library.
-    Unknown(u8),
+    pub const ROLE: Self = Self::new(0);
+
+    /// Create a new permission overwrite type from a dynamic value.
+    ///
+    /// The provided value isn't validated. Known valid values are associated
+    /// constants such as [`MEMBER`][`Self::MEMBER`].
+    pub const fn new(permission_overwrite_type: u8) -> Self {
+        Self(permission_overwrite_type)
+    }
+
+    /// Retrieve the value of the permission overwrite type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use twilight_model::channel::permission_overwrite::PermissionOverwriteType;
+    ///
+    /// assert_eq!(0, PermissionOverwriteType::ROLE.get());
+    /// ```
+    pub const fn get(&self) -> u8 {
+        self.0
+    }
 }
 
 impl From<u8> for PermissionOverwriteType {
     fn from(value: u8) -> Self {
-        match value {
-            0 => PermissionOverwriteType::Role,
-            1 => PermissionOverwriteType::Member,
-            unknown => PermissionOverwriteType::Unknown(unknown),
-        }
+        Self(value)
     }
 }
 
 impl From<PermissionOverwriteType> for u8 {
     fn from(value: PermissionOverwriteType) -> Self {
-        match value {
-            PermissionOverwriteType::Member => 1,
-            PermissionOverwriteType::Role => 0,
-            PermissionOverwriteType::Unknown(unknown) => unknown,
-        }
+        value.get()
     }
 }
 
@@ -86,7 +98,7 @@ mod tests {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
             id: Id::new(12_345_678),
-            kind: PermissionOverwriteType::Member,
+            kind: PermissionOverwriteType::MEMBER,
         };
 
         serde_test::assert_tokens(
@@ -104,7 +116,10 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("12345678"),
                 Token::Str("type"),
-                Token::U8(PermissionOverwriteType::Member.into()),
+                Token::NewtypeStruct {
+                    name: "PermissionOverwriteType",
+                },
+                Token::U8(PermissionOverwriteType::MEMBER.get()),
                 Token::StructEnd,
             ],
         );
@@ -124,7 +139,7 @@ mod tests {
             allow: Permissions::CREATE_INVITE,
             deny: Permissions::KICK_MEMBERS,
             id: Id::new(1),
-            kind: PermissionOverwriteType::Member,
+            kind: PermissionOverwriteType::MEMBER,
         };
 
         let deserialized = serde_json::from_str::<PermissionOverwrite>(raw).unwrap();
@@ -146,6 +161,9 @@ mod tests {
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("1"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "PermissionOverwriteType",
+                },
                 Token::U8(1),
                 Token::StructEnd,
             ],
@@ -154,8 +172,23 @@ mod tests {
 
     #[test]
     fn overwrite_type_name() {
-        serde_test::assert_tokens(&PermissionOverwriteType::Member, &[Token::U8(1)]);
-        serde_test::assert_tokens(&PermissionOverwriteType::Role, &[Token::U8(0)]);
-        serde_test::assert_tokens(&PermissionOverwriteType::Unknown(99), &[Token::U8(99)]);
+        serde_test::assert_tokens(
+            &PermissionOverwriteType::MEMBER,
+            &[
+                Token::NewtypeStruct {
+                    name: "PermissionOverwriteType",
+                },
+                Token::U8(1),
+            ],
+        );
+        serde_test::assert_tokens(
+            &PermissionOverwriteType::ROLE,
+            &[
+                Token::NewtypeStruct {
+                    name: "PermissionOverwriteType",
+                },
+                Token::U8(0),
+            ],
+        );
     }
 }

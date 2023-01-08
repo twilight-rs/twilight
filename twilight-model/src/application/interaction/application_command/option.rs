@@ -199,7 +199,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                     CommandOptionValue::Focused(val.to_string(), kind)
                 } else {
                     match kind {
-                        CommandOptionType::Attachment => {
+                        CommandOptionType::ATTACHMENT => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             if let ValueEnvelope::Id(id) = val {
@@ -211,7 +211,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 ));
                             }
                         }
-                        CommandOptionType::Boolean => {
+                        CommandOptionType::BOOLEAN => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             if let ValueEnvelope::Boolean(b) = val {
@@ -220,7 +220,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 return Err(DeError::invalid_type(val.as_unexpected(), &"boolean"));
                             }
                         }
-                        CommandOptionType::Channel => {
+                        CommandOptionType::CHANNEL => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             if let ValueEnvelope::Id(id) = val {
@@ -232,7 +232,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 ));
                             }
                         }
-                        CommandOptionType::Integer => {
+                        CommandOptionType::INTEGER => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             if let ValueEnvelope::Integer(i) = val {
@@ -241,7 +241,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 return Err(DeError::invalid_type(val.as_unexpected(), &"integer"));
                             }
                         }
-                        CommandOptionType::Mentionable => {
+                        CommandOptionType::MENTIONABLE => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             if let ValueEnvelope::Id(id) = val {
@@ -253,7 +253,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 ));
                             }
                         }
-                        CommandOptionType::Number => {
+                        CommandOptionType::NUMBER => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             match val {
@@ -275,7 +275,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 }
                             }
                         }
-                        CommandOptionType::Role => {
+                        CommandOptionType::ROLE => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             if let ValueEnvelope::Id(id) = val {
@@ -284,7 +284,7 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 return Err(DeError::invalid_type(val.as_unexpected(), &"role id"));
                             }
                         }
-                        CommandOptionType::String => {
+                        CommandOptionType::STRING => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             match val {
@@ -300,11 +300,11 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                                 }
                             }
                         }
-                        CommandOptionType::SubCommand => CommandOptionValue::SubCommand(options),
-                        CommandOptionType::SubCommandGroup => {
+                        CommandOptionType::SUB_COMMAND => CommandOptionValue::SubCommand(options),
+                        CommandOptionType::SUB_COMMAND_GROUP => {
                             CommandOptionValue::SubCommandGroup(options)
                         }
-                        CommandOptionType::User => {
+                        CommandOptionType::USER => {
                             let val = value_opt.ok_or_else(|| DeError::missing_field("value"))?;
 
                             if let ValueEnvelope::Id(id) = val {
@@ -312,6 +312,12 @@ impl<'de> Deserialize<'de> for CommandDataOption {
                             } else {
                                 return Err(DeError::invalid_type(val.as_unexpected(), &"user id"));
                             }
+                        }
+                        other => {
+                            return Err(DeError::invalid_value(
+                                Unexpected::Unsigned(u64::from(other.get())),
+                                &"command option type",
+                            ));
                         }
                     }
                 };
@@ -366,18 +372,18 @@ pub enum CommandOptionValue {
 impl CommandOptionValue {
     pub const fn kind(&self) -> CommandOptionType {
         match self {
-            CommandOptionValue::Attachment(_) => CommandOptionType::Attachment,
-            CommandOptionValue::Boolean(_) => CommandOptionType::Boolean,
-            CommandOptionValue::Channel(_) => CommandOptionType::Channel,
+            CommandOptionValue::Attachment(_) => CommandOptionType::ATTACHMENT,
+            CommandOptionValue::Boolean(_) => CommandOptionType::BOOLEAN,
+            CommandOptionValue::Channel(_) => CommandOptionType::CHANNEL,
             CommandOptionValue::Focused(_, t) => *t,
-            CommandOptionValue::Integer(_) => CommandOptionType::Integer,
-            CommandOptionValue::Mentionable(_) => CommandOptionType::Mentionable,
-            CommandOptionValue::Number(_) => CommandOptionType::Number,
-            CommandOptionValue::Role(_) => CommandOptionType::Role,
-            CommandOptionValue::String(_) => CommandOptionType::String,
-            CommandOptionValue::SubCommand(_) => CommandOptionType::SubCommand,
-            CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SubCommandGroup,
-            CommandOptionValue::User(_) => CommandOptionType::User,
+            CommandOptionValue::Integer(_) => CommandOptionType::INTEGER,
+            CommandOptionValue::Mentionable(_) => CommandOptionType::MENTIONABLE,
+            CommandOptionValue::Number(_) => CommandOptionType::NUMBER,
+            CommandOptionValue::Role(_) => CommandOptionType::ROLE,
+            CommandOptionValue::String(_) => CommandOptionType::STRING,
+            CommandOptionValue::SubCommand(_) => CommandOptionType::SUB_COMMAND,
+            CommandOptionValue::SubCommandGroup(_) => CommandOptionType::SUB_COMMAND_GROUP,
+            CommandOptionValue::User(_) => CommandOptionType::USER,
         }
     }
 }
@@ -401,7 +407,7 @@ mod tests {
             guild_id: Some(Id::new(2)),
             id: Id::new(1),
             name: "permissions".to_owned(),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             options: Vec::new(),
             resolved: None,
             target_id: None,
@@ -423,7 +429,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("permissions"),
                 Token::Str("type"),
-                Token::U8(CommandType::ChatInput.into()),
+                Token::NewtypeStruct {
+                    name: "CommandType",
+                },
+                Token::U8(CommandType::CHAT_INPUT.get()),
                 Token::StructEnd,
             ],
         )
@@ -435,7 +444,7 @@ mod tests {
             guild_id: Some(Id::new(2)),
             id: Id::new(1),
             name: "permissions".to_owned(),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             options: Vec::from([CommandDataOption {
                 name: "cat".to_owned(),
                 value: CommandOptionValue::Integer(42),
@@ -461,7 +470,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("permissions"),
                 Token::Str("type"),
-                Token::U8(CommandType::ChatInput.into()),
+                Token::NewtypeStruct {
+                    name: "CommandType",
+                },
+                Token::U8(CommandType::CHAT_INPUT.get()),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -471,7 +483,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("cat"),
                 Token::Str("type"),
-                Token::U8(CommandOptionType::Integer as u8),
+                Token::NewtypeStruct {
+                    name: "CommandOptionType",
+                },
+                Token::U8(CommandOptionType::INTEGER.get()),
                 Token::Str("value"),
                 Token::I64(42),
                 Token::StructEnd,
@@ -487,7 +502,7 @@ mod tests {
             guild_id: Some(Id::new(2)),
             id: Id::new(1),
             name: "permissions".to_owned(),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             options: Vec::from([
                 CommandDataOption {
                     name: "cat".to_owned(),
@@ -497,7 +512,7 @@ mod tests {
                     name: "dog".to_owned(),
                     value: CommandOptionValue::Focused(
                         "Shiba".to_owned(),
-                        CommandOptionType::String,
+                        CommandOptionType::STRING,
                     ),
                 },
             ]),
@@ -522,7 +537,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("permissions"),
                 Token::Str("type"),
-                Token::U8(CommandType::ChatInput.into()),
+                Token::NewtypeStruct {
+                    name: "CommandType",
+                },
+                Token::U8(CommandType::CHAT_INPUT.get()),
                 Token::Str("options"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {
@@ -532,7 +550,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("cat"),
                 Token::Str("type"),
-                Token::U8(CommandOptionType::Integer as u8),
+                Token::NewtypeStruct {
+                    name: "CommandOptionType",
+                },
+                Token::U8(CommandOptionType::INTEGER.get()),
                 Token::Str("value"),
                 Token::I64(42),
                 Token::StructEnd,
@@ -546,7 +567,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("dog"),
                 Token::Str("type"),
-                Token::U8(CommandOptionType::String as u8),
+                Token::NewtypeStruct {
+                    name: "CommandOptionType",
+                },
+                Token::U8(CommandOptionType::STRING.get()),
                 Token::Str("value"),
                 Token::String("Shiba"),
                 Token::StructEnd,
@@ -562,7 +586,7 @@ mod tests {
             guild_id: None,
             id: Id::new(1),
             name: "photo".to_owned(),
-            kind: CommandType::ChatInput,
+            kind: CommandType::CHAT_INPUT,
             options: Vec::from([CommandDataOption {
                 name: "cat".to_owned(),
                 value: CommandOptionValue::SubCommand(Vec::new()),
@@ -584,7 +608,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("photo"),
                 Token::Str("type"),
-                Token::U8(CommandType::ChatInput.into()),
+                Token::NewtypeStruct {
+                    name: "CommandType",
+                },
+                Token::U8(CommandType::CHAT_INPUT.get()),
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
@@ -594,7 +621,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("cat"),
                 Token::Str("type"),
-                Token::U8(CommandOptionType::SubCommand as u8),
+                Token::NewtypeStruct {
+                    name: "CommandOptionType",
+                },
+                Token::U8(CommandOptionType::SUB_COMMAND.get()),
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
@@ -619,7 +649,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("opt"),
                 Token::Str("type"),
-                Token::U8(CommandOptionType::Number as u8),
+                Token::NewtypeStruct {
+                    name: "CommandOptionType",
+                },
+                Token::U8(CommandOptionType::NUMBER.get()),
                 Token::Str("value"),
                 Token::I64(5),
                 Token::StructEnd,
@@ -633,7 +666,7 @@ mod tests {
             name: "opt".to_string(),
             value: CommandOptionValue::Focused(
                 "not a number".to_owned(),
-                CommandOptionType::Number,
+                CommandOptionType::NUMBER,
             ),
         };
 
@@ -650,7 +683,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("opt"),
                 Token::Str("type"),
-                Token::U8(CommandOptionType::Number as u8),
+                Token::NewtypeStruct {
+                    name: "CommandOptionType",
+                },
+                Token::U8(CommandOptionType::NUMBER.get()),
                 Token::Str("value"),
                 Token::String("not a number"),
                 Token::StructEnd,
@@ -662,7 +698,7 @@ mod tests {
     fn autocomplete_number() {
         let value = CommandDataOption {
             name: "opt".to_string(),
-            value: CommandOptionValue::Focused("1".to_owned(), CommandOptionType::Number),
+            value: CommandOptionValue::Focused("1".to_owned(), CommandOptionType::NUMBER),
         };
 
         serde_test::assert_de_tokens(
@@ -678,7 +714,10 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("opt"),
                 Token::Str("type"),
-                Token::U8(CommandOptionType::Number as u8),
+                Token::NewtypeStruct {
+                    name: "CommandOptionType",
+                },
+                Token::U8(CommandOptionType::NUMBER.get()),
                 Token::Str("value"),
                 Token::String("1"),
                 Token::StructEnd,

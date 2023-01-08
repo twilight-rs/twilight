@@ -5,9 +5,9 @@ use crate::id::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Pack of [`Standard`] stickers.
+/// Pack of [`STANDARD`] stickers.
 ///
-/// [`Standard`]: super::StickerType::Standard
+/// [`STANDARD`]: super::StickerType::STANDARD
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct StickerPack {
     /// ID of the sticker pack's banner image.
@@ -72,10 +72,10 @@ mod tests {
             stickers: Vec::from([Sticker {
                 available: true,
                 description: Some("Wumpus waves hello".into()),
-                format_type: StickerFormatType::Lottie,
+                format_type: StickerFormatType::LOTTIE,
                 guild_id: None,
                 id: Id::new(749_054_660_769_218_631),
-                kind: StickerType::Standard,
+                kind: StickerType::STANDARD,
                 name: "Wave".into(),
                 pack_id: Some(Id::new(847_199_849_233_514_549)),
                 sort_value: Some(12),
@@ -121,11 +121,17 @@ mod tests {
                 Token::Some,
                 Token::Str("Wumpus waves hello"),
                 Token::Str("format_type"),
+                Token::NewtypeStruct {
+                    name: "StickerFormatType",
+                },
                 Token::U8(3),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("749054660769218631"),
                 Token::Str("type"),
+                Token::NewtypeStruct {
+                    name: "StickerType",
+                },
                 Token::U8(1),
                 Token::Str("name"),
                 Token::Str("Wave"),
