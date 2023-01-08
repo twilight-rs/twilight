@@ -233,6 +233,7 @@ pub fn guild_channel_text() -> (Id<GuildMarker>, Id<ChannelMarker>, Channel) {
         default_auto_archive_duration: None,
         default_forum_layout: None,
         default_reaction_emoji: None,
+        default_sort_order: None,
         default_thread_rate_limit_per_user: None,
         flags: None,
         guild_id: Some(guild_id),

@@ -30,6 +30,8 @@ pub enum GuildFeature {
     CreatorMonetizableProvisional,
     /// Guild has enabled the role subscription promotional page.
     CreatorStorePage,
+    /// Guild has been set as a support server on the App Directory.
+    DeveloperSupportServer,
     /// Is able to be discovered in the directory.
     Discoverable,
     /// Is able to be featured in the directory.
@@ -84,6 +86,7 @@ impl From<GuildFeature> for Cow<'static, str> {
             GuildFeature::Community => "COMMUNITY".into(),
             GuildFeature::CreatorMonetizableProvisional => "CREATOR_MONETIZABLE_PROVISIONAL".into(),
             GuildFeature::CreatorStorePage => "CREATOR_STORE_PAGE".into(),
+            GuildFeature::DeveloperSupportServer => "DEVELOPER_SUPPORT_SERVER".into(),
             GuildFeature::Discoverable => "DISCOVERABLE".into(),
             GuildFeature::Featurable => "FEATURABLE".into(),
             GuildFeature::InvitesDisabled => "INVITES_DISABLED".into(),
@@ -123,6 +126,7 @@ impl From<String> for GuildFeature {
             "COMMUNITY" => Self::Community,
             "CREATOR_MONETIZABLE_PROVISIONAL" => GuildFeature::CreatorMonetizableProvisional,
             "CREATOR_STORE_PAGE" => GuildFeature::CreatorStorePage,
+            "DEVELOPER_SUPPORT_SERVER" => Self::DeveloperSupportServer,
             "DISCOVERABLE" => Self::Discoverable,
             "FEATURABLE" => Self::Featurable,
             "INVITES_DISABLED" => Self::InvitesDisabled,
@@ -175,6 +179,10 @@ mod tests {
         serde_test::assert_tokens(
             &GuildFeature::CreatorStorePage,
             &[Token::Str("CREATOR_STORE_PAGE")],
+        );
+        serde_test::assert_tokens(
+            &GuildFeature::DeveloperSupportServer,
+            &[Token::Str("DEVELOPER_SUPPORT_SERVER")],
         );
         serde_test::assert_tokens(&GuildFeature::Discoverable, &[Token::Str("DISCOVERABLE")]);
         serde_test::assert_tokens(&GuildFeature::Featurable, &[Token::Str("FEATURABLE")]);
