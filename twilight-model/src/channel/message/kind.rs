@@ -215,7 +215,6 @@ mod tests {
     );
 
     #[test]
-
     fn message_type() {
         const MAP: &[(MessageType, u8, bool)] = &[
             (MessageType::Regular, 0, true),
