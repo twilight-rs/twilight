@@ -325,6 +325,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::ChannelPinsUpdate => Self::CHANNEL_PINS_UPDATE,
             EventType::ChannelUpdate => Self::CHANNEL_UPDATE,
             EventType::CommandPermissionsUpdate => Self::COMMAND_PERMISSIONS_UPDATE,
+            EventType::GatewayClose => Self::empty(),
             EventType::GatewayHeartbeat => Self::GATEWAY_HEARTBEAT,
             EventType::GatewayHeartbeatAck => Self::GATEWAY_HEARTBEAT_ACK,
             EventType::GatewayHello => Self::GATEWAY_HELLO,
