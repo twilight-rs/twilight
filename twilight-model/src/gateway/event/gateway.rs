@@ -343,26 +343,12 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 GatewayEvent::InvalidateSession(invalidate)
             }
-            OpCode::IDENTIFY => return Err(DeError::unknown_variant("Identify", VALID_OPCODES)),
             OpCode::RECONNECT => {
                 Self::ignore_all(&mut map)?;
 
                 GatewayEvent::Reconnect
             }
-            OpCode::REQUEST_GUILD_MEMBERS => {
-                return Err(DeError::unknown_variant(
-                    "RequestGuildMembers",
-                    VALID_OPCODES,
-                ))
-            }
-            OpCode::RESUME => return Err(DeError::unknown_variant("Resume", VALID_OPCODES)),
-            OpCode::PRESENCE_UPDATE => {
-                return Err(DeError::unknown_variant("PresenceUpdate", VALID_OPCODES))
-            }
-            OpCode::VOICE_STATE_UPDATE => {
-                return Err(DeError::unknown_variant("VoiceStateUpdate", VALID_OPCODES))
-            }
-            _ => todo!(),
+            other => return Err(DeError::unknown_variant(other.name(), VALID_OPCODES)),
         })
     }
 }

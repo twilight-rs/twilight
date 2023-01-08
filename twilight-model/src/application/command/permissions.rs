@@ -46,6 +46,10 @@ pub enum CommandPermissionType {
     Role(Id<RoleMarker>),
     /// Affected member.
     User(Id<UserMarker>),
+    Unknown {
+        kind: CommandPermissionDataType,
+        id: Id<GenericMarker>,
+    },
 }
 
 impl CommandPermissionType {
@@ -55,6 +59,7 @@ impl CommandPermissionType {
             Self::Channel(id) => id.cast(),
             Self::Role(id) => id.cast(),
             Self::User(id) => id.cast(),
+            Self::Unknown { id, .. } => id,
         }
     }
 
@@ -64,6 +69,7 @@ impl CommandPermissionType {
             Self::Channel(_) => CommandPermissionDataType::CHANNEL,
             Self::Role(_) => CommandPermissionDataType::ROLE,
             Self::User(_) => CommandPermissionDataType::USER,
+            Self::Unknown { kind, .. } => kind,
         }
     }
 }
@@ -79,7 +85,7 @@ struct CommandPermissionData {
     permission: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CommandPermissionDataType(u8);
 
 impl CommandPermissionDataType {
@@ -134,7 +140,10 @@ impl<'de> Deserialize<'de> for CommandPermission {
             CommandPermissionDataType::ROLE => CommandPermissionType::Role(data.id.cast()),
             CommandPermissionDataType::USER => CommandPermissionType::User(data.id.cast()),
             CommandPermissionDataType::CHANNEL => CommandPermissionType::Channel(data.id.cast()),
-            _ => todo!(),
+            other => CommandPermissionType::Unknown {
+                kind: other,
+                id: data.id,
+            },
         };
 
         tracing::trace!(id = %data.id, kind = ?data.kind);
