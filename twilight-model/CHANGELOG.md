@@ -1,5 +1,12 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- constants for scope values ([#2018](https://github.com/twilight-rs/twilight/issues/2018))
+- add new message types for premium ([#2040](https://github.com/twilight-rs/twilight/issues/2040))
+
 ## [0.14.1] - 2023-01-07
 
 ### Documentation
