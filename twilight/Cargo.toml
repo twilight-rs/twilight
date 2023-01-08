@@ -10,7 +10,7 @@ name = "twilight"
 publish = true
 repository.workspace = true
 rust-version.workspace = true
-version = "0.14.0"
+version = "0.15.0-rc.1"
 
 [dev-dependencies]
 anyhow = { default-features = false, features = ["std"], version = "1" }
