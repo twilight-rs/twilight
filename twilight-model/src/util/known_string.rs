@@ -87,12 +87,15 @@ use std::{
 ///     }
 ///
 ///     fn print_sound(self) {
-///         println!("{}", match self {
-///             Self::A => "ayy",
-///             Self::B => "bee",
-///             Self::C => "sea",
-///             _ => "unknown",
-///         });
+///         println!(
+///             "{}",
+///             match self {
+///                 Self::A => "ayy",
+///                 Self::B => "bee",
+///                 Self::C => "sea",
+///                 _ => "unknown",
+///             }
+///         );
 ///     }
 /// }
 /// ```

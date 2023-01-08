@@ -27,7 +27,7 @@ use std::{
 ///     Scope::CONNECTIONS => println!("Your list of connections is being requested."),
 ///     Scope::EMAIL => println!("Your email address is being requested."),
 ///     Scope::IDENTIFY => println!("Information about your account is being requested."),
-///     _ => {},
+///     _ => {}
 /// }
 /// ````
 #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
