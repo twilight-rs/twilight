@@ -4,7 +4,7 @@ use tokio::time;
 use twilight_gateway::{
     queue::{LocalQueue, Queue},
     stream::{self, ShardEventStream, ShardMessageStream},
-    Config, ConnectionStatus, Event, Intents, Shard, ShardId,
+    Config, Event, Intents, Shard, ShardId,
 };
 use twilight_http::Client;
 
@@ -128,10 +128,7 @@ async fn reshard(
                 continue;
             }
             Some((shard, _)) => {
-                identified[shard.id().number() as usize] = matches!(
-                    shard.status(),
-                    ConnectionStatus::Connected | ConnectionStatus::Resuming
-                );
+                identified[shard.id().number() as usize] = shard.status().is_identified();
             }
             None => return Ok(None),
         }

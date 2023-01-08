@@ -150,6 +150,8 @@ pub enum ConnectionStatus {
     /// Shard is waiting to establish an active session.
     Identifying,
     /// Shard is replaying missed dispatch events.
+    ///
+    /// The shard is considered identified whilst resuming.
     Resuming,
 }
 
@@ -186,12 +188,24 @@ impl ConnectionStatus {
         matches!(self, Self::FatallyClosed { .. })
     }
 
+    /// Whether the shard is identified with an active session.
+    ///
+    /// `true` if the status is [`Connected`] or [`Resuming`].
+    ///
+    /// [`Connected`]: Self::Connected
+    /// [`Resuming`]: Self::Resuming
+    pub const fn is_identified(&self) -> bool {
+        self.is_connected() || self.is_resuming()
+    }
+
     /// Whether the shard is waiting to establish an active session.
     pub const fn is_identifying(&self) -> bool {
         matches!(self, Self::Identifying)
     }
 
     /// Whether the shard is replaying missed dispatch events.
+    ///
+    /// The shard is considered identified whilst resuming.
     pub const fn is_resuming(&self) -> bool {
         matches!(self, Self::Resuming)
     }
@@ -657,10 +671,7 @@ impl Shard {
     ///
     /// // Discord only allows sending the `RequestGuildMembers` command after
     /// // the shard is identified.
-    /// while !matches!(
-    ///     shard.status(),
-    ///     ConnectionStatus::Connected | ConnectionStatus::Resuming
-    /// ) {
+    /// while !shard.status().is_identified() {
     ///     // Ignore these messages.
     ///     shard.next_message().await?;
     /// }
