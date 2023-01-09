@@ -4,6 +4,7 @@ mod interaction;
 
 pub use self::{builder::ClientBuilder, interaction::InteractionClient};
 
+use crate::request::GetCurrentAuthorizationInformation;
 #[allow(deprecated)]
 use crate::{
     client::connector::Connector,
@@ -649,6 +650,11 @@ impl Client {
         guild_id: Id<GuildMarker>,
     ) -> GetCurrentUserGuildMember<'_> {
         GetCurrentUserGuildMember::new(self, guild_id)
+    }
+
+    /// Get information about the current OAuth authorization.
+    pub const fn current_authorization(&self) -> GetCurrentAuthorizationInformation<'_> {
+        GetCurrentAuthorizationInformation::new(self)
     }
 
     /// Get information about the current bot application.
