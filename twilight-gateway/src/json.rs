@@ -32,16 +32,15 @@ pub fn parse(
     let gateway_deserializer =
         GatewayEventDeserializer::from_json(&json).expect("Shard::process asserted valid opcode");
 
-    let opcode = match OpCode::from(gateway_deserializer.op()) {
-        Some(opcode) => opcode,
-        None => {
-            let opcode = gateway_deserializer.op();
+    let opcode = if let Some(opcode) = OpCode::from(gateway_deserializer.op()) {
+        opcode
+    } else {
+        let opcode = gateway_deserializer.op();
 
-            return Err(ReceiveMessageError {
-                kind: ReceiveMessageErrorType::Deserializing { event: json },
-                source: Some(format!("unknown opcode: {opcode}").into()),
-            });
-        }
+        return Err(ReceiveMessageError {
+            kind: ReceiveMessageErrorType::Deserializing { event: json },
+            source: Some(format!("unknown opcode: {opcode}").into()),
+        });
     };
 
     let event_type = gateway_deserializer.event_type();
