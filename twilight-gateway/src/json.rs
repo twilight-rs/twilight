@@ -46,17 +46,16 @@ pub fn parse(
 
     let event_type = gateway_deserializer.event_type();
 
-    let event_flag = match EventTypeFlags::try_from((opcode, event_type)) {
-        Ok(event_flag) => event_flag,
-        Err(_) => {
-            let opcode = opcode as u8;
-            let source = format!("unknown opcode/dispatch event type: {opcode}/{event_type:?}");
+    let event_flag = if let Ok(event_flag) = EventTypeFlags::try_from((opcode, event_type)) {
+        event_flag
+    } else {
+        let opcode = opcode as u8;
+        let source = format!("unknown opcode/dispatch event type: {opcode}/{event_type:?}");
 
-            return Err(ReceiveMessageError {
-                kind: ReceiveMessageErrorType::Deserializing { event: json },
-                source: Some(source.into()),
-            });
-        }
+        return Err(ReceiveMessageError {
+            kind: ReceiveMessageErrorType::Deserializing { event: json },
+            source: Some(source.into()),
+        });
     };
 
     if event_types.contains(event_flag) {
