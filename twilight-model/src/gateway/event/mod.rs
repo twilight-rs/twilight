@@ -11,7 +11,7 @@ pub use self::{
     kind::EventType,
 };
 
-use super::payload::incoming::*;
+use super::{payload::incoming::*, CloseFrame};
 use crate::id::{marker::GuildMarker, Id};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
@@ -44,6 +44,9 @@ pub enum Event {
     ChannelUpdate(Box<ChannelUpdate>),
     /// A command's permissions were updated.
     CommandPermissionsUpdate(CommandPermissionsUpdate),
+    /// Close message with an optional frame including information about the
+    /// reason for the close.
+    GatewayClose(Option<CloseFrame<'static>>),
     /// A heartbeat was sent to or received from the gateway.
     GatewayHeartbeat(u64),
     /// A heartbeat acknowledgement was received from the gateway.
@@ -230,6 +233,7 @@ impl Event {
             Event::VoiceStateUpdate(e) => e.0.guild_id,
             Event::WebhooksUpdate(e) => Some(e.guild_id),
             Event::ChannelPinsUpdate(_)
+            | Event::GatewayClose(_)
             | Event::GatewayHeartbeat(_)
             | Event::GatewayHeartbeatAck
             | Event::GatewayHello(_)
@@ -260,6 +264,7 @@ impl Event {
             Self::ChannelPinsUpdate(_) => EventType::CHANNEL_PINS_UPDATE,
             Self::ChannelUpdate(_) => EventType::CHANNEL_UPDATE,
             Self::CommandPermissionsUpdate(_) => EventType::COMMAND_PERMISSIONS_UPDATE,
+            Self::GatewayClose(_) => EventType::GATEWAY_CLOSE,
             Self::GatewayHeartbeat(_) => EventType::GATEWAY_HEARTBEAT,
             Self::GatewayHeartbeatAck => EventType::GATEWAY_HEARTBEAT_ACK,
             Self::GatewayHello(_) => EventType::GATEWAY_HELLO,

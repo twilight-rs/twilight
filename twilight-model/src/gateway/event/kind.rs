@@ -35,6 +35,8 @@ impl EventType {
     pub const COMMAND_PERMISSIONS_UPDATE: Self =
         Self::from_bytes(b"APPLICATION_COMMAND_PERMISSIONS_UPDATE");
 
+    pub const GATEWAY_CLOSE: Self = Self::from_bytes(b"GATEWAY_CLOSE");
+
     pub const GATEWAY_HEARTBEAT: Self = Self::from_bytes(b"GATEWAY_HEARTBEAT");
 
     pub const GATEWAY_HEARTBEAT_ACK: Self = Self::from_bytes(b"GATEWAY_HEARTBEAT_ACK");
@@ -170,6 +172,77 @@ impl EventType {
         self.0.get()
     }
 
+    pub fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::AUTO_MODERATION_ACTION_EXECUTION => Self::AUTO_MODERATION_ACTION_EXECUTION.get(),
+            Self::AUTO_MODERATION_RULE_CREATE => Self::AUTO_MODERATION_RULE_CREATE.get(),
+            Self::AUTO_MODERATION_RULE_DELETE => Self::AUTO_MODERATION_RULE_DELETE.get(),
+            Self::AUTO_MODERATION_RULE_UPDATE => Self::AUTO_MODERATION_RULE_UPDATE.get(),
+            Self::BAN_ADD => Self::BAN_ADD.get(),
+            Self::BAN_REMOVE => Self::BAN_REMOVE.get(),
+            Self::CHANNEL_CREATE => Self::CHANNEL_CREATE.get(),
+            Self::CHANNEL_DELETE => Self::CHANNEL_DELETE.get(),
+            Self::CHANNEL_PINS_UPDATE => Self::CHANNEL_PINS_UPDATE.get(),
+            Self::CHANNEL_UPDATE => Self::CHANNEL_UPDATE.get(),
+            Self::COMMAND_PERMISSIONS_UPDATE => Self::COMMAND_PERMISSIONS_UPDATE.get(),
+            Self::GIFT_CODE_UPDATE => Self::GIFT_CODE_UPDATE.get(),
+            Self::GUILD_CREATE => Self::GUILD_CREATE.get(),
+            Self::GUILD_DELETE => Self::GUILD_DELETE.get(),
+            Self::GUILD_EMOJIS_UPDATE => Self::GUILD_EMOJIS_UPDATE.get(),
+            Self::GUILD_INTEGRATIONS_UPDATE => Self::GUILD_INTEGRATIONS_UPDATE.get(),
+            Self::GUILD_SCHEDULED_EVENT_CREATE => Self::GUILD_SCHEDULED_EVENT_CREATE.get(),
+            Self::GUILD_SCHEDULED_EVENT_DELETE => Self::GUILD_SCHEDULED_EVENT_DELETE.get(),
+            Self::GUILD_SCHEDULED_EVENT_UPDATE => Self::GUILD_SCHEDULED_EVENT_UPDATE.get(),
+            Self::GUILD_SCHEDULED_EVENT_USER_ADD => Self::GUILD_SCHEDULED_EVENT_USER_ADD.get(),
+            Self::GUILD_SCHEDULED_EVENT_USER_REMOVE => {
+                Self::GUILD_SCHEDULED_EVENT_USER_REMOVE.get()
+            }
+            Self::GUILD_STICKERS_UPDATE => Self::GUILD_STICKERS_UPDATE.get(),
+            Self::GUILD_UPDATE => Self::GUILD_UPDATE.get(),
+            Self::INTEGRATION_CREATE => Self::INTEGRATION_CREATE.get(),
+            Self::INTEGRATION_DELETE => Self::INTEGRATION_DELETE.get(),
+            Self::INTEGRATION_UPDATE => Self::INTEGRATION_UPDATE.get(),
+            Self::INTERACTION_CREATE => Self::INTERACTION_CREATE.get(),
+            Self::INVITE_CREATE => Self::INVITE_CREATE.get(),
+            Self::INVITE_DELETE => Self::INVITE_DELETE.get(),
+            Self::MEMBER_ADD => Self::MEMBER_ADD.get(),
+            Self::MEMBER_CHUNK => Self::MEMBER_CHUNK.get(),
+            Self::MEMBER_REMOVE => Self::MEMBER_REMOVE.get(),
+            Self::MEMBER_UPDATE => Self::MEMBER_UPDATE.get(),
+            Self::MESSAGE_CREATE => Self::MESSAGE_CREATE.get(),
+            Self::MESSAGE_DELETE => Self::MESSAGE_DELETE.get(),
+            Self::MESSAGE_DELETE_BULK => Self::MESSAGE_DELETE_BULK.get(),
+            Self::MESSAGE_UPDATE => Self::MESSAGE_UPDATE.get(),
+            Self::PRESENCES_REPLACE => Self::PRESENCES_REPLACE.get(),
+            Self::PRESENCE_UPDATE => Self::PRESENCE_UPDATE.get(),
+            Self::REACTION_ADD => Self::REACTION_ADD.get(),
+            Self::REACTION_REMOVE => Self::REACTION_REMOVE.get(),
+            Self::REACTION_REMOVE_ALL => Self::REACTION_REMOVE_ALL.get(),
+            Self::REACTION_REMOVE_EMOJI => Self::REACTION_REMOVE_EMOJI.get(),
+            Self::READY => Self::READY.get(),
+            Self::RESUMED => Self::RESUMED.get(),
+            Self::ROLE_CREATE => Self::ROLE_CREATE.get(),
+            Self::ROLE_DELETE => Self::ROLE_DELETE.get(),
+            Self::ROLE_UPDATE => Self::ROLE_UPDATE.get(),
+            Self::STAGE_INSTANCE_CREATE => Self::STAGE_INSTANCE_CREATE.get(),
+            Self::STAGE_INSTANCE_DELETE => Self::STAGE_INSTANCE_DELETE.get(),
+            Self::STAGE_INSTANCE_UPDATE => Self::STAGE_INSTANCE_UPDATE.get(),
+            Self::THREAD_CREATE => Self::THREAD_CREATE.get(),
+            Self::THREAD_DELETE => Self::THREAD_DELETE.get(),
+            Self::THREAD_LIST_SYNC => Self::THREAD_LIST_SYNC.get(),
+            Self::THREAD_MEMBERS_UPDATE => Self::THREAD_MEMBERS_UPDATE.get(),
+            Self::THREAD_MEMBER_UPDATE => Self::THREAD_MEMBER_UPDATE.get(),
+            Self::THREAD_UPDATE => Self::THREAD_UPDATE.get(),
+            Self::TYPING_START => Self::TYPING_START.get(),
+            Self::UNAVAILABLE_GUILD => Self::UNAVAILABLE_GUILD.get(),
+            Self::USER_UPDATE => Self::USER_UPDATE.get(),
+            Self::VOICE_SERVER_UPDATE => Self::VOICE_SERVER_UPDATE.get(),
+            Self::VOICE_STATE_UPDATE => Self::VOICE_STATE_UPDATE.get(),
+            Self::WEBHOOKS_UPDATE => Self::WEBHOOKS_UPDATE.get(),
+            _ => return None,
+        })
+    }
+
     /// Create a event type from a set of bytes.
     const fn from_bytes(input: &[u8]) -> Self {
         Self(KnownString::from_bytes(input))
@@ -259,6 +332,7 @@ mod tests {
             EventType::COMMAND_PERMISSIONS_UPDATE,
             "APPLICATION_COMMAND_PERMISSIONS_UPDATE",
         );
+        assert_variant(EventType::GATEWAY_CLOSE, "GATEWAY_CLOSE");
         assert_variant(EventType::GATEWAY_HEARTBEAT, "GATEWAY_HEARTBEAT");
         assert_variant(EventType::GATEWAY_HEARTBEAT_ACK, "GATEWAY_HEARTBEAT_ACK");
         assert_variant(EventType::GATEWAY_HELLO, "GATEWAY_HELLO");

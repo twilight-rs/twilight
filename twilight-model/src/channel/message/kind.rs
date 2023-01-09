@@ -84,6 +84,12 @@ impl MessageType {
     /// Message is an auto moderation action.
     pub const AUTO_MODERATION_ACTION: Self = Self::new(24);
 
+    /// System message denoting a interaction premium upsell.
+    pub const INTERACTION_PREMIUM_UPSELL: Self = Self::new(26);
+
+    /// System message denoting a guild application premium subscription.
+    pub const GUILD_APPLICATION_PREMIUM_SUBSCRIPTION: Self = Self::new(32);
+
     /// Create a new message type from a dynamic value.
     ///
     /// The provided value isn't validated. Known valid values are associated
@@ -104,9 +110,7 @@ impl MessageType {
     pub const fn get(&self) -> u8 {
         self.0
     }
-}
 
-impl MessageType {
     /// Whether the message can be deleted, not taking permissions into account.
     /// Some message types can't be deleted, even by server administrators.
     ///
@@ -137,6 +141,7 @@ impl MessageType {
                 | Self::GUILD_INVITE_REMINDER
                 | Self::CONTEXT_MENU_COMMAND
                 | Self::AUTO_MODERATION_ACTION
+                | Self::INTERACTION_PREMIUM_UPSELL
         )
     }
 
@@ -235,6 +240,12 @@ mod tests {
             (MessageType::GUILD_INVITE_REMINDER, 22, true),
             (MessageType::CONTEXT_MENU_COMMAND, 23, true),
             (MessageType::AUTO_MODERATION_ACTION, 24, true),
+            (MessageType::INTERACTION_PREMIUM_UPSELL, 26, true),
+            (
+                MessageType::GUILD_APPLICATION_PREMIUM_SUBSCRIPTION,
+                32,
+                false,
+            ),
         ];
 
         for (message_type, number, deletable) in MAP {

@@ -1,5 +1,36 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- remove left over module file ([#1925](https://github.com/twilight-rs/twilight/issues/1925))
+- [**breaking**] heartbeat with a `null` sequence until a session is initialized ([#1940](https://github.com/twilight-rs/twilight/issues/1940))
+- [**breaking**] use typed features for guild invite ([#2043](https://github.com/twilight-rs/twilight/issues/2043))
+
+### Features
+
+- [**breaking**] bring widgets up to date ([#1848](https://github.com/twilight-rs/twilight/issues/1848))
+- [**breaking**] add `AfkTimeout` for `Guild::afk_timeout` ([#1922](https://github.com/twilight-rs/twilight/issues/1922))
+- [**breaking**] add `Event::GatewayClose` variant ([#2044](https://github.com/twilight-rs/twilight/issues/2044))
+
+### Refactor
+
+- [**breaking**] move `gateway::Hello` to `payloads::incoming::Hello` ([#1928](https://github.com/twilight-rs/twilight/issues/1928))
+- [**breaking**] redo `gateway::OpCode` ([#1945](https://github.com/twilight-rs/twilight/issues/1945))
+- [**breaking**] clean up `AllowedMentions` ([#1869](https://github.com/twilight-rs/twilight/issues/1869))
+
+### Reafactor
+
+- [**breaking**] unify event deserialization into one type ([#2023](https://github.com/twilight-rs/twilight/issues/2023))
+
+## [0.14.2] - 2023-01-08
+
+### Features
+
+- constants for scope values ([#2018](https://github.com/twilight-rs/twilight/issues/2018))
+- add new message types for premium ([#2040](https://github.com/twilight-rs/twilight/issues/2040))
+
 ## [0.14.1] - 2023-01-07
 
 ### Documentation

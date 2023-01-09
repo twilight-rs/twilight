@@ -21,7 +21,6 @@
 )]
 
 pub mod error;
-pub mod message;
 pub mod stream;
 
 mod channel;
@@ -34,6 +33,7 @@ mod future;
 mod inflater;
 mod json;
 mod latency;
+mod message;
 mod ratelimiter;
 mod session;
 mod shard;
@@ -45,13 +45,14 @@ pub use self::{
     config::{Config, ConfigBuilder, ShardId},
     event::EventTypeFlags,
     latency::Latency,
+    message::Message,
     ratelimiter::CommandRatelimiter,
     session::Session,
     shard::{ConnectionStatus, Shard},
 };
 #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
 pub use inflater::Inflater;
-pub use twilight_model::gateway::Intents;
+pub use twilight_model::gateway::{CloseFrame, Intents};
 
 #[doc(no_inline)]
 pub use twilight_gateway_queue as queue;

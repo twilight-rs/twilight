@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Features
+
+- [**breaking**] bring widgets up to date ([#1848](https://github.com/twilight-rs/twilight/issues/1848))
+
 ## [0.14.1] - 2023-01-07
 
 ### Features

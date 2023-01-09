@@ -1,5 +1,11 @@
 # Changelog
 
+## [unreleased]
+
+### Bug Fixes
+
+- [**breaking**] don't truncate volume values ([#2017](https://github.com/twilight-rs/twilight/issues/2017))
+
 ## [0.14.1] - 2023-01-07
 
 ### Bug Fixes

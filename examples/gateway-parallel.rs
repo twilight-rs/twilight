@@ -8,10 +8,9 @@ use futures_util::{future::join_all, StreamExt};
 use std::{env, iter, sync::Arc, thread};
 use tokio::{signal, sync::watch, task::JoinSet};
 use twilight_gateway::{
-    message::CloseFrame,
     queue::LocalQueue,
     stream::{self, ShardEventStream},
-    Config, Intents, Shard,
+    CloseFrame, Config, Intents, Shard,
 };
 use twilight_http::Client;
 
