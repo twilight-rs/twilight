@@ -23,9 +23,9 @@ pub struct MessageComponentInteractionData {
     pub component_type: ComponentType,
     /// Values selected by the user.
     ///
-    /// Only used for [`SelectMenu`] components.
+    /// Only used for [`StringSelectMenu`] components.
     ///
-    /// [`SelectMenu`]: ComponentType::SelectMenu
+    /// [`StringSelectMenu`]: ComponentType::StringSelectMenu
     #[serde(default)]
     pub values: Vec<String>,
 }

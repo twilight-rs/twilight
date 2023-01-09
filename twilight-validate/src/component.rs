@@ -5,8 +5,8 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 use twilight_model::channel::message::component::{
-    ActionRow, Button, ButtonStyle, Component, ComponentType, SelectMenu, SelectMenuOption,
-    TextInput,
+    ActionRow, Button, ButtonStyle, ChannelSelectMenu, Component, ComponentType, StringSelectMenu,
+    StringSelectMenuOption, TextInput, TypeSelectMenu,
 };
 
 /// Maximum number of [`Component`]s allowed inside an [`ActionRow`].
@@ -79,7 +79,7 @@ pub const SELECT_MINIMUM_VALUES_LIMIT: usize = 25;
 /// [Discord Docs/Select Menu][1].
 ///
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
-pub const SELECT_OPTION_COUNT: usize = 25;
+pub const STRING_SELECT_OPTION_COUNT: usize = 25;
 
 /// Maximum length of a [`SelectMenuOption::description`] in codepoints.
 ///
@@ -87,7 +87,7 @@ pub const SELECT_OPTION_COUNT: usize = 25;
 /// [Discord Docs/Select Menu Option][1].
 ///
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
-pub const SELECT_OPTION_DESCRIPTION_LENGTH: usize = 100;
+pub const STRING_SELECT_OPTION_DESCRIPTION_LENGTH: usize = 100;
 
 /// Maximum length of a [`SelectMenuOption::label`] in codepoints.
 ///
@@ -95,7 +95,7 @@ pub const SELECT_OPTION_DESCRIPTION_LENGTH: usize = 100;
 /// [Discord Docs/Select Menu Option][1].
 ///
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
-pub const SELECT_OPTION_LABEL_LENGTH: usize = 100;
+pub const STRING_SELECT_OPTION_LABEL_LENGTH: usize = 100;
 
 /// Maximum length of a [`SelectMenuOption::value`] in codepoints.
 ///
@@ -103,7 +103,7 @@ pub const SELECT_OPTION_LABEL_LENGTH: usize = 100;
 /// [Discord Docs/Select Menu Option][1].
 ///
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
-pub const SELECT_OPTION_VALUE_LENGTH: usize = 100;
+pub const STRING_SELECT_OPTION_VALUE_LENGTH: usize = 100;
 
 /// Maximum length of a [`SelectMenu::placeholder`] in codepoints.
 ///
@@ -259,26 +259,26 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&SELECT_MAXIMUM_VALUES_LIMIT, f)
             }
-            ComponentValidationErrorType::SelectOptionDescriptionLength { chars } => {
+            ComponentValidationErrorType::StringSelectOptionDescriptionLength { chars } => {
                 f.write_str("a select menu option's description is ")?;
                 Display::fmt(&chars, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
-                Display::fmt(&SELECT_OPTION_DESCRIPTION_LENGTH, f)
+                Display::fmt(&STRING_SELECT_OPTION_DESCRIPTION_LENGTH, f)
             }
-            ComponentValidationErrorType::SelectOptionLabelLength { chars } => {
+            ComponentValidationErrorType::StringSelectOptionLabelLength { chars } => {
                 f.write_str("a select menu option's label is ")?;
                 Display::fmt(&chars, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
-                Display::fmt(&SELECT_OPTION_LABEL_LENGTH, f)
+                Display::fmt(&STRING_SELECT_OPTION_LABEL_LENGTH, f)
             }
-            ComponentValidationErrorType::SelectOptionValueLength { chars } => {
+            ComponentValidationErrorType::StringSelectOptionValueLength { chars } => {
                 f.write_str("a select menu option's value is ")?;
                 Display::fmt(&chars, f)?;
                 f.write_str(" characters long, but the max is ")?;
 
-                Display::fmt(&SELECT_OPTION_VALUE_LENGTH, f)
+                Display::fmt(&STRING_SELECT_OPTION_VALUE_LENGTH, f)
             }
             ComponentValidationErrorType::SelectPlaceholderLength { chars } => {
                 f.write_str("a select menu's placeholder is ")?;
@@ -287,12 +287,12 @@ impl Display for ComponentValidationError {
 
                 Display::fmt(&SELECT_PLACEHOLDER_LENGTH, f)
             }
-            ComponentValidationErrorType::SelectOptionCount { count } => {
+            ComponentValidationErrorType::StringSelectOptionCount { count } => {
                 f.write_str("a select menu has ")?;
                 Display::fmt(&count, f)?;
                 f.write_str(" options, but the max is ")?;
 
-                Display::fmt(&SELECT_OPTION_COUNT, f)
+                Display::fmt(&STRING_SELECT_OPTION_COUNT, f)
             }
             ComponentValidationErrorType::TextInputLabelLength { len: count } => {
                 f.write_str("a text input label length is ")?;
@@ -400,26 +400,26 @@ pub enum ComponentValidationErrorType {
         count: usize,
     },
     /// Number of select menu options provided is larger than
-    /// [the maximum][`SELECT_OPTION_COUNT`].
-    SelectOptionCount {
+    /// [the maximum][`STRING_SELECT_OPTION_COUNT`].
+    StringSelectOptionCount {
         /// Number of options that were provided.
         count: usize,
     },
     /// Description of a select menu option is larger than
-    /// [the maximum][`SELECT_OPTION_DESCRIPTION_LENGTH`].
-    SelectOptionDescriptionLength {
+    /// [the maximum][`STRING_SELECT_OPTION_DESCRIPTION_LENGTH`].
+    StringSelectOptionDescriptionLength {
         /// Number of codepoints that were provided.
         chars: usize,
     },
     /// Label of a select menu option is larger than
-    /// [the maximum][`SELECT_OPTION_LABEL_LENGTH`].
-    SelectOptionLabelLength {
+    /// [the maximum][`STRING_SELECT_OPTION_LABEL_LENGTH`].
+    StringSelectOptionLabelLength {
         /// Number of codepoints that were provided.
         chars: usize,
     },
     /// Value of a select menu option is larger than
-    /// [the maximum][`SELECT_OPTION_VALUE_LENGTH`].
-    SelectOptionValueLength {
+    /// [the maximum][`STRING_SELECT_OPTION_VALUE_LENGTH`].
+    StringSelectOptionValueLength {
         /// Number of codepoints that were provided.
         chars: usize,
     },
@@ -523,8 +523,12 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
                 });
             }
             Component::Button(button) => self::button(button)?,
-            Component::SelectMenu(select_menu) => self::select_menu(select_menu)?,
+            Component::StringSelectMenu(select_menu) => self::string_select_menu(select_menu)?,
             Component::TextInput(text_input) => self::text_input(text_input)?,
+            Component::UserSelectMenu(select_menu)
+            | Component::RoleSelectMenu(select_menu)
+            | Component::MentionableSelectMenu(select_menu) => self::type_select_menu(select_menu)?,
+            Component::ChannelSelectMenu(select_menu) => self::channel_select_menu(select_menu)?,
             Component::Unknown(unknown) => {
                 return Err(ComponentValidationError {
                     kind: ComponentValidationErrorType::InvalidChildComponent {
@@ -533,6 +537,50 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
                 })
             }
         }
+    }
+
+    Ok(())
+}
+
+/// Ensure that a channel select menu is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
+///
+/// Returns an error of type [`ComponentLabelLength`] if the provided button
+/// label is too long.
+///
+/// Returns an error of type [`SelectMaximumValuesCount`] if the provided number
+/// of select menu values that can be chosen is smaller than the minimum or
+/// larger than the maximum.
+///
+/// Returns an error of type [`SelectMinimumValuesCount`] if the provided number
+/// of select menu values that must be chosen is larger than the maximum.
+///
+/// Returns an error of type [`SelectPlaceholderLength`] if a provided select
+/// placeholder is too long.
+///
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
+/// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
+/// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
+/// [`SelectMinimumValuesCount`]: ComponentValidationErrorType::SelectMinimumValuesCount
+pub fn channel_select_menu(
+    select_menu: &ChannelSelectMenu,
+) -> Result<(), ComponentValidationError> {
+    self::component_custom_id(&select_menu.custom_id)?;
+
+    if let Some(placeholder) = select_menu.placeholder.as_ref() {
+        self::component_select_placeholder(placeholder)?;
+    }
+
+    if let Some(max_values) = select_menu.max_values {
+        self::component_select_max_values(usize::from(max_values))?;
+    }
+
+    if let Some(min_values) = select_menu.min_values {
+        self::component_select_min_values(usize::from(min_values))?;
     }
 
     Ok(())
@@ -596,7 +644,7 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
     Ok(())
 }
 
-/// Ensure that a select menu is correct.
+/// Ensure that a string select menu is correct.
 ///
 /// # Errors
 ///
@@ -613,13 +661,13 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// Returns an error of type [`SelectMinimumValuesCount`] if the provided number
 /// of select menu values that must be chosen is larger than the maximum.
 ///
-/// Returns an error of type [`SelectOptionDescriptionLength`] if a provided
+/// Returns an error of type [`StringSelectOptionDescriptionLength`] if a provided
 /// select option description is too long.
 ///
-/// Returns an error of type [`SelectOptionLabelLength`] if a provided select
+/// Returns an error of type [`StringSelectOptionLabelLength`] if a provided select
 /// option label is too long.
 ///
-/// Returns an error of type [`SelectOptionValueLength`] error type if
+/// Returns an error of type [`StringSelectOptionValueLength`] error type if
 /// a provided select option value is too long.
 ///
 /// Returns an error of type [`SelectPlaceholderLength`] if a provided select
@@ -629,11 +677,11 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 /// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
 /// [`SelectMinimumValuesCount`]: ComponentValidationErrorType::SelectMinimumValuesCount
-/// [`SelectOptionDescriptionLength`]: ComponentValidationErrorType::SelectOptionDescriptionLength
-/// [`SelectOptionLabelLength`]: ComponentValidationErrorType::SelectOptionLabelLength
-/// [`SelectOptionValueLength`]: ComponentValidationErrorType::SelectOptionValueLength
-/// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
-pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationError> {
+/// [`StringSelectOptionDescriptionLength`]: ComponentValidationErrorType::StringSelectOptionDescriptionLength
+/// [`StringSelectOptionLabelLength`]: ComponentValidationErrorType::StringSelectOptionLabelLength
+/// [`StringSelectOptionValueLength`]: ComponentValidationErrorType::StringSelectOptionValueLength
+/// [`StringSelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
+pub fn string_select_menu(select_menu: &StringSelectMenu) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&select_menu.custom_id)?;
     self::component_select_options(&select_menu.options)?;
 
@@ -656,6 +704,48 @@ pub fn select_menu(select_menu: &SelectMenu) -> Result<(), ComponentValidationEr
         if let Some(description) = option.description.as_ref() {
             self::component_option_description(description)?;
         }
+    }
+
+    Ok(())
+}
+
+/// Ensure that a type select menu is correct.
+///
+/// # Errors
+///
+/// Returns an error of type [`ComponentCustomIdLength`] if the provided custom
+/// ID is too long.
+///
+/// Returns an error of type [`ComponentLabelLength`] if the provided button
+/// label is too long.
+///
+/// Returns an error of type [`SelectMaximumValuesCount`] if the provided number
+/// of select menu values that can be chosen is smaller than the minimum or
+/// larger than the maximum.
+///
+/// Returns an error of type [`SelectMinimumValuesCount`] if the provided number
+/// of select menu values that must be chosen is larger than the maximum.
+///
+/// Returns an error of type [`SelectPlaceholderLength`] if a provided select
+/// placeholder is too long.
+///
+/// [`ComponentCustomIdLength`]: ComponentValidationErrorType::ComponentCustomIdLength
+/// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
+/// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
+/// [`SelectMinimumValuesCount`]: ComponentValidationErrorType::SelectMinimumValuesCount
+pub fn type_select_menu(select_menu: &TypeSelectMenu) -> Result<(), ComponentValidationError> {
+    self::component_custom_id(&select_menu.custom_id)?;
+
+    if let Some(placeholder) = select_menu.placeholder.as_ref() {
+        self::component_select_placeholder(placeholder)?;
+    }
+
+    if let Some(max_values) = select_menu.max_values {
+        self::component_select_max_values(usize::from(max_values))?;
+    }
+
+    if let Some(min_values) = select_menu.min_values {
+        self::component_select_min_values(usize::from(min_values))?;
     }
 
     Ok(())
@@ -789,9 +879,9 @@ fn component_option_description(
 ) -> Result<(), ComponentValidationError> {
     let chars = description.as_ref().chars().count();
 
-    if chars > SELECT_OPTION_DESCRIPTION_LENGTH {
+    if chars > STRING_SELECT_OPTION_DESCRIPTION_LENGTH {
         return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::SelectOptionDescriptionLength { chars },
+            kind: ComponentValidationErrorType::StringSelectOptionDescriptionLength { chars },
         });
     }
 
@@ -857,9 +947,9 @@ const fn component_select_min_values(count: usize) -> Result<(), ComponentValida
 fn component_select_option_label(label: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = label.as_ref().chars().count();
 
-    if chars > SELECT_OPTION_LABEL_LENGTH {
+    if chars > STRING_SELECT_OPTION_LABEL_LENGTH {
         return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::SelectOptionLabelLength { chars },
+            kind: ComponentValidationErrorType::StringSelectOptionLabelLength { chars },
         });
     }
 
@@ -878,9 +968,9 @@ fn component_select_option_label(label: impl AsRef<str>) -> Result<(), Component
 fn component_select_option_value(value: impl AsRef<str>) -> Result<(), ComponentValidationError> {
     let chars = value.as_ref().chars().count();
 
-    if chars > SELECT_OPTION_VALUE_LENGTH {
+    if chars > STRING_SELECT_OPTION_VALUE_LENGTH {
         return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::SelectOptionValueLength { chars },
+            kind: ComponentValidationErrorType::StringSelectOptionValueLength { chars },
         });
     }
 
@@ -902,13 +992,13 @@ fn component_select_option_value(value: impl AsRef<str>) -> Result<(), Component
 /// [`SelectMenu`]: twilight_model::application::component::select_menu::SelectMenu
 /// [`SelectOptionCount`]: ComponentValidationErrorType::SelectOptionCount
 const fn component_select_options(
-    options: &[SelectMenuOption],
+    options: &[StringSelectMenuOption],
 ) -> Result<(), ComponentValidationError> {
     let count = options.len();
 
-    if count > SELECT_OPTION_COUNT {
+    if count > STRING_SELECT_OPTION_COUNT {
         return Err(ComponentValidationError {
-            kind: ComponentValidationErrorType::SelectOptionCount { count },
+            kind: ComponentValidationErrorType::StringSelectOptionCount { count },
         });
     }
 
@@ -1062,9 +1152,9 @@ mod tests {
     assert_fields!(ComponentValidationErrorType::InvalidRootComponent: kind);
     assert_fields!(ComponentValidationErrorType::SelectMaximumValuesCount: count);
     assert_fields!(ComponentValidationErrorType::SelectMinimumValuesCount: count);
-    assert_fields!(ComponentValidationErrorType::SelectOptionDescriptionLength: chars);
-    assert_fields!(ComponentValidationErrorType::SelectOptionLabelLength: chars);
-    assert_fields!(ComponentValidationErrorType::SelectOptionValueLength: chars);
+    assert_fields!(ComponentValidationErrorType::StringSelectOptionDescriptionLength: chars);
+    assert_fields!(ComponentValidationErrorType::StringSelectOptionLabelLength: chars);
+    assert_fields!(ComponentValidationErrorType::StringSelectOptionValueLength: chars);
     assert_fields!(ComponentValidationErrorType::SelectPlaceholderLength: chars);
     assert_impl_all!(ComponentValidationErrorType: Debug, Send, Sync);
     assert_impl_all!(ComponentValidationError: Debug, Send, Sync);
@@ -1091,12 +1181,12 @@ mod tests {
             url: Some("https://abebooks.com".into()),
         };
 
-        let select_menu = SelectMenu {
+        let select_menu = StringSelectMenu {
             custom_id: "custom id 2".into(),
             disabled: false,
             max_values: Some(2),
             min_values: Some(1),
-            options: Vec::from([SelectMenuOption {
+            options: Vec::from([StringSelectMenuOption {
                 default: true,
                 description: Some("Book 1 of the Expanse".into()),
                 emoji: None,
@@ -1108,25 +1198,25 @@ mod tests {
 
         let action_row = ActionRow {
             components: Vec::from([
-                Component::SelectMenu(select_menu.clone()),
+                Component::StringSelectMenu(select_menu.clone()),
                 Component::Button(button),
             ]),
         };
 
         assert!(component(&Component::ActionRow(action_row.clone())).is_ok());
 
-        assert!(component(&Component::SelectMenu(select_menu.clone())).is_err());
+        assert!(component(&Component::StringSelectMenu(select_menu.clone())).is_err());
 
         assert!(super::action_row(&action_row).is_ok());
 
         let invalid_action_row = Component::ActionRow(ActionRow {
             components: Vec::from([
-                Component::SelectMenu(select_menu.clone()),
-                Component::SelectMenu(select_menu.clone()),
-                Component::SelectMenu(select_menu.clone()),
-                Component::SelectMenu(select_menu.clone()),
-                Component::SelectMenu(select_menu.clone()),
-                Component::SelectMenu(select_menu),
+                Component::StringSelectMenu(select_menu.clone()),
+                Component::StringSelectMenu(select_menu.clone()),
+                Component::StringSelectMenu(select_menu.clone()),
+                Component::StringSelectMenu(select_menu.clone()),
+                Component::StringSelectMenu(select_menu.clone()),
+                Component::StringSelectMenu(select_menu),
             ]),
         });
 
@@ -1234,7 +1324,7 @@ mod tests {
 
     #[test]
     fn component_select_options_count() {
-        let select_menu_options = Vec::from([SelectMenuOption {
+        let select_menu_options = Vec::from([StringSelectMenuOption {
             default: false,
             description: None,
             emoji: None,
@@ -1249,7 +1339,7 @@ mod tests {
             .cloned()
             .cycle()
             .take(25)
-            .collect::<Vec<SelectMenuOption>>();
+            .collect::<Vec<StringSelectMenuOption>>();
 
         assert!(component_select_options(&select_menu_options_25).is_ok());
 
@@ -1258,7 +1348,7 @@ mod tests {
             .cloned()
             .cycle()
             .take(26)
-            .collect::<Vec<SelectMenuOption>>();
+            .collect::<Vec<StringSelectMenuOption>>();
 
         assert!(component_select_options(&select_menu_options_26).is_err());
     }
