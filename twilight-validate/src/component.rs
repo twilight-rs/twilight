@@ -46,8 +46,8 @@ pub const COMPONENT_CUSTOM_ID_LENGTH: usize = 100;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#component-object-component-structure
 pub const COMPONENT_BUTTON_LABEL_LENGTH: usize = 80;
 
-/// Maximum number of [`SelectMenuOption`]s that can be chosen in a
-/// [`SelectMenu`].
+/// Maximum number of [`StringSelectMenuOption`]s that can be chosen in a
+/// [`StringSelectMenu`].
 ///
 /// This is defined in Dicsord's documentation, per
 /// [Discord Docs/Select Menu][1].
@@ -55,8 +55,8 @@ pub const COMPONENT_BUTTON_LABEL_LENGTH: usize = 80;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_MAXIMUM_VALUES_LIMIT: usize = 25;
 
-/// Minimum number of [`SelectMenuOption`]s that can be chosen in a
-/// [`SelectMenu`].
+/// Minimum number of [`StringSelectMenuOption`]s that can be chosen in a
+/// [`StringSelectMenu`].
 ///
 /// This is defined in Dicsord's documentation, per
 /// [Discord Docs/Select Menu][1].
@@ -64,8 +64,8 @@ pub const SELECT_MAXIMUM_VALUES_LIMIT: usize = 25;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_MAXIMUM_VALUES_REQUIREMENT: usize = 1;
 
-/// Maximum number of [`SelectMenuOption`]s that must be chosen in a
-/// [`SelectMenu`].
+/// Maximum number of [`StringSelectMenuOption`]s that must be chosen in a
+/// [`StringSelectMenu`].
 ///
 /// This is defined in Dicsord's documentation, per
 /// [Discord Docs/Select Menu][1].
@@ -73,7 +73,7 @@ pub const SELECT_MAXIMUM_VALUES_REQUIREMENT: usize = 1;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const SELECT_MINIMUM_VALUES_LIMIT: usize = 25;
 
-/// Maximum number of [`SelectMenuOption`]s in a [`SelectMenu`].
+/// Maximum number of [`StringSelectMenuOption`]s in a [`StringSelectMenu`].
 ///
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu][1].
@@ -81,7 +81,7 @@ pub const SELECT_MINIMUM_VALUES_LIMIT: usize = 25;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-menu-structure
 pub const STRING_SELECT_OPTION_COUNT: usize = 25;
 
-/// Maximum length of a [`SelectMenuOption::description`] in codepoints.
+/// Maximum length of a [`StringSelectMenuOption::description`] in codepoints.
 ///
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu Option][1].
@@ -89,7 +89,7 @@ pub const STRING_SELECT_OPTION_COUNT: usize = 25;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
 pub const STRING_SELECT_OPTION_DESCRIPTION_LENGTH: usize = 100;
 
-/// Maximum length of a [`SelectMenuOption::label`] in codepoints.
+/// Maximum length of a [`StringSelectMenuOption::label`] in codepoints.
 ///
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu Option][1].
@@ -97,7 +97,7 @@ pub const STRING_SELECT_OPTION_DESCRIPTION_LENGTH: usize = 100;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
 pub const STRING_SELECT_OPTION_LABEL_LENGTH: usize = 100;
 
-/// Maximum length of a [`SelectMenuOption::value`] in codepoints.
+/// Maximum length of a [`StringSelectMenuOption::value`] in codepoints.
 ///
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu Option][1].
@@ -105,7 +105,11 @@ pub const STRING_SELECT_OPTION_LABEL_LENGTH: usize = 100;
 /// [1]: https://discord.com/developers/docs/interactions/message-components#select-menu-object-select-option-structure
 pub const STRING_SELECT_OPTION_VALUE_LENGTH: usize = 100;
 
-/// Maximum length of a [`SelectMenu::placeholder`] in codepoints.
+/// Maximum length of a Select Menu's placeholder in codepoints.
+/// 
+/// [`ChannelSelectMenu::placeholder`]
+/// [`StringSelectMenu::placeholder`]
+/// [`TypeSelectMenu::placeholder`]
 ///
 /// This is defined in Discord's documentation, per
 /// [Discord Docs/Select Menu][1].
@@ -502,7 +506,7 @@ pub fn component(component: &Component) -> Result<(), ComponentValidationError> 
 /// Refer to [`button`] for potential errors when validating a button in the
 /// action row.
 ///
-/// Refer to [`select_menu`] for potential errors when validating a select menu
+/// Refer to [`string_select_menu`] for potential errors when validating a select menu
 /// in the action row.
 ///
 /// Refer to [`text_input`] for potential errors when validating a text input in
@@ -566,6 +570,7 @@ pub fn action_row(action_row: &ActionRow) -> Result<(), ComponentValidationError
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 /// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
 /// [`SelectMinimumValuesCount`]: ComponentValidationErrorType::SelectMinimumValuesCount
+/// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
 pub fn channel_select_menu(
     select_menu: &ChannelSelectMenu,
 ) -> Result<(), ComponentValidationError> {
@@ -680,7 +685,7 @@ pub fn button(button: &Button) -> Result<(), ComponentValidationError> {
 /// [`StringSelectOptionDescriptionLength`]: ComponentValidationErrorType::StringSelectOptionDescriptionLength
 /// [`StringSelectOptionLabelLength`]: ComponentValidationErrorType::StringSelectOptionLabelLength
 /// [`StringSelectOptionValueLength`]: ComponentValidationErrorType::StringSelectOptionValueLength
-/// [`StringSelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
+/// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
 pub fn string_select_menu(select_menu: &StringSelectMenu) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&select_menu.custom_id)?;
     self::component_select_options(&select_menu.options)?;
@@ -733,6 +738,7 @@ pub fn string_select_menu(select_menu: &StringSelectMenu) -> Result<(), Componen
 /// [`ComponentLabelLength`]: ComponentValidationErrorType::ComponentLabelLength
 /// [`SelectMaximumValuesCount`]: ComponentValidationErrorType::SelectMaximumValuesCount
 /// [`SelectMinimumValuesCount`]: ComponentValidationErrorType::SelectMinimumValuesCount
+/// [`SelectPlaceholderLength`]: ComponentValidationErrorType::SelectPlaceholderLength
 pub fn type_select_menu(select_menu: &TypeSelectMenu) -> Result<(), ComponentValidationError> {
     self::component_custom_id(&select_menu.custom_id)?;
 
