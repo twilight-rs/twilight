@@ -30,7 +30,14 @@ pub fn parse(
     json: String,
 ) -> Result<Option<GatewayEvent>, ReceiveMessageError> {
     let gateway_deserializer =
-        GatewayEventDeserializer::from_json(&json).expect("Shard::process asserted valid opcode");
+        if let Some(gateway_deserializer) = GatewayEventDeserializer::from_json(&json) {
+            gateway_deserializer
+        } else {
+            return Err(ReceiveMessageError {
+                kind: ReceiveMessageErrorType::Deserializing { event: json },
+                source: Some("missing opcode".into()),
+            });
+        };
 
     let opcode = if let Some(opcode) = OpCode::from(gateway_deserializer.op()) {
         opcode
