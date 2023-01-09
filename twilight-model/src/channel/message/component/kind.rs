@@ -27,9 +27,9 @@ pub enum ComponentType {
     ///
     /// [`TextInput`]: super::TextInput
     TextInput,
-    /// Component is an [`TypeSelectMenu`]
+    /// Component is an [`UserSelectMenu`]
     ///
-    /// [`TypeSelectMenu`]: super::TypeSelectMenu
+    /// [`UserSelectMenu`]: super::TypeSelectMenu
     UserSelectMenu,
     /// Component is an [`RoleSelectMenu`]
     ///
