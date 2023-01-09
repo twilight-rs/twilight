@@ -1139,13 +1139,14 @@ mod tests {
             app_permissions: Some(Permissions::SEND_MESSAGES),
             application_id: Id::new(1),
             channel_id: Some(Id::new(2)),
-            data: Some(InteractionData::MessageComponent(
+            data: Some(InteractionData::MessageComponent(Box::new(
                 MessageComponentInteractionData {
                     custom_id: String::from("Click"),
                     component_type: ComponentType::Button,
                     values: Vec::new(),
+                    resolved: None,
                 },
-            )),
+            ))),
             guild_id: Some(Id::new(3)),
             guild_locale: None,
             id: Id::new(4),

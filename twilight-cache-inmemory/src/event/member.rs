@@ -5,7 +5,7 @@ use crate::{
 };
 use std::borrow::Cow;
 use twilight_model::{
-    application::interaction::application_command::InteractionMember,
+    application::interaction::resolved::InteractionMember,
     gateway::payload::incoming::{MemberAdd, MemberChunk, MemberRemove, MemberUpdate},
     guild::{Member, PartialMember},
     id::{

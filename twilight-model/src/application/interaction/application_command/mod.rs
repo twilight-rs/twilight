@@ -3,15 +3,11 @@
 //! [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
 
 mod option;
-mod resolved;
 
-pub use self::{
-    option::{CommandDataOption, CommandOptionValue},
-    resolved::{CommandInteractionDataResolved, InteractionChannel, InteractionMember},
-};
+pub use self::option::{CommandDataOption, CommandOptionValue};
 
 use crate::{
-    application::command::CommandType,
+    application::{command::CommandType, interaction::resolved::InteractionDataResolved},
     id::{
         marker::{CommandMarker, GenericMarker, GuildMarker},
         Id,
@@ -44,7 +40,7 @@ pub struct CommandData {
     pub options: Vec<CommandDataOption>,
     /// Resolved data from the interaction's options.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub resolved: Option<CommandInteractionDataResolved>,
+    pub resolved: Option<InteractionDataResolved>,
     /// If this is a user or message command, the ID of the targeted user/message.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_id: Option<Id<GenericMarker>>,
