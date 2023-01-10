@@ -2,6 +2,16 @@
 
 ## [unreleased]
 
+### Features
+
+- expose `json::parse` ([#2050](https://github.com/twilight-rs/twilight/issues/2050))
+
+### Performance
+
+- defer creating `Deserializer` until checking event is wanted ([#2048](https://github.com/twilight-rs/twilight/issues/2048))
+
+## [unreleased]
+
 ### Bug Fixes
 
 - [**breaking**] within a stream, reinsert shard on error ([#1892](https://github.com/twilight-rs/twilight/issues/1892))
