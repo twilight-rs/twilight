@@ -16,21 +16,36 @@ use twilight_model::gateway::{
     OpCode,
 };
 
-/// Parse JSON into a gateway event without existing knowledge of its underlying
-/// parts.
+/// Parse a JSON encoded event into a gateway event if its type is in
+/// `wanted_event_types`.
 ///
-/// Returns [`None`] if the event is not contained inside of `event_types`.
+/// This function can be used together with [`Shard::next_message`] for greater
+/// control of the deserialization process without giving up the ease of use of
+/// [`Shard::next_event`].
+///
+/// Returns [`None`] if the event type is not contained inside of
+/// `wanted_event_types`.
 ///
 /// # Errors
 ///
-/// Returns a [`ReceiveMessageErrorType::Deserializing`] error if the payload
+/// Returns a [`ReceiveMessageErrorType::Deserializing`] error if the event
 /// could not be deserialized.
+///
+/// [`Shard::next_event`]: crate::Shard::next_event
+/// [`Shard::next_message`]: crate::Shard::next_message
 pub fn parse(
-    event_types: EventTypeFlags,
-    json: String,
+    event: String,
+    wanted_event_types: EventTypeFlags,
 ) -> Result<Option<GatewayEvent>, ReceiveMessageError> {
     let gateway_deserializer =
-        GatewayEventDeserializer::from_json(&json).expect("Shard::process asserted valid opcode");
+        if let Some(gateway_deserializer) = GatewayEventDeserializer::from_json(&event) {
+            gateway_deserializer
+        } else {
+            return Err(ReceiveMessageError {
+                kind: ReceiveMessageErrorType::Deserializing { event },
+                source: Some("missing opcode".into()),
+            });
+        };
 
     let opcode = if let Some(opcode) = OpCode::from(gateway_deserializer.op()) {
         opcode
@@ -38,30 +53,30 @@ pub fn parse(
         let opcode = gateway_deserializer.op();
 
         return Err(ReceiveMessageError {
-            kind: ReceiveMessageErrorType::Deserializing { event: json },
+            kind: ReceiveMessageErrorType::Deserializing { event },
             source: Some(format!("unknown opcode: {opcode}").into()),
         });
     };
 
     let event_type = gateway_deserializer.event_type();
 
-    let event_flag = if let Ok(event_flag) = EventTypeFlags::try_from((opcode, event_type)) {
-        event_flag
+    let event_type = if let Ok(event_type) = EventTypeFlags::try_from((opcode, event_type)) {
+        event_type
     } else {
         let opcode = opcode as u8;
         let source = format!("unknown opcode/dispatch event type: {opcode}/{event_type:?}");
 
         return Err(ReceiveMessageError {
-            kind: ReceiveMessageErrorType::Deserializing { event: json },
+            kind: ReceiveMessageErrorType::Deserializing { event },
             source: Some(source.into()),
         });
     };
 
-    if event_types.contains(event_flag) {
+    if wanted_event_types.contains(event_type) {
         #[cfg(feature = "simd-json")]
         let gateway_deserializer = gateway_deserializer.into_owned();
         #[cfg(feature = "simd-json")]
-        let mut bytes = json.into_bytes();
+        let mut bytes = event.into_bytes();
 
         #[cfg(feature = "simd-json")]
         let mut json_deserializer = match simd_json::Deserializer::from_slice(&mut bytes) {
@@ -77,7 +92,7 @@ pub fn parse(
         };
 
         #[cfg(not(feature = "simd-json"))]
-        let mut json_deserializer = serde_json::Deserializer::from_str(&json);
+        let mut json_deserializer = serde_json::Deserializer::from_str(&event);
 
         gateway_deserializer
             .deserialize(&mut json_deserializer)
@@ -87,7 +102,7 @@ pub fn parse(
                     #[cfg(feature = "simd-json")]
                     event: String::from_utf8_lossy(&bytes).into_owned(),
                     #[cfg(not(feature = "simd-json"))]
-                    event: json,
+                    event,
                 },
                 source: Some(Box::new(source)),
             })

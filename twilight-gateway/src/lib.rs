@@ -44,6 +44,7 @@ pub use self::{
     command::Command,
     config::{Config, ConfigBuilder, ShardId},
     event::EventTypeFlags,
+    json::parse,
     latency::Latency,
     message::Message,
     ratelimiter::CommandRatelimiter,
