@@ -11,14 +11,13 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
 
-/// Resolved mentioned resources.
+/// Resolved resources.
 ///
 /// See [Discord Docs/Resolved Data Structure].
 ///
-/// [`ApplicationCommand`]: crate::application::interaction::InteractionType::ApplicationCommand
 /// [Discord Docs/Resolved Data Structure]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-resolved-data-structure
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct CommandInteractionDataResolved {
+pub struct InteractionDataResolved {
     /// Map of resolved attachments.
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub attachments: HashMap<Id<AttachmentMarker>, Attachment>,
@@ -93,7 +92,7 @@ pub struct InteractionMember {
 
 #[cfg(test)]
 mod tests {
-    use super::{CommandInteractionDataResolved, InteractionChannel, InteractionMember};
+    use super::{InteractionChannel, InteractionDataResolved, InteractionMember};
     use crate::{
         channel::{
             message::{
@@ -117,7 +116,7 @@ mod tests {
         let joined_at = Timestamp::from_str("2021-08-10T12:18:37.000000+00:00")?;
         let timestamp = Timestamp::from_str("2020-02-02T02:02:02.020000+00:00")?;
 
-        let value = CommandInteractionDataResolved {
+        let value = InteractionDataResolved {
             attachments: IntoIterator::into_iter([(
                 Id::new(400),
                 Attachment {
@@ -272,7 +271,7 @@ mod tests {
             &value,
             &[
                 Token::Struct {
-                    name: "CommandInteractionDataResolved",
+                    name: "InteractionDataResolved",
                     len: 6,
                 },
                 Token::Str("attachments"),

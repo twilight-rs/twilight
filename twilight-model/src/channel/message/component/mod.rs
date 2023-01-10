@@ -7,19 +7,23 @@
 
 mod action_row;
 mod button;
+mod channel_select;
 mod kind;
-mod select_menu;
+mod string_select;
 mod text_input;
+mod type_select;
 
 pub use self::{
     action_row::ActionRow,
     button::{Button, ButtonStyle},
+    channel_select::ChannelSelectMenu,
     kind::ComponentType,
-    select_menu::{SelectMenu, SelectMenuOption},
+    string_select::{StringSelectMenu, StringSelectMenuOption},
     text_input::{TextInput, TextInputStyle},
+    type_select::TypeSelectMenu,
 };
 
-use super::ReactionType;
+use super::{super::channel_type::ChannelType, ReactionType};
 use serde::{
     de::{Deserializer, Error as DeError, IgnoredAny, MapAccess, Visitor},
     ser::SerializeStruct,
@@ -51,25 +55,25 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// });
 /// ```
 ///
-/// ## Select menu
+/// ## String Select Menu
 ///
 /// ```
 /// use twilight_model::{
 ///     channel::message::{
-///         component::{ActionRow, Component, SelectMenu, SelectMenuOption},
+///         component::{ActionRow, Component, StringSelectMenu, StringSelectMenuOption},
 ///         ReactionType,
 ///     },
 ///     id::Id,
 /// };
 ///
 /// Component::ActionRow(ActionRow {
-///     components: vec![Component::SelectMenu(SelectMenu {
+///     components: vec![Component::StringSelectMenu(StringSelectMenu {
 ///         custom_id: "class_select_1".to_owned(),
 ///         disabled: false,
 ///         max_values: Some(3),
 ///         min_values: Some(1),
 ///         options: Vec::from([
-///             SelectMenuOption {
+///             StringSelectMenuOption {
 ///                 default: false,
 ///                 emoji: Some(ReactionType::Custom {
 ///                     animated: false,
@@ -80,7 +84,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///                 label: "Rogue".to_owned(),
 ///                 value: "rogue".to_owned(),
 ///             },
-///             SelectMenuOption {
+///             StringSelectMenuOption {
 ///                 default: false,
 ///                 emoji: Some(ReactionType::Custom {
 ///                     animated: false,
@@ -91,7 +95,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///                 label: "Mage".to_owned(),
 ///                 value: "mage".to_owned(),
 ///             },
-///             SelectMenuOption {
+///             StringSelectMenuOption {
 ///                 default: false,
 ///                 emoji: Some(ReactionType::Custom {
 ///                     animated: false,
@@ -114,9 +118,17 @@ pub enum Component {
     /// Clickable item that renders below messages.
     Button(Button),
     /// Dropdown-style item that renders below messages.
-    SelectMenu(SelectMenu),
+    StringSelectMenu(StringSelectMenu),
     /// Pop-up item that renders on modals.
     TextInput(TextInput),
+    /// Dropdown-style item that renders below messages with users pre-populated
+    UserSelectMenu(TypeSelectMenu),
+    /// Dropdown-style item that renders below messages with roles pre-populated
+    RoleSelectMenu(TypeSelectMenu),
+    /// Dropdown-style item that renders below messages with users and roles pre-populated
+    MentionableSelectMenu(TypeSelectMenu),
+    /// Dropdown-style item that renders below messages with channels pre-populated
+    ChannelSelectMenu(ChannelSelectMenu),
     /// Variant value is unknown to the library.
     Unknown(u8),
 }
@@ -144,8 +156,12 @@ impl Component {
         match self {
             Self::ActionRow(_) => ComponentType::ActionRow,
             Self::Button(_) => ComponentType::Button,
-            Self::SelectMenu(_) => ComponentType::SelectMenu,
+            Self::StringSelectMenu(_) => ComponentType::StringSelectMenu,
             Self::TextInput(_) => ComponentType::TextInput,
+            Self::UserSelectMenu(_) => ComponentType::UserSelectMenu,
+            Self::RoleSelectMenu(_) => ComponentType::RoleSelectMenu,
+            Self::MentionableSelectMenu(_) => ComponentType::MentionableSelectMenu,
+            Self::ChannelSelectMenu(_) => ComponentType::ChannelSelectMenu,
             Component::Unknown(unknown) => ComponentType::Unknown(*unknown),
         }
     }
@@ -163,9 +179,9 @@ impl From<Button> for Component {
     }
 }
 
-impl From<SelectMenu> for Component {
-    fn from(select_menu: SelectMenu) -> Self {
-        Self::SelectMenu(select_menu)
+impl From<StringSelectMenu> for Component {
+    fn from(select_menu: StringSelectMenu) -> Self {
+        Self::StringSelectMenu(select_menu)
     }
 }
 
@@ -185,6 +201,7 @@ impl<'de> Deserialize<'de> for Component {
 #[serde(field_identifier, rename_all = "snake_case")]
 enum Field {
     Components,
+    ChannelTypes,
     CustomId,
     Disabled,
     Emoji,
@@ -216,7 +233,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         // Required fields.
         let mut components: Option<Vec<Component>> = None;
         let mut kind: Option<ComponentType> = None;
-        let mut options: Option<Vec<SelectMenuOption>> = None;
+        let mut options: Option<Vec<StringSelectMenuOption>> = None;
         let mut style: Option<Value> = None;
 
         // Liminal fields.
@@ -224,6 +241,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
         let mut label: Option<Option<String>> = None;
 
         // Optional fields.
+        let mut channel_types: Option<Vec<ChannelType>> = None;
         let mut disabled: Option<bool> = None;
         let mut emoji: Option<Option<ReactionType>> = None;
         let mut max_length: Option<Option<u16>> = None;
@@ -273,6 +291,13 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     }
 
                     custom_id = Some(map.next_value()?);
+                }
+                Field::ChannelTypes => {
+                    if channel_types.is_some() {
+                        return Err(DeError::duplicate_field("channel_types"));
+                    }
+
+                    channel_types = Some(map.next_value()?);
                 }
                 Field::Disabled => {
                     if disabled.is_some() {
@@ -443,7 +468,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
             // - max_values
             // - min_values
             // - placeholder
-            ComponentType::SelectMenu => {
+            ComponentType::StringSelectMenu => {
                 let custom_id = custom_id
                     .flatten()
                     .ok_or_else(|| DeError::missing_field("custom_id"))?
@@ -452,7 +477,7 @@ impl<'de> Visitor<'de> for ComponentVisitor {
 
                 let options = options.ok_or_else(|| DeError::missing_field("options"))?;
 
-                Self::Value::SelectMenu(SelectMenu {
+                Self::Value::StringSelectMenu(StringSelectMenu {
                     custom_id,
                     disabled: disabled.unwrap_or_default(),
                     max_values: max_values.unwrap_or_default(),
@@ -499,12 +524,110 @@ impl<'de> Visitor<'de> for ComponentVisitor {
                     value: value.unwrap_or_default(),
                 })
             }
+            // Required fields:
+            // - custom_id
+            //
+            // Optional fields:
+            // - disabled
+            // - max_values
+            // - min_values
+            // - placeholder
+            ComponentType::UserSelectMenu => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::UserSelectMenu(TypeSelectMenu {
+                    custom_id,
+                    disabled: disabled.unwrap_or_default(),
+                    max_values: max_values.unwrap_or_default(),
+                    min_values: min_values.unwrap_or_default(),
+                    // options,
+                    placeholder: placeholder.unwrap_or_default(),
+                })
+            }
+            // Required fields:
+            // - custom_id
+            //
+            // Optional fields:
+            // - disabled
+            // - max_values
+            // - min_values
+            // - placeholder
+            ComponentType::RoleSelectMenu => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::RoleSelectMenu(TypeSelectMenu {
+                    custom_id,
+                    disabled: disabled.unwrap_or_default(),
+                    max_values: max_values.unwrap_or_default(),
+                    min_values: min_values.unwrap_or_default(),
+                    // options,
+                    placeholder: placeholder.unwrap_or_default(),
+                })
+            }
+            // Required fields:
+            // - custom_id
+            //
+            // Optional fields:
+            // - disabled
+            // - max_values
+            // - min_values
+            // - placeholder
+            ComponentType::MentionableSelectMenu => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::MentionableSelectMenu(TypeSelectMenu {
+                    custom_id,
+                    disabled: disabled.unwrap_or_default(),
+                    max_values: max_values.unwrap_or_default(),
+                    min_values: min_values.unwrap_or_default(),
+                    // options,
+                    placeholder: placeholder.unwrap_or_default(),
+                })
+            }
+            // Required fields:
+            // - custom_id
+            //
+            // Optional fields:
+            // - disabled
+            // - max_values
+            // - min_values
+            // - placeholder
+            ComponentType::ChannelSelectMenu => {
+                let custom_id = custom_id
+                    .flatten()
+                    .ok_or_else(|| DeError::missing_field("custom_id"))?
+                    .deserialize_into()
+                    .map_err(DeserializerError::into_error)?;
+
+                Self::Value::ChannelSelectMenu(ChannelSelectMenu {
+                    channel_types,
+                    custom_id,
+                    disabled: disabled.unwrap_or_default(),
+                    max_values: max_values.unwrap_or_default(),
+                    min_values: min_values.unwrap_or_default(),
+                    // options,
+                    placeholder: placeholder.unwrap_or_default(),
+                })
+            }
             ComponentType::Unknown(unknown) => Self::Value::Unknown(unknown),
         })
     }
 }
 
 impl Serialize for Component {
+    #[allow(clippy::too_many_lines)]
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let len = match self {
             // Required fields:
@@ -538,7 +661,7 @@ impl Serialize for Component {
             // - max_values
             // - min_values
             // - placeholder
-            Component::SelectMenu(select_menu) => {
+            Component::StringSelectMenu(select_menu) => {
                 3 + usize::from(select_menu.disabled)
                     + usize::from(select_menu.max_values.is_some())
                     + usize::from(select_menu.min_values.is_some())
@@ -562,6 +685,30 @@ impl Serialize for Component {
                     + usize::from(text_input.placeholder.is_some())
                     + usize::from(text_input.required.is_some())
                     + usize::from(text_input.value.is_some())
+            }
+            // Required fields:
+            // - custom_id
+            // - type
+            //
+            // Optional fields:
+            // - disabled
+            // - max_values
+            // - min_values
+            // - placeholder
+            Component::UserSelectMenu(select_menu)
+            | Component::RoleSelectMenu(select_menu)
+            | Component::MentionableSelectMenu(select_menu) => {
+                2 + usize::from(select_menu.disabled)
+                    + usize::from(select_menu.max_values.is_some())
+                    + usize::from(select_menu.min_values.is_some())
+                    + usize::from(select_menu.placeholder.is_some())
+            }
+            Component::ChannelSelectMenu(select_menu) => {
+                2 + usize::from(select_menu.channel_types.is_some())
+                    + usize::from(select_menu.disabled)
+                    + usize::from(select_menu.max_values.is_some())
+                    + usize::from(select_menu.min_values.is_some())
+                    + usize::from(select_menu.placeholder.is_some())
             }
             // We are dropping fields here but nothing we can do about that for
             // the time being.
@@ -601,8 +748,8 @@ impl Serialize for Component {
                     state.serialize_field("url", &button.url)?;
                 }
             }
-            Component::SelectMenu(select_menu) => {
-                state.serialize_field("type", &ComponentType::SelectMenu)?;
+            Component::StringSelectMenu(select_menu) => {
+                state.serialize_field("type", &ComponentType::StringSelectMenu)?;
 
                 // Due to `custom_id` being required in some variants and
                 // optional in others, serialize as an Option.
@@ -654,6 +801,90 @@ impl Serialize for Component {
                     state.serialize_field("value", &text_input.value)?;
                 }
             }
+            Component::UserSelectMenu(select_menu) => {
+                state.serialize_field("type", &ComponentType::UserSelectMenu)?;
+
+                // Due to `custom_id` being required in some variants and
+                // optional in others, serialize as an Option.
+                state.serialize_field("custom_id", &Some(&select_menu.custom_id))?;
+
+                state.serialize_field("disabled", &select_menu.disabled)?;
+
+                if select_menu.max_values.is_some() {
+                    state.serialize_field("max_values", &select_menu.max_values)?;
+                }
+
+                if select_menu.min_values.is_some() {
+                    state.serialize_field("min_values", &select_menu.min_values)?;
+                }
+
+                if select_menu.placeholder.is_some() {
+                    state.serialize_field("placeholder", &select_menu.placeholder)?;
+                }
+            }
+            Component::RoleSelectMenu(select_menu) => {
+                state.serialize_field("type", &ComponentType::RoleSelectMenu)?;
+
+                // Due to `custom_id` being required in some variants and
+                // optional in others, serialize as an Option.
+                state.serialize_field("custom_id", &Some(&select_menu.custom_id))?;
+
+                state.serialize_field("disabled", &select_menu.disabled)?;
+
+                if select_menu.max_values.is_some() {
+                    state.serialize_field("max_values", &select_menu.max_values)?;
+                }
+
+                if select_menu.min_values.is_some() {
+                    state.serialize_field("min_values", &select_menu.min_values)?;
+                }
+
+                if select_menu.placeholder.is_some() {
+                    state.serialize_field("placeholder", &select_menu.placeholder)?;
+                }
+            }
+            Component::MentionableSelectMenu(select_menu) => {
+                state.serialize_field("type", &ComponentType::MentionableSelectMenu)?;
+
+                // Due to `custom_id` being required in some variants and
+                // optional in others, serialize as an Option.
+                state.serialize_field("custom_id", &Some(&select_menu.custom_id))?;
+
+                state.serialize_field("disabled", &select_menu.disabled)?;
+
+                if select_menu.max_values.is_some() {
+                    state.serialize_field("max_values", &select_menu.max_values)?;
+                }
+
+                if select_menu.min_values.is_some() {
+                    state.serialize_field("min_values", &select_menu.min_values)?;
+                }
+
+                if select_menu.placeholder.is_some() {
+                    state.serialize_field("placeholder", &select_menu.placeholder)?;
+                }
+            }
+            Component::ChannelSelectMenu(select_menu) => {
+                state.serialize_field("type", &ComponentType::ChannelSelectMenu)?;
+
+                // Due to `custom_id` being required in some variants and
+                // optional in others, serialize as an Option.
+                state.serialize_field("custom_id", &Some(&select_menu.custom_id))?;
+
+                state.serialize_field("disabled", &select_menu.disabled)?;
+
+                if select_menu.max_values.is_some() {
+                    state.serialize_field("max_values", &select_menu.max_values)?;
+                }
+
+                if select_menu.min_values.is_some() {
+                    state.serialize_field("min_values", &select_menu.min_values)?;
+                }
+
+                if select_menu.placeholder.is_some() {
+                    state.serialize_field("placeholder", &select_menu.placeholder)?;
+                }
+            }
             // We are not serializing all fields so this will fail to
             // deserialize. But it is all that can be done to avoid losing
             // incoming messages at this time.
@@ -678,7 +909,7 @@ mod tests {
     assert_impl_all!(
         Component: From<ActionRow>,
         From<Button>,
-        From<SelectMenu>,
+        From<StringSelectMenu>,
         From<TextInput>
     );
 
@@ -695,12 +926,12 @@ mod tests {
                     style: ButtonStyle::Primary,
                     url: None,
                 }),
-                Component::SelectMenu(SelectMenu {
+                Component::StringSelectMenu(StringSelectMenu {
                     custom_id: "test custom id 2".into(),
                     disabled: false,
                     max_values: Some(25),
                     min_values: Some(5),
-                    options: Vec::from([SelectMenuOption {
+                    options: Vec::from([StringSelectMenuOption {
                         label: "test option label".into(),
                         value: "test option value".into(),
                         description: Some("test description".into()),
@@ -745,7 +976,7 @@ mod tests {
                     len: 6,
                 },
                 Token::Str("type"),
-                Token::U8(ComponentType::SelectMenu.into()),
+                Token::U8(ComponentType::StringSelectMenu.into()),
                 Token::Str("custom_id"),
                 Token::Some,
                 Token::Str("test custom id 2"),
@@ -760,7 +991,7 @@ mod tests {
                 Token::Str("options"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "SelectMenuOption",
+                    name: "StringSelectMenuOption",
                     len: 4,
                 },
                 Token::Str("default"),

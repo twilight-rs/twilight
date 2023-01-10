@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Component`]: super::Component
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct SelectMenu {
+pub struct StringSelectMenu {
     /// Developer defined identifier.
     pub custom_id: String,
     /// Whether the select menu is disabled.
@@ -17,14 +17,14 @@ pub struct SelectMenu {
     /// Minimum number of options that must be chosen.
     pub min_values: Option<u8>,
     /// List of available choices.
-    pub options: Vec<SelectMenuOption>,
+    pub options: Vec<StringSelectMenuOption>,
     /// Custom placeholder text if no option is selected.
     pub placeholder: Option<String>,
 }
 
-/// Dropdown options that are part of [`SelectMenu`].
+/// Dropdown options that are part of [`StringSelectMenu`].
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct SelectMenuOption {
+pub struct StringSelectMenuOption {
     /// Whether the option will be selected by default.
     #[serde(default)]
     pub default: bool,
@@ -48,17 +48,25 @@ mod tests {
     use std::{fmt::Debug, hash::Hash};
 
     assert_fields!(
-        SelectMenu: custom_id,
+        StringSelectMenu: custom_id,
         disabled,
         max_values,
         min_values,
         options,
         placeholder
     );
-    assert_impl_all!(SelectMenu: Clone, Debug, Eq, Hash, PartialEq, Send, Sync);
+    assert_impl_all!(
+        StringSelectMenu: Clone,
+        Debug,
+        Eq,
+        Hash,
+        PartialEq,
+        Send,
+        Sync
+    );
 
     assert_impl_all!(
-        SelectMenuOption: Clone,
+        StringSelectMenuOption: Clone,
         Debug,
         Deserialize<'static>,
         Eq,
@@ -68,5 +76,11 @@ mod tests {
         Serialize,
         Sync
     );
-    assert_fields!(SelectMenuOption: default, description, emoji, label, value);
+    assert_fields!(
+        StringSelectMenuOption: default,
+        description,
+        emoji,
+        label,
+        value
+    );
 }

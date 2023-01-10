@@ -24,8 +24,41 @@ impl UpdateCache for InteractionCreate {
             }
         }
 
-        // Cache resolved interaction data
+        // Cache resolved interaction data from a command
         if let Some(InteractionData::ApplicationCommand(data)) = &self.data {
+            if let Some(resolved) = &data.resolved {
+                // Cache resolved users and members
+                for u in resolved.users.values() {
+                    if cache.wants(ResourceType::USER) {
+                        cache.cache_user(Cow::Borrowed(u), self.guild_id);
+                    }
+
+                    if !cache.wants(ResourceType::MEMBER) || self.guild_id.is_none() {
+                        continue;
+                    }
+
+                    // This should always match, because resolved members
+                    // are guaranteed to have a matching resolved user
+                    if let Some((&id, member)) =
+                        &resolved.members.iter().find(|(&id, _)| id == u.id)
+                    {
+                        if let Some(guild_id) = self.guild_id {
+                            cache.cache_borrowed_interaction_member(guild_id, member, id);
+                        }
+                    }
+                }
+
+                // Cache resolved roles
+                if cache.wants(ResourceType::ROLE) {
+                    if let Some(guild_id) = self.guild_id {
+                        cache.cache_roles(guild_id, resolved.roles.values().cloned());
+                    }
+                }
+            }
+        }
+
+        // Cache resolved interaction data from a message component
+        if let Some(InteractionData::MessageComponent(data)) = &self.data {
             if let Some(resolved) = &data.resolved {
                 // Cache resolved users and members
                 for u in resolved.users.values() {
@@ -67,9 +100,8 @@ mod tests {
         application::{
             command::CommandType,
             interaction::{
-                application_command::{
-                    CommandData, CommandInteractionDataResolved, InteractionMember,
-                },
+                application_command::CommandData,
+                resolved::{InteractionDataResolved, InteractionMember},
                 Interaction, InteractionData, InteractionType,
             },
         },
@@ -107,7 +139,7 @@ mod tests {
                 name: "command name".into(),
                 kind: CommandType::ChatInput, // This isn't actually a valid command, so just mark it as a slash command.
                 options: Vec::new(),
-                resolved: Some(CommandInteractionDataResolved {
+                resolved: Some(InteractionDataResolved {
                     attachments: HashMap::new(),
                     channels: HashMap::new(),
                     members: HashMap::from([(
