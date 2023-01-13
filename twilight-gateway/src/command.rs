@@ -6,6 +6,7 @@ use crate::{
     error::{SendError, SendErrorType},
     json,
 };
+use serde::Serialize;
 use twilight_model::gateway::payload::outgoing::{
     RequestGuildMembers, UpdatePresence, UpdateVoiceState,
 };
@@ -55,7 +56,7 @@ impl Command for UpdateVoiceState {}
 ///
 /// Returns a [`SendErrorType::Serializing`] error type if the provided value
 /// failed to serialize into JSON.
-pub fn prepare(command: &impl private::Sealed) -> Result<String, SendError> {
+pub fn prepare(command: &impl Serialize) -> Result<String, SendError> {
     json::to_string(command).map_err(|source| SendError {
         source: Some(Box::new(source)),
         kind: SendErrorType::Serializing,
