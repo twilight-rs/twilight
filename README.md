@@ -120,7 +120,7 @@ bot's token. You must also depend on `futures`, `tokio`,
 
 ```rust,no_run
 use std::{env, error::Error, sync::Arc};
-use futures::stream::StreamExt;
+use futures_util::stream::StreamExt;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Cluster, Event};
 use twilight_http::Client as HttpClient;
