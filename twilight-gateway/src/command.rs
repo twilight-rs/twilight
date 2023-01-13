@@ -19,17 +19,13 @@ mod private {
 
     use serde::Serialize;
     use twilight_model::gateway::payload::outgoing::{
-        identify::Identify, resume::Resume, Heartbeat, RequestGuildMembers, UpdatePresence,
-        UpdateVoiceState,
+        RequestGuildMembers, UpdatePresence, UpdateVoiceState,
     };
 
     /// Sealed trait to prevent users from implementing the Command trait.
     pub trait Sealed: Serialize {}
 
-    impl Sealed for Heartbeat {}
-    impl Sealed for Identify {}
     impl Sealed for RequestGuildMembers {}
-    impl Sealed for Resume {}
     impl Sealed for UpdatePresence {}
     impl Sealed for UpdateVoiceState {}
 }
