@@ -19,7 +19,7 @@ futures-util = { default-features = false, features = ["std"], version = "0.3" }
 rand = { default-features = false, features = ["std", "std_rng"], version = "0.8" }
 serde = { default-features = false, features = ["derive"], version = "1" }
 serde_json = { default-features = false, features = ["std"], version = "1" }
-tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.19" }
+tokio = { default-features = false, features = ["net", "rt", "sync", "time"], version = "1.8" }
 tokio-tungstenite = { default-features = false, features = ["connect"], version = "0.17" }
 tracing = { default-features = false, features = ["std", "attributes"], version = "0.1" }
 twilight-gateway-queue = { default-features = false, path = "../twilight-gateway-queue", version = "0.15.0-rc.1" }
