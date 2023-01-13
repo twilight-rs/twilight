@@ -34,14 +34,20 @@ mod private {
     impl Sealed for UpdateVoiceState {}
 }
 
-/// Trait marker to denote what can be provided to [`Shard::command`].
+/// Trait marker denoting what can be provided to [`Shard::command`].
 ///
 /// This trait exists to make it easier to determine what commands can be sent
 /// to the Discord Gateway API.
 ///
+/// This is deliberately not implemented for [`Heartbeat`], [`Identify`], and
+/// [`Resume`] due to shards automatically sending them as necessary.
+///
 /// To send an arbitrary command to the Discord Gateway API then [`Shard::send`]
 /// may be used.
 ///
+/// [`Heartbeat`]: twilight_model::gateway::payload::outgoing::Heartbeat
+/// [`Identify`]: twilight_model::gateway::payload::outgoing::Identify
+/// [`Resume`]: twilight_model::gateway::payload::outgoing::Resume
 /// [`Shard::command`]: crate::Shard::command
 /// [`Shard::send`]: crate::Shard::send
 pub trait Command: private::Sealed {}
