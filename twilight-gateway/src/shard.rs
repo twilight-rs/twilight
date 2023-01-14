@@ -869,7 +869,7 @@ impl Shard {
         // The ratelimiter reserves capacity for heartbeat messages.
         self.send_unratelimited(message).await?;
 
-        self.latency.track_sent();
+        self.latency.record_sent();
 
         Ok(())
     }
@@ -1000,7 +1000,7 @@ impl Shard {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
                 if requested {
                     tracing::debug!("received heartbeat ack");
-                    self.latency.track_received();
+                    self.latency.record_received();
                 } else {
                     tracing::info!("received unrequested heartbeat ack");
                 }

@@ -4,8 +4,9 @@ use std::time::{Duration, Instant};
 
 /// [`Shard`]'s gateway connection latency.
 ///
-/// Calculated by measuring the difference between when sending a heartbeat and
-/// receiving an acknowledgement.
+/// Measures the difference between sending a heartbeat and receiving an
+/// acknowledgement, also known as a heartbeat period. Sprious heartbeat
+/// acknowledgements are ignored.
 ///
 /// May be obtained via [`Shard::latency`].
 ///
@@ -13,54 +14,49 @@ use std::time::{Duration, Instant};
 /// [`Shard::latency`]: crate::Shard::latency
 #[derive(Clone, Debug)]
 pub struct Latency {
-    /// Total number of heartbeat periods.
-    heartbeats: u32,
+    /// Sum of recorded latencies.
+    latency_sum: Duration,
+    /// Number of recorded heartbeat periods.
+    periods: u32,
     /// When the last heartbeat received an acknowledgement.
     received: Option<Instant>,
     /// List of most recent latencies.
     recent: [Duration; Self::RECENT_LEN],
     /// When the last heartbeat was sent.
     sent: Option<Instant>,
-    /// Combined latencies of all heartbeats, used in conjunction with
-    /// [`heartbeats`] to determine the average latency.
-    ///
-    /// [`heartbeats`]: Self::heartbeats
-    total_duration: Duration,
 }
 
 impl Latency {
-    /// Maximum number of recent latencies to store.
+    /// Number of recent latencies to store.
     const RECENT_LEN: usize = 5;
 
     /// Create a new instance for tracking shard latency.
     pub(crate) const fn new() -> Self {
         Self {
-            heartbeats: 0,
+            latency_sum: Duration::ZERO,
+            periods: 0,
             received: None,
             recent: [Duration::ZERO; Self::RECENT_LEN],
             sent: None,
-            total_duration: Duration::ZERO,
         }
     }
 
-    /// The average latency over all recorded heartbeats.
+    /// Average latency.
     ///
     /// For example, a reasonable value for this may be between 10 to 100
     /// milliseconds depending on the network connection and physical location.
     ///
-    /// # Note
-    ///
-    /// If this is None, the shard has not received a heartbeat yet.
+    /// Returns [`None`] if no heartbeat periods have been recorded.
     pub const fn average(&self) -> Option<Duration> {
-        self.total_duration.checked_div(self.heartbeats)
+        self.latency_sum.checked_div(self.periods)
     }
 
-    /// The total number of heartbeats that have been received.
-    pub const fn heartbeats(&self) -> u32 {
-        self.heartbeats
+    /// Number of recorded heartbeat periods.
+    pub const fn periods(&self) -> u32 {
+        self.periods
     }
 
-    /// The most recent latencies from newest to oldest.
+    /// Most recent latencies from newest to oldest.
     pub fn recent(&self) -> &[Duration] {
         let maybe_zero_idx = self.recent.iter().position(Duration::is_zero);
 
@@ -77,34 +73,37 @@ impl Latency {
         self.sent
     }
 
-    /// Track that a heartbeat acknowledgement was received, completing one
+    /// Record that a heartbeat acknowledgement was received, completing the
     /// period.
     ///
-    /// The current time will be used to calculate against when the last
-    /// heartbeat [was sent][`track_sent`] to determine latency for the period.
+    /// The current time is subtracted against when the last heartbeat
+    /// [was sent] to calculate the heartbeat period's latency.
     ///
     /// # Panics
     ///
-    /// Panics if `sent` is [`None`] ([`track_sent`] has not been called).
+    /// Panics if the period is already complete or has not begun.
     ///
-    /// [`track_sent`]: Self::track_sent
+    /// [was sent]: Self::record_sent
     #[track_caller]
-    pub(crate) fn track_received(&mut self) {
-        self.received = Some(Instant::now());
-        self.heartbeats += 1;
+    pub(crate) fn record_received(&mut self) {
+        debug_assert!(self.received.is_none(), "period completed multiple times");
 
-        let duration = self.sent.unwrap().elapsed();
-        self.total_duration += duration;
+        let now = Instant::now();
+        let period_latency = now - self.sent.expect("period has not begun");
+        self.received = Some(now);
+        self.periods += 1;
+
+        self.latency_sum += period_latency;
         self.recent.rotate_right(1);
-        self.recent[0] = duration;
+        self.recent[0] = period_latency;
     }
 
-    /// Track that a heartbeat acknowledgement was sent.
+    /// Record that a heartbeat was sent, beginning a new period.
     ///
-    /// The current time will be stored to be used in [`track_received`].
+    /// The current time is stored to be used in [`record_received`].
     ///
-    /// [`track_received`]: Self::track_received
-    pub(crate) fn track_sent(&mut self) {
+    /// [`record_received`]: Self::record_received
+    pub(crate) fn record_sent(&mut self) {
         self.received = None;
         self.sent = Some(Instant::now());
     }
@@ -120,7 +119,8 @@ mod tests {
 
     const fn default_latency() -> Latency {
         Latency {
-            heartbeats: 17,
+            latency_sum: Duration::from_millis(510),
+            periods: 17,
             received: None,
             recent: [
                 Duration::from_millis(20),
@@ -130,25 +130,19 @@ mod tests {
                 Duration::from_millis(40),
             ],
             sent: None,
-            total_duration: Duration::from_millis(510),
         }
     }
 
     #[test]
-    fn latency() {
+    fn public_api() {
         let latency = default_latency();
         assert_eq!(latency.average(), Some(Duration::from_millis(30)));
-        assert_eq!(latency.heartbeats(), 17);
+        assert_eq!(latency.periods(), 17);
         assert!(latency.received().is_none());
         assert!(latency.sent().is_none());
-    }
 
-    #[test]
-    fn recent_latency_iter() {
-        let latency = default_latency();
-        let recent = latency.recent();
-        assert_eq!(recent.len(), Latency::RECENT_LEN);
-        let mut iter = recent.iter();
+        assert_eq!(latency.recent.len(), Latency::RECENT_LEN);
+        let mut iter = latency.recent().iter();
         assert_eq!(iter.next(), Some(&Duration::from_millis(20)));
         assert_eq!(iter.next_back(), Some(&Duration::from_millis(40)));
         assert_eq!(iter.next(), Some(&Duration::from_millis(25)));
@@ -159,21 +153,44 @@ mod tests {
     }
 
     #[test]
-    fn latency_track() {
+    fn record_period() {
         let mut latency = Latency::new();
+        assert_eq!(latency.periods(), 0);
         assert!(latency.received().is_none());
         assert!(latency.sent().is_none());
         assert!(latency.recent().is_empty());
 
-        latency.track_sent();
-        assert_eq!(latency.heartbeats(), 0);
+        latency.record_sent();
+        assert_eq!(latency.periods(), 0);
         assert!(latency.received().is_none());
         assert!(latency.sent().is_some());
 
-        latency.track_received();
-        assert_eq!(latency.heartbeats(), 1);
+        latency.record_received();
+        assert_eq!(latency.periods(), 1);
         assert!(latency.received().is_some());
         assert!(latency.sent().is_some());
         assert_eq!(latency.recent().len(), 1);
+
+        latency.record_sent();
+        assert_eq!(latency.periods(), 1);
+        assert!(latency.received().is_none());
+        assert!(latency.sent().is_some());
+        assert_eq!(latency.recent().len(), 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "period completed multiple times")]
+    fn record_completed_period() {
+        let mut latency = Latency::new();
+        latency.record_sent();
+        latency.record_received();
+        latency.record_received();
+    }
+
+    #[test]
+    #[should_panic(expected = "period has not begun")]
+    fn record_not_begun_period() {
+        let mut latency = Latency::new();
+        latency.record_received();
     }
 }
