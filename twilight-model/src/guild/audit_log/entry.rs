@@ -1,6 +1,6 @@
 use super::{AuditLogChange, AuditLogEventType, AuditLogOptionalEntryInfo};
 use crate::id::{
-    marker::{AuditLogEntryMarker, GenericMarker, UserMarker},
+    marker::{AuditLogEntryMarker, GenericMarker, GuildMarker, UserMarker},
     Id,
 };
 use serde::{Deserialize, Serialize};
@@ -15,6 +15,14 @@ pub struct AuditLogEntry {
     /// List of changes included in the entry.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub changes: Vec<AuditLogChange>,
+    /// ID of the server where the entry was added.
+    ///
+    /// This is **only** availible when receiving the event in
+    /// [GuildAuditLogEntryCreate].
+    ///
+    /// [GuildAuditLogEntryCreate]: crate::gateway::payload::GuildAuditLogEntryCreate
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the entire entry.
     pub id: Id<AuditLogEntryMarker>,
     /// Optional information about the entry.
@@ -74,6 +82,7 @@ mod tests {
                 new: None,
                 old: Some(image_hash::ICON),
             }]),
+            guild_id: None,
             id: Id::new(3),
             options: None,
             reason: Some("some reason".to_owned()),

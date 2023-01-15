@@ -47,6 +47,8 @@ bitflags! {
         const GATEWAY_RECONNECT = 1 << 9;
         /// Gift code sent in a channel has been updated.
         const GIFT_CODE_UPDATE = 1 << 49;
+        /// A audit log entry has been created.
+        const GUILD_AUDIT_LOG_ENTRY_CREATE = 1 << 75;
         /// A guild has been created.
         const GUILD_CREATE = 1 << 10;
         /// A guild has been deleted or the current user has been removed from a guild.
@@ -206,6 +208,7 @@ bitflags! {
             | Self::CHANNEL_DELETE.bits()
             | Self::CHANNEL_PINS_UPDATE.bits()
             | Self::CHANNEL_UPDATE.bits()
+            | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits()
             | Self::GUILD_CREATE.bits()
             | Self::GUILD_DELETE.bits()
             | Self::GUILD_UPDATE.bits()
@@ -321,6 +324,7 @@ impl From<EventType> for EventTypeFlags {
             EventType::GatewayInvalidateSession => Self::GATEWAY_INVALIDATE_SESSION,
             EventType::GatewayReconnect => Self::GATEWAY_RECONNECT,
             EventType::GiftCodeUpdate => Self::GIFT_CODE_UPDATE,
+            EventType::GuildAuditLogEntryCreate => Self::GUILD_AUDIT_LOG_ENTRY_CREATE,
             EventType::GuildCreate => Self::GUILD_CREATE,
             EventType::GuildDelete => Self::GUILD_DELETE,
             EventType::GuildEmojisUpdate => Self::GUILD_EMOJIS_UPDATE,
