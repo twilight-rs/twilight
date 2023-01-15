@@ -9,8 +9,8 @@ bitflags! {
     /// Specifying event types is an important optimization technique on top of
     /// [`Intents`], which can dramatically decrease processor usage in many
     /// circumstances. While specifying intents are required by Discord and
-    /// allow filtering groups of [`Event`]s, event type flags are a Twilight
-    /// specific technique to filter out individual events from being
+    /// allow filtering groups of [`Event`]s, event type flags are a
+    /// Twilight-specific technique to filter out individual events from being
     /// deserialized at all, effectively discarding them.
     ///
     /// For example, [`Intents::GUILDS`] includes a wide range of events from
