@@ -477,8 +477,8 @@ impl Shard {
         loop {
             match self.next_message().await? {
                 Message::Close(frame) => return Ok(Event::GatewayClose(frame)),
-                Message::Text(json) => {
-                    if let Some(event) = json::parse(self.config.event_types(), json)? {
+                Message::Text(event) => {
+                    if let Some(event) = json::parse(event, self.config.event_types())? {
                         return Ok(event.into());
                     }
                 }
