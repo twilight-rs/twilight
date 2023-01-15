@@ -15,6 +15,13 @@ pub struct RoleTags {
     /// ID of the bot the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot_id: Option<Id<UserMarker>>,
+    /// Whether this role is a guild's linked role.
+    #[serde(
+        default,
+        skip_serializing_if = "is_false",
+        with = "crate::visitor::null_boolean"
+    )]
+    pub guild_connections: bool,
     /// ID of the integration the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integration_id: Option<Id<IntegrationMarker>>,
@@ -25,14 +32,6 @@ pub struct RoleTags {
         with = "crate::visitor::null_boolean"
     )]
     pub premium_subscriber: bool,
-
-    /// Whether this role is a guild's linked role.
-    #[serde(
-        default,
-        skip_serializing_if = "is_false",
-        with = "crate::visitor::null_boolean"
-    )]
-    pub guild_connections: bool,
 }
 
 #[cfg(test)]
@@ -45,9 +44,9 @@ mod tests {
     fn bot() {
         let tags = RoleTags {
             bot_id: Some(Id::new(1)),
+            guild_connections: false,
             integration_id: Some(Id::new(2)),
             premium_subscriber: false,
-            guild_connections: false,
         };
 
         serde_test::assert_tokens(
@@ -74,9 +73,9 @@ mod tests {
     fn premium_subscriber() {
         let tags = RoleTags {
             bot_id: None,
+            guild_connections: false,
             integration_id: None,
             premium_subscriber: true,
-            guild_connections: false,
         };
 
         serde_test::assert_tokens(
@@ -100,9 +99,9 @@ mod tests {
     fn none() {
         let tags = RoleTags {
             bot_id: None,
+            guild_connections: false,
             integration_id: None,
             premium_subscriber: false,
-            guild_connections: false,
         };
 
         serde_test::assert_tokens(
