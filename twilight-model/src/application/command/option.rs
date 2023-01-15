@@ -1,4 +1,4 @@
-use crate::channel::ChannelType;
+use crate::{channel::ChannelType, user::Locale};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Eq, collections::HashMap};
 
@@ -64,7 +64,7 @@ pub struct CommandOption {
     ///
     /// [`description`]: Self::description
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub description_localizations: Option<HashMap<String, String>>,
+    pub description_localizations: Option<HashMap<Locale, String>>,
     /// Type of option.
     #[serde(rename = "type")]
     pub kind: CommandOptionType,
@@ -120,7 +120,7 @@ pub struct CommandOption {
     ///
     /// [`name`]: Self::name
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name_localizations: Option<HashMap<String, String>>,
+    pub name_localizations: Option<HashMap<Locale, String>>,
     /// Nested options.
     ///
     /// Applicable for options of type [`SUB_COMMAND`] and [`SUB_COMMAND_GROUP`].
@@ -180,7 +180,7 @@ pub struct CommandOptionChoiceData<T> {
     ///
     /// [`name`]: Self::name
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name_localizations: Option<HashMap<String, String>>,
+    pub name_localizations: Option<HashMap<Locale, String>>,
     /// Value of the choice. Must be 100 characters or less if it is a string.
     pub value: T,
 }

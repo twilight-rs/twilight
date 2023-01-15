@@ -46,7 +46,7 @@ mod tests {
         },
         id::Id,
         test::image_hash,
-        user::{User, UserFlags},
+        user::{Locale, User, UserFlags},
         util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
@@ -366,7 +366,7 @@ mod tests {
                 explicit_content_filter: ExplicitContentFilter::NONE,
                 icon_hash: None,
                 name: "server name".into(),
-                preferred_locale: "en-US".into(),
+                preferred_locale: Locale::ENGLISH_US,
                 roles: vec![
                     TemplateRole {
                         color: 0,
@@ -658,7 +658,8 @@ mod tests {
                 Token::Str("name"),
                 Token::Str("server name"),
                 Token::Str("preferred_locale"),
-                Token::Str("en-US"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_US.get()),
                 Token::Str("roles"),
                 Token::Seq { len: Some(2) },
                 Token::Struct {

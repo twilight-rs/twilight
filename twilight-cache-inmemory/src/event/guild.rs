@@ -260,7 +260,7 @@ impl UpdateCache for GuildUpdate {
             guild.owner = self.owner;
             guild.owner_id = self.owner_id;
             guild.permissions = self.permissions;
-            guild.preferred_locale = self.preferred_locale.clone();
+            guild.preferred_locale = self.preferred_locale;
             guild.premium_tier = self.premium_tier;
             guild
                 .premium_subscription_count
@@ -293,6 +293,7 @@ mod tests {
             VerificationLevel,
         },
         id::Id,
+        user::Locale,
         util::datetime::{Timestamp, TimestampParseError},
     };
 
@@ -420,7 +421,7 @@ mod tests {
             owner_id: Id::new(456),
             owner: Some(false),
             permissions: Some(Permissions::SEND_MESSAGES),
-            preferred_locale: "en-GB".to_owned(),
+            preferred_locale: Locale::ENGLISH_UK,
             premium_progress_bar_enabled: true,
             premium_subscription_count: Some(0),
             premium_tier: PremiumTier::NONE,

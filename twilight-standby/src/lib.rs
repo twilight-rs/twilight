@@ -1065,7 +1065,7 @@ mod tests {
         guild::Permissions,
         id::{marker::GuildMarker, Id},
         oauth::{ApplicationFlags, PartialApplication},
-        user::{CurrentUser, User},
+        user::{CurrentUser, Locale, User},
         util::Timestamp,
     };
 
@@ -1150,7 +1150,7 @@ mod tests {
             guild_locale: None,
             id: Id::new(4),
             kind: InteractionType::MESSAGE_COMPONENT,
-            locale: Some("en-GB".to_owned()),
+            locale: Some(Locale::ENGLISH_UK),
             member: None,
             message: Some(message()),
             token: String::from("token"),

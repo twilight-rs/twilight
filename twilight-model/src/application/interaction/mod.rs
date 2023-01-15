@@ -23,7 +23,7 @@ use crate::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, InteractionMarker, UserMarker},
         Id,
     },
-    user::User,
+    user::{Locale, User},
 };
 use serde::{
     de::{Error as DeError, IgnoredAny, MapAccess, Visitor},
@@ -72,7 +72,7 @@ pub struct Interaction {
     ///
     /// Present when the interaction is invoked in a guild.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub guild_locale: Option<String>,
+    pub guild_locale: Option<Locale>,
     /// ID of the interaction.
     pub id: Id<InteractionMarker>,
     /// Type of interaction.
@@ -84,7 +84,7 @@ pub struct Interaction {
     ///
     /// [`PING`]: InteractionType::PING
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub locale: Option<String>,
+    pub locale: Option<Locale>,
     /// Member that invoked the interaction.
     ///
     /// Present when the interaction is invoked in a guild.
@@ -190,10 +190,10 @@ impl<'de> Visitor<'de> for InteractionVisitor {
         let mut channel_id: Option<Id<ChannelMarker>> = None;
         let mut data: Option<Value> = None;
         let mut guild_id: Option<Id<GuildMarker>> = None;
-        let mut guild_locale: Option<String> = None;
+        let mut guild_locale: Option<Locale> = None;
         let mut id: Option<Id<InteractionMarker>> = None;
         let mut kind: Option<InteractionType> = None;
-        let mut locale: Option<String> = None;
+        let mut locale: Option<Locale> = None;
         let mut member: Option<PartialMember> = None;
         let mut message: Option<Message> = None;
         let mut token: Option<String> = None;
@@ -425,7 +425,7 @@ mod tests {
         guild::{PartialMember, Permissions},
         id::Id,
         test::image_hash,
-        user::User,
+        user::{Locale, User},
         util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
@@ -493,10 +493,10 @@ mod tests {
                 target_id: None,
             }))),
             guild_id: Some(Id::new(400)),
-            guild_locale: Some("de".to_owned()),
+            guild_locale: Some(Locale::GERMAN),
             id: Id::new(500),
             kind: InteractionType::APPLICATION_COMMAND,
-            locale: Some("en-GB".to_owned()),
+            locale: Some(Locale::ENGLISH_UK),
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,
@@ -645,7 +645,8 @@ mod tests {
                 Token::Str("400"),
                 Token::Str("guild_locale"),
                 Token::Some,
-                Token::String("de"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::String(Locale::GERMAN.get()),
                 Token::Str("id"),
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("500"),
@@ -656,7 +657,8 @@ mod tests {
                 Token::U8(InteractionType::APPLICATION_COMMAND.get()),
                 Token::Str("locale"),
                 Token::Some,
-                Token::Str("en-GB"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_UK.get()),
                 Token::Str("member"),
                 Token::Some,
                 Token::Struct {

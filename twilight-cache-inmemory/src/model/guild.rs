@@ -10,6 +10,7 @@ use twilight_model::{
         marker::{ApplicationMarker, ChannelMarker, GuildMarker, UserMarker},
         Id,
     },
+    user::Locale,
     util::{ImageHash, Timestamp},
 };
 
@@ -41,7 +42,7 @@ pub struct CachedGuild {
     pub(crate) owner_id: Id<UserMarker>,
     pub(crate) owner: Option<bool>,
     pub(crate) permissions: Option<Permissions>,
-    pub(crate) preferred_locale: String,
+    pub(crate) preferred_locale: Locale,
     pub(crate) premium_progress_bar_enabled: bool,
     pub(crate) premium_subscription_count: Option<u64>,
     pub(crate) premium_tier: PremiumTier,
@@ -190,9 +191,10 @@ impl CachedGuild {
 
     /// Preferred locale for Community guilds.
     ///
-    /// Used in server discovery and notices from Discord. Defaults to "en-US".
-    pub fn preferred_locale(&self) -> &str {
-        &self.preferred_locale
+    /// Used in server discovery and notices from Discord. Defaults to
+    /// [`Locale::ENGLISH_US`].
+    pub const fn preferred_locale(&self) -> Locale {
+        self.preferred_locale
     }
 
     /// Whether the premium progress bar is enabled.

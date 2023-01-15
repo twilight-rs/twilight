@@ -30,7 +30,7 @@ mod tests {
     use super::*;
     use crate::{
         test::image_hash,
-        user::{PremiumType, UserFlags},
+        user::{Locale, PremiumType, UserFlags},
         util::Timestamp,
     };
     use serde_test::Token;
@@ -66,7 +66,7 @@ mod tests {
                 email: Some("address@example.com".to_owned()),
                 flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
                 id: Id::new(3),
-                locale: Some("en-us".to_owned()),
+                locale: Some(Locale::ENGLISH_US),
                 mfa_enabled: Some(true),
                 name: "test".to_owned(),
                 premium_type: Some(PremiumType::NITRO),
@@ -148,7 +148,8 @@ mod tests {
                 Token::Str("3"),
                 Token::Str("locale"),
                 Token::Some,
-                Token::Str("en-us"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_US.get()),
                 Token::Str("mfa_enabled"),
                 Token::Some,
                 Token::Bool(true),

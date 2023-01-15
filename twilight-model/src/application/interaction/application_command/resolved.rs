@@ -105,7 +105,7 @@ mod tests {
         guild::{PartialMember, Permissions, Role},
         id::Id,
         test::image_hash,
-        user::{PremiumType, User, UserFlags},
+        user::{Locale, PremiumType, User, UserFlags},
         util::datetime::{Timestamp, TimestampParseError},
     };
     use serde_test::Token;
@@ -254,7 +254,7 @@ mod tests {
                     email: Some("address@example.com".to_owned()),
                     flags: Some(UserFlags::PREMIUM_EARLY_SUPPORTER | UserFlags::VERIFIED_DEVELOPER),
                     id: Id::new(300),
-                    locale: Some("en-us".to_owned()),
+                    locale: Some(Locale::ENGLISH_US),
                     mfa_enabled: Some(true),
                     name: "test".to_owned(),
                     premium_type: Some(PremiumType::NITRO),
@@ -524,7 +524,8 @@ mod tests {
                 Token::Str("300"),
                 Token::Str("locale"),
                 Token::Some,
-                Token::Str("en-us"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_US.get()),
                 Token::Str("mfa_enabled"),
                 Token::Some,
                 Token::Bool(true),

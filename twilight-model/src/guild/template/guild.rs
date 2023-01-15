@@ -6,6 +6,7 @@ use crate::{
         VerificationLevel,
     },
     id::{marker::ChannelMarker, Id},
+    user::Locale,
     util::image_hash::ImageHash,
 };
 use serde::{Deserialize, Serialize};
@@ -20,7 +21,7 @@ pub struct TemplateGuild {
     pub explicit_content_filter: ExplicitContentFilter,
     pub icon_hash: Option<ImageHash>,
     pub name: String,
-    pub preferred_locale: String,
+    pub preferred_locale: Locale,
     pub roles: Vec<TemplateRole>,
     pub system_channel_flags: SystemChannelFlags,
     pub system_channel_id: Option<Id<ChannelMarker>>,

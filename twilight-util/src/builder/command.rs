@@ -27,7 +27,7 @@
 //! ```
 //!
 //! ```
-//! use twilight_model::application::command::CommandType;
+//! use twilight_model::{application::command::CommandType, user::Locale};
 //! use twilight_util::builder::command::{CommandBuilder, NumberBuilder};
 //!
 //! CommandBuilder::new(
@@ -35,12 +35,15 @@
 //!     "Wish a friend a happy birthday",
 //!     CommandType::CHAT_INPUT,
 //! )
-//! .name_localizations([("zh-CN", "生日"), ("el", "γενέθλια")])
-//! .description_localizations([("zh-Cn", "祝你朋友生日快乐")])
+//! .name_localizations([
+//!     (Locale::CHINESE_CHINA, "生日"),
+//!     (Locale::GREEK, "γενέθλια"),
+//! ])
+//! .description_localizations([(Locale::CHINESE_CHINA, "祝你朋友生日快乐")])
 //! .option(
 //!     NumberBuilder::new("age", "Your friend's age")
-//!         .name_localizations([("zh-CN", "岁数")])
-//!         .description_localizations([("zh-CN", "你朋友的岁数")]),
+//!         .name_localizations([(Locale::CHINESE_CHINA, "岁数")])
+//!         .description_localizations([(Locale::CHINESE_CHINA, "你朋友的岁数")]),
 //! );
 //! ```
 
@@ -52,6 +55,7 @@ use twilight_model::{
     channel::ChannelType,
     guild::Permissions,
     id::{marker::GuildMarker, Id},
+    user::Locale,
 };
 use twilight_validate::command::{command as validate_command, CommandValidationError};
 
@@ -133,7 +137,7 @@ impl CommandBuilder {
     /// Set the localization dictionary for the command description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -150,7 +154,7 @@ impl CommandBuilder {
     /// Set the localization dictionary for the command name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -224,7 +228,7 @@ impl AttachmentBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -241,7 +245,7 @@ impl AttachmentBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -308,7 +312,7 @@ impl BooleanBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -325,7 +329,7 @@ impl BooleanBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -401,7 +405,7 @@ impl ChannelBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -418,7 +422,7 @@ impl ChannelBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -501,7 +505,7 @@ impl IntegerBuilder {
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
-    pub fn choice_localizations<K: Into<String>, V: Into<String>>(
+    pub fn choice_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         choice_name: &str,
         name_localizations: impl IntoIterator<Item = (K, V)>,
@@ -545,7 +549,7 @@ impl IntegerBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -580,7 +584,7 @@ impl IntegerBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -647,7 +651,7 @@ impl MentionableBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -664,7 +668,7 @@ impl MentionableBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -748,7 +752,7 @@ impl NumberBuilder {
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
-    pub fn choice_localizations<K: Into<String>, V: Into<String>>(
+    pub fn choice_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         choice_name: &str,
         name_localizations: impl IntoIterator<Item = (K, V)>,
@@ -792,7 +796,7 @@ impl NumberBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -827,7 +831,7 @@ impl NumberBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -894,7 +898,7 @@ impl RoleBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -911,7 +915,7 @@ impl RoleBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -995,7 +999,7 @@ impl StringBuilder {
     ///
     /// [`choices`]: Self::choices
     #[track_caller]
-    pub fn choice_localizations<K: Into<String>, V: Into<String>>(
+    pub fn choice_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         choice_name: &str,
         name_localizations: impl IntoIterator<Item = (K, V)>,
@@ -1042,7 +1046,7 @@ impl StringBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -1077,7 +1081,7 @@ impl StringBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -1144,7 +1148,7 @@ impl SubCommandBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -1161,7 +1165,7 @@ impl SubCommandBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -1236,7 +1240,7 @@ impl SubCommandGroupBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -1253,7 +1257,7 @@ impl SubCommandGroupBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -1320,7 +1324,7 @@ impl UserBuilder {
     /// Set the localization dictionary for the option description.
     ///
     /// Defaults to [`None`].
-    pub fn description_localizations<K: Into<String>, V: Into<String>>(
+    pub fn description_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -1337,7 +1341,7 @@ impl UserBuilder {
     /// Set the localization dictionary for the option name.
     ///
     /// Defaults to [`None`].
-    pub fn name_localizations<K: Into<String>, V: Into<String>>(
+    pub fn name_localizations<K: Into<Locale>, V: Into<String>>(
         mut self,
         localizations: impl IntoIterator<Item = (K, V)>,
     ) -> Self {
@@ -1367,7 +1371,7 @@ impl From<UserBuilder> for CommandOption {
     }
 }
 
-fn set_choice_localizations<K: Into<String>, V: Into<String>>(
+fn set_choice_localizations<K: Into<Locale>, V: Into<String>>(
     choice: &mut CommandOptionChoice,
     localizations: impl IntoIterator<Item = (K, V)>,
 ) {

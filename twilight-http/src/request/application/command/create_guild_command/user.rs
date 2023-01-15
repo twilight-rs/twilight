@@ -14,6 +14,7 @@ use twilight_model::{
         marker::{ApplicationMarker, GuildMarker},
         Id,
     },
+    user::Locale,
 };
 use twilight_validate::command::{name as validate_name, CommandValidationError};
 
@@ -31,7 +32,7 @@ pub struct CreateGuildUserCommand<'a> {
     guild_id: Id<GuildMarker>,
     http: &'a Client,
     name: &'a str,
-    name_localizations: Option<&'a HashMap<String, String>>,
+    name_localizations: Option<&'a HashMap<Locale, String>>,
     nsfw: Option<bool>,
 }
 
@@ -75,7 +76,7 @@ impl<'a> CreateGuildUserCommand<'a> {
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     pub fn name_localizations(
         mut self,
-        localizations: &'a HashMap<String, String>,
+        localizations: &'a HashMap<Locale, String>,
     ) -> Result<Self, CommandValidationError> {
         for name in localizations.values() {
             validate_name(name)?;

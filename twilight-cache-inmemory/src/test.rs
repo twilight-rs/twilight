@@ -20,7 +20,7 @@ use twilight_model::{
         marker::{ChannelMarker, EmojiMarker, GuildMarker, RoleMarker, StickerMarker, UserMarker},
         Id,
     },
-    user::{CurrentUser, User},
+    user::{CurrentUser, Locale, User},
     util::{ImageHash, Timestamp},
     voice::VoiceState,
 };
@@ -390,7 +390,7 @@ pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
         owner_id: Id::new(1),
         owner: None,
         permissions: None,
-        preferred_locale: "en_us".to_owned(),
+        preferred_locale: Locale::ENGLISH_US,
         premium_progress_bar_enabled: false,
         premium_subscription_count: None,
         premium_tier: PremiumTier::NONE,

@@ -11,6 +11,7 @@ use twilight_model::{
     application::command::{Command, CommandType},
     guild::Permissions,
     id::{marker::ApplicationMarker, Id},
+    user::Locale,
 };
 use twilight_validate::command::{name as validate_name, CommandValidationError};
 
@@ -28,7 +29,7 @@ pub struct CreateGlobalMessageCommand<'a> {
     dm_permission: Option<bool>,
     http: &'a Client,
     name: &'a str,
-    name_localizations: Option<&'a HashMap<String, String>>,
+    name_localizations: Option<&'a HashMap<Locale, String>>,
     nsfw: Option<bool>,
 }
 
@@ -80,7 +81,7 @@ impl<'a> CreateGlobalMessageCommand<'a> {
     /// [`NameLengthInvalid`]: twilight_validate::command::CommandValidationErrorType::NameLengthInvalid
     pub fn name_localizations(
         mut self,
-        localizations: &'a HashMap<String, String>,
+        localizations: &'a HashMap<Locale, String>,
     ) -> Result<Self, CommandValidationError> {
         for name in localizations.values() {
             validate_name(name)?;

@@ -26,6 +26,7 @@ use crate::{
         marker::{ApplicationMarker, CommandMarker, CommandVersionMarker, GuildMarker},
         Id,
     },
+    user::Locale,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -65,7 +66,7 @@ pub struct Command {
     ///
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub description_localizations: Option<HashMap<String, String>>,
+    pub description_localizations: Option<HashMap<Locale, String>>,
     /// Guild ID of the command, if not global.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
@@ -82,7 +83,7 @@ pub struct Command {
     /// [Discord Docs/Locales]: https://discord.com/developers/docs/reference#locales
     /// [Discord Docs/Localization]: https://discord.com/developers/docs/interactions/application-commands#localization
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name_localizations: Option<HashMap<String, String>>,
+    pub name_localizations: Option<HashMap<Locale, String>>,
     /// Whether the command is age-restricted.
     ///
     /// Defaults to false.
@@ -100,7 +101,7 @@ mod tests {
         Command, CommandOption, CommandOptionChoice, CommandOptionChoiceData, CommandOptionType,
         CommandOptionValue, CommandType,
     };
-    use crate::{channel::ChannelType, guild::Permissions, id::Id};
+    use crate::{channel::ChannelType, guild::Permissions, id::Id, user::Locale};
     use serde_test::Token;
     use std::collections::HashMap;
 
@@ -113,14 +114,14 @@ mod tests {
             dm_permission: Some(false),
             description: "this command is a test".into(),
             description_localizations: Some(HashMap::from([(
-                "en-US".into(),
+                Locale::ENGLISH_US,
                 "this command is a test".into(),
             )])),
             guild_id: Some(Id::new(300)),
             id: Some(Id::new(200)),
             kind: CommandType::CHAT_INPUT,
             name: "test command".into(),
-            name_localizations: Some(HashMap::from([("en-US".into(), "test command".into())])),
+            name_localizations: Some(HashMap::from([(Locale::ENGLISH_US, "test command".into())])),
             nsfw: None,
             options: Vec::from([CommandOption {
                 autocomplete: None,
@@ -235,7 +236,7 @@ mod tests {
                             choices: None,
                             description: "mentionable desc".to_owned(),
                             description_localizations: Some(HashMap::from([(
-                                "en-GB".to_owned(),
+                                Locale::ENGLISH_UK,
                                 "mentionable desc (but british)".to_owned(),
                             )])),
                             kind: CommandOptionType::MENTIONABLE,
@@ -255,7 +256,7 @@ mod tests {
                                 CommandOptionChoiceData {
                                     name: "number choice".to_owned(),
                                     name_localizations: Some(HashMap::from([(
-                                        "en-US".to_owned(),
+                                        Locale::ENGLISH_US,
                                         "number choice (but american)".to_owned(),
                                     )])),
                                     value: 10.0,
@@ -286,7 +287,7 @@ mod tests {
                             min_value: None,
                             name: "role name".to_owned(),
                             name_localizations: Some(HashMap::from([(
-                                "de-DE".to_owned(),
+                                Locale::GERMAN,
                                 "role name (but german)".to_owned(),
                             )])),
                             options: None,
@@ -338,7 +339,8 @@ mod tests {
                 Token::Str("description_localizations"),
                 Token::Some,
                 Token::Map { len: Some(1) },
-                Token::Str("en-US"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_US.get()),
                 Token::Str("this command is a test"),
                 Token::MapEnd,
                 Token::Str("guild_id"),
@@ -359,7 +361,8 @@ mod tests {
                 Token::Str("name_localizations"),
                 Token::Some,
                 Token::Map { len: Some(1) },
-                Token::Str("en-US"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_US.get()),
                 Token::Str("test command"),
                 Token::MapEnd,
                 Token::Str("options"),
@@ -503,7 +506,8 @@ mod tests {
                 Token::Str("description_localizations"),
                 Token::Some,
                 Token::Map { len: Some(1) },
-                Token::Str("en-GB"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_UK.get()),
                 Token::Str("mentionable desc (but british)"),
                 Token::MapEnd,
                 Token::Str("type"),
@@ -533,7 +537,8 @@ mod tests {
                 Token::Str("name_localizations"),
                 Token::Some,
                 Token::Map { len: Some(1) },
-                Token::Str("en-US"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::ENGLISH_US.get()),
                 Token::Str("number choice (but american)"),
                 Token::MapEnd,
                 Token::Str("value"),
@@ -566,7 +571,8 @@ mod tests {
                 Token::Str("name_localizations"),
                 Token::Some,
                 Token::Map { len: Some(1) },
-                Token::Str("de-DE"),
+                Token::NewtypeStruct { name: "Locale" },
+                Token::Str(Locale::GERMAN.get()),
                 Token::Str("role name (but german)"),
                 Token::MapEnd,
                 Token::StructEnd,

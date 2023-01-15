@@ -32,6 +32,7 @@ use twilight_model::{
     application::command::{CommandOption, CommandType},
     guild::Permissions,
     id::{marker::ApplicationMarker, Id},
+    user::Locale,
 };
 
 /// Version of [`Command`] but with borrowed fields.
@@ -48,12 +49,12 @@ struct CommandBorrowed<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<&'a str>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub description_localizations: Option<&'a HashMap<String, String>>,
+    pub description_localizations: Option<&'a HashMap<Locale, String>>,
     #[serde(rename = "type")]
     pub kind: CommandType,
     pub name: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name_localizations: Option<&'a HashMap<String, String>>,
+    pub name_localizations: Option<&'a HashMap<Locale, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nsfw: Option<bool>,
     #[serde(default)]
@@ -68,6 +69,7 @@ mod tests {
         application::command::{Command, CommandType},
         guild::Permissions,
         id::Id,
+        user::Locale,
     };
 
     /// Test to convert a `Command` to a `CommandBorrowed`.
@@ -83,7 +85,7 @@ mod tests {
             dm_permission: Some(true),
             description: "command description".to_owned(),
             description_localizations: Some(HashMap::from([(
-                "en-US".to_owned(),
+                Locale::ENGLISH_US,
                 "command description".to_owned(),
             )])),
             guild_id: Some(Id::new(2)),
@@ -91,7 +93,7 @@ mod tests {
             kind: CommandType::CHAT_INPUT,
             name: "command name".to_owned(),
             name_localizations: Some(HashMap::from([(
-                "en-US".to_owned(),
+                Locale::ENGLISH_US,
                 "command name".to_owned(),
             )])),
             nsfw: Some(true),

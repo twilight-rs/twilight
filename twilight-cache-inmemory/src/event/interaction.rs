@@ -83,7 +83,7 @@ mod tests {
         gateway::payload::incoming::InteractionCreate,
         guild::{PartialMember, Permissions, Role},
         id::Id,
-        user::User,
+        user::{Locale, User},
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
     };
 
@@ -231,7 +231,7 @@ mod tests {
             guild_locale: None,
             id: Id::new(4),
             kind: InteractionType::APPLICATION_COMMAND,
-            locale: Some("en-GB".to_owned()),
+            locale: Some(Locale::ENGLISH_UK),
             member: Some(PartialMember {
                 avatar: None,
                 communication_disabled_until: None,

@@ -1,4 +1,4 @@
-use super::{DiscriminatorDisplay, PremiumType, UserFlags};
+use super::{DiscriminatorDisplay, Locale, PremiumType, UserFlags};
 use crate::{
     id::{marker::UserMarker, Id},
     util::image_hash::ImageHash,
@@ -31,7 +31,7 @@ pub struct UserProfile {
     pub flags: Option<UserFlags>,
     pub id: Id<UserMarker>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub locale: Option<String>,
+    pub locale: Option<Locale>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mfa_enabled: Option<bool>,
     #[serde(rename = "username")]
@@ -54,7 +54,7 @@ impl UserProfile {
 #[cfg(test)]
 mod tests {
     use super::{PremiumType, UserFlags, UserProfile};
-    use crate::{id::Id, test::image_hash};
+    use crate::{id::Id, test::image_hash, user::Locale};
     use serde_test::Token;
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
@@ -86,7 +86,8 @@ mod tests {
             Token::Str("1"),
             Token::Str("locale"),
             Token::Some,
-            Token::Str("en-us"),
+            Token::NewtypeStruct { name: "Locale" },
+            Token::Str(Locale::ENGLISH_US.get()),
             Token::Str("mfa_enabled"),
             Token::Some,
             Token::Bool(true),
@@ -116,7 +117,7 @@ mod tests {
             email: Some("email@example.com".to_owned()),
             flags: Some(UserFlags::VERIFIED_DEVELOPER),
             id: Id::new(1),
-            locale: Some("en-us".to_owned()),
+            locale: Some(Locale::ENGLISH_US),
             mfa_enabled: Some(true),
             name: "user name".to_owned(),
             premium_type: Some(PremiumType::NITRO),

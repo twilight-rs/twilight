@@ -499,7 +499,7 @@ mod tests {
 
     use super::*;
     use std::collections::HashMap;
-    use twilight_model::{application::command::CommandType, id::Id};
+    use twilight_model::{application::command::CommandType, id::Id, user::Locale};
 
     // This tests [`description`] and [`name`] by proxy.
     #[test]
@@ -509,15 +509,12 @@ mod tests {
             default_member_permissions: None,
             dm_permission: None,
             description: "a".repeat(100),
-            description_localizations: Some(HashMap::from([(
-                "en-US".to_string(),
-                "a".repeat(100),
-            )])),
+            description_localizations: Some(HashMap::from([(Locale::ENGLISH_US, "a".repeat(100))])),
             guild_id: Some(Id::new(2)),
             id: Some(Id::new(3)),
             kind: CommandType::CHAT_INPUT,
             name: "b".repeat(32),
-            name_localizations: Some(HashMap::from([("en-US".to_string(), "b".repeat(32))])),
+            name_localizations: Some(HashMap::from([(Locale::ENGLISH_US, "b".repeat(32))])),
             nsfw: None,
             options: Vec::new(),
             version: Id::new(4),
