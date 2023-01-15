@@ -35,10 +35,7 @@
 //!     "Wish a friend a happy birthday",
 //!     CommandType::CHAT_INPUT,
 //! )
-//! .name_localizations([
-//!     (Locale::CHINESE_CHINA, "生日"),
-//!     (Locale::GREEK, "γενέθλια"),
-//! ])
+//! .name_localizations([(Locale::CHINESE_CHINA, "生日"), (Locale::GREEK, "γενέθλια")])
 //! .description_localizations([(Locale::CHINESE_CHINA, "祝你朋友生日快乐")])
 //! .option(
 //!     NumberBuilder::new("age", "Your friend's age")

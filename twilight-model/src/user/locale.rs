@@ -31,7 +31,7 @@ use std::{
 /// ```
 ///
 /// [`COMMUNITY`]: crate::guild::GuildFeature::COMMUNITY
-/// [command options]: crate::application::command::options::CommandOption::name_localizations
+/// [command options]: crate::application::command::CommandOption::name_localizations
 /// [guilds]: crate::guild::Guild
 /// [localizing commands]: crate::application::command::Command::name_localizations
 /// [preferred locale]: crate::guild::Guild::preferred_locale
