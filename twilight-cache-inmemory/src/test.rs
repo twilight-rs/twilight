@@ -86,6 +86,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         pinned: false,
         reactions: Vec::new(),
         reference: None,
+        role_subscription_data: None,
         sticker_items: Vec::new(),
         thread: None,
         referenced_message: None,
