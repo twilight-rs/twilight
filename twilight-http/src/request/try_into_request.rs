@@ -86,7 +86,8 @@ mod private {
             GetCurrentUserGuildMember, GetCurrentUserGuilds, GetUser, LeaveGuild,
             UpdateCurrentUser,
         },
-        GetGateway, GetGatewayAuthed, GetUserApplicationInfo, GetVoiceRegions,
+        GetCurrentAuthorizationInformation, GetGateway, GetGatewayAuthed, GetUserApplicationInfo,
+        GetVoiceRegions,
     };
 
     pub trait Sealed {}
@@ -170,6 +171,7 @@ mod private {
     impl Sealed for GetChannelWebhooks<'_> {}
     impl Sealed for GetCommandPermissions<'_> {}
     impl Sealed for GetCurrentUser<'_> {}
+    impl Sealed for GetCurrentAuthorizationInformation<'_> {}
     impl Sealed for GetCurrentUserConnections<'_> {}
     impl Sealed for GetCurrentUserGuildMember<'_> {}
     impl Sealed for GetCurrentUserGuilds<'_> {}
