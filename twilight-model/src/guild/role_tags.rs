@@ -22,6 +22,13 @@ pub struct RoleTags {
     /// ID of the bot the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bot_id: Option<Id<UserMarker>>,
+    /// Whether this role is a guild's linked role.
+    #[serde(
+        default,
+        skip_serializing_if = "is_false",
+        with = "crate::visitor::null_boolean"
+    )]
+    pub guild_connections: bool,
     /// ID of the integration the role belongs to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub integration_id: Option<Id<IntegrationMarker>>,
@@ -48,6 +55,7 @@ mod tests {
         let tags = RoleTags {
             available_for_purchase: false,
             bot_id: Some(Id::new(1)),
+            guild_connections: false,
             integration_id: Some(Id::new(2)),
             premium_subscriber: false,
             subscription_listing_id: None,
@@ -78,6 +86,7 @@ mod tests {
         let tags = RoleTags {
             available_for_purchase: false,
             bot_id: None,
+            guild_connections: false,
             integration_id: None,
             premium_subscriber: true,
             subscription_listing_id: None,
@@ -137,6 +146,7 @@ mod tests {
         let tags = RoleTags {
             available_for_purchase: false,
             bot_id: None,
+            guild_connections: false,
             integration_id: None,
             premium_subscriber: false,
             subscription_listing_id: None,
