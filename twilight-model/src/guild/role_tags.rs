@@ -111,9 +111,10 @@ mod tests {
         let tags = RoleTags {
             available_for_purchase: true,
             bot_id: None,
+            guild_connections: false,
             integration_id: Some(Id::new(1)),
-            premium_subscriber: false,
             subscription_listing_id: Some(Id::new(2)),
+            premium_subscriber: false,
         };
 
         serde_test::assert_tokens(
