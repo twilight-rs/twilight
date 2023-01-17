@@ -237,12 +237,10 @@ pub fn command(value: &Command) -> Result<(), CommandValidationError> {
                 self::description(description)?;
             }
         }
-    } else {
-        if description.len() != 0 {
-            return Err(CommandValidationError {
-                kind: CommandValidationErrorType::DescriptionInvalid,
-            });
-        }
+    } else if !description.is_empty() {
+        return Err(CommandValidationError {
+            kind: CommandValidationErrorType::DescriptionInvalid,
+        });
     };
 
     if let Some(name_localizations) = name_localizations {
