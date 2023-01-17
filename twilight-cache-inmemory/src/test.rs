@@ -396,6 +396,7 @@ pub fn guild(id: Id<GuildMarker>, member_count: Option<u64>) -> Guild {
         premium_subscription_count: None,
         premium_tier: PremiumTier::None,
         presences: Vec::new(),
+        public_updates_channel_id: None,
         roles: Vec::new(),
         rules_channel_id: None,
         splash: None,
