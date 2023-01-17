@@ -14,11 +14,11 @@ impl Debug for ParsingError<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let mut debug = f.debug_struct("Parsing");
 
-        if let Ok(body) = str::from_utf8(self.body) {
-            debug.field("body", &body);
-        } else {
-            debug.field("body", &self.body);
+        if let Ok(body_string) = str::from_utf8(self.body) {
+            debug.field("body_string", &body_string);
         }
+
+        debug.field("body", &self.body);
 
         debug.finish()
     }
@@ -34,12 +34,11 @@ impl Debug for ResponseError<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let mut debug = f.debug_struct("Response");
 
-        if let Ok(body) = str::from_utf8(self.body) {
-            debug.field("body", &body);
-        } else {
-            debug.field("body", &self.body);
+        if let Ok(body_string) = str::from_utf8(self.body) {
+            debug.field("body_string", &body_string);
         }
 
+        debug.field("body", &self.body);
         debug.field("error", &self.error);
         debug.field("status", &self.status);
 
