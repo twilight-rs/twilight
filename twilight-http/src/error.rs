@@ -6,7 +6,47 @@ use std::{
     str,
 };
 
-#[derive(Debug)]
+struct ParsingError<'a> {
+    body: &'a [u8],
+}
+
+impl Debug for ParsingError<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let mut debug = f.debug_struct("Parsing");
+
+        if let Ok(body) = str::from_utf8(self.body) {
+            debug.field("body", &body);
+        } else {
+            debug.field("body", &self.body);
+        }
+
+        debug.finish()
+    }
+}
+
+struct ResponseError<'a> {
+    body: &'a [u8],
+    error: &'a ApiError,
+    status: StatusCode,
+}
+
+impl Debug for ResponseError<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let mut debug = f.debug_struct("Response");
+
+        if let Ok(body) = str::from_utf8(self.body) {
+            debug.field("body", &body);
+        } else {
+            debug.field("body", &self.body);
+        }
+
+        debug.field("error", &self.error);
+        debug.field("status", &self.status);
+
+        debug.finish()
+    }
+}
+
 pub struct Error {
     pub(super) source: Option<Box<dyn StdError + Send + Sync>>,
     pub(super) kind: ErrorType,
@@ -36,6 +76,38 @@ impl Error {
             kind: ErrorType::Json,
             source: Some(Box::new(source)),
         }
+    }
+}
+
+impl Debug for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let mut debug = f.debug_struct("Error");
+        debug.field("source", &self.source);
+
+        match &self.kind {
+            ErrorType::Parsing { body } => {
+                debug.field("kind", &ParsingError { body });
+            }
+            ErrorType::Response {
+                body,
+                error,
+                status,
+            } => {
+                debug.field(
+                    "kind",
+                    &ResponseError {
+                        body,
+                        error,
+                        status: *status,
+                    },
+                );
+            }
+            other => {
+                debug.field("kind", other);
+            }
+        }
+
+        debug.finish()
     }
 }
 
