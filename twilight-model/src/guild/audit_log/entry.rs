@@ -17,10 +17,10 @@ pub struct AuditLogEntry {
     pub changes: Vec<AuditLogChange>,
     /// ID of the server where the entry was added.
     ///
-    /// This is **only** availible when receiving the event in
-    /// [GuildAuditLogEntryCreate].
+    /// This is **only** available when receiving the event in
+    /// [`GuildAuditLogEntryCreate`].
     ///
-    /// [GuildAuditLogEntryCreate]: crate::gateway::payload::GuildAuditLogEntryCreate
+    /// [`GuildAuditLogEntryCreate`]: crate::gateway::payload::incoming::GuildAuditLogEntryCreate
     #[serde(skip_serializing_if = "Option::is_none")]
     pub guild_id: Option<Id<GuildMarker>>,
     /// ID of the entire entry.
