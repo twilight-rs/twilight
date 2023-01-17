@@ -56,6 +56,8 @@ pub enum MessageType {
     ContextMenuCommand,
     /// Message is an auto moderation action.
     AutoModerationAction,
+    /// System message denoting a user subscribed to a role.
+    RoleSubscriptionPurchase,
     /// System message denoting a interaction premium upsell.
     InteractionPremiumUpsell,
     /// System message denoting a guild application premium subscription.
@@ -95,6 +97,7 @@ impl MessageType {
                 | Self::GuildInviteReminder
                 | Self::ContextMenuCommand
                 | Self::AutoModerationAction
+                | Self::RoleSubscriptionPurchase
                 | Self::InteractionPremiumUpsell
         )
     }
@@ -151,6 +154,7 @@ impl From<u8> for MessageType {
             22 => Self::GuildInviteReminder,
             23 => Self::ContextMenuCommand,
             24 => Self::AutoModerationAction,
+            25 => Self::RoleSubscriptionPurchase,
             26 => Self::InteractionPremiumUpsell,
             32 => Self::GuildApplicationPremiumSubscription,
             unknown => Self::Unknown(unknown),
@@ -185,6 +189,7 @@ impl From<MessageType> for u8 {
             MessageType::GuildInviteReminder => 22,
             MessageType::ContextMenuCommand => 23,
             MessageType::AutoModerationAction => 24,
+            MessageType::RoleSubscriptionPurchase => 25,
             MessageType::InteractionPremiumUpsell => 26,
             MessageType::GuildApplicationPremiumSubscription => 32,
             MessageType::Unknown(unknown) => unknown,
@@ -249,6 +254,7 @@ mod tests {
             (MessageType::GuildInviteReminder, 22, true),
             (MessageType::ContextMenuCommand, 23, true),
             (MessageType::AutoModerationAction, 24, true),
+            (MessageType::RoleSubscriptionPurchase, 25, true),
             (MessageType::InteractionPremiumUpsell, 26, true),
             (MessageType::GuildApplicationPremiumSubscription, 32, false),
         ];
