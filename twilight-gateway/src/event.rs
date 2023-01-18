@@ -208,7 +208,6 @@ bitflags! {
             | Self::CHANNEL_DELETE.bits()
             | Self::CHANNEL_PINS_UPDATE.bits()
             | Self::CHANNEL_UPDATE.bits()
-            | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits()
             | Self::GUILD_CREATE.bits()
             | Self::GUILD_DELETE.bits()
             | Self::GUILD_UPDATE.bits()
@@ -227,7 +226,12 @@ bitflags! {
         /// All [`EventTypeFlags`] in [`Intents::GUILD_BANS`].
         ///
         /// [`Intents::GUILD_BANS`]: crate::Intents::GUILD_BANS
-        const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits();
+        #[deprecated(since = "0.14.2", note = "use the `GUILD_MODERATION` intent instead")]
+        const GUILD_BANS = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits();
+        /// All [`EventTypeFlags`] in [`Intents::GUILD_MODERATION`].
+        ///
+        /// [`Intents::GUILD_MODERATION`]: crate::Intents::GUILD_MODERATION
+        const GUILD_MODERATION = Self::BAN_ADD.bits() | Self::BAN_REMOVE.bits() | Self::GUILD_AUDIT_LOG_ENTRY_CREATE.bits()
         /// All [`EventTypeFlags`] in [`Intents::GUILD_EMOJIS_AND_STICKERS`].
         ///
         /// [`Intents::GUILD_EMOJIS_AND_STICKERS`]: crate::Intents::GUILD_EMOJIS_AND_STICKERS
