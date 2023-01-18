@@ -258,11 +258,11 @@ mod tests {
             pinned: false,
             reactions: Vec::new(),
             reference: None,
-            sticker_items: vec![MessageSticker {
+            sticker_items: Vec::from([MessageSticker {
                 format_type: StickerFormatType::Png,
                 id: Id::new(1),
                 name: "sticker name".to_owned(),
-            }],
+            }]),
             referenced_message: None,
             timestamp,
             thread: None,
@@ -441,34 +441,34 @@ mod tests {
                 roles: Vec::new(),
                 user: None,
             }),
-            mention_channels: vec![ChannelMention {
+            mention_channels: Vec::from([ChannelMention {
                 guild_id: Id::new(1),
                 id: Id::new(2),
                 kind: ChannelType::GuildText,
                 name: "channel".to_owned(),
-            }],
+            }]),
             mention_everyone: false,
             mention_roles: Vec::new(),
             mentions: Vec::new(),
             pinned: false,
-            reactions: vec![Reaction {
+            reactions: Vec::from([Reaction {
                 count: 7,
                 emoji: ReactionType::Unicode {
                     name: "a".to_owned(),
                 },
                 me: true,
-            }],
+            }]),
             reference: Some(MessageReference {
                 channel_id: Some(Id::new(1)),
                 guild_id: None,
                 message_id: None,
                 fail_if_not_exists: None,
             }),
-            sticker_items: vec![MessageSticker {
+            sticker_items: Vec::from([MessageSticker {
                 format_type: StickerFormatType::Png,
                 id: Id::new(1),
                 name: "sticker name".to_owned(),
-            }],
+            }]),
             referenced_message: None,
             timestamp,
             thread: None,

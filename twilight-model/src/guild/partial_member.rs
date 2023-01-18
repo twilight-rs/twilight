@@ -52,7 +52,7 @@ mod tests {
             nick: Some("a nickname".to_owned()),
             permissions: None,
             premium_since: None,
-            roles: vec![Id::new(1)],
+            roles: Vec::from([Id::new(1)]),
             user: None,
         };
 

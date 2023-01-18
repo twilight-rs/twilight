@@ -88,9 +88,9 @@ mod tests {
     #[test]
     fn full() {
         let value = AllowedMentions {
-            parse: vec![ParseTypes::Everyone],
-            users: vec![Id::new(100)],
-            roles: vec![Id::new(200)],
+            parse: Vec::from([ParseTypes::Everyone]),
+            users: Vec::from([Id::new(100)]),
+            roles: Vec::from([Id::new(200)]),
             replied_user: true,
         };
 

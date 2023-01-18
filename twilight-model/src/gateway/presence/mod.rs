@@ -204,7 +204,7 @@ mod tests {
             url: None,
         };
         let value = Presence {
-            activities: vec![activity],
+            activities: Vec::from([activity]),
             client_status: ClientStatus {
                 desktop: Some(Status::Online),
                 mobile: None,
@@ -306,7 +306,7 @@ mod tests {
         }]"#;
 
         let expected = Vec::from([Presence {
-            activities: vec![],
+            activities: Vec::new(),
             client_status: ClientStatus {
                 desktop: Some(Status::Online),
                 mobile: None,

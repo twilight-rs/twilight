@@ -265,12 +265,12 @@ impl ShardBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let shard = Shard::builder(env::var("DISCORD_TOKEN")?, Intents::empty()).presence(
     ///     UpdatePresencePayload::new(
-    ///         vec![MinimalActivity {
+    ///         Vec::from([MinimalActivity {
     ///             kind: ActivityType::Playing,
     ///             name: "Not accepting commands".into(),
     ///             url: None,
     ///         }
-    ///         .into()],
+    ///         .into()]),
     ///         false,
     ///         None,
     ///         Status::Idle,

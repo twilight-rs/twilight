@@ -300,15 +300,20 @@ pub fn unmark_failed_address(
     authorization: impl AsRef<str>,
     route_address: impl Into<IpAddr>,
 ) -> Result<Request<Vec<u8>>, HttpError> {
+    #[derive(Serialize)]
+    struct UnmarkFailedRequestBody {
+        address: IpAddr,
+    }
+
     let mut req = Request::post(format!("{}/routeplanner/status", node_address.into()));
 
     let auth_value = HeaderValue::from_str(authorization.as_ref())?;
     req = req.header(AUTHORIZATION, auth_value);
 
     req.body(
-        serde_json::to_vec(&serde_json::json!({
-            "address": route_address.into(),
-        }))
+        serde_json::to_vec(&UnmarkFailedRequestBody {
+            address: route_address.into(),
+        })
         .expect("valid json"),
     )
 }

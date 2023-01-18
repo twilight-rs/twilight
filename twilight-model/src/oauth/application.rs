@@ -126,7 +126,7 @@ mod tests {
             }),
             primary_sku_id: Some(Id::new(4)),
             privacy_policy_url: Some("https://privacypolicy".into()),
-            rpc_origins: vec!["one".to_owned()],
+            rpc_origins: Vec::from(["one".to_owned()]),
             slug: Some("app slug".to_owned()),
             tags: Some(Vec::from([
                 "ponies".to_owned(),

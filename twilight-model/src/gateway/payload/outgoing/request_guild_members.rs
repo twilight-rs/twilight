@@ -233,7 +233,7 @@ impl RequestGuildMembersBuilder {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let request = RequestGuildMembers::builder(Id::new(1))
     ///     .nonce("test")
-    ///     .user_ids(vec![Id::new(2), Id::new(2)])?;
+    ///     .user_ids(Vec::from([Id::new(2), Id::new(2)]))?;
     ///
     /// assert!(matches!(request.d.user_ids, Some(RequestGuildMemberId::Multiple(ids)) if ids.len() == 2));
     /// # Ok(()) }

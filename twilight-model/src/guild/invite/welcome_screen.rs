@@ -34,7 +34,7 @@ mod tests {
     fn welcome_screen() {
         let value = WelcomeScreen {
             description: Some("welcome description".to_owned()),
-            welcome_channels: vec![
+            welcome_channels: Vec::from([
                 WelcomeScreenChannel {
                     channel_id: Id::new(123),
                     description: "channel description".to_owned(),
@@ -47,7 +47,7 @@ mod tests {
                     emoji_id: Some(Id::new(789)),
                     emoji_name: Some("custom_name".to_owned()),
                 },
-            ],
+            ]),
         };
 
         serde_test::assert_tokens(

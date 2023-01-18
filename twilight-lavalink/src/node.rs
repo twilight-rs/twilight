@@ -27,6 +27,7 @@ use futures_util::{
     stream::{Stream, StreamExt},
 };
 use http::{header::HeaderName, Request, Response, StatusCode};
+use serde::Serialize;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -625,6 +626,12 @@ fn connect_request(state: &NodeConfig) -> Result<Request<()>, NodeError> {
 async fn reconnect(
     config: &NodeConfig,
 ) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, NodeError> {
+    #[derive(Serialize)]
+    struct ReconnectBody {
+        key: SocketAddr,
+        op: &'static str,
+        timeout: u64,
+    }
     let (mut stream, res) = backoff(config).await?;
 
     let headers = res.headers();
@@ -636,12 +643,12 @@ async fn reconnect(
             if value.as_bytes() == b"false" {
                 tracing::debug!("session to node {} didn't resume", config.address);
 
-                let payload = serde_json::json!({
-                    "op": "configureResuming",
-                    "key": config.address,
-                    "timeout": resume.timeout,
-                });
-                let msg = Message::Text(serde_json::to_string(&payload).unwrap());
+                let body = ReconnectBody {
+                    key: config.address,
+                    op: "configureResuming",
+                    timeout: resume.timeout,
+                };
+                let msg = Message::Text(serde_json::to_string(&body).unwrap());
 
                 stream.send(msg).await.unwrap();
             } else {

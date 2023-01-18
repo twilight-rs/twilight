@@ -163,7 +163,7 @@ mod tests {
             url: None,
         };
         let presence = Presence {
-            activities: vec![activity],
+            activities: Vec::from([activity]),
             client_status: ClientStatus {
                 desktop: Some(Status::Online),
                 mobile: None,
@@ -177,18 +177,18 @@ mod tests {
         let join_timestamp = Timestamp::from_str(JOIN_TIMESTAMP).expect("timestamp error");
 
         let value = ThreadMembersUpdate {
-            added_members: vec![ThreadMember {
+            added_members: Vec::from([ThreadMember {
                 flags: 1,
                 id: Some(Id::new(123)),
                 join_timestamp,
                 member: Some(member),
                 presence: Some(presence),
                 user_id: Some(Id::new(3)),
-            }],
+            }]),
             guild_id: Id::new(2),
             id: Id::new(4),
             member_count: 8,
-            removed_member_ids: vec![],
+            removed_member_ids: Vec::new(),
         };
 
         serde_test::assert_de_tokens(

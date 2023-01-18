@@ -192,7 +192,7 @@ mod tests {
                 nick: Some("typing".to_owned()),
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new(5)],
+                roles: Vec::from([Id::new(5)]),
                 user: User {
                     accent_color: None,
                     avatar: Some(image_hash::AVATAR),

@@ -120,7 +120,7 @@ mod tests {
             managed: false,
             name: "test".to_owned(),
             require_colons: true,
-            roles: vec![Id::new(1)],
+            roles: Vec::from([Id::new(1)]),
             user: Some(User {
                 accent_color: None,
                 avatar: None,

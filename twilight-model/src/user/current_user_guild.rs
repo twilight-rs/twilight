@@ -50,7 +50,7 @@ mod tests {
             icon: Some(image_hash::ICON),
             owner: true,
             permissions: Permissions::from_bits_truncate(36_953_089),
-            features: vec!["a feature".to_owned()],
+            features: Vec::from(["a feature".to_owned()]),
         };
 
         serde_test::assert_tokens(

@@ -63,7 +63,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 /// };
 ///
 /// Component::ActionRow(ActionRow {
-///     components: vec![Component::SelectMenu(SelectMenu {
+///     components: Vec::from([Component::SelectMenu(SelectMenu {
 ///         custom_id: "class_select_1".to_owned(),
 ///         disabled: false,
 ///         max_values: Some(3),
@@ -104,7 +104,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 ///             },
 ///         ]),
 ///         placeholder: Some("Choose a class".to_owned()),
-///     })],
+///     })]),
 /// });
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

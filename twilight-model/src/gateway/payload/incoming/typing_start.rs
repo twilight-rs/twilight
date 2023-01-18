@@ -180,7 +180,7 @@ mod tests {
                 nick: Some("typing".to_owned()),
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new(4)],
+                roles: Vec::from([Id::new(4)]),
                 user: User {
                     id: Id::new(3),
                     accent_color: None,

@@ -122,11 +122,11 @@ mod tests {
             }),
             color: Some(123),
             description: Some("a description".to_owned()),
-            fields: vec![EmbedField {
+            fields: Vec::from([EmbedField {
                 inline: true,
                 name: "name".to_owned(),
                 value: "value".to_owned(),
-            }],
+            }]),
             footer: Some(EmbedFooter {
                 icon_url: Some("https://example.com/1.png".to_owned()),
                 proxy_icon_url: Some("https://cdn.example.com/1-hash.png".to_owned()),

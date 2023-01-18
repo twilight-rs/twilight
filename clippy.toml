@@ -1,0 +1,5 @@
+disallowed-macros = [
+    { path = "serde_json::json", reason = "less flexible and performant, use structs and serde_derive"},
+    { path = "std::vec", reason = "the Vec::new and Vec::from methods are preferred" },
+    { path = "std::write", reason = "slow to compile and run, use Formatter, Display, or Debug calls instead"},
+]

@@ -125,9 +125,9 @@ mod tests {
         assert_eq!(
             value,
             AllowedMentions {
-                parse: vec![ParseTypes::Everyone, ParseTypes::Users, ParseTypes::Roles],
-                users: vec![],
-                roles: vec![],
+                parse: Vec::from([ParseTypes::Everyone, ParseTypes::Users, ParseTypes::Roles]),
+                users: Vec::new(),
+                roles: Vec::new(),
                 replied_user: true
             },
         );
@@ -137,17 +137,17 @@ mod tests {
     fn validation() {
         let value = AllowedMentionsBuilder::new()
             .users()
-            .user_ids(vec![Id::new(100), Id::new(200)])
+            .user_ids(Vec::from([Id::new(100), Id::new(200)]))
             .roles()
-            .role_ids(vec![Id::new(300)])
+            .role_ids(Vec::from([Id::new(300)]))
             .build();
 
         assert_eq!(
             value,
             AllowedMentions {
-                parse: vec![],
-                users: vec![Id::new(100), Id::new(200)],
-                roles: vec![Id::new(300)],
+                parse: Vec::new(),
+                users: Vec::from([Id::new(100), Id::new(200)]),
+                roles: Vec::from([Id::new(300)]),
                 replied_user: false,
             },
         );

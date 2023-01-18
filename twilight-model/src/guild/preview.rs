@@ -35,7 +35,7 @@ mod tests {
             approximate_presence_count: 500,
             description: Some("guild description".to_owned()),
             discovery_splash: Some(image_hash::SPLASH),
-            emojis: vec![Emoji {
+            emojis: Vec::from([Emoji {
                 animated: false,
                 available: true,
                 id: Id::new(2),
@@ -44,8 +44,8 @@ mod tests {
                 require_colons: true,
                 roles: Vec::new(),
                 user: None,
-            }],
-            features: vec!["a feature".to_owned()],
+            }]),
+            features: Vec::from(["a feature".to_owned()]),
             id: Id::new(1),
             name: "guild name".to_owned(),
             icon: Some(image_hash::ICON),

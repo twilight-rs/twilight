@@ -186,38 +186,13 @@ mod tests {
         id::Id,
         util::Timestamp,
     };
+    use serde_test::Token;
 
     // The deserializer for GuildChannel should skip over fields names that
     // it couldn't deserialize.
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn guild_channel_unknown_field_deserialization() {
-        let input = serde_json::json!({
-            "type": 0,
-            "topic": "a",
-            "rate_limit_per_user": 0,
-            "position": 0,
-            "permission_overwrites": [],
-            "parent_id": null,
-            "nsfw": false,
-            "name": "hey",
-            "last_message_id": "3",
-            "id": "2",
-            "guild_id": "1",
-            "guild_hashes": {
-                "version": 1,
-                "roles": {
-                    "hash": "aaaaaaaaaaa"
-                },
-                "metadata": {
-                    "hash": "bbbbbbbbbbb"
-                },
-                "channels": {
-                    "hash": "ccccccccccc"
-                }
-            },
-            "unknown_field": "the deserializer should skip unknown field names",
-        });
-
         let value = Channel {
             application_id: None,
             applied_tags: None,
@@ -255,7 +230,50 @@ mod tests {
             video_quality_mode: None,
         };
 
-        assert_eq!(value, serde_json::from_value(input).unwrap());
+        serde_test::assert_de_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Channel",
+                    len: 17,
+                },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("type"),
+                Token::U8(u8::from(ChannelType::GuildText)),
+                Token::Str("last_message_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("3"),
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("hey"),
+                Token::Str("nsfw"),
+                Token::Some,
+                Token::Bool(false),
+                Token::Str("permission_overwrites"),
+                Token::Some,
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("position"),
+                Token::Some,
+                Token::I32(0),
+                Token::Str("rate_limit_per_user"),
+                Token::Some,
+                Token::U16(0),
+                Token::Str("topic"),
+                Token::Some,
+                Token::Str("a"),
+                Token::Str("unknown_field"),
+                Token::Str("unknown value"),
+                Token::StructEnd,
+            ],
+        );
     }
 
     #[test]
@@ -296,19 +314,35 @@ mod tests {
             user_limit: None,
             video_quality_mode: None,
         };
-        let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
 
-        assert_eq!(
-            value,
-            serde_json::from_value(serde_json::json!({
-                "id": "1",
-                "guild_id": Some("2"),
-                "name": "foo",
-                "permission_overwrites": permission_overwrites,
-                "position": 3,
-                "type": 4,
-            }))
-            .unwrap()
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Channel",
+                    len: 6,
+                },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("type"),
+                Token::U8(u8::from(ChannelType::GuildCategory)),
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("foo"),
+                Token::Str("permission_overwrites"),
+                Token::Some,
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("position"),
+                Token::Some,
+                Token::I32(3),
+                Token::StructEnd,
+            ],
         );
     }
 
@@ -350,30 +384,56 @@ mod tests {
             user_limit: None,
             video_quality_mode: None,
         };
-        let permission_overwrites: Vec<PermissionOverwrite> = Vec::new();
 
-        assert_eq!(
-            value,
-            serde_json::from_value(serde_json::json!({
-                "id": "1",
-                "guild_id": "2",
-                "name": "news",
-                "nsfw": true,
-                "last_message_id": "4",
-                "parent_id": "5",
-                "permission_overwrites": permission_overwrites,
-                "position": 3,
-                "topic": "a news channel",
-                "type": ChannelType::GuildAnnouncement,
-            }))
-            .unwrap()
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Channel",
+                    len: 10,
+                },
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("type"),
+                Token::U8(u8::from(ChannelType::GuildAnnouncement)),
+                Token::Str("last_message_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("4"),
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("news"),
+                Token::Str("nsfw"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("parent_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::Str("permission_overwrites"),
+                Token::Some,
+                Token::Seq { len: Some(0) },
+                Token::SeqEnd,
+                Token::Str("position"),
+                Token::Some,
+                Token::I32(3),
+                Token::Str("topic"),
+                Token::Some,
+                Token::Str("a news channel"),
+                Token::StructEnd,
+            ],
         );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn guild_announcement_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
-        let formatted = timestamp.iso_8601().to_string();
 
         let value = Channel {
             application_id: None,
@@ -426,39 +486,95 @@ mod tests {
             video_quality_mode: None,
         };
 
-        assert_eq!(
-            value,
-            serde_json::from_value(serde_json::json!({
-                "id": "6",
-                "guild_id": "1",
-                "type": ChannelType::AnnouncementThread,
-                "last_message_id": "3",
-                "member": {
-                    "flags": 0,
-                    "id": "4",
-                    "join_timestamp": formatted,
-                    "user_id": "5",
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Channel",
+                    len: 14,
                 },
-                "default_auto_archive_duration": 60,
-                "member_count": 50,
-                "message_count": 50,
-                "name": "newsthread",
-                "newly_created": true,
-                "owner_id": "5",
-                "parent_id": "2",
-                "rate_limit_per_user": 1000,
-                "thread_metadata": {
-                    "archive_timestamp": formatted,
-                    "archived": false,
-                    "auto_archive_duration": AutoArchiveDuration::Day,
-                    "create_timestamp": formatted,
-                    "locked": false
-                }
-            }))
-            .unwrap()
-        )
+                Token::Str("default_auto_archive_duration"),
+                Token::Some,
+                Token::U16(AutoArchiveDuration::Hour.number()),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("6"),
+                Token::Str("type"),
+                Token::U8(u8::from(ChannelType::AnnouncementThread)),
+                Token::Str("last_message_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("3"),
+                Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "ThreadMember",
+                    len: 4,
+                },
+                Token::Str("flags"),
+                Token::U64(0),
+                Token::Str("id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("4"),
+                Token::Str("join_timestamp"),
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("user_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::StructEnd,
+                Token::Str("member_count"),
+                Token::Some,
+                Token::U8(50),
+                Token::Str("message_count"),
+                Token::Some,
+                Token::U32(50),
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("newsthread"),
+                Token::Str("newly_created"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("owner_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::Str("parent_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("rate_limit_per_user"),
+                Token::Some,
+                Token::U16(1000),
+                Token::Str("thread_metadata"),
+                Token::Some,
+                Token::Struct {
+                    name: "ThreadMetadata",
+                    len: 5,
+                },
+                Token::Str("archived"),
+                Token::Bool(false),
+                Token::Str("auto_archive_duration"),
+                Token::U16(AutoArchiveDuration::Day.number()),
+                Token::Str("archive_timestamp"),
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("create_timestamp"),
+                Token::Some,
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("locked"),
+                Token::Bool(false),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn public_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
@@ -514,43 +630,98 @@ mod tests {
             video_quality_mode: None,
         };
 
-        assert_eq!(
-            value,
-            serde_json::from_value(serde_json::json!({
-                "id": "6",
-                "guild_id": "1",
-                "type": ChannelType::PublicThread,
-                "last_message_id": "3",
-                "member": {
-                    "flags": 0,
-                    "id": "4",
-                    "join_timestamp": timestamp,
-                    "user_id": "5",
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Channel",
+                    len: 14,
                 },
-                "default_auto_archive_duration": 60,
-                "member_count": 50,
-                "message_count": 50,
-                "name": "publicthread",
-                "newly_created": true,
-                "owner_id": "5",
-                "parent_id": "2",
-                "rate_limit_per_user": 1000,
-                "thread_metadata": {
-                    "archive_timestamp": timestamp,
-                    "archived": false,
-                    "auto_archive_duration": AutoArchiveDuration::Day,
-                    "create_timestamp": timestamp,
-                    "locked": false
-                }
-            }))
-            .unwrap()
-        )
+                Token::Str("default_auto_archive_duration"),
+                Token::Some,
+                Token::U16(AutoArchiveDuration::Hour.number()),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("6"),
+                Token::Str("type"),
+                Token::U8(u8::from(ChannelType::PublicThread)),
+                Token::Str("last_message_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("3"),
+                Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "ThreadMember",
+                    len: 4,
+                },
+                Token::Str("flags"),
+                Token::U64(0),
+                Token::Str("id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("4"),
+                Token::Str("join_timestamp"),
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("user_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::StructEnd,
+                Token::Str("member_count"),
+                Token::Some,
+                Token::U8(50),
+                Token::Str("message_count"),
+                Token::Some,
+                Token::U32(50),
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("publicthread"),
+                Token::Str("newly_created"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("owner_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::Str("parent_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("rate_limit_per_user"),
+                Token::Some,
+                Token::U16(1000),
+                Token::Str("thread_metadata"),
+                Token::Some,
+                Token::Struct {
+                    name: "ThreadMetadata",
+                    len: 5,
+                },
+                Token::Str("archived"),
+                Token::Bool(false),
+                Token::Str("auto_archive_duration"),
+                Token::U16(AutoArchiveDuration::Day.number()),
+                Token::Str("archive_timestamp"),
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("create_timestamp"),
+                Token::Some,
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("locked"),
+                Token::Bool(false),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 
+    #[allow(clippy::too_many_lines)]
     #[test]
     fn private_thread_deserialization() {
         let timestamp = Timestamp::from_secs(1_632_074_792).expect("non zero");
-        let formatted = timestamp.iso_8601().to_string();
 
         let value = Channel {
             application_id: None,
@@ -608,45 +779,112 @@ mod tests {
             video_quality_mode: None,
         };
 
-        assert_eq!(
-            value,
-            serde_json::from_value(serde_json::json!({
-                "id": "6",
-                "guild_id": "1",
-                "type": ChannelType::PrivateThread,
-                "last_message_id": "3",
-                "member": {
-                    "flags": 0,
-                    "id": "4",
-                    "join_timestamp": formatted,
-                    "user_id": "5",
+        serde_test::assert_tokens(
+            &value,
+            &[
+                Token::Struct {
+                    name: "Channel",
+                    len: 16,
                 },
-                "default_auto_archive_duration": 60,
-                "invitable": true,
-                "member_count": 50,
-                "message_count": 50,
-                "name": "privatethread",
-                "newly_created": true,
-                "owner_id": "5",
-                "parent_id": "2",
-                "rate_limit_per_user": 1000,
-                "thread_metadata": {
-                    "archive_timestamp": formatted,
-                    "archived": false,
-                    "auto_archive_duration": AutoArchiveDuration::Day,
-                    "create_timestamp": formatted,
-                    "locked": false
+                Token::Str("default_auto_archive_duration"),
+                Token::Some,
+                Token::U16(AutoArchiveDuration::Hour.number()),
+                Token::Str("guild_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("1"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("6"),
+                Token::Str("invitable"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("type"),
+                Token::U8(u8::from(ChannelType::PrivateThread)),
+                Token::Str("last_message_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("3"),
+                Token::Str("member"),
+                Token::Some,
+                Token::Struct {
+                    name: "ThreadMember",
+                    len: 4,
                 },
-                "permission_overwrites": [
-                    {
-                        "allow": "0",
-                        "deny": "0",
-                        "type": 1,
-                        "id": "5"
-                    }
-                ]
-            }))
-            .unwrap()
-        )
+                Token::Str("flags"),
+                Token::U64(0),
+                Token::Str("id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("4"),
+                Token::Str("join_timestamp"),
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("user_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::StructEnd,
+                Token::Str("member_count"),
+                Token::Some,
+                Token::U8(50),
+                Token::Str("message_count"),
+                Token::Some,
+                Token::U32(50),
+                Token::Str("name"),
+                Token::Some,
+                Token::Str("privatethread"),
+                Token::Str("newly_created"),
+                Token::Some,
+                Token::Bool(true),
+                Token::Str("owner_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::Str("parent_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("2"),
+                Token::Str("permission_overwrites"),
+                Token::Some,
+                Token::Seq { len: Some(1) },
+                Token::Struct {
+                    name: "PermissionOverwrite",
+                    len: 4,
+                },
+                Token::Str("allow"),
+                Token::Str("0"),
+                Token::Str("deny"),
+                Token::Str("0"),
+                Token::Str("id"),
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("5"),
+                Token::Str("type"),
+                Token::U8(u8::from(PermissionOverwriteType::Member)),
+                Token::StructEnd,
+                Token::SeqEnd,
+                Token::Str("rate_limit_per_user"),
+                Token::Some,
+                Token::U16(1000),
+                Token::Str("thread_metadata"),
+                Token::Some,
+                Token::Struct {
+                    name: "ThreadMetadata",
+                    len: 5,
+                },
+                Token::Str("archived"),
+                Token::Bool(false),
+                Token::Str("auto_archive_duration"),
+                Token::U16(AutoArchiveDuration::Day.number()),
+                Token::Str("archive_timestamp"),
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("create_timestamp"),
+                Token::Some,
+                Token::Str("2021-09-19T18:06:32.000000+00:00"),
+                Token::Str("locked"),
+                Token::Bool(false),
+                Token::StructEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 }

@@ -39,7 +39,7 @@ mod tests {
             nick: None,
             pending: true,
             premium_since: None,
-            roles: vec![],
+            roles: Vec::new(),
             user: User {
                 id: Id::new(2),
                 accent_color: None,

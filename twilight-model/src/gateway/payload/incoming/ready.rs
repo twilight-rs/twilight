@@ -28,7 +28,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn test_ready() {
-        let guilds = vec![
+        let guilds = Vec::from([
             UnavailableGuild {
                 id: Id::new(1),
                 unavailable: true,
@@ -37,7 +37,7 @@ mod tests {
                 id: Id::new(2),
                 unavailable: true,
             },
-        ];
+        ]);
 
         let ready = Ready {
             application: PartialApplication {

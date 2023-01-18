@@ -784,7 +784,7 @@ mod tests {
         VoiceFieldsBuilder::new("voicename".to_owned())
             .unwrap()
             .bitrate(96_000)
-            .permission_overwrites(vec![overwrite()])
+            .permission_overwrites(Vec::from([overwrite()]))
             .user_limit(40)
             .build()
     }
@@ -838,12 +838,12 @@ mod tests {
                 id: Id::new(1),
                 kind: ChannelType::GuildVoice,
                 name: String::from("voicename"),
-                permission_overwrites: Some(vec![PermissionOverwrite {
+                permission_overwrites: Some(Vec::from([PermissionOverwrite {
                     allow: Some(perms()),
                     deny: Some(Permissions::empty()),
                     id: Id::new(2),
                     kind: PermissionOverwriteType::Role,
-                }]),
+                }])),
                 parent_id: None,
                 user_limit: Some(40),
             }
@@ -854,7 +854,7 @@ mod tests {
         TextFieldsBuilder::new("textname".to_owned())
             .unwrap()
             .nsfw()
-            .permission_overwrites(vec![overwrite()])
+            .permission_overwrites(Vec::from([overwrite()]))
             .rate_limit_per_user(4_000)
             .unwrap()
             .topic("a topic".to_owned())
@@ -877,12 +877,12 @@ mod tests {
                 kind: ChannelType::GuildText,
                 name: String::from("textname"),
                 nsfw: Some(true),
-                permission_overwrites: Some(vec![PermissionOverwrite {
+                permission_overwrites: Some(Vec::from([PermissionOverwrite {
                     allow: Some(perms()),
                     deny: Some(Permissions::empty()),
                     id: Id::new(2),
                     kind: PermissionOverwriteType::Role
-                }]),
+                }])),
                 parent_id: None,
                 rate_limit_per_user: Some(4_000),
                 topic: Some(String::from("a topic")),
@@ -910,7 +910,7 @@ mod tests {
 
         assert_eq!(
             channels.build(),
-            vec![
+            Vec::from([
                 GuildChannelFields::Category(CategoryFields {
                     id: Id::new(2),
                     kind: ChannelType::GuildCategory,
@@ -922,7 +922,7 @@ mod tests {
                     kind: ChannelType::GuildText,
                     name: String::from("textname"),
                     nsfw: Some(true),
-                    permission_overwrites: Some(vec![PermissionOverwrite {
+                    permission_overwrites: Some(Vec::from([PermissionOverwrite {
                         allow: Some(
                             Permissions::CONNECT
                                 | Permissions::SPEAK
@@ -931,7 +931,7 @@ mod tests {
                         deny: Some(Permissions::empty()),
                         id: Id::new(2),
                         kind: PermissionOverwriteType::Role,
-                    }]),
+                    }])),
                     parent_id: Some(Id::new(2)),
                     rate_limit_per_user: Some(4_000),
                     topic: Some(String::from("a topic")),
@@ -941,7 +941,7 @@ mod tests {
                     id: Id::new(1),
                     kind: ChannelType::GuildVoice,
                     name: String::from("voicename"),
-                    permission_overwrites: Some(vec![PermissionOverwrite {
+                    permission_overwrites: Some(Vec::from([PermissionOverwrite {
                         allow: Some(
                             Permissions::CONNECT
                                 | Permissions::SPEAK
@@ -950,11 +950,11 @@ mod tests {
                         deny: Some(Permissions::empty()),
                         id: Id::new(2),
                         kind: PermissionOverwriteType::Role,
-                    }]),
+                    }])),
                     parent_id: Some(Id::new(2)),
                     user_limit: Some(40),
                 }),
-            ]
+            ])
         );
     }
 
@@ -966,13 +966,13 @@ mod tests {
 
         assert_eq!(
             channels.build(),
-            vec![
+            Vec::from([
                 GuildChannelFields::Text(TextFields {
                     id: Id::new(1),
                     kind: ChannelType::GuildText,
                     name: String::from("textname"),
                     nsfw: Some(true),
-                    permission_overwrites: Some(vec![PermissionOverwrite {
+                    permission_overwrites: Some(Vec::from([PermissionOverwrite {
                         allow: Some(
                             Permissions::CONNECT
                                 | Permissions::SPEAK
@@ -981,7 +981,7 @@ mod tests {
                         deny: Some(Permissions::empty()),
                         id: Id::new(2),
                         kind: PermissionOverwriteType::Role,
-                    }]),
+                    }])),
                     parent_id: None,
                     rate_limit_per_user: Some(4_000),
                     topic: Some(String::from("a topic")),
@@ -991,7 +991,7 @@ mod tests {
                     id: Id::new(1),
                     kind: ChannelType::GuildVoice,
                     name: String::from("voicename"),
-                    permission_overwrites: Some(vec![PermissionOverwrite {
+                    permission_overwrites: Some(Vec::from([PermissionOverwrite {
                         allow: Some(
                             Permissions::CONNECT
                                 | Permissions::SPEAK
@@ -1000,11 +1000,11 @@ mod tests {
                         deny: Some(Permissions::empty()),
                         id: Id::new(2),
                         kind: PermissionOverwriteType::Role,
-                    }]),
+                    }])),
                     parent_id: None,
                     user_limit: Some(40),
                 }),
-            ]
+            ])
         );
     }
 }

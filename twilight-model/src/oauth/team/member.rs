@@ -23,7 +23,7 @@ mod tests {
     fn team_member() {
         let value = TeamMember {
             membership_state: TeamMembershipState::Accepted,
-            permissions: vec!["*".to_owned()],
+            permissions: Vec::from(["*".to_owned()]),
             team_id: Id::new(1),
             user: User {
                 accent_color: None,

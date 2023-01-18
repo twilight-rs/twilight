@@ -965,14 +965,14 @@ mod tests {
                 nick: None,
                 pending: false,
                 premium_since: None,
-                roles: vec![Id::new(1), Id::new(2)],
+                roles: Vec::from([Id::new(1), Id::new(2)]),
                 user,
             },
         );
 
         cache.cache_roles(
             guild_id,
-            vec![
+            Vec::from([
                 Role {
                     color: 0,
                     hoist: false,
@@ -999,7 +999,7 @@ mod tests {
                     tags: None,
                     unicode_emoji: None,
                 },
-            ],
+            ]),
         );
 
         assert_eq!(

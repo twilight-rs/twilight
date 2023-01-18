@@ -78,7 +78,9 @@ where
     // Check if the signature matches and else return a error response.
     if PUB_KEY
         .verify(
-            vec![timestamp.as_bytes(), &whole_body].concat().as_ref(),
+            Vec::from([timestamp.as_bytes(), &whole_body])
+                .concat()
+                .as_ref(),
             &signature,
         )
         .is_err()

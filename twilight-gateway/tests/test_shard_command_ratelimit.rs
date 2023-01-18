@@ -44,7 +44,7 @@ async fn test_shard_command_ratelimit() {
 
     // now that we're connected we can test sending
     let payload = UpdatePresence::new(
-        vec![Activity {
+        Vec::from([Activity {
             application_id: None,
             assets: None,
             buttons: Vec::new(),
@@ -61,7 +61,7 @@ async fn test_shard_command_ratelimit() {
             state: None,
             timestamps: None,
             url: None,
-        }],
+        }]),
         false,
         Some(1),
         Status::DoNotDisturb,

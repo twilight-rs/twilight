@@ -160,7 +160,7 @@ mod tests {
         cache.cache_emoji(guild_id, emote_3.clone());
 
         cache.update(&GuildEmojisUpdate {
-            emojis: vec![emote.clone(), emote_3.clone()],
+            emojis: Vec::from([emote.clone(), emote_3.clone()]),
             guild_id,
         });
 
@@ -171,7 +171,7 @@ mod tests {
         assert!(cache.emoji(emote_3.id).is_some());
 
         cache.update(&GuildEmojisUpdate {
-            emojis: vec![emote.clone()],
+            emojis: Vec::from([emote.clone()]),
             guild_id,
         });
 
@@ -183,7 +183,7 @@ mod tests {
         let emote_4 = test::emoji(Id::new(4), None);
 
         cache.update(&GuildEmojisUpdate {
-            emojis: vec![emote_4.clone()],
+            emojis: Vec::from([emote_4.clone()]),
             guild_id,
         });
 
@@ -193,7 +193,7 @@ mod tests {
         assert!(cache.emoji(emote.id).is_none());
 
         cache.update(&GuildEmojisUpdate {
-            emojis: vec![],
+            emojis: Vec::new(),
             guild_id,
         });
 

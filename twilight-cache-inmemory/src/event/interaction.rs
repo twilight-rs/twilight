@@ -120,7 +120,7 @@ mod tests {
                             pending: false,
                             permissions: Permissions::empty(),
                             premium_since: None,
-                            roles: vec![Id::new(8)],
+                            roles: Vec::from([Id::new(8)]),
                         },
                     )]),
                     messages: HashMap::from([(
@@ -176,11 +176,11 @@ mod tests {
                             pinned: false,
                             reactions: Vec::new(),
                             reference: None,
-                            sticker_items: vec![MessageSticker {
+                            sticker_items: Vec::from([MessageSticker {
                                 format_type: StickerFormatType::Png,
                                 id: Id::new(1),
                                 name: "sticker name".to_owned(),
-                            }],
+                            }]),
                             referenced_message: None,
                             thread: None,
                             timestamp,

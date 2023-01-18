@@ -229,7 +229,7 @@ mod tests {
                         nsfw: Some(false),
                         owner_id: None,
                         parent_id: None,
-                        permission_overwrites: Some(vec![]),
+                        permission_overwrites: Some(Vec::new()),
                         position: Some(0),
                         rate_limit_per_user: None,
                         recipients: None,
@@ -265,7 +265,7 @@ mod tests {
                         nsfw: Some(false),
                         owner_id: None,
                         parent_id: Some(Id::new(1)),
-                        permission_overwrites: Some(vec![
+                        permission_overwrites: Some(Vec::from([
                             PermissionOverwrite {
                                 allow: Permissions::from_bits(0).unwrap(),
                                 deny: Permissions::from_bits(2048).unwrap(),
@@ -278,7 +278,7 @@ mod tests {
                                 id: Id::new(2),
                                 kind: PermissionOverwriteType::Role,
                             },
-                        ]),
+                        ])),
                         position: Some(0),
                         rate_limit_per_user: Some(0),
                         recipients: None,
@@ -314,7 +314,7 @@ mod tests {
                         nsfw: Some(false),
                         owner_id: None,
                         parent_id: None,
-                        permission_overwrites: Some(vec![]),
+                        permission_overwrites: Some(Vec::new()),
                         position: Some(0),
                         rate_limit_per_user: None,
                         recipients: None,
@@ -350,7 +350,7 @@ mod tests {
                         nsfw: Some(false),
                         owner_id: None,
                         parent_id: Some(Id::new(3)),
-                        permission_overwrites: Some(vec![]),
+                        permission_overwrites: Some(Vec::new()),
                         position: Some(0),
                         rate_limit_per_user: None,
                         recipients: None,
@@ -367,7 +367,7 @@ mod tests {
                 icon_hash: None,
                 name: "server name".into(),
                 preferred_locale: "en-US".into(),
-                roles: vec![
+                roles: Vec::from([
                     TemplateRole {
                         color: 0,
                         hoist: false,
@@ -412,7 +412,7 @@ mod tests {
                             | Permissions::CHANGE_NICKNAME,
                         tags: None,
                     },
-                ],
+                ]),
                 system_channel_flags: SystemChannelFlags::empty(),
                 system_channel_id: Some(Id::new(2)),
                 verification_level: VerificationLevel::None,

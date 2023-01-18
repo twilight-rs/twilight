@@ -82,7 +82,7 @@ mod tests {
     use serde_test::Token;
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
-        vec![
+        Vec::from([
             Token::Struct {
                 name: "CurrentUser",
                 len: 12,
@@ -119,11 +119,11 @@ mod tests {
             Token::Some,
             Token::Bool(true),
             Token::StructEnd,
-        ]
+        ])
     }
 
     fn user_tokens_complete(discriminator_token: Token) -> Vec<Token> {
-        vec![
+        Vec::from([
             Token::Struct {
                 name: "CurrentUser",
                 len: 14,
@@ -166,7 +166,7 @@ mod tests {
             Token::Some,
             Token::Bool(true),
             Token::StructEnd,
-        ]
+        ])
     }
 
     #[test]

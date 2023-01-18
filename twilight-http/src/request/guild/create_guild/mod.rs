@@ -256,7 +256,7 @@ impl<'a> CreateGuild<'a> {
     pub fn add_role(mut self, role: RoleFields) -> Self {
         if self.fields.roles.is_none() {
             let builder = RoleFieldsBuilder::new("@everyone".to_owned());
-            self.fields.roles.replace(vec![builder.build()]);
+            self.fields.roles.replace(Vec::from([builder.build()]));
         }
 
         if let Some(roles) = self.fields.roles.as_mut() {
@@ -389,7 +389,7 @@ impl<'a> CreateGuild<'a> {
             roles.remove(0);
             roles.insert(0, everyone);
         } else {
-            self.fields.roles.replace(vec![everyone]);
+            self.fields.roles.replace(Vec::from([everyone]));
         }
 
         self
@@ -424,9 +424,9 @@ impl<'a> CreateGuild<'a> {
     /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// # let client = Client::new("my token".to_owned());
     ///
-    /// let roles = vec![RoleFieldsBuilder::new("role 1".to_owned())
+    /// let roles = Vec::from([RoleFieldsBuilder::new("role 1".to_owned())
     ///     .color(0x543923)?
-    ///     .build()];
+    ///     .build()]);
     /// client
     ///     .create_guild("guild name".to_owned())?
     ///     .roles(roles)?

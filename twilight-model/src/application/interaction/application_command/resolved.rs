@@ -213,11 +213,11 @@ mod tests {
                     pinned: false,
                     reactions: Vec::new(),
                     reference: None,
-                    sticker_items: vec![MessageSticker {
+                    sticker_items: Vec::from([MessageSticker {
                         format_type: StickerFormatType::Png,
                         id: Id::new(1),
                         name: "sticker name".to_owned(),
-                    }],
+                    }]),
                     referenced_message: None,
                     thread: None,
                     timestamp,

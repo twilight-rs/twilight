@@ -56,7 +56,7 @@ mod tests {
             nick: Some("Twilight".to_string()),
             pending: false,
             premium_since: None,
-            roles: vec![],
+            roles: Vec::new(),
             user: User {
                 accent_color: None,
                 banner: None,

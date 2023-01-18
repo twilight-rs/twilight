@@ -167,7 +167,7 @@ mod tests {
             guild: Some(InviteGuild {
                 banner: Some(image_hash::BANNER),
                 description: Some("a description".to_owned()),
-                features: vec!["a feature".to_owned()],
+                features: Vec::from(["a feature".to_owned()]),
                 icon: Some(image_hash::ICON),
                 id: Id::new(1),
                 name: "guild name".to_owned(),
@@ -177,7 +177,7 @@ mod tests {
                 verification_level: VerificationLevel::Medium,
                 welcome_screen: Some(WelcomeScreen {
                     description: Some("welcome description".to_owned()),
-                    welcome_channels: vec![
+                    welcome_channels: Vec::from([
                         WelcomeScreenChannel {
                             channel_id: Id::new(123),
                             description: "channel description".to_owned(),
@@ -190,7 +190,7 @@ mod tests {
                             emoji_id: Some(Id::new(789)),
                             emoji_name: Some("custom_name".to_owned()),
                         },
-                    ],
+                    ]),
                 }),
             }),
             inviter: Some(User {

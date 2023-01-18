@@ -188,7 +188,7 @@ mod tests {
     );
 
     fn user_tokens(discriminator_token: Token) -> Vec<Token> {
-        vec![
+        Vec::from([
             Token::Struct {
                 name: "User",
                 len: 14,
@@ -232,11 +232,11 @@ mod tests {
             Token::Some,
             Token::Bool(true),
             Token::StructEnd,
-        ]
+        ])
     }
 
     fn user_tokens_complete(discriminator_token: Token) -> Vec<Token> {
-        vec![
+        Vec::from([
             Token::Struct {
                 name: "User",
                 len: 15,
@@ -283,7 +283,7 @@ mod tests {
             Token::Some,
             Token::Bool(true),
             Token::StructEnd,
-        ]
+        ])
     }
 
     #[test]

@@ -141,7 +141,7 @@ mod tests {
             name: "foo".to_owned(),
             managed: false,
             require_colons: true,
-            roles: vec![],
+            roles: Vec::new(),
             user: None,
             available: true,
         };
@@ -151,7 +151,7 @@ mod tests {
             name: "foo".to_owned(),
             managed: false,
             require_colons: true,
-            roles: vec![],
+            roles: Vec::new(),
             user_id: None,
             available: true,
         };

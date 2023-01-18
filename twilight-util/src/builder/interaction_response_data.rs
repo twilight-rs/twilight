@@ -31,7 +31,7 @@ use twilight_model::{
 ///     .components([component.clone()])
 ///     .build();
 ///
-/// assert_eq!(interaction_response_data.components, Some(vec![component]));
+/// assert_eq!(interaction_response_data.components, Some(Vec::from([component])));
 /// ```
 #[derive(Clone, Debug)]
 #[must_use = "builders have no effect if unused"]
@@ -227,10 +227,10 @@ mod tests {
             allowed_mentions: Some(allowed_mentions),
             attachments: None,
             choices: None,
-            components: Some(vec![component]),
+            components: Some(Vec::from([component])),
             content: Some("a content".to_owned()),
             custom_id: None,
-            embeds: Some(vec![embed]),
+            embeds: Some(Vec::from([embed])),
             flags: Some(MessageFlags::empty()),
             title: None,
             tts: Some(false),

@@ -212,7 +212,9 @@ mod tests {
 
     #[test]
     fn payload() {
-        let value = Payload { bytes: vec![1, 2] };
+        let value = Payload {
+            bytes: Vec::from([1, 2]),
+        };
 
         serde_test::assert_tokens(
             &value,
@@ -311,7 +313,9 @@ mod tests {
             ShardEvent::Identifying(_)
         ));
 
-        let payload = Event::ShardPayload(Payload { bytes: vec![1, 2] });
+        let payload = Event::ShardPayload(Payload {
+            bytes: Vec::from([1, 2]),
+        });
         assert!(matches!(
             payload.try_into().unwrap(),
             ShardEvent::Payload(_)
