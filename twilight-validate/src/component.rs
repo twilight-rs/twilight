@@ -233,13 +233,23 @@ impl Display for ComponentValidationError {
             }
             ComponentValidationErrorType::InvalidChildComponent { kind } => {
                 f.write_str("a '")?;
-                Display::fmt(&kind, f)?;
+
+                if let Some(name) = kind.name() {
+                    Display::fmt(&name, f)?;
+                } else {
+                    Display::fmt(&kind.get(), f)?;
+                }
 
                 f.write_str(" component was provided, but can not be a child component")
             }
             ComponentValidationErrorType::InvalidRootComponent { kind } => {
                 f.write_str("a '")?;
-                Display::fmt(kind, f)?;
+
+                if let Some(name) = kind.name() {
+                    Display::fmt(&name, f)?;
+                } else {
+                    Display::fmt(&kind.get(), f)?;
+                }
 
                 f.write_str("' component was provided, but can not be a root component")
             }

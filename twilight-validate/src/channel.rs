@@ -75,7 +75,11 @@ impl Display for ChannelValidationError {
             }
             ChannelValidationErrorType::TopicInvalid => f.write_str("the topic is invalid"),
             ChannelValidationErrorType::TypeInvalid { kind } => {
-                Display::fmt(kind.name(), f)?;
+                if let Some(name) = kind.name() {
+                    Display::fmt(&name, f)?;
+                } else {
+                    Display::fmt(&kind.get(), f)?;
+                }
 
                 f.write_str(" is not a thread")
             }
