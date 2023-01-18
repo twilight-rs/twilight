@@ -537,10 +537,19 @@ mod tests {
             name: "d".repeat(33),
             ..valid_command.clone()
         };
-
         assert!(command(&invalid_message_command).is_err());
-        let invalid_context_menu_command = Command {
+
+        let valid_context_menu_command = Command {
             description: String::new(),
+            kind: CommandType::Message,
+            ..valid_command.clone()
+        };
+
+        assert!(command(&valid_context_menu_command).is_ok());
+
+        let invalid_context_menu_command = Command {
+            description: "example description".to_string(),
+            kind: CommandType::Message,
             ..valid_command
         };
 
