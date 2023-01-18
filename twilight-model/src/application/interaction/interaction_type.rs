@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Type of interaction.
 ///
 /// See [Discord Docs/Interaction Object].
 ///
 /// [Discord Docs/Interaction Object]: https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-type
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InteractionType(u8);
 
 impl InteractionType {
@@ -49,6 +50,33 @@ impl InteractionType {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::APPLICATION_COMMAND => "APPLICATION_COMMAND",
+            Self::APPLICATION_COMMAND_AUTOCOMPLETE => "APPLICATION_COMMAND_AUTOCOMPLETE",
+            Self::MESSAGE_COMPONENT => "MESSAGE_COMPONENT",
+            Self::MODAL_SUBMIT => "MODAL_SUBMIT",
+            Self::PING => "PING",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for InteractionType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("InteractionType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("InteractionType").field(&self.0).finish()
+        }
     }
 }
 

@@ -1,6 +1,10 @@
 use crate::channel::ChannelType;
 use serde::{Deserialize, Serialize};
-use std::{cmp::Eq, collections::HashMap};
+use std::{
+    cmp::Eq,
+    collections::HashMap,
+    fmt::{Debug, Formatter, Result as FmtResult},
+};
 
 /// Option for a [`Command`].
 ///
@@ -199,7 +203,7 @@ pub enum CommandOptionValue {
 }
 
 /// Type of a [`CommandOption`].
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CommandOptionType(u8);
 
 impl CommandOptionType {
@@ -244,6 +248,39 @@ impl CommandOptionType {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ATTACHMENT => "ATTACHMENT",
+            Self::BOOLEAN => "BOOLEAN",
+            Self::CHANNEL => "CHANNEL",
+            Self::INTEGER => "INTEGER",
+            Self::MENTIONABLE => "MENTIONABLE",
+            Self::NUMBER => "NUMBER",
+            Self::ROLE => "ROLE",
+            Self::STRING => "STRING",
+            Self::SUB_COMMAND => "SUB_COMMAND",
+            Self::SUB_COMMAND_GROUP => "SUB_COMMAND_GROUP",
+            Self::USER => "USER",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for CommandOptionType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("CommandOptionType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("CommandOptionType").field(&self.0).finish()
+        }
     }
 }
 

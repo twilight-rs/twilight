@@ -1,7 +1,10 @@
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    time::Duration,
+};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AutoArchiveDuration(u16);
 
 impl AutoArchiveDuration {
@@ -32,6 +35,32 @@ impl AutoArchiveDuration {
     /// ```
     pub const fn get(&self) -> u16 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::HOUR => "HOUR",
+            Self::DAY => "DAY",
+            Self::THREE_DAYS => "THREE_DAYS",
+            Self::WEEK => "WEEK",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for AutoArchiveDuration {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("AutoArchiveDuration")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("AutoArchiveDuration").field(&self.0).finish()
+        }
     }
 }
 

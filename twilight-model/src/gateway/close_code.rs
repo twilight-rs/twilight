@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Gateway close event codes.
 ///
 /// See [Discord Docs/Gateway Close Event Codes] for more information.
 ///
 /// [Discord Docs/Gateway Close Event Codes]: https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-close-event-codes
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CloseCode(u16);
 
 impl CloseCode {
@@ -73,6 +73,29 @@ impl CloseCode {
         self.0
     }
 
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::UNKNOWN_ERROR => "UNKNOWN_ERROR",
+            Self::UNKNOWN_OPCODE => "UNKNOWN_OPCODE",
+            Self::DECODE_ERROR => "DECODE_ERROR",
+            Self::NOT_AUTHENTICATED => "NOT_AUTHENTICATED",
+            Self::AUTHENTICATION_FAILED => "AUTHENTICATION_FAILED",
+            Self::ALREADY_AUTHENTICATED => "ALREADY_AUTHENTICATED",
+            Self::INVALID_SEQUENCE => "INVALID_SEQUENCE",
+            Self::RATE_LIMITED => "RATE_LIMITED",
+            Self::SESSION_TIMED_OUT => "SESSION_TIMED_OUT",
+            Self::INVALID_SHARD => "INVALID_SHARD",
+            Self::SHARDING_REQUIRED => "SHARDING_REQUIRED",
+            Self::INVALID_API_VERSION => "INVALID_API_VERSION",
+            Self::INVALID_INTENTS => "INVALID_INTENTS",
+            Self::DISALLOWED_INTENTS => "DISALLOWED_INTENTS",
+            _ => return None,
+        })
+    }
+
     /// Whether the close code is one that allows reconnection of a shard.
     ///
     /// Refer to the type-level documentation for Discord's table on close codes
@@ -90,25 +113,16 @@ impl CloseCode {
     }
 }
 
-impl Display for CloseCode {
+impl Debug for CloseCode {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(match *self {
-            Self::UNKNOWN_ERROR => "Unknown Error",
-            Self::UNKNOWN_OPCODE => "Unknown Opcode",
-            Self::DECODE_ERROR => "Decode Error",
-            Self::NOT_AUTHENTICATED => "Not Authenticated",
-            Self::AUTHENTICATION_FAILED => "Authentication Failed",
-            Self::ALREADY_AUTHENTICATED => "Already Authenticated",
-            Self::INVALID_SEQUENCE => "Invalid Sequence",
-            Self::RATE_LIMITED => "Rate Limited",
-            Self::SESSION_TIMED_OUT => "Session Timed Out",
-            Self::INVALID_SHARD => "Invalid Shard",
-            Self::SHARDING_REQUIRED => "Sharding Required",
-            Self::INVALID_API_VERSION => "Invalid Api Version",
-            Self::INVALID_INTENTS => "Invalid Intents",
-            Self::DISALLOWED_INTENTS => "Disallowed Intents",
-            _ => "UNKNOWN",
-        })
+        if let Some(name) = self.name() {
+            f.debug_struct("CloseCode")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("CloseCode").field(&self.0).finish()
+        }
     }
 }
 

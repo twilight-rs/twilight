@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Action to cause an [`AuditLogEntry`].
 ///
 /// [`AuditLogEntry`]: super::AuditLogEntry
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AuditLogEventType(u16);
 
 impl AuditLogEventType {
@@ -300,6 +301,84 @@ impl AuditLogEventType {
     /// ```
     pub const fn get(&self) -> u16 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::GUILD_UPDATE => "GUILD_UPDATE",
+            Self::CHANNEL_CREATE => "CHANNEL_CREATE",
+            Self::CHANNEL_UPDATE => "CHANNEL_UPDATE",
+            Self::CHANNEL_DELETE => "CHANNEL_DELETE",
+            Self::CHANNEL_OVERWRITE_CREATE => "CHANNEL_OVERWRITE_CREATE",
+            Self::CHANNEL_OVERWRITE_UPDATE => "CHANNEL_OVERWRITE_UPDATE",
+            Self::CHANNEL_OVERWRITE_DELETE => "CHANNEL_OVERWRITE_DELETE",
+            Self::MEMBER_KICK => "MEMBER_KICK",
+            Self::MEMBER_PRUNE => "MEMBER_PRUNE",
+            Self::MEMBER_BAN_ADD => "MEMBER_BAN_ADD",
+            Self::MEMBER_BAN_REMOVE => "MEMBER_BAN_REMOVE",
+            Self::MEMBER_UPDATE => "MEMBER_UPDATE",
+            Self::MEMBER_ROLE_UPDATE => "MEMBER_ROLE_UPDATE",
+            Self::MEMBER_MOVE => "MEMBER_MOVE",
+            Self::MEMBER_DISCONNECT => "MEMBER_DISCONNECT",
+            Self::BOT_ADD => "BOT_ADD",
+            Self::ROLE_CREATE => "ROLE_CREATE",
+            Self::ROLE_UPDATE => "ROLE_UPDATE",
+            Self::ROLE_DELETE => "ROLE_DELETE",
+            Self::INVITE_CREATE => "INVITE_CREATE",
+            Self::INVITE_UPDATE => "INVITE_UPDATE",
+            Self::INVITE_DELETE => "INVITE_DELETE",
+            Self::WEBHOOK_CREATE => "WEBHOOK_CREATE",
+            Self::WEBHOOK_UPDATE => "WEBHOOK_UPDATE",
+            Self::WEBHOOK_DELETE => "WEBHOOK_DELETE",
+            Self::EMOJI_CREATE => "EMOJI_CREATE",
+            Self::EMOJI_UPDATE => "EMOJI_UPDATE",
+            Self::EMOJI_DELETE => "EMOJI_DELETE",
+            Self::MESSAGE_DELETE => "MESSAGE_DELETE",
+            Self::MESSAGE_BULK_DELETE => "MESSAGE_BULK_DELETE",
+            Self::MESSAGE_PIN => "MESSAGE_PIN",
+            Self::MESSAGE_UNPIN => "MESSAGE_UNPIN",
+            Self::INTEGRATION_CREATE => "INTEGRATION_CREATE",
+            Self::INTEGRATION_UPDATE => "INTEGRATION_UPDATE",
+            Self::INTEGRATION_DELETE => "INTEGRATION_DELETE",
+            Self::STAGE_INSTANCE_CREATE => "STAGE_INSTANCE_CREATE",
+            Self::STAGE_INSTANCE_UPDATE => "STAGE_INSTANCE_UPDATE",
+            Self::STAGE_INSTANCE_DELETE => "STAGE_INSTANCE_DELETE",
+            Self::STICKER_CREATE => "STICKER_CREATE",
+            Self::STICKER_UPDATE => "STICKER_UPDATE",
+            Self::STICKER_DELETE => "STICKER_DELETE",
+            Self::GUILD_SCHEDULED_EVENT_CREATE => "GUILD_SCHEDULED_EVENT_CREATE",
+            Self::GUILD_SCHEDULED_EVENT_UPDATE => "GUILD_SCHEDULED_EVENT_UPDATE",
+            Self::GUILD_SCHEDULED_EVENT_DELETE => "GUILD_SCHEDULED_EVENT_DELETE",
+            Self::THREAD_CREATE => "THREAD_CREATE",
+            Self::THREAD_UPDATE => "THREAD_UPDATE",
+            Self::THREAD_DELETE => "THREAD_DELETE",
+            Self::APPLICATION_COMMAND_PERMISSION_UPDATE => "APPLICATION_COMMAND_PERMISSION_UPDATE",
+            Self::AUTO_MODERATION_RULE_CREATE => "AUTO_MODERATION_RULE_CREATE",
+            Self::AUTO_MODERATION_RULE_UPDATE => "AUTO_MODERATION_RULE_UPDATE",
+            Self::AUTO_MODERATION_RULE_DELETE => "AUTO_MODERATION_RULE_DELETE",
+            Self::AUTO_MODERATION_BLOCK_MESSAGE => "AUTO_MODERATION_BLOCK_MESSAGE",
+            Self::AUTO_MODERATION_FLAG_TO_CHANNEL => "AUTO_MODERATION_FLAG_TO_CHANNEL",
+            Self::AUTO_MODERATION_USER_COMMUNICATION_DISABLED => {
+                "AUTO_MODERATION_USER_COMMUNICATION_DISABLED"
+            }
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for AuditLogEventType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("AuditLogEventType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("AuditLogEventType").field(&self.0).finish()
+        }
     }
 }
 

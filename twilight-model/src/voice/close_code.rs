@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Voice gateway close event codes.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct CloseCode(u16);
 
 impl CloseCode {
@@ -60,6 +61,40 @@ impl CloseCode {
     /// ```
     pub const fn get(&self) -> u16 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::UNKNOWN_OPCODE => "UNKNOWN_OPCODE",
+            Self::DECODE_ERROR => "DECODE_ERROR",
+            Self::NOT_AUTHENTICATED => "NOT_AUTHENTICATED",
+            Self::AUTHENTICATION_FAILED => "AUTHENTICATION_FAILED",
+            Self::ALREADY_AUTHENTICATED => "ALREADY_AUTHENTICATED",
+            Self::SESSION_NO_LONGER_VALID => "SESSION_NO_LONGER_VALID",
+            Self::SESSION_TIMED_OUT => "SESSION_TIMED_OUT",
+            Self::SERVER_NOT_FOUND => "SERVER_NOT_FOUND",
+            Self::UNKNOWN_PROTOCOL => "UNKNOWN_PROTOCOL",
+            Self::DISCONNECTED => "DISCONNECTED",
+            Self::VOICE_SERVER_CRASHED => "VOICE_SERVER_CRASHED",
+            Self::UNKNOWN_ENCRYPTION_MODE => "UNKNOWN_ENCRYPTION_MODE",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for CloseCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("CloseCode")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("CloseCode").field(&self.0).finish()
+        }
     }
 }
 

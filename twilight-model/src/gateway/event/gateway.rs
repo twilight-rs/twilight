@@ -233,13 +233,13 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
         V: MapAccess<'de>,
     {
         static VALID_OPCODES: &[&str] = &[
-            OpCode::DISPATCH.name(),
-            OpCode::HEARTBEAT.name(),
-            OpCode::HEARTBEAT_ACK.name(),
-            OpCode::HELLO.name(),
-            OpCode::IDENTIFY.name(),
-            OpCode::INVALID_SESSION.name(),
-            OpCode::RECONNECT.name(),
+            "DISPATCH",
+            "HEARTBEAT",
+            "HEARTBEAT_ACK",
+            "HELLO",
+            "IDENTIFY",
+            "INVALID_SESSION",
+            "RECONNECT",
         ];
 
         let span = tracing::trace_span!("deserializing gateway event");
@@ -348,7 +348,12 @@ impl<'de> Visitor<'de> for GatewayEventVisitor<'_> {
 
                 GatewayEvent::Reconnect
             }
-            other => return Err(DeError::unknown_variant(other.name(), VALID_OPCODES)),
+            other => {
+                return Err(DeError::unknown_variant(
+                    other.name().unwrap_or("UNKNOWN"),
+                    VALID_OPCODES,
+                ));
+            }
         })
     }
 }

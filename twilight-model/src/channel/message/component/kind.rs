@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Type of [`Component`].
 ///
 /// [`Component`]: super::Component
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ComponentType(u8);
 
 impl ComponentType {
@@ -49,28 +49,41 @@ impl ComponentType {
         self.0
     }
 
-    /// Name of the component type.
+    /// Name of the associated constant.
     ///
-    /// Variants have a name equivalent to the variant name itself.
+    /// Returns `None` if the value doesn't have a defined constant.
     ///
     /// # Examples
     ///
-    /// Check the [`ACTION_ROW`] variant's name:
+    /// Check the [`ACTION_ROW`] constant's name:
     ///
     /// ```
     /// use twilight_model::channel::message::component::ComponentType;
     ///
-    /// assert_eq!("ACTION_ROW", ComponentType::ACTION_ROW.name());
+    /// assert_eq!(Some("ACTION_ROW"), ComponentType::ACTION_ROW.name());
     /// ```
     ///
     /// [`ACTION_ROW`]: Self::ACTION_ROW
-    pub const fn name(&self) -> &'static str {
-        match *self {
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
             Self::ACTION_ROW => "ACTION_ROW",
             Self::BUTTON => "BUTTON",
             Self::SELECT_MENU => "SELECT_MENU",
             Self::TEXT_INPUT => "TEXT_INPUT",
-            _ => "UNKNOWN",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for ComponentType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("ComponentType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("ComponentType").field(&self.0).finish()
         }
     }
 }
@@ -84,12 +97,6 @@ impl From<u8> for ComponentType {
 impl From<ComponentType> for u8 {
     fn from(value: ComponentType) -> Self {
         value.get()
-    }
-}
-
-impl Display for ComponentType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.name())
     }
 }
 

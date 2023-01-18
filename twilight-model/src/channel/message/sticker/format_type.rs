@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Format type of a [`Sticker`].
 ///
 /// [`Sticker`]: super::Sticker
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct StickerFormatType(u8);
 
 impl StickerFormatType {
@@ -35,6 +36,31 @@ impl StickerFormatType {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::APNG => "APNG",
+            Self::LOTTIE => "LOTTIE",
+            Self::PNG => "PNG",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for StickerFormatType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("StickerFormatType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("StickerFormatType").field(&self.0).finish()
+        }
     }
 }
 

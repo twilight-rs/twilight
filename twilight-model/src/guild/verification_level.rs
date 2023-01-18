@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct VerificationLevel(u8);
 
 impl VerificationLevel {
@@ -29,6 +30,33 @@ impl VerificationLevel {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::NONE => "NONE",
+            Self::LOW => "LOW",
+            Self::MEDIUM => "MEDIUM",
+            Self::HIGH => "HIGH",
+            Self::VERY_HIGH => "VERY_HIGH",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for VerificationLevel {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("VerificationLevel")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("VerificationLevel").field(&self.0).finish()
+        }
     }
 }
 

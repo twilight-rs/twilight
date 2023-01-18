@@ -1,5 +1,6 @@
 use crate::guild::Permissions;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Type of a [`Message`].
 ///
@@ -8,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// [Discord Docs/Message Types]: https://discord.com/developers/docs/resources/channel#message-object-message-types
 /// [`Message`]: super::Message
 #[allow(missing_docs)]
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct MessageType(u8);
 
 impl MessageType {
@@ -111,6 +112,47 @@ impl MessageType {
         self.0
     }
 
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::REGULAR => "REGULAR",
+            Self::RECIPIENT_ADD => "RECIPIENT_ADD",
+            Self::RECIPIENT_REMOVE => "RECIPIENT_REMOVE",
+            Self::CALL => "CALL",
+            Self::CHANNEL_NAME_CHANGE => "CHANNEL_NAME_CHANGE",
+            Self::CHANNEL_ICON_CHANGE => "CHANNEL_ICON_CHANGE",
+            Self::CHANNEL_MESSAGE_PINNED => "CHANNEL_MESSAGE_PINNED",
+            Self::USER_JOIN => "USER_JOIN",
+            Self::GUILD_BOOST => "GUILD_BOOST",
+            Self::GUILD_BOOST_TIER1 => "GUILD_BOOST_TIER1",
+            Self::GUILD_BOOST_TIER2 => "GUILD_BOOST_TIER2",
+            Self::GUILD_BOOST_TIER3 => "GUILD_BOOST_TIER3",
+            Self::CHANNEL_FOLLOW_ADD => "CHANNEL_FOLLOW_ADD",
+            Self::GUILD_DISCOVERY_DISQUALIFIED => "GUILD_DISCOVERY_DISQUALIFIED",
+            Self::GUILD_DISCOVERY_REQUALIFIED => "GUILD_DISCOVERY_REQUALIFIED",
+            Self::GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING => {
+                "GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING"
+            }
+            Self::GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING => {
+                "GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING"
+            }
+            Self::THREAD_CREATED => "THREAD_CREATED",
+            Self::REPLY => "REPLY",
+            Self::CHAT_INPUT_COMMAND => "CHAT_INPUT_COMMAND",
+            Self::THREAD_STARTER_MESSAGE => "THREAD_STARTER_MESSAGE",
+            Self::GUILD_INVITE_REMINDER => "GUILD_INVITE_REMINDER",
+            Self::CONTEXT_MENU_COMMAND => "CONTEXT_MENU_COMMAND",
+            Self::AUTO_MODERATION_ACTION => "AUTO_MODERATION_ACTION",
+            Self::INTERACTION_PREMIUM_UPSELL => "INTERACTION_PREMIUM_UPSELL",
+            Self::GUILD_APPLICATION_PREMIUM_SUBSCRIPTION => {
+                "GUILD_APPLICATION_PREMIUM_SUBSCRIPTION"
+            }
+            _ => return None,
+        })
+    }
+
     /// Whether the message can be deleted, not taking permissions into account.
     /// Some message types can't be deleted, even by server administrators.
     ///
@@ -167,6 +209,19 @@ impl MessageType {
         }
 
         self.deletable()
+    }
+}
+
+impl Debug for MessageType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("MessageType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("MessageType").field(&self.0).finish()
+        }
     }
 }
 

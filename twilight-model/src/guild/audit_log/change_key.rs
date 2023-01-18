@@ -256,6 +256,88 @@ impl AuditLogChangeKey {
         self.0.get()
     }
 
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::AFK_CHANNEL_ID => "AFK_CHANNEL_ID",
+            Self::AFK_TIMEOUT => "AFK_TIMEOUT",
+            Self::ALLOW => "ALLOW",
+            Self::APPLICATION_ID => "APPLICATION_ID",
+            Self::ARCHIVED => "ARCHIVED",
+            Self::ASSET => "ASSET",
+            Self::AUTO_ARCHIVE_DURATION => "AUTO_ARCHIVE_DURATION",
+            Self::AVAILABLE => "AVAILABLE",
+            Self::AVATAR_HASH => "AVATAR_HASH",
+            Self::BANNER_HASH => "BANNER_HASH",
+            Self::BITRATE => "BITRATE",
+            Self::CHANNEL_ID => "CHANNEL_ID",
+            Self::CODE => "CODE",
+            Self::COLOR => "COLOR",
+            Self::COMMAND_ID => "COMMAND_ID",
+            Self::COMMUNICATION_DISABLED_UNTIL => "COMMUNICATION_DISABLED_UNTIL",
+            Self::DEAF => "DEAF",
+            Self::DEFAULT_AUTO_ARCHIVE_DURATION => "DEFAULT_AUTO_ARCHIVE_DURATION",
+            Self::DEFAULT_MESSAGE_NOTIFICATIONS => "DEFAULT_MESSAGE_NOTIFICATIONS",
+            Self::DENY => "DENY",
+            Self::DESCRIPTION => "DESCRIPTION",
+            Self::DISCOVERY_SPLASH_HASH => "DISCOVERY_SPLASH_HASH",
+            Self::ENABLE_EMOTICONS => "ENABLE_EMOTICONS",
+            Self::ENTITY_TYPE => "ENTITY_TYPE",
+            Self::EXPIRE_BEHAVIOR => "EXPIRE_BEHAVIOR",
+            Self::EXPIRE_GRACE_PERIOD => "EXPIRE_GRACE_PERIOD",
+            Self::EXPLICIT_CONTENT_FILTER => "EXPLICIT_CONTENT_FILTER",
+            Self::FORMAT_TYPE => "FORMAT_TYPE",
+            Self::GUILD_ID => "GUILD_ID",
+            Self::HOIST => "HOIST",
+            Self::ICON_HASH => "ICON_HASH",
+            Self::ID => "ID",
+            Self::IMAGE_HASH => "IMAGE_HASH",
+            Self::INVITABLE => "INVITABLE",
+            Self::INVITER_ID => "INVITER_ID",
+            Self::LOCATION => "LOCATION",
+            Self::LOCKED => "LOCKED",
+            Self::MAX_AGE => "MAX_AGE",
+            Self::MAX_USES => "MAX_USES",
+            Self::MENTIONABLE => "MENTIONABLE",
+            Self::MFA_LEVEL => "MFA_LEVEL",
+            Self::MUTE => "MUTE",
+            Self::NAME => "NAME",
+            Self::NICK => "NICK",
+            Self::NSFW => "NSFW",
+            Self::NSFW_LEVEL => "NSFW_LEVEL",
+            Self::OWNER_ID => "OWNER_ID",
+            Self::PERMISSION_OVERWRITES => "PERMISSION_OVERWRITES",
+            Self::PERMISSIONS => "PERMISSIONS",
+            Self::POSITION => "POSITION",
+            Self::PREFERRED_LOCALE => "PREFERRED_LOCALE",
+            Self::PRIVACY_LEVEL => "PRIVACY_LEVEL",
+            Self::PRUNE_DELETE_DAYS => "PRUNE_DELETE_DAYS",
+            Self::PUBLIC_UPDATES_CHANNEL_ID => "PUBLIC_UPDATES_CHANNEL_ID",
+            Self::RATE_LIMIT_PER_USER => "RATE_LIMIT_PER_USER",
+            Self::REGION => "REGION",
+            Self::ROLE_ADDED => "ROLE_ADDED",
+            Self::ROLE_REMOVED => "ROLE_REMOVED",
+            Self::RULES_CHANNEL_ID => "RULES_CHANNEL_ID",
+            Self::SPLASH_HASH => "SPLASH_HASH",
+            Self::STATUS => "STATUS",
+            Self::SYSTEM_CHANNEL_ID => "SYSTEM_CHANNEL_ID",
+            Self::TAGS => "TAGS",
+            Self::TEMPORARY => "TEMPORARY",
+            Self::TOPIC => "TOPIC",
+            Self::TYPE => "TYPE",
+            Self::UNICODE_EMOJI => "UNICODE_EMOJI",
+            Self::USER_LIMIT => "USER_LIMIT",
+            Self::USES => "USES",
+            Self::VANITY_URL_CODE => "VANITY_URL_CODE",
+            Self::VERIFICATION_LEVEL => "VERIFICATION_LEVEL",
+            Self::WIDGET_CHANNEL_ID => "WIDGET_CHANNEL_ID",
+            Self::WIDGET_ENABLED => "WIDGET_ENABLED",
+            _ => return None,
+        })
+    }
+
     /// Create a scope from a set of bytes.
     const fn from_bytes(input: &[u8]) -> Self {
         Self(KnownString::from_bytes(input))
@@ -270,7 +352,7 @@ impl AsRef<str> for AuditLogChangeKey {
 
 impl Debug for AuditLogChangeKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.get())
+        f.write_str(self.name().unwrap_or_else(|| self.get()))
     }
 }
 

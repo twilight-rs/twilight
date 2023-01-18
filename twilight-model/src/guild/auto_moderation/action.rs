@@ -1,5 +1,6 @@
 use crate::id::{marker::ChannelMarker, Id};
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// An action which will execute whenever a rule is triggered.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -28,7 +29,7 @@ pub struct AutoModerationActionMetadata {
 }
 
 /// Type of [`AutoModerationAction`].
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AutoModerationActionType(u8);
 
 impl AutoModerationActionType {
@@ -67,6 +68,33 @@ impl AutoModerationActionType {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::BLOCK_MESSAGE => "BLOCK_MESSAGE",
+            Self::SEND_ALERT_MESSAGE => "SEND_ALERT_MESSAGE",
+            Self::TIMEOUT => "TIMEOUT",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for AutoModerationActionType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("AutoModerationActionType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("AutoModerationActionType")
+                .field(&self.0)
+                .finish()
+        }
     }
 }
 

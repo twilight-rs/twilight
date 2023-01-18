@@ -74,7 +74,7 @@ use std::{
 /// ```
 /// use serde::{Deserialize, Serialize};
 ///
-/// #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+/// #[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 /// pub struct Letter([u8; 1]);
 ///
 /// impl Letter {

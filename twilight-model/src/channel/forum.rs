@@ -3,6 +3,7 @@ use crate::id::{
     Id,
 };
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Emoji to use as the default way to react to a forum post.
 ///
@@ -23,7 +24,7 @@ pub struct DefaultReaction {
 ///
 /// [channel]: super::Channel
 /// [forum]: super::ChannelType::GUILD_FORUM
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ForumLayout(u8);
 
 impl ForumLayout {
@@ -57,12 +58,28 @@ impl ForumLayout {
         self.0
     }
 
-    pub const fn name(self) -> &'static str {
-        match self {
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
             Self::GALLERY_VIEW => "GALLERY_VIEW",
             Self::LIST_VIEW => "LIST_VIEW",
             Self::NOT_SET => "NOT_SET",
-            _ => "UNKNOWN",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for ForumLayout {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("ForumLayout")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("ForumLayout").field(&self.0).finish()
         }
     }
 }
@@ -83,7 +100,7 @@ impl From<ForumLayout> for u8 {
 ///
 /// [channel]: super::Channel
 /// [forum]: super::ChannelType::GUILD_FORUM
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ForumSortOrder(u8);
 
 impl ForumSortOrder {
@@ -114,11 +131,24 @@ impl ForumSortOrder {
         self.0
     }
 
-    pub const fn name(self) -> &'static str {
-        match self {
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
             Self::CREATION_DATE => "CREATION_DATE",
             Self::LATEST_ACTIVITY => "LATEST_ACTIVITY",
-            _ => "UNKNOWN",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for ForumSortOrder {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("ForumSortOrder")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("ForumSortOrder").field(&self.0).finish()
         }
     }
 }
@@ -247,7 +277,7 @@ mod tests {
                     Token::U8(*number),
                 ],
             );
-            assert_eq!(layout.name(), *name);
+            assert_eq!(layout.name(), Some(*name));
         }
     }
 
@@ -259,7 +289,7 @@ mod tests {
         ];
 
         for (layout, number, name) in MAP {
-            assert_eq!(layout.name(), *name);
+            assert_eq!(layout.name(), Some(*name));
             assert_eq!(u8::from(*layout), *number);
             assert_eq!(ForumSortOrder::from(*number), *layout);
             assert_tokens(

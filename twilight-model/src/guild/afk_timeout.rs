@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::{
+    fmt::{Debug, Formatter, Result as FmtResult},
+    time::Duration,
+};
 
 /// Duration of a user being AFK before being timed out from a voice channel.
 ///
@@ -14,7 +17,7 @@ use std::time::Duration;
 /// ```
 ///
 /// [`Guild::afk_timeout`]: super::Guild::afk_timeout
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[non_exhaustive]
 pub struct AfkTimeout(u16);
 
@@ -45,6 +48,33 @@ impl AfkTimeout {
     /// ```
     pub const fn get(self) -> u16 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ONE_MINUTE => "ONE_MINUTE",
+            Self::FIVE_MINUTES => "FIVE_MINUTES",
+            Self::FIFTEEN_MINUTES => "FIFTEEN_MINUTES",
+            Self::THIRTY_MINUTES => "THIRTY_MINUTES",
+            Self::ONE_HOUR => "ONE_HOUR",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for AfkTimeout {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("AfkTimeout")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("AfkTimeout").field(&self.0).finish()
+        }
     }
 }
 

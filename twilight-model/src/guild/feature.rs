@@ -108,6 +108,40 @@ impl GuildFeature {
         self.0.get()
     }
 
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ANIMATED_BANNER => "ANIMATED_BANNER",
+            Self::ANIMATED_ICON => "ANIMATED_ICON",
+            Self::AUTO_MODERATION => "AUTO_MODERATION",
+            Self::BANNER => "BANNER",
+            #[allow(deprecated)]
+            Self::COMMERCE => "COMMERCE",
+            Self::COMMUNITY => "COMMUNITY",
+            Self::DEVELOPER_SUPPORT_SERVER => "DEVELOPER_SUPPORT_SERVER",
+            Self::DISCOVERABLE => "DISCOVERABLE",
+            Self::FEATURABLE => "FEATURABLE",
+            Self::INVITES_DISABLED => "INVITES_DISABLED",
+            Self::INVITE_SPLASH => "INVITE_SPLASH",
+            Self::MEMBER_VERIFICATION_GATE_ENABLED => "MEMBER_VERIFICATION_GATE_ENABLED",
+            Self::MONETIZATION_ENABLED => "MONETIZATION_ENABLED",
+            Self::MORE_STICKERS => "MORE_STICKERS",
+            Self::NEWS => "NEWS",
+            Self::PARTNERED => "PARTNERED",
+            Self::PREVIEW_ENABLED => "PREVIEW_ENABLED",
+            Self::PRIVATE_THREADS => "PRIVATE_THREADS",
+            Self::ROLE_ICONS => "ROLE_ICONS",
+            Self::TICKETED_EVENTS_ENABLED => "TICKETED_EVENTS_ENABLED",
+            Self::VANITY_URL => "VANITY_URL",
+            Self::VERIFIED => "VERIFIED",
+            Self::VIP_REGIONS => "VIP_REGIONS",
+            Self::WELCOME_SCREEN_ENABLED => "WELCOME_SCREEN_ENABLED",
+            _ => return None,
+        })
+    }
+
     /// Create a guild feature from a set of bytes.
     const fn from_bytes(input: &[u8]) -> Self {
         Self(KnownString::from_bytes(input))
@@ -122,7 +156,7 @@ impl AsRef<str> for GuildFeature {
 
 impl Debug for GuildFeature {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.get())
+        f.write_str(self.name().unwrap_or_else(|| self.get()))
     }
 }
 

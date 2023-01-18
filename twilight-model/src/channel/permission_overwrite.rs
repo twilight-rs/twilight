@@ -3,6 +3,7 @@ use crate::{
     id::{marker::GenericMarker, Id},
 };
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Permission overwrite data for a role or member.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -16,7 +17,7 @@ pub struct PermissionOverwrite {
 
 /// Type of a permission overwrite target.
 // Keep in sync with `twilight_util::permission_calculator::PermissionCalculator`!
-#[derive(Clone, Copy, Debug, Serialize, Eq, Hash, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Serialize, Eq, Hash, PartialEq, Deserialize)]
 pub struct PermissionOverwriteType(u8);
 
 impl PermissionOverwriteType {
@@ -45,6 +46,32 @@ impl PermissionOverwriteType {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::MEMBER => "MEMBER",
+            Self::ROLE => "ROLE",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for PermissionOverwriteType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("PermissionOverwriteType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("PermissionOverwriteType")
+                .field(&self.0)
+                .finish()
+        }
     }
 }
 

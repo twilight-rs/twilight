@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Characterizes the type of content which can trigger the rule.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct AutoModerationTriggerType(u8);
 
 impl AutoModerationTriggerType {
@@ -42,6 +43,34 @@ impl AutoModerationTriggerType {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::KEYWORD => "KEYWORD",
+            Self::KEYWORD_PRESET => "KEYWORD_PRESET",
+            Self::MENTION_SPAM => "MENTION_SPAM",
+            Self::SPAM => "SPAM",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for AutoModerationTriggerType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("AutoModerationTriggerType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("AutoModerationTriggerType")
+                .field(&self.0)
+                .finish()
+        }
     }
 }
 

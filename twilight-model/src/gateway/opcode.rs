@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Gateway event opcodes.
 ///
@@ -10,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// [`PRESENCE_UPDATE`]: Self::PRESENCE_UPDATE
 /// [`REQUEST_GUILD_MEMBERS`]: Self::REQUEST_GUILD_MEMBERS
 /// [`VOICE_STATE_UPDATE`]: Self::VOICE_STATE_UPDATE
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OpCode(u8);
 
 impl OpCode {
@@ -77,8 +78,11 @@ impl OpCode {
         self.0
     }
 
-    pub const fn name(self) -> &'static str {
-        match self {
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
             Self::DISPATCH => "DISPATCH",
             Self::HEARTBEAT => "HEARTBEAT",
             Self::HEARTBEAT_ACK => "HEARTBEAT_ACK",
@@ -90,7 +94,20 @@ impl OpCode {
             Self::REQUEST_GUILD_MEMBERS => "REQUEST_GUILD_MEMBERS",
             Self::RESUME => "RESUME",
             Self::VOICE_STATE_UPDATE => "VOICE_STATE_UPDATE",
-            _ => "UNKNOWN",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for OpCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("OpCode")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("OpCode").field(&self.0).finish()
         }
     }
 }

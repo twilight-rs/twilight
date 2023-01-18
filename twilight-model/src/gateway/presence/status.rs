@@ -36,6 +36,20 @@ impl Status {
         self.0.get()
     }
 
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::DO_NOT_DISTURB => "DO_NOT_DISTURB",
+            Self::IDLE => "IDLE",
+            Self::INVISIBLE => "INVISIBLE",
+            Self::OFFLINE => "OFFLINE",
+            Self::ONLINE => "ONLINE",
+            _ => return None,
+        })
+    }
+
     /// Create a status from a set of bytes.
     const fn from_bytes(input: &[u8]) -> Self {
         Self(KnownString::from_bytes(input))
@@ -50,7 +64,7 @@ impl AsRef<str> for Status {
 
 impl Debug for Status {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.get())
+        f.write_str(self.name().unwrap_or_else(|| self.get()))
     }
 }
 

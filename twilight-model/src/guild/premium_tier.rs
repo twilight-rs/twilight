@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct PremiumTier(u8);
 
 impl PremiumTier {
@@ -28,6 +29,32 @@ impl PremiumTier {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::NONE => "NONE",
+            Self::TIER_1 => "TIER_1",
+            Self::TIER_2 => "TIER_2",
+            Self::TIER_3 => "TIER_3",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for PremiumTier {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("PremiumTier")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("PremiumTier").field(&self.0).finish()
+        }
     }
 }
 

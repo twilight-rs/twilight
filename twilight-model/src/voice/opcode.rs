@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Voice gateway opcodes.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct OpCode(u8);
 
 impl OpCode {
@@ -57,6 +58,39 @@ impl OpCode {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::CLIENT_DISCONNECT => "CLIENT_DISCONNECT",
+            Self::HEARTBEAT => "HEARTBEAT",
+            Self::HEARTBEAT_ACK => "HEARTBEAT_ACK",
+            Self::HELLO => "HELLO",
+            Self::IDENTIFY => "IDENTIFY",
+            Self::READY => "READY",
+            Self::RESUME => "RESUME",
+            Self::RESUMED => "RESUMED",
+            Self::SELECT_PROTOCOL => "SELECT_PROTOCOL",
+            Self::SESSION_DESCRIPTION => "SESSION_DESCRIPTION",
+            Self::SPEAKING => "SPEAKING",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for OpCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("OpCode")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("OpCode").field(&self.0).finish()
+        }
     }
 }
 

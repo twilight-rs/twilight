@@ -176,6 +176,45 @@ impl Scope {
         self.0.get()
     }
 
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ACTIVITIES_READ => "ACTIVITIES_READ",
+            Self::ACTIVITIES_WRITE => "ACTIVITIES_WRITE",
+            Self::APPLICATIONS_BUILDS_READ => "APPLICATIONS_BUILDS_READ",
+            Self::APPLICATIONS_BUILDS_UPLOAD => "APPLICATIONS_BUILDS_UPLOAD",
+            Self::APPLICATIONS_COMMANDS => "APPLICATIONS_COMMANDS",
+            Self::APPLICATIONS_COMMANDS_UPDATE => "APPLICATIONS_COMMANDS_UPDATE",
+            Self::APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE => {
+                "APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE"
+            }
+            Self::APPLICATIONS_ENTITLEMENTS => "APPLICATIONS_ENTITLEMENTS",
+            Self::APPLICATIONS_STORE_UPDATE => "APPLICATIONS_STORE_UPDATE",
+            Self::BOT => "BOT",
+            Self::CONNECTIONS => "CONNECTIONS",
+            Self::DM_CHANNELS_READ => "DM_CHANNELS_READ",
+            Self::EMAIL => "EMAIL",
+            Self::GDM_JOIN => "GDM_JOIN",
+            Self::GUILDS => "GUILDS",
+            Self::GUILDS_JOIN => "GUILDS_JOIN",
+            Self::GUILDS_MEMBERS_READ => "GUILDS_MEMBERS_READ",
+            Self::IDENTIFY => "IDENTIFY",
+            Self::MESSAGES_READ => "MESSAGES_READ",
+            Self::RELATIONSHIPS_READ => "RELATIONSHIPS_READ",
+            Self::ROLE_CONNECTIONS_WRITE => "ROLE_CONNECTIONS_WRITE",
+            Self::RPC => "RPC",
+            Self::RPC_ACTIVITIES_WRITE => "RPC_ACTIVITIES_WRITE",
+            Self::RPC_NOTIFICATIONS_READ => "RPC_NOTIFICATIONS_READ",
+            Self::RPC_VOICE_READ => "RPC_VOICE_READ",
+            Self::RPC_VOICE_WRITE => "RPC_VOICE_WRITE",
+            Self::VOICE => "VOICE",
+            Self::WEBHOOK_INCOMING => "WEBHOOK_INCOMING",
+            _ => return None,
+        })
+    }
+
     /// Create a scope from a set of bytes.
     const fn from_bytes(input: &[u8]) -> Self {
         Self(KnownString::from_bytes(input))
@@ -190,7 +229,7 @@ impl AsRef<str> for Scope {
 
 impl Debug for Scope {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.get())
+        f.write_str(self.name().unwrap_or_else(|| self.get()))
     }
 }
 

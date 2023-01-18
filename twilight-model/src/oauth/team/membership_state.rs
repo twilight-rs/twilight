@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct TeamMembershipState(u8);
 
 impl TeamMembershipState {
@@ -26,6 +27,30 @@ impl TeamMembershipState {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::ACCEPTED => "ACCEPTED",
+            Self::INVITED => "INVITED",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for TeamMembershipState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("TeamMembershipState")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("TeamMembershipState").field(&self.0).finish()
+        }
     }
 }
 

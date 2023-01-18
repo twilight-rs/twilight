@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ChannelType(u8);
 
 impl ChannelType {
@@ -53,6 +54,27 @@ impl ChannelType {
         self.0
     }
 
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::GUILD_TEXT => "GUILD_TEXT",
+            Self::PRIVATE => "PRIVATE",
+            Self::GUILD_VOICE => "GUILD_VOICE",
+            Self::GROUP => "GROUP",
+            Self::GUILD_CATEGORY => "GUILD_CATEGORY",
+            Self::GUILD_ANNOUNCEMENT => "GUILD_ANNOUNCEMENT",
+            Self::ANNOUNCEMENT_THREAD => "ANNOUNCEMENT_THREAD",
+            Self::PUBLIC_THREAD => "PUBLIC_THREAD",
+            Self::PRIVATE_THREAD => "PRIVATE_THREAD",
+            Self::GUILD_STAGE_VOICE => "GUILD_STAGE_VOICE",
+            Self::GUILD_DIRECTORY => "GUILD_DIRECTORY",
+            Self::GUILD_FORUM => "GUILD_FORUM",
+            _ => return None,
+        })
+    }
+
     /// Whether the channel type is that of a guild.
     ///
     /// The following channel types are considered guild channel types:
@@ -94,23 +116,17 @@ impl ChannelType {
             Self::ANNOUNCEMENT_THREAD | Self::PUBLIC_THREAD | Self::PRIVATE_THREAD
         )
     }
+}
 
-    /// Name of the variant as a string slice.
-    pub const fn name(self) -> &'static str {
-        match self {
-            Self::ANNOUNCEMENT_THREAD => "ANNOUNCEMENT_THREAD",
-            Self::GROUP => "GROUP",
-            Self::GUILD_CATEGORY => "GUILD_CATEGORY",
-            Self::GUILD_DIRECTORY => "GUILD_DIRECTORY",
-            Self::GUILD_FORUM => "GUILD_FORUM",
-            Self::GUILD_ANNOUNCEMENT => "GUILD_ANNOUNCEMENT",
-            Self::GUILD_STAGE_VOICE => "GUILD_STAGE_VOICE",
-            Self::GUILD_TEXT => "GUILD_TEXT",
-            Self::GUILD_VOICE => "GUILD_VOICE",
-            Self::PRIVATE => "PRIVATE",
-            Self::PRIVATE_THREAD => "PRIVATE_THREAD",
-            Self::PUBLIC_THREAD => "PUBLIC_THREAD",
-            _ => "UNKNOWN",
+impl Debug for ChannelType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("ChannelType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("ChannelType").field(&self.0).finish()
         }
     }
 }
@@ -176,7 +192,7 @@ mod tests {
             );
             assert_eq!(*kind, ChannelType::from(*num));
             assert_eq!(*num, kind.get());
-            assert_eq!(kind.name(), *name);
+            assert_eq!(kind.name(), Some(*name));
         }
     }
 }

@@ -6,6 +6,7 @@ use crate::{
     channel::message::{AllowedMentions, Component, Embed, MessageFlags},
 };
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Interaction response sent to Discord.
 ///
@@ -75,7 +76,7 @@ pub struct InteractionResponseData {
 }
 
 /// Type of interaction response.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct InteractionResponseType(u8);
 
 impl InteractionResponseType {
@@ -125,6 +126,39 @@ impl InteractionResponseType {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::APPLICATION_COMMAND_AUTOCOMPLETE_RESULT => {
+                "Self::APPLICATION_COMMAND_AUTOCOMPLETE_RESULT"
+            }
+            Self::CHANNEL_MESSAGE_WITH_SOURCE => "CHANNEL_MESSAGE_WITH_SOURCE",
+            Self::DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE => "DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE",
+            Self::DEFERRED_UPDATE_MESSAGE => "DEFERRED_UPDATE_MESSAGE",
+            Self::MODAL => "MODAL",
+            Self::PONG => "PONG",
+            Self::UPDATE_MESSAGE => "UPDATE_MESSAGE",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for InteractionResponseType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("InteractionResponseType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("InteractionResponseType")
+                .field(&self.0)
+                .finish()
+        }
     }
 }
 

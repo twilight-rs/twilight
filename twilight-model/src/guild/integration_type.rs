@@ -40,6 +40,18 @@ impl GuildIntegrationType {
         self.0.get()
     }
 
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::DISCORD => "DISCORD",
+            Self::TWITCH => "TWITCH",
+            Self::YOUTUBE => "YOUTUBE",
+            _ => return None,
+        })
+    }
+
     /// Create a guild integration type from a set of bytes.
     const fn from_bytes(input: &[u8]) -> Self {
         Self(KnownString::from_bytes(input))
@@ -54,7 +66,7 @@ impl AsRef<str> for GuildIntegrationType {
 
 impl Debug for GuildIntegrationType {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.get())
+        f.write_str(self.name().unwrap_or_else(|| self.get()))
     }
 }
 

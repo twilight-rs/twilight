@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct VideoQualityMode(u8);
 
 impl VideoQualityMode {
@@ -9,14 +10,6 @@ impl VideoQualityMode {
 
     /// 720p.
     pub const FULL: Self = Self::new(2);
-
-    pub const fn name(self) -> &'static str {
-        match self {
-            Self::AUTO => "Auto",
-            Self::FULL => "Full",
-            _ => "UNKNOWN",
-        }
-    }
 
     /// Create a new video quality mode from a dynamic value.
     ///
@@ -37,6 +30,30 @@ impl VideoQualityMode {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::AUTO => "AUTO",
+            Self::FULL => "FULL",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for VideoQualityMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("VideoQualityMode")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("VideoQualityMode").field(&self.0).finish()
+        }
     }
 }
 

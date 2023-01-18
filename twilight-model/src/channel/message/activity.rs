@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// Activity associated with a message.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -12,7 +13,7 @@ pub struct MessageActivity {
 }
 
 /// Activity of this message.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 
 pub struct MessageActivityType(u8);
 
@@ -48,6 +49,32 @@ impl MessageActivityType {
     /// ```
     pub const fn get(&self) -> u8 {
         self.0
+    }
+
+    /// Name of the associated constant.
+    ///
+    /// Returns `None` if the value doesn't have a defined constant.
+    pub const fn name(self) -> Option<&'static str> {
+        Some(match self {
+            Self::JOIN => "JOIN",
+            Self::SPECTATE => "SPECTATE",
+            Self::LISTEN => "LISTEN",
+            Self::JOIN_REQUEST => "JOIN_REQUEST",
+            _ => return None,
+        })
+    }
+}
+
+impl Debug for MessageActivityType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        if let Some(name) = self.name() {
+            f.debug_struct("MessageActivityType")
+                .field("name", &name)
+                .field("value", &self.0)
+                .finish()
+        } else {
+            f.debug_tuple("MessageActivityType").field(&self.0).finish()
+        }
     }
 }
 
